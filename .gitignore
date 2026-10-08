@@ -1,0 +1,25 @@
+# dependencies and build output
+node_modules/
+dist/
+.astro/
+.vercel/
+.output/
+
+# tests and tooling output
+coverage/
+playwright-report/
+test-results/
+.playwright-mcp/
+
+# local editor and agent state
+.claude/settings.local.json
+.vscode/
+.idea/
+*.log
+.DS_Store
+
+# course material kept for reference only, not part of the portfolio
+.reference/
+
+# raw video captures before compression
+media-raw/
