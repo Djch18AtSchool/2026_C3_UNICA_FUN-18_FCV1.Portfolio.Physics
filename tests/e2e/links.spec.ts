@@ -12,6 +12,11 @@ test('todos los enlaces internos de la portada y de los 13 temas responden 200',
   for (const path of PAGES) {
     const response = await page.goto(path);
     expect(response?.status(), path).toBe(200);
+    // A root-relative link that skipped withBase() would 404 on GitHub Pages.
+    await expect(
+      page.locator(`a[href^="/"]:not([href^="${BASE_PATH}"])`),
+      `${path} has an internal link without the base path`,
+    ).toHaveCount(0);
     const found = await page
       .locator(`a[href^="${BASE_PATH}"]`)
       .evaluateAll((anchors) => anchors.map((anchor) => anchor.getAttribute('href') ?? ''));

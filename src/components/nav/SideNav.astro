@@ -100,4 +100,17 @@ const current = topics.find((topic) => topic.slug === currentSlug);
       block-size: auto;
     }
   }
+
+  /*
+   * Without ::details-content support the list cannot be forced open, so keep the summary on
+   * wide screens too and the sidebar degrades to a working collapsed drawer. This unlayered
+   * rule beats Tailwind's layered lg:hidden utility.
+   */
+  @supports not selector(::details-content) {
+    @media (width >= 64rem) {
+      .sidenav > summary {
+        display: flex;
+      }
+    }
+  }
 </style>
