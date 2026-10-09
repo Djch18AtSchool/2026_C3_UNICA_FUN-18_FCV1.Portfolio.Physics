@@ -1,13 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { DRONE_ROUTE, generateRoute, type RouteSample } from '../../../lib/data/droneRoute';
-import {
-  decimate,
-  distanceSeries,
-  dwellWindows,
-  motionPhase,
-  prefixSums,
-  sampleAt,
-} from './routeSeries';
+import { decimate, distanceSeries, dwellWindows, motionPhase, sampleAt } from './routeSeries';
 
 const SAMPLES = generateRoute(DRONE_ROUTE);
 const DT = DRONE_ROUTE.dt;
@@ -43,20 +36,6 @@ describe('sampleAt', () => {
     expect(sampleAt(SAMPLES, 30.04, DT).t).toBe(30);
     expect(sampleAt(SAMPLES, -5, DT)).toBe(SAMPLES[0]);
     expect(sampleAt(SAMPLES, 1e6, DT)).toBe(SAMPLES[SAMPLES.length - 1]);
-  });
-});
-
-describe('prefixSums', () => {
-  test('returns the running totals as a new array', () => {
-    const values = [1, 2, 3, 4, 5, 6, 7];
-
-    expect(prefixSums(values)).toEqual([1, 3, 6, 10, 15, 21, 28]);
-    expect(values).toEqual([1, 2, 3, 4, 5, 6, 7]);
-  });
-
-  test('handles empty and single-item inputs', () => {
-    expect(prefixSums([])).toEqual([]);
-    expect(prefixSums([4])).toEqual([4]);
   });
 });
 
