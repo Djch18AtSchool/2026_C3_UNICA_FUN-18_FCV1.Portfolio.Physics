@@ -23,3 +23,6 @@ test-results/
 
 # raw video captures before compression
 media-raw/
+
+# subagent-driven-development scratch
+.superpowers/
