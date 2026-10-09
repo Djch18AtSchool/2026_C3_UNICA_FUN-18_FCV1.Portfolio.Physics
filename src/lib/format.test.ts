@@ -22,4 +22,14 @@ describe('formatNumber', () => {
   test('supports zero precision', () => {
     expect(formatNumber(1500, { precision: 0 })).toBe('1\u202f500');
   });
+  test('never prints a minus sign for values that round to zero', () => {
+    expect(formatNumber(-0.001)).toBe('0,00');
+    expect(formatNumber(-0)).toBe('0,00');
+    expect(formatNumber(-0.4, { precision: 0 })).toBe('0');
+    expect(formatNumber(-0.001, { unit: 'm' })).toBe('0,00\u202fm');
+  });
+  test('keeps the minus sign for values that do not round to zero', () => {
+    expect(formatNumber(-0.01)).toBe('-0,01');
+    expect(formatNumber(-0.6, { precision: 0 })).toBe('-1');
+  });
 });

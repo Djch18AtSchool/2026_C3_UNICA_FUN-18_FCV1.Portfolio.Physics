@@ -11,7 +11,10 @@ export interface FormatNumberOptions {
 export function formatNumber(value: number, options: FormatNumberOptions = {}): string {
   if (!Number.isFinite(value)) return NOT_A_NUMBER;
   const { precision = DEFAULT_PRECISION, unit } = options;
-  const [integerPart, fractionPart] = value.toFixed(precision).split('.');
+  const fixed = value.toFixed(precision);
+  // A negative value that rounds to zero must not print as "-0,00".
+  const unsigned = Number(fixed) === 0 ? fixed.replace('-', '') : fixed;
+  const [integerPart, fractionPart] = unsigned.split('.');
   const grouped = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, NARROW_NBSP);
   const text = fractionPart === undefined ? grouped : `${grouped},${fractionPart}`;
   return unit ? `${text}${NARROW_NBSP}${unit}` : text;

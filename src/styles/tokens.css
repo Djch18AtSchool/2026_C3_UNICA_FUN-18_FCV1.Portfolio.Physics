@@ -7,8 +7,11 @@
  *
  * Resource accents (--sim, --viz, --diag, --media) and --chart-1…6 identify things;
  * they are for marks (swatches, rules, borders, series), never for text. Text stays
- * in --fg / --fg-muted / --accent. Both sets are steps of the dataviz reference
- * palette, validated for color-vision deficiency against these surfaces.
+ * in --fg / --fg-muted / --accent. --chart-1…3 and the resource accents are steps of
+ * the dataviz reference palette; --chart-4…6 (purple, brown, cyan) are retuned so no
+ * series repeats a resource accent hue. The six chart slots, in order, pass the
+ * dataviz validator (lightness band, chroma, adjacent CVD ΔE ≥ 8, normal-vision ΔE
+ * ≥ 15) against --bg in each theme; each new slot also keeps ≥ 3:1 against --bg.
  */
 
 :root {
@@ -28,9 +31,9 @@
   --chart-1: #2a78d6;
   --chart-2: #eb6834;
   --chart-3: #1baf7a;
-  --chart-4: #eda100;
-  --chart-5: #e87ba4;
-  --chart-6: #008300;
+  --chart-4: #a951c3;
+  --chart-5: #8d5403;
+  --chart-6: #0196b0;
   --radius: 3px;
 }
 
@@ -51,8 +54,8 @@
   --chart-1: #3987e5;
   --chart-2: #d95926;
   --chart-3: #199e70;
-  --chart-4: #c98500;
-  --chart-5: #d55181;
-  --chart-6: #008300;
+  --chart-4: #9c44b6;
+  --chart-5: #9c631d;
+  --chart-6: #20a2bd;
   --radius: 3px;
 }
