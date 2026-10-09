@@ -1,5 +1,4 @@
 import { useDeferredValue, useEffect, useState } from 'react';
-import droneRoute from '../../../data/drone-route.json';
 import type { RouteDefinition, RouteSample } from '../../../lib/data/droneRoute';
 import { CHART_COLORS } from '../../charts/chartTheme';
 import LineChart, { type AxisSpec, type SeriesSpec } from '../../charts/LineChart';
@@ -21,10 +20,6 @@ interface DroneDataset {
   samples: RouteSample[];
 }
 
-/** The committed dataset (scripts/generate-drone-route.ts); its shape is checked at compile time. */
-const DATASET: DroneDataset = droneRoute;
-const { definition, samples: SAMPLES } = DATASET;
-const LAST_SAMPLE = SAMPLES[SAMPLES.length - 1];
 /** Recharts tooltips choke on 3 900 points × 4 charts: the curves use one sample every 0,5 s. */
 const CHART_EVERY = 5;
 /** Braking into A: the opening view shows v and a pointing opposite ways. */
@@ -37,10 +32,7 @@ const TIME_AXIS_END_S = 400;
 /** The stops reach 1 100 m; a 0–1 500 m range keeps the position ticks every 500 m. */
 const POSITION_AXIS_END_M = 1500;
 const TIME_AXIS: AxisSpec = { label: 't', unit: 's', domain: [0, TIME_AXIS_END_S] };
-
-const BANDS = dwellWindows(SAMPLES, definition.stops);
-const KINEMATIC_ROWS = decimate(SAMPLES, CHART_EVERY).map((sample) => ({ ...sample }));
-const DISTANCE_ROWS = decimate(distanceSeries(SAMPLES), CHART_EVERY).map((row) => ({ ...row }));
+const CHART_COUNT = 4;
 
 interface ChartSpec {
   id: string;
@@ -50,50 +42,92 @@ interface ChartSpec {
   series: SeriesSpec[];
 }
 
-const CHARTS: ChartSpec[] = [
-  {
-    id: 'posicion',
-    title: 'Posición: x(t) y y(t)',
-    data: KINEMATIC_ROWS,
-    yAxis: { label: 'Posición', unit: 'm', domain: [0, POSITION_AXIS_END_M] },
-    series: [
-      { key: 'x', name: 'x' },
-      { key: 'y', name: 'y' },
-    ],
-  },
-  {
-    id: 'velocidad',
-    title: 'Velocidad: vx(t), vy(t) y |v|(t)',
-    data: KINEMATIC_ROWS,
-    yAxis: { label: 'Velocidad', unit: 'm/s' },
-    series: [
-      { key: 'vx', name: 'vx' },
-      { key: 'vy', name: 'vy' },
-      { key: 'speed', name: '|v|', color: CHART_COLORS[2] },
-    ],
-  },
-  {
-    id: 'aceleracion',
-    title: 'Aceleración: ax(t), ay(t) y |a|(t)',
-    data: KINEMATIC_ROWS,
-    yAxis: { label: 'Aceleración', unit: 'm/s²' },
-    series: [
-      { key: 'ax', name: 'ax' },
-      { key: 'ay', name: 'ay' },
-      { key: 'accel', name: '|a|', color: CHART_COLORS[3] },
-    ],
-  },
-  {
-    id: 'distancia',
-    title: 'Distancia recorrida frente a |Δr| desde el depósito',
-    data: DISTANCE_ROWS,
-    yAxis: { label: 'Longitud', unit: 'm' },
-    series: [
-      { key: 'distance', name: 'Distancia recorrida', color: CHART_COLORS[4] },
-      { key: 'displacement', name: '|Δr|', color: CHART_COLORS[5] },
-    ],
-  },
-];
+/** Everything the explorer draws, derived once from the dataset. */
+interface DroneModel {
+  definition: RouteDefinition;
+  samples: RouteSample[];
+  lastSample: RouteSample;
+  bands: ReturnType<typeof dwellWindows>;
+  charts: ChartSpec[];
+}
+
+function buildCharts(samples: RouteSample[]): ChartSpec[] {
+  const kinematicRows = decimate(samples, CHART_EVERY).map((sample) => ({ ...sample }));
+  const distanceRows = decimate(distanceSeries(samples), CHART_EVERY).map((row) => ({ ...row }));
+  return [
+    {
+      id: 'posicion',
+      title: 'Posición: x(t) y y(t)',
+      data: kinematicRows,
+      yAxis: { label: 'Posición', unit: 'm', domain: [0, POSITION_AXIS_END_M] },
+      series: [
+        { key: 'x', name: 'x' },
+        { key: 'y', name: 'y' },
+      ],
+    },
+    {
+      id: 'velocidad',
+      title: 'Velocidad: vx(t), vy(t) y |v|(t)',
+      data: kinematicRows,
+      yAxis: { label: 'Velocidad', unit: 'm/s' },
+      series: [
+        { key: 'vx', name: 'vx' },
+        { key: 'vy', name: 'vy' },
+        { key: 'speed', name: '|v|', color: CHART_COLORS[2] },
+      ],
+    },
+    {
+      id: 'aceleracion',
+      title: 'Aceleración: ax(t), ay(t) y |a|(t)',
+      data: kinematicRows,
+      yAxis: { label: 'Aceleración', unit: 'm/s²' },
+      series: [
+        { key: 'ax', name: 'ax' },
+        { key: 'ay', name: 'ay' },
+        { key: 'accel', name: '|a|', color: CHART_COLORS[3] },
+      ],
+    },
+    {
+      id: 'distancia',
+      title: 'Distancia recorrida frente a |Δr| desde el depósito',
+      data: distanceRows,
+      yAxis: { label: 'Longitud', unit: 'm' },
+      series: [
+        { key: 'distance', name: 'Distancia recorrida', color: CHART_COLORS[4] },
+        { key: 'displacement', name: '|Δr|', color: CHART_COLORS[5] },
+      ],
+    },
+  ];
+}
+
+function buildModel({ definition, samples }: DroneDataset): DroneModel {
+  return {
+    definition,
+    samples,
+    lastSample: samples[samples.length - 1],
+    bands: dwellWindows(samples, definition.stops),
+    charts: buildCharts(samples),
+  };
+}
+
+interface DroneDataset {
+  definition: RouteDefinition;
+  samples: RouteSample[];
+}
+
+/**
+ * The committed dataset (scripts/generate-drone-route.ts, 355 KB) is not part of the island's
+ * bundle: Vite splits this import into its own chunk, fetched after hydration. The assignment
+ * keeps its shape checked at compile time.
+ */
+async function loadModel(): Promise<DroneModel> {
+  const { default: dataset } = await import('../../../data/drone-route.json');
+  const typed: DroneDataset = dataset;
+  return buildModel(typed);
+}
+
+type LoadState =
+  { status: 'loading' } | { status: 'error' } | { status: 'ready'; model: DroneModel };
 
 const PHASE_LABELS: Record<MotionPhase, string> = {
   acelerando: 'acelerando (a en el sentido de v)',
@@ -102,25 +136,44 @@ const PHASE_LABELS: Record<MotionPhase, string> = {
   detenido: 'detenido en un vértice',
 };
 
-export default function DroneProfiles() {
+const STATUS_TEXT: Record<Exclude<LoadState['status'], 'ready'>, string> = {
+  loading: 'Cargando los datos de la ruta…',
+  error: 'No se pudieron cargar los datos de la ruta. Recarga la página para intentarlo de nuevo.',
+};
+
+/** Holds the space of the map and the four charts while the dataset chunk loads. */
+function DroneSkeleton({ status }: { status: 'loading' | 'error' }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <p role="status" className="m-0 text-sm text-fg-muted">
+        {STATUS_TEXT[status]}
+      </p>
+      <div aria-hidden="true" className="flex flex-col gap-4">
+        <div className="aspect-[4/3] rounded-base border border-dashed border-border @2xl:aspect-[2/1]" />
+        {Array.from({ length: CHART_COUNT }, (_, index) => (
+          <div
+            key={index}
+            className="aspect-[1.6] w-full max-w-[720px] rounded-base border border-dashed border-border"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DroneExplorer({ model }: { model: DroneModel }) {
+  const { definition, samples, lastSample, bands, charts } = model;
   const [time, setTime] = useState(INITIAL_TIME_S);
-  const [isReady, setIsReady] = useState(false);
   // The map and readouts follow the slider at once; the four charts may lag a frame behind.
   const chartTime = useDeferredValue(time);
-  const current = sampleAt(SAMPLES, time, definition.dt);
-  const markers = [{ x: sampleAt(SAMPLES, chartTime, definition.dt).t }];
-
-  useEffect(() => setIsReady(true), []);
+  const current = sampleAt(samples, time, definition.dt);
+  const markers = [{ x: sampleAt(samples, chartTime, definition.dt).t }];
 
   return (
-    <div
-      data-testid="drone-profiles"
-      data-ready={isReady}
-      className="@container flex flex-col gap-4"
-    >
+    <>
       <div className="grid gap-4 @2xl:grid-cols-[2fr_1fr]">
         <div className="min-w-0 rounded-base border border-border bg-bg-elevated p-4">
-          <RouteMap stops={definition.stops} samples={SAMPLES} current={current} />
+          <RouteMap stops={definition.stops} samples={samples} current={current} />
         </div>
         <ControlPanel title="Instante" onReset={() => setTime(INITIAL_TIME_S)}>
           <Slider
@@ -128,7 +181,7 @@ export default function DroneProfiles() {
             label="Tiempo"
             unit="s"
             min={0}
-            max={LAST_SAMPLE.t}
+            max={lastSample.t}
             step={definition.dt}
             value={time}
             precision={TIME_PRECISION}
@@ -156,7 +209,7 @@ export default function DroneProfiles() {
           </div>
         </ControlPanel>
       </div>
-      {CHARTS.map((chart) => (
+      {charts.map((chart) => (
         <LineChart
           key={chart.id}
           title={chart.title}
@@ -165,10 +218,39 @@ export default function DroneProfiles() {
           xAxis={TIME_AXIS}
           yAxis={chart.yAxis}
           series={chart.series}
-          bands={BANDS}
+          bands={bands}
           markers={markers}
         />
       ))}
+    </>
+  );
+}
+
+export default function DroneProfiles() {
+  const [state, setState] = useState<LoadState>({ status: 'loading' });
+
+  useEffect(() => {
+    let isMounted = true;
+    loadModel().then(
+      (model) => isMounted && setState({ status: 'ready', model }),
+      () => isMounted && setState({ status: 'error' }),
+    );
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  return (
+    <div
+      data-testid="drone-profiles"
+      data-ready={state.status === 'ready'}
+      className="@container flex flex-col gap-4"
+    >
+      {state.status === 'ready' ? (
+        <DroneExplorer model={state.model} />
+      ) : (
+        <DroneSkeleton status={state.status} />
+      )}
     </div>
   );
 }
