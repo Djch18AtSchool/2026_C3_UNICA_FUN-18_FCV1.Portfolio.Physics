@@ -8,6 +8,7 @@ import {
   type MotionProfile,
   type Vec2,
 } from '../physics';
+import { requirePositive } from '../physics/validate';
 
 /** A stop of the route: position in metres and dwell time in seconds. */
 export interface RouteStop {
@@ -81,10 +82,16 @@ function validate(def: RouteDefinition): void {
   if (def.stops.length < 2) {
     throw new RangeError(`a route needs at least 2 stops, got ${def.stops.length}`);
   }
-  def.stops.forEach((stop) => {
+  def.stops.forEach((stop, i) => {
     if (!(stop.dwell >= 0)) throw new RangeError(`dwell at ${stop.name} must be ≥ 0`);
+    const previous = def.stops[i - 1];
+    if (previous && previous.x === stop.x && previous.y === stop.y) {
+      throw new RangeError(`zero-length leg from ${previous.name} to ${stop.name}: no heading`);
+    }
   });
-  if (!(def.dt > 0)) throw new RangeError(`dt must be > 0, got ${def.dt}`);
+  requirePositive('vMax', def.vMax);
+  requirePositive('aMax', def.aMax);
+  requirePositive('dt', def.dt);
 }
 
 /** Legs with their start times: leg i starts after legs 0…i−1 and their dwells. */

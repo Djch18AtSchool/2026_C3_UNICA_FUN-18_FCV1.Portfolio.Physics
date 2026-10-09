@@ -33,6 +33,18 @@ describe('routeDuration', () => {
     expect(() => routeDuration(route)).toThrow(RangeError);
   });
 
+  test('rejects two consecutive identical stops, a zero-length leg with no heading', () => {
+    const stops = [DRONE_ROUTE.stops[0], { ...DRONE_ROUTE.stops[0], name: 'Otra vez' }];
+
+    expect(() => routeDuration({ ...DRONE_ROUTE, stops })).toThrow(/zero-length leg/);
+    expect(() => generateRoute({ ...DRONE_ROUTE, stops })).toThrow(RangeError);
+  });
+
+  test('rejects non-positive speed and acceleration limits', () => {
+    expect(() => routeDuration({ ...DRONE_ROUTE, vMax: 0 })).toThrow(/vMax/);
+    expect(() => routeDuration({ ...DRONE_ROUTE, aMax: -2.5 })).toThrow(/aMax/);
+  });
+
   test('rejects a negative dwell', () => {
     const stops = DRONE_ROUTE.stops.map((stop, i) => (i === 1 ? { ...stop, dwell: -1 } : stop));
 
