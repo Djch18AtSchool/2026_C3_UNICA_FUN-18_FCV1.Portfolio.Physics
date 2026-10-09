@@ -67,7 +67,9 @@ describe('HabitatCalculator', () => {
   test('reset returns to the initial mode and value', () => {
     render(<HabitatCalculator />);
 
-    fireEvent.click(screen.getByRole('button', { name: /^Cilindro de O'Neill/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Límite SP-413/ }));
+    expect(readout('Gravedad aparente')).toBe(`1,00${NNBSP}g`);
+    expect(readout('Velocidad tangencial v')).toBe(`93,7${NNBSP}m/s`);
     fireEvent.click(screen.getByRole('button', { name: 'Restablecer' }));
 
     expect(screen.getByRole('radio', { name: 'Fijar 1 g y despejar r' })).toBeChecked();

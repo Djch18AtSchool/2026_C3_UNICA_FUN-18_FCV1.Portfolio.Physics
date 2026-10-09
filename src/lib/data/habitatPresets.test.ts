@@ -14,7 +14,7 @@ describe('HABITAT_PRESETS', () => {
   test('lists the three presets in order', () => {
     expect(HABITAT_PRESETS.map((preset) => preset.id)).toEqual([
       'toro-stanford',
-      'cilindro-oneill',
+      'limite-sp413',
       'centrifuga-pequena',
     ]);
   });
@@ -44,10 +44,11 @@ describe('HABITAT_PRESETS', () => {
     expect(solveHabitat(stanford.values).gRatio).toBeCloseTo(0.93, 2);
   });
 
-  test("the O'Neill cylinder is 4000 m at 0.47 rpm, close to 1 g", () => {
-    const oneill = presetById('cilindro-oneill');
-    expect(oneill.values).toEqual({ r: 4000, rpm: 0.47 });
-    expect(solveHabitat(oneill.values).gRatio).toBeCloseTo(1, 1);
+  test('the SP-413 limit is 895 m at 1 rpm and gives 1.00 g', () => {
+    // SP-413: only radii greater than 895 m reach 1 g below 1 rpm; ω² · 895 = 9.81 m/s².
+    const limit = presetById('limite-sp413');
+    expect(limit.values).toEqual({ r: 895, rpm: 1 });
+    expect(solveHabitat(limit.values).gRatio).toBeCloseTo(1, 2);
   });
 
   test('the small centrifuge gives 1 g at 10 m', () => {

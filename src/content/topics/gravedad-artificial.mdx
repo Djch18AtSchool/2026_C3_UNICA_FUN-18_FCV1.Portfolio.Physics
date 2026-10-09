@@ -63,9 +63,9 @@ import HabitatCalculator from '../../components/topics/gravedad-artificial/Habit
 
 <Fragment slot="caso">
 
-Tomo como caso SpinCalc, la calculadora de gravedad artificial que Theodore W. Hall publica en artificial-gravity.com desde 2000, con última revisión en 2018 <Cite id="hall-spincalc" sources={frontmatter.sources} />. Relaciona cuatro parámetros de un hábitat giratorio, radio, velocidad angular, velocidad tangencial y aceleración centrípeta: dados dos, calcula los otros dos e indica si la combinación cae en la zona de confort de cinco autores: Hill y Schnitzer (1962), Gilruth (1969), Gordon y Gervais (1969), Stone (1973) y Cramer (1985). Sus límites no coinciden: el giro máximo va de 3 a 6 RPM, el radio mínimo, cuando lo dan, es 12 m, y la velocidad tangencial mínima, de 6 a 10 m/s. Hall trató el diseño de estos entornos en un simposio de AIAA de 2006 <Cite id="hall-2006-aiaa" sources={frontmatter.sources} />.
+Tomo como caso SpinCalc, la calculadora de gravedad artificial que Theodore W. Hall publica en artificial-gravity.com desde 2000, con última revisión en 2018 <Cite id="hall-spincalc" sources={frontmatter.sources} />. Relaciona cuatro parámetros de un hábitat giratorio (radio, velocidad angular, velocidad tangencial y aceleración centrípeta): dados dos, calcula los otros dos e indica si la combinación cae en la zona de confort de cinco autores: Hill y Schnitzer (1962), Gilruth (1969), Gordon y Gervais (1969), Stone (1973) y Cramer (1985). Sus límites no coinciden: el giro máximo va de 3 a 6 RPM, el radio mínimo, cuando lo dan, va de 4 a 12 m, y la velocidad tangencial mínima, de 6 a 10 m/s. Hall trató el diseño de estos entornos en un simposio de la AIAA de 2006 <Cite id="hall-2006-aiaa" sources={frontmatter.sources} />.
 
-Lo aplico al Toro de Stanford, el asentamiento que diseñó el estudio de verano de NASA de 1975, publicado en 1977 como SP-413 <Cite id="nasa-sp413-1977" sources={frontmatter.sources} />: un tubo de 130 m de diámetro doblado en una rueda de unos 1 800 m, con radio mayor R = 830 m, radio del tubo de 65 m y seis rayos. El estudio fija dos criterios de diseño, vivir entre 0,9 y 1 g y no girar a más de 1 RPM en las zonas de vivienda, y reporta para su diseño 0,95 ± 0,05 g a 1 RPM. Meter esos números en las ecuaciones de SpinCalc es el ejercicio de este tema.
+Lo aplico al Toro de Stanford, el asentamiento que diseñó el estudio de verano de la NASA de 1975, publicado en 1977 como SP-413 <Cite id="nasa-sp413-1977" sources={frontmatter.sources} />: un tubo de 130 m de diámetro doblado en una rueda de unos 1 800 m, con radio mayor R = 830 m, radio del tubo de 65 m y seis rayos. El estudio fija dos criterios de diseño, vivir entre 0,9 y 1 g y no girar a más de 1 RPM en las zonas de vivienda, y reporta para su diseño 0,95 ± 0,05 g a 1 RPM. Aplicar esos números en las ecuaciones de SpinCalc es el ejercicio de este tema.
 
 </Fragment>
 
@@ -103,7 +103,7 @@ La cabeza de una persona de altura h está h más cerca del eje y siente <Equati
   symbols={[{ symbol: 'h', meaning: 'altura de la persona; uso 1,80 m', unit: 'm' }]}
 />
 
-El caso numérico. A 2 RPM, ω = 0,2094 rad/s y la ecuación (3.3) pide r = 9,81 / 0,2094² = 223,6 m; el piso va a 46,8 m/s y da una vuelta cada 30 s. Al revés, con r = 100 m hacen falta ω = 0,3132 rad/s, es decir, 2,99 RPM. Para el Toro de Stanford, 1 RPM da ω = 0,1047 rad/s y, en R = 830 m, <Equation inline latex="a_c" /> = 9,10 m/s² = 0,93 g. Según mi cálculo, el punto más exterior del tubo, a 830 + 65 = 895 m, llega a 1,00 g: el tubo cubre de 0,93 a 1,00 g, dentro de los 0,95 ± 0,05 g del informe, que además recuerda que solo los radios mayores de 895 m dan 1 g por debajo de 1 RPM.
+El caso numérico. A 2 RPM, ω = 0,2094 rad/s y la ecuación (3.3) pide r = 9,81 / 0,2094² = 223,6 m; el piso va a 46,8 m/s y da una vuelta cada 30 s. Al revés, con r = 100 m hacen falta ω = 0,3132 rad/s, es decir, 2,99 RPM. Para el Toro de Stanford, 1 RPM da ω = 0,1047 rad/s y, en R = 830 m, <Equation inline latex="a_c" /> = 9,10 m/s² = 0,93 g. Según mi cálculo, entre R = 830 m y el punto más exterior del tubo, a 830 + 65 = 895 m, la gravedad aparente va de 0,93 a 1,00 g, dentro de los 0,95 ± 0,05 g del informe; la pared interior, a 765 m, se queda en 0,86 g. El informe recuerda además que solo los radios mayores de 895 m dan 1 g por debajo de 1 RPM.
 
 </Fragment>
 
@@ -115,7 +115,7 @@ La alternativa no física es un valor fijo: declarar dentro del hábitat una "gr
 - **El efecto Coriolis.** Quien se mueve dentro del hábitat siente una fuerza perpendicular a su velocidad y al eje: en el toro, según SP-413, quien salta 0,55 m cae unos 5,3 cm a un lado. A varias RPM, girar la cabeza marea; la gente se adapta por debajo de unas 3 RPM tras una exposición prolongada <Cite id="nasa-sp413-1977" sources={frontmatter.sources} />.
 - **La ventana de confort.** Con una constante no se puede preguntar si un par (r, ω) es habitable; con las ecuaciones (3.1) a (3.4) y los límites publicados, sí, y eso hace SpinCalc.
 
-El modelo explica además por qué incomodan los radios pequeños. Para 1 g, la ecuación (3.3) da <Equation inline latex="\omega = \sqrt{g/r}" />: al achicar el radio, el giro sube, y con él el gradiente y los efectos de Coriolis. La magnitud que decide no es g, sino el par (r, ω) que la produce.
+El modelo explica además por qué incomodan los radios pequeños. Para 1 g, la ecuación (3.3) da <Equation inline latex="\omega = \sqrt{g/r}" />: al achicar el radio, el giro sube, y con él el gradiente y los efectos de Coriolis. Lo que decide no es g, sino el par (r, ω) que la produce.
 
 </Fragment>
 
@@ -125,8 +125,8 @@ Se gana un entorno habitable con física conocida, sin tecnología que no existe
 
 Lo que cuesta:
 
-- **Escala y masa.** Quedarse por debajo de 1 RPM con 1 g exige más de 895 m de radio: la rueda de Stanford mide unos 1 800 m, y el informe estima unas 150 kt solo para la cáscara del toro.
-- **Acoplamiento.** El único punto en reposo es el eje. Una nave que llega tiene que alinearse con él y girar al mismo ritmo; en el borde, el piso pasa a 86,9 m/s.
+- **Escala y masa.** Quedarse por debajo de 1 RPM con 1 g exige más de 895 m de radio: la rueda de Stanford mide unos 1 800 m, y el informe estima unas 150 000 t solo para la cáscara del toro.
+- **Acoplamiento.** El único punto en reposo es el eje. Una nave que llega tiene que alinearse con él y girar al mismo ritmo; a R = 830 m, el piso pasa a 86,9 m/s.
 - **Mareo a ω alta.** Un hábitat pequeño es más barato, pero gira más rápido: 10 m pide 9,46 RPM, por encima del giro máximo de los cinco autores.
 - **Lo que deja fuera mi calculadora.** Resuelve la cinemática y el gradiente; no calcula el efecto Coriolis ni los distintos niveles de un tubo de 130 m.
 
@@ -142,7 +142,7 @@ El diagrama reúne los elementos de las ecuaciones (3.1) a (3.4): eje, radio, se
   type="diagrama"
   caption="Hábitat giratorio en ligera perspectiva: eje, radio r, sentido de giro ω, aceleración centrípeta hacia el eje, gravedad aparente hacia afuera, velocidad tangencial y, en el detalle A, la altura h que produce el gradiente."
   source={{
-    text: 'Diagrama del autor; ecuaciones de Serway y Jewett, cap. de movimiento circular',
+    text: 'Diagrama del autor; ecuaciones (3.1) a (3.4), del modelo de movimiento circular uniforme de Serway y Jewett (2018), fuente 4',
   }}
 >
   <HabitatDiagram />
@@ -150,7 +150,7 @@ El diagrama reúne los elementos de las ecuaciones (3.1) a (3.4): eje, radio, se
 
 ### Calculadora
 
-La calculadora aplica las ecuaciones (3.1) a (3.4) en cada cambio: en un modo se elige el giro y se despeja el radio para 1 g; en el otro, al revés. Los preajustes cargan el par (r, RPM) de su fuente, así que el Toro de Stanford da 0,93 g. El cilindro de O'Neill usa los 4 000 m que suelen citarse para la Isla Tres (0,47 RPM para 1 g), una cifra de diseño que no verifiqué en una fuente primaria.
+La calculadora aplica las ecuaciones (3.1) a (3.4) en cada cambio: en un modo se elige el giro y se despeja el radio para 1 g; en el otro, al revés. Los preajustes cargan el par (r, RPM) de su fuente, así que el Toro de Stanford da 0,93 g; el límite de SP-413, 895 m a 1 RPM, da 1,00 g, y la centrífuga de 10 m muestra un gradiente del 18 %.
 
 <Figure
   type="simulacion"

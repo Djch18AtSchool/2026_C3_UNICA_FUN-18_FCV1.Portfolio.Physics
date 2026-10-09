@@ -160,7 +160,8 @@ const headArrow = arrow(
   class="habitat-diagram"
   data-testid="habitat-diagram"
   role="img"
-  aria-labelledby="habitat-diagram-title habitat-diagram-desc"
+  aria-labelledby="habitat-diagram-title"
+  aria-describedby="habitat-diagram-desc"
   viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
   width="100%"
   xmlns="http://www.w3.org/2000/svg"
@@ -171,11 +172,12 @@ const headArrow = arrow(
     horizontal que pasa por el cubo central. Una flecha curva marca el sentido de giro, antihorario,
     con la velocidad angular ω y la ecuación T = 2π/ω. El radio r va del eje al piso, que es el
     borde exterior del anillo. Una persona está de pie sobre ese borde con la cabeza hacia el eje.
-    De ella salen tres vectores: la aceleración centrípeta a_c hacia el eje, con a_c = ω² r; la
-    gravedad aparente hacia afuera, de la misma magnitud; y la velocidad tangencial v, con v = ω r.
-    El detalle A amplía a la persona de altura h: en los pies la aceleración es ω² r y en la cabeza,
-    más cerca del eje, ω² (r − h), de donde Δa/a = h/r. Dibujo esquemático, no a escala; la
-    diferencia entre cabeza y pies está exagerada.
+    Junto a ella hay tres flechas: a su derecha, la aceleración centrípeta a_c, que apunta hacia el
+    eje, con a_c = ω² r; a su izquierda, la gravedad aparente, que apunta hacia afuera con la misma
+    magnitud; y bajo sus pies, la velocidad tangencial v, hacia la derecha, con v = ω r. El detalle
+    A amplía a la persona de altura h: en los pies la aceleración es ω² r y en la cabeza, más cerca
+    del eje, ω² (r − h), de donde Δa/a = h/r. Dibujo esquemático, no a escala; la diferencia entre
+    cabeza y pies está exagerada.
   </desc>
 
   <!-- ===== Perspective view ===== -->
