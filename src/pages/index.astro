@@ -1,7 +1,109 @@
 ---
+import { getCollection } from 'astro:content';
+import TopicCard from '../components/nav/TopicCard.astro';
+import { AUTHOR, COURSE, PHASE_LABELS, TOPICS, type Phase } from '../consigna';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { publishedCount, sortByNumber, toTopicSummary } from '../lib/topics';
+
+const entries = sortByNumber(
+  (await getCollection('topics')).map((entry) => ({ ...toTopicSummary(entry), entry })),
+);
+const published = publishedCount(entries);
+
+const PHASES: Phase[] = [1, 2, 3];
+const groups = PHASES.map((phase) => {
+  const topics = entries.filter((topic) => topic.phase === phase);
+  return {
+    phase,
+    label: PHASE_LABELS[phase],
+    topics,
+    first: topics[0]?.number,
+    last: topics.at(-1)?.number,
+  };
+});
 ---
 
 <BaseLayout title="Portafolio de evidencias de Física I">
-  <h1>Portafolio de evidencias de Física I</h1>
+  <section
+    aria-labelledby="titulo-portada"
+    class="grid gap-10 border-b border-border pb-12 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end lg:gap-16"
+  >
+    <div>
+      <h1 id="titulo-portada" class="max-w-[16ch] text-[2.5rem] sm:text-5xl">
+        Portafolio de evidencias de Física I
+      </h1>
+      <p class="mt-6 text-lg font-medium">{AUTHOR}</p>
+      <p class="mt-1 text-sm text-fg-muted">
+        <span class="font-mono">{COURSE.code}</span>
+        {' · '}
+        {COURSE.name}
+        {' · Sección '}
+        <span class="font-mono">{COURSE.section}</span>
+        {' · '}
+        <span class="font-mono">{COURSE.period}</span>
+      </p>
+      <p class="measure mt-6 text-lg leading-relaxed">
+        Este portafolio documenta cómo la física del curso aparece en el desarrollo de software:
+        cada tema parte de un producto real, plantea la ecuación que lo gobierna y la acompaña con
+        un recurso para explorarla.
+      </p>
+    </div>
+
+    {/* Progress as a graduated scale: one division per topic, bracketed by delivery. */}
+    <div class="grid-paper rounded-base border border-border p-5">
+      <p class="font-medium">
+        <span class="font-mono">{published}</span>
+        {' de '}
+        <span class="font-mono">{TOPICS.length}</span>
+        {' temas publicados'}
+      </p>
+      <div class="mt-4 flex items-start gap-3" aria-hidden="true">
+        {groups.map((group) => (
+          <div class="flex flex-col gap-1.5">
+            <div class="flex gap-1">
+              {group.topics.map((topic) => (
+                <span
+                  class:list={[
+                    'size-4 rounded-[2px] border sm:size-5',
+                    topic.status === 'publicado'
+                      ? 'border-accent bg-accent'
+                      : 'border-fg-muted/60 bg-bg-elevated',
+                  ]}
+                />
+              ))}
+            </div>
+            <span class="border-t border-fg-muted pt-1 text-xs leading-tight text-fg-muted">
+              {group.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <div class="mt-12 flex flex-col gap-14">
+    {groups.map((group) => (
+      <section
+        id={`fase-${group.phase}`}
+        data-testid="phase-group"
+        aria-labelledby={`fase-${group.phase}-titulo`}
+        class="scroll-mt-8"
+      >
+        <div class="flex items-baseline justify-between gap-4 border-b-[3px] border-double border-border pb-2">
+          <h2 id={`fase-${group.phase}-titulo`}>{group.label}</h2>
+          <p class="text-sm text-fg-muted">
+            Temas <span class="font-mono">{group.first}</span> a{' '}
+            <span class="font-mono">{group.last}</span>
+          </p>
+        </div>
+        <ol class="divide-y divide-border border-b border-border">
+          {group.topics.map((topic) => (
+            <li>
+              <TopicCard topic={topic} product={topic.entry.data.useCase?.product} />
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))}
+  </div>
 </BaseLayout>

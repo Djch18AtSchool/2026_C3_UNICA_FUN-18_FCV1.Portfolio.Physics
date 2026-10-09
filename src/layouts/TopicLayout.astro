@@ -1,0 +1,114 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/nav/Breadcrumbs.astro';
+import PrevNext from '../components/nav/PrevNext.astro';
+import SideNav from '../components/nav/SideNav.astro';
+import ResourceBadge from '../components/ui/ResourceBadge.astro';
+import StatusBadge from '../components/ui/StatusBadge.astro';
+import { COURSE, PHASE_LABELS, REPO_URL, type Phase } from '../consigna';
+import type { TopicData } from '../content/topicSchema';
+import type { TopicSummary } from '../lib/topics';
+
+interface Props {
+  topic: TopicData & { slug: string };
+  /** All topics, sorted by number. */
+  all: TopicSummary[];
+}
+const { topic, all } = Astro.props;
+const { slug, number, phase, title, concept, status, resourceType, updated } = topic;
+
+// "Se publica en el Avance 2" / "en la Entrega Final" (spec §4.2).
+const PHASE_ARTICLE: Record<Phase, string> = { 1: 'el', 2: 'el', 3: 'la' };
+// The fixed order of a published topic page (spec §4.3), previewed while the topic is upcoming.
+const UPCOMING_SECTIONS = [
+  'Caso de uso en Ingeniería del Software',
+  'Recurso de apoyo',
+  'Conexiones con otros temas y con la clase',
+  'Fuentes',
+];
+// Frontmatter dates are calendar days parsed at UTC midnight; format them in UTC.
+const updatedLabel = new Intl.DateTimeFormat('es-CR', {
+  dateStyle: 'long',
+  timeZone: 'UTC',
+}).format(updated);
+const updatedIso = updated.toISOString().slice(0, 10);
+const sourceUrl = `${REPO_URL}/blob/main/src/content/topics/${slug}.mdx`;
+const phaseLabel = PHASE_LABELS[phase];
+---
+
+<BaseLayout title={`Tema ${number}: ${title} | ${COURSE.name}`} description={concept}>
+  <div class="grid gap-8 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
+    <div class="lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:self-start lg:overflow-y-auto">
+      <SideNav topics={all} currentSlug={slug} />
+    </div>
+
+    <article class="flex min-w-0 flex-col gap-12">
+      <div class="flex flex-col gap-6">
+        <Breadcrumbs number={number} phase={phase} />
+        <header class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_13rem] xl:gap-10">
+          <div>
+            <p class="text-sm font-medium text-fg-muted">
+              Tema <span class="font-mono">{number}</span> · {phaseLabel}
+            </p>
+            <h1 class="mt-2">{title}</h1>
+            <p class="measure mt-4 text-lg leading-relaxed">{concept}</p>
+          </div>
+          <dl class="margin-note flex flex-wrap gap-x-8 gap-y-3 self-start xl:mt-8 xl:flex-col">
+            <div class="flex flex-col items-start gap-1">
+              <dt class="text-xs">Recurso de apoyo</dt>
+              <dd>
+                <ResourceBadge type={resourceType} />
+              </dd>
+            </div>
+            <div class="flex flex-col items-start gap-1">
+              <dt class="text-xs">Estado</dt>
+              <dd>
+                <StatusBadge status={status} />
+              </dd>
+            </div>
+          </dl>
+        </header>
+      </div>
+
+      {status === 'publicado' ? (
+        <div>
+          <slot />
+        </div>
+      ) : (
+        <section
+          data-testid="upcoming-notice"
+          aria-labelledby="aviso-proximamente"
+          class="grid-paper rounded-base border border-border px-5 py-6 sm:px-8 sm:py-8"
+        >
+          <div class="measure rounded-base border border-border bg-bg-elevated p-5 sm:p-6">
+            <h2 id="aviso-proximamente" class="text-xl">
+              Se publica en {PHASE_ARTICLE[phase]} {phaseLabel}
+            </h2>
+            <p class="mt-2 text-fg-muted">
+              Cuando se publique, esta página tendrá estas secciones, en este orden:
+            </p>
+            <ol class="mt-4 flex flex-col gap-2">
+              {UPCOMING_SECTIONS.map((section, index) => (
+                <li class="grid grid-cols-[1.5rem_minmax(0,1fr)] items-baseline border-b border-dashed border-border pb-2 last:border-0 last:pb-0">
+                  <span class="font-mono text-sm text-fg-muted">{index + 1}</span>
+                  <span>{section}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
+
+      <PrevNext all={all} number={number} />
+
+      <footer class="flex flex-col gap-2 border-t border-border pt-4 text-sm text-fg-muted sm:flex-row sm:justify-between">
+        <p>
+          Actualizado el <time datetime={updatedIso}>{updatedLabel}</time>
+        </p>
+        <p>
+          <a href={sourceUrl}>Ver fuente de esta página en GitHub</a>
+        </p>
+      </footer>
+    </article>
+  </div>
+</BaseLayout>

@@ -1,0 +1,103 @@
+---
+import { PHASE_LABELS, type Phase } from '../../consigna';
+import type { TopicSummary } from '../../lib/topics';
+import { topicUrl } from '../../lib/url';
+
+interface Props {
+  /** All topics, sorted by number. */
+  topics: TopicSummary[];
+  /** Slug of the page being shown; omitted on pages that are not a topic (404). */
+  currentSlug?: string;
+  /** Start with the drawer open on narrow screens (the 404 page, where the list is the way out). */
+  isOpen?: boolean;
+}
+const { topics, currentSlug, isOpen = false } = Astro.props;
+
+const PHASES: Phase[] = [1, 2, 3];
+const groups = PHASES.map((phase) => ({
+  phase,
+  label: PHASE_LABELS[phase],
+  topics: topics.filter((topic) => topic.phase === phase),
+}));
+const current = topics.find((topic) => topic.slug === currentSlug);
+// One list serves both layouts: a closed <details> drawer on narrow screens (no JS), and on
+// wide screens the summary hides and the content is forced visible (see the scoped style).
+---
+
+<nav aria-label="Temas" class="text-sm">
+  <details
+    open={isOpen}
+    class="sidenav group rounded-base border border-border bg-bg-elevated lg:border-0 lg:bg-transparent"
+  >
+    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-medium lg:hidden [&::-webkit-details-marker]:hidden">
+      <span>
+        Temas del portafolio
+        {current && (
+          <span class="font-normal text-fg-muted">
+            {' '}
+            (tema <span class="font-mono">{current.number}</span> de{' '}
+            <span class="font-mono">{topics.length}</span>)
+          </span>
+        )}
+      </span>
+      <svg
+        class="size-4 shrink-0 text-fg-muted transition-transform group-open:rotate-180"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="m4 6 4 4 4-4"></path>
+      </svg>
+    </summary>
+    <div class="flex flex-col gap-5 border-t border-border px-2 pt-3 pb-4 lg:border-0 lg:p-0">
+      {groups.map((group) => (
+        <div>
+          <p id={`sidenav-fase-${group.phase}`} class="mb-1 px-2 text-xs font-medium text-fg-muted">
+            {group.label}
+          </p>
+          <ul aria-labelledby={`sidenav-fase-${group.phase}`} class="flex flex-col">
+            {group.topics.map((topic) => {
+              const isCurrent = topic.slug === currentSlug;
+              const isPublished = topic.status === 'publicado';
+              return (
+                <li>
+                  <a
+                    href={topicUrl(topic.slug)}
+                    data-testid="topic-link"
+                    aria-current={isCurrent ? 'page' : undefined}
+                    class:list={[
+                      'grid grid-cols-[1.5rem_minmax(0,1fr)] items-baseline gap-x-1 border-l-2 py-1.5 pr-2 pl-1.5 leading-snug no-underline hover:bg-bg hover:text-fg',
+                      isCurrent ? 'border-accent bg-bg font-medium text-fg' : 'border-transparent',
+                      !isCurrent && (isPublished ? 'text-fg' : 'text-fg-muted'),
+                    ]}
+                  >
+                    <span class="text-right font-mono text-xs">{topic.number}</span>
+                    <span class="pl-1.5">
+                      {topic.shortTitle}
+                      {!isPublished && <span class="sr-only"> (próximamente)</span>}
+                    </span>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </details>
+</nav>
+
+<style>
+  /* Wide screens: the drawer is a permanent sidebar, open whatever the details state. */
+  @media (width >= 64rem) {
+    .sidenav::details-content {
+      display: block;
+      content-visibility: visible;
+      block-size: auto;
+    }
+  }
+</style>

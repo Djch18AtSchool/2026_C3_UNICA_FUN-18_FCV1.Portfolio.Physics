@@ -1,0 +1,36 @@
+---
+import { neighbors, type TopicSummary } from '../../lib/topics';
+import { topicUrl } from '../../lib/url';
+
+interface Props {
+  /** All topics, sorted by number. */
+  all: TopicSummary[];
+  number: number;
+}
+const { all, number } = Astro.props;
+const { prev, next } = neighbors(all, number);
+
+const LINK_CLASSES =
+  'flex flex-col gap-0.5 rounded-base border border-border bg-bg-elevated px-4 py-3 no-underline hover:border-fg-muted';
+---
+
+<nav aria-label="Tema anterior y siguiente" class="grid gap-3 sm:grid-cols-2">
+  {prev ? (
+    <a href={topicUrl(prev.slug)} rel="prev" class={LINK_CLASSES}>
+      <span class="text-xs text-fg-muted">Tema anterior</span>
+      <span class="text-fg">
+        <span class="font-mono text-fg-muted">{prev.number}</span> {prev.shortTitle}
+      </span>
+    </a>
+  ) : (
+    <span class="hidden sm:block" />
+  )}
+  {next && (
+    <a href={topicUrl(next.slug)} rel="next" class:list={[LINK_CLASSES, 'sm:text-right']}>
+      <span class="text-xs text-fg-muted">Tema siguiente</span>
+      <span class="text-fg">
+        <span class="font-mono text-fg-muted">{next.number}</span> {next.shortTitle}
+      </span>
+    </a>
+  )}
+</nav>

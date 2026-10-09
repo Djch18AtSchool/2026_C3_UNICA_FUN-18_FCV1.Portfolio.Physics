@@ -10,6 +10,7 @@ import SiteFooter from '../components/nav/SiteFooter.astro';
 import SiteHeader from '../components/nav/SiteHeader.astro';
 import { COURSE } from '../consigna';
 import { THEME_STORAGE_KEY } from '../lib/theme';
+import { withBase } from '../lib/url';
 
 interface Props {
   title: string;
@@ -28,6 +29,7 @@ const {
     <meta name="color-scheme" content="light dark" />
     <meta name="description" content={description} />
     <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href={withBase('favicon.svg')} />
     <!--
       Runs before first paint and cannot import modules: mirrors resolveTheme/readStoredTheme
       from src/lib/theme.ts. Storage and matchMedia are guarded because either may throw.

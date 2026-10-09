@@ -1,0 +1,24 @@
+---
+import type { TopicSummary } from '../../lib/topics';
+
+interface Props {
+  status: TopicSummary['status'];
+}
+const { status } = Astro.props;
+
+// A published entry is inked (solid rule); an upcoming one is still in pencil (dashed rule).
+const VARIANTS = {
+  publicado: { label: 'Publicado', classes: 'border-solid border-accent text-accent' },
+  proximamente: { label: 'Próximamente', classes: 'border-dashed border-fg-muted text-fg-muted' },
+} as const;
+const { label, classes } = VARIANTS[status];
+---
+
+<span
+  class:list={[
+    'inline-flex shrink-0 items-center rounded-base border px-1.5 py-px text-xs leading-5 whitespace-nowrap',
+    classes,
+  ]}
+>
+  {label}
+</span>

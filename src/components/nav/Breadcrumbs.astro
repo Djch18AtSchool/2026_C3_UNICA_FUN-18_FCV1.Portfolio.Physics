@@ -1,0 +1,27 @@
+---
+import { PHASE_LABELS, type Phase } from '../../consigna';
+import { withBase } from '../../lib/url';
+
+interface Props {
+  number: number;
+  phase: Phase;
+}
+const { number, phase } = Astro.props;
+const home = withBase('');
+---
+
+<nav aria-label="Ruta de navegación" class="text-sm text-fg-muted">
+  <ol class="flex flex-wrap items-center gap-x-2">
+    <li>
+      <a href={home}>Inicio</a>
+    </li>
+    <li aria-hidden="true">›</li>
+    <li>
+      <a href={`${home}#fase-${phase}`}>{PHASE_LABELS[phase]}</a>
+    </li>
+    <li aria-hidden="true">›</li>
+    <li class="text-fg">
+      Tema <span class="font-mono">{number}</span>
+    </li>
+  </ol>
+</nav>
