@@ -286,7 +286,7 @@ expect(airTime(10, 9.81, 19.62)).toBeCloseTo(1.740, 3);
 expect(designJump(5.097, 1.019)).toEqual({ g: expect.closeTo(9.81, 1), v0: expect.closeTo(10, 1) });
 const tr = trajectory({ v0: 10, gUp: 9.81, vx: 2 });
 expect(tr).toHaveLength(240);
-expect(tr.at(-1)).toMatchObject({ y: 0, t: expect.closeTo(2.039, 3), x: expect.closeTo(4.078, 3) });
+expect(tr.at(-1)).toMatchObject({ y: 0, t: expect.closeTo(2.039, 3), x: expect.closeTo(4.077, 3) });
 expect(Math.max(...tr.map((p) => p.y))).toBeCloseTo(5.097, 2);
 expect(trajectory({ v0: 25, gUp: 1 })).toHaveLength(240); // extremo del Review Focus 1
 expect(() => apexHeight(10, 0)).toThrow(RangeError);
