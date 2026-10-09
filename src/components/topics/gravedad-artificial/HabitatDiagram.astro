@@ -1,0 +1,545 @@
+---
+/*
+ * Annotated drawing of a rotating habitat (Tema 3). Original inline SVG: every color comes from a
+ * CSS variable so the drawing follows the theme. Geometry is computed here, in viewBox units.
+ *
+ * The ring is a circle tilted about the vertical screen axis, so it projects to an ellipse taller
+ * than wide and the spin axis projects to a horizontal line. A person stands on the outer rim at
+ * the bottom, head toward the axis: a_c points up (to the axis), apparent gravity points down.
+ * The ring turns counterclockwise on screen, so the floor under the person moves to the right.
+ */
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+const VIEW = { width: 420, height: 624 } as const;
+const CENTER: Point = { x: 170, y: 200 };
+const OUTER = { rx: 120, ry: 150 } as const;
+const INNER_SCALE = 0.76;
+const INNER = { rx: OUTER.rx * INNER_SCALE, ry: OUTER.ry * INNER_SCALE } as const;
+const DEPTH_OFFSET = 12;
+const HUB = { rx: 13, ry: 16 } as const;
+const OMEGA_RING = { rx: 140, ry: 170 } as const;
+const SPOKE_ANGLES = [-90, 30, 150];
+const RADIUS_ANGLE = 132;
+const OMEGA_ARC = { from: -14, to: -62, label: -40 } as const;
+const HEAD = 9;
+const DEG = Math.PI / 180;
+
+const round = (value: number) => Math.round(value * 10) / 10;
+
+function onEllipse(radii: { rx: number; ry: number }, degrees: number, center = CENTER): Point {
+  return {
+    x: round(center.x + radii.rx * Math.cos(degrees * DEG)),
+    y: round(center.y + radii.ry * Math.sin(degrees * DEG)),
+  };
+}
+
+/** A vector from `from` to `to`: the shaft stops at the base of a filled triangular head. */
+function arrow(from: Point, to: Point, head = HEAD) {
+  const length = Math.hypot(to.x - from.x, to.y - from.y);
+  const ux = (to.x - from.x) / length;
+  const uy = (to.y - from.y) / length;
+  const base = { x: to.x - ux * head, y: to.y - uy * head };
+  const half = head * 0.45;
+  const points = [
+    [to.x, to.y],
+    [base.x - uy * half, base.y + ux * half],
+    [base.x + uy * half, base.y - ux * half],
+  ]
+    .map(([x, y]) => `${round(x)},${round(y)}`)
+    .join(' ');
+  return { x1: from.x, y1: from.y, x2: round(base.x), y2: round(base.y), points };
+}
+
+/** Stick figure standing on (x, feetY), `height` tall, head up. */
+function person(x: number, feetY: number, height: number) {
+  const headR = height * 0.09;
+  const headCy = feetY - height + headR;
+  const neck = headCy + headR;
+  const hips = feetY - height * 0.43;
+  const shoulders = neck + height * 0.06;
+  const reach = height * 0.15;
+  const stride = height * 0.1;
+  return {
+    head: { cx: x, cy: round(headCy), r: round(headR) },
+    body: `M${x},${round(neck)} L${x},${round(hips)}`,
+    arms: `M${round(x - reach)},${round(shoulders + height * 0.24)} L${x},${round(shoulders)} L${round(x + reach)},${round(shoulders + height * 0.24)}`,
+    legs: `M${round(x - stride)},${feetY} L${x},${round(hips)} L${round(x + stride)},${feetY}`,
+  };
+}
+
+// ---- Perspective view ----
+const floorBottom: Point = { x: CENTER.x, y: CENTER.y + OUTER.ry };
+const spokes = SPOKE_ANGLES.map((angle) => onEllipse(INNER, angle));
+const radiusEnd = onEllipse(OUTER, RADIUS_ANGLE);
+const radiusArrow = arrow(CENTER, radiusEnd, 8);
+const radiusLabel: Point = {
+  x: round((CENTER.x + radiusEnd.x) / 2 - 12),
+  y: round((CENTER.y + radiusEnd.y) / 2 + 4),
+};
+
+const omegaStart = onEllipse(OMEGA_RING, OMEGA_ARC.from);
+const omegaEnd = onEllipse(OMEGA_RING, OMEGA_ARC.to);
+const omegaPath = `M${omegaStart.x},${omegaStart.y} A${OMEGA_RING.rx},${OMEGA_RING.ry} 0 0 0 ${omegaEnd.x},${omegaEnd.y}`;
+// Counterclockwise on screen means decreasing angle: tangent (rx sin θ, −ry cos θ).
+const omegaTangent = {
+  x: OMEGA_RING.rx * Math.sin(OMEGA_ARC.to * DEG),
+  y: -OMEGA_RING.ry * Math.cos(OMEGA_ARC.to * DEG),
+};
+const omegaTangentLength = Math.hypot(omegaTangent.x, omegaTangent.y);
+const omegaTip: Point = {
+  x: round(omegaEnd.x + (omegaTangent.x / omegaTangentLength) * 12),
+  y: round(omegaEnd.y + (omegaTangent.y / omegaTangentLength) * 12),
+};
+const omegaHead = arrow(omegaEnd, omegaTip, 12);
+const omegaLabel = onEllipse({ rx: OMEGA_RING.rx + 14, ry: OMEGA_RING.ry + 14 }, OMEGA_ARC.label);
+
+const SMALL_PERSON = 34;
+const smallPerson = person(CENTER.x, floorBottom.y - 1, SMALL_PERSON);
+const detailMark = { cx: CENTER.x, cy: floorBottom.y - SMALL_PERSON / 2, r: 23 };
+const VECTOR_LENGTH = 68;
+const acArrow = arrow(
+  { x: 204, y: floorBottom.y - 6 },
+  { x: 204, y: floorBottom.y - 6 - VECTOR_LENGTH },
+);
+const gArrow = arrow(
+  { x: 138, y: floorBottom.y - 20 },
+  { x: 138, y: floorBottom.y - 20 + VECTOR_LENGTH },
+);
+const vArrow = arrow(
+  { x: CENTER.x, y: floorBottom.y + 11 },
+  { x: CENTER.x + 66, y: floorBottom.y + 11 },
+);
+
+// ---- Detail A: head and feet ----
+const DETAIL = { x: 12, y: 430, width: 396, height: 186 } as const;
+const FLOOR = { left: 48, right: 372, mid: 592, sag: 14 } as const;
+const floorHalf = (FLOOR.right - FLOOR.left) / 2;
+const floorRadius = (floorHalf ** 2 + FLOOR.sag ** 2) / (2 * FLOOR.sag);
+const floorCenterX = (FLOOR.left + FLOOR.right) / 2;
+const floorCenterY = FLOOR.mid - floorRadius;
+const floorY = (x: number) =>
+  round(floorCenterY + Math.sqrt(floorRadius ** 2 - (x - floorCenterX) ** 2));
+const floorPath = `M${FLOOR.left},${floorY(FLOOR.left)} A${round(floorRadius)},${round(floorRadius)} 0 0 0 ${FLOOR.right},${floorY(FLOOR.right)}`;
+const HATCH_STEP = 14;
+const hatches = Array.from(
+  { length: Math.floor((FLOOR.right - FLOOR.left) / HATCH_STEP) },
+  (_, index) => {
+    const x = FLOOR.left + HATCH_STEP / 2 + index * HATCH_STEP;
+    const y = floorY(x);
+    return `M${x},${y + 2} l-7,9`;
+  },
+).join(' ');
+
+const BIG_PERSON = 108;
+const PERSON_X = 180;
+const bigFeet = floorY(PERSON_X) - 1;
+const bigHeadTop = bigFeet - BIG_PERSON;
+const bigPerson = person(PERSON_X, bigFeet, BIG_PERSON);
+const DIM_X = 140;
+const dimUp = arrow({ x: DIM_X, y: (bigFeet + bigHeadTop) / 2 }, { x: DIM_X, y: bigHeadTop }, 7);
+const dimDown = arrow({ x: DIM_X, y: (bigFeet + bigHeadTop) / 2 }, { x: DIM_X, y: bigFeet }, 7);
+// The head is h closer to the axis, so it feels ω²(r − h) < ω²r; exaggerated here (ratio 2/3).
+const FEET_VECTOR = 60;
+const HEAD_VECTOR = 40;
+const ARROW_X = 222;
+const feetArrow = arrow(
+  { x: ARROW_X, y: bigFeet - 3 },
+  { x: ARROW_X, y: bigFeet - 3 - FEET_VECTOR },
+);
+const headArrow = arrow(
+  { x: ARROW_X, y: bigHeadTop + 16 },
+  { x: ARROW_X, y: bigHeadTop + 16 - HEAD_VECTOR },
+);
+---
+
+<svg
+  class="habitat-diagram"
+  data-testid="habitat-diagram"
+  role="img"
+  aria-labelledby="habitat-diagram-title habitat-diagram-desc"
+  viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
+  width="100%"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <title id="habitat-diagram-title">Hábitat giratorio: vectores y ecuaciones del movimiento circular</title>
+  <desc id="habitat-diagram-desc">
+    Anillo de un hábitat espacial visto en ligera perspectiva, con tres rayos y el eje de giro
+    horizontal que pasa por el cubo central. Una flecha curva marca el sentido de giro, antihorario,
+    con la velocidad angular ω y la ecuación T = 2π/ω. El radio r va del eje al piso, que es el
+    borde exterior del anillo. Una persona está de pie sobre ese borde con la cabeza hacia el eje.
+    De ella salen tres vectores: la aceleración centrípeta a_c hacia el eje, con a_c = ω² r; la
+    gravedad aparente hacia afuera, de la misma magnitud; y la velocidad tangencial v, con v = ω r.
+    El detalle A amplía a la persona de altura h: en los pies la aceleración es ω² r y en la cabeza,
+    más cerca del eje, ω² (r − h), de donde Δa/a = h/r. Dibujo esquemático, no a escala; la
+    diferencia entre cabeza y pies está exagerada.
+  </desc>
+
+  <!-- ===== Perspective view ===== -->
+  <text class="hd-title" x="16" y="24">
+    Vista en perspectiva · no a escala
+  </text>
+
+  <line class="hd-axis" x1="14" y1={CENTER.y} x2={VIEW.width - 14} y2={CENTER.y} />
+  <text class="hd-label hd-muted" x={VIEW.width - 14} y={CENTER.y - 9} text-anchor="end">
+    eje de giro
+  </text>
+
+  <ellipse class="hd-back" cx={CENTER.x - DEPTH_OFFSET} cy={CENTER.y} rx={OUTER.rx} ry={OUTER.ry} />
+  <path
+    class="hd-band"
+    fill-rule="evenodd"
+    d={`M${CENTER.x - OUTER.rx},${CENTER.y} a${OUTER.rx},${OUTER.ry} 0 1 0 ${2 * OUTER.rx},0 a${OUTER.rx},${OUTER.ry} 0 1 0 ${-2 * OUTER.rx},0 Z M${CENTER.x - INNER.rx},${CENTER.y} a${INNER.rx},${INNER.ry} 0 1 0 ${2 * INNER.rx},0 a${INNER.rx},${INNER.ry} 0 1 0 ${-2 * INNER.rx},0 Z`}
+  />
+  {spokes.map((end) => (
+    <line class="hd-spoke" x1={CENTER.x} y1={CENTER.y} x2={end.x} y2={end.y} />
+  ))}
+  <ellipse class="hd-hub" cx={CENTER.x} cy={CENTER.y} rx={HUB.rx} ry={HUB.ry} />
+  <circle class="hd-axis-dot" cx={CENTER.x} cy={CENTER.y} r="2.5" />
+
+  <!-- Radius r: from the axis to the floor (outer rim). -->
+  <line
+    class="hd-dim"
+    x1={radiusArrow.x1}
+    y1={radiusArrow.y1}
+    x2={radiusArrow.x2}
+    y2={radiusArrow.y2}
+  />
+  <polygon class="hd-dim-head" points={radiusArrow.points} />
+  <text class="hd-label hd-math" x={radiusLabel.x} y={radiusLabel.y} text-anchor="end">
+    r
+  </text>
+
+  <!-- ω: sense of rotation. -->
+  <path class="hd-omega" d={omegaPath} />
+  <polygon class="hd-omega-head" points={omegaHead.points} />
+  <text class="hd-label hd-math hd-big" x={omegaLabel.x} y={omegaLabel.y}>
+    ω
+  </text>
+  <text class="hd-eq" x="412" y="142" text-anchor="end">
+    <tspan class="hd-math">T</tspan> = 2<tspan class="hd-math">π</tspan>/
+    <tspan class="hd-math">ω</tspan>
+  </text>
+
+  <!-- Person on the rim, head toward the axis. -->
+  <circle class="hd-mark" cx={detailMark.cx} cy={detailMark.cy} r={detailMark.r} />
+  <text
+    class="hd-label hd-mark-label"
+    x={detailMark.cx - detailMark.r - 4}
+    y={detailMark.cy - detailMark.r + 4}
+    text-anchor="end"
+  >
+    A
+  </text>
+  <g class="hd-person">
+    <circle {...smallPerson.head} />
+    <path d={smallPerson.body} />
+    <path d={smallPerson.arms} />
+    <path d={smallPerson.legs} />
+  </g>
+
+  <!-- a_c toward the axis. -->
+  <line class="hd-ac" x1={acArrow.x1} y1={acArrow.y1} x2={acArrow.x2} y2={acArrow.y2} />
+  <polygon class="hd-ac-head" points={acArrow.points} />
+  <text class="hd-label hd-math" x="212" y={acArrow.y2 + 6}>
+    a
+    <tspan class="hd-sub" dy="4">
+      c
+    </tspan>
+  </text>
+  <line class="hd-leader" x1="232" y1={acArrow.y2 + 4} x2="296" y2="300" />
+  <text class="hd-eq" x="300" y="306">
+    <tspan class="hd-math">a</tspan>
+    <tspan class="hd-sub hd-math" dy="5">
+      c
+    </tspan>
+    <tspan dy="-5"> = </tspan>
+    <tspan class="hd-math">ω</tspan>² <tspan class="hd-math">r</tspan>
+  </text>
+
+  <!-- Apparent gravity, outward. -->
+  <line class="hd-gap" x1={gArrow.x1} y1={gArrow.y1} x2={gArrow.x2} y2={gArrow.y2} />
+  <polygon class="hd-gap-head" points={gArrow.points} />
+  <text class="hd-label" x={gArrow.x1 - 8} y={gArrow.y2 + 2} text-anchor="end">
+    gravedad
+  </text>
+  <text class="hd-label" x={gArrow.x1 - 8} y={gArrow.y2 + 20} text-anchor="end">
+    aparente
+  </text>
+
+  <!-- v, tangent to the rim. -->
+  <line class="hd-v" x1={vArrow.x1} y1={vArrow.y1} x2={vArrow.x2} y2={vArrow.y2} />
+  <polygon class="hd-v-head" points={vArrow.points} />
+  <text class="hd-eq" x={vArrow.x2 + 18} y={vArrow.y1 + 6}>
+    <tspan class="hd-math">v</tspan> = <tspan class="hd-math">ω</tspan>{' '}
+    <tspan class="hd-math">r</tspan>
+  </text>
+
+  <!-- ===== Detail A ===== -->
+  <rect
+    class="hd-detail"
+    x={DETAIL.x}
+    y={DETAIL.y}
+    width={DETAIL.width}
+    height={DETAIL.height}
+    rx="3"
+  />
+  <text class="hd-title" x={DETAIL.x + 12} y={DETAIL.y + 22}>
+    Detalle A · cabeza y pies
+  </text>
+  <text
+    class="hd-label hd-muted"
+    x={DETAIL.x + DETAIL.width - 12}
+    y={DETAIL.y + 22}
+    text-anchor="end"
+  >
+    hacia el eje ↑
+  </text>
+
+  <path class="hd-floor" d={floorPath} />
+  <path class="hd-hatch" d={hatches} />
+
+  <g class="hd-person hd-person-big">
+    <circle {...bigPerson.head} />
+    <path d={bigPerson.body} />
+    <path d={bigPerson.arms} />
+    <path d={bigPerson.legs} />
+  </g>
+
+  <line class="hd-extension" x1={DIM_X - 6} y1={bigHeadTop} x2={PERSON_X - 12} y2={bigHeadTop} />
+  <line class="hd-dim" x1={dimUp.x1} y1={dimUp.y1} x2={dimUp.x2} y2={dimUp.y2} />
+  <polygon class="hd-dim-head" points={dimUp.points} />
+  <line class="hd-dim" x1={dimDown.x1} y1={dimDown.y1} x2={dimDown.x2} y2={dimDown.y2} />
+  <polygon class="hd-dim-head" points={dimDown.points} />
+  <text
+    class="hd-label hd-math hd-big"
+    x={DIM_X - 10}
+    y={(bigFeet + bigHeadTop) / 2 + 2}
+    text-anchor="end"
+  >
+    h
+  </text>
+  <text
+    class="hd-label hd-muted"
+    x={DIM_X - 10}
+    y={(bigFeet + bigHeadTop) / 2 + 22}
+    text-anchor="end"
+  >
+    1,80 m
+  </text>
+
+  <line class="hd-ac" x1={headArrow.x1} y1={headArrow.y1} x2={headArrow.x2} y2={headArrow.y2} />
+  <polygon class="hd-ac-head" points={headArrow.points} />
+  <text class="hd-label" x={ARROW_X + 10} y={headArrow.y1 - 12}>
+    <tspan class="hd-math">ω</tspan>²(<tspan class="hd-math">r</tspan> −{' '}
+    <tspan class="hd-math">h</tspan>)
+  </text>
+  <line class="hd-ac" x1={feetArrow.x1} y1={feetArrow.y1} x2={feetArrow.x2} y2={feetArrow.y2} />
+  <polygon class="hd-ac-head" points={feetArrow.points} />
+  <text class="hd-label" x={ARROW_X + 10} y={feetArrow.y1 - 22}>
+    <tspan class="hd-math">ω</tspan>²<tspan class="hd-math">r</tspan>
+  </text>
+
+  <text class="hd-eq" x="398" y={DETAIL.y + 82} text-anchor="end">
+    Δ<tspan class="hd-math">a</tspan>/<tspan class="hd-math">a</tspan> ={' '}
+    <tspan class="hd-math">h</tspan>/<tspan class="hd-math">r</tspan>
+  </text>
+  <text class="hd-note" x="398" y={DETAIL.y + 106} text-anchor="end">
+    r = 223,6 m → 0,8 %
+  </text>
+  <text class="hd-note" x="398" y={DETAIL.y + 124} text-anchor="end">
+    r = 10 m → 18 %
+  </text>
+</svg>
+
+<style>
+  .habitat-diagram {
+    display: block;
+    width: 100%;
+    max-width: 30rem;
+    height: auto;
+    margin-inline: auto;
+    overflow: visible;
+  }
+
+  /* ---- Text ---- */
+  .hd-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    fill: var(--fg-muted);
+  }
+  .hd-label,
+  .hd-eq,
+  .hd-note {
+    paint-order: stroke;
+    stroke: var(--bg-elevated);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+    fill: var(--fg);
+  }
+  .hd-label {
+    font-family: var(--font-sans);
+    font-size: 15px;
+  }
+  .hd-eq {
+    font-family: KaTeX_Main, 'Times New Roman', serif;
+    font-size: 19px;
+  }
+  .hd-note {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    fill: var(--fg-muted);
+  }
+  .hd-muted {
+    fill: var(--fg-muted);
+  }
+  .hd-math {
+    font-family: KaTeX_Main, 'Times New Roman', serif;
+    font-style: italic;
+  }
+  .hd-big {
+    font-size: 19px;
+  }
+  .hd-sub {
+    font-size: 0.72em;
+  }
+
+  /* At phone widths the drawing shrinks to ~0,7×: enlarge the text, drop the redundant notes. */
+  @media (max-width: 30rem) {
+    .hd-title {
+      font-size: 13px;
+      letter-spacing: 0.02em;
+    }
+    .hd-label,
+    .hd-big {
+      font-size: 19px;
+    }
+    .hd-eq {
+      font-size: 22px;
+    }
+    .hd-note {
+      display: none;
+    }
+  }
+
+  /* ---- Structure ---- */
+  .hd-axis {
+    stroke: var(--fg-muted);
+    stroke-width: 1.25;
+    stroke-dasharray: 14 4 2 4;
+  }
+  .hd-axis-dot {
+    fill: var(--fg);
+  }
+  .hd-back {
+    fill: none;
+    stroke: var(--fg-muted);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+  .hd-band {
+    fill: color-mix(in srgb, var(--fg) 7%, var(--bg-elevated));
+    stroke: var(--fg);
+    stroke-width: 1.75;
+  }
+  .hd-spoke {
+    stroke: var(--fg-muted);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .hd-hub {
+    fill: var(--bg-elevated);
+    stroke: var(--fg);
+    stroke-width: 1.5;
+  }
+  .hd-person {
+    fill: none;
+    stroke: var(--fg);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .hd-person circle {
+    fill: var(--bg-elevated);
+  }
+  .hd-person-big {
+    stroke-width: 2.5;
+  }
+  .hd-mark {
+    fill: none;
+    stroke: var(--fg-muted);
+    stroke-width: 1;
+    stroke-dasharray: 4 3;
+  }
+  .hd-mark-label {
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+  .hd-detail {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 1.25;
+    stroke-dasharray: 6 4;
+  }
+  .hd-floor {
+    fill: none;
+    stroke: var(--fg);
+    stroke-width: 2;
+  }
+  .hd-hatch,
+  .hd-extension,
+  .hd-leader {
+    fill: none;
+    stroke: var(--fg-muted);
+    stroke-width: 1;
+  }
+  .hd-extension,
+  .hd-leader {
+    stroke-dasharray: 2 3;
+  }
+
+  /* ---- Vectors and dimensions: color marks only, labels stay in --fg ---- */
+  .hd-dim {
+    stroke: var(--fg);
+    stroke-width: 1.25;
+  }
+  .hd-dim-head {
+    fill: var(--fg);
+  }
+  .hd-omega {
+    fill: none;
+    stroke: var(--diag);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .hd-omega-head {
+    fill: var(--diag);
+  }
+  .hd-ac {
+    stroke: var(--accent);
+    stroke-width: 3;
+  }
+  .hd-ac-head {
+    fill: var(--accent);
+  }
+  .hd-gap {
+    stroke: var(--chart-2);
+    stroke-width: 3;
+    stroke-dasharray: 7 4;
+  }
+  .hd-gap-head {
+    fill: var(--chart-2);
+  }
+  .hd-v {
+    stroke: var(--chart-3);
+    stroke-width: 3;
+  }
+  .hd-v-head {
+    fill: var(--chart-3);
+  }
+</style>

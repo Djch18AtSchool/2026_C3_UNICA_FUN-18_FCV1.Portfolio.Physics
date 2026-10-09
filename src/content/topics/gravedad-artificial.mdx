@@ -4,12 +4,174 @@ phase: 1
 title: 'Gravedad artificial por rotación en hábitats espaciales'
 shortTitle: 'Gravedad artificial'
 concept: 'Movimiento circular uniforme, aceleración centrípeta, período y frecuencia angular.'
-status: proximamente
+status: publicado
 resourceType: diagrama
-sources: []
-related: []
-classRefs: []
+useCase:
+  product: 'SpinCalc'
+  industry: 'Diseño de hábitats espaciales'
+sources:
+  - id: nasa-sp413-1977
+    title: 'Space Settlements: A Design Study (NASA SP-413)'
+    authors: 'Richard D. Johnson y Charles Holbrow (eds.)'
+    year: 1977
+    publisher: 'NASA, Scientific and Technical Information Office'
+    url: 'https://ntrs.nasa.gov/citations/19770014162'
+    accessed: '2026-10-08'
+  - id: hall-spincalc
+    title: 'SpinCalc: an artificial-gravity calculator in JavaScript'
+    authors: 'Theodore W. Hall'
+    year: 2018
+    publisher: 'artificial-gravity.com (© 2000, última revisión del 9 de septiembre de 2018)'
+    url: 'https://www.artificial-gravity.com/sw/SpinCalc/'
+    accessed: '2026-10-08'
+  - id: hall-2006-aiaa
+    title: 'Artificial Gravity Visualization, Empathy, and Design (AIAA 2006-7321)'
+    authors: 'Theodore W. Hall'
+    year: 2006
+    publisher: '2nd International Space Architecture Symposium, AIAA Space 2006, San José (California)'
+    url: 'https://www.artificial-gravity.com/AIAA-2006-7321.pdf'
+    accessed: '2026-10-08'
+  - id: serway-jewett-2018
+    title: 'Física para ciencias e ingeniería, Vol. 1, 10.ª edición'
+    authors: 'Raymond A. Serway y John W. Jewett Jr.'
+    year: 2018
+    publisher: 'Cengage Learning'
+    url: 'https://cengagelatam.editorialdc.com/libros/fisica-para-ciencias-e-ingenieria-vol-1/'
+    accessed: '2026-10-08'
+related: ['llantas-f1', 'salto-personaje', 'ruedas-reaccion']
+classRefs:
+  - module: 'Módulo 1'
+    topic: 'Tema 1.4 · Movimiento Circular Uniforme (MCU)'
+    note: 'ω, v = rω, T = 2π/ω, f = 1/T y a_c = ω²R hacia el centro: toda la cinemática del hábitat.'
+  - module: 'Módulo 2'
+    topic: 'Tema 01 · Leyes de Newton · Concepto 04 · Segunda ley de Newton'
+    note: 'Extensión: aplicada a la persona, ΣF = m a_c; la normal del piso es la fuerza centrípeta.'
 updated: 2026-10-08
 ---
 
-Este tema se publica en el Avance 1.
+import UseCase from '../../components/ui/UseCase.astro';
+import Equation from '../../components/ui/Equation.astro';
+import Figure from '../../components/ui/Figure.astro';
+import Cite from '../../components/ui/Cite.astro';
+import Callout from '../../components/ui/Callout.astro';
+import Connections from '../../components/ui/Connections.astro';
+import Sources from '../../components/ui/Sources.astro';
+import HabitatDiagram from '../../components/topics/gravedad-artificial/HabitatDiagram.astro';
+import HabitatCalculator from '../../components/topics/gravedad-artificial/HabitatCalculator';
+
+<UseCase>
+
+<Fragment slot="caso">
+
+Tomo como caso SpinCalc, la calculadora de gravedad artificial que Theodore W. Hall publica en artificial-gravity.com desde 2000, con última revisión en 2018 <Cite id="hall-spincalc" sources={frontmatter.sources} />. Relaciona cuatro parámetros de un hábitat giratorio, radio, velocidad angular, velocidad tangencial y aceleración centrípeta: dados dos, calcula los otros dos e indica si la combinación cae en la zona de confort de cinco autores: Hill y Schnitzer (1962), Gilruth (1969), Gordon y Gervais (1969), Stone (1973) y Cramer (1985). Sus límites no coinciden: el giro máximo va de 3 a 6 RPM, el radio mínimo, cuando lo dan, es 12 m, y la velocidad tangencial mínima, de 6 a 10 m/s. Hall trató el diseño de estos entornos en un simposio de AIAA de 2006 <Cite id="hall-2006-aiaa" sources={frontmatter.sources} />.
+
+Lo aplico al Toro de Stanford, el asentamiento que diseñó el estudio de verano de NASA de 1975, publicado en 1977 como SP-413 <Cite id="nasa-sp413-1977" sources={frontmatter.sources} />: un tubo de 130 m de diámetro doblado en una rueda de unos 1 800 m, con radio mayor R = 830 m, radio del tubo de 65 m y seis rayos. El estudio fija dos criterios de diseño, vivir entre 0,9 y 1 g y no girar a más de 1 RPM en las zonas de vivienda, y reporta para su diseño 0,95 ± 0,05 g a 1 RPM. Meter esos números en las ecuaciones de SpinCalc es el ejercicio de este tema.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Una persona de pie en el piso del anillo, el borde exterior, describe un movimiento circular uniforme alrededor del eje <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. Con el giro dado en revoluciones por minuto, la cinemática es
+
+<Equation
+  id="ec-habitat-mcu"
+  latex="\begin{gathered} \omega = \frac{2\pi N}{60}, \qquad v = \omega\,r \\ T = \frac{2\pi}{\omega}, \qquad f = \frac{1}{T} \end{gathered}"
+  symbols={[
+    { symbol: 'N', meaning: 'velocidad de giro', unit: 'RPM' },
+    { symbol: '\\omega', meaning: 'velocidad angular', unit: 'rad/s' },
+    { symbol: 'r', meaning: 'radio del piso, medido desde el eje', unit: 'm' },
+    { symbol: 'T,\\ f', meaning: 'período y frecuencia de una vuelta', unit: 's, Hz' },
+  ]}
+/>
+
+Llamo a ω velocidad angular, como en clase; la consigna la llama "frecuencia angular", y es la misma magnitud en rad/s, no la f en Hz. Aunque la rapidez sea constante, la velocidad cambia de dirección, y eso exige una aceleración dirigida hacia el eje:
+
+<Equation id="ec-habitat-centripeta" latex="a_c = \omega^2 r = \frac{v^2}{r}" />
+
+El diseño invierte la ecuación (3.2): se fija <Equation inline latex="a_c = g = 9{,}81\ \mathrm{m/s^2}" /> y se despeja una de las dos variables.
+
+<Equation
+  id="ec-habitat-diseno"
+  latex="r = \frac{g}{\omega^2}, \qquad \omega = \sqrt{\frac{g}{r}}"
+/>
+
+La cabeza de una persona de altura h está h más cerca del eje y siente <Equation inline latex="\omega^2 (r - h)" />, así que la diferencia relativa entre cabeza y pies es
+
+<Equation
+  id="ec-habitat-gradiente"
+  latex="\frac{\Delta a}{a} = \frac{\omega^2 r - \omega^2 (r - h)}{\omega^2 r} = \frac{h}{r}"
+  symbols={[{ symbol: 'h', meaning: 'altura de la persona; uso 1,80 m', unit: 'm' }]}
+/>
+
+El caso numérico. A 2 RPM, ω = 0,2094 rad/s y la ecuación (3.3) pide r = 9,81 / 0,2094² = 223,6 m; el piso va a 46,8 m/s y da una vuelta cada 30 s. Al revés, con r = 100 m hacen falta ω = 0,3132 rad/s, es decir, 2,99 RPM. Para el Toro de Stanford, 1 RPM da ω = 0,1047 rad/s y, en R = 830 m, <Equation inline latex="a_c" /> = 9,10 m/s² = 0,93 g. Según mi cálculo, el punto más exterior del tubo, a 830 + 65 = 895 m, llega a 1,00 g: el tubo cubre de 0,93 a 1,00 g, dentro de los 0,95 ± 0,05 g del informe, que además recuerda que solo los radios mayores de 895 m dan 1 g por debajo de 1 RPM.
+
+</Fragment>
+
+<Fragment slot="justificacion">
+
+La alternativa no física es un valor fijo: declarar dentro del hábitat una "gravedad" de 9,81 m/s² hacia el piso, como haría un videojuego. Mientras nadie se mueva, parece correcto, pero esa constante esconde lo que el diseñador necesita saber.
+
+- **El gradiente.** Con la ecuación (3.4), a 223,6 m la cabeza siente un 0,8 % menos que los pies; en una centrífuga de 10 m, un 18 %. Un valor fijo da 0 % en los dos casos.
+- **El efecto Coriolis.** Quien se mueve dentro del hábitat siente una fuerza perpendicular a su velocidad y al eje: en el toro, según SP-413, quien salta 0,55 m cae unos 5,3 cm a un lado. A varias RPM, girar la cabeza marea; la gente se adapta por debajo de unas 3 RPM tras una exposición prolongada <Cite id="nasa-sp413-1977" sources={frontmatter.sources} />.
+- **La ventana de confort.** Con una constante no se puede preguntar si un par (r, ω) es habitable; con las ecuaciones (3.1) a (3.4) y los límites publicados, sí, y eso hace SpinCalc.
+
+El modelo explica además por qué incomodan los radios pequeños. Para 1 g, la ecuación (3.3) da <Equation inline latex="\omega = \sqrt{g/r}" />: al achicar el radio, el giro sube, y con él el gradiente y los efectos de Coriolis. La magnitud que decide no es g, sino el par (r, ω) que la produce.
+
+</Fragment>
+
+<Fragment slot="balance">
+
+Se gana un entorno habitable con física conocida, sin tecnología que no existe: para SP-413, girar es la única manera factible de dar gravedad artificial. Y se gana una ventana de confort cuantificada: cualquier diseño se reduce a dos números, de los que salen los demás y los criterios que cumple.
+
+Lo que cuesta:
+
+- **Escala y masa.** Quedarse por debajo de 1 RPM con 1 g exige más de 895 m de radio: la rueda de Stanford mide unos 1 800 m, y el informe estima unas 150 kt solo para la cáscara del toro.
+- **Acoplamiento.** El único punto en reposo es el eje. Una nave que llega tiene que alinearse con él y girar al mismo ritmo; en el borde, el piso pasa a 86,9 m/s.
+- **Mareo a ω alta.** Un hábitat pequeño es más barato, pero gira más rápido: 10 m pide 9,46 RPM, por encima del giro máximo de los cinco autores.
+- **Lo que deja fuera mi calculadora.** Resuelve la cinemática y el gradiente; no calcula el efecto Coriolis ni los distintos niveles de un tubo de 130 m.
+
+</Fragment>
+
+</UseCase>
+
+## Recurso de apoyo
+
+El diagrama reúne los elementos de las ecuaciones (3.1) a (3.4): eje, radio, sentido de giro y los tres vectores sobre la persona. La aceleración centrípeta apunta hacia el eje y la gravedad aparente, de igual magnitud, hacia afuera; el detalle A muestra por qué la cabeza siente menos que los pies.
+
+<Figure
+  type="diagrama"
+  caption="Hábitat giratorio en ligera perspectiva: eje, radio r, sentido de giro ω, aceleración centrípeta hacia el eje, gravedad aparente hacia afuera, velocidad tangencial y, en el detalle A, la altura h que produce el gradiente."
+  source={{
+    text: 'Diagrama del autor; ecuaciones de Serway y Jewett, cap. de movimiento circular',
+  }}
+>
+  <HabitatDiagram />
+</Figure>
+
+### Calculadora
+
+La calculadora aplica las ecuaciones (3.1) a (3.4) en cada cambio: en un modo se elige el giro y se despeja el radio para 1 g; en el otro, al revés. Los preajustes cargan el par (r, RPM) de su fuente, así que el Toro de Stanford da 0,93 g. El cilindro de O'Neill usa los 4 000 m que suelen citarse para la Isla Tres (0,47 RPM para 1 g), una cifra de diseño que no verifiqué en una fuente primaria.
+
+<Figure
+  type="simulacion"
+  caption="Calculadora del hábitat: con 1 g fijo, despeja el radio o la velocidad de giro y recalcula ω, v, a_c, T, f y la diferencia cabeza–pies."
+  source={{ text: 'Calculadora del autor sobre src/lib/physics/circular.ts' }}
+>
+  <HabitatCalculator client:visible />
+</Figure>
+
+<Callout variant="clase" title="Módulo 1 · Tema 1.4 y una extensión">
+
+Las ecuaciones (3.1) y (3.2) son las del MCU del Tema 1.4: <Equation inline latex="v = r\omega" />, <Equation inline latex="T = 2\pi/\omega" />, <Equation inline latex="f = 1/T" /> y <Equation inline latex="a_c = v^2/R = \omega^2 R" /> hacia el centro. El simulador de clase lo comprueba con R = 2 m y v = 4 m/s: ω = 2 rad/s y <Equation inline latex="a_c" /> = 8 m/s². En clase se usa g = 9,8 m/s²; con ese valor, 2 RPM pedirían 223,4 m en lugar de 223,6 m.
+
+Lo que sigue es una extensión: en clase solo se vio la cinemática del MCU, no su dinámica. Si aplico la segunda ley del Módulo 2, <Equation inline latex="\sum \vec F = m\vec a" />, a la persona, la única fuerza radial es la normal del piso, que apunta hacia el eje: <Equation inline latex="N = m\,\omega^2 r" />. Esa normal es la fuerza centrípeta, y la persona la siente como su peso: la "gravedad aparente" no es una fuerza que tire hacia afuera, sino el empuje del piso hacia adentro.
+
+</Callout>
+
+<Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
+
+En el Tema 4 la misma ecuación (3.2) gobierna a un auto en una curva, pero la fuerza centrípeta la pone la fricción de las llantas en lugar de una normal, y eso fija la rapidez máxima: <Equation inline latex="v_\text{máx} = \sqrt{\mu g r}" />. Con el Tema 2 forma un par: dos maneras de fabricar una gravedad aparente, escribiendo una constante en el código o haciendo girar un hábitat para que la aceleración centrípeta haga de peso. Para poner a girar el hábitat hace falta un torque, y una vez en marcha su momento angular <Equation inline latex="L = I\omega" /> se opone a los cambios de orientación; el Tema 8 trata cómo las ruedas de reacción intercambian momento angular para orientar un satélite. En clase, la cinemática es la del Tema 1.4 del Módulo 1, y la dinámica es la extensión de la segunda ley descrita arriba.
+
+</Connections>
+
+<Sources sources={frontmatter.sources} />
