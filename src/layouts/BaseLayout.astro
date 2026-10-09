@@ -6,24 +6,56 @@ import '@fontsource/ibm-plex-mono/400.css';
 import '@fontsource/ibm-plex-mono/500.css';
 import 'katex/dist/katex.min.css';
 import '../styles/global.css';
+import SiteFooter from '../components/nav/SiteFooter.astro';
+import SiteHeader from '../components/nav/SiteHeader.astro';
+import { COURSE } from '../consigna';
+import { THEME_STORAGE_KEY } from '../lib/theme';
 
 interface Props {
   title: string;
   description?: string;
 }
-const { title, description } = Astro.props;
+const {
+  title,
+  description = `Evidencias de aprendizaje de ${COURSE.name} (${COURSE.code}), ${COURSE.university}.`,
+} = Astro.props;
 ---
 
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    {description && <meta name="description" content={description} />}
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content={description} />
     <title>{title}</title>
+    <!--
+      Runs before first paint and cannot import modules: mirrors resolveTheme/readStoredTheme
+      from src/lib/theme.ts. Storage and matchMedia are guarded because either may throw.
+    -->
+    <script is:inline define:vars={{ storageKey: THEME_STORAGE_KEY }}>
+      var stored = null;
+      try {
+        stored = window.localStorage.getItem(storageKey);
+      } catch (error) {}
+      var prefersDark = false;
+      try {
+        prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      } catch (error) {}
+      document.documentElement.dataset.theme =
+        stored === 'light' || stored === 'dark' ? stored : prefersDark ? 'dark' : 'light';
+    </script>
   </head>
-  <body>
-    <main id="contenido">
+  <body class="flex min-h-dvh flex-col">
+    <a
+      href="#contenido"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-4 focus:z-50 focus:rounded-base focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-fg"
+    >
+      Saltar al contenido
+    </a>
+    <SiteHeader />
+    <main id="contenido" class="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">
       <slot />
     </main>
+    <SiteFooter />
   </body>
 </html>

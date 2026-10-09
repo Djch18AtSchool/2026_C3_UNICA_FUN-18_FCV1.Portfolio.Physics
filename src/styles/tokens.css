@@ -1,0 +1,58 @@
+/*
+ * Design tokens: "cuaderno de laboratorio técnico".
+ * Light = warm notebook paper with blue-black ink; dark = deep graphite with paper-white ink.
+ * Every color is a 6-digit hex so src/styles/tokens.test.ts can measure WCAG contrast.
+ * The inline head script in BaseLayout always sets data-theme before first paint,
+ * so only these two blocks exist (no prefers-color-scheme block).
+ *
+ * Resource accents (--sim, --viz, --diag, --media) and --chart-1…6 identify things;
+ * they are for marks (swatches, rules, borders, series), never for text. Text stays
+ * in --fg / --fg-muted / --accent. Both sets are steps of the dataviz reference
+ * palette, validated for color-vision deficiency against these surfaces.
+ */
+
+:root {
+  color-scheme: light;
+  --bg: #f7f5ef;
+  --bg-elevated: #fdfcf9;
+  --fg: #1d2433;
+  --fg-muted: #535a68;
+  --border: #d8d3c4;
+  --accent: #23479b;
+  --accent-fg: #fdfcf9;
+  --sim: #008300;
+  --viz: #4a3aa7;
+  --diag: #eda100;
+  --media: #e87ba4;
+  --grid: #e6e1d3;
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+  --chart-6: #008300;
+  --radius: 3px;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #1c1e22;
+  --bg-elevated: #24272b;
+  --fg: #e8e6df;
+  --fg-muted: #a8a59c;
+  --border: #3b3f46;
+  --accent: #93b4f5;
+  --accent-fg: #1c1e22;
+  --sim: #008300;
+  --viz: #9085e9;
+  --diag: #c98500;
+  --media: #d55181;
+  --grid: #2e3238;
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+  --chart-6: #008300;
+  --radius: 3px;
+}

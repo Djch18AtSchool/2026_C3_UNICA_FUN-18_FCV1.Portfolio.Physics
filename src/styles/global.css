@@ -1,10 +1,160 @@
 @import 'tailwindcss';
+@import './tokens.css';
+
+/* Dark utilities follow the data-theme attribute set by the head script, not the OS. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Tokens switch per theme at runtime, so Tailwind must reference them, not copy them. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-sim: var(--sim);
+  --color-viz: var(--viz);
+  --color-diag: var(--diag);
+  --color-media: var(--media);
+  --color-grid: var(--grid);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --radius-base: var(--radius);
+}
 
 @theme {
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
-body {
-  font-family: var(--font-sans);
+@layer base {
+  /* 17px root: rem-based Tailwind sizes and spacing scale with the reading size. */
+  html {
+    font-size: 106.25%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  *,
+  ::before,
+  ::after,
+  ::backdrop {
+    border-color: var(--border);
+  }
+
+  /* Type scale: major third (1.25) from 17px → 21.25 / 26.6 / 34. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 600;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  h1 {
+    font-size: 2rem;
+    letter-spacing: -0.015em;
+  }
+  h2 {
+    font-size: 1.5625rem;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-size: 1.25rem;
+  }
+  h4 {
+    font-size: 1rem;
+  }
+
+  p,
+  li {
+    text-wrap: pretty;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--accent) 22%, transparent);
+    color: var(--fg);
+  }
+}
+
+@layer components {
+  /* Reference to a class session, set like a note in a notebook's double-ruled margin. */
+  .margin-note {
+    border-left: 3px double var(--accent);
+    padding-left: 0.75rem;
+    color: var(--fg-muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+}
+
+/* Reading column: about 70 characters per line. */
+@utility measure {
+  max-width: 70ch;
+}
+
+/* Engineering-pad grid for figure frames: fine cells with a heavier line every five. */
+@utility grid-paper {
+  --grid-cell: 0.75rem;
+  --grid-major: calc(var(--grid-cell) * 5);
+  --grid-major-line: color-mix(in srgb, var(--grid), var(--fg) 10%);
+  background-color: var(--bg-elevated);
+  background-image:
+    linear-gradient(to right, var(--grid-major-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-major-line) 1px, transparent 1px),
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size:
+    var(--grid-major) var(--grid-major),
+    var(--grid-major) var(--grid-major),
+    var(--grid-cell) var(--grid-cell),
+    var(--grid-cell) var(--grid-cell);
+  background-position: -1px -1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
