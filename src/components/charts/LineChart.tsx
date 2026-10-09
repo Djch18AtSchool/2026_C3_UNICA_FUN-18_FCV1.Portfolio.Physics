@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { formatNumber } from '../../lib/format';
 import ChartFrame from './ChartFrame';
-import ChartTooltip from './ChartTooltip';
+import ChartTooltip, { type TooltipExtra } from './ChartTooltip';
 import { tickPrecision, trimTrailingZeros } from './chartScale';
 import {
   ACTIVE_DOT_RADIUS,
@@ -35,6 +35,12 @@ export interface AxisSpec {
   label: string;
   unit: string;
   domain?: [number, number];
+  /** Explicit tick values, when the automatic ones fall on awkward numbers. */
+  ticks?: number[];
+  /** Decimals of this axis' values in the tooltip (default 2). */
+  precision?: number;
+  /** Unit after tooltip values when it differs from the title's, e.g. '' for "adimensional". */
+  valueUnit?: string;
 }
 
 export interface SeriesSpec {
@@ -68,12 +74,15 @@ export interface LineChartProps {
   aspectRatio?: number;
   /** 'linear' (default) keeps real kinks such as the velocity at impact; 'monotone' smooths them. */
   curve?: 'linear' | 'monotone';
+  /** Row values listed in the tooltip but not plotted, e.g. an effective coefficient. */
+  tooltipExtras?: TooltipExtra[];
 }
 
 const MARKER_DASH = '4 3';
 const MARKER_WIDTH = 1.5;
 
-const MARGIN = { top: 8, right: 16, bottom: 8, left: 4 } as const;
+/** The right margin leaves room for half of a last tick as wide as "10 000". */
+const MARGIN = { top: 8, right: 28, bottom: 8, left: 4 } as const;
 const Y_AXIS_WIDTH = 64;
 const X_AXIS_HEIGHT = 48;
 const MIN_SERIES_FOR_LEGEND = 2;
@@ -125,6 +134,7 @@ export default function LineChart({
   markers = [],
   aspectRatio = DEFAULT_ASPECT_RATIO,
   curve = 'linear',
+  tooltipExtras = [],
 }: LineChartProps) {
   assertUnits({ xAxis, yAxis });
 
@@ -168,6 +178,7 @@ export default function LineChart({
             type="number"
             niceTicks="snap125"
             domain={xAxis.domain ?? ['dataMin', 'dataMax']}
+            ticks={xAxis.ticks}
             height={X_AXIS_HEIGHT}
             tick={TICK_STYLE}
             tickFormatter={tickFormatter(xExtent)}
@@ -184,6 +195,7 @@ export default function LineChart({
             type="number"
             niceTicks="snap125"
             domain={yAxis.domain ?? ['auto', 'auto']}
+            ticks={yAxis.ticks}
             width={Y_AXIS_WIDTH}
             tick={TICK_STYLE}
             tickFormatter={tickFormatter(yExtent)}
@@ -241,7 +253,10 @@ export default function LineChart({
               <ChartTooltip
                 xLabel={xAxis.label}
                 xUnit={xAxis.unit}
-                yUnit={yAxis.unit}
+                yUnit={yAxis.valueUnit ?? yAxis.unit}
+                xPrecision={xAxis.precision}
+                yPrecision={yAxis.precision}
+                extras={tooltipExtras}
                 active={active}
                 label={label}
                 payload={payload}

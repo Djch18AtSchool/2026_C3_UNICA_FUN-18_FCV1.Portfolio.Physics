@@ -48,4 +48,65 @@ describe('ChartTooltip', () => {
 
     expect(screen.queryByText('Altura')).not.toBeInTheDocument();
   });
+  test('prints values with the requested precision and a value unit apart from the axis unit', () => {
+    render(
+      <ChartTooltip
+        xLabel="Temperatura"
+        xUnit="°C"
+        yUnit=""
+        xPrecision={0}
+        yPrecision={3}
+        active
+        label={120}
+        payload={[{ name: 'μ', value: 1.8, color: 'var(--chart-1)' }]}
+      />,
+    );
+
+    expect(screen.getByText('Temperatura = 120\u202f°C', EXACT_TEXT)).toBeInTheDocument();
+    expect(screen.getByText('1,800', EXACT_TEXT)).toBeInTheDocument();
+  });
+
+  test('adds extra rows read from the hovered data row', () => {
+    render(
+      <ChartTooltip
+        {...FORMAT}
+        active
+        label={2}
+        payload={[
+          {
+            name: 'Fuerza',
+            value: 6400,
+            color: 'var(--chart-1)',
+            payload: { fz: 4000, real: 6400, muEff: 1.6 },
+          },
+        ]}
+        extras={[{ key: 'muEff', name: 'μ efectivo', precision: 3 }]}
+      />,
+    );
+
+    expect(screen.getByTestId('tooltip-extras')).toHaveTextContent('μ efectivo');
+    expect(screen.getByText('1,600', EXACT_TEXT)).toBeInTheDocument();
+  });
+
+  test('skips extra rows whose value is not a finite number', () => {
+    render(
+      <ChartTooltip
+        {...FORMAT}
+        active
+        label={0}
+        payload={[
+          {
+            name: 'Fuerza',
+            value: 0,
+            color: 'var(--chart-1)',
+            payload: { fz: 0, real: 0, muEff: Number.NaN },
+          },
+        ]}
+        extras={[{ key: 'muEff', name: 'μ efectivo' }]}
+      />,
+    );
+
+    expect(screen.queryByText('μ efectivo')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('tooltip-extras')).not.toBeInTheDocument();
+  });
 });
