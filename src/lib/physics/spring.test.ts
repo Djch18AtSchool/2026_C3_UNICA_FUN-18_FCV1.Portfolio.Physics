@@ -69,6 +69,7 @@ describe('damped oscillator', () => {
     expect(signChanges(xs)).toBeLessThanOrEqual(1);
   });
 
+  // Semi-implicit Euler's energy error is bounded by ≈ ω·dt/2 = √(k/m)·dt/2 ≈ 1.77 % here, hence 2 %.
   test('undamped oscillator keeps its energy within 2 % for 1 s', () => {
     const p: OscillatorParams = { k: K, m: M, c: 0 };
     const dt = 1 / 4000;
@@ -116,5 +117,13 @@ describe('damped oscillator', () => {
     expect(isAtRest({ x: 2e-4, v: 0 })).toBe(false);
     expect(isAtRest({ x: 0, v: 2e-3 })).toBe(false);
     expect(isAtRest({ x: 2e-4, v: 0 }, { x: 1e-3, v: 1e-3 })).toBe(true);
+  });
+
+  test('isAtRest rejects tolerances that are not finite and > 0', () => {
+    const s = { x: 0, v: 0 };
+    expect(() => isAtRest(s, { x: 0, v: 1e-3 })).toThrow(RangeError);
+    expect(() => isAtRest(s, { x: 1e-4, v: -1 })).toThrow(RangeError);
+    expect(() => isAtRest(s, { x: Number.POSITIVE_INFINITY, v: 1e-3 })).toThrow(RangeError);
+    expect(() => isAtRest(s, { x: 1e-4, v: Number.NaN })).toThrow(RangeError);
   });
 });

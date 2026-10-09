@@ -48,7 +48,6 @@ function seek(state: ClockState, t: number): ClockState {
 /** Advances t' = t + dt·speed; past the end it wraps (t' mod duration) when looping, else stops at duration. */
 function tick(state: ClockState, dt: number): ClockState {
   requireNonNegative('dt', dt);
-  requireFinite('dt', dt);
   if (!state.playing) return state;
   const next = state.t + dt * state.speed;
   if (next < state.duration) return { ...state, t: next };
@@ -64,7 +63,7 @@ function setDuration(state: ClockState, duration: number): ClockState {
 
 /**
  * Pure playback reducer; always returns a new object, except a tick while paused (unchanged state).
- * tick: t' = t + dt·speed; if t' ≥ duration → loop ? t' − duration (keeps playing) : t = duration, paused.
+ * tick: t' = t + dt·speed; if t' ≥ duration → loop ? t' mod duration (keeps playing) : t = duration, paused.
  * seek and step clamp to [0, duration] and pause; play at t = duration restarts from 0.
  */
 export function clockReducer(state: ClockState, action: ClockAction): ClockState {

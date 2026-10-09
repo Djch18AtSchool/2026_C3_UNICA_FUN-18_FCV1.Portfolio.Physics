@@ -123,6 +123,9 @@ describe('clockReducer: settings', () => {
     expect(clockReducer(c, { type: 'setSpeed', speed: 0.5 }).speed).toBe(0.5);
     expect(() => clockReducer(c, { type: 'setSpeed', speed: 0 })).toThrow(RangeError);
     expect(() => clockReducer(c, { type: 'setSpeed', speed: -1 })).toThrow(RangeError);
+    expect(() => clockReducer(c, { type: 'setSpeed', speed: Number.POSITIVE_INFINITY })).toThrow(
+      RangeError,
+    );
   });
 
   test('setLoop sets the flag', () => {
@@ -138,6 +141,9 @@ describe('clockReducer: settings', () => {
       duration: 20,
     });
     expect(() => clockReducer(c, { type: 'setDuration', duration: -1 })).toThrow(RangeError);
+    expect(() =>
+      clockReducer(c, { type: 'setDuration', duration: Number.POSITIVE_INFINITY }),
+    ).toThrow(RangeError);
   });
 });
 

@@ -70,16 +70,21 @@ describe('trajectory', () => {
   });
 });
 
+const MAX_EULER_STEPS = 10_000;
+
 describe('eulerStep', () => {
   test('integrates a jump close to the analytic apex and landing time', () => {
     const dt = 1 / 120;
     const g = 9.81;
     let s: EulerState = { t: 0, x: 0, y: 0, vx: 2, vy: 10 };
     let maxY = 0;
+    let steps = 0;
     do {
       s = eulerStep(s, g, g, dt);
       maxY = Math.max(maxY, s.y);
-    } while (s.y > 0);
+      steps++;
+    } while (s.y > 0 && steps < MAX_EULER_STEPS);
+    expect(s.y).toBeLessThanOrEqual(0);
     expect(Math.abs(maxY - 5.097) / 5.097).toBeLessThan(0.01);
     expect(Math.abs(s.t - 2.039) / 2.039).toBeLessThan(0.02);
   });

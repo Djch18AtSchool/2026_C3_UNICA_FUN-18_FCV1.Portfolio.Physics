@@ -65,11 +65,13 @@ export function dampedSpringStep(
   return { x: s.x + v * dt, v };
 }
 
-/** Rest test: |x| < tol.x and |v| < tol.v (defaults 1e-4 m and 1e-3 m/s). */
+/** Rest test: |x| < tol.x and |v| < tol.v (defaults 1e-4 m and 1e-3 m/s; tolerances finite and > 0). */
 export function isAtRest(
   s: OscillatorState,
   tol: { x: number; v: number } = { x: REST_TOLERANCE_X, v: REST_TOLERANCE_V },
 ): boolean {
+  requirePositive('tol.x', tol.x);
+  requirePositive('tol.v', tol.v);
   return Math.abs(s.x) < tol.x && Math.abs(s.v) < tol.v;
 }
 
