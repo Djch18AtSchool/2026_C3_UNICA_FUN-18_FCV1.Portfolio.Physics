@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { G_EARTH, type TrajectoryPoint } from '../../../lib/physics';
 import { formatNumber } from '../../../lib/format';
 import { tickPrecision, trimTrailingZeros } from '../../charts/chartScale';
+import { useElementWidth } from '../../hooks/useElementWidth';
 import { niceAxis } from './axisScale';
 import type { JumpResult } from './jumpModel';
 
@@ -67,23 +68,6 @@ function prefersReducedMotion(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia(REDUCED_MOTION).matches;
 }
 
-/** Tracks the rendered width of an element so the SVG keeps real-size text at any width. */
-function useWidth<T extends HTMLElement>(): [RefObject<T | null>, number] {
-  const ref = useRef<T>(null);
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
-  useEffect(() => {
-    const element = ref.current;
-    if (!element || typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(([entry]) => {
-      const next = Math.round(entry.contentRect.width);
-      if (next > 0) setWidth(next);
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-  return [ref, width];
-}
-
 /** Replays the marker along the live curve, in real time up to MAX_ANIMATION_S of wall clock. */
 function useMarker(points: TrajectoryPoint[], tAir: number, scale: Scale) {
   const markerRef = useRef<SVGCircleElement>(null);
@@ -143,7 +127,7 @@ function Legend({ g }: { g: number }) {
 }
 
 export default function JumpCanvas({ live, ghost, g }: JumpCanvasProps) {
-  const [containerRef, width] = useWidth<HTMLDivElement>();
+  const [containerRef, width] = useElementWidth<HTMLDivElement>(DEFAULT_WIDTH);
   const scale = useMemo(() => buildScale(width, live, ghost), [width, live, ghost]);
   const livePath = useMemo(() => toPath(live.points, scale), [live, scale]);
   const ghostPath = useMemo(() => toPath(ghost.points, scale), [ghost, scale]);

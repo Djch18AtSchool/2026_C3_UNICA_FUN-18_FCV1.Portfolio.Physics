@@ -2,3 +2,4 @@ docs/
 .reference/
 .superpowers/
 pnpm-lock.yaml
+src/data/drone-route.json

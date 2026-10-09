@@ -166,13 +166,13 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
   }
-  .content-figure figcaption {
+  .content-figure > figcaption {
     max-width: 70ch;
     margin-top: 0.75rem;
     font-size: 0.9375rem;
     line-height: 1.5;
   }
-  .content-figure figcaption::before {
+  .content-figure > figcaption::before {
     content: 'Figura ' counter(topic) '.' counter(figure) ' · ';
     font-family: var(--font-mono);
     font-weight: 500;

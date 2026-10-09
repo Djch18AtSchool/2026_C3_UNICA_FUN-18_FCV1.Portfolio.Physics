@@ -5,6 +5,7 @@ import {
   Line,
   LineChart as RechartsLineChart,
   ReferenceArea,
+  ReferenceLine,
   Tooltip,
   XAxis,
   YAxis,
@@ -49,6 +50,12 @@ export interface ReferenceBand {
   label: string;
 }
 
+/** A vertical reference line at x, e.g. the instant selected by a time slider. */
+export interface ChartMarker {
+  x: number;
+  label?: string;
+}
+
 export interface LineChartProps {
   title: string;
   data: Record<string, number>[];
@@ -57,10 +64,14 @@ export interface LineChartProps {
   yAxis: AxisSpec;
   series: SeriesSpec[];
   bands?: ReferenceBand[];
+  markers?: ChartMarker[];
   aspectRatio?: number;
   /** 'linear' (default) keeps real kinks such as the velocity at impact; 'monotone' smooths them. */
   curve?: 'linear' | 'monotone';
 }
+
+const MARKER_DASH = '4 3';
+const MARKER_WIDTH = 1.5;
 
 const MARGIN = { top: 8, right: 16, bottom: 8, left: 4 } as const;
 const Y_AXIS_WIDTH = 64;
@@ -111,6 +122,7 @@ export default function LineChart({
   yAxis,
   series,
   bands = [],
+  markers = [],
   aspectRatio = DEFAULT_ASPECT_RATIO,
   curve = 'linear',
 }: LineChartProps) {
@@ -202,6 +214,25 @@ export default function LineChart({
                 fontSize={TICK_FONT_SIZE}
               />
             </ReferenceArea>
+          ))}
+          {markers.map((marker, index) => (
+            <ReferenceLine
+              // Index keys: a marker that follows a slider moves instead of remounting.
+              key={`marker-${index}`}
+              x={marker.x}
+              stroke={TEXT_COLOR}
+              strokeWidth={MARKER_WIDTH}
+              strokeDasharray={MARKER_DASH}
+            >
+              {marker.label ? (
+                <Label
+                  value={marker.label}
+                  position="insideTopRight"
+                  fill={TEXT_COLOR}
+                  fontSize={TICK_FONT_SIZE}
+                />
+              ) : null}
+            </ReferenceLine>
           ))}
           <Tooltip
             cursor={{ stroke: TICK_COLOR, strokeWidth: 1 }}
