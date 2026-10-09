@@ -39,6 +39,10 @@ test('en modo "Fijar 1 g", 2 RPM da un radio de 223,6 m', async ({ page }) => {
 
 test('la página cumple la estructura del tema', async ({ page }) => {
   await expect(page.locator('figure[data-type="diagrama"]')).toBeVisible();
+  // The calculator supplements the prescribed diagram; its badge says so.
+  await expect(page.locator('figure[data-type="simulacion"] .figure-head')).toHaveText(
+    'Complemento interactivo',
+  );
   await expect(page.locator('[data-testid="use-case"] [data-part]')).toHaveCount(4);
   expect(await page.locator('[data-testid="sources"] li').count()).toBeGreaterThanOrEqual(4);
   await expect(page.getByTestId('connections')).toBeVisible();

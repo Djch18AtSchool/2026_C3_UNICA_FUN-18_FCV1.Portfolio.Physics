@@ -72,6 +72,8 @@ test('la curva del resorte responde a k y muestra la energía', async ({ page })
 
   const figure = page.locator('figure[data-type="simulacion"]');
   await expect(figure.locator('.figure-source')).toContainText('supuesto de 8 mm');
+  // The curve supplements the prescribed multimedia resource; its badge says so.
+  await expect(figure.locator('.figure-head')).toHaveText('Complemento interactivo');
 });
 
 test('la página cumple la estructura del tema', async ({ page }) => {

@@ -38,7 +38,7 @@ sources:
     publisher: 'Cengage Learning'
     url: 'https://cengagelatam.editorialdc.com/libros/fisica-para-ciencias-e-ingenieria-vol-1/'
     accessed: '2026-10-08'
-related: ['llantas-f1', 'salto-personaje', 'ruedas-reaccion']
+related: ['dron-reparto', 'llantas-f1', 'salto-personaje', 'ruedas-reaccion']
 classRefs:
   - module: 'Módulo 1'
     topic: 'Tema 1.4 · Movimiento Circular Uniforme (MCU)'
@@ -154,6 +154,7 @@ La calculadora aplica las ecuaciones (3.1) a (3.4) en cada cambio: en un modo se
 
 <Figure
   type="simulacion"
+  label="Complemento interactivo"
   caption="Calculadora del hábitat: con 1 g fijo, despeja el radio o la velocidad de giro y recalcula ω, v, a_c, T, f y la diferencia cabeza–pies."
   source={{ text: 'Calculadora del autor sobre src/lib/physics/circular.ts' }}
 >
@@ -170,7 +171,7 @@ Lo que sigue es una extensión: en clase solo se vio la cinemática del MCU, no 
 
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-En el Tema 4 la misma ecuación (3.2) gobierna a un auto en una curva, pero la fuerza centrípeta la pone la fricción de las llantas en lugar de una normal, y eso fija la rapidez máxima: <Equation inline latex="v_\text{máx} = \sqrt{\mu g r}" />. Con el Tema 2 forma un par: dos maneras de fabricar una gravedad aparente, escribiendo una constante en el código o haciendo girar un hábitat para que la aceleración centrípeta haga de peso. Para poner a girar el hábitat hace falta un torque, y una vez en marcha su momento angular <Equation inline latex="L = I\omega" /> se opone a los cambios de orientación; el Tema 8 trata cómo las ruedas de reacción intercambian momento angular para orientar un satélite. En clase, la cinemática es la del Tema 1.4 del Módulo 1, y la dinámica es la extensión de la segunda ley descrita arriba.
+En el Tema 4 la misma ecuación (3.2) gobierna a un auto en una curva, pero la fuerza centrípeta la pone la fricción de las llantas en lugar de una normal, y eso fija la rapidez máxima: <Equation inline latex="v_\text{máx} = \sqrt{\mu g r}" />. Con el Tema 2 forma un par: dos maneras de fabricar una gravedad aparente, escribiendo una constante en el código o haciendo girar un hábitat para que la aceleración centrípeta haga de peso. Con el Tema 1 comparte el lenguaje de vectores y componentes: en el dron la aceleración cambia de magnitud con dirección fija en cada tramo; aquí cambia de dirección con rapidez constante. Para poner a girar el hábitat hace falta un torque, y una vez en marcha su momento angular <Equation inline latex="L = I\omega" /> se opone a los cambios de orientación; el Tema 8 trata cómo las ruedas de reacción intercambian momento angular para orientar un satélite. En clase, la cinemática es la del Tema 1.4 del Módulo 1, y la dinámica es la extensión de la segunda ley descrita arriba.
 
 </Connections>
 

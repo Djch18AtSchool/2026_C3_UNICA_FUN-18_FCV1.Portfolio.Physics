@@ -3,8 +3,10 @@ import { RESOURCE_LABELS, type ResourceType } from '../../consigna';
 
 interface Props {
   type?: ResourceType;
+  /** Replaces the resource-type text (the mark and color still follow `type`). */
+  label?: string;
 }
-const { type } = Astro.props;
+const { type, label } = Astro.props;
 
 // Resource accents are marks only (swatch and tint); the label text stays in fg for contrast.
 // Full class names, so Tailwind's scanner sees every one.
@@ -25,7 +27,7 @@ const mark = type ? MARKS[type] : undefined;
     ]}
   >
     <span class:list={['size-2.5 shrink-0 rounded-[1px]', mark.swatch]} aria-hidden="true" />
-    {RESOURCE_LABELS[type]}
+    {label ?? RESOURCE_LABELS[type]}
   </span>
 ) : (
   <span class="inline-flex items-center gap-2 rounded-base border border-transparent px-2 py-0.5 text-sm text-fg-muted">
