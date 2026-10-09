@@ -7,7 +7,7 @@ export const sourceSchema = z.object({
   authors: z.string().optional(),
   year: z.number().int().optional(),
   publisher: z.string().optional(),
-  url: z.string().url().optional(),
+  url: z.url().optional(),
   accessed: z.string().optional(),
 });
 
