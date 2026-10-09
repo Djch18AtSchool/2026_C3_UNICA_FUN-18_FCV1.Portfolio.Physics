@@ -4,11 +4,15 @@ export interface ChartFrameProps {
   title: string;
   children: ReactNode;
   footnote?: string;
+  testId?: string;
 }
 
-export default function ChartFrame({ title, children, footnote }: ChartFrameProps) {
+export default function ChartFrame({ title, children, footnote, testId }: ChartFrameProps) {
   return (
-    <figure className="m-0 rounded-base border border-border bg-bg-elevated p-4">
+    <figure
+      data-testid={testId}
+      className="m-0 rounded-base border border-border bg-bg-elevated p-4"
+    >
       <figcaption className="mb-3 text-sm font-semibold">{title}</figcaption>
       {children}
       {footnote ? (
