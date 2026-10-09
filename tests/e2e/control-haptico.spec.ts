@@ -21,20 +21,24 @@ test('el video se reproduce o, si aún no está publicado, muestra el respaldo',
     const fallback = page.getByTestId('haptic-video-fallback');
     await expect(fallback).toBeVisible();
     await expect(fallback.getByTestId('haptic-video-transcript')).toBeVisible();
-    await expect(fallback.getByRole('link', { name: /Descargar el video/ })).toBeVisible();
+    // No link to the URL that just failed, and nothing to seek.
+    await expect(player.getByRole('link', { name: /Descargar el video/ })).toHaveCount(0);
+    await expect(page.getByTestId('haptic-video-markers').getByRole('button')).toHaveCount(0);
   } else {
     expect(response.status()).toBe(HTTP_OK);
     await expect(player).toHaveAttribute('data-state', 'ok');
     await expect(player.getByTestId('haptic-video')).toHaveAttribute('controls', '');
     await expect(page.getByTestId('haptic-video-fallback')).toHaveCount(0);
+    await expect(player.getByRole('link', { name: 'Descargar el video (MP4)' })).toBeVisible();
+    await expect(page.getByTestId('haptic-video-markers').getByRole('button')).toHaveCount(3);
   }
 });
 
 test('hay tres marcas de tiempo con su análisis escrito', async ({ page }) => {
   const markers = page.getByTestId('haptic-video-markers');
 
-  await expect(markers.getByRole('button')).toHaveCount(3);
-  await expect(markers.getByRole('button').nth(0)).toHaveText(/^0:05 · /);
+  await expect(markers.getByTestId('marker-label')).toHaveCount(3);
+  await expect(markers.getByTestId('marker-label').nth(0)).toHaveText(/^0:05 · /);
   await expect(markers.getByTestId('marker-analysis')).toHaveCount(3);
   for (const analysis of await markers.getByTestId('marker-analysis').all()) {
     await expect(analysis).toBeVisible();

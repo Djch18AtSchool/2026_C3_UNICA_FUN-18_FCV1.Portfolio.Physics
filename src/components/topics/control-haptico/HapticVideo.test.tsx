@@ -46,6 +46,18 @@ describe('HapticVideo', () => {
     expect(screen.queryByTestId('haptic-video-fallback')).toBeNull();
   });
 
+  test('offers the MP4 download link below a working player', () => {
+    renderPlayer();
+
+    const download = screen.getByRole('link', { name: 'Descargar el video (MP4)' });
+    expect(download).toHaveAttribute('href', withBase(VIDEO_PATH));
+    expect(download).toHaveAttribute('download');
+    // The link follows the player in document order.
+    expect(
+      videoElement().compareDocumentPosition(download) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   test('lists each marker as "m:ss · title" with its analysis always visible', () => {
     renderPlayer();
 
@@ -55,7 +67,7 @@ describe('HapticVideo', () => {
     MARKERS.forEach(({ analysis }) => expect(screen.getByText(analysis)).toBeVisible());
   });
 
-  test('a load error shows the fallback with the transcript and a download link', () => {
+  test('a load error shows the fallback with the transcript and no link to the failed URL', () => {
     renderPlayer();
     const video = videoElement();
 
@@ -64,22 +76,25 @@ describe('HapticVideo', () => {
     expect(screen.getByTestId('haptic-video-player')).toHaveAttribute('data-state', 'error');
     const fallback = screen.getByTestId('haptic-video-fallback');
     expect(within(fallback).getByText(TRANSCRIPT)).toBeVisible();
-    const download = within(fallback).getByRole('link', { name: /Descargar el video/ });
-    expect(download).toHaveAttribute('href', withBase(VIDEO_PATH));
-    expect(download).toHaveAttribute('download');
+    expect(screen.queryByRole('link', { name: /Descargar el video/ })).toBeNull();
     // The written analysis does not depend on the video.
     MARKERS.forEach(({ analysis }) => expect(screen.getByText(analysis)).toBeVisible());
   });
 
-  test('in the error state no marker is highlighted, even after choosing one', () => {
+  test('in the error state the markers are plain time labels, not seek buttons', () => {
     renderPlayer();
     fireEvent.error(videoElement());
 
-    fireEvent.click(markerButton(/Fondo del recorrido/));
-
-    MARKERS.forEach(({ title }) =>
-      expect(markerButton(new RegExp(title))).not.toHaveAttribute('aria-current'),
-    );
+    expect(
+      within(screen.getByTestId('haptic-video-markers')).queryAllByRole('button'),
+    ).toHaveLength(0);
+    const labels = screen.getAllByTestId('marker-label');
+    expect(labels.map((label) => label.textContent)).toEqual([
+      '0:05 · Empieza la resistencia',
+      '0:15 · Fondo del recorrido',
+      '0:18 · Liberación',
+    ]);
+    labels.forEach((label) => expect(label).not.toHaveAttribute('aria-current'));
   });
 
   test('the fallback copy is neutral, so it also fits a later network error', () => {

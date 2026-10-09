@@ -11,6 +11,8 @@ const BUTTON_BASE =
   'inline-flex min-h-9 items-center gap-2 self-start rounded-base border px-3 py-1.5 text-left text-sm font-medium text-fg transition-colors';
 const BUTTON_ACTIVE = 'border-accent bg-accent/10';
 const BUTTON_IDLE = 'border-border bg-bg-elevated hover:border-fg-muted';
+const LABEL_STATIC =
+  'm-0 inline-flex items-center gap-2 self-start text-sm font-medium text-fg-muted';
 
 /** 18 → "0:18", 75 → "1:15". */
 function formatTimestamp(seconds: number): string {
@@ -25,12 +27,14 @@ function activeMarkerIndex(markers: VideoMarker[], time: number): number {
 }
 
 interface FallbackProps {
-  videoUrl: string;
   transcript: string;
 }
 
-/** Shown whenever the video cannot load (not published yet, or a network error): transcript and a download link. */
-function VideoFallback({ videoUrl, transcript }: FallbackProps) {
+/**
+ * Shown whenever the video cannot load (not published yet, or a network error). It offers the
+ * transcript only: a download link would point at the very URL that just failed.
+ */
+function VideoFallback({ transcript }: FallbackProps) {
   return (
     <div
       data-testid="haptic-video-fallback"
@@ -62,10 +66,46 @@ function VideoFallback({ videoUrl, transcript }: FallbackProps) {
           {transcript}
         </p>
       </div>
-      <a href={videoUrl} download className="self-start text-sm">
-        Descargar el video (MP4)
-      </a>
     </div>
+  );
+}
+
+interface MarkerItemProps {
+  marker: VideoMarker;
+  isActive: boolean;
+  /** Without a playable video there is nothing to seek, so the label is plain text. */
+  onSeek?: (time: number) => void;
+}
+
+/** One timestamp of the analysis: a seek button (or plain label) and its always-visible paragraph. */
+function MarkerItem({ marker, isActive, onSeek }: MarkerItemProps) {
+  const label = (
+    <>
+      <span className="font-mono tabular-nums">{formatTimestamp(marker.time)}</span>
+      {` · ${marker.title}`}
+    </>
+  );
+  return (
+    <li className="m-0 flex flex-col gap-1.5">
+      {onSeek ? (
+        <button
+          type="button"
+          data-testid="marker-label"
+          aria-current={isActive ? 'true' : undefined}
+          onClick={() => onSeek(marker.time)}
+          className={`${BUTTON_BASE} ${isActive ? BUTTON_ACTIVE : BUTTON_IDLE}`}
+        >
+          {label}
+        </button>
+      ) : (
+        <p data-testid="marker-label" className={LABEL_STATIC}>
+          {label}
+        </p>
+      )}
+      <p data-testid="marker-analysis" className="m-0 text-sm">
+        {marker.analysis}
+      </p>
+    </li>
   );
 }
 
@@ -104,7 +144,7 @@ export default function HapticVideo({ src, poster, markers, transcript }: Haptic
     >
       <div className="overflow-hidden rounded-base border border-border bg-bg-elevated">
         {hasError ? (
-          <VideoFallback videoUrl={videoUrl} transcript={transcript} />
+          <VideoFallback transcript={transcript} />
         ) : (
           <video
             ref={videoRef}
@@ -122,37 +162,31 @@ export default function HapticVideo({ src, poster, markers, transcript }: Haptic
         )}
       </div>
       {hasError ? null : (
-        <details className="text-sm">
-          <summary className="cursor-pointer text-fg-muted">Transcripción del video</summary>
-          <p id={transcriptId} className="mb-0 mt-2">
-            {transcript}
-          </p>
-        </details>
+        <>
+          <a href={videoUrl} download className="self-start text-sm">
+            Descargar el video (MP4)
+          </a>
+          <details className="text-sm">
+            <summary className="cursor-pointer text-fg-muted">Transcripción del video</summary>
+            <p id={transcriptId} className="mb-0 mt-2">
+              {transcript}
+            </p>
+          </details>
+        </>
       )}
       <div className="flex flex-col gap-3 rounded-base border border-border bg-bg-elevated p-4">
         <p className="m-0 text-xs font-medium uppercase tracking-wider text-fg-muted">
           Análisis por instante
         </p>
         <ol data-testid="haptic-video-markers" className="m-0 flex list-none flex-col gap-4 p-0">
-          {markers.map((marker, index) => {
-            const isActive = index === activeIndex;
-            return (
-              <li key={marker.time} className="m-0 flex flex-col gap-1.5">
-                <button
-                  type="button"
-                  aria-current={isActive ? 'true' : undefined}
-                  onClick={() => seekTo(marker.time)}
-                  className={`${BUTTON_BASE} ${isActive ? BUTTON_ACTIVE : BUTTON_IDLE}`}
-                >
-                  <span className="font-mono tabular-nums">{formatTimestamp(marker.time)}</span>
-                  {` · ${marker.title}`}
-                </button>
-                <p data-testid="marker-analysis" className="m-0 text-sm">
-                  {marker.analysis}
-                </p>
-              </li>
-            );
-          })}
+          {markers.map((marker, index) => (
+            <MarkerItem
+              key={marker.time}
+              marker={marker}
+              isActive={index === activeIndex}
+              onSeek={hasError ? undefined : seekTo}
+            />
+          ))}
         </ol>
       </div>
     </div>
