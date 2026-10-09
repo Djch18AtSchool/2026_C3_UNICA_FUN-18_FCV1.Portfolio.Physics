@@ -17,8 +17,10 @@ test('todos los enlaces internos de la portada y de los 13 temas responden 200',
       page.locator(`a[href^="/"]:not([href^="${BASE_PATH}"])`),
       `${path} has an internal link without the base path`,
     ).toHaveCount(0);
+    // Download links point at media the author publishes after recording (Tema 5's video);
+    // control-haptico.spec.ts requests that file and checks the fallback while it is missing.
     const found = await page
-      .locator(`a[href^="${BASE_PATH}"]`)
+      .locator(`a[href^="${BASE_PATH}"]:not([download])`)
       .evaluateAll((anchors) => anchors.map((anchor) => anchor.getAttribute('href') ?? ''));
     found.forEach((href) => hrefs.add(href.split('#')[0]));
   }
