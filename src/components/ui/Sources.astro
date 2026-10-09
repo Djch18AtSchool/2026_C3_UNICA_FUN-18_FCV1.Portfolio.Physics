@@ -1,0 +1,43 @@
+---
+/*
+ * The topic's numbered source list; <Cite> links to its items. In MDX:
+ * <Sources sources={frontmatter.sources} />
+ */
+import type { Source } from '../../content/topicSchema';
+import { formatSource } from '../../lib/sources';
+
+interface Props {
+  sources: Source[];
+}
+const { sources } = Astro.props;
+
+// Access dates are calendar days ("2026-10-08"); format them in UTC so the day never shifts.
+const ACCESSED_FORMAT = new Intl.DateTimeFormat('es-CR', { dateStyle: 'long', timeZone: 'UTC' });
+
+function accessedLabel(accessed: string): string {
+  const date = new Date(accessed);
+  return Number.isNaN(date.getTime()) ? accessed : ACCESSED_FORMAT.format(date);
+}
+---
+
+<section data-testid="sources" class="sources" aria-labelledby="fuentes">
+  <h2 id="fuentes">Fuentes</h2>
+  <ol class="sources-list">
+    {sources.map((source) => (
+      <li id={`fuente-${source.id}`}>
+        {formatSource(source)}
+        {source.url && (
+          <>
+            {' '}
+            <a class="source-url" href={source.url}>
+              {source.url}
+            </a>
+          </>
+        )}
+        {source.accessed && (
+          <span class="source-accessed"> Consultado el {accessedLabel(source.accessed)}.</span>
+        )}
+      </li>
+    ))}
+  </ol>
+</section>

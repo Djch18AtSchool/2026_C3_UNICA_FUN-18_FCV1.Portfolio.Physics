@@ -1,0 +1,37 @@
+---
+/*
+ * A numbered figure ("Figura N.k", from the CSS counters of .topic-body) that frames a resource on
+ * grid paper. The source line is mandatory. In MDX:
+ *
+ *   <Figure type="simulacion" caption="…" source={{ text: '…', url: '…' }}>
+ *     <JumpSimulator client:visible />
+ *   </Figure>
+ */
+import ResourceBadge from './ResourceBadge.astro';
+import type { ResourceType } from '../../consigna';
+
+interface Props {
+  type: ResourceType;
+  caption: string;
+  source: { text: string; url?: string };
+  id?: string;
+}
+const { type, caption, source, id } = Astro.props;
+
+if (!source?.text?.trim()) throw new Error('Figure: falta la fuente');
+---
+
+<figure data-testid="figure" data-type={type} id={id} class="content-figure">
+  <div class="figure-head">
+    <ResourceBadge type={type} />
+  </div>
+  <div class="figure-frame grid-paper">
+    <slot />
+  </div>
+  <figcaption>
+    <span class="figure-caption">{caption}</span>
+    <p class="figure-source">
+      Fuente: {source.url ? <a href={source.url}>{source.text}</a> : source.text}
+    </p>
+  </figcaption>
+</figure>

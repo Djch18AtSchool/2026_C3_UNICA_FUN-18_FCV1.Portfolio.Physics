@@ -1,0 +1,317 @@
+/*
+ * Topic body: the published entry set like a lab notebook. Figures and equations are numbered per
+ * topic with CSS counters; TopicLayout sets the topic counter inline (counter-set: topic N).
+ * Prose rules use :where() so every component class below overrides them without a fight.
+ */
+
+@layer components {
+  .topic-body {
+    counter-reset: figure equation;
+  }
+
+  /* ---- Prose flow ---- */
+
+  :where(.topic-body) :where(p, ul, ol, blockquote) {
+    max-width: 70ch;
+  }
+  :where(.topic-body) :where(p, ul, ol, blockquote, pre, .katex-display) {
+    margin-block: 1em;
+  }
+  :where(.topic-body) :where(ul) {
+    list-style: disc;
+    padding-left: 1.25em;
+  }
+  :where(.topic-body) :where(ol) {
+    list-style: decimal;
+    padding-left: 1.5em;
+  }
+  :where(.topic-body) :where(li + li) {
+    margin-top: 0.35em;
+  }
+  :where(.topic-body) :where(h2) {
+    margin-top: 3.5rem;
+    margin-bottom: 1rem;
+  }
+  :where(.topic-body) :where(h3) {
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  :where(.topic-body) > :first-child {
+    margin-top: 0;
+  }
+  :where(.topic-body) :where(strong) {
+    font-weight: 600;
+  }
+
+  /* ---- UseCase: the rubric's four parts, numbered in the margin ---- */
+
+  .use-case {
+    counter-reset: use-case-part;
+  }
+  .use-case-part {
+    position: relative;
+    counter-increment: use-case-part;
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    padding-left: 2.25rem;
+    border-top: 1px dashed var(--border);
+  }
+  .use-case-part::before {
+    content: counter(use-case-part, decimal-leading-zero);
+    position: absolute;
+    top: 1.45rem;
+    left: 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--fg-muted);
+  }
+  /* On phones the part number sits above its heading so the text keeps the full width. */
+  @media (max-width: 39.99rem) {
+    .use-case-part {
+      padding-left: 0;
+    }
+    .use-case-part::before {
+      position: static;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+  }
+  .use-case-part > h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+  .use-case-part > :last-child {
+    margin-bottom: 0;
+  }
+
+  /* ---- Equation: display block with its number at the right edge ---- */
+
+  .equation {
+    counter-increment: equation;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 1rem;
+    align-items: center;
+    margin-block: 1.5rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--bg-elevated);
+  }
+  @media (min-width: 40rem) {
+    .equation {
+      padding-inline: 1rem;
+    }
+  }
+  .equation::after {
+    content: '(' counter(topic) '.' counter(equation) ')';
+    grid-column: 2;
+    grid-row: 1;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--fg-muted);
+  }
+  .equation-math {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    /* Wide formulas scroll inside the block on small screens instead of clipping. */
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block: 0.25em;
+  }
+  .equation-legend {
+    grid-column: 1 / -1;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--border);
+    font-size: 0.9375rem;
+  }
+  .equation-legend-lead {
+    margin: 0 0 0.25rem;
+    color: var(--fg-muted);
+  }
+  .equation-legend dl {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 0.25rem 1rem;
+  }
+  .equation-legend dl > div {
+    display: contents;
+  }
+  .equation-legend dt {
+    text-align: right;
+  }
+  .equation-unit {
+    margin-left: 0.4em;
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    color: var(--fg-muted);
+  }
+
+  /* ---- Figure: framed on grid paper, numbered caption, mandatory source ---- */
+
+  .content-figure {
+    counter-increment: figure;
+    margin-block: 2rem;
+  }
+  .figure-head {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.5rem;
+  }
+  .figure-frame {
+    overflow-x: auto;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .content-figure figcaption {
+    max-width: 70ch;
+    margin-top: 0.75rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+  .content-figure figcaption::before {
+    content: 'Figura ' counter(topic) '.' counter(figure) ' · ';
+    font-family: var(--font-mono);
+    font-weight: 500;
+  }
+  .figure-source {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--fg-muted);
+  }
+
+  /* ---- Cite and Sources ---- */
+
+  .cite {
+    font-family: var(--font-mono);
+    font-size: 0.8em;
+    text-decoration-line: none;
+    white-space: nowrap;
+  }
+  .cite:hover {
+    text-decoration-line: underline;
+  }
+
+  .sources-list {
+    max-width: 70ch;
+    list-style: none;
+    padding-left: 0;
+  }
+  .sources-list > li {
+    position: relative;
+    margin-top: 0.75rem;
+    padding-left: 2.75rem;
+    overflow-wrap: anywhere;
+  }
+  .sources-list > li::before {
+    content: '[' counter(list-item) ']';
+    position: absolute;
+    left: 0;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.85;
+    color: var(--fg-muted);
+  }
+  /* The cited entry lights up when a [n] link lands on it; the shadow pads it without reflow. */
+  .sources-list > li:target {
+    --target-tint: color-mix(in srgb, var(--accent) 10%, transparent);
+    border-radius: var(--radius);
+    background-color: var(--target-tint);
+    box-shadow: 0 0 0 0.375rem var(--target-tint);
+  }
+  .source-url {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+  }
+  .source-accessed {
+    color: var(--fg-muted);
+  }
+
+  /* ---- Connections ---- */
+
+  .connections-grid {
+    display: grid;
+    gap: 1.5rem 2.5rem;
+  }
+  @media (min-width: 48rem) {
+    .connections-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .connections-grid h3 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+  }
+  .connections-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    list-style: none;
+    padding-left: 0;
+  }
+  .connections-list > li + li {
+    margin-top: 0;
+  }
+  .connections-number {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--fg-muted);
+  }
+  .connections-list > li.margin-note .connections-number {
+    display: inline;
+  }
+  .connections-note {
+    display: block;
+    margin-top: 0.15rem;
+  }
+
+  /* ---- Callout: a remark in the margin ---- */
+
+  .callout {
+    max-width: 70ch;
+    margin-block: 1.5rem;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    background-color: var(--bg-elevated);
+    font-size: 0.9375rem;
+  }
+  .callout-clase {
+    border-left-style: double;
+  }
+  /* Resource and chart hues are marks only: the warning shows in the rule and tint, not the text. */
+  .callout-cuidado {
+    border-left-color: var(--chart-2);
+    background-color: color-mix(in srgb, var(--chart-2) 8%, var(--bg-elevated));
+  }
+  .callout-title {
+    margin: 0 0 0.25rem;
+    font-weight: 600;
+  }
+  .callout-body > :first-child {
+    margin-top: 0;
+  }
+  .callout-body > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+/*
+ * KaTeX overrides stay unlayered: katex.min.css is unlayered too, and any unlayered rule beats a
+ * layered one, so only an unlayered selector with more specificity can adjust its margins.
+ */
+.topic-body .katex-display {
+  /* $$…$$ display math in MDX scrolls inside itself on small screens instead of clipping. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.25em;
+}
+.topic-body .equation-math .katex-display {
+  margin: 0;
+  padding-block: 0;
+}

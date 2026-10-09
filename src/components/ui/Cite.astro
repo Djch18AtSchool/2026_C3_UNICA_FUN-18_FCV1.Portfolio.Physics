@@ -1,0 +1,20 @@
+---
+/*
+ * A numbered citation "[n]" that links to the entry in <Sources>. In MDX the list comes from the
+ * frontmatter: <Cite id="nasa-g" sources={frontmatter.sources} />
+ */
+import type { Source } from '../../content/topicSchema';
+import { formatSource, sourceIndex } from '../../lib/sources';
+
+interface Props {
+  id: string;
+  sources: Source[];
+}
+const { id, sources } = Astro.props;
+
+const source = sources.find((candidate) => candidate.id === id);
+if (!source) throw new Error(`Cite: fuente "${id}" no declarada`);
+const n = sourceIndex(sources, id);
+---
+
+<a class="cite" href={`#fuente-${id}`} title={formatSource(source)} set:text={`[${n}]`} />

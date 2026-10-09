@@ -1,0 +1,53 @@
+---
+/*
+ * An equation typeset with KaTeX at build time. Display equations are numbered "(N.k)" by the
+ * CSS counters of .topic-body; inline ones are not numbered. In MDX:
+ *
+ *   <Equation id="ec-altura" latex="h = \frac{v_0^2}{2g}"
+ *     symbols={[{ symbol: 'v_0', meaning: 'velocidad inicial', unit: 'm/s' }]} />
+ */
+import katex from 'katex';
+
+interface EquationSymbol {
+  /** LaTeX of the symbol, e.g. "v_0". */
+  symbol: string;
+  meaning: string;
+  unit?: string;
+}
+
+interface Props {
+  latex: string;
+  id?: string;
+  inline?: boolean;
+  symbols?: EquationSymbol[];
+}
+const { latex, id, inline = false, symbols = [] } = Astro.props;
+
+function toHtml(tex: string, displayMode: boolean): string {
+  return katex.renderToString(tex, { displayMode, throwOnError: true, output: 'htmlAndMathml' });
+}
+---
+
+{inline ? (
+  <span class="equation-inline" id={id} set:html={toHtml(latex, false)} />
+) : (
+  <div class="equation" id={id}>
+    <div class="equation-math" set:html={toHtml(latex, true)} />
+    {symbols.length > 0 && (
+      <div class="equation-legend">
+        <p class="equation-legend-lead">donde</p>
+        <dl>
+          {symbols.map(({ symbol, meaning, unit }) => (
+            <div>
+              <dt set:html={toHtml(symbol, false)} />
+              <dd>
+                {meaning}
+                {unit && <span class="equation-unit">({unit})</span>}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    )}
+  </div>
+)}

@@ -71,7 +71,7 @@ const phaseLabel = PHASE_LABELS[phase];
       </div>
 
       {status === 'publicado' ? (
-        <div>
+        <div class="topic-body" style={`counter-set: topic ${number}`}>
           <slot />
         </div>
       ) : (

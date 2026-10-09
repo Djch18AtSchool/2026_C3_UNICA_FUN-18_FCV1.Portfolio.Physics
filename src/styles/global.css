@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './tokens.css';
+@import './content.css';
 
 /* Dark utilities follow the data-theme attribute set by the head script, not the OS. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));

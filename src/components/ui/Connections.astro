@@ -1,0 +1,53 @@
+---
+/*
+ * Links to the other portfolio topics and to the course sessions. In MDX:
+ * <Connections related={frontmatter.related} classRefs={frontmatter.classRefs} />
+ */
+import { topicBySlug, type ConsignaTopic } from '../../consigna';
+import type { ClassRef } from '../../content/topicSchema';
+import { topicUrl } from '../../lib/url';
+
+interface Props {
+  related: string[];
+  classRefs: ClassRef[];
+}
+const { related, classRefs } = Astro.props;
+
+const relatedTopics: ConsignaTopic[] = related.map((slug) => {
+  const topic = topicBySlug(slug);
+  if (!topic) throw new Error(`Connections: el tema "${slug}" no existe en la consigna`);
+  return topic;
+});
+---
+
+<section data-testid="connections" class="connections" aria-labelledby="conexiones">
+  <h2 id="conexiones">Conexiones</h2>
+  <div class="connections-grid">
+    {relatedTopics.length > 0 && (
+      <div>
+        <h3>Con otros temas</h3>
+        <ul class="connections-list">
+          {relatedTopics.map((topic) => (
+            <li>
+              <span class="connections-number">Tema {topic.number}</span>
+              <a href={topicUrl(topic.slug)}>{topic.title}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+    {classRefs.length > 0 && (
+      <div>
+        <h3>Con lo visto en clase</h3>
+        <ul class="connections-list">
+          {classRefs.map(({ module, topic, note }) => (
+            <li class="margin-note">
+              <span class="connections-number">{module}</span> · {topic}
+              {note && <span class="connections-note">{note}</span>}
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </div>
+</section>

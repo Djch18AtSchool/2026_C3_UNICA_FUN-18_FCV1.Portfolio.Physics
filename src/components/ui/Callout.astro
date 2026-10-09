@@ -1,0 +1,26 @@
+---
+/*
+ * A side remark in the notebook's margin: a note, a link to a class session, or a warning.
+ * In MDX: <Callout variant="clase" title="Módulo 1 · 1.2">…</Callout>
+ */
+type CalloutVariant = 'nota' | 'clase' | 'cuidado';
+
+interface Props {
+  variant: CalloutVariant;
+  title?: string;
+}
+const { variant, title } = Astro.props;
+
+const DEFAULT_TITLES: Record<CalloutVariant, string> = {
+  nota: 'Nota',
+  clase: 'Visto en clase',
+  cuidado: 'Cuidado',
+};
+---
+
+<aside data-testid="callout" data-variant={variant} class:list={['callout', `callout-${variant}`]}>
+  <p class="callout-title">{title ?? DEFAULT_TITLES[variant]}</p>
+  <div class="callout-body">
+    <slot />
+  </div>
+</aside>

@@ -1,0 +1,43 @@
+---
+/*
+ * The rubric's use case, with its four parts in a fixed order. In MDX each part is a block-level
+ * named slot, separated by blank lines:
+ *
+ *   <UseCase>
+ *
+ *   <Fragment slot="caso">…</Fragment>
+ *
+ *   <Fragment slot="ecuacion">…</Fragment>
+ *
+ *   <Fragment slot="justificacion">…</Fragment>
+ *
+ *   <Fragment slot="balance">…</Fragment>
+ *
+ *   </UseCase>
+ */
+const PART_NAMES = ['caso', 'ecuacion', 'justificacion', 'balance'] as const;
+
+for (const name of PART_NAMES) {
+  if (!Astro.slots.has(name)) throw new Error(`UseCase: falta el slot "${name}"`);
+}
+---
+
+<section data-testid="use-case" class="use-case" aria-labelledby="caso-de-uso">
+  <h2 id="caso-de-uso">Caso de uso en Ingeniería del Software</h2>
+  <div class="use-case-part">
+    <h3 data-part="caso">El caso concreto</h3>
+    <slot name="caso" />
+  </div>
+  <div class="use-case-part">
+    <h3 data-part="ecuacion">La ecuación</h3>
+    <slot name="ecuacion" />
+  </div>
+  <div class="use-case-part">
+    <h3 data-part="justificacion">Por qué modelar la física</h3>
+    <slot name="justificacion" />
+  </div>
+  <div class="use-case-part">
+    <h3 data-part="balance">Qué se gana y qué cuesta</h3>
+    <slot name="balance" />
+  </div>
+</section>
