@@ -24,7 +24,9 @@ test('el video se reproduce o, si aún no está publicado, muestra el respaldo',
     await expect(fallback.getByRole('link', { name: /Descargar el video/ })).toBeVisible();
   } else {
     expect(response.status()).toBe(HTTP_OK);
+    await expect(player).toHaveAttribute('data-state', 'ok');
     await expect(player.getByTestId('haptic-video')).toHaveAttribute('controls', '');
+    await expect(page.getByTestId('haptic-video-fallback')).toHaveCount(0);
   }
 });
 

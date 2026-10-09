@@ -23,14 +23,15 @@ const CURVE_STEPS = 32;
 const MM_PER_M = 1000;
 const MILLIJOULES_PER_JOULE = 1000;
 
-export interface TriggerPoint {
+/** A type alias, not an interface, so rows pass straight to LineChart's Record<string, number>[]. */
+export type TriggerPoint = {
   /** Displacement of the trigger, mm. */
   x: number;
   /** Magnitude k·x of the ideal spring's restoring force −k·x, N. */
   hooke: number;
   /** Resistance of the piecewise trigger profile k·(x − x₀) for x ≥ x₀, else 0, N. */
   trigger: number;
-}
+};
 
 function toMetres(millimetres: number): number {
   return millimetres / MM_PER_M;

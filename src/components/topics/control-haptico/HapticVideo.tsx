@@ -57,7 +57,7 @@ function VideoFallback({ videoUrl, transcript }: FallbackProps) {
         </div>
       </div>
       <p className="m-0 text-sm text-fg-muted">
-        Mientras tanto, la transcripción describe la secuencia grabada y cada marca de tiempo de
+        Mientras tanto, la transcripción describe la secuencia del clip y cada marca de tiempo de
         abajo conserva su análisis completo.
       </p>
       <div className="border-l-2 border-border pl-3">

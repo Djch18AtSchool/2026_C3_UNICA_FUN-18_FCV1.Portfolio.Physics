@@ -46,13 +46,13 @@ related: ['llantas-f1', 'spring-animations', 'resonancia-tacoma']
 classRefs:
   - module: 'Módulo 2'
     topic: 'Tema 02 · Fricción y resortes · Concepto 04 · Fuerza elástica y ley de Hooke'
-    note: 'F_el,x = −kx y el ejemplo k = 150 N/m, x = −0,08 m → +12 N: la ecuación (5.1) del gatillo.'
+    note: 'Fₑₗ,ₓ = −kx y el ejemplo k = 150 N/m, x = −0,08 m → +12 N: la ecuación (5.1) del gatillo.'
   - module: 'Módulo 2'
     topic: 'Tema 01 · Leyes de Newton · Concepto 05 · Tercera ley de Newton'
-    note: 'F_A→B = −F_B→A sobre cuerpos distintos: el dedo siente la reacción del gatillo.'
+    note: 'F(A→B) = −F(B→A) sobre cuerpos distintos: el dedo siente la reacción del gatillo.'
   - module: 'Módulo 2'
     topic: 'Tema 04 · Energía mecánica · Concepto 03 · Energía potencial elástica'
-    note: 'U_el = kx²/2: los 12,8 mJ que guardaría un resorte real al fondo del recorrido.'
+    note: 'Uₑₗ = kx²/2: los 12,8 mJ que guardaría un resorte ideal de 400 N/m comprimido 8 mm.'
 updated: 2026-10-08
 ---
 
@@ -70,15 +70,15 @@ import SpringForceCurve from '../../components/topics/control-haptico/SpringForc
 
 <Fragment slot="caso">
 
-Tomo como caso los gatillos adaptativos del DualSense, el control de PlayStation 5. Sony los presenta así: "Dynamic resistance mimics the tension of interactions with in-game gear and objects in select PS5 games" <Cite id="sony-dualsense" sources={frontmatter.sources} /> («la resistencia dinámica imita la tensión de las interacciones con el equipo y los objetos del juego en algunos juegos de PS5»). Sony no documenta cómo se programan, así que los estudio a través de una biblioteca abierta, DualSense-Windows, cuyo archivo `DS5State.h` declara los efectos que un programa puede pedirle a cada gatillo <Cite id="dualsense-windows-ds5state" sources={frontmatter.sources} />. El `enum class TriggerEffectType` trae `NoResitance`, `ContinuousResitance`, `SectionResitance`, `EffectEx` y `Calibrate` (las erratas son del código). El modo continuo recibe `startPosition`, dónde empieza la resistencia, y `force`, cuánta; el modo por tramos, `startPosition` y `endPosition`; el efecto extendido, entre otros, `beginForce`, `middleForce`, `endForce` y `frequency`. Todos son `unsigned char`: enteros de 0 a 255, sin milímetros ni newtons. La documentación LaTeX del mismo repositorio intercambia `force` y `endPosition`; cito el header. Lo que el desarrollador fija son esos números; qué fuerza física sale de cada uno no está publicado.
+Tomo como caso los gatillos adaptativos del DualSense, el control de PlayStation 5. Sony los presenta así: "Dynamic resistance mimics the tension of interactions with in-game gear and objects in select PS5 games" <Cite id="sony-dualsense" sources={frontmatter.sources} /> («la resistencia dinámica imita la tensión de las interacciones con el equipo y los objetos del juego en algunos juegos de PS5»). Sony no publica documentación sobre cómo se programan, así que los estudio a través de una biblioteca abierta, DualSense-Windows, cuyo archivo `DS5State.h` declara los efectos que un programa puede pedirle a cada gatillo <Cite id="dualsense-windows-ds5state" sources={frontmatter.sources} />. El `enum class TriggerEffectType` trae `NoResitance`, `ContinuousResitance`, `SectionResitance`, `EffectEx` y `Calibrate` (las erratas son del código). El modo continuo recibe `startPosition`, dónde empieza la resistencia, y `force`, cuánta; el modo por tramos, `startPosition` y `endPosition`; el efecto extendido, entre otros, `beginForce`, `middleForce`, `endForce` y `frequency`. Salvo `keepEffect`, un booleano, todos son `unsigned char`: enteros de 0 a 255, sin milímetros ni newtons. La documentación LaTeX del mismo repositorio intercambia `force` y `endPosition`; cito el archivo de cabecera. Lo que el desarrollador fija son esos números; qué fuerza física sale de cada uno no está publicado.
 
-Los juegos los usan para que el jugador sienta un resorte. En Astro's Playroom, en la zona Cooling Springs, el salto se carga con el gatillo, y Kirk McKeand cuenta que ahí probó por primera vez "the adaptive triggers, which suddenly go tight to mimic a taut spring" <Cite id="thegamer-astro-playroom" sources={frontmatter.sources} /> («los gatillos adaptativos, que de pronto se endurecen para imitar un resorte tenso»). En Horizon Forbidden West, David McMullen, de Guerrilla, describe "the pop of the adaptive trigger as you reach maximum draw with a bow" <Cite id="psblog-horizon-2021" sources={frontmatter.sources} /> («el chasquido del gatillo adaptativo al llegar a la tensión máxima del arco»): un evento al final del recorrido, no una tensión que crece. Mi video, grabado en Cooling Springs, muestra el primer caso.
+Los juegos los usan para que el jugador sienta un resorte. En Astro's Playroom, en la zona Cooling Springs, el salto se carga con el gatillo, y Kirk McKeand cuenta que ahí probó por primera vez "the adaptive triggers, which suddenly go tight to mimic a taut spring" <Cite id="thegamer-astro-playroom" sources={frontmatter.sources} /> («los gatillos adaptativos, que de pronto se endurecen para imitar un resorte tenso»). En Horizon Forbidden West, David McMullen, de Guerrilla, describe "the pop of the adaptive trigger as you reach maximum draw with a bow" <Cite id="psblog-horizon-2021" sources={frontmatter.sources} /> («el chasquido del gatillo adaptativo al llegar a la tensión máxima del arco»): un evento al final del recorrido, no una tensión que crece. El clip de la figura 5.1, en Cooling Springs, sigue este guion: dedo en reposo, compresión lenta hasta el fondo, pausa y liberación.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Un resorte ideal ejerce una fuerza proporcional a su deformación y de sentido restaurador <Cite id="serway-jewett-2018" sources={frontmatter.sources} />:
+En el modelo ideal, la fuerza de un resorte crece en proporción a cuánto se deforma y siempre empuja hacia su posición de reposo <Cite id="serway-jewett-2018" sources={frontmatter.sources} />:
 
 <Equation
   id="ec-haptico-hooke"
@@ -120,7 +120,7 @@ Si el actuador hace que esa fuerza siga la ecuación (5.1), el dedo siente un re
   ]}
 />
 
-El header no dice qué forma tiene la curva entre el inicio y el fondo: con un solo valor de `force`, el firmware podría aplicar una resistencia constante, un escalón. La rampa de la ecuación (5.4) es mi suposición, la de un resorte que empieza a comprimirse en <Equation inline latex="x_0" />.
+El archivo de cabecera no dice qué forma tiene la curva entre el inicio y el fondo: con un solo valor de `force`, el firmware podría aplicar una resistencia constante, un escalón. La rampa de la ecuación (5.4) es mi suposición, la de un resorte que empieza a comprimirse en <Equation inline latex="x_0" />.
 
 Con <Equation inline latex="k = 400\ \text{N/m}" /> y un recorrido de 8 mm, supuesto mío porque no encontré la cifra publicada, la ecuación (5.1) da al fondo <Equation inline latex="F = 400 \cdot 0{,}008 = 3{,}2\ \text{N}" /> y la (5.2), <Equation inline latex="U = \tfrac12 \cdot 400 \cdot 0{,}008^2 = 0{,}0128\ \text{J} = 12{,}8\ \text{mJ}" />. Con <Equation inline latex="x_0 = 3\ \text{mm}" />, el gatillo opone al fondo <Equation inline latex="400 \cdot 0{,}005 = 2{,}0\ \text{N}" />, y el trabajo del dedo, el área bajo la ecuación (5.4), es <Equation inline latex="\tfrac12 \cdot 400 \cdot 0{,}005^2 = 5{,}0\ \text{mJ}" />. Son valores ilustrativos: no hay una tabla pública que convierta 0–255 en newtons.
 
@@ -130,7 +130,7 @@ Con <Equation inline latex="k = 400\ \text{N/m}" /> y un recorrido de 8 mm, supu
 
 La alternativa más simple es una vibración fija: el control zumba igual apriete poco o mucho. Esa señal avisa de que algo pasa, pero no dice cuánto he apretado, porque su intensidad no depende de <Equation inline latex="x" />. Con la ecuación (5.1), la fuerza crece con el desplazamiento: a mitad del recorrido el dedo siente la mitad que al fondo. Esa relación entre cuánto me muevo y cuánto me empujan es lo que leo como tensión, y por eso el gatillo se percibe como tensar algo real y la vibración no.
 
-La otra alternativa es una tabla guionizada: para cada arma u objeto, una lista de fuerzas escrita a mano posición por posición. Sirve en los casos previstos, pero cada objeto nuevo pide otra tabla, y nada garantiza que sus valores correspondan a algún objeto físico. La ley de Hooke generaliza: con <Equation inline latex="k" /> da la fuerza en cualquier posición. Un arco más duro es un <Equation inline latex="k" /> mayor; un resorte que tarda en tomar, un <Equation inline latex="x_0" /> mayor. El diseñador ajusta la sensación con números que entiende.
+La otra alternativa es una tabla guionizada: para cada arma u objeto, una lista de fuerzas escrita a mano posición por posición. Sirve en los casos previstos, pero cada objeto nuevo pide otra tabla, y nada garantiza que sus valores correspondan a algún objeto físico. La ley de Hooke generaliza: con <Equation inline latex="k" /> da la fuerza en cualquier posición. Un arco más duro es un <Equation inline latex="k" /> mayor; un resorte que empieza a resistir más tarde, un <Equation inline latex="x_0" /> mayor. El diseñador ajusta la sensación con números que entiende.
 
 La física no lo explica todo: el "pop" de Horizon no sale de la ecuación (5.1), porque un resorte ideal no hace pop. Es un evento que el diseñador añade encima del modelo.
 
@@ -138,7 +138,7 @@ La física no lo explica todo: el "pop" de Horizon no sale de la ecuación (5.1)
 
 <Fragment slot="balance">
 
-Se gana retroalimentación continua y creíble: la fuerza cambia en cada milímetro y concuerda con lo que pasa en pantalla. Y se gana un parámetro con significado físico: subir <Equation inline latex="k" /> endurece el gatillo de forma predecible, con la fuerza en proporción y la energía con el cuadrado del recorrido.
+Se gana retroalimentación continua y creíble: la fuerza cambia en cada milímetro y concuerda con lo que pasa en pantalla. Y se gana un parámetro con significado físico: subir <Equation inline latex="k" /> endurece el gatillo de forma predecible: la fuerza y la energía crecen en proporción a k, y la energía, además, con el cuadrado del recorrido.
 
 Lo que cuesta:
 
@@ -146,7 +146,7 @@ Lo que cuesta:
 - **Latencia.** El juego calcula la fuerza, la envía al control y el actuador responde; si esa cadena tarda, el dedo siente el resorte con retraso respecto de la imagen.
 - **Consumo.** Sostener una fuerza contra el dedo gasta batería del control, aunque el gatillo no se mueva.
 - **Sin conversión pública.** No hay una relación publicada entre `force` y newtons, ni entre `startPosition` y milímetros: mis <Equation inline latex="k" /> y <Equation inline latex="x_0" /> son ilustrativos.
-- **Lo que mi modelo omite.** La histéresis (al soltar, un mecanismo real no devuelve la misma fuerza que al apretar), la dinámica del actuador, con su inercia y su tiempo de respuesta, y el muelle de retorno propio del gatillo, que suma su fuerza a la del actuador.
+- **Lo que mi modelo omite.** La histéresis (al soltar, un mecanismo real no devuelve la misma fuerza que al apretar), la dinámica del actuador, con su inercia y su tiempo de respuesta, y el resorte de retorno propio del gatillo, que suma su fuerza a la del actuador y es el que lo devuelve a x = 0 al soltarlo.
 
 </Fragment>
 
@@ -160,7 +160,7 @@ En la figura 5.1, cada marca de tiempo salta al instante del video que analiza. 
   type="multimedia"
   caption="Gatillo R2 del DualSense en Astro's Playroom: reposo, compresión lenta hasta el fondo, pausa y liberación. Cada marca de tiempo salta al instante analizado."
   source={{
-    text: "Video grabado por el autor con un DualSense en Astro's Playroom; análisis propio.",
+    text: "Video del autor con un DualSense en Astro's Playroom; análisis propio.",
   }}
 >
   <HapticVideo
@@ -172,19 +172,19 @@ En la figura 5.1, cada marca de tiempo salta al instante del video que analiza. 
         time: 5,
         title: 'Empieza la resistencia',
         analysis:
-          'El gatillo pasa x₀. Hasta aquí el dedo lo baja sin oposición: F = 0 en la ecuación (5.4). Desde este instante la fuerza crece como k (x − x₀), así que cada milímetro más pide la misma fuerza extra; con k = 400 N/m, 0,4 N por milímetro.',
+          'El gatillo pasa x₀. Hasta aquí el dedo lo baja sin oposición: F = 0 en la ecuación (5.4). Desde este instante, en mi modelo, la fuerza crece como k (x − x₀), así que cada milímetro más pide la misma fuerza extra; con k = 400 N/m, 0,4 N por milímetro.',
       },
       {
         time: 15,
         title: 'Fondo del recorrido',
         analysis:
-          'x llega a su máximo, 8 mm en mi modelo, y la fuerza también: 2,0 N con x₀ = 3 mm, o 3,2 N si la resistencia empezara en cero. Un resorte real tendría guardada aquí su energía máxima, ½ k x² = 12,8 mJ por la ecuación (5.2). Mientras sostengo el gatillo, dedo y gatillo se empujan con fuerzas iguales y opuestas.',
+          'x llega a su máximo, 8 mm en mi modelo, y la fuerza también: 2,0 N con x₀ = 3 mm, o 3,2 N si la resistencia empezara en cero. Un resorte ideal comprimido desde x = 0 guardaría aquí ½ k x² = 12,8 mJ, ecuación (5.2); con x₀ = 3 mm, el dedo lleva hechos 5,0 mJ de trabajo contra el gatillo. Mientras sostengo el gatillo, dedo y gatillo se empujan con fuerzas iguales y opuestas.',
       },
       {
         time: 18,
         title: 'Liberación: la fuerza restauradora',
         analysis:
-          'Al soltar, en el modelo queda sobre el gatillo la fuerza restauradora −k x de la ecuación (5.1), que apunta hacia x = 0, y el gatillo vuelve solo. Mientras lo apretaba, por la tercera ley, ecuación (5.3), el gatillo empujaba mi dedo con la misma magnitud con la que yo lo empujaba; al retirar el dedo desaparecen a la vez las dos fuerzas del par.',
+          'Al soltar, el perfil virtual de la ecuación (5.4) solo empujaría el gatillo de vuelta hasta x₀, donde su fuerza se anula. Lo que lo devuelve a x = 0 es su resorte de retorno mecánico: un resorte real que cumple la ecuación (5.1) con su propia constante, desconocida y distinta de los 400 N/m virtuales, quizá ayudado por el actuador. Mientras lo apretaba, por la tercera ley, ecuación (5.3), el gatillo empujaba mi dedo con la misma magnitud con la que yo lo empujaba; al retirar el dedo desaparecen a la vez las dos fuerzas del par.',
       },
     ]}
     transcript="Plano lateral de una mano sobre el gatillo R2 de un DualSense, con Astro's Playroom en la zona Cooling Springs. Durante los primeros 5 segundos, el índice descansa sobre el gatillo sin presionarlo. Entre los 5 y los 15 segundos, el dedo presiona el gatillo muy despacio hasta el fondo del recorrido y lo mantiene ahí unos 3 segundos. Hacia los 18 segundos, el dedo se retira de golpe y el gatillo vuelve solo a su posición de reposo. Después, la secuencia se repite una vez."
@@ -215,7 +215,7 @@ El concepto 05 del Tema 01 advierte que el peso y la normal de un libro no son u
 
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-Con el Tema 4: allí la llanta se deforma en su huella y el μ constante de clase se queda corto; aquí el modelo de contacto es el resorte ideal de la ecuación (5.1), otra idealización del libro, de la que el gatillo real se aparta por histéresis y saturación. Con el Tema 10: las spring animations de las interfaces usan la misma ley, <Equation inline latex="F = -kx" />, más un amortiguamiento, para mover un elemento en pantalla en lugar de un dedo, y <Equation inline latex="k" /> vuelve a ser el parámetro con que se ajusta la sensación. Con el Tema 12: un resorte con una masa oscila con frecuencia natural <Equation inline latex="\omega = \sqrt{k/m}" />, y si algo lo empuja a esa frecuencia la amplitud crece, que es el punto de partida de la resonancia estructural. En clase, la ecuación (5.1) es el concepto 04 del Tema 02 del Módulo 2; la (5.3), el concepto 05 del Tema 01; y la (5.2), el concepto 03 del Tema 04, con el trabajo de la fuerza elástica del concepto 03 del Tema 03 detrás de las áreas de la figura 5.2.
+Con el Tema 4: allí la llanta se deforma en su huella y el μ constante de clase se queda corto; aquí el modelo de contacto es el resorte ideal de la ecuación (5.1), otra idealización del libro, de la que el gatillo real se aparta por histéresis y saturación. Con el Tema 10: las _spring animations_ de las interfaces usan la misma ley, <Equation inline latex="F = -kx" />, más un amortiguamiento, para mover un elemento en pantalla en lugar de un dedo, y <Equation inline latex="k" /> vuelve a ser el parámetro con que se ajusta la sensación. Con el Tema 12: un resorte con una masa oscila con frecuencia angular natural <Equation inline latex="\omega = \sqrt{k/m}" />, y si algo lo empuja a esa frecuencia la amplitud crece, que es el punto de partida de la resonancia estructural. En clase, la ecuación (5.1) es el concepto 04 del Tema 02 del Módulo 2; la (5.3), el concepto 05 del Tema 01; y la (5.2), el concepto 03 del Tema 04, con el trabajo de la fuerza elástica del concepto 03 del Tema 03 detrás de las áreas de la figura 5.2.
 
 </Connections>
 

@@ -27,7 +27,7 @@ export default function SpringForceCurve() {
   const [isReady, setIsReady] = useState(false);
   useEffect(() => setIsReady(true), []);
 
-  const rows = useMemo(() => triggerCurves(settings).map((point) => ({ ...point })), [settings]);
+  const rows = useMemo(() => triggerCurves(settings), [settings]);
   const bottom = rows[rows.length - 1];
 
   return (
