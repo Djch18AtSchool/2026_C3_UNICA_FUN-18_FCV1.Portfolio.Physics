@@ -32,18 +32,18 @@
 
 ## Estado del Avance 1
 
-Los cinco temas del Avance 1 están publicados (2026-10-08), cada uno con su análisis escrito y su simulación interactiva. El video del Tema 5 está pendiente de la grabación del autor: la página ya incluye el análisis escrito y muestra un recurso alternativo diseñado hasta que exista `public/media/tema-05-dualsense.mp4`.
+Los cinco temas del Avance 1 están publicados (2026-10-08), cada uno con su análisis escrito y el tipo de recurso de apoyo prescrito, sin sustituciones: visualización de datos (Tema 1), simulación interactiva (Tema 2), diagrama (Tema 3), visualización de datos (Tema 4) y multimedia con análisis (Tema 5). El video del Tema 5 está pendiente de la grabación del autor: la página ya incluye el análisis escrito y muestra un recurso alternativo diseñado hasta que exista `public/media/tema-05-dualsense.mp4`.
 
 ## Estructura
 
 - `.github/workflows/`: CI y despliegue a GitHub Pages.
 - `docs/`: especificaciones, planes e investigación del proyecto.
-- `public/`: recursos estáticos (medios, imágenes).
+- `public/`: recursos estáticos: el favicon y, cuando exista, `media/` con el video del Tema 5 y su póster.
 - `scripts/`: `generate-drone-route.ts` (genera el conjunto de datos del dron) y `compress-video.sh` (comprime videos).
 - `src/content/topics/`: un archivo MDX por tema.
 - `src/data/`: conjuntos de datos generados.
 - `src/lib/physics/`: núcleo de física puro, con pruebas.
-- `src/lib/data/`: carga y utilidades de datos.
+- `src/lib/data/`: modelos y preajustes con sus fuentes.
 - `src/components/ui/`: componentes de interfaz base.
 - `src/components/controls/`: controles interactivos (deslizadores, botones).
 - `src/components/charts/`: gráficas.
