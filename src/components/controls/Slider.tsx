@@ -1,4 +1,5 @@
 import { formatNumber } from '../../lib/format';
+import { useGlobalSettings } from '../lab/useGlobalSettings';
 
 export interface SliderProps {
   id: string;
@@ -12,11 +13,6 @@ export interface SliderProps {
   precision?: number;
 }
 
-/** Number of decimals written in `step` (0.01 → 2), so the display matches the control's grain. */
-function decimalsOf(step: number): number {
-  return step.toString().split('.')[1]?.length ?? 0;
-}
-
 export default function Slider({
   id,
   label,
@@ -26,8 +22,10 @@ export default function Slider({
   step,
   value,
   onChange,
-  precision = decimalsOf(step),
+  precision,
 }: SliderProps) {
+  const { decimals } = useGlobalSettings();
+  const resolvedPrecision = precision ?? decimals;
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-3">
@@ -35,7 +33,7 @@ export default function Slider({
           {`${label} (${unit})`}
         </label>
         <span data-testid="slider-value" className="font-mono text-sm tabular-nums">
-          {formatNumber(value, { precision, unit })}
+          {formatNumber(value, { precision: resolvedPrecision, unit })}
         </span>
       </div>
       <input
@@ -45,12 +43,12 @@ export default function Slider({
         max={max}
         step={step}
         value={value}
-        aria-valuetext={formatNumber(value, { precision, unit })}
+        aria-valuetext={formatNumber(value, { precision: resolvedPrecision, unit })}
         onChange={(event) => onChange(Number(event.target.value))}
         className="h-6 w-full cursor-pointer accent-accent"
       />
       <span className="font-mono text-xs tabular-nums text-fg-muted">
-        {`${formatNumber(min, { precision })}–${formatNumber(max, { precision })}`}
+        {`${formatNumber(min, { precision: resolvedPrecision })}–${formatNumber(max, { precision: resolvedPrecision })}`}
       </span>
     </div>
   );

@@ -60,14 +60,14 @@ describe('JumpSimulator', () => {
 
     fireEvent.click(designer.getByRole('button', { name: 'Aplicar' }));
 
-    // Range inputs keep the exact designed value; the visible text is rounded to the step.
+    // Range inputs keep the exact designed value; the visible text is rounded to the global decimals.
     expect(screen.getByLabelText(/^Gravedad g/)).toHaveAttribute(
       'aria-valuetext',
       `25,00${NNBSP}m/s²`,
     );
     expect(screen.getByLabelText(/^Impulso de salto/)).toHaveAttribute(
       'aria-valuetext',
-      `10,0${NNBSP}m/s`,
+      `10,00${NNBSP}m/s`,
     );
     expect(readout('Altura máxima')).toBe(`2,00${NNBSP}m`);
     expect(readout('Tiempo al ápice')).toBe(`0,40${NNBSP}s`);

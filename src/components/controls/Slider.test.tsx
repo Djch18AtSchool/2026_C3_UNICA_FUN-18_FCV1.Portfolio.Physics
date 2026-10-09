@@ -2,6 +2,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import Slider from './Slider';
+import { resetSettingsForTests, setSettings } from '../../lib/settingsStore';
 
 const BASE_PROPS = {
   id: 'gravity',
@@ -14,7 +15,11 @@ const BASE_PROPS = {
 };
 
 describe('Slider', () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    resetSettingsForTests();
+    localStorage.clear();
+  });
 
   test('labels the range input with the name and the unit', () => {
     render(<Slider {...BASE_PROPS} onChange={() => {}} />);
@@ -49,10 +54,20 @@ describe('Slider', () => {
     expect(screen.getByText('1,0–25,0')).toBeInTheDocument();
   });
 
-  test('derives precision from the step decimals by default', () => {
+  test('falls back to the global decimals, not the step, when precision is omitted', () => {
     render(<Slider {...BASE_PROPS} step={1} value={3} onChange={() => {}} />);
 
-    expect(screen.getByTestId('slider-value').textContent).toBe('3\u202fm/s²');
+    expect(screen.getByTestId('slider-value').textContent).toBe('3,00\u202fm/s²');
+  });
+
+  test('aria-valuetext follows the global decimals setting', () => {
+    setSettings({ decimals: 3 });
+    render(<Slider {...BASE_PROPS} step={1} value={3} onChange={() => {}} />);
+
+    expect(screen.getByLabelText('Gravedad (m/s²)')).toHaveAttribute(
+      'aria-valuetext',
+      '3,000\u202fm/s²',
+    );
   });
 
   test('reports the new numeric value when the input changes', () => {

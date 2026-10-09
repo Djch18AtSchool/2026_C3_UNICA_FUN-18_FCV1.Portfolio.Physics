@@ -3,9 +3,14 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import Readout from './Readout';
 import { EXACT_TEXT } from '../../test-exact-text';
+import { resetSettingsForTests, setSettings } from '../../lib/settingsStore';
 
 describe('Readout', () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    resetSettingsForTests();
+    localStorage.clear();
+  });
 
   test('shows the label and the value with unit in monospace', () => {
     render(<Readout label="Altura máxima" value={5.1} unit="m" />);
@@ -25,5 +30,12 @@ describe('Readout', () => {
     render(<Readout label="Alcance" value={NaN} unit="m" />);
 
     expect(screen.getByText('—')).toBeInTheDocument();
+  });
+
+  test('falls back to the global decimals when precision is omitted', () => {
+    setSettings({ decimals: 3 });
+    render(<Readout label="Altura máxima" value={5.1} unit="m" />);
+
+    expect(screen.getByText('5,100\u202fm', EXACT_TEXT)).toBeInTheDocument();
   });
 });
