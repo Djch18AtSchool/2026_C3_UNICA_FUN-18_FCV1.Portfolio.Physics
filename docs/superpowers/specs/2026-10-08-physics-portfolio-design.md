@@ -113,9 +113,7 @@ Sus tipos de recurso se publican en las consignas siguientes. El sitio los muest
 │   │   ├── temas/[slug].astro
 │   │   └── 404.astro
 │   └── styles/                   tokens.css, global.css, katex override
-├── tests/
-│   ├── unit/                     Vitest: physics, data, consigna/content
-│   └── e2e/                      Playwright
+├── tests/e2e/                    Playwright (las pruebas unitarias van junto a cada módulo: src/**/*.test.ts)
 ├── astro.config.ts
 ├── package.json
 └── README.md
@@ -237,7 +235,7 @@ Pruebas en `tests/unit/physics/*.test.ts`, una por módulo, estructura preparar-
 - v0 = 10 m/s, g = 9,81 → h = 5,097 m; t_ápice = 1,019 s; t_aire = 2,039 s.
 - designJump(5,097 m; 1,019 s) → g ≈ 9,81, v0 ≈ 10.
 - 2 RPM → ω = 0,2094 rad/s; r para 9,81 m/s² = 223,6 m. r = 100 m → 2,99 RPM.
-- Toro de Stanford: r = 895 m, 1 RPM → 9,81 m/s² (±0,05).
+- Toro de Stanford: r = 830 m, 1 RPM → 0,93 g (NASA SP-413 reporta 0,95 ± 0,05 g).
 - Fricción: μs = 0,40, N = 98 N → 39,2 N.
 - Hooke: k = 150 N/m, x = −0,08 m → +12 N.
 - Perfil trapezoidal: distancia 100 m, vMax 10 m/s, aMax 2,5 m/s² → duración 14 s; distancia 10 m → caso triangular.
@@ -279,15 +277,15 @@ Formateo numérico centralizado en `src/lib/format.ts` con `Intl.NumberFormat('e
 
 ### 7.2 Tema 2 · `JumpSimulator`
 
-- Controles: impulso de salto v0 (2 a 25 m/s), gravedad g (1 a 60 m/s²), velocidad horizontal vx (0 a 12 m/s), multiplicador de gravedad en caída (1 a 3). Los dos primeros son los exigidos.
+- Controles: impulso de salto v0 (2 a 25 m/s), gravedad g (1 a 150 m/s², porque Celeste equivale a unos 112 m/s² con la escala declarada), velocidad horizontal vx (0 a 12 m/s), multiplicador de gravedad en caída (1 a 4, porque Super Mario Bros multiplica por 3,5 al soltar el botón). Los dos primeros son los exigidos.
 - Salida: trayectoria y(x) recalculada en cada cambio; trayectoria fantasma con g = 9,81 para comparar; lecturas h_máx, t_ápice, t_aire, alcance; marcador animado que recorre la curva con paso fijo de 1/120 s. Con movimiento reducido activo, no hay animación.
-- Preajustes con fuente: Tierra (9,81), Luna (1,62), Celeste (constantes públicas del código del jugador, convertidas con una escala declarada de píxeles a metros), Super Mario Bros (valores documentados por la comunidad, convertidos con escala declarada). Los valores exactos se verifican contra la fuente al implementar y se citan en el frontmatter.
+- Preajustes con fuente: Tierra (9,81), Luna (1,62), Celeste (constantes del `Player.cs` publicado por Noel Berry en 2018: gravedad 900 px/s², salto 105 px/s, carrera 90 px/s, con escala declarada 8 px = 1 m), Super Mario Bros (desensamblado comentado: salto 4 px/cuadro, gravedad 0,125 px/cuadro² con el botón sostenido y 0,4375 al soltar, a 60 cuadros por segundo, con escala 16 px = 1 m). Valores confirmados en el documento de fuentes.
 - Panel "Diseñar el salto": entradas altura deseada y tiempo al ápice; muestra g y v0 derivados con `designJump`, y un botón que los aplica a los controles.
 
 ### 7.3 Tema 3 · `HabitatDiagram` y `HabitatCalculator`
 
 - `HabitatDiagram.astro`: SVG propio, inline, con variables CSS para los colores. Elementos: anillo del hábitat visto en perspectiva, eje de giro, radio r, flecha de ω, persona de pie sobre el borde exterior con la cabeza hacia el eje, vector a_c hacia el centro, vector de "gravedad aparente" hacia afuera, y las ecuaciones a_c = ω² r, v = ω r, T = 2π/ω anotadas junto a los elementos. Un detalle lateral marca h (altura de la persona) para el gradiente.
-- `HabitatCalculator` (React, complemento del diagrama): modo "fijar 1 g y despejar r" con control de RPM, y modo "fijar r y despejar RPM" con control de radio. Lecturas: ω, v, a_c, a_c/g, T, f, y la diferencia cabeza-pies para h = 1,80 m. Preajustes: Toro de Stanford (r = 895 m, 1 RPM), cilindro de O'Neill (r = 4 000 m, ≈ 0,47 RPM), centrífuga pequeña (r = 10 m) para mostrar el gradiente.
+- `HabitatCalculator` (React, complemento del diagrama): modo "fijar 1 g y despejar r" con control de RPM, y modo "fijar r y despejar RPM" con control de radio (5 a 4 000 m). Lecturas: ω, v, a_c, a_c/g, T, f, y la diferencia cabeza-pies para h = 1,80 m. Preajustes: Toro de Stanford (r = 830 m, 1 RPM, 0,93 g; NASA SP-413 reporta 0,95 ± 0,05 g), cilindro de O'Neill (r = 4 000 m, ≈ 0,47 RPM), centrífuga pequeña (r = 10 m) para mostrar el gradiente.
 - Caso numérico escrito en la prosa: a 2 RPM se necesitan 223,6 m; a 100 m se necesitan 2,99 RPM.
 
 ### 7.4 Tema 4 · `GripCharts`
@@ -304,7 +302,7 @@ Formateo numérico centralizado en `src/lib/format.ts` con `Intl.NumberFormat('e
 
 ## 8. Plan de contenido del Avance 1
 
-Cada tema sigue las cuatro subsecciones del caso de uso. Las fuentes listadas son candidatas: se verifican URL y contenido al implementar y solo se citan las que se confirmen. La prosa es borrador para la revisión de Dylan.
+Cada tema sigue las cuatro subsecciones del caso de uso. Las fuentes listadas fueron verificadas el 8 de octubre de 2026 y están detalladas, con URL y valores, en `docs/superpowers/research/2026-10-08-sources.md`; solo se cita lo confirmado ahí. La prosa es borrador para la revisión de Dylan.
 
 ### 8.1 Tema 1 · Dron de reparto
 
@@ -312,7 +310,7 @@ Cada tema sigue las cuatro subsecciones del caso de uso. Las fuentes listadas so
 - Ecuaciones: r(t) = r0 + v0 t + ½ a t²; v = dr/dt; a = dv/dt; descomposición en componentes; perfil trapezoidal de velocidad.
 - Por qué la física: con rumbos y velocidades fijas el dron no respeta límites de aceleración ni corrige por viento sin perder coherencia; el modelo cinemático permite predecir, limitar y replanificar.
 - Qué se gana y qué cuesta: se gana coherencia y seguridad ante cualquier ruta; cuesta estimación de estado, ajuste de ganancias y cómputo a bordo.
-- Fuentes candidatas: documentación de ArduPilot sobre navegación por curvas S y parámetros WPNAV; documentación de PX4 sobre el controlador de posición multirrotor; Serway, capítulo de movimiento en dos dimensiones.
+- Fuentes confirmadas: documentación de ArduPilot Copter (modo Auto, que describe la navegación por curvas S y `WP_JERK`) y el código de Copter 4.6.3 con los valores por defecto WPNAV_SPEED 1000 cm/s y WPNAV_ACCEL 250 cm/s²; documentación de PX4 del controlador de posición y trayectoria limitada en jerk, con MPC_XY_VEL_MAX 12 m/s y MPC_ACC_HOR 3 m/s²; Serway y Jewett, movimiento en dos dimensiones.
 - Conexiones: tema 2 (mismas ecuaciones de aceleración constante); clase Módulo 1, temas 1.1 y 1.3.
 
 ### 8.2 Tema 2 · Salto del personaje
@@ -321,17 +319,17 @@ Cada tema sigue las cuatro subsecciones del caso de uso. Las fuentes listadas so
 - Ecuaciones: y(t) = y0 + v0 t − ½ g t²; h = v0²/(2g); t_ápice = v0/g; t_aire = 2 v0/g; diseño inverso g = 2h/t², v0 = 2h/t.
 - Por qué la física: una animación guionizada no responde a soltar el botón antes, a plataformas móviles ni a viento; con la física cualquier combinación de entrada produce un salto coherente. La gravedad distinta de 9,81 es una decisión de sensación de juego, no un error.
 - Qué se gana y qué cuesta: se gana control de la sensación con dos parámetros intuitivos; cuesta error de integración por cuadro dependiente del framerate, que se resuelve con paso fijo.
-- Fuentes candidatas: código público del jugador de Celeste; charla de Pittman en GDC Vault; documentación de Unity sobre gravedad en Physics2D; documento comunitario de física de Super Mario Bros.
+- Fuentes confirmadas: `Player.cs` de Celeste publicado en GitHub por Noel Berry (2018); diapositivas oficiales de Pittman, GDC 2016, con v0 = 2h/t_h y g = −2h/t_h²; documentación de Unity de `Physics2D.gravity` con valor por defecto (0, −9,8); desensamblado comentado de Super Mario Bros (doppelganger, 6502disassembly.com).
 - Conexiones: tema 1 (cinemática), tema 3 (dos formas de fabricar gravedad aparente), tema 7 futuro (restitución); clase Módulo 1, temas 1.2 y 1.3.
 
 ### 8.3 Tema 3 · Gravedad artificial
 
-- Caso concreto: Elite Dangerous (Frontier Developments), donde las estaciones giran y el juego aplica corrección rotacional al atracar, igualando la velocidad tangencial del puerto; y SpinCalc de Theodore Hall, herramienta que implementa estas ecuaciones con criterios de confort para diseño de hábitats.
+- Caso concreto: SpinCalc de Theodore Hall, la herramienta de software que la comunidad de diseño de hábitats usa para dimensionar radio, velocidad angular, velocidad tangencial y aceleración con los criterios de confort publicados (Hill y Schnitzer 1962, Gilruth 1969, Gordon y Gervais 1969, Stone 1973, Cramer 1985), aplicada al diseño del Toro de Stanford de NASA SP-413. Elite Dangerous, cuyas estaciones giran, se menciona solo si se confirma una fuente oficial de Frontier; la verificación del 8 de octubre no lo logró.
 - Ecuaciones: a_c = ω² r = v²/r; v = ω r; T = 2π/ω; f = 1/T; ω = 2π RPM/60; Δa/a = h/r. Extensión: ΣF = m a_c, la normal del piso provee la fuerza centrípeta.
 - Por qué la física: un valor fijo de "gravedad" no reproduce el gradiente cabeza-pies ni el efecto Coriolis; el modelo explica por qué los radios pequeños incomodan y permite elegir r y RPM.
 - Qué se gana y qué cuesta: se gana un hábitat habitable sin tecnología inexistente; cuesta estructura enorme y mareo por rotación.
-- Caso numérico: 2 RPM → 223,6 m; 100 m → 2,99 RPM; Toro de Stanford 895 m a 1 RPM → 9,81 m/s².
-- Fuentes candidatas: NASA, "Space Settlements: A Design Study" (1977) para el Toro de Stanford; Hall, "Artificial Gravity Visualization, Empathy, and Design" y SpinCalc; documentación o manual de Elite Dangerous sobre corrección rotacional; Serway, movimiento circular uniforme.
+- Caso numérico: 2 RPM → 223,6 m; 100 m → 2,99 RPM; Toro de Stanford 830 m a 1 RPM → 0,93 g.
+- Fuentes confirmadas: NASA SP-413, "Space Settlements: A Design Study" (1977, NTRS 19770014162) para el Toro de Stanford; Hall, "Artificial Gravity Visualization, Empathy, and Design" (AIAA 2006-7321) y SpinCalc; Serway y Jewett, 10.ª ed., movimiento circular uniforme.
 - Conexiones: tema 4 (en curva, la fricción es la fuerza centrípeta), tema 8 futuro (ruedas de reacción); clase Módulo 1, tema 1.4, con nota de que la dinámica circular es extensión.
 
 ### 8.4 Tema 4 · Llantas de Fórmula 1
@@ -340,7 +338,7 @@ Cada tema sigue las cuatro subsecciones del caso de uso. Las fuentes listadas so
 - Ecuaciones: f_máx = μs N (modelo de clase); Fy,máx = μ(Fz) Fz con μ(Fz) = μ0 (Fz/Fz0)^(n−1), n < 1; μ(T) con ventana óptima; Fórmula Mágica.
 - Por qué la física: con μ constante un coche más pesado agarraría proporcionalmente más y las llantas frías o recalentadas se comportarían igual, así que no existiría la gestión de neumáticos ni la ventana de temperatura.
 - Qué se gana y qué cuesta: se gana comportamiento emergente y realista; cuesta parámetros que hay que medir y calibrar por compuesto.
-- Fuentes candidatas: Pacejka, "Tire and Vehicle Dynamics"; Milliken y Milliken, "Race Car Vehicle Dynamics" (sensibilidad a la carga); documentación de modding de Assetto Corsa; información técnica de Pirelli sobre rangos de trabajo de compuestos.
+- Fuentes confirmadas: Pacejka, "Tire and Vehicle Dynamics", 3.ª ed., Butterworth-Heinemann, 2012; Milliken y Milliken, "Race Car Vehicle Dynamics", SAE, 1995 (sensibilidad a la carga, a contrastar con el ejemplar); un `tyres.ini` real y comentado de Assetto Corsa (equipo MUR) con `FZ0`, `LS_EXPY`, `DY_REF` y `PERFORMANCE_CURVE`, porque no existe documentación oficial de Kunos; tabla de ventanas de trabajo de los compuestos Pirelli de 2019 publicada por Autosport (Noble, 2019), declarada como generación de 13 pulgadas; definición de Isola (Pirelli) del rango operativo como agarre máximo menos 3%.
 - Conexiones: tema 3 (v_máx = sqrt(μ g r)), tema 5 (modelos de contacto que el libro idealiza); clase Módulo 2, tema 02, conceptos 01 a 03.
 
 ### 8.5 Tema 5 · Control háptico
@@ -349,7 +347,7 @@ Cada tema sigue las cuatro subsecciones del caso de uso. Las fuentes listadas so
 - Ecuaciones: F = −k x; U = ½ k x²; tercera ley F_gatillo→dedo = −F_dedo→gatillo; modo por tramos F = k (x − x0) para x ≥ x0.
 - Por qué la física: una vibración fija no cambia con cuánto se ha apretado; el resorte virtual sí, y por eso se percibe como tensar algo real.
 - Qué se gana y qué cuesta: se gana retroalimentación continua y creíble; cuesta límite de fuerza del motor, latencia y consumo.
-- Fuentes candidatas: PlayStation Blog sobre el DualSense; repositorio abierto de control del DualSense en GitHub con la descripción de los modos de gatillo; Serway, ley de Hooke y tercera ley.
+- Fuentes confirmadas: página oficial de accesorios DualSense en playstation.com; `DS5State.h` del repositorio DualSense-Windows (modos `ContinuousResitance` y `SectionResitance`, parámetros `startPosition` y `force` de 0 a 255); reseña de Astro's Playroom que describe los gatillos "tensos como un resorte"; PlayStation Blog de Guerrilla (2021) sobre el "pop" del gatillo al máximo del arco en Horizon Forbidden West; Serway y Jewett, ley de Hooke y tercera ley.
 - Conexiones: tema 4 (fuerzas de contacto), tema 10 futuro (spring animations), tema 12 futuro (resonancia); clase Módulo 2, tema 02 concepto 04 y tema 01 concepto 05.
 - Video: grabado por Dylan según el guion de §13.
 
