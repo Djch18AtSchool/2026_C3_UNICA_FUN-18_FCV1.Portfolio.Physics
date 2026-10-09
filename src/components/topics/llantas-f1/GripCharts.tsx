@@ -79,7 +79,7 @@ const CHARTS: Record<GripChartKind, LineChartProps> = {
     markers: [
       {
         x: LOAD_MODEL.values.fz0,
-        label: `F_z0 = ${formatNumber(LOAD_MODEL.values.fz0, { precision: 0, unit: 'N' })}`,
+        label: `Fz0 = ${formatNumber(LOAD_MODEL.values.fz0, { precision: 0, unit: 'N' })}`,
       },
     ],
     tooltipExtras: [{ key: 'muEff', name: 'μ efectivo', precision: 2 }],
