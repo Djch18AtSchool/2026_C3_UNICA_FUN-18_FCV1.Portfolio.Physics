@@ -6,6 +6,14 @@ import { TOPICS, topicBySlug } from '../consigna';
 import { topicSchema } from './topicSchema';
 
 const TOPICS_DIR = join(process.cwd(), 'src', 'content', 'topics');
+/** Rubric sections every published topic must keep: use case, resource, figure, connections, sources. */
+const PUBLISHED_BODY_MARKERS = [
+  '<UseCase',
+  '## Recurso de apoyo',
+  '<Figure',
+  '<Connections',
+  '<Sources',
+] as const;
 
 const fileNames = readdirSync(TOPICS_DIR)
   .filter((name) => name.endsWith('.mdx'))
@@ -65,6 +73,22 @@ describe('topic files', () => {
       const data = topicSchema.parse(readFrontmatter(fileName));
       for (const slug of data.related) {
         expect(slugs.has(slug), `${fileName} -> ${slug}`).toBe(true);
+      }
+    }
+  });
+
+  test('cada tema publicado conserva las secciones de la rúbrica en su cuerpo', () => {
+    const published = fileNames
+      .map((fileName) => ({
+        fileName,
+        file: matter(readFileSync(join(TOPICS_DIR, fileName), 'utf8')),
+      }))
+      .filter(({ file }) => file.data.status === 'publicado');
+
+    expect(published.length).toBeGreaterThanOrEqual(5);
+    for (const { fileName, file } of published) {
+      for (const marker of PUBLISHED_BODY_MARKERS) {
+        expect(file.content.includes(marker), `${fileName} sin ${marker}`).toBe(true);
       }
     }
   });

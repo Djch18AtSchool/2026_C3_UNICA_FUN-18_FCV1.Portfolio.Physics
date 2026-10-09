@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { TOPICS } from '../../src/consigna';
+import { PENDING_MEDIA } from './helpers';
 
 const BASE_PATH = '/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics/';
-const PENDING_MEDIA = 'media/tema-05-dualsense.';
 const PAGES = ['./', ...TOPICS.map((topic) => `./temas/${topic.slug}/`)];
 
 test('todos los enlaces internos de la portada y de los 13 temas responden 200', async ({
@@ -18,8 +18,8 @@ test('todos los enlaces internos de la portada y de los 13 temas responden 200',
       page.locator(`a[href^="/"]:not([href^="${BASE_PATH}"])`),
       `${path} has an internal link without the base path`,
     ).toHaveCount(0);
-    // Tema 5's video is published after recording; until then its fallback download link 404s.
-    // control-haptico.spec.ts requests that file and checks the fallback while it is missing.
+    // Tema 5's video is published after recording; until then the player's download link (server
+    // rendered, removed once the error state hydrates) 404s. See PENDING_MEDIA in helpers.ts.
     const found = await page
       .locator(`a[href^="${BASE_PATH}"]:not([href*="${PENDING_MEDIA}"])`)
       .evaluateAll((anchors) => anchors.map((anchor) => anchor.getAttribute('href') ?? ''));
