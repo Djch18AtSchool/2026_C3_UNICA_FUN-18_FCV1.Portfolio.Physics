@@ -28,7 +28,7 @@ export const JUMP_PRESETS: Preset<JumpSettings>[] = [
     name: 'Celeste',
     values: { v0: 13.1, g: 112.5, vx: 11.25, fallMultiplier: 1 },
     sourceLabel: 'Player.cs, Noel Berry (2018)',
-    note: 'Escala supuesta 8 px = 1 m (el ancho de la hitbox de Madeline): Gravity 900 px/s² → 112,5 m/s², JumpSpeed 105 px/s → 13,1 m/s, MaxRun 90 px/s → 11,25 m/s. No modela el sostén del salto (VarJumpTime 0,2 s) ni la media gravedad cerca del ápice.',
+    note: 'Escala supuesta 8 px = 1 m (el ancho de la caja de colisión, o hitbox, de Madeline): Gravity 900 px/s² → 112,5 m/s², JumpSpeed 105 px/s → 13,1 m/s, MaxRun 90 px/s → 11,25 m/s. No modela la prolongación del impulso (VarJumpTime 0,2 s) ni la media gravedad cerca del ápice.',
   },
   {
     id: 'super-mario-bros',
