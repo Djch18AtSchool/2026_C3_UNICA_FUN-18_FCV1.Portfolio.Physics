@@ -58,6 +58,8 @@ export interface LineChartProps {
   series: SeriesSpec[];
   bands?: ReferenceBand[];
   aspectRatio?: number;
+  /** 'linear' (default) keeps real kinks such as the velocity at impact; 'monotone' smooths them. */
+  curve?: 'linear' | 'monotone';
 }
 
 const MARGIN = { top: 8, right: 16, bottom: 8, left: 4 } as const;
@@ -110,6 +112,7 @@ export default function LineChart({
   series,
   bands = [],
   aspectRatio = DEFAULT_ASPECT_RATIO,
+  curve = 'linear',
 }: LineChartProps) {
   assertUnits({ xAxis, yAxis });
 
@@ -179,7 +182,7 @@ export default function LineChart({
               angle={-90}
               position="insideLeft"
               offset={4}
-              style={{ textAnchor: 'middle' }}
+              textAnchor="middle"
               {...AXIS_TITLE_STYLE}
             />
           </YAxis>
@@ -218,6 +221,7 @@ export default function LineChart({
             <Legend
               position="top"
               iconType="plainline"
+              itemSorter={null}
               formatter={(value: string) => <span className="text-sm text-fg">{value}</span>}
             />
           ) : null}
@@ -228,7 +232,7 @@ export default function LineChart({
                 key={spec.key}
                 dataKey={spec.key}
                 name={spec.name}
-                type="monotone"
+                type={curve}
                 stroke={color}
                 strokeWidth={LINE_WIDTH}
                 strokeLinecap="round"
