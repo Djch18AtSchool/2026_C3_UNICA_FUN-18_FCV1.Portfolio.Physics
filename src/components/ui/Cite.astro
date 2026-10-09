@@ -15,6 +15,14 @@ const { id, sources } = Astro.props;
 const source = sources.find((candidate) => candidate.id === id);
 if (!source) throw new Error(`Cite: fuente "${id}" no declarada`);
 const n = sourceIndex(sources, id);
+const reference = formatSource(source);
+// "[n]" alone tells a screen reader nothing; the name carries the reference, the text stays "[n]".
 ---
 
-<a class="cite" href={`#fuente-${id}`} title={formatSource(source)} set:text={`[${n}]`} />
+<a
+  class="cite"
+  href={`#fuente-${id}`}
+  title={reference}
+  aria-label={`Fuente ${n}: ${reference}`}
+  set:text={`[${n}]`}
+/>

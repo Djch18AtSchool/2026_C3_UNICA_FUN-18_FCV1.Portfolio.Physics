@@ -33,3 +33,22 @@ test('todos los enlaces internos de la portada y de los 13 temas responden 200',
     expect(response.status(), href).toBe(200);
   }
 });
+
+test('cada cita [n] se anuncia con su fuente y apunta a una entrada de Fuentes', async ({
+  page,
+}) => {
+  const published = TOPICS.filter((topic) => topic.phase === 1);
+  for (const topic of published) {
+    await page.goto(`./temas/${topic.slug}/`);
+    const cites = page.locator('a.cite');
+    expect(await cites.count(), topic.slug).toBeGreaterThan(0);
+    for (const cite of await cites.all()) {
+      const text = (await cite.textContent()) ?? '';
+      const n = /^\[(\d+)\]$/.exec(text)?.[1];
+      expect(n, `${topic.slug}: visible text ${text}`).toBeDefined();
+      await expect(cite).toHaveAccessibleName(new RegExp(`^Fuente ${n}: \\S.+`));
+      const target = (await cite.getAttribute('href')) ?? '';
+      await expect(page.locator(target), `${topic.slug}: ${target}`).toHaveCount(1);
+    }
+  }
+});

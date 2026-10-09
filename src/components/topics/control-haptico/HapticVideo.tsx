@@ -5,6 +5,7 @@ import { withBase } from '../../../lib/url';
 const SECONDS_PER_MINUTE = 60;
 /** A seek lands on the nearest frame, a few ms before the requested time; still "at" the marker. */
 const SEEK_TOLERANCE_S = 0.05;
+const NO_MARKER = -1;
 
 const BUTTON_BASE =
   'inline-flex min-h-9 items-center gap-2 self-start rounded-base border px-3 py-1.5 text-left text-sm font-medium text-fg transition-colors';
@@ -28,7 +29,7 @@ interface FallbackProps {
   transcript: string;
 }
 
-/** Shown when the video cannot load (or is not published yet): transcript and a download link. */
+/** Shown whenever the video cannot load (not published yet, or a network error): transcript and a download link. */
 function VideoFallback({ videoUrl, transcript }: FallbackProps) {
   return (
     <div
@@ -47,14 +48,7 @@ function VideoFallback({ videoUrl, transcript }: FallbackProps) {
           <rect x="2.5" y="5" width="19" height="14" rx="1.5" strokeDasharray="3 2" />
           <path d="M10 9.5v5l4-2.5z" fill="currentColor" stroke="none" />
         </svg>
-        <div>
-          <p className="m-0 font-mono text-xs uppercase tracking-wider text-fg-muted">
-            Video no disponible
-          </p>
-          <p className="m-0 text-base font-medium">
-            El clip del DualSense aparecerá aquí en cuanto lo publique.
-          </p>
-        </div>
+        <p className="m-0 text-base font-medium">El video no está disponible en este momento.</p>
       </div>
       <p className="m-0 text-sm text-fg-muted">
         Mientras tanto, la transcripción describe la secuencia del clip y cada marca de tiempo de
@@ -87,7 +81,8 @@ export default function HapticVideo({ src, poster, markers, transcript }: Haptic
   const [currentTime, setCurrentTime] = useState(0);
   const videoUrl = withBase(src);
   const posterUrl = poster ? withBase(poster) : undefined;
-  const activeIndex = activeMarkerIndex(markers, currentTime);
+  // Without a playable video there is no playback position to point at.
+  const activeIndex = hasError ? NO_MARKER : activeMarkerIndex(markers, currentTime);
 
   useEffect(() => {
     setIsReady(true);

@@ -82,4 +82,22 @@ describe('JumpSimulator', () => {
 
     expect(designer.getByRole('button', { name: 'Aplicar' })).toBeDisabled();
   });
+
+  test('marks only the invalid designer input and announces the hint politely', () => {
+    render(<JumpSimulator />);
+    const designer = within(screen.getByTestId('jump-designer'));
+    const height = designer.getByLabelText('Altura deseada (m)');
+    const time = designer.getByLabelText('Tiempo al ápice (s)');
+    expect(height).toHaveAttribute('aria-invalid', 'false');
+
+    fireEvent.change(height, { target: { value: '-1' } });
+
+    expect(height).toHaveAttribute('aria-invalid', 'true');
+    expect(time).toHaveAttribute('aria-invalid', 'false');
+    expect(designer.queryByRole('alert')).toBeNull();
+    const hint = designer.getByText('Escribe una altura y un tiempo mayores que cero.');
+    expect(hint.closest('[aria-live="polite"]')).not.toBeNull();
+    expect(height).toHaveAccessibleDescription('Escribe una altura y un tiempo mayores que cero.');
+    expect(time).not.toHaveAccessibleDescription();
+  });
 });

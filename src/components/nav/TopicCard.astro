@@ -19,12 +19,12 @@ const isPublished = topic.status === 'publicado';
   data-testid="topic-card"
   class="group relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-3 py-4 hover:bg-bg-elevated sm:grid-cols-[2.5rem_minmax(0,1fr)]"
 >
-  <span class="text-right font-mono text-lg leading-7 text-fg-muted" aria-hidden="true">
+  <span class="text-right font-mono text-lg leading-6 text-fg-muted" aria-hidden="true">
     {topic.number}
   </span>
   <div class="flex min-w-0 flex-col gap-2 border-l-[3px] border-double border-border pr-2 pl-4 md:flex-row md:items-center md:gap-4">
     <div class="min-w-0 md:max-w-[38rem]">
-      <h3 class="text-base leading-7 font-medium">
+      <h3 class="text-base leading-6 font-medium">
         <span class="sr-only">Tema {topic.number}: </span>
         <a
           href={topicUrl(topic.slug)}

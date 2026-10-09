@@ -59,5 +59,19 @@ const {
       <slot />
     </main>
     <SiteFooter />
+    <script>
+      import { syncScrollRegion, syncScrollRegions } from '../lib/scrollRegion';
+
+      // Wide equations and figures get a tab stop only while they overflow (see scrollRegion.ts).
+      const regions = syncScrollRegions(document);
+      if (regions.length > 0) {
+        const observer = new ResizeObserver((entries) => {
+          entries.forEach((entry) => syncScrollRegion(entry.target as HTMLElement));
+        });
+        regions.forEach((region) => observer.observe(region));
+        // KaTeX and Plex load with font-display: swap; widths change once they arrive.
+        void document.fonts.ready.then(() => syncScrollRegions(document));
+      }
+    </script>
   </body>
 </html>

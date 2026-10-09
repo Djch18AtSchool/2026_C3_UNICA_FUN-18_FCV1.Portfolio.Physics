@@ -64,18 +64,32 @@ function tickLabel(value: number, ticks: number[]): string {
   );
 }
 
-function prefersReducedMotion(): boolean {
-  return typeof window.matchMedia === 'function' && window.matchMedia(REDUCED_MOTION).matches;
+/**
+ * Whether the marker may move. Follows `prefers-reduced-motion` live, since the system setting can
+ * change while the page is open. False until mount so the server render never animates.
+ */
+function useMotionAllowed(): boolean {
+  const [isAllowed, setIsAllowed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') {
+      setIsAllowed(true);
+      return;
+    }
+    const query = window.matchMedia(REDUCED_MOTION);
+    const sync = () => setIsAllowed(!query.matches);
+    sync();
+    query.addEventListener('change', sync);
+    return () => query.removeEventListener('change', sync);
+  }, []);
+
+  return isAllowed;
 }
 
 /** Replays the marker along the live curve, in real time up to MAX_ANIMATION_S of wall clock. */
 function useMarker(points: TrajectoryPoint[], tAir: number, scale: Scale) {
   const markerRef = useRef<SVGCircleElement>(null);
-  const [isAnimated, setIsAnimated] = useState(false);
-
-  useEffect(() => {
-    setIsAnimated(!prefersReducedMotion());
-  }, []);
+  const isAnimated = useMotionAllowed();
 
   useEffect(() => {
     const marker = markerRef.current;

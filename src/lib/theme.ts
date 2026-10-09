@@ -3,6 +3,12 @@ export type Theme = 'light' | 'dark';
 /** localStorage key shared with the inline head script in BaseLayout. */
 export const THEME_STORAGE_KEY = 'theme';
 
+/** The toggle names the theme it switches to; shared with the pre-hydration script in SiteHeader. */
+export const THEME_TOGGLE_LABELS: Record<Theme, string> = {
+  light: 'Cambiar a tema oscuro',
+  dark: 'Cambiar a tema claro',
+};
+
 function isTheme(value: string | null): value is Theme {
   return value === 'light' || value === 'dark';
 }

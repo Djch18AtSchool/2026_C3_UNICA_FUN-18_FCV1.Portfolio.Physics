@@ -12,7 +12,7 @@ export interface JumpDesignerProps {
 const DEFAULT_HEIGHT = '2';
 const DEFAULT_TIME_TO_APEX = '0,4';
 const INPUT_CLASS =
-  'min-h-10 w-full rounded-base border border-border bg-bg px-2 font-mono text-sm tabular-nums focus:border-accent';
+  'min-h-10 w-full rounded-base border border-border bg-bg px-2 font-mono text-sm tabular-nums focus:border-accent aria-invalid:border-chart-2';
 
 /** Reads "0,4" or "0.4"; anything else is NaN. */
 function parseDecimal(text: string): number {
@@ -20,13 +20,9 @@ function parseDecimal(text: string): number {
   return normalized === '' ? Number.NaN : Number(normalized);
 }
 
-function derive(heightText: string, timeText: string): { g: number; v0: number } | undefined {
-  const height = parseDecimal(heightText);
-  const time = parseDecimal(timeText);
-  if (!Number.isFinite(height) || !Number.isFinite(time) || height <= 0 || time <= 0) {
-    return undefined;
-  }
-  return designJump(height, time);
+function isPositiveDecimal(text: string): boolean {
+  const value = parseDecimal(text);
+  return Number.isFinite(value) && value > 0;
 }
 
 /** Pittman's design inverse: pick apex height and time to apex, read the g and v₀ that produce them. */
@@ -34,7 +30,13 @@ export default function JumpDesigner({ current, onApply }: JumpDesignerProps) {
   const id = useId();
   const [heightText, setHeightText] = useState(DEFAULT_HEIGHT);
   const [timeText, setTimeText] = useState(DEFAULT_TIME_TO_APEX);
-  const derived = derive(heightText, timeText);
+  const isHeightValid = isPositiveDecimal(heightText);
+  const isTimeValid = isPositiveDecimal(timeText);
+  const derived =
+    isHeightValid && isTimeValid
+      ? designJump(parseDecimal(heightText), parseDecimal(timeText))
+      : undefined;
+  const hintId = `${id}-hint`;
 
   return (
     <section
@@ -54,7 +56,8 @@ export default function JumpDesigner({ current, onApply }: JumpDesignerProps) {
               inputMode="decimal"
               value={heightText}
               onChange={(event) => setHeightText(event.target.value)}
-              aria-invalid={derived === undefined}
+              aria-invalid={!isHeightValid}
+              aria-describedby={isHeightValid ? undefined : hintId}
               className={INPUT_CLASS}
             />
           </label>
@@ -65,7 +68,8 @@ export default function JumpDesigner({ current, onApply }: JumpDesignerProps) {
               inputMode="decimal"
               value={timeText}
               onChange={(event) => setTimeText(event.target.value)}
-              aria-invalid={derived === undefined}
+              aria-invalid={!isTimeValid}
+              aria-describedby={isTimeValid ? undefined : hintId}
               className={INPUT_CLASS}
             />
           </label>
@@ -76,11 +80,11 @@ export default function JumpDesigner({ current, onApply }: JumpDesignerProps) {
               <Readout label="g = 2h / tₕ²" value={derived.g} unit="m/s²" precision={2} />
               <Readout label="v₀ = 2h / tₕ" value={derived.v0} unit="m/s" precision={2} />
             </div>
-          ) : (
-            <p role="alert" className="m-0 text-sm text-fg-muted">
-              Escribe una altura y un tiempo mayores que cero.
-            </p>
-          )}
+          ) : null}
+          {/* Always mounted so screen readers notice the hint appear; polite, not an alert, while typing. */}
+          <p id={hintId} aria-live="polite" className="m-0 text-sm text-fg-muted empty:sr-only">
+            {derived ? '' : 'Escribe una altura y un tiempo mayores que cero.'}
+          </p>
           <button
             type="button"
             disabled={!derived}

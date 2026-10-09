@@ -5,6 +5,7 @@ import PrevNext from '../components/nav/PrevNext.astro';
 import SideNav from '../components/nav/SideNav.astro';
 import ResourceBadge from '../components/ui/ResourceBadge.astro';
 import StatusBadge from '../components/ui/StatusBadge.astro';
+import TopicStickyBar from '../components/nav/TopicStickyBar.astro';
 import { COURSE, PHASE_LABELS, REPO_URL, type Phase } from '../consigna';
 import type { TopicData } from '../content/topicSchema';
 import type { TopicSummary } from '../lib/topics';
@@ -15,7 +16,7 @@ interface Props {
   all: TopicSummary[];
 }
 const { topic, all } = Astro.props;
-const { slug, number, phase, title, concept, status, resourceType, updated } = topic;
+const { slug, number, phase, title, shortTitle, concept, status, resourceType, updated } = topic;
 
 // "Se publica en el Avance 2" / "en la Entrega Final" (spec §4.2).
 const PHASE_ARTICLE: Record<Phase, string> = { 1: 'el', 2: 'el', 3: 'la' };
@@ -43,9 +44,17 @@ const phaseLabel = PHASE_LABELS[phase];
     </div>
 
     <article class="flex min-w-0 flex-col gap-12">
+      <!-- The bar is zero-height and only exists at lg; cancel the article gap it would add. -->
+      <TopicStickyBar
+        class="lg:-mb-12"
+        number={number}
+        phaseLabel={phaseLabel}
+        shortTitle={shortTitle}
+        resourceType={resourceType}
+      />
       <div class="flex flex-col gap-6">
         <Breadcrumbs number={number} phase={phase} />
-        <header class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_13rem] xl:gap-10">
+        <header data-topic-head class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_13rem] xl:gap-10">
           <div>
             <p class="text-sm font-medium text-fg-muted">
               Tema <span class="font-mono">{number}</span> · {phaseLabel}

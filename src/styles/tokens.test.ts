@@ -26,6 +26,21 @@ const COLOR_TOKENS = [
   'chart-6',
 ] as const;
 const HEX = /^#[0-9a-f]{6}$/i;
+/** Marks beside a text label (resource swatches) and chart series: WCAG 1.4.11 non-text contrast. */
+const MARK_TOKENS = [
+  'sim',
+  'viz',
+  'diag',
+  'media',
+  'chart-1',
+  'chart-2',
+  'chart-3',
+  'chart-4',
+  'chart-5',
+  'chart-6',
+] as const;
+const SURFACES = ['bg', 'bg-elevated'] as const;
+const NON_TEXT_MIN = 3;
 
 /** Map each rule's selector (quotes normalized to `"`) to its custom properties (`--name` → value). */
 function parseCustomProperties(css: string): Map<string, Map<string, string>> {
@@ -80,6 +95,14 @@ describe('tokens.css', () => {
         contrastRatio(token(selector, 'accent'), token(selector, 'bg')),
       ).toBeGreaterThanOrEqual(4.5);
     });
+    test.each(MARK_TOKENS.flatMap((mark) => SURFACES.map((surface) => [mark, surface])))(
+      '%s on %s reaches 3:1 (non-text contrast)',
+      (mark, surface) => {
+        expect(
+          contrastRatio(token(selector, mark), token(selector, surface)),
+        ).toBeGreaterThanOrEqual(NON_TEXT_MIN);
+      },
+    );
     test('accent-fg on accent reaches 4.5:1 (AA)', () => {
       expect(
         contrastRatio(token(selector, 'accent-fg'), token(selector, 'accent')),

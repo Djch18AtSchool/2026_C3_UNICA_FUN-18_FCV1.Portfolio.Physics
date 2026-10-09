@@ -1,10 +1,5 @@
-import { useEffect, useState } from 'react';
-import { type Theme, writeStoredTheme } from '../../lib/theme';
-
-const LABELS: Record<Theme, string> = {
-  light: 'Cambiar a tema oscuro',
-  dark: 'Cambiar a tema claro',
-};
+import { useState } from 'react';
+import { THEME_TOGGLE_LABELS, type Theme, writeStoredTheme } from '../../lib/theme';
 
 /** The inline head script has already set data-theme; the DOM is the source of truth. */
 function readDocumentTheme(): Theme {
@@ -21,12 +16,11 @@ function safeLocalStorage(): Storage | undefined {
 }
 
 export default function ThemeToggle() {
-  // Server render assumes light; the effect syncs with the real theme on mount.
-  const [theme, setTheme] = useState<Theme>('light');
-
-  useEffect(() => {
-    setTheme(readDocumentTheme());
-  }, []);
+  // The server cannot know the theme and renders light; SiteHeader's inline script corrects that
+  // label before hydration, and the client starts from the same DOM value, so the two agree.
+  const [theme, setTheme] = useState<Theme>(() =>
+    typeof document === 'undefined' ? 'light' : readDocumentTheme(),
+  );
 
   function toggleTheme() {
     const next: Theme = readDocumentTheme() === 'dark' ? 'light' : 'dark';
@@ -38,7 +32,8 @@ export default function ThemeToggle() {
   return (
     <button
       type="button"
-      aria-label={LABELS[theme]}
+      aria-label={THEME_TOGGLE_LABELS[theme]}
+      data-theme-toggle
       onClick={toggleTheme}
       className="inline-flex size-10 shrink-0 items-center justify-center rounded-base border border-border bg-bg-elevated text-fg-muted transition-colors hover:border-fg-muted hover:text-fg"
     >

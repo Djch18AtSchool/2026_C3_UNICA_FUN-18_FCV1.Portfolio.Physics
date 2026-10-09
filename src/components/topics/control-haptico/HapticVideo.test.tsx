@@ -71,6 +71,29 @@ describe('HapticVideo', () => {
     MARKERS.forEach(({ analysis }) => expect(screen.getByText(analysis)).toBeVisible());
   });
 
+  test('in the error state no marker is highlighted, even after choosing one', () => {
+    renderPlayer();
+    fireEvent.error(videoElement());
+
+    fireEvent.click(markerButton(/Fondo del recorrido/));
+
+    MARKERS.forEach(({ title }) =>
+      expect(markerButton(new RegExp(title))).not.toHaveAttribute('aria-current'),
+    );
+  });
+
+  test('the fallback copy is neutral, so it also fits a later network error', () => {
+    renderPlayer();
+
+    fireEvent.error(videoElement());
+
+    const fallback = screen.getByTestId('haptic-video-fallback');
+    expect(
+      within(fallback).getByText('El video no está disponible en este momento.'),
+    ).toBeVisible();
+    expect(fallback).not.toHaveTextContent(/en cuanto lo publique/);
+  });
+
   test('an error that happened before hydration is detected on mount', () => {
     const descriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'error');
     Object.defineProperty(HTMLMediaElement.prototype, 'error', {

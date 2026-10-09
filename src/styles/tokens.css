@@ -7,11 +7,17 @@
  *
  * Resource accents (--sim, --viz, --diag, --media) and --chart-1…6 identify things;
  * they are for marks (swatches, rules, borders, series), never for text. Text stays
- * in --fg / --fg-muted / --accent. --chart-1…3 and the resource accents are steps of
- * the dataviz reference palette; --chart-4…6 (purple, olive, cyan) are retuned so no
- * series repeats a resource accent hue. The six chart slots, in order, pass the
- * dataviz validator (lightness band, chroma, adjacent CVD ΔE ≥ 8, normal-vision ΔE
- * ≥ 15) against --bg in each theme; each new slot also keeps ≥ 3:1 against --bg.
+ * in --fg / --fg-muted / --accent. Every mark keeps ≥ 3:1 against --bg and
+ * --bg-elevated in its theme (WCAG 1.4.11, enforced by tokens.test.ts).
+ * The chart slots come from the dataviz reference hues, re-stepped where a slot fell
+ * under 3:1 (light --chart-2/3, dark --chart-4); --chart-4…6 (purple, olive, cyan) are
+ * retuned so no series repeats a resource accent hue. The six slots, in order, pass
+ * the dataviz validator (lightness band, chroma, adjacent CVD ΔE ≥ 8, normal-vision
+ * ΔE ≥ 15, contrast) against --bg-elevated, the chart surface, in each theme.
+ * The four resource accents pass all-pairs CVD ΔE ≥ 8 and normal-vision ΔE ≥ 15 in
+ * each theme; dark --diag sits above the chart lightness band on purpose (it is only
+ * ever a swatch beside its label, and a darker amber would merge with --sim for
+ * protan readers).
  */
 
 :root {
@@ -23,14 +29,14 @@
   --border: #d8d3c4;
   --accent: #23479b;
   --accent-fg: #fdfcf9;
-  --sim: #008300;
+  --sim: #006b00;
   --viz: #4a3aa7;
-  --diag: #eda100;
-  --media: #e87ba4;
+  --diag: #c27800;
+  --media: #d1668f;
   --grid: #e6e1d3;
   --chart-1: #2a78d6;
-  --chart-2: #eb6834;
-  --chart-3: #1baf7a;
+  --chart-2: #e3612c;
+  --chart-3: #009c68;
   --chart-4: #a951c3;
   --chart-5: #868f00;
   --chart-6: #0196b0;
@@ -46,15 +52,15 @@
   --border: #3b3f46;
   --accent: #93b4f5;
   --accent-fg: #1c1e22;
-  --sim: #008300;
+  --sim: #158f13;
   --viz: #9085e9;
-  --diag: #c98500;
+  --diag: #dd9a1c;
   --media: #d55181;
   --grid: #2e3238;
   --chart-1: #3987e5;
   --chart-2: #d95926;
   --chart-3: #199e70;
-  --chart-4: #9c44b6;
+  --chart-4: #a74fc1;
   --chart-5: #808800;
   --chart-6: #20a2bd;
   --radius: 3px;

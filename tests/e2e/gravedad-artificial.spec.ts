@@ -44,3 +44,30 @@ test('la página cumple la estructura del tema', async ({ page }) => {
   await expect(page.getByTestId('connections')).toBeVisible();
   expect(await page.locator('.katex-display').count()).toBeGreaterThanOrEqual(3);
 });
+
+test.describe('a 375 px', () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  test('ningún texto del diagrama queda por debajo de 11 px efectivos', async ({ page }) => {
+    const MIN_EFFECTIVE_PX = 11;
+    const diagram = page.getByTestId('habitat-diagram');
+    await diagram.scrollIntoViewIfNeeded();
+
+    const sizes = await diagram.evaluate((svg: SVGSVGElement) => {
+      const scale = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;
+      return (
+        [...svg.querySelectorAll('text, tspan')]
+          // A hidden <text> hides its <tspan>s too, though they still compute display: inline.
+          .filter((node) => getComputedStyle(node.closest('text') ?? node).display !== 'none')
+          .map((node) => ({
+            text: node.textContent?.trim() ?? '',
+            px: parseFloat(getComputedStyle(node).fontSize) * scale,
+          }))
+      );
+    });
+
+    const tooSmall = sizes.filter(({ px }) => px < MIN_EFFECTIVE_PX);
+    expect(sizes.length).toBeGreaterThan(0);
+    expect(tooSmall).toEqual([]);
+  });
+});

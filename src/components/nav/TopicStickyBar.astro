@@ -1,0 +1,101 @@
+---
+/*
+ * Desktop-only reminder of where the reader is: "Tema N · Avance X", the short title and the
+ * resource type, pinned to the top of the article column once the page header scrolls away.
+ * The wrapper is sticky and zero-height, so the bar takes no room in the flow; the script reveals
+ * it while the element marked [data-topic-head] is out of view. Without JS it simply never shows.
+ * It repeats the page header, so it is hidden from assistive technology.
+ */
+import ResourceBadge from '../ui/ResourceBadge.astro';
+import type { ResourceType } from '../../consigna';
+
+interface Props {
+  /** Extra classes for the sticky wrapper (the layout uses it to cancel its own gap). */
+  class?: string;
+  number: number;
+  phaseLabel: string;
+  shortTitle: string;
+  resourceType?: ResourceType;
+}
+const { class: className, number, phaseLabel, shortTitle, resourceType } = Astro.props;
+---
+
+<div class:list={['topic-sticky', className]} aria-hidden="true">
+  <div class="topic-sticky-bar" data-topic-sticky-bar data-visible="false">
+    <p class="topic-sticky-title">
+      <span class="text-fg-muted">
+        Tema <span class="font-mono">{number}</span> · {phaseLabel}
+      </span>
+      <span class="font-medium">{shortTitle}</span>
+    </p>
+    <ResourceBadge type={resourceType} />
+  </div>
+</div>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-topic-sticky-bar]');
+  const head = document.querySelector('[data-topic-head]');
+  if (bar && head) {
+    // Reveal once the header's bottom edge has scrolled above the viewport.
+    const observer = new IntersectionObserver(([entry]) => {
+      const isAbove = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
+      bar.dataset.visible = String(isAbove);
+    });
+    observer.observe(head);
+  }
+</script>
+
+<style>
+  .topic-sticky {
+    display: none;
+  }
+
+  @media (width >= 64rem) {
+    .topic-sticky {
+      display: block;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      height: 0;
+    }
+    .topic-sticky-bar {
+      position: absolute;
+      inset-inline: 0;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding-block: 0.625rem;
+      border-bottom: 1px solid var(--border);
+      background-color: var(--bg);
+      font-size: 0.875rem;
+      /* A slide, not a fade: the bar's text never shows at reduced contrast mid-transition. */
+      transition:
+        transform 150ms ease-out,
+        visibility 0s linear 150ms;
+    }
+    .topic-sticky-bar[data-visible='false'] {
+      visibility: hidden;
+      transform: translateY(-100%);
+    }
+    .topic-sticky-bar[data-visible='true'] {
+      transition-delay: 0s;
+    }
+    .topic-sticky-title {
+      display: flex;
+      min-width: 0;
+      gap: 0.75rem;
+      white-space: nowrap;
+    }
+    .topic-sticky-title > :last-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Keyboard focus and #fuente-n jumps land below the bar instead of under it. */
+    :global(html:has(.topic-sticky)) {
+      scroll-padding-top: 4rem;
+    }
+  }
+</style>

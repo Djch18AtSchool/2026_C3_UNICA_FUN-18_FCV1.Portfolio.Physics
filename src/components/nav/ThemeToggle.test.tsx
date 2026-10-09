@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import ThemeToggle from './ThemeToggle';
 
@@ -49,5 +50,13 @@ describe('ThemeToggle', () => {
 
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(button).toHaveAccessibleName(TO_LIGHT);
+  });
+
+  test('the first render already carries the label of the current theme', () => {
+    document.documentElement.dataset.theme = 'dark';
+
+    const html = renderToString(<ThemeToggle />);
+
+    expect(html).toContain(`aria-label="${TO_LIGHT}"`);
   });
 });

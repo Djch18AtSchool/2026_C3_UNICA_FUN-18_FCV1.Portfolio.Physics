@@ -36,7 +36,9 @@
     margin-top: 2rem;
     margin-bottom: 0.5rem;
   }
-  :where(.topic-body) > :first-child {
+  /* The article already spaces the body from the header: the opening heading adds nothing. */
+  :where(.topic-body) > :first-child,
+  :where(.topic-body) > :first-child > :where(h2, h3):first-child {
     margin-top: 0;
   }
   :where(.topic-body) :where(strong) {
@@ -118,6 +120,7 @@
     /* Wide formulas scroll inside the block on small screens instead of clipping. */
     overflow-x: auto;
     overflow-y: hidden;
+    scrollbar-width: thin;
     padding-block: 0.25em;
   }
   .equation-legend {
@@ -162,6 +165,7 @@
   }
   .figure-frame {
     overflow-x: auto;
+    scrollbar-width: thin;
     padding: 1rem;
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -308,10 +312,13 @@
 .topic-body .katex-display {
   /* $$…$$ display math in MDX scrolls inside itself on small screens instead of clipping. */
   overflow-x: auto;
+  scrollbar-width: thin;
   overflow-y: hidden;
   padding-block: 0.25em;
 }
 .topic-body .equation-math .katex-display {
+  /* Inside <Equation> the .equation-math wrapper is the one scroller (and the focusable region). */
+  overflow: visible;
   margin: 0;
   padding-block: 0;
 }

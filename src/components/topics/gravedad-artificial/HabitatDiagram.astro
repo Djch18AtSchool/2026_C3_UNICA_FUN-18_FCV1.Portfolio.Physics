@@ -293,7 +293,7 @@ const headArrow = arrow(
     Detalle A · cabeza y pies
   </text>
   <text
-    class="hd-label hd-muted"
+    class="hd-label hd-muted hd-hint"
     x={DETAIL.x + DETAIL.width - 12}
     y={DETAIL.y + 22}
     text-anchor="end"
@@ -411,18 +411,28 @@ const headArrow = arrow(
     font-size: 0.72em;
   }
 
-  /* At phone widths the drawing shrinks to ~0,7×: enlarge the text, drop the redundant notes. */
+  /*
+   * At phone widths the drawing shrinks to ~0,73× (420 viewBox units in ~305 px at 375 px), so
+   * every label is set here to reach at least 11 px on screen (16 units × 0,73 ≈ 11,7 px), and the
+   * redundant notes are dropped. gravedad-artificial.spec.ts measures it.
+   */
   @media (max-width: 30rem) {
     .hd-title {
-      font-size: 13px;
-      letter-spacing: 0.02em;
+      font-size: 16px;
+      letter-spacing: 0;
     }
     .hd-label,
     .hd-big {
       font-size: 19px;
     }
+    .hd-hint {
+      font-size: 16px;
+    }
     .hd-eq {
       font-size: 22px;
+    }
+    .hd-sub {
+      font-size: 16px;
     }
     .hd-note {
       display: none;
@@ -515,12 +525,12 @@ const headArrow = arrow(
   }
   .hd-omega {
     fill: none;
-    stroke: var(--diag);
+    stroke: var(--chart-4);
     stroke-width: 3;
     stroke-linecap: round;
   }
   .hd-omega-head {
-    fill: var(--diag);
+    fill: var(--chart-4);
   }
   .hd-ac {
     stroke: var(--accent);
