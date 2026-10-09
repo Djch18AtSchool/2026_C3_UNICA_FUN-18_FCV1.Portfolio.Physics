@@ -83,3 +83,25 @@ export function trajectory(
     return { t, x: vx * t, y, vy: -gDown * tFall };
   });
 }
+
+/** State of a body in a jump simulation: time (s), position (m) and velocity (m/s). */
+export interface EulerState {
+  t: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+}
+
+/**
+ * One semi-implicit Euler step with asymmetric gravity (y up): g = vy > 0 ? g_up : g_down;
+ * vy' = vy − g dt; y' = y + vy' dt; x' = x + vx dt; t' = t + dt. Does not clamp y at the ground.
+ */
+export function eulerStep(s: EulerState, gUp: number, gDown: number, dt: number): EulerState {
+  requirePositive('gUp', gUp);
+  requirePositive('gDown', gDown);
+  requirePositive('dt', dt);
+  const g = s.vy > 0 ? gUp : gDown;
+  const vy = s.vy - g * dt;
+  return { t: s.t + dt, x: s.x + s.vx * dt, y: s.y + vy * dt, vx: s.vx, vy };
+}

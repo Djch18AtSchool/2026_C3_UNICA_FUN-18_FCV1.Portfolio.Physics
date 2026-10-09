@@ -5,3 +5,4 @@ export * from './projectile';
 export * from './circular';
 export * from './friction';
 export * from './spring';
+export * from './clock';

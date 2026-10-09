@@ -11,3 +11,10 @@ export function requireNonNegative(name: string, value: number): void {
     throw new RangeError(`${name} must be 0 or greater, got ${value}`);
   }
 }
+
+/** Throws a RangeError unless `value` is a finite number (rejects NaN and ±Infinity). */
+export function requireFinite(name: string, value: number): void {
+  if (!Number.isFinite(value)) {
+    throw new RangeError(`${name} must be a finite number, got ${value}`);
+  }
+}
