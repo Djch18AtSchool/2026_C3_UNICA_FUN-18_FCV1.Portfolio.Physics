@@ -14,6 +14,7 @@ import {
 import { linearScale, padDomain, type Domain, type Scale } from './plotScales';
 import { axisTicks, PlotAxes, PlotGrid } from './SvgPlotAxes';
 import SvgPlotCursor, { type PlotArea } from './SvgPlotCursor';
+import { useElementWidth } from '../hooks/useElementWidth';
 import { useGlobalSettings } from './useGlobalSettings';
 
 export interface PlotSeries {
@@ -64,12 +65,18 @@ export interface SvgPlotProps {
 
 export type { Domain, Scale } from './plotScales';
 
-const VIEWBOX_WIDTH = 720;
+/** viewBox width before the container is measured (SSR, jsdom): the article column. */
+const FALLBACK_WIDTH = 720;
+/** Narrowest viewBox drawn, so the plot area keeps a positive width inside the margins. */
+const MIN_VIEWBOX_WIDTH = 240;
+/** equalAspect keeps the plot height within these multiples of the plot width. */
+const MIN_EQUAL_ASPECT_HEIGHT = 0.5;
+const MAX_EQUAL_ASPECT_HEIGHT = 1.5;
 const MARGIN = { top: 22, right: 28, bottom: 58, left: 84 } as const;
 const AUTO_PAD = 0.05;
 const FALLBACK_DOMAIN: Domain = { min: 0, max: 1 };
 const MIN_SERIES_FOR_LEGEND = 2;
-/** Font sizes in viewBox units; the svg scales with its container. */
+/** Font sizes in CSS pixels: the viewBox follows the measured width, so one unit is one pixel. */
 const TICK_SIZE = TICK_FONT_SIZE + 1;
 const TITLE_SIZE = TICK_FONT_SIZE + 2;
 const NOTE_SIZE = TICK_FONT_SIZE;
@@ -112,27 +119,54 @@ function resolveDomains({ series, marker, xDomain, yDomain }: SvgPlotProps) {
   };
 }
 
-function computeLayout(props: SvgPlotProps) {
-  const domains = resolveDomains(props);
+/** Widens a domain symmetrically about its centre to the given span. */
+function widenTo(domain: Domain, span: number): Domain {
+  const centre = (domain.min + domain.max) / 2;
+  return { min: centre - span / 2, max: centre + span / 2 };
+}
+
+/**
+ * Equal units per pixel on both axes, with the plot height kept between 0.5 and 1.5 times the plot
+ * width; when the data would leave those bounds, the smaller domain is widened symmetrically.
+ */
+function equalAspectFit(domains: { x: Domain; y: Domain }, plotWidth: number) {
+  const xSpan = domains.x.max - domains.x.min;
+  const ySpan = domains.y.max - domains.y.min;
+  const naturalHeight = (ySpan / xSpan) * plotWidth;
+  const plotHeight = Math.min(
+    Math.max(naturalHeight, plotWidth * MIN_EQUAL_ASPECT_HEIGHT),
+    plotWidth * MAX_EQUAL_ASPECT_HEIGHT,
+  );
+  if (naturalHeight > plotHeight) {
+    return { plotHeight, x: widenTo(domains.x, (ySpan / plotHeight) * plotWidth), y: domains.y };
+  }
+  if (naturalHeight < plotHeight) {
+    return { plotHeight, x: domains.x, y: widenTo(domains.y, (xSpan / plotWidth) * plotHeight) };
+  }
+  return { plotHeight, ...domains };
+}
+
+function computeLayout(props: SvgPlotProps, measuredWidth: number) {
   const aspectRatio = props.aspectRatio ?? DEFAULT_ASPECT_RATIO;
   if (!(aspectRatio > 0) || !Number.isFinite(aspectRatio)) {
     throw new RangeError(`SvgPlot: aspectRatio debe ser positivo (${aspectRatio})`);
   }
-  const plotWidth = VIEWBOX_WIDTH - MARGIN.left - MARGIN.right;
-  const x = linearScale(domains.x, [MARGIN.left, MARGIN.left + plotWidth]);
-  const unitsPerPx = (domains.x.max - domains.x.min) / plotWidth;
-  const plotHeight = props.equalAspect
-    ? (domains.y.max - domains.y.min) / unitsPerPx
-    : VIEWBOX_WIDTH / aspectRatio - MARGIN.top - MARGIN.bottom;
+  const width = Math.max(measuredWidth, MIN_VIEWBOX_WIDTH);
+  const plotWidth = width - MARGIN.left - MARGIN.right;
+  const resolved = resolveDomains(props);
+  const fit = props.equalAspect
+    ? equalAspectFit(resolved, plotWidth)
+    : { plotHeight: width / aspectRatio - MARGIN.top - MARGIN.bottom, ...resolved };
   const area: PlotArea = {
     left: MARGIN.left,
     top: MARGIN.top,
     right: MARGIN.left + plotWidth,
-    bottom: MARGIN.top + plotHeight,
+    bottom: MARGIN.top + fit.plotHeight,
   };
-  const y = linearScale(domains.y, [area.bottom, area.top]);
+  const x = linearScale(fit.x, [area.left, area.right]);
+  const y = linearScale(fit.y, [area.bottom, area.top]);
   const height = Number((area.bottom + MARGIN.bottom).toFixed(PATH_DECIMALS));
-  return { x, y, area, height };
+  return { x, y, area, width, height };
 }
 
 const px = (value: number) => Number(value.toFixed(PATH_DECIMALS));
@@ -163,7 +197,7 @@ function Legend({ series }: { series: PlotSeries[] }) {
               stroke={seriesColor(s, index)}
               strokeWidth={LINE_WIDTH}
               strokeLinecap="round"
-              strokeDasharray={s.dashed ? '4 3' : undefined}
+              strokeDasharray={s.dashed ? DASH_PATTERN : undefined}
             />
           </svg>
           {s.label}
@@ -240,7 +274,8 @@ function Marker({ marker, x, y }: { marker: PlotMarker; x: Scale; y: Scale }) {
 }
 
 /**
- * The lab plotter: a fixed-viewBox SVG that scales to its container. The figure itself is one
+ * The lab plotter: an SVG whose viewBox follows its container's measured width (720 until
+ * measured), so text and handles keep their CSS-pixel size on phones. The figure itself is one
  * role="img" layer; the overlay and the cursor live in a stacked layer with the same viewBox so
  * the slider stays reachable by assistive technology (an img's children are presentational).
  */
@@ -260,9 +295,10 @@ export default function SvgPlot(props: SvgPlotProps) {
   const settings = useGlobalSettings();
   const showGrid = props.showGrid ?? settings.grid;
   const clipBase = `svgplot-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
-  const { x, y, area, height } = computeLayout(props);
+  const [wrapperRef, measuredWidth] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
+  const { x, y, area, width, height } = computeLayout(props, measuredWidth);
   const ticks = axisTicks(x, y);
-  const viewBox = `0 0 ${VIEWBOX_WIDTH} ${height}`;
+  const viewBox = `0 0 ${width} ${height}`;
   const clipRect = (id: string) => (
     <defs>
       <clipPath id={id}>
@@ -279,7 +315,7 @@ export default function SvgPlot(props: SvgPlotProps) {
   return (
     <ChartFrame title={title} testId={props.testId}>
       {series.length >= MIN_SERIES_FOR_LEGEND ? <Legend series={series} /> : null}
-      <div className="relative w-full min-w-0">
+      <div ref={wrapperRef} className="relative w-full min-w-0">
         <svg
           role="img"
           aria-label={props.ariaLabel}

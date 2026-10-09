@@ -87,6 +87,8 @@ export default function SvgPlotCursor({
   fontSize,
 }: SvgPlotCursorProps) {
   const isDraggingRef = useRef(false);
+  /** Pointer x minus handle x at grab time, so the knob keeps its offset instead of jumping. */
+  const grabOffsetRef = useRef(0);
   const { onChange } = cursor;
   const value = clamp(cursor.x, x.domain);
   const cx = x.toPx(value);
@@ -110,6 +112,8 @@ export default function SvgPlotCursor({
     event.preventDefault();
     handle.focus();
     if (typeof handle.setPointerCapture === 'function') handle.setPointerCapture(event.pointerId);
+    const px = pointerViewBoxX(event);
+    grabOffsetRef.current = px === undefined ? 0 : px - cx;
     isDraggingRef.current = true;
   };
 
@@ -117,7 +121,7 @@ export default function SvgPlotCursor({
     if (!isDraggingRef.current) return;
     const px = pointerViewBoxX(event);
     if (px === undefined) return;
-    emit(x.toValue(px));
+    emit(x.toValue(px - grabOffsetRef.current));
   };
 
   const endDrag = (event: PointerEvent<SVGGElement>) => {
