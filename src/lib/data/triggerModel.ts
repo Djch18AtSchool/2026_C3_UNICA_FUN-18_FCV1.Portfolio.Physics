@@ -56,7 +56,8 @@ export function storedEnergyMilliJoules({ k }: TriggerSettings): number {
 
 /**
  * Work the finger does against the trigger profile over the whole travel, mJ: the area
- * ½·k·(x_max − x₀)² under k·(x − x₀). The actuator supplies it; nothing stores it like a spring.
+ * ½·k·(x_max − x₀)² under k·(x − x₀). The finger does this work and the actuator absorbs it;
+ * nothing stores it like a spring.
  */
 export function triggerWorkMilliJoules({ k, start }: TriggerSettings): number {
   const engaged = Math.max(TRIGGER_TRAVEL_MM - start, 0);

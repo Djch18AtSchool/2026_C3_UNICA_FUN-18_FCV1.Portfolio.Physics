@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import TopicCard from '../components/nav/TopicCard.astro';
-import { AUTHOR, COURSE, PHASE_LABELS, TOPICS, type Phase } from '../consigna';
+import { AUTHOR, COURSE, PHASE_LABELS, PHASES, TOPICS, topicsByPhase } from '../consigna';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { publishedCount, sortByNumber, toTopicSummary } from '../lib/topics';
 
@@ -10,9 +10,8 @@ const entries = sortByNumber(
 );
 const published = publishedCount(entries);
 
-const PHASES: Phase[] = [1, 2, 3];
 const groups = PHASES.map((phase) => {
-  const topics = entries.filter((topic) => topic.phase === phase);
+  const topics = topicsByPhase(phase, entries);
   return {
     phase,
     label: PHASE_LABELS[phase],

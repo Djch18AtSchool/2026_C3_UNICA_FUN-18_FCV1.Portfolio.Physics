@@ -1,4 +1,4 @@
-import type { Preset } from '../../components/controls/Presets';
+import type { Preset } from '../presets';
 
 /** A rotating habitat described by its rim radius r (m) and its spin rate (rpm). */
 export interface HabitatSettings {

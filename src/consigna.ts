@@ -76,6 +76,9 @@ export const TOPICS: readonly ConsignaTopic[] = Object.freeze(
   ].map((topic) => Object.freeze(topic) as ConsignaTopic),
 );
 
+/** The three deliveries, in order; navigation groups topics by them. */
+export const PHASES: readonly Phase[] = [1, 2, 3];
+
 export const PHASE_LABELS: Record<Phase, string> = {
   1: 'Avance 1',
   2: 'Avance 2',
@@ -112,6 +115,10 @@ export function topicByNumber(n: number): ConsignaTopic | undefined {
   return TOPICS.find((topic) => topic.number === n);
 }
 
-export function topicsByPhase(phase: Phase): ConsignaTopic[] {
-  return TOPICS.filter((topic) => topic.phase === phase).sort((a, b) => a.number - b.number);
+/** Topics of one phase sorted by number: the consigna list, or any list of topic summaries. */
+export function topicsByPhase<T extends { phase: Phase; number: number }>(
+  phase: Phase,
+  topics: readonly T[],
+): T[] {
+  return topics.filter((topic) => topic.phase === phase).sort((a, b) => a.number - b.number);
 }

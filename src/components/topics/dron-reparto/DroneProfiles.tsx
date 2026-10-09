@@ -110,15 +110,10 @@ function buildModel({ definition, samples }: DroneDataset): DroneModel {
   };
 }
 
-interface DroneDataset {
-  definition: RouteDefinition;
-  samples: RouteSample[];
-}
-
 /**
- * The committed dataset (scripts/generate-drone-route.ts, 355 KB) is not part of the island's
- * bundle: Vite splits this import into its own chunk, fetched after hydration. The assignment
- * keeps its shape checked at compile time.
+ * The committed dataset (scripts/generate-drone-route.ts; 355 KB of JSON, a 285 KB chunk once
+ * built, about 43 KB gzipped) is not part of the island's bundle: Vite splits this import into
+ * its own chunk, fetched after hydration. The assignment keeps its shape checked at compile time.
  */
 async function loadModel(): Promise<DroneModel> {
   const { default: dataset } = await import('../../../data/drone-route.json');

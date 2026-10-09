@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { TOPICS, topicByNumber, topicsByPhase } from './consigna';
+import { PHASE_LABELS, PHASES, TOPICS, topicByNumber, topicsByPhase } from './consigna';
 
 describe('consigna', () => {
   test('hay 13 temas numerados 1..13 en orden', () => {
@@ -22,8 +22,24 @@ describe('consigna', () => {
     expect(topicByNumber(5)?.title).toBe('El resorte virtual detrás de un control háptico');
   });
   test('las fases agrupan 5, 4 y 4 temas', () => {
-    expect(topicsByPhase(1).map((t) => t.number)).toEqual([1, 2, 3, 4, 5]);
-    expect(topicsByPhase(2).map((t) => t.number)).toEqual([6, 7, 8, 9]);
-    expect(topicsByPhase(3).map((t) => t.number)).toEqual([10, 11, 12, 13]);
+    expect(topicsByPhase(1, TOPICS).map((t) => t.number)).toEqual([1, 2, 3, 4, 5]);
+    expect(topicsByPhase(2, TOPICS).map((t) => t.number)).toEqual([6, 7, 8, 9]);
+    expect(topicsByPhase(3, TOPICS).map((t) => t.number)).toEqual([10, 11, 12, 13]);
+  });
+  test('PHASES lista cada fase con etiqueta, en orden', () => {
+    expect(PHASES).toEqual([1, 2, 3]);
+    expect(PHASES.map((phase) => PHASE_LABELS[phase])).toEqual([
+      'Avance 1',
+      'Avance 2',
+      'Entrega Final',
+    ]);
+  });
+  test('topicsByPhase ordena por número cualquier lista de temas', () => {
+    const shuffled = [
+      { phase: 1, number: 3 },
+      { phase: 2, number: 6 },
+      { phase: 1, number: 1 },
+    ] as const;
+    expect(topicsByPhase(1, shuffled).map((t) => t.number)).toEqual([1, 3]);
   });
 });

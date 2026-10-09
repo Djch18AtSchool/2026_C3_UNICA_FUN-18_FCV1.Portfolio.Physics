@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { topicUrl, withBase } from './url';
+import { canonicalUrl, topicUrl, withBase } from './url';
 
 describe('withBase', () => {
   test('keeps a route path and ensures trailing slash', () => {
@@ -27,5 +27,26 @@ describe('withBase', () => {
 describe('topicUrl', () => {
   test('builds the topic route under the base', () => {
     expect(topicUrl('salto-personaje', '/repo/')).toBe('/repo/temas/salto-personaje/');
+  });
+});
+
+describe('canonicalUrl', () => {
+  const SITE = 'https://user.github.io/repo/';
+
+  test('joins the site URL and the path without the base', () => {
+    expect(canonicalUrl('/repo/temas/x/', SITE, '/repo/')).toBe(
+      'https://user.github.io/repo/temas/x/',
+    );
+  });
+  test('maps the base itself to the site URL', () => {
+    expect(canonicalUrl('/repo/', SITE, '/repo/')).toBe(SITE);
+  });
+  test('accepts a base without its trailing slash', () => {
+    expect(canonicalUrl('/repo/temas/x/', SITE, '/repo')).toBe(
+      'https://user.github.io/repo/temas/x/',
+    );
+  });
+  test('keeps a path outside the base under the site URL', () => {
+    expect(canonicalUrl('/otra/', SITE, '/repo/')).toBe('https://user.github.io/repo/otra/');
   });
 });

@@ -5,15 +5,9 @@ import {
   trajectory,
   type TrajectoryPoint,
 } from '../../../lib/physics';
-import { CELESTE_JUMP } from '../../../lib/data/jumpPresets';
+import { CELESTE_JUMP, type JumpSettings } from '../../../lib/data/jumpPresets';
 
-/** Jump controls in SI: launch speed v₀ (m/s), rise gravity g (m/s²), run speed vₓ (m/s), fall multiplier (×). */
-export interface JumpSettings {
-  v0: number;
-  g: number;
-  vx: number;
-  fallMultiplier: number;
-}
+export type { JumpSettings };
 
 /** Slider ranges (spec §7.2): g reaches 150 m/s² so Celeste (112,5 m/s²) fits; ×4 covers Mario's ×3,5. */
 export const JUMP_LIMITS = {

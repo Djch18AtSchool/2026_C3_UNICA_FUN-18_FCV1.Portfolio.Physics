@@ -8,18 +8,22 @@ import 'katex/dist/katex.min.css';
 import '../styles/global.css';
 import SiteFooter from '../components/nav/SiteFooter.astro';
 import SiteHeader from '../components/nav/SiteHeader.astro';
-import { COURSE } from '../consigna';
+import { COURSE, SITE_URL } from '../consigna';
 import { THEME_STORAGE_KEY } from '../lib/theme';
-import { withBase } from '../lib/url';
+import { canonicalUrl, withBase } from '../lib/url';
 
 interface Props {
   title: string;
   description?: string;
+  /** The 404 page is served for any missing path, so it has no canonical address. */
+  hasCanonical?: boolean;
 }
 const {
   title,
   description = `Evidencias de aprendizaje de ${COURSE.name} (${COURSE.code}), ${COURSE.university}.`,
+  hasCanonical = true,
 } = Astro.props;
+const pageUrl = hasCanonical ? canonicalUrl(Astro.url.pathname, SITE_URL) : undefined;
 ---
 
 <html lang="es">
@@ -29,6 +33,8 @@ const {
     <meta name="color-scheme" content="light dark" />
     <meta name="description" content={description} />
     <title>{title}</title>
+    {pageUrl && <link rel="canonical" href={pageUrl} />}
+    {pageUrl && <meta property="og:url" content={pageUrl} />}
     <link rel="icon" type="image/svg+xml" href={withBase('favicon.svg')} />
     <!--
       Runs before first paint and cannot import modules: mirrors resolveTheme/readStoredTheme

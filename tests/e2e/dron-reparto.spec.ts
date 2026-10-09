@@ -1,12 +1,7 @@
-import { expect, test, type Locator } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { setRange } from './helpers';
 
 const PAGE = './temas/dron-reparto/';
-
-async function setRange(slider: Locator, value: string): Promise<void> {
-  await slider.fill(value);
-  await slider.dispatchEvent('input');
-  await slider.dispatchEvent('change');
-}
 
 test.beforeEach(async ({ page }) => {
   await page.goto(PAGE);

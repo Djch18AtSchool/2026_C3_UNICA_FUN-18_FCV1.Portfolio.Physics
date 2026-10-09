@@ -8,7 +8,7 @@ import { withBase } from '../lib/url';
 const all = sortByNumber((await getCollection('topics')).map(toTopicSummary));
 ---
 
-<BaseLayout title="Página no encontrada | Física I">
+<BaseLayout title="Página no encontrada | Física I" hasCanonical={false}>
   <div class="grid gap-8 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
     <div class="lg:sticky lg:top-8 lg:self-start">
       <SideNav topics={all} isOpen />

@@ -1,5 +1,13 @@
-import type { Preset } from '../../components/controls/Presets';
-import type { JumpSettings } from '../../components/topics/salto-personaje/jumpModel';
+import { G_EARTH, G_MOON } from '../physics';
+import type { Preset } from '../presets';
+
+/** Jump controls in SI: launch speed v₀ (m/s), rise gravity g (m/s²), run speed vₓ (m/s), fall multiplier (×). */
+export interface JumpSettings {
+  v0: number;
+  g: number;
+  vx: number;
+  fallMultiplier: number;
+}
 
 /**
  * Reference jumps for the simulator. Game values are converted from pixels with a declared scale
@@ -18,14 +26,14 @@ export const JUMP_PRESETS: Preset<JumpSettings>[] = [
   {
     id: 'tierra',
     name: 'Tierra',
-    values: { v0: 8, g: 9.81, vx: 3, fallMultiplier: 1 },
+    values: { v0: 8, g: G_EARTH, vx: 3, fallMultiplier: 1 },
     sourceLabel: 'g estándar, 9,81 m/s²',
     note: 'Gravedad terrestre estándar con el mismo impulso de 8 m/s; vₓ = 3 m/s es un valor ilustrativo.',
   },
   {
     id: 'luna',
     name: 'Luna',
-    values: { v0: 8, g: 1.62, vx: 3, fallMultiplier: 1 },
+    values: { v0: 8, g: G_MOON, vx: 3, fallMultiplier: 1 },
     sourceLabel: 'g lunar, 1,62 m/s²',
     note: 'Gravedad en la superficie lunar con el mismo impulso: la altura y el tiempo en el aire salen unas 6 veces los terrestres (9,81 / 1,62 = 6,06).',
   },

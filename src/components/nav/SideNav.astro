@@ -1,5 +1,5 @@
 ---
-import { PHASE_LABELS, type Phase } from '../../consigna';
+import { PHASE_LABELS, PHASES, topicsByPhase } from '../../consigna';
 import type { TopicSummary } from '../../lib/topics';
 import { topicUrl } from '../../lib/url';
 
@@ -13,11 +13,10 @@ interface Props {
 }
 const { topics, currentSlug, isOpen = false } = Astro.props;
 
-const PHASES: Phase[] = [1, 2, 3];
 const groups = PHASES.map((phase) => ({
   phase,
   label: PHASE_LABELS[phase],
-  topics: topics.filter((topic) => topic.phase === phase),
+  topics: topicsByPhase(phase, topics),
 }));
 const current = topics.find((topic) => topic.slug === currentSlug);
 // One list serves both layouts: a closed <details> drawer on narrow screens (no JS), and on

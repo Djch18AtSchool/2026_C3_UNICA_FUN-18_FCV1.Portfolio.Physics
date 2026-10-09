@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { JUMP_LIMITS, type JumpSettings } from '../../components/topics/salto-personaje/jumpModel';
-import { DEFAULT_JUMP_PRESET_ID, JUMP_PRESETS } from './jumpPresets';
+import { JUMP_LIMITS } from '../../components/topics/salto-personaje/jumpModel';
+import { DEFAULT_JUMP_PRESET_ID, JUMP_PRESETS, type JumpSettings } from './jumpPresets';
 
 const KEYS: (keyof JumpSettings)[] = ['v0', 'g', 'vx', 'fallMultiplier'];
 

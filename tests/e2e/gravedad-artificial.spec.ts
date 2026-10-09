@@ -1,12 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { setRange } from './helpers';
 
 const PAGE = './temas/gravedad-artificial/';
-
-async function setRange(slider: Locator, value: string): Promise<void> {
-  await slider.fill(value);
-  await slider.dispatchEvent('input');
-  await slider.dispatchEvent('change');
-}
 
 function readoutRow(page: Page, label: string): Locator {
   return page.getByTestId('habitat-readouts').locator('div', { hasText: label }).first();

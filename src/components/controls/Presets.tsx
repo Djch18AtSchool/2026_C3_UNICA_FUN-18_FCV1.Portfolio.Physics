@@ -1,10 +1,6 @@
-export interface Preset<T> {
-  id: string;
-  name: string;
-  values: T;
-  sourceLabel?: string;
-  note?: string;
-}
+import type { Preset } from '../../lib/presets';
+
+export type { Preset };
 
 export interface PresetsProps<T> {
   presets: Preset<T>[];

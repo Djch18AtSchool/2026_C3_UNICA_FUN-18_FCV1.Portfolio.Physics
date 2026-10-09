@@ -1,4 +1,5 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+import { setRange } from './helpers';
 
 const PAGE = './temas/salto-personaje/';
 
@@ -7,12 +8,6 @@ async function readoutValue(page: Page, label: string): Promise<number> {
   const row = page.getByTestId('jump-readouts').locator('div', { hasText: label }).first();
   const text = (await row.locator('span').last().textContent()) ?? '';
   return Number(text.replace(/[^\d,-]/g, '').replace(',', '.'));
-}
-
-async function setRange(slider: Locator, value: string): Promise<void> {
-  await slider.fill(value);
-  await slider.dispatchEvent('input');
-  await slider.dispatchEvent('change');
 }
 
 test.beforeEach(async ({ page }) => {
