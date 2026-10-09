@@ -5,6 +5,7 @@ import {
   trajectory,
   type TrajectoryPoint,
 } from '../../../lib/physics';
+import { CELESTE_JUMP } from '../../../lib/data/jumpPresets';
 
 /** Jump controls in SI: launch speed v₀ (m/s), rise gravity g (m/s²), run speed vₓ (m/s), fall multiplier (×). */
 export interface JumpSettings {
@@ -22,7 +23,8 @@ export const JUMP_LIMITS = {
   fallMultiplier: [1, 4],
 } as const;
 
-export const JUMP_DEFAULTS: JumpSettings = { v0: 8, g: 9.81, vx: 3, fallMultiplier: 1 };
+/** The simulator opens on Celeste, a game gravity far from 9,81, so the Earth ghost contrasts at load. */
+export const JUMP_DEFAULTS: JumpSettings = CELESTE_JUMP;
 
 export interface JumpResult {
   points: TrajectoryPoint[];

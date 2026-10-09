@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { G_EARTH } from '../../../lib/physics';
 import { clampSettings } from '../../../lib/limits';
-import { JUMP_PRESETS } from '../../../lib/data/jumpPresets';
+import { DEFAULT_JUMP_PRESET_ID, JUMP_PRESETS } from '../../../lib/data/jumpPresets';
 import ControlPanel from '../../controls/ControlPanel';
 import Presets, { type Preset } from '../../controls/Presets';
 import Readout from '../../controls/Readout';
@@ -41,7 +41,11 @@ interface SimulatorState {
   clamped: JumpKey[];
 }
 
-const INITIAL_STATE: SimulatorState = { settings: JUMP_DEFAULTS, clamped: [] };
+const INITIAL_STATE: SimulatorState = {
+  settings: JUMP_DEFAULTS,
+  presetId: DEFAULT_JUMP_PRESET_ID,
+  clamped: [],
+};
 
 export default function JumpSimulator() {
   const [state, setState] = useState<SimulatorState>(INITIAL_STATE);

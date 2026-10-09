@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { JUMP_LIMITS, type JumpSettings } from '../../components/topics/salto-personaje/jumpModel';
-import { JUMP_PRESETS } from './jumpPresets';
+import { DEFAULT_JUMP_PRESET_ID, JUMP_PRESETS } from './jumpPresets';
 
 const KEYS: (keyof JumpSettings)[] = ['v0', 'g', 'vx', 'fallMultiplier'];
 
@@ -51,6 +51,11 @@ describe('JUMP_PRESETS', () => {
       vx: 11.25,
       fallMultiplier: 1,
     });
+  });
+
+  test('the simulator opens on Celeste, a gravity far from Earth', () => {
+    expect(DEFAULT_JUMP_PRESET_ID).toBe('celeste');
+    expect(presetById(DEFAULT_JUMP_PRESET_ID).values.g).toBeGreaterThan(9.81);
   });
 
   test('Super Mario Bros converts the disassembly at 16 px = 1 m and 60 frames/s', () => {

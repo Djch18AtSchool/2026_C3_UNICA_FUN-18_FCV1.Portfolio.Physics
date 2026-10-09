@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { JUMP_PRESETS } from '../../../lib/data/jumpPresets';
 import { computeJump, JUMP_DEFAULTS, JUMP_LIMITS } from './jumpModel';
 
 describe('computeJump', () => {
@@ -40,6 +41,13 @@ describe('computeJump', () => {
     expect(result.hMax).toBeCloseTo(312.5, 6);
     expect(result.points).toHaveLength(240);
     expect(result.points.every((p) => [p.t, p.x, p.y, p.vy].every(Number.isFinite))).toBe(true);
+  });
+
+  test('the defaults are the Celeste preset values', () => {
+    const celeste = JUMP_PRESETS.find((preset) => preset.id === 'celeste');
+
+    expect(JUMP_DEFAULTS).toEqual(celeste?.values);
+    expect(JUMP_DEFAULTS.g).toBe(112.5);
   });
 
   test('the defaults sit inside the limits', () => {

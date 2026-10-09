@@ -22,13 +22,23 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByTestId('jump-simulator')).toHaveAttribute('data-ready', 'true');
 });
 
+test('abre en el preajuste Celeste con la referencia terrestre a la vista', async ({ page }) => {
+  await expect(page.getByLabel(/^Gravedad g/)).toHaveValue('112.5');
+  await expect(page.getByRole('button', { name: /^Celeste/ })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(page.getByText(/^Referencia terrestre, g = 9,81/)).toBeVisible();
+});
+
 test('mover la gravedad recalcula la altura máxima', async ({ page }) => {
   const gravity = page.getByLabel(/^Gravedad g/);
   const before = await readoutValue(page, 'Altura máxima');
 
-  await setRange(gravity, '20');
+  // The slider maximum: more gravity than the Celeste default, so the apex must drop.
+  await setRange(gravity, '150');
 
-  await expect(gravity).toHaveValue('20');
+  await expect(gravity).toHaveValue('150');
   await expect.poll(() => readoutValue(page, 'Altura máxima')).toBeLessThan(before);
 });
 

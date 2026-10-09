@@ -8,6 +8,12 @@ import type { JumpSettings } from '../../components/topics/salto-personaje/jumpM
  *   SMB, 16 px = 1 m, 60 frames/s:  4 · 60 / 16 = 15 m/s; 0,125 · 60² / 16 = 28,125 ≈ 28,1 m/s²;
  *   0,4375 / 0,125 = 3,5.
  */
+/** Celeste's Player.cs at 8 px = 1 m; also the simulator's starting point (see JUMP_DEFAULTS). */
+export const CELESTE_JUMP: JumpSettings = { v0: 13.1, g: 112.5, vx: 11.25, fallMultiplier: 1 };
+
+/** The preset the simulator opens on, so the Earth ghost shows the contrast at load. */
+export const DEFAULT_JUMP_PRESET_ID = 'celeste';
+
 export const JUMP_PRESETS: Preset<JumpSettings>[] = [
   {
     id: 'tierra',
@@ -26,7 +32,7 @@ export const JUMP_PRESETS: Preset<JumpSettings>[] = [
   {
     id: 'celeste',
     name: 'Celeste',
-    values: { v0: 13.1, g: 112.5, vx: 11.25, fallMultiplier: 1 },
+    values: CELESTE_JUMP,
     sourceLabel: 'Player.cs, Noel Berry (2018)',
     note: 'Escala supuesta 8 px = 1 m (el ancho de la caja de colisión, o hitbox, de Madeline): Gravity 900 px/s² → 112,5 m/s², JumpSpeed 105 px/s → 13,1 m/s, MaxRun 90 px/s → 11,25 m/s. No modela la prolongación del impulso (VarJumpTime 0,2 s) ni la media gravedad cerca del ápice.',
   },
