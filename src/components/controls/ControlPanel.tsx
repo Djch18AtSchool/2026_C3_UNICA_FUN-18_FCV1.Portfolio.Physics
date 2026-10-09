@@ -10,7 +10,7 @@ export default function ControlPanel({ title, onReset, children }: ControlPanelP
   return (
     <section className="rounded-base border border-border bg-bg-elevated p-4">
       <div className="mb-4 flex items-center justify-between gap-3 border-b border-border pb-3">
-        <h3 className="text-base">{title}</h3>
+        <h3 className="m-0 text-base">{title}</h3>
         <button
           type="button"
           onClick={onReset}

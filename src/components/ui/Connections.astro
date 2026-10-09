@@ -1,7 +1,8 @@
 ---
 /*
- * Links to the other portfolio topics and to the course sessions. In MDX:
- * <Connections related={frontmatter.related} classRefs={frontmatter.classRefs} />
+ * Links to the other portfolio topics and to the course sessions. The default slot holds the
+ * connections prose, set under the heading and before the two lists. In MDX:
+ * <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>…</Connections>
  */
 import { topicBySlug, type ConsignaTopic } from '../../consigna';
 import type { ClassRef } from '../../content/topicSchema';
@@ -22,6 +23,7 @@ const relatedTopics: ConsignaTopic[] = related.map((slug) => {
 
 <section data-testid="connections" class="connections" aria-labelledby="conexiones">
   <h2 id="conexiones">Conexiones</h2>
+  <slot />
   <div class="connections-grid">
     {relatedTopics.length > 0 && (
       <div>
