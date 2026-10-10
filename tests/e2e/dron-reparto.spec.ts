@@ -7,7 +7,8 @@ const LAB = '[data-testid="drone-lab"]';
 const MIN_WIDTH_SHARE = 0.9;
 /** Timeline position (of 1000) to start from, so playback reaches the end within a second. */
 const NEAR_END = '995';
-const PLAYBACK_WAIT_MS = 1500;
+/** Longest the last 0,5 % of playback may take to reach the end. */
+const PLAYBACK_TIMEOUT_MS = 3000;
 const STILL_AT_END_MS = 500;
 
 /** The value text of a LabShell readout row. */
@@ -55,11 +56,10 @@ test('reproducir termina al final, vuelve a "Reproducir" y no repite', async ({ 
   await setRange(timeline, NEAR_END);
 
   await lab.getByRole('button', { name: 'Reproducir' }).click();
-  await page.waitForTimeout(PLAYBACK_WAIT_MS);
+  await expect(timeline).toHaveValue('1000', { timeout: PLAYBACK_TIMEOUT_MS });
 
   await expect(lab).toHaveAttribute('data-playing', 'false');
   await expect(lab.getByRole('button', { name: 'Reproducir' })).toBeVisible();
-  await expect(timeline).toHaveValue('1000');
   await page.waitForTimeout(STILL_AT_END_MS);
   await expect(timeline).toHaveValue('1000');
   await expect(lab).toHaveAttribute('data-playing', 'false');

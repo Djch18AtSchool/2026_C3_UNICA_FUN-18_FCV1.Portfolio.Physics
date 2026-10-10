@@ -3,7 +3,8 @@ import { formatNumber } from '../../lib/format';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_FAMILY } from '../charts/chartTheme';
 import { monoTextWidth, type Domain, type Scale } from './plotScales';
 import type { PlotCursor } from './SvgPlot';
-import { preventTouchPan } from './useDrag';
+import { svgPointFromClient } from './dragMath';
+import { isPrimaryPointer, preventTouchPan } from './useDrag';
 
 /** The plot area inside the viewBox, in viewBox units. */
 export interface PlotArea {
@@ -78,8 +79,7 @@ export function keyTarget(
 function pointerViewBoxX(event: PointerEvent<SVGGElement>): number | undefined {
   const ctm = event.currentTarget.ownerSVGElement?.getScreenCTM();
   if (!ctm) return undefined;
-  const inverse = ctm.inverse();
-  return inverse.a * event.clientX + inverse.c * event.clientY + inverse.e;
+  return svgPointFromClient(ctm.inverse(), event.clientX, event.clientY).x;
 }
 
 /** The vertical cursor line; with onChange, a draggable, keyboard-operable slider handle. */
@@ -117,6 +117,8 @@ export default function SvgPlotCursor({
   };
 
   const handlePointerDown = (event: PointerEvent<SVGGElement>) => {
+    // A right- or middle-click opens menus or scrolls; only the primary contact drags.
+    if (!isPrimaryPointer(event)) return;
     const handle = event.currentTarget;
     event.preventDefault();
     handle.focus({ preventScroll: true });

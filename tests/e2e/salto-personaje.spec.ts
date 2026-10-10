@@ -4,6 +4,8 @@ import { setRange, waitForIsland } from './helpers';
 const PAGE = './temas/salto-personaje/';
 const LAB = '[data-testid="jump-lab"]';
 const MS_PER_S = 1000;
+/** How long playback must stay at the end to prove it did not loop. */
+const STILL_AT_END_MS = 500;
 /** The lab must fill the reading column (spec §6): at least this share of the article width. */
 const MIN_WIDTH_SHARE = 0.9;
 
@@ -41,18 +43,18 @@ test('reproducir termina en t = t_aire, vuelve a "Reproducir" y no repite', asyn
   const lab = page.locator(LAB);
   const tAir = await readoutValue(page, 'Tiempo en el aire');
 
+  const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
   await lab.getByRole('button', { name: 'Reproducir' }).click();
-  await page.waitForTimeout((tAir + 1) * MS_PER_S);
+  // Poll for the end instead of sleeping through the flight: at 1× it lasts t_aire.
+  await expect(timeline).toHaveValue('1000', { timeout: (tAir + 2) * MS_PER_S });
 
   await expect(lab).toHaveAttribute('data-playing', 'false');
   await expect(lab.getByRole('button', { name: 'Reproducir' })).toBeVisible();
-  const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
-  await expect(timeline).toHaveValue('1000');
   const tText = (await timeline.getAttribute('aria-valuetext')) ?? '';
   expect(Math.abs(parseSpanish(tText) - tAir)).toBeLessThan(0.006);
 
-  // Still at the end a moment later: the clock did not wrap around.
-  await page.waitForTimeout(500);
+  // Still at the end a moment later: the clock did not wrap around (a wait is the point here).
+  await page.waitForTimeout(STILL_AT_END_MS);
   await expect(timeline).toHaveValue('1000');
   await expect(lab).toHaveAttribute('data-playing', 'false');
 });

@@ -1,6 +1,7 @@
 import { useState, type JSX } from 'react';
 import type { Compound } from '../../../lib/data/tyreModels';
 import { formatNumber } from '../../../lib/format';
+import Presets from '../../controls/Presets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import type { SettingOption } from '../../lab/SettingsDrawer';
@@ -17,6 +18,8 @@ import {
   setTemperature,
   TEMPERATURE_DOMAIN,
   TEMPERATURE_STEP,
+  TYRE_PRESETS,
+  presetIdFor,
   tyreReadings,
   type TyreLabState,
 } from './tyreLabModel';
@@ -51,7 +54,8 @@ export interface TyreLabProps {
  * Tema 4's laboratory on the v2 shell, with no clock: two stacked plots, each with a draggable
  * cursor (temperature, which reads μ(T) over the chosen compound's 2019 window, and load, which
  * reads the linear and the load-sensitive peak lateral force), the parameters T and F_z bound to
- * those cursors, the compound as a local setting and the readouts μ(T), F_y (both) and μ efectivo.
+ * those cursors, presets from the topic's numbers, the compound as a local setting and the
+ * readouts μ(T), F_y (both) and μ efectivo.
  * The load curves are multiplied by μ(T)/μ_pico, so moving the temperature moves them too.
  */
 export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
@@ -118,6 +122,11 @@ export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
           onChange={onLoad}
         />
       </div>
+      <Presets
+        presets={TYRE_PRESETS}
+        activeId={presetIdFor(state)}
+        onSelect={(preset) => setState(preset.values)}
+      />
       <p className="m-0 text-sm text-fg-muted">
         Arrastra el cursor de cada gráfica, o enfócalo y muévelo con las flechas (1 % del eje; con
         Mayús, 10 %). El compuesto se elige en los ajustes del engranaje.

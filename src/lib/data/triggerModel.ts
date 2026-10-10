@@ -1,4 +1,4 @@
-import { elasticEnergy, forceCurve, hookeForce, piecewiseResistance } from '../physics';
+import { forceCurve, hookeForce, piecewiseResistance } from '../physics';
 
 /**
  * Settings of the virtual spring behind an adaptive trigger: stiffness k (N/m) and the
@@ -21,7 +21,6 @@ export const TRIGGER_TRAVEL_MM = 8;
 /** 32 intervals of 0,25 mm: 33 points, exact in binary floating point. */
 const CURVE_STEPS = 32;
 const MM_PER_M = 1000;
-const MILLIJOULES_PER_JOULE = 1000;
 
 /** A type alias, not an interface, so rows pass straight to LineChart's Record<string, number>[]. */
 export type TriggerPoint = {
@@ -47,21 +46,6 @@ export function triggerCurves({ k, start }: TriggerSettings): TriggerPoint[] {
     CURVE_STEPS,
   );
   return hooke.map((point, index) => ({ x: point.x, hooke: point.f, trigger: trigger[index].f }));
-}
-
-/** Energy ½·k·x_max² stored by the ideal spring at the bottom of the travel, mJ. */
-export function storedEnergyMilliJoules({ k }: TriggerSettings): number {
-  return elasticEnergy(k, toMetres(TRIGGER_TRAVEL_MM)) * MILLIJOULES_PER_JOULE;
-}
-
-/**
- * Work the finger does against the trigger profile over the whole travel, mJ: the area
- * ½·k·(x_max − x₀)² under k·(x − x₀). The finger does this work and the actuator absorbs it;
- * nothing stores it like a spring.
- */
-export function triggerWorkMilliJoules({ k, start }: TriggerSettings): number {
-  const engaged = Math.max(TRIGGER_TRAVEL_MM - start, 0);
-  return elasticEnergy(k, toMetres(engaged)) * MILLIJOULES_PER_JOULE;
 }
 
 /** One timestamp of the Tema 5 video: the instant (s), its title and the written analysis. */

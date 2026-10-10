@@ -1,4 +1,5 @@
 /** The jump laboratory's local settings ("Este simulador" in the drawer), built from its state. */
+import { clockSettings } from '../../lab/clockSettings';
 import type { SettingOption } from '../../lab/SettingsDrawer';
 import type { SimClock } from '../../lab/useSimClock';
 import { JUMP_LIMITS } from './jumpModel';
@@ -24,13 +25,6 @@ const INTEGRATOR_OPTIONS: { value: Integrator; label: string }[] = [
   { value: 'analytic', label: 'Analítico' },
   { value: 'euler', label: 'Euler semi-implícito' },
 ];
-
-/** Playback speeds offered (spec §8.2: 0,25× to 2×). */
-const SPEEDS = [0.25, 0.5, 1, 1.5, 2] as const;
-const SPEED_OPTIONS = SPEEDS.map((speed) => ({
-  value: String(speed),
-  label: `${String(speed).replace('.', ',')}×`,
-}));
 
 const FALL_MULTIPLIER_STEP = 0.1;
 
@@ -93,20 +87,6 @@ export function jumpLocalSettings({
         if (isIntegrator(value)) onDisplayChange({ ...display, integrator: value });
       },
     },
-    {
-      key: 'speed',
-      label: 'Velocidad',
-      kind: 'select',
-      value: String(clock.state.speed),
-      options: SPEED_OPTIONS,
-      onChange: (value) => clock.setSpeed(Number(value)),
-    },
-    {
-      key: 'loop',
-      label: 'Repetir',
-      kind: 'toggle',
-      value: clock.state.loop,
-      onChange: clock.setLoop,
-    },
+    ...clockSettings(clock),
   ];
 }

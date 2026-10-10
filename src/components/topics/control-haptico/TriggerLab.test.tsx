@@ -59,6 +59,15 @@ const lever = () => screen.getByRole('slider', { name: 'Recorrido del gatillo x'
 const kField = () => screen.getByRole('textbox', { name: /^Rigidez k/ });
 const startField = () => screen.getByRole('textbox', { name: /^Inicio de la resistencia/ });
 const releaseButton = () => screen.getByRole('button', { name: 'Soltar el gatillo' });
+const replayButton = () => screen.getByRole('button', { name: 'Repetir retorno' });
+const preset = (name: RegExp) =>
+  within(screen.getByRole('group', { name: 'Valores de referencia' })).getByRole('button', {
+    name,
+  });
+const dampingSelect = () => {
+  fireEvent.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+  return within(screen.getByRole('dialog')).getByRole('combobox', { name: /^Amortiguación/ });
+};
 
 function typeInto(field: HTMLElement, value: string): void {
   fireEvent.change(field, { target: { value } });
@@ -270,5 +279,79 @@ describe('TriggerLab', () => {
 
     expect(kField()).toHaveValue('400');
     expect(readout('Desplazamiento x')).toBe('0,0 mm');
+  });
+
+  test('the presets set k, x₀ and the damping, and the readouts follow', () => {
+    stubAnimationFrame();
+    renderLab();
+    lever().focus();
+    fireEvent.keyDown(lever(), { key: 'End' });
+
+    fireEvent.click(preset(/^Gatillo DualSense/));
+    expect(kField()).toHaveValue('400');
+    expect(startField()).toHaveValue('3');
+    expect(readout('Fuerza del gatillo F')).toBe('2,00 N');
+    expect(readout('Trabajo del dedo W')).toBe('5,00 mJ');
+    expect(preset(/^Gatillo DualSense/)).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(preset(/^Subamortiguado/));
+    expect(startField()).toHaveValue('0');
+    expect(readout('Fuerza del gatillo F')).toBe('3,20 N');
+    expect(dampingSelect()).toHaveValue('subamortiguada');
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar ajustes' }));
+
+    fireEvent.click(preset(/^Resorte ideal/));
+    expect(dampingSelect()).toHaveValue('critica');
+    expect(preset(/^Resorte ideal/)).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('"Repetir retorno" waits for a release, then replays it from the last pressed x', () => {
+    stubAnimationFrame();
+    renderLab();
+    expect(replayButton()).toBeDisabled();
+
+    lever().focus();
+    fireEvent.keyDown(lever(), { key: 'ArrowRight', shiftKey: true });
+    fireEvent.keyDown(lever(), { key: 'ArrowRight', shiftKey: true });
+    fireEvent.keyDown(lever(), { key: 'ArrowRight', shiftKey: true });
+    expect(replayButton()).toBeDisabled();
+    fireEvent.click(releaseButton());
+    advance(RELEASE_BOUND_MS);
+    expect(readout('Desplazamiento x')).toBe('0,0 mm');
+    expect(replayButton()).toBeEnabled();
+
+    fireEvent.click(replayButton());
+    expect(readout('Desplazamiento x')).toBe('3,0 mm');
+    advance(2 * FRAME_MS);
+    const midway = Number(lever().getAttribute('aria-valuenow'));
+    expect(midway).toBeGreaterThan(0);
+    expect(midway).toBeLessThan(3);
+    advance(RELEASE_BOUND_MS);
+    expect(readout('Desplazamiento x')).toBe('0,0 mm');
+  });
+
+  test('"Restablecer" forgets the last release', () => {
+    stubAnimationFrame();
+    renderLab();
+    pressToBottom();
+    releasePointer();
+    advance(RELEASE_BOUND_MS);
+    expect(replayButton()).toBeEnabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Restablecer' }));
+
+    expect(replayButton()).toBeDisabled();
+  });
+
+  test('the lever names its force with the global decimals', () => {
+    stubAnimationFrame();
+    setSettings({ decimals: 1 });
+    renderLab();
+    lever().focus();
+    fireEvent.keyDown(lever(), { key: 'End' });
+
+    expect(screen.getByRole('img', { name: /^Gatillo, no a escala/ })).toHaveAccessibleName(
+      /empuja el dedo con 3,2\sN\.$/,
+    );
   });
 });

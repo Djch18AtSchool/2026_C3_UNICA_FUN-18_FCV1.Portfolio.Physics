@@ -1,11 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import {
-  TRIGGER_LIMITS,
-  TRIGGER_TRAVEL_MM,
-  storedEnergyMilliJoules,
-  triggerCurves,
-  triggerWorkMilliJoules,
-} from './triggerModel';
+import { TRIGGER_LIMITS, TRIGGER_TRAVEL_MM, triggerCurves } from './triggerModel';
 
 describe('triggerCurves', () => {
   test('samples 33 points from 0 to 8 mm in steps of 0,25 mm', () => {
@@ -36,21 +30,6 @@ describe('triggerCurves', () => {
     const curves = triggerCurves({ k: 250, start: 0 });
 
     curves.forEach((point) => expect(point.trigger).toBeCloseTo(point.hooke, 10));
-  });
-});
-
-describe('energies', () => {
-  test('½ k x_max² with k = 400 N/m and 8 mm is 12,8 mJ', () => {
-    expect(storedEnergyMilliJoules({ k: 400, start: 0 })).toBeCloseTo(12.8, 10);
-  });
-
-  test('the stored energy of the ideal spring does not depend on x₀', () => {
-    expect(storedEnergyMilliJoules({ k: 400, start: 5 })).toBeCloseTo(12.8, 10);
-  });
-
-  test('the work against the trigger is the area ½ k (x_max − x₀)²: 5,0 mJ for x₀ = 3 mm', () => {
-    expect(triggerWorkMilliJoules({ k: 400, start: 3 })).toBeCloseTo(5.0, 10);
-    expect(triggerWorkMilliJoules({ k: 400, start: 0 })).toBeCloseTo(12.8, 10);
   });
 });
 

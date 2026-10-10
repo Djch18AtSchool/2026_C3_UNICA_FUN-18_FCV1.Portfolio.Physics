@@ -108,6 +108,23 @@ test.describe('laboratorio', () => {
       .toBe('11 943 N');
   });
 
+  test('los preajustes cargan su estado y las lecturas cambian', async ({ page }) => {
+    const presets = page.locator(LAB).getByRole('group', { name: 'Valores de referencia' });
+
+    await presets.getByRole('button', { name: /^Llanta fría/ }).click();
+    await expect.poll(() => readoutText(page, 'Coeficiente de agarre μ(T)')).toBe('1,11');
+    await expect(presets.getByRole('button', { name: /^Llanta fría/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await presets.getByRole('button', { name: /^C3 en ventana/ }).click();
+    await expect
+      .poll(async () => (await readoutText(page, 'Fuerza lateral real F_y')).replace(/\s/g, ' '))
+      .toBe('11 943 N');
+    await presets.getByRole('button', { name: /^Compuesto C4/ }).click();
+    await expect(page.locator(LAB).getByText('Ventana de trabajo C4 (2019)')).toBeVisible();
+  });
+
   test('el engranaje abre el panel, el compuesto C4 cambia la ventana, Escape cierra y el foco vuelve', async ({
     page,
   }) => {

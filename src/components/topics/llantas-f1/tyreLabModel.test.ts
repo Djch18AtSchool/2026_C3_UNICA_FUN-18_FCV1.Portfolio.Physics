@@ -4,7 +4,9 @@ import {
   INITIAL_TYRE_STATE,
   LOAD_DOMAIN,
   TEMPERATURE_DOMAIN,
+  TYRE_PRESETS,
   boxFriction,
+  presetIdFor,
   setCompound,
   setLoad,
   setTemperature,
@@ -93,5 +95,37 @@ describe('boxFriction', () => {
     expect(points[1]).toEqual({ x: BOX.staticLimit, y: BOX.staticLimit });
     expect(points[2]).toEqual({ x: BOX.staticLimit, y: BOX.kinetic });
     expect(points.at(-1)).toEqual({ x: 60, y: BOX.kinetic });
+  });
+});
+
+describe('tyre presets', () => {
+  test('come from the topic: C3 in its window, a cold tyre, a light load and the C4 optimum', () => {
+    expect(TYRE_PRESETS.map(({ name, values }) => [name, values])).toEqual([
+      ['C3 en ventana', { t: 120, fz: 8000, compound: 'C3' }],
+      ['Llanta fría', { t: 60, fz: 8000, compound: 'C3' }],
+      ['Carga ligera', { t: 120, fz: 2000, compound: 'C3' }],
+      ['Compuesto C4', { t: 105, fz: 8000, compound: 'C4' }],
+    ]);
+  });
+
+  test('every preset sits inside the plot domains and on the parameter grid', () => {
+    for (const { values } of TYRE_PRESETS) {
+      expect(setLoad(setTemperature(values, values.t), values.fz)).toEqual(values);
+    }
+  });
+
+  test('C3 at 120 °C and 8 000 N reads the 11 943 N of figure 4.2; the C4 optimum, the same', () => {
+    const [inWindow, cold, , c4] = TYRE_PRESETS.map(({ values }) => tyreReadings(values));
+
+    expect(Math.round(inWindow.real)).toBe(11943);
+    expect(Math.round(c4.real)).toBe(11943);
+    expect(cold.mu).toBeCloseTo(1.11, 2);
+    expect(cold.real).toBeLessThan(inWindow.real);
+  });
+
+  test('presetIdFor names the preset the state matches, or none', () => {
+    expect(presetIdFor(INITIAL_TYRE_STATE)).toBeUndefined();
+    expect(presetIdFor({ t: 60, fz: 8000, compound: 'C3' })).toBe('fria');
+    expect(presetIdFor({ t: 60, fz: 8000, compound: 'C4' })).toBeUndefined();
   });
 });

@@ -117,6 +117,30 @@ test.describe('laboratorio', () => {
     await expect(lab.getByText(/energía elástica del resorte ideal/)).toBeVisible();
   });
 
+  test('los preajustes cambian el perfil y «Repetir retorno» repite la última liberación', async ({
+    page,
+  }) => {
+    const lab = page.locator(LAB);
+    const presets = lab.getByRole('group', { name: 'Valores de referencia' });
+    const replay = lab.getByRole('button', { name: 'Repetir retorno' });
+    await expect(replay).toBeDisabled();
+
+    await presets.getByRole('button', { name: /^Gatillo DualSense/ }).click();
+    await pressToBottomWithKeys(page);
+    await expect.poll(() => readoutText(page, 'Fuerza del gatillo F')).toBe('2,00 N');
+    await lab.getByRole('button', { name: 'Soltar el gatillo' }).click();
+    await expect
+      .poll(() => readoutText(page, 'Desplazamiento x'), { timeout: RELEASE_BOUND_MS * 2 })
+      .toBe(AT_REST);
+
+    await expect(replay).toBeEnabled();
+    await replay.click();
+    await expect
+      .poll(() => readoutText(page, 'Desplazamiento x'), { timeout: RELEASE_BOUND_MS * 2 })
+      .toBe(AT_REST);
+    await expect(replay).toBeEnabled();
+  });
+
   test('arrastrar la palanca con el ratón cambia las lecturas y al soltarla vuelve a 0,0 mm', async ({
     page,
   }) => {

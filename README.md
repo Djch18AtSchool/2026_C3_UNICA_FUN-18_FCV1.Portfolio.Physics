@@ -47,7 +47,7 @@ Los cinco temas del Avance 1 están publicados en el formato de pasos de la vers
 - `src/lib/physics/`: núcleo de física puro, con pruebas.
 - `src/lib/data/`: modelos y preajustes con sus fuentes.
 - `src/components/ui/`: componentes de interfaz base, incluidos `Step.astro` y `Why.astro` (el modelo de contenido por pasos).
-- `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `SettingsDrawer`, `ParamField`, `TransportBar`, `useSimClock`), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
+- `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `SettingsDrawer`, `ParamField`, `TransportBar`, `useSimClock`), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), los ajustes de reproducción comunes (`clockSettings`), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
 - `src/components/controls/`: controles interactivos (deslizadores, botones).
 - `src/components/charts/`: gráficas.
 - `src/components/nav/`: navegación: barra lateral con búsqueda (`SidebarSearch`), `SidebarToggle` y `TopicTools`.

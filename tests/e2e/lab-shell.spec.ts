@@ -58,6 +58,25 @@ test('el panel de ajustes bloquea el desplazamiento sin mover la página y lo de
   await expect(gear).toBeFocused();
 });
 
+test('un decimal elegido en el salto rige también las lecturas del hábitat', async ({ page }) => {
+  const jump = await openLab(page, JUMP_PAGE, JUMP_LAB);
+  await jump.getByRole('button', { name: 'Ajustes del simulador' }).click();
+  const dialog = page.getByRole('dialog', { name: SETTINGS_TITLE });
+  await dialog.getByRole('tab', { name: 'Global' }).click();
+  await dialog.getByText('1', { exact: true }).click();
+  await page.keyboard.press('Escape');
+
+  const habitat = await openLab(page, './temas/gravedad-artificial/', 'habitat-lab');
+  for (const label of ['Velocidad angular ω', 'Velocidad tangencial v', 'Período T']) {
+    const value = habitat
+      .locator('div', { has: page.getByText(label, { exact: true }) })
+      .last()
+      .locator('span')
+      .last();
+    await expect(value).toHaveText(/^\d+,\d\s\S+$/);
+  }
+});
+
 test('el título del panel solo es un encabezado mientras el panel está abierto', async ({
   page,
 }) => {

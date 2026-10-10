@@ -14,6 +14,7 @@ import {
 } from '../../../lib/physics';
 import { requirePositive } from '../../../lib/physics/validate';
 import { TRIGGER_TRAVEL_MM } from '../../../lib/data/triggerModel';
+import type { Preset } from '../../../lib/presets';
 
 /** Assumed mass of the lever for the release, 20 g: an illustrative value, not a measured one. */
 export const TRIGGER_MASS_KG = 0.02;
@@ -56,6 +57,49 @@ export const DAMPING_OPTIONS: { value: Damping; label: string }[] = [
 
 export function dampingRatio(damping: Damping): number {
   return DAMPING_RATIOS[damping];
+}
+
+/** What a trigger preset sets: the virtual spring and the damping of the release. */
+export interface TriggerPresetValues {
+  k: number;
+  x0Mm: number;
+  damping: Damping;
+}
+
+/**
+ * The text's worked examples: the ideal spring (k = 400 N/m from x₀ = 0), the late-engaging
+ * trigger of step 4 (x₀ = 3 mm) and the same spring released with 0,3 of the critical damping.
+ * k and x₀ are illustrative: no published mapping turns force and startPosition into N/m and mm.
+ */
+export const TRIGGER_PRESETS: Preset<TriggerPresetValues>[] = [
+  {
+    id: 'ideal',
+    name: 'Resorte ideal',
+    values: { k: 400, x0Mm: 0, damping: 'critica' },
+    sourceLabel: 'k = 400 N/m · x₀ = 0',
+    note: 'Al fondo, 3,2 N y 12,8 mJ: la ecuación (5.2) desde el reposo.',
+  },
+  {
+    id: 'dualsense',
+    name: 'Gatillo DualSense',
+    values: { k: 400, x0Mm: 3, damping: 'critica' },
+    sourceLabel: 'k = 400 N/m · x₀ = 3 mm',
+    note: 'El ejemplo del paso 4, con valores ilustrativos: al fondo, 2,0 N y 5,0 mJ de trabajo del dedo.',
+  },
+  {
+    id: 'subamortiguado',
+    name: 'Subamortiguado',
+    values: { k: 400, x0Mm: 0, damping: 'subamortiguada' },
+    sourceLabel: 'c = 0,3 del valor crítico',
+    note: 'Con menos amortiguación la palanca vuelve antes y choca con el tope del reposo, que la detiene sin rebote.',
+  },
+];
+
+/** The id of the preset whose values the lab matches exactly, if any. */
+export function triggerPresetIdFor({ k, x0Mm, damping }: TriggerPresetValues): string | undefined {
+  return TRIGGER_PRESETS.find(
+    ({ values }) => values.k === k && values.x0Mm === x0Mm && values.damping === damping,
+  )?.id;
 }
 
 export const toMetres = (millimetres: number) => millimetres / MM_PER_M;

@@ -5,6 +5,7 @@ import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartThem
 import { useElementWidth } from '../../hooks/useElementWidth';
 import { Arrow, ARROW_HEAD, Knob, Label, type Point } from '../../lab/OverlayMarks';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
+import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { PROFILE_COLOR } from './hapticPlots';
 import { leverAngle, triggerKeyTarget, xFromPointer } from './triggerScene';
 
@@ -162,6 +163,7 @@ export default function TriggerLever({
   onRelease,
 }: TriggerLeverProps): JSX.Element {
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
+  const { decimals } = useGlobalSettings();
   const { arm, pivot, height } = sceneGeometry(width);
   const angle = REST_DEG + leverAngle(xMm, TRIGGER_TRAVEL_MM, MAX_ANGLE_DEG);
   const tip = polar(pivot, arm, angle);
@@ -192,7 +194,7 @@ export default function TriggerLever({
       >
         <g
           role="img"
-          aria-label={`Gatillo, no a escala, apretado ${xText(xMm)}; empuja el dedo con ${formatNumber(forceN, { precision: 2, unit: 'N' })}.`}
+          aria-label={`Gatillo, no a escala, apretado ${xText(xMm)}; empuja el dedo con ${formatNumber(forceN, { precision: decimals, unit: 'N' })}.`}
         >
           <text x={8} y={16} fontFamily={TICK_FONT_FAMILY} fontSize={TEXT_SIZE} fill={TICK_COLOR}>
             no a escala

@@ -71,6 +71,38 @@ describe('TyreLab', () => {
     expect(loadField()).toHaveValue('8000');
   });
 
+  test('the presets load their state, mark themselves pressed and update the readouts', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const presets = screen.getByRole('group', { name: 'Valores de referencia' });
+
+    await user.click(within(presets).getByRole('button', { name: /^Llanta fría/ }));
+    expect(temperatureField()).toHaveValue('60');
+    expect(loadField()).toHaveValue('8000');
+    expect(readout('Coeficiente de agarre μ(T)')).toBe('1,11');
+    expect(within(presets).getByRole('button', { name: /^Llanta fría/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    await user.click(within(presets).getByRole('button', { name: /^Carga ligera/ }));
+    expect(readout('Fuerza lateral lineal F_y')).toBe('3 200 N');
+    expect(readout('Fuerza lateral real F_y')).toBe('3 430 N');
+
+    await user.click(within(presets).getByRole('button', { name: /^Compuesto C4/ }));
+    expect(screen.getByText('Ventana de trabajo C4 (2019)')).toBeInTheDocument();
+    expect(readout('Coeficiente de agarre μ(T)')).toBe('1,80');
+    expect(readout('Fuerza lateral real F_y')).toBe('11 943 N');
+
+    // Moving a cursor off the preset's values releases its button.
+    temperatureCursor().focus();
+    await user.keyboard('{ArrowRight}');
+    expect(within(presets).getByRole('button', { name: /^Compuesto C4/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  });
+
   test('choosing C4 changes the band label', async () => {
     const user = userEvent.setup();
     renderLab();

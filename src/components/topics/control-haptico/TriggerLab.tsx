@@ -2,6 +2,7 @@ import { useState, type JSX } from 'react';
 import { TRIGGER_LIMITS } from '../../../lib/data/triggerModel';
 import { formatNumber } from '../../../lib/format';
 import { motionReduced } from '../../../lib/settingsStore';
+import Presets from '../../controls/Presets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import type { SettingOption } from '../../lab/SettingsDrawer';
@@ -15,6 +16,8 @@ import {
   dampingRatio,
   releaseParams,
   SLOW_MOTION,
+  TRIGGER_PRESETS,
+  triggerPresetIdFor,
   triggerReadings,
   type Damping,
 } from './triggerScene';
@@ -28,6 +31,8 @@ interface TriggerLabState {
   /** Travel of the trigger, mm. */
   xMm: number;
   damping: Damping;
+  /** Where the last release started (mm), for "Repetir retorno"; none before the first one. */
+  lastReleaseMm?: number;
 }
 
 /** The worked example of the text at rest: k = 400 N/m, resistance from x₀ = 0, critical damping. */
@@ -40,6 +45,8 @@ const WIDE_ASPECT = 2;
 const COMPACT_ASPECT = 1.1;
 /** The ideal spring's point: a ring around the trigger's marker, so both read when they coincide. */
 const HOOKE_RING = 8;
+const ACTION_BUTTON =
+  'h-9 rounded-base border border-border bg-bg px-3 text-sm font-medium text-fg hover:border-accent disabled:cursor-not-allowed disabled:opacity-50';
 
 export interface TriggerLabProps {
   /** The model's caveats, written in the topic's MDX so they travel with its text. */
@@ -49,8 +56,9 @@ export interface TriggerLabProps {
 /**
  * Tema 5's laboratory on the v2 shell, with no clock: a lever on a pivot pressed through 0–8 mm
  * (pointer, touch or keys), the F–x plot with the ideal spring and the trigger's piecewise
- * profile and a live marker, k and x₀ as main parameters and the readouts x, F, U and W. Let go,
- * the lever returns with the kernel's damped spring (critical or underdamped, a local setting).
+ * profile and a live marker, k and x₀ as main parameters, presets from the text's examples and the
+ * readouts x, F, U and W. Let go, the lever returns with the kernel's damped spring (critical or
+ * underdamped, a local setting); "Repetir retorno" replays the last release from its start.
  */
 export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
   const [state, setState] = useState<TriggerLabState>(INITIAL_STATE);
@@ -69,10 +77,18 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
     release.cancel();
     setState((previous) => ({ ...previous, xMm }));
   };
+  /** Lets the lever go from xMm (mm) and remembers it, so the return can be replayed. */
+  const releaseFrom = (xMm: number) => {
+    setState((previous) => ({
+      ...previous,
+      lastReleaseMm: xMm > 0 ? xMm : previous.lastReleaseMm,
+    }));
+    release.start(xMm);
+  };
   /** The pointer let go at xMm: the lever starts its return from there, not from the last render. */
   const letGo = (xMm: number) => {
     press(xMm);
-    release.start(xMm);
+    releaseFrom(xMm);
   };
   const onReset = () => {
     release.cancel();
@@ -126,19 +142,40 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
           onChange={(x0Mm) => setState((previous) => ({ ...previous, x0Mm }))}
         />
       </div>
+      <Presets
+        presets={TRIGGER_PRESETS}
+        activeId={triggerPresetIdFor(state)}
+        onSelect={({ values }) => {
+          release.cancel();
+          setState((previous) => ({ ...previous, ...values }));
+        }}
+      />
       <div className="flex flex-col items-start gap-2">
-        <button
-          type="button"
-          onClick={() => release.start(state.xMm)}
-          disabled={state.xMm === 0 || release.isReleasing}
-          className="h-9 rounded-base border border-border bg-bg px-3 text-sm font-medium text-fg hover:border-accent disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Soltar el gatillo
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => releaseFrom(state.xMm)}
+            disabled={state.xMm === 0 || release.isReleasing}
+            className={ACTION_BUTTON}
+          >
+            Soltar el gatillo
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (state.lastReleaseMm !== undefined) letGo(state.lastReleaseMm);
+            }}
+            disabled={state.lastReleaseMm === undefined || release.isReleasing}
+            className={ACTION_BUTTON}
+          >
+            Repetir retorno
+          </button>
+        </div>
         <p className="m-0 text-sm text-fg-muted">
           Arrastra la palanca y suéltala, o enfócala y muévela con las flechas (0,1 mm; con Mayús, 1
-          mm): con el teclado el gatillo queda apretado hasta «Soltar el gatillo». La amortiguación
-          se elige en los ajustes del engranaje.
+          mm): con el teclado el gatillo queda apretado hasta «Soltar el gatillo». «Repetir retorno»
+          vuelve a soltarlo desde el último punto. La amortiguación se elige en los ajustes del
+          engranaje.
         </p>
       </div>
     </>

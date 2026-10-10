@@ -1,4 +1,5 @@
 /** The drone laboratory's local settings ("Este simulador" in the drawer), built from its state. */
+import { clockSettings } from '../../lab/clockSettings';
 import type { SettingOption } from '../../lab/SettingsDrawer';
 import type { SimClock } from '../../lab/useSimClock';
 
@@ -19,13 +20,6 @@ export const DEFAULT_DISPLAY: DroneDisplay = {
 /** The acceleration is drawn this many times longer per unit than the velocity. */
 export const ACCEL_SCALE_FACTOR = 4;
 const VECTOR_SCALE_RANGE = { min: 5, max: 40, step: 5 } as const;
-
-/** Playback speeds offered (spec §8.2: 0,25× to 2×). */
-const SPEEDS = [0.25, 0.5, 1, 1.5, 2] as const;
-const SPEED_OPTIONS = SPEEDS.map((speed) => ({
-  value: String(speed),
-  label: `${String(speed).replace('.', ',')}×`,
-}));
 
 export interface DroneLocalSettingsInput {
   display: DroneDisplay;
@@ -58,20 +52,6 @@ export function droneLocalSettings({
       onChange: (vectorScale) => onDisplayChange({ ...display, vectorScale }),
     },
     toggle('showTrail', 'Rastro'),
-    {
-      key: 'speed',
-      label: 'Velocidad',
-      kind: 'select',
-      value: String(clock.state.speed),
-      options: SPEED_OPTIONS,
-      onChange: (value) => clock.setSpeed(Number(value)),
-    },
-    {
-      key: 'loop',
-      label: 'Repetir',
-      kind: 'toggle',
-      value: clock.state.loop,
-      onChange: clock.setLoop,
-    },
+    ...clockSettings(clock),
   ];
 }

@@ -95,6 +95,37 @@ describe('SvgPlot cursor', () => {
     expect(onChange.mock.calls.map(([x]) => x)).toEqual([7.5, 10]);
   });
 
+  test('a right-click or a middle-click does not grab the cursor; touch does', () => {
+    const onChange = vi.fn();
+    let xScale: Scale | undefined;
+    render(
+      <SvgPlot
+        {...PROPS}
+        cursor={{ x: 5, onChange }}
+        overlay={({ x }) => {
+          xScale = x;
+          return null;
+        }}
+      />,
+    );
+    const slider = screen.getByRole('slider');
+    mockIdentityCtm(slider);
+    const grabbed = xScale!.toPx(5);
+    const target = xScale!.toPx(7.5);
+    const drag = (pointerType: string, button: number) => {
+      fireEvent.pointerDown(slider, { pointerId: 1, pointerType, button, clientX: grabbed });
+      fireEvent.pointerMove(slider, { pointerId: 1, pointerType, clientX: target });
+      fireEvent.pointerUp(slider, { pointerId: 1, pointerType });
+    };
+
+    drag('mouse', 2);
+    drag('mouse', 1);
+    expect(onChange).not.toHaveBeenCalled();
+
+    drag('touch', 0);
+    expect(onChange.mock.calls.map(([x]) => x)).toEqual([7.5]);
+  });
+
   test('keeps the grab offset so the knob does not jump to the pointer', () => {
     const onChange = vi.fn();
     let xScale: Scale | undefined;

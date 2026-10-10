@@ -7,6 +7,7 @@ import {
   type Compound,
 } from '../../../lib/data/tyreModels';
 import { G_EARTH, gripVsTemperature } from '../../../lib/physics';
+import type { Preset } from '../../../lib/presets';
 import type { Domain } from '../../lab/plotScales';
 
 export interface TyreLabState {
@@ -29,6 +30,49 @@ export const LOAD_STEP = 50;
 export const INITIAL_TYRE_STATE: Readonly<TyreLabState> = { t: 120, fz: 4000, compound: 'C3' };
 
 export const COMPOUNDS: readonly Compound[] = ['C3', 'C4'];
+
+/**
+ * States worth comparing, all from the topic's own numbers: the C3 in its window at 8 000 N (the
+ * 11 943 N of figure 4.2), the cold tyre at 60 °C, a load below the reference and the C4 at its
+ * optimum (its bell is a model assumption, as the footnote says).
+ */
+export const TYRE_PRESETS: Preset<TyreLabState>[] = [
+  {
+    id: 'ventana',
+    name: 'C3 en ventana',
+    values: { t: 120, fz: 8000, compound: 'C3' },
+    sourceLabel: '120 °C · 8 000 N',
+    note: 'En el óptimo del C3, la carga doble da 11 943 N, no los 12 800 N de la recta (figura 4.2).',
+  },
+  {
+    id: 'fria',
+    name: 'Llanta fría',
+    values: { t: 60, fz: 8000, compound: 'C3' },
+    sourceLabel: '60 °C · 8 000 N',
+    note: 'A 60 °C, μ cae a 1,11, un 39 % menos que en el óptimo, y las dos curvas de carga bajan con él.',
+  },
+  {
+    id: 'ligera',
+    name: 'Carga ligera',
+    values: { t: 120, fz: 2000, compound: 'C3' },
+    sourceLabel: '120 °C · 2 000 N',
+    note: 'Bajo la carga de referencia, la ley de potencia da más que la recta: μ efectivo mayor que μ₀.',
+  },
+  {
+    id: 'c4',
+    name: 'Compuesto C4',
+    values: { t: 105, fz: 8000, compound: 'C4' },
+    sourceLabel: '105 °C · 8 000 N',
+    note: 'La campana del C4 es un supuesto del modelo, no un dato: óptimo de 105 °C y el ancho del C3.',
+  },
+];
+
+/** The id of the preset whose values the state matches exactly, if any. */
+export function presetIdFor({ t, fz, compound }: TyreLabState): string | undefined {
+  return TYRE_PRESETS.find(
+    ({ values }) => values.t === t && values.fz === fz && values.compound === compound,
+  )?.id;
+}
 
 function snap(value: number, { min, max }: Domain, step: number): number {
   const clamped = Math.min(max, Math.max(min, value));

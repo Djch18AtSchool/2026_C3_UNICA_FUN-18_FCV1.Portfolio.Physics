@@ -1,4 +1,5 @@
 /** The habitat laboratory's local settings ("Este simulador" in the drawer), built from its state. */
+import { clockSettings } from '../../lab/clockSettings';
 import type { SettingOption } from '../../lab/SettingsDrawer';
 import type { SimClock } from '../../lab/useSimClock';
 
@@ -14,10 +15,6 @@ export const DEFAULT_DISPLAY: HabitatDisplay = { showVectors: true };
  * range reaches 8× (spec §8.2 gives 0,25× to 2×; the task allows up to 8× for this lab).
  */
 const SPEEDS = [0.25, 0.5, 1, 2, 4, 8] as const;
-const SPEED_OPTIONS = SPEEDS.map((speed) => ({
-  value: String(speed),
-  label: `${String(speed).replace('.', ',')}×`,
-}));
 
 export interface HabitatLocalSettingsInput {
   display: HabitatDisplay;
@@ -39,20 +36,6 @@ export function habitatLocalSettings({
       value: display.showVectors,
       onChange: (showVectors) => onDisplayChange({ ...display, showVectors }),
     },
-    {
-      key: 'speed',
-      label: 'Velocidad',
-      kind: 'select',
-      value: String(clock.state.speed),
-      options: SPEED_OPTIONS,
-      onChange: (value) => clock.setSpeed(Number(value)),
-    },
-    {
-      key: 'loop',
-      label: 'Repetir',
-      kind: 'toggle',
-      value: clock.state.loop,
-      onChange: clock.setLoop,
-    },
+    ...clockSettings(clock, SPEEDS),
   ];
 }

@@ -39,7 +39,7 @@ export function preventTouchPan(element: Element | null): (() => void) | undefin
 }
 
 /** The primary mouse button, or any touch/pen contact (which may report a different button). */
-function isPrimaryPointer(event: ReactPointerEvent): boolean {
+export function isPrimaryPointer(event: ReactPointerEvent): boolean {
   return event.pointerType !== 'mouse' || event.button === 0;
 }
 

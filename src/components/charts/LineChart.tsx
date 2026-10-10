@@ -11,6 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 import { formatNumber } from '../../lib/format';
+import { useGlobalSettings } from '../lab/useGlobalSettings';
 import ChartFrame from './ChartFrame';
 import ChartTooltip, { type TooltipExtra } from './ChartTooltip';
 import { tickPrecision, trimTrailingZeros } from './chartScale';
@@ -37,7 +38,7 @@ export interface AxisSpec {
   domain?: [number, number];
   /** Explicit tick values, when the automatic ones fall on awkward numbers. */
   ticks?: number[];
-  /** Decimals of this axis' values in the tooltip (default 2). */
+  /** Decimals of this axis' values in the tooltip (default: the global decimals setting). */
   precision?: number;
   /** Unit after tooltip values when it differs from the title's, e.g. '' for "adimensional". */
   valueUnit?: string;
@@ -76,6 +77,8 @@ export interface LineChartProps {
   curve?: 'linear' | 'monotone';
   /** Row values listed in the tooltip but not plotted, e.g. an effective coefficient. */
   tooltipExtras?: TooltipExtra[];
+  /** Defaults to the global grid setting. */
+  showGrid?: boolean;
 }
 
 const MARKER_DASH = '4 3';
@@ -135,8 +138,13 @@ export default function LineChart({
   aspectRatio = DEFAULT_ASPECT_RATIO,
   curve = 'linear',
   tooltipExtras = [],
+  showGrid,
 }: LineChartProps) {
   assertUnits({ xAxis, yAxis });
+  // Tick labels keep the decimals their step needs (rounding a tick would mislabel it); the
+  // tooltip values and the grid follow the global settings, as in SvgPlot.
+  const settings = useGlobalSettings();
+  const isGridShown = showGrid ?? settings.grid;
 
   if (data.length === 0) {
     return (
@@ -172,7 +180,7 @@ export default function LineChart({
           margin={MARGIN}
           accessibilityLayer
         >
-          <CartesianGrid stroke={GRID_COLOR} strokeWidth={1} />
+          {isGridShown ? <CartesianGrid stroke={GRID_COLOR} strokeWidth={1} /> : null}
           <XAxis
             dataKey={xKey}
             type="number"
@@ -254,8 +262,8 @@ export default function LineChart({
                 xLabel={xAxis.label}
                 xUnit={xAxis.unit}
                 yUnit={yAxis.valueUnit ?? yAxis.unit}
-                xPrecision={xAxis.precision}
-                yPrecision={yAxis.precision}
+                xPrecision={xAxis.precision ?? settings.decimals}
+                yPrecision={yAxis.precision ?? settings.decimals}
                 extras={tooltipExtras}
                 active={active}
                 label={label}
