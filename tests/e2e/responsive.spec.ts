@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { setRange, waitForIsland } from './helpers';
+import { waitForIsland } from './helpers';
 
 const PHONE = { width: 375, height: 812 };
 const TOPIC_COUNT = 13;
@@ -7,12 +7,6 @@ const TOPIC_COUNT = 13;
 const MIN_TARGET_PX = 24;
 /** Sub-pixel slack for layout rounding. */
 const ROUNDING_PX = 1;
-/**
- * Tema 1 opens braking into stop A, where the drone marker sits under A's knob (they overlap at
- * any width). The timeline slider is its equivalent control (WCAG 2.5.8 exception), so the size
- * check moves the drone mid-leg first.
- */
-const DRONE_MID_LEG_S = '30';
 const LABS = [
   { name: 'tema 1', path: './temas/dron-reparto/', testId: 'drone-lab' },
   { name: 'tema 2', path: './temas/salto-personaje/', testId: 'jump-lab' },
@@ -128,9 +122,6 @@ for (const { name, path, testId } of LABS) {
 
     test('cada manejador y cursor responde en un cuadrado de 24 × 24 px', async ({ page }) => {
       const lab = await openLab(page, path, testId);
-      if (testId === 'drone-lab') {
-        await setRange(lab.getByRole('slider', { name: 'Línea de tiempo' }), DRONE_MID_LEG_S);
-      }
       const handles = await lab.locator('svg [role="slider"]').all();
       expect(handles.length).toBeGreaterThan(0);
 
@@ -167,7 +158,12 @@ for (const { name, path, testId } of LABS) {
           const svg = (text as SVGTextElement).ownerSVGElement?.getBoundingClientRect();
           const box = text.getBoundingClientRect();
           if (!svg || box.width === 0) continue;
-          if (box.left < svg.left - slack || box.right > svg.right + slack) {
+          const isOutside =
+            box.left < svg.left - slack ||
+            box.right > svg.right + slack ||
+            box.top < svg.top - slack ||
+            box.bottom > svg.bottom + slack;
+          if (isOutside) {
             out.push(`texto: ${name(text)}`);
           }
         }

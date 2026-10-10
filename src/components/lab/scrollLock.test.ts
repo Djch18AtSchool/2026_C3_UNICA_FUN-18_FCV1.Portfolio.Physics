@@ -67,4 +67,22 @@ describe('lockPageScroll', () => {
     // Assert
     expect(root().style.overflow).toBe('auto');
   });
+  test('nested locks keep the page locked until the last one is released, in any order', () => {
+    // Arrange
+    root().style.overflow = 'auto';
+    const first = lockPageScroll();
+    const second = lockPageScroll();
+
+    // Act
+    first();
+    const afterFirst = root().style.overflow;
+    first();
+    const afterRepeat = root().style.overflow;
+    second();
+
+    // Assert
+    expect(afterFirst).toBe('hidden');
+    expect(afterRepeat).toBe('hidden');
+    expect(root().style.overflow).toBe('auto');
+  });
 });

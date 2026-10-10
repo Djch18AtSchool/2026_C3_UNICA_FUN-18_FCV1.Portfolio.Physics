@@ -78,3 +78,47 @@ describe('syncScrollRegions', () => {
     expect(unlabelled.matches(SCROLL_LABEL_SELECTOR)).toBe(false);
   });
 });
+
+describe('numbered region names', () => {
+  /** A topic body (Tema 1) with three equations and two figures, each frame overflowing. */
+  function topicBody(): HTMLElement {
+    document.body.innerHTML = `
+      <div class="topic-body" data-topic-number="1">
+        <div class="equation"><div class="equation-math" data-scroll-label="Ecuación ({n}) desplazable" data-scroll-number=".equation"></div></div>
+        <figure class="content-figure"><div class="figure-frame" data-scroll-label="Figura {n} desplazable" data-scroll-number=".content-figure"></div></figure>
+        <div class="equation"><div class="equation-math" data-scroll-label="Ecuación ({n}) desplazable" data-scroll-number=".equation"></div></div>
+        <figure class="content-figure"><div class="figure-frame" data-scroll-label="Figura {n} desplazable" data-scroll-number=".content-figure"></div></figure>
+        <div class="equation"><div class="equation-math" data-scroll-label="Ecuación ({n}) desplazable" data-scroll-number=".equation"></div></div>
+      </div>`;
+    for (const element of document.querySelectorAll<HTMLElement>(SCROLL_LABEL_SELECTOR)) {
+      resize(element, 640, 300);
+    }
+    return document.querySelector('.topic-body') as HTMLElement;
+  }
+
+  test('equations and figures are named with their topic number, as the CSS counters print it', () => {
+    const body = topicBody();
+
+    const names = syncScrollRegions(body).map((element) => element.getAttribute('aria-label'));
+
+    expect(names).toEqual([
+      'Ecuación (1.1) desplazable',
+      'Figura 1.1 desplazable',
+      'Ecuación (1.2) desplazable',
+      'Figura 1.2 desplazable',
+      'Ecuación (1.3) desplazable',
+    ]);
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  test('outside a topic body the number is dropped from the name', () => {
+    const element = region(640, 300);
+    element.dataset.scrollLabel = 'Ecuación ({n}) desplazable';
+    element.dataset.scrollNumber = '.equation';
+    document.body.append(element);
+
+    syncScrollRegion(element);
+
+    expect(element).toHaveAttribute('aria-label', 'Ecuación desplazable');
+  });
+});

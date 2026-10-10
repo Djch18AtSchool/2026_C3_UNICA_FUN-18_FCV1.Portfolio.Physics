@@ -37,7 +37,11 @@ if (!source?.text?.trim()) throw new Error('Figure: falta la fuente');
       <ResourceBadge type={type} label={label} />
     </div>
   )}
-  <div class="figure-frame grid-paper" data-scroll-label="Contenido desplazable de la figura">
+  <div
+    class="figure-frame grid-paper"
+    data-scroll-label="Figura {n} desplazable"
+    data-scroll-number=".content-figure"
+  >
     <slot />
   </div>
   <figcaption>

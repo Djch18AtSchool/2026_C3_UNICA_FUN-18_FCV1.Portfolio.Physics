@@ -70,18 +70,40 @@ describe('DroneLab', () => {
     resetSettingsForTests();
   });
 
-  test('announces the loading state, then opens on the declared route braking into A', async () => {
+  test('announces the loading state, then opens on the declared route cruising on leg 1', async () => {
     render(<DroneLab footnote={FOOTNOTE} />);
     expect(screen.getByRole('status')).toHaveTextContent('Cargando los datos de la ruta…');
 
     await screen.findByTestId('drone-lab');
 
     expect(readout('Duración de la ruta')).toBe(DECLARED_DURATION);
-    expect(valueText(timeline())).toBe('t = 65,000 s');
-    expect(screen.getByText(/frenando \(a opuesta a v\)/)).toBeInTheDocument();
+    expect(valueText(timeline())).toBe('t = 30,000 s');
+    expect(screen.getByText(/crucero \(a = 0\)/)).toBeInTheDocument();
+    expect(readout('Rapidez |v|')).toBe('10,00 m/s');
     expect(modifiedNote()).toBeNull();
     expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
     expect(screen.getByTestId('drone-profiles')).toBeInTheDocument();
+  });
+
+  test('at t ≈ 65 s the drone brakes into A: |a| = 2,5 m/s² opposite to v', async () => {
+    await renderLab();
+
+    // The timeline runs 0–1000 over the route's 387,43 s: 168 is t ≈ 65,09 s.
+    fireEvent.change(timeline(), { target: { value: '168' } });
+
+    expect(valueText(timeline())).toMatch(/^t = 65,\d{3} s$/);
+    expect(screen.getByText(/frenando \(a opuesta a v\)/)).toBeInTheDocument();
+    expect(readout('Aceleración |a|')).toBe('2,50 m/s²');
+  });
+
+  test('the drone marker is drawn after the stops, so it stays on top where they meet', async () => {
+    await renderLab();
+    const drone = screen.getByTestId('drone-marker');
+
+    for (const stop of ['stop-A', 'stop-B', 'stop-C']) {
+      const position = screen.getByTestId(stop).compareDocumentPosition(drone);
+      expect(position & Node.DOCUMENT_POSITION_FOLLOWING, stop).toBeTruthy();
+    }
   });
 
   test('the legend states the scale of both vectors', async () => {
@@ -175,7 +197,7 @@ describe('DroneLab', () => {
     dragTo('drone-marker', knobCentre('stop-B'));
 
     expect(screen.getByTestId('drone-lab')).toHaveAttribute('data-playing', 'false');
-    expect(valueText(timeline())).not.toBe('t = 65,000 s');
+    expect(valueText(timeline())).not.toBe('t = 30,000 s');
   });
 
   test('a finger on a stop or on the drone does not pan the page', async () => {

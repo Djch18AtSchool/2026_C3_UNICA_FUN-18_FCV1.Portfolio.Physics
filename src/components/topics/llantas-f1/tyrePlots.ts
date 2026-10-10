@@ -56,8 +56,14 @@ export function temperaturePlot(compound: Compound): PlotFrame {
       },
     ],
     bands: [
-      // Along the bottom, clear of the lab's cursor knob and label at the top.
-      { ...COMPOUND_WINDOWS[compound].values, label: windowLabel(compound), labelAt: 'bottom' },
+      // Along the bottom, clear of the lab's cursor knob and label at the top, and before the
+      // band, so the cursor at the optimum (inside the window) never crosses it.
+      {
+        ...COMPOUND_WINDOWS[compound].values,
+        label: windowLabel(compound),
+        labelAt: 'bottom',
+        labelBefore: true,
+      },
     ],
   };
 }

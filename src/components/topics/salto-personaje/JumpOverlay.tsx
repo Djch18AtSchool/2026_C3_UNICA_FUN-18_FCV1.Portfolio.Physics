@@ -16,6 +16,8 @@ export type LaunchSpeeds = Pick<JumpSettings, 'v0' | 'vx'>;
 
 export interface JumpOverlayProps {
   scales: PlotScales;
+  /** SvgPlot's plain plot-area clip: the trail and vectors use it, the knobs may bleed past it. */
+  plotClipPath?: string;
   settings: JumpSettings;
   live: JumpResult;
   t: number;
@@ -85,6 +87,7 @@ function trailPath(live: JumpResult, t: number, scales: PlotScales): string {
  */
 export default function JumpOverlay({
   scales,
+  plotClipPath,
   settings,
   live,
   t,
@@ -139,27 +142,29 @@ export default function JumpOverlay({
 
   return (
     <g>
-      {showTrail ? (
-        <path
-          data-trail=""
-          d={trailPath(live, t, scales)}
-          fill="none"
-          stroke={color}
-          strokeWidth={TRAIL_WIDTH}
-          strokeOpacity={TRAIL_OPACITY}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="pointer-events-none"
-        />
-      ) : null}
-      {showVelocity ? (
-        <g data-velocity="">
-          <Arrow from={body} to={velocityTip} color={TEXT_COLOR} />
-          <Label at={velocityTip}>v</Label>
-        </g>
-      ) : null}
-      <Arrow from={origin} to={tip} color={LAUNCH_COLOR} />
-      <Label at={tip}>v₀</Label>
+      <g clipPath={plotClipPath}>
+        {showTrail ? (
+          <path
+            data-trail=""
+            d={trailPath(live, t, scales)}
+            fill="none"
+            stroke={color}
+            strokeWidth={TRAIL_WIDTH}
+            strokeOpacity={TRAIL_OPACITY}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="pointer-events-none"
+          />
+        ) : null}
+        {showVelocity ? (
+          <g data-velocity="">
+            <Arrow from={body} to={velocityTip} color={TEXT_COLOR} />
+            <Label at={velocityTip}>v</Label>
+          </g>
+        ) : null}
+        <Arrow from={origin} to={tip} color={LAUNCH_COLOR} />
+        <Label at={tip}>v₀</Label>
+      </g>
       <g
         data-testid="jump-marker"
         role="slider"

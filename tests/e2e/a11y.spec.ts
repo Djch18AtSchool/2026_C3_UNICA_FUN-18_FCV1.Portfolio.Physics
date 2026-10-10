@@ -155,3 +155,31 @@ for (const viewport of VIEWPORTS) {
     });
   }
 }
+
+test.describe('móvil, regiones desplazables', () => {
+  test.use({ viewport: VIEWPORTS[1].size });
+
+  for (const { name, path } of PAGES.slice(1, 4)) {
+    test(`en ${name} cada región desplazable tiene un nombre único (landmark-unique)`, async ({
+      page,
+    }) => {
+      await page.goto(path);
+      await hydrateAllIslands(page);
+      // Fonts change the widths: wait until they are in, as the region sync does.
+      await page.evaluate(() => document.fonts.ready);
+
+      const names = await page
+        .locator('[role="region"][data-scroll-label]')
+        .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('aria-label') ?? ''));
+      expect(names.length, 'regiones desplazables a 375 px').toBeGreaterThan(0);
+      expect(new Set(names).size).toBe(names.length);
+      for (const label of names)
+        expect(label).toMatch(/^(Ecuación \(\d+\.\d+\)|Figura \d+\.\d+) desplazable$/);
+
+      const { violations } = await new AxeBuilder({ page })
+        .withRules(['landmark-unique'])
+        .analyze();
+      expect(violations.map(({ id, nodes }) => ({ id, count: nodes.length }))).toEqual([]);
+    });
+  }
+});

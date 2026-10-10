@@ -295,4 +295,22 @@ describe('JumpLab', () => {
     expect(screen.getByTestId('clamp-note')).toHaveTextContent(/impulso v₀, gravedad g/);
     expect((v0Range() as HTMLInputElement).value).toBe('25');
   });
+  test('the knobs may bleed past the plot edge, but the trail and the vectors stay inside it', () => {
+    const { container } = renderLab();
+    const clipOf = (node: Element | null) =>
+      node?.closest('g[clip-path]')?.getAttribute('clip-path');
+    const clipRect = (ref: string | null | undefined) => {
+      const id = ref?.match(/^url\(#(.+)\)$/)?.[1] ?? '';
+      const rect = container.querySelector(`clipPath[id="${id}"] rect`);
+      return ['x', 'y', 'width', 'height'].map((name) => Number(rect?.getAttribute(name)));
+    };
+    const plotArea = clipRect(
+      container.querySelector('svg[role="img"] g[clip-path]')?.getAttribute('clip-path'),
+    );
+
+    for (const selector of ['[data-velocity]', '[data-trail]']) {
+      expect(clipRect(clipOf(container.querySelector(selector))), selector).toEqual(plotArea);
+    }
+    expect(clipRect(clipOf(screen.getByTestId('jump-marker')))).not.toEqual(plotArea);
+  });
 });

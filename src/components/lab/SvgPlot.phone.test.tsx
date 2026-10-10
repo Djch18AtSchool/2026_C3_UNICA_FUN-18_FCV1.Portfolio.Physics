@@ -203,4 +203,48 @@ describe('SvgPlot on a phone-width container', () => {
     expect(attr(target, 'x') + 12).toBeCloseTo(attr(knob, 'cx'));
     expect(attr(target, 'y') + 22).toBeCloseTo(attr(knob, 'cy'));
   });
+  test.each([720, 300])(
+    'at %i px a band label placed before the band ends left of it, wrapped to fit the plot',
+    (width) => {
+      stubResizeObserver(width);
+      let captured: { x: Scale; y: Scale } | undefined;
+      const { container } = render(
+        <SvgPlot
+          {...PROPS}
+          xDomain={{ min: 40, max: 160 }}
+          bands={[
+            {
+              from: 105,
+              to: 135,
+              label: 'Ventana de trabajo C3 (2019)',
+              labelAt: 'bottom',
+              labelBefore: true,
+            },
+          ]}
+          overlay={(scales) => {
+            captured = scales;
+            return null;
+          }}
+        />,
+      );
+      const bandLeft = captured!.x.toPx(105);
+      const areaLeft = captured!.x.range[0];
+      const text = [...container.querySelectorAll('text')].find(
+        (node) => node.textContent === 'Ventana de trabajo C3 (2019)',
+      ) as SVGTextElement;
+      const tspans = [...text.querySelectorAll('tspan')];
+      const lines = tspans.length > 0 ? tspans : [text];
+      const x = Number(text.getAttribute('x'));
+
+      expect(text).toHaveAttribute('text-anchor', 'end');
+      expect(x).toBeLessThan(bandLeft);
+      for (const line of lines) {
+        expect(x - (line.textContent ?? '').trim().length * 12 * 0.6).toBeGreaterThanOrEqual(
+          areaLeft,
+        );
+      }
+      expect(lines.length).toBe(width === 720 ? 1 : 2);
+      expect(container.querySelector('[data-band]')).not.toBeNull();
+    },
+  );
 });

@@ -34,7 +34,8 @@ function toHtml(tex: string, displayMode: boolean): string {
   <div class="equation" id={id}>
     <div
       class="equation-math"
-      data-scroll-label="Ecuación desplazable"
+      data-scroll-label="Ecuación ({n}) desplazable"
+      data-scroll-number=".equation"
       set:html={toHtml(latex, true)}
     />
     {symbols.length > 0 && (

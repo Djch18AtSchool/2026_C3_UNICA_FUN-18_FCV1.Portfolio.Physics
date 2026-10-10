@@ -27,6 +27,11 @@ export interface PlotBand {
   label: string;
   /** Where the label sits: along the top of the plot area (default) or along its bottom. */
   labelAt?: 'top' | 'bottom';
+  /**
+   * Put the label just left of the band, ending at its left edge and wrapped to the room there,
+   * so a cursor inside the band never crosses it; centred on the band when no word fits.
+   */
+  labelBefore?: boolean;
 }
 export interface PlotCursor {
   x: number;
@@ -57,10 +62,11 @@ export interface SvgPlotProps {
   /** Defaults to the global grid setting. */
   showGrid?: boolean;
   /** Custom SVG drawn in viewBox pixels, clipped to the plot area, above the series. */
-  overlay?: (scales: { x: Scale; y: Scale }) => ReactNode;
+  overlay?: (scales: OverlayScales) => ReactNode;
   /**
    * Pixels the overlay may draw past the plot area on every side (default 0): a draggable knob
-   * that can sit on the plot's edge then stays whole and keeps its full hit target.
+   * that can sit on the plot's edge then stays whole and keeps its full hit target. The overlay
+   * then wraps everything but its knobs (vectors, trails, labels) in `plotClipPath`.
    */
   overlayBleed?: number;
   ariaLabel: string;
@@ -68,6 +74,14 @@ export interface SvgPlotProps {
 }
 
 export type { Domain, Scale } from './plotScales';
+
+/** What the overlay draws with: the scales and, with a bleed, the plain plot-area clip. */
+export interface OverlayScales {
+  x: Scale;
+  y: Scale;
+  /** `url(#…)` of a clip to the plot area itself, for marks that must not use the bleed. */
+  plotClipPath?: string;
+}
 
 /** viewBox width before the container is measured (SSR, jsdom): the article column. */
 const FALLBACK_WIDTH = 720;
@@ -337,9 +351,14 @@ export default function SvgPlot(props: SvgPlotProps) {
           className="pointer-events-none absolute inset-0 block h-full w-full"
         >
           {clipRect(`${clipBase}-overlay`, props.overlayBleed)}
+          {props.overlayBleed ? clipRect(`${clipBase}-overlay-plot`) : null}
           {overlay ? (
             <g clipPath={`url(#${clipBase}-overlay)`} className="pointer-events-auto">
-              {overlay({ x, y })}
+              {overlay({
+                x,
+                y,
+                plotClipPath: props.overlayBleed ? `url(#${clipBase}-overlay-plot)` : undefined,
+              })}
             </g>
           ) : null}
           {cursor ? (

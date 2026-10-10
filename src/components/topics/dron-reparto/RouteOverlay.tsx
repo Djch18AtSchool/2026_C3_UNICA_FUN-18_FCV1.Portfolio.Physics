@@ -191,6 +191,16 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
           <VectorLabel from={drone} to={accelTip} text="a" />
         </g>
       ) : null}
+      {DELIVERY_INDICES.map((index) => (
+        <StopHandle
+          key={index}
+          index={index}
+          stop={stops[index]}
+          scales={scales}
+          onStopDrag={props.onStopDrag}
+        />
+      ))}
+      {/* Drawn after the stops: where the drone meets one, the drone stays grabbable. */}
       <g
         data-testid="drone-marker"
         role="slider"
@@ -206,15 +216,6 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
       >
         <Knob at={drone} fill={TEXT_COLOR} />
       </g>
-      {DELIVERY_INDICES.map((index) => (
-        <StopHandle
-          key={index}
-          index={index}
-          stop={stops[index]}
-          scales={scales}
-          onStopDrag={props.onStopDrag}
-        />
-      ))}
     </g>
   );
 }

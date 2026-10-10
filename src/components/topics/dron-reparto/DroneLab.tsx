@@ -24,8 +24,11 @@ import type { StopIndex } from './RouteOverlay';
 
 /** The route lasts minutes: playback compresses it 20 times (387 s in about 19 s at 1×). */
 export const TIME_LAPSE = 20;
-/** Braking into A: the opening view shows v and a pointing opposite ways (as in v1). */
-const INITIAL_TIME_S = 65;
+/**
+ * Cruising on leg 1, halfway to A: the opening view shows the drone and its v clear of every stop
+ * (braking into A, as in v1, put the drone under A's knob at any width).
+ */
+const INITIAL_TIME_S = 30;
 /** Ranges of the main parameters (spec §8.3). */
 const V_MAX_RANGE = { min: 1, max: 15, step: 0.5 } as const;
 const A_MAX_RANGE = { min: 0.5, max: 5, step: 0.1 } as const;

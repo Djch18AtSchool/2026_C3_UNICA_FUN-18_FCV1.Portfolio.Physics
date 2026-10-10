@@ -117,7 +117,7 @@ const isPublished = status === 'publicado';
       </div>
 
       {isPublished ? (
-        <div class="topic-body" style={`counter-set: topic ${number}`}>
+        <div class="topic-body" data-topic-number={number} style={`counter-set: topic ${number}`}>
           <slot />
         </div>
       ) : (

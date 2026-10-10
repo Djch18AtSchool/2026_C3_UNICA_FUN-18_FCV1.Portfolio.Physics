@@ -16,6 +16,9 @@ const BAND_OPACITY = 0.12;
 const BAND_LABEL_OFFSET = 16;
 /** A bottom band label's baseline above the x axis. */
 const BAND_LABEL_BOTTOM_INSET = 8;
+/** Gap between a label placed before its band and the band's left edge. */
+const BAND_LABEL_GAP = 6;
+const BAND_LABEL_LINE = 14;
 const MARKER_RADIUS = 5;
 const MARKER_LABEL_GAP = 10;
 const HALO_WIDTH = 4;
@@ -29,9 +32,74 @@ const haloText = {
   paintOrder: 'stroke',
 } as const;
 
+/** Greedy word wrap to `maxWidth` px; undefined when some word alone is wider. */
+export function wrapLabel(text: string, maxWidth: number, fontSize: number): string[] | undefined {
+  const lines: string[] = [];
+  for (const word of text.split(' ')) {
+    if (monoTextWidth(word, fontSize) > maxWidth) return undefined;
+    const last = lines[lines.length - 1];
+    const joined = last === undefined ? word : `${last} ${word}`;
+    if (last !== undefined && monoTextWidth(joined, fontSize) <= maxWidth) {
+      lines[lines.length - 1] = joined;
+    } else {
+      lines.push(word);
+    }
+  }
+  return lines;
+}
+
+function BandLabel({
+  band,
+  from,
+  to,
+  area,
+  width,
+}: {
+  band: PlotBand;
+  from: number;
+  to: number;
+  area: PlotArea;
+  width: number;
+}) {
+  const isBottom = band.labelAt === 'bottom';
+  const lines = band.labelBefore
+    ? wrapLabel(band.label, from - BAND_LABEL_GAP - area.left, NOTE_SIZE)
+    : undefined;
+  if (!lines) {
+    return (
+      <text
+        x={fitCentre((from + to) / 2, monoTextWidth(band.label, NOTE_SIZE), 0, width)}
+        y={isBottom ? area.bottom - BAND_LABEL_BOTTOM_INSET : area.top + BAND_LABEL_OFFSET}
+        textAnchor="middle"
+        {...haloText}
+      >
+        {band.label}
+      </text>
+    );
+  }
+  const x = from - BAND_LABEL_GAP;
+  // Bottom labels grow upward from the bottom inset; top labels downward from the top offset.
+  const firstY = isBottom
+    ? area.bottom - BAND_LABEL_BOTTOM_INSET - (lines.length - 1) * BAND_LABEL_LINE
+    : area.top + BAND_LABEL_OFFSET;
+  return (
+    <text x={x} y={firstY} textAnchor="end" {...haloText}>
+      {lines.length === 1
+        ? lines[0]
+        : lines.map((line, index) => (
+            // A trailing space keeps the words apart in the text's content (and its accessible text).
+            <tspan key={line} x={x} dy={index === 0 ? 0 : BAND_LABEL_LINE}>
+              {index < lines.length - 1 ? `${line} ` : line}
+            </tspan>
+          ))}
+    </text>
+  );
+}
+
 /**
- * Shaded x ranges, each labelled at its centre (top or bottom of the plot area); a label wider
- * than the room toward an edge is shifted so it stays inside the viewBox.
+ * Shaded x ranges, each labelled at its centre (top or bottom of the plot area), or just before
+ * it with `labelBefore`; a centred label wider than the room toward an edge is shifted so it
+ * stays inside the viewBox.
  */
 export function Bands({
   bands,
@@ -61,18 +129,7 @@ export function Bands({
               fill={TICK_COLOR}
               fillOpacity={BAND_OPACITY}
             />
-            <text
-              x={fitCentre((from + to) / 2, monoTextWidth(band.label, NOTE_SIZE), 0, width)}
-              y={
-                band.labelAt === 'bottom'
-                  ? area.bottom - BAND_LABEL_BOTTOM_INSET
-                  : area.top + BAND_LABEL_OFFSET
-              }
-              textAnchor="middle"
-              {...haloText}
-            >
-              {band.label}
-            </text>
+            <BandLabel band={band} from={from} to={to} area={area} width={width} />
           </g>
         );
       })}

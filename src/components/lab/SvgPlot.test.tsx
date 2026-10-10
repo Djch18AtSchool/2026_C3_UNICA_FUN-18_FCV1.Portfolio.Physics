@@ -225,6 +225,29 @@ describe('SvgPlot', () => {
 
       expect(rectOf(1)).toEqual([px - 16, py - 16, pw + 32, ph + 32]);
     });
+
+    test('with a bleed, the overlay gets a plot-area clip for its vectors and trails', () => {
+      let clip: string | undefined;
+      const { container } = render(
+        <SvgPlot
+          {...PROPS}
+          overlayBleed={16}
+          overlay={({ plotClipPath }) => {
+            clip = plotClipPath;
+            return <circle r={4} />;
+          }}
+        />,
+      );
+      const id = clip?.match(/^url\(#(.+)\)$/)?.[1] ?? '';
+      const rect = (node: Element | null | undefined) =>
+        ['x', 'y', 'width', 'height'].map((name) => Number(node?.getAttribute(name)));
+      const layers = container.querySelectorAll('svg[viewBox]');
+
+      expect(layers[1].querySelector(`clipPath[id="${id}"] rect`)).not.toBeNull();
+      expect(rect(layers[1].querySelector(`clipPath[id="${id}"] rect`))).toEqual(
+        rect(layers[0].querySelector('clipPath rect')),
+      );
+    });
   });
 
   test('equalAspect gives both axes the same pixels per unit', () => {

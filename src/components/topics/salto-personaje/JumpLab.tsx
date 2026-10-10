@@ -235,6 +235,7 @@ export default function JumpLab({ footnote }: JumpLabProps): JSX.Element {
           overlay={(scales) => (
             <JumpOverlay
               scales={scales}
+              plotClipPath={scales.plotClipPath}
               settings={settings}
               live={live}
               t={clock.state.t}

@@ -13,6 +13,8 @@ const LABS = [
 ] as const;
 const SETTINGS_TITLE = /^Ajustes: /;
 const WHEEL_PX = 400;
+/** LabShell's READOUT_ANNOUNCE_DELAY_MS: readouts are spoken once still for this long. */
+const READOUT_SETTLE_MS = 750;
 
 test.use({ viewport: DESKTOP });
 
@@ -83,10 +85,15 @@ test('las lecturas se anuncian una vez quietas, no en cada pulsación', async ({
 
   const handle = lab.getByTestId('launch-handle');
   await handle.focus();
-  for (let i = 0; i < 3; i++) await handle.press('ArrowUp');
+  const pressedAt = Date.now();
+  await handle.press('ArrowUp');
+  // One read, no retries: still inside the settle window, nothing has been announced yet.
+  const early = (await announcer.textContent()) ?? '';
+  const readAfterMs = Date.now() - pressedAt;
+  if (readAfterMs < READOUT_SETTLE_MS) expect(early).toBe('');
 
-  await expect(announcer).toHaveText('');
-  await expect(announcer).toContainText('Altura máxima:');
+  await expect.poll(async () => (await announcer.textContent()) ?? '').toContain('Altura máxima:');
+  expect(Date.now() - pressedAt).toBeGreaterThanOrEqual(READOUT_SETTLE_MS);
 });
 
 for (const { path, testId } of LABS) {
