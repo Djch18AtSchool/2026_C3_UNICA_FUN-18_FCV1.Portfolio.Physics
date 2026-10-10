@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { createClock, type ClockState } from '../../lib/physics/clock';
@@ -98,6 +98,18 @@ describe('LabShell', () => {
     await user.keyboard('{Escape}');
 
     expect((container.querySelector('dialog') as HTMLDialogElement).open).toBe(false);
+    expect(gear()).toHaveAttribute('aria-expanded', 'false');
+    expect(gear()).toHaveFocus();
+  });
+
+  test('focus returns to the gear even when clicking it did not focus it', () => {
+    renderShell();
+
+    // Safari and macOS Firefox leave focus on body when a button is clicked.
+    expect(document.activeElement).toBe(document.body);
+    fireEvent.click(gear());
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Escape' });
+
     expect(gear()).toHaveAttribute('aria-expanded', 'false');
     expect(gear()).toHaveFocus();
   });

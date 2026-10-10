@@ -117,6 +117,44 @@ describe('ParamField', () => {
     expect(field().value).toBe('1');
   });
 
+  test('a typed value snaps to the step grid min + k·step on commit', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<ParamField {...BASE} step={0.5} value={2} onChange={onChange} />);
+
+    await user.clear(field());
+    await user.type(field(), '1,3{Enter}');
+
+    expect(onChange).toHaveBeenCalledWith(1.5);
+  });
+
+  test('snapping leaves no float residue and never passes an off-grid maximum', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<ParamField {...BASE} min={0} max={1} step={0.1} value={0.5} onChange={onChange} />);
+
+    await user.clear(field());
+    await user.type(field(), '0,3{Enter}');
+    expect(onChange).toHaveBeenLastCalledWith(0.3);
+
+    onChange.mockClear();
+    render(
+      <ParamField
+        {...BASE}
+        id="off-grid"
+        min={0}
+        max={1.2}
+        step={0.5}
+        value={0}
+        onChange={onChange}
+      />,
+    );
+    const offGrid = screen.getAllByRole<HTMLInputElement>('textbox', { name: 'Gravedad g' })[1];
+    await user.clear(offGrid);
+    await user.type(offGrid, '1,2{Enter}');
+    expect(onChange).toHaveBeenLastCalledWith(1);
+  });
+
   test('text that is not a number reverts to the current value without committing', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();

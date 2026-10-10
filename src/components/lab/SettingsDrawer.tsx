@@ -1,4 +1,13 @@
-import { useEffect, useId, useRef, useState, type JSX, type KeyboardEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type JSX,
+  type KeyboardEvent,
+  type MouseEvent,
+  type RefObject,
+} from 'react';
 import GlobalSettingsTab from './GlobalSettingsTab';
 import { ICON_BUTTON } from './iconButton';
 import LocalSettingsTab from './LocalSettingsTab';
@@ -32,6 +41,11 @@ export interface SettingsDrawerProps {
   local: SettingOption[];
   /** Id of the <dialog>, so an opener can point aria-controls at it; generated when omitted. */
   id?: string;
+  /**
+   * Element that gets focus back on close (the opener). Safari and macOS Firefox do not focus a
+   * button on click, so `document.activeElement` at open time is only the fallback.
+   */
+  returnFocusTo?: RefObject<HTMLElement | null>;
 }
 
 type TabKey = 'local' | 'global';
@@ -52,6 +66,14 @@ function showDialog(dialog: HTMLDialogElement): void {
   if (dialog.open) return;
   if (typeof dialog.showModal === 'function') dialog.showModal();
   else dialog.setAttribute('open', '');
+}
+
+/** Whether a click landed outside the dialog's box, i.e. on its ::backdrop. */
+function isBackdropClick(event: MouseEvent<HTMLDialogElement>): boolean {
+  if (event.target !== event.currentTarget) return false;
+  const box = event.currentTarget.getBoundingClientRect();
+  const { clientX: x, clientY: y } = event;
+  return x < box.left || x > box.right || y < box.top || y > box.bottom;
 }
 
 function hideDialog(dialog: HTMLDialogElement): void {
@@ -102,6 +124,7 @@ export default function SettingsDrawer({
   title,
   local,
   id,
+  returnFocusTo,
 }: SettingsDrawerProps): JSX.Element {
   const generatedId = useId();
   const dialogId = id ?? generatedId;
@@ -116,7 +139,8 @@ export default function SettingsDrawer({
     if (!dialog) return;
     if (open) {
       const focused = document.activeElement;
-      returnFocusRef.current = focused instanceof HTMLElement ? focused : null;
+      returnFocusRef.current =
+        returnFocusTo?.current ?? (focused instanceof HTMLElement ? focused : null);
       showDialog(dialog);
       return;
     }
@@ -124,6 +148,7 @@ export default function SettingsDrawer({
     const returnTo = returnFocusRef.current;
     returnFocusRef.current = null;
     if (returnTo?.isConnected) returnTo.focus();
+    // returnFocusTo is a ref, read at open time; it never needs to re-run the effect.
   }, [open]);
 
   const selectTab = (key: TabKey) => {
@@ -153,9 +178,10 @@ export default function SettingsDrawer({
       onClose={() => {
         if (open) onClose();
       }}
-      // The panel fills the dialog box, so a click whose target is the dialog hit the backdrop.
+      // A click on the dialog itself may be blank panel area below the content (the panel is
+      // full height); only one outside the dialog's box hit the backdrop.
       onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (isBackdropClick(event)) onClose();
       }}
     >
       <div className="flex flex-col">

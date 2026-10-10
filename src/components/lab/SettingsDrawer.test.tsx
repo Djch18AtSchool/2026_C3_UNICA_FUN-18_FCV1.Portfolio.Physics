@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { getSettings, resetSettingsForTests } from '../../lib/settingsStore';
 import { installDialogPolyfill, removeDialogMethods } from '../../test-dialog';
@@ -247,6 +247,53 @@ describe('SettingsDrawer', () => {
     fireEvent(dialogOf(container), new Event('close'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  test('a click inside the dialog box keeps it open; one outside the box closes it', async () => {
+    const onClose = vi.fn();
+    const { container } = await openHarness([], onClose);
+    const dialog = dialogOf(container);
+    // A full-height side panel taller than its content: the blank area is still the dialog.
+    vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(
+      DOMRect.fromRect({ x: 880, y: 0, width: 400, height: 900 }),
+    );
+
+    fireEvent.click(dialog, { clientX: 1000, clientY: 800 });
+    expect(onClose).not.toHaveBeenCalled();
+    expect(dialog.open).toBe(true);
+
+    fireEvent.click(dialog, { clientX: 300, clientY: 400 });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  test('returnFocusTo wins over whatever had focus when the drawer opened', () => {
+    function RefHarness() {
+      const [open, setOpen] = useState(false);
+      const openerRef = useRef<HTMLButtonElement>(null);
+      return (
+        <>
+          <button ref={openerRef} type="button" onClick={() => setOpen(true)}>
+            Abrir
+          </button>
+          <SettingsDrawer
+            open={open}
+            onClose={() => setOpen(false)}
+            title="Ajustes"
+            local={[]}
+            returnFocusTo={openerRef}
+          />
+        </>
+      );
+    }
+    render(<RefHarness />);
+    const opener = screen.getByRole('button', { name: 'Abrir' });
+
+    // Safari and macOS Firefox do not focus a button on click: body has focus at open time.
+    expect(document.activeElement).toBe(document.body);
+    fireEvent.click(opener);
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Escape' });
+
+    expect(opener).toHaveFocus();
   });
 
   test('falls back to the open attribute where showModal is missing', () => {

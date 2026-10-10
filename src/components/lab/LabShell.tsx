@@ -1,4 +1,4 @@
-import { useId, useState, type JSX, type ReactNode } from 'react';
+import { useId, useRef, useState, type JSX, type ReactNode } from 'react';
 import { RESOURCE_LABELS, type ResourceType } from '../../consigna';
 import ControlPanel from '../controls/ControlPanel';
 import Readout from '../controls/Readout';
@@ -77,6 +77,7 @@ export default function LabShell({
   const titleId = `${baseId}-title`;
   const drawerId = `${baseId}-settings`;
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const gearRef = useRef<HTMLButtonElement>(null);
 
   return (
     <div
@@ -95,6 +96,7 @@ export default function LabShell({
             <ResourceMark type={type} />
           </div>
           <button
+            ref={gearRef}
             type="button"
             aria-label="Ajustes del simulador"
             aria-haspopup="dialog"
@@ -133,6 +135,7 @@ export default function LabShell({
         id={drawerId}
         open={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
+        returnFocusTo={gearRef}
         title={`Ajustes: ${title}`}
         local={localSettings}
       />

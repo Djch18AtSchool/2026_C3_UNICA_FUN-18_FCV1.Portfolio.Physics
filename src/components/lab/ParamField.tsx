@@ -33,9 +33,32 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+/** Decimal places of a number as written (0.25 → 2, 1e-3 → 3). */
+function decimalsOf(value: number): number {
+  const [mantissa, exponent = '0'] = String(value).split('e');
+  const fraction = mantissa.split('.')[1]?.length ?? 0;
+  return Math.max(0, fraction - Number(exponent));
+}
+
+/** Tolerance for "max lies on the grid" despite float division error. */
+const GRID_EPSILON = 1e-9;
+
+/**
+ * The grid point min + k·step nearest to value, inside [min, max] (k never passes the last grid
+ * point, even when max is off the grid), with the float residue rounded away. This is the value
+ * the range thumb can show, so the field and the thumb always agree.
+ */
+function snapToStep(value: number, min: number, max: number, step: number): number {
+  if (!(step > 0)) return clamp(value, min, max);
+  const lastIndex = Math.floor((max - min) / step + GRID_EPSILON);
+  const index = clamp(Math.round((value - min) / step), 0, lastIndex);
+  return Number((min + index * step).toFixed(Math.max(decimalsOf(step), decimalsOf(min))));
+}
+
 /**
  * A parameter as a range and a number field bound to the same value. The range commits on every
- * move; the field keeps what is typed and commits on blur or Enter, clamped to [min, max].
+ * move; the field keeps what is typed and commits on blur or Enter, snapped to the step grid
+ * min + k·step and clamped to [min, max].
  */
 export default function ParamField({
   id,
@@ -58,7 +81,7 @@ export default function ParamField({
     setDraft(null);
     const parsed = parseFieldText(draft);
     if (parsed === undefined) return;
-    const next = clamp(parsed, min, max);
+    const next = snapToStep(parsed, min, max, step);
     if (next !== value) onChange(next);
   };
 
