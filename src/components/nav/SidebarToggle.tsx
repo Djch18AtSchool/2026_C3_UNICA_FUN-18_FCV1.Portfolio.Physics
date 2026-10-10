@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { HEADER_ICON_BUTTON } from './headerButton';
 import {
   NAV_CLOSED,
   NAV_OPEN,
@@ -36,7 +37,7 @@ export default function SidebarToggle() {
       aria-expanded={!isClosed}
       data-sidebar-toggle
       onClick={toggleSidebar}
-      className="hidden size-10 shrink-0 items-center justify-center rounded-base border border-border bg-bg-elevated text-fg-muted transition-colors hover:border-fg-muted hover:text-fg lg:inline-flex"
+      className={`hidden ${HEADER_ICON_BUTTON} lg:inline-flex`}
     >
       <svg
         className="size-[18px]"

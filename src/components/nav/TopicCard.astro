@@ -5,13 +5,11 @@ import { topicUrl } from '../../lib/url';
 
 interface Props {
   topic: TopicSummary;
-  /** The real product of the use case; shown only once the topic is published. */
-  product?: string;
 }
-const { topic, product } = Astro.props;
+const { topic } = Astro.props;
 const isPublished = topic.status === 'publicado';
 // One entry of the notebook's table of contents: margin number, double margin rule, title,
-// a dotted leader on wide screens, then resource and status. The whole row is the link target.
+// a dotted leader on wide screens, then the resource type (published) or "Próximamente". The whole row is the link target.
 ---
 
 <article
@@ -33,11 +31,6 @@ const isPublished = topic.status === 'publicado';
           {topic.title}
         </a>
       </h3>
-      {isPublished && product && (
-        <p class="text-sm text-fg-muted">
-          Caso: <span class="text-fg">{product}</span>
-        </p>
-      )}
     </div>
     <span
       class="hidden min-w-8 flex-1 self-center border-b-2 border-dotted border-border md:block"

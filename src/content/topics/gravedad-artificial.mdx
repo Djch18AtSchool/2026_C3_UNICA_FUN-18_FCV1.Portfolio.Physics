@@ -46,7 +46,7 @@ classRefs:
   - module: 'Módulo 2'
     topic: 'Tema 01 · Leyes de Newton · Concepto 04 · Segunda ley de Newton'
     note: 'Extensión: aplicada a la persona, ΣF = m a_c; la normal del piso es la fuerza centrípeta.'
-updated: 2026-10-09
+updated: 2026-10-10
 ---
 
 import Step from '../../components/ui/Step.astro';
@@ -60,7 +60,7 @@ import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
 import HabitatDiagram from '../../components/topics/gravedad-artificial/HabitatDiagram.astro';
 import HabitatFigure from '../../components/topics/gravedad-artificial/HabitatFigure';
-import HabitatLab from '../../components/topics/gravedad-artificial/HabitatLab';
+import HabitatLab, { TIME_LAPSE } from '../../components/topics/gravedad-artificial/HabitatLab';
 
 Sin giro, el piso de una nave no empuja: nadie siente peso. Con giro, el piso aporta la fuerza centrípeta; diseñar es elegir radio y giro.
 
@@ -99,6 +99,7 @@ Si la persona cae con la nave, <Equation inline latex="\vec a = \vec g" /> y la 
 
 <Figure
   type="diagrama"
+  showBadge={false}
   caption="Diagrama de cuerpo libre. En la Tierra, el piso empuja hacia arriba con n = m g, y eso se siente como peso. En una nave que no gira, en órbita, nave y persona caen con la misma aceleración a = g: el piso no empuja y n = 0."
   source={{
     text: 'Diagrama del autor con la ecuación (3.1), segunda ley de Newton de Serway y Jewett (2018), fuente 4',
@@ -147,6 +148,7 @@ Respecto de la nave, que cae entera con <Equation inline latex="\vec g" />, la (
 
 <Figure
   type="visualizacion"
+  showBadge={false}
   caption="a_c/g = ω²r/g frente a r: a giro fijo, una recta que corta la línea de 1 g en r = g/ω². A 2 RPM, ω = 0,2094 rad/s y r = 9,81/0,2094² = 223,6 m, con el piso a 46,8 m/s y una vuelta cada 30 s; a 1 RPM, 894,6 m. Al revés, r = 100 m pide ω = 0,3132 rad/s, es decir, 2,99 RPM. El Toro de Stanford, diseñado en el estudio de verano de la NASA de 1975 y publicado en 1977 como SP-413, es un tubo de 130 m de diámetro doblado en una rueda de unos 1 800 m, con radio mayor R = 830 m, radio del tubo de 65 m y seis rayos. El estudio pide vivir entre 0,9 y 1 g, sin pasar de 1 RPM en las zonas de vivienda, y reporta 0,95 ± 0,05 g a 1 RPM. A 1 RPM, ω = 0,1047 rad/s y a_c = 9,10 m/s² = 0,93 g. Según mi cálculo, entre R y el punto más exterior del tubo, 830 + 65 = 895 m, la gravedad aparente va de 0,93 a 1,00 g, dentro de los 0,95 ± 0,05 g del informe; la pared interior, a 765 m, se queda en 0,86 g."
   source={{
     text: 'Rectas calculadas por el autor con la ecuación (3.2); geometría y criterios del Toro de Stanford de NASA SP-413, fuente 1',
@@ -185,6 +187,7 @@ En la (3.3) ω se cancela: el gradiente depende solo de r, del 0,8 % a 223,6 m a
 
 <Figure
   type="visualizacion"
+  showBadge={false}
   caption="Giro que pide 1 g, N = (60/2π)·√(g/r), frente a r, con los límites de confort de los cinco autores que recopila SpinCalc (artificial-gravity.com, desde 2000; última revisión de 2018): Hill y Schnitzer (1962), Gilruth (1969), Gordon y Gervais (1969), Stone (1973) y Cramer (1985). No coinciden: el giro máximo va de 3 a 6 RPM y el radio mínimo, cuando lo dan, de 4 a 12 m (bandas); la velocidad tangencial mínima, de 6 a 10 m/s. Cada punto lleva su gradiente h/r con h = 1,80 m; la centrífuga de 10 m, a 9,46 RPM, supera el giro máximo de los cinco. Coriolis en el Toro de Stanford, según SP-413: quien salta 0,55 m cae unos 5,3 cm a un lado."
   source={{
     text: 'Curva calculada por el autor con las ecuaciones (3.2) y (3.3); límites de confort de SpinCalc, fuente 2',
@@ -239,7 +242,7 @@ Con 1 g, la (3.2) en la (3.4) da <Equation inline latex="v = \sqrt{g r}" /> y <E
 >
   <HabitatLab
     client:visible
-    footnote="La reproducción va 6 veces más rápida que el giro real: a 1 RPM, la vuelta de 60 s dura 10 s a 1×; la lectura t va en segundos reales. Con g = 9,81 m/s² y h = 1,80 m. Lo que deja fuera: resuelve la cinemática y el gradiente; no calcula el efecto Coriolis ni los distintos niveles de un tubo de 130 m."
+    footnote={`La reproducción va ${TIME_LAPSE} veces más rápida que el giro real: a 1 RPM, la vuelta de 60 s dura ${60 / TIME_LAPSE} s a 1×; la lectura t va en segundos reales. Con g = 9,81 m/s² y h = 1,80 m. Lo que deja fuera: resuelve la cinemática y el gradiente; no calcula el efecto Coriolis ni los distintos niveles de un tubo de 130 m.`}
   />
 </Figure>
 

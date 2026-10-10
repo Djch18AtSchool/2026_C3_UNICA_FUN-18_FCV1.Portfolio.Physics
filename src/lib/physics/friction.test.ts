@@ -4,6 +4,7 @@ import {
   kineticFriction,
   loadSensitiveMu,
   magicFormula,
+  magicFormulaPeak,
   maxLateralForce,
   maxStaticFriction,
   normalOnIncline,
@@ -57,5 +58,21 @@ describe('Pacejka magic formula', () => {
     expect(magicFormula(0, c)).toBe(0);
     expect(magicFormula(-0.1, c)).toBeCloseTo(-magicFormula(0.1, c), 12);
     expect(Math.abs(magicFormula(5, c))).toBeLessThanOrEqual(1);
+  });
+
+  test('peaks at height D where C·arctan φ = π/2: x ≈ 0,18 with the example values', () => {
+    const peak = magicFormulaPeak(c);
+
+    expect(peak.x).toBeCloseTo(0.1802, 3);
+    expect(peak.y).toBeCloseTo(1, 9);
+    expect(magicFormula(peak.x - 0.01, c)).toBeLessThan(peak.y);
+    expect(magicFormula(peak.x + 0.01, c)).toBeLessThan(peak.y);
+  });
+
+  test('has no peak when C ≤ 1: the curve only saturates', () => {
+    expect(() => magicFormulaPeak({ ...c, C: 1 })).toThrow(RangeError);
+    expect(() => magicFormulaPeak({ ...c, E: 1.2 })).toThrow(RangeError);
+    // E = 1 bounds φ by π/2 < tan(π/2,2): the argument never reaches π/2.
+    expect(() => magicFormulaPeak({ ...c, C: 1.1, E: 1 })).toThrow(RangeError);
   });
 });

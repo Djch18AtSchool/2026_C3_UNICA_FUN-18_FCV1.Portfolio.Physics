@@ -26,7 +26,6 @@ function fakeClock(overrides: Partial<ClockState> = {}): SimClock {
 function shellProps(overrides: Partial<LabShellProps> = {}): LabShellProps {
   return {
     title: 'Laboratorio del salto',
-    type: 'simulacion',
     readouts: [
       { id: 'hMax', label: 'Altura máxima', value: 1.234, unit: 'm' },
       { id: 'tAir', label: 'Tiempo en el aire', value: 0.5, unit: 's' },
@@ -71,11 +70,11 @@ describe('LabShell', () => {
     resetSettingsForTests();
   });
 
-  test('shows the title and the resource type, and names the group after the title', () => {
+  test('shows the title, names the group after it and leaves the type badge to its Figure', () => {
     renderShell();
 
     expect(screen.getByText('Laboratorio del salto')).toBeInTheDocument();
-    expect(screen.getByText('Simulación interactiva')).toBeInTheDocument();
+    expect(screen.queryByText('Simulación interactiva')).toBeNull();
     expect(screen.getByRole('group', { name: 'Laboratorio del salto' })).toBe(
       screen.getByTestId('jump-lab'),
     );
@@ -163,7 +162,6 @@ describe('LabShell', () => {
     rerender(
       <LabShell
         title="Laboratorio del salto"
-        type="simulacion"
         clock={fakeClock({ playing: false })}
         readouts={[]}
         params={null}

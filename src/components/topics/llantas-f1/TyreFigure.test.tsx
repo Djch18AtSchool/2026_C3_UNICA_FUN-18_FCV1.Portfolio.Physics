@@ -65,6 +65,17 @@ describe('TyreFigure', () => {
     expect(screen.getByText('Temperatura T (°C)')).toBeInTheDocument();
   });
 
+  test('pacejka: the curve of (4.4) with its peak near x = 0,18 and 0,91 at x = 1', () => {
+    const { container } = render(<TyreFigure variant="pacejka" />);
+
+    expect(screen.getByTestId('tyre-figure-pacejka')).toBeInTheDocument();
+    expect(strokeOf(container, 'pacejka')).toBe('var(--chart-1)');
+    expect(screen.getByText('Pico: x ≈ 0,18; y = 1,00')).toBeInTheDocument();
+    expect(screen.getByText('x = 1: y = 0,91')).toBeInTheDocument();
+    expect(screen.getByText('Deslizamiento x (adimensional)')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /0,18/ })).toBeInTheDocument();
+  });
+
   test('on a phone the crossing label shortens to its force, clear of the curves', () => {
     stubWidth(300);
     const { container } = render(<TyreFigure variant="carga" />);

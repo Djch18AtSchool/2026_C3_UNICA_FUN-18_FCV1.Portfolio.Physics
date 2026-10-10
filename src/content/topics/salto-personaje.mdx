@@ -52,7 +52,7 @@ classRefs:
   - module: 'Módulo 1'
     topic: 'Tema 1.3 · Movimiento en Dos y Tres Dimensiones'
     note: 'Con velocidad horizontal, el salto es un MRU en x superpuesto a un MRUA en y.'
-updated: 2026-10-09
+updated: 2026-10-10
 ---
 
 import Step from '../../components/ui/Step.astro';
@@ -91,7 +91,7 @@ Con +y hacia arriba y origen en el despegue, el salto es un MRU en x y un MRUA e
 
 <Fragment slot="fenomeno">
 
-La gravedad quita la misma velocidad vertical en cada instante: el personaje frena, se detiene en el ápice y cae, corra lo que corra en x.
+La gravedad quita la misma velocidad vertical en cada segundo: el personaje frena, se detiene en el ápice y cae, corra lo que corra en x.
 
 </Fragment>
 
@@ -105,6 +105,7 @@ La velocidad vertical se anula, <Equation inline latex="v_y = 0" />, en <Equatio
 
 <Figure
   type="visualizacion"
+  showBadge={false}
   caption="Altura frente al tiempo de un lanzamiento vertical con v₀ = 13,1 m/s y g = 9,81 m/s²; el punto marca el ápice."
   source={{ text: 'Curva calculada por el autor con la ecuación (2.1)' }}
 >
@@ -132,7 +133,7 @@ Su salto sostenido de 3,5 m tardaría 0,84 s en llegar al ápice, más del doble
 
 <Fragment slot="ecuacion">
 
-Con el impulso fijo, multiplicar g por n divide altura y tiempo entre n: en <Equation inline latex="(v_0, g)" /> no se separan.
+Con el impulso fijo, multiplicar g por λ divide altura y tiempo entre λ: en <Equation inline latex="(v_0, g)" /> no se separan.
 
 </Fragment>
 
@@ -140,6 +141,7 @@ Con el impulso fijo, multiplicar g por n divide altura y tiempo entre n: en <Equ
 
 <Figure
   type="visualizacion"
+  showBadge={false}
   caption="El mismo impulso, 13,1 m/s, con la gravedad de la Tierra (9,81 m/s²), la de Super Mario Bros. (28,1 m/s²) y la de Celeste (112,5 m/s²): altura y tiempo en el aire se encogen juntos."
   source={{
     text: 'Curvas calculadas por el autor con las ecuaciones (2.1) y (2.2); gravedades de los juegos convertidas como en la figura 2.3',
@@ -174,9 +176,10 @@ Es la (2.2) invertida; la diapositiva da g negativa, como componente con +y arri
 
 <Figure
   type="visualizacion"
-  caption="Subida hasta el ápice (tₕ, h) que pide cada diseño. Celeste (Player.cs), a 8 px = 1 m: Gravity 900 px/s² → 112,5 m/s²; JumpSpeed −105 px/s, negativa porque en pantalla +y apunta hacia abajo → 13,1 m/s; MaxRun 90 px/s → 11,25 m/s; HalfGravThreshold 40 px/s; VarJumpTime 0,2 s; MaxFall 160 px/s → 20 m/s. Super Mario Bros., a 16 px = 1 m (el lado de un bloque) y 60 cuadros/s: salto parado de 4 px/cuadro → 15 m/s; gravedad de 0,125 px/cuadro² con A sostenido → 28,1 m/s² y de 0,4375 px/cuadro² al soltar A o al empezar a caer → 98,4 m/s². Un toque en Celeste sube 0,77 m en 0,12 s (0,76 m con el valor redondeado); sostenido, según cálculo del autor, unos 28 px (3,5 m) en 0,36 s."
+  showBadge={false}
+  caption="Subida hasta el ápice (tₕ, h) que pide cada diseño. Celeste (Player.cs), a 8 px = 1 m: Gravity 900 px/s² → 112,5 m/s²; JumpSpeed −105 px/s, negativa porque en pantalla +y apunta hacia abajo → 13,1 m/s; MaxRun 90 px/s → 11,25 m/s; HalfGravThreshold 40 px/s; VarJumpTime 0,2 s; MaxFall 160 px/s → 20 m/s. Super Mario Bros., a 16 px = 1 m (el lado de un bloque) y 60 cuadros/s: salto parado de 4 px/cuadro → 15 m/s; gravedad de 0,125 px/cuadro² con A sostenido → 28,1 m/s² y de 0,4375 px/cuadro² al soltar A o al empezar a caer → 98,4 m/s². Un toque en Celeste sube 0,77 m en 0,12 s (0,76 m con el valor redondeado); sostenido, según mi cálculo, unos 28 px (3,5 m) en 0,36 s."
   source={{
-    text: 'Curvas calculadas por el autor con la ecuación (2.1); constantes de Player.cs (fuente 1) y del desensamblado de Super Mario Bros. (fuente 3) convertidas con escalas supuestas por el autor, que el código no fija',
+    text: 'Curvas calculadas por el autor con la ecuación (2.1); constantes de Player.cs (fuente 1) y del desensamblado de Super Mario Bros. (fuente 3) convertidas con escalas que supongo yo y que el código no fija',
   }}
 >
   <JumpFigure variant="diseno" client:visible />
@@ -186,7 +189,7 @@ Es la (2.2) invertida; la diapositiva da g negativa, como componente con +y arri
 
 <Step n={4} title="Gravedad asimétrica">
 
-El modelo mejorado separa subida y caída: Mario sube con poca gravedad mientras sostiene A y cae con más al soltarlo o tras el ápice. Aquí la caída usa <Equation inline latex="k \ge 1" /> desde el ápice: el descenso dura <Equation inline latex="\sqrt{2h_\text{máx}/(kg)}" />. En el laboratorio se arrastra <Equation inline latex="\vec v_0" /> y se recorre t.
+El modelo mejorado separa subida y caída: Mario sube con poca gravedad mientras sostiene A y cae con más al soltarlo o tras el ápice. Aquí la caída usa <Equation inline latex="k \ge 1" /> desde el ápice: el descenso dura <Equation inline latex="\sqrt{2h_\text{máx}/(k\,g)}" />. En el laboratorio se arrastra <Equation inline latex="\vec v_0" /> y se recorre t.
 
 <Equation
   id="ec-salto-aire"
@@ -207,7 +210,7 @@ El salto variable cambia un parámetro, no la curva: Celeste mantiene la velocid
 
 <Fragment slot="ecuacion">
 
-La subida sigue la ecuación (2.2); solo la caída usa <Equation inline latex="kg" />, y con <Equation inline latex="k = 1" /> vuelve <Equation inline latex="2v_0/g" />.
+La subida sigue la ecuación (2.2); solo la caída usa <Equation inline latex="k\,g" />, y con <Equation inline latex="k = 1" /> vuelve <Equation inline latex="2v_0/g" />.
 
 </Fragment>
 
@@ -215,7 +218,6 @@ La subida sigue la ecuación (2.2); solo la caída usa <Equation inline latex="k
 
 <Figure
   type="simulacion"
-  showBadge={false}
   caption="Laboratorio del salto con las ecuaciones (2.1) a (2.4): arrastra la punta de v₀ para fijar v₀ y vₓ, o el punto de la curva para recorrer t; la curva discontinua es el mismo impulso con la gravedad terrestre, que puede salirse del gráfico, y «Diseñar el salto» aplica la ecuación (2.3)."
   source={{ text: 'Simulación del autor sobre src/lib/physics/projectile.ts' }}
 >

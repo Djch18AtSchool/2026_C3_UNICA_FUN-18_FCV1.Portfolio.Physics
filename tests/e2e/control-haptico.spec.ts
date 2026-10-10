@@ -233,8 +233,9 @@ test.describe('página', () => {
     await expect(figures.nth(1)).toHaveAttribute('data-type', 'simulacion');
     await expect(figures.nth(1).getByTestId('trigger-lab')).toBeAttached();
     await expect(step.getByText('Multimedia con análisis', { exact: true })).toHaveCount(1);
+    // Only the prescribed video carries a type badge; the lab shows none of its own.
     await expect(figures.nth(1).getByText('Simulación interactiva', { exact: true })).toHaveCount(
-      1,
+      0,
     );
     await expect(figures.nth(1).getByTestId('lab-footnote')).toContainText('ilustrativ');
     await expect(figures.nth(1).locator('.figure-source')).toContainText('supuesto de 8 mm');

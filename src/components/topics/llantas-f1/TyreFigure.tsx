@@ -1,14 +1,19 @@
 import type { JSX } from 'react';
-import { loadPoint, temperatureModelFor } from '../../../lib/data/tyreModels';
+import {
+  loadPoint,
+  PACEJKA_EXAMPLE,
+  pacejkaSeries,
+  temperatureModelFor,
+} from '../../../lib/data/tyreModels';
 import { formatNumber } from '../../../lib/format';
-import { gripVsTemperature } from '../../../lib/physics';
+import { gripVsTemperature, magicFormula, magicFormulaPeak } from '../../../lib/physics';
 import { CHART_COLORS } from '../../charts/chartTheme';
 import SvgPlot from '../../lab/SvgPlot';
 import { BOX, boxFriction } from './tyreLabModel';
 import { PlotPoints, type PlotPoint } from '../../lab/PlotPoints';
 import { loadPlot, temperaturePlot, usePlotAspect } from './tyrePlots';
 
-export type TyreFigureVariant = 'caja' | 'carga' | 'temperatura';
+export type TyreFigureVariant = 'caja' | 'carga' | 'temperatura' | 'pacejka';
 
 export interface TyreFigureProps {
   variant: TyreFigureVariant;
@@ -24,6 +29,10 @@ const REFERENCE_LOAD = 4000;
 const DOUBLE_LOAD = 8000;
 const COLD = 60;
 const HOT = 160;
+/** Slip from 0 to 1: the peak near 0,18 and the value 0,91 at x = 1 that the text quotes. */
+const SLIP_MAX = 1;
+const SLIP_SAMPLE_STEP = 0.005;
+const NORMALIZED_FORCE_DOMAIN = { min: 0, max: 1.2 } as const;
 
 const newtons = (value: number) => formatNumber(value, { precision: 0, unit: 'N' });
 const oneDecimal = (value: number) => formatNumber(value, { precision: 1 });
@@ -151,7 +160,55 @@ function TemperatureFigure(): JSX.Element {
   );
 }
 
-/** The static figures of Tema 4's steps 1–3. */
+function PacejkaFigure(): JSX.Element {
+  const { ref, aspectRatio } = usePlotAspect(WIDE_ASPECT, COMPACT_ASPECT);
+  const coefficients = PACEJKA_EXAMPLE.values;
+  const peak = magicFormulaPeak(coefficients);
+  const atEnd = magicFormula(SLIP_MAX, coefficients);
+  const points: PlotPoint[] = [
+    {
+      id: 'pico',
+      x: peak.x,
+      y: peak.y,
+      label: `Pico: x ≈ ${twoDecimals(peak.x)}; y = ${twoDecimals(peak.y)}`,
+      anchor: 'start',
+    },
+    {
+      id: 'final',
+      x: SLIP_MAX,
+      y: atEnd,
+      label: `x = ${SLIP_MAX}: y = ${twoDecimals(atEnd)}`,
+      anchor: 'end',
+      side: 1,
+    },
+  ];
+  return (
+    <div ref={ref} data-testid="tyre-figure-pacejka">
+      <SvgPlot
+        aspectRatio={aspectRatio}
+        title="Fuerza normalizada frente al deslizamiento, Fórmula Mágica con los valores de ejemplo"
+        xLabel="Deslizamiento x"
+        xUnit="adimensional"
+        yLabel="Fuerza y"
+        yUnit="adimensional"
+        xDomain={{ min: 0, max: SLIP_MAX }}
+        yDomain={NORMALIZED_FORCE_DOMAIN}
+        series={[
+          {
+            id: 'pacejka',
+            label: 'Fórmula Mágica, ecuación (4.4)',
+            points: pacejkaSeries(SLIP_MAX, SLIP_SAMPLE_STEP),
+            color: CHART_COLORS[0],
+          },
+        ]}
+        overlay={(scales) => <PlotPoints points={points} scales={scales} />}
+        ariaLabel={`La fuerza normalizada crece casi en recta, llega al pico, y = ${twoDecimals(peak.y)}, en x ≈ ${twoDecimals(peak.x)} y baja a ${twoDecimals(atEnd)} en x = ${SLIP_MAX}.`}
+      />
+    </div>
+  );
+}
+
+/** The static figures of Tema 4: steps 1–3 and the Magic Formula of step 4. */
 export default function TyreFigure({ variant }: TyreFigureProps): JSX.Element {
   switch (variant) {
     case 'caja':
@@ -160,5 +217,7 @@ export default function TyreFigure({ variant }: TyreFigureProps): JSX.Element {
       return <LoadFigure />;
     case 'temperatura':
       return <TemperatureFigure />;
+    case 'pacejka':
+      return <PacejkaFigure />;
   }
 }

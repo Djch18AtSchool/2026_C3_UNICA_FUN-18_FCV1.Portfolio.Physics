@@ -17,6 +17,32 @@ const ANCHOR_ID = SECTION_HEADINGS.Connections.slug;
 const NEAR_TOP_PX = 120;
 const OLD_FOOTER_TEXTS = ['Ver fuente de esta página en GitHub', 'Actualizado el'];
 
+/** Each published topic and its prescribed resource type (frontmatter `resourceType`). */
+const PRESCRIBED_TYPES = [
+  ['dron-reparto', 'visualizacion'],
+  ['salto-personaje', 'simulacion'],
+  ['gravedad-artificial', 'diagrama'],
+  ['llantas-f1', 'visualizacion'],
+  ['control-haptico', 'multimedia'],
+] as const;
+
+for (const [slug, type] of PRESCRIBED_TYPES) {
+  test(`${slug}: solo la figura del recurso prescrito lleva insignia de tipo`, async ({ page }) => {
+    await page.goto(`./temas/${slug}/`);
+
+    const figures = page.locator('article figure[data-testid="figure"]');
+    expect(await figures.count()).toBeGreaterThanOrEqual(4);
+    const badged = figures.filter({ has: page.locator('> .figure-head') });
+    await expect(badged).toHaveCount(1);
+    await expect(badged).toHaveAttribute('data-type', type);
+    // No other type label inside the figures: the labs carry no mark of their own.
+    for (const label of Object.values(RESOURCE_LABELS)) {
+      const expected = label === RESOURCE_LABELS[type] ? 1 : 0;
+      await expect(figures.getByText(label, { exact: true })).toHaveCount(expected);
+    }
+  });
+}
+
 test.describe('cabecera de un tema publicado', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 

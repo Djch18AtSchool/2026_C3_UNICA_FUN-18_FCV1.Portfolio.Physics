@@ -201,7 +201,6 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
     <div className="flex flex-col gap-4">
       <LabShell
         title="Laboratorio del dron"
-        type="visualizacion"
         clock={clock}
         readouts={readouts}
         params={params}

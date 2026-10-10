@@ -57,3 +57,34 @@ export function magicFormula(x: number, c: MagicFormulaCoefficients): number {
   const bx = c.B * x;
   return c.D * Math.sin(c.C * Math.atan(bx - c.E * (bx - Math.atan(bx))));
 }
+
+/** Bisection steps for the peak slip: 2⁻⁶⁰ of the bracket, far below any plotted resolution. */
+const PEAK_BISECTION_STEPS = 60;
+/** Doublings of the bracket before giving up (E = 1 bounds φ below π/2, which may miss tan(π/2C)). */
+const MAX_BRACKET_DOUBLINGS = 64;
+
+/**
+ * The peak of the magic formula for x ≥ 0: y = D where C·arctan φ = π/2, i.e. φ = tan(π/(2C)).
+ * φ(x) = (1 − E)·Bx + E·arctan(Bx) grows with x for E ≤ 1, so bisection finds that x. With C ≤ 1
+ * the argument never passes π/2 and the curve only saturates: there is no peak.
+ */
+export function magicFormulaPeak(c: MagicFormulaCoefficients): { x: number; y: number } {
+  if (!(c.C > 1)) throw new RangeError(`Sin pico: C debe ser mayor que 1 (recibido ${c.C})`);
+  if (!(c.E <= 1)) throw new RangeError(`E debe ser como mucho 1 (recibido ${c.E})`);
+  requirePositive('B', c.B);
+  const target = Math.tan(Math.PI / (2 * c.C));
+  const phi = (x: number) => (1 - c.E) * c.B * x + c.E * Math.atan(c.B * x);
+  let high = 1 / c.B;
+  for (let i = 0; phi(high) < target; i++) {
+    if (i === MAX_BRACKET_DOUBLINGS) throw new RangeError('Sin pico: φ no alcanza tan(π/2C)');
+    high *= 2;
+  }
+  let low = 0;
+  for (let i = 0; i < PEAK_BISECTION_STEPS; i++) {
+    const mid = (low + high) / 2;
+    if (phi(mid) < target) low = mid;
+    else high = mid;
+  }
+  const x = (low + high) / 2;
+  return { x, y: magicFormula(x, c) };
+}

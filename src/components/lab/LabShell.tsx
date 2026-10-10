@@ -1,9 +1,7 @@
 import { useId, useRef, useState, type JSX, type ReactNode } from 'react';
-import { RESOURCE_LABELS, type ResourceType } from '../../consigna';
 import { formatNumber } from '../../lib/format';
 import ControlPanel from '../controls/ControlPanel';
 import Readout from '../controls/Readout';
-import { RESOURCE_BADGE, RESOURCE_MARKS, RESOURCE_SWATCH } from '../ui/resourceMarks';
 import { ICON_BUTTON } from './iconButton';
 import SettingsDrawer, { type SettingOption } from './SettingsDrawer';
 import TransportBar from './TransportBar';
@@ -23,7 +21,6 @@ export interface LabReadout {
 
 export interface LabShellProps {
   title: string;
-  type: ResourceType;
   clock?: SimClock;
   readouts: LabReadout[];
   params: ReactNode;
@@ -65,25 +62,15 @@ function GearIcon() {
   );
 }
 
-function ResourceMark({ type }: { type: ResourceType }): JSX.Element {
-  const mark = RESOURCE_MARKS[type];
-  return (
-    <span className={`${RESOURCE_BADGE} ${mark.tint}`}>
-      <span className={`${RESOURCE_SWATCH} ${mark.swatch}`} aria-hidden="true" />
-      {RESOURCE_LABELS[type]}
-    </span>
-  );
-}
-
 /**
- * The frame every v2 laboratory renders inside, in the v1 figure style: header (title, resource
- * mark, settings gear), canvas, transport bar when there is a clock, readouts, the parameters
- * panel with "Restablecer" (and, at its end, an optional footnote) and the settings drawer. It owns only whether
- * the drawer is open; the simulation state belongs to the laboratory.
+ * The frame every v2 laboratory renders inside, in the v1 figure style: header (title and
+ * settings gear; the type badge belongs to the enclosing Figure), canvas, transport bar when there
+ * is a clock, readouts, the parameters panel with "Restablecer" (and, at its end, an optional
+ * footnote) and the settings drawer. It owns only whether the drawer is open; the simulation state
+ * belongs to the laboratory.
  */
 export default function LabShell({
   title,
-  type,
   clock,
   readouts,
   params,
@@ -114,12 +101,9 @@ export default function LabShell({
     >
       <div className="flex flex-col gap-4 rounded-base border border-border bg-bg-elevated p-4">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
-            <span id={titleId} className="text-sm font-semibold">
-              {title}
-            </span>
-            <ResourceMark type={type} />
-          </div>
+          <span id={titleId} className="min-w-0 text-sm font-semibold">
+            {title}
+          </span>
           <button
             ref={gearRef}
             type="button"

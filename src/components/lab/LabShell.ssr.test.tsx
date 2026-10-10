@@ -9,7 +9,6 @@ describe('LabShell on the server', () => {
     const html = renderToString(
       <LabShell
         title="Laboratorio"
-        type="simulacion"
         readouts={[{ id: 'range', label: 'Alcance', value: 2, unit: 'm' }]}
         params={null}
         localSettings={[

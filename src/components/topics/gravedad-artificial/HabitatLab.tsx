@@ -127,7 +127,6 @@ export default function HabitatLab({ footnote }: HabitatLabProps): JSX.Element {
   return (
     <LabShell
       title="Laboratorio del hábitat"
-      type="simulacion"
       clock={clock}
       readouts={readouts}
       params={params}

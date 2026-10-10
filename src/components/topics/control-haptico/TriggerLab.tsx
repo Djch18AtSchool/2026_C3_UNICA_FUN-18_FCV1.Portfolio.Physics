@@ -147,7 +147,6 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
   return (
     <LabShell
       title="Laboratorio del gatillo"
-      type="simulacion"
       readouts={readouts}
       params={params}
       localSettings={localSettings}

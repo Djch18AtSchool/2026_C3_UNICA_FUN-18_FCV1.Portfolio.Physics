@@ -1,7 +1,9 @@
 import {
   gripVsTemperature,
   loadSensitiveMu,
+  magicFormula,
   maxLateralForce,
+  type MagicFormulaCoefficients,
   type TemperatureModel,
 } from '../physics';
 
@@ -138,4 +140,24 @@ export function loadPoint(fz: number, factor = 1): Omit<LoadRow, 'fz'> {
 export function loadSeries(from: number, to: number, step: number, factor = 1): LoadRow[] {
   if (from < 0) throw new RangeError(`La carga vertical no puede ser negativa (recibido ${from})`);
   return samplePoints(from, to, step).map((fz) => ({ fz, ...loadPoint(fz, factor) }));
+}
+
+/**
+ * Edy's example constants for the simplified Magic Formula (4.4): typical values for longitudinal
+ * force on dry asphalt; for the lateral force the source gives only C = 1,3. With D = 1 the force
+ * is a fraction of its peak, not newtons.
+ */
+export const PACEJKA_EXAMPLE: DocumentedParams<MagicFormulaCoefficients> = {
+  values: { B: 10, C: 1.9, D: 1, E: 0.97 },
+  sourceLabel:
+    "Edy's Vehicle Physics (2016), «Simplified Magic Formula with constant coefficients»: valores típicos para fuerza longitudinal en asfalto seco",
+  illustrative: true,
+};
+
+/** The example curve y(x) of the Magic Formula, from x = 0 to xMax. */
+export function pacejkaSeries(xMax: number, step: number): { x: number; y: number }[] {
+  return samplePoints(0, xMax, step).map((x) => ({
+    x,
+    y: magicFormula(x, PACEJKA_EXAMPLE.values),
+  }));
 }

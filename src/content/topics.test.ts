@@ -17,6 +17,20 @@ const STEP_OPENING = /<Step\b((?:[^>"']|"[^"]*"|'[^']*')*)>/g;
 const STEP_CLOSING = '</Step>';
 /** A Why opening tag (`<Why>`, `<Why />`, `<Why …>`), not a longer name such as `<WhyNot`. */
 const WHY_OPENING = /<Why\b/g;
+/** Opening tag of a Figure, over any lines; quoted attributes and `{…}` values may hold ">". */
+const FIGURE_OPENING = /<Figure\b((?:[^>"'{]|"[^"]*"|'[^']*'|\{(?:[^{}]|\{[^{}]*\})*\})*)>/g;
+const HIDDEN_BADGE = /\bshowBadge=\{false\}/;
+const FIGURE_TYPE = /\btype="([^"]+)"/;
+
+/**
+ * The resource types of the Figures that show their badge (no `showBadge={false}`). Spec §6 and
+ * the final ruling: only the topic's prescribed resource carries its type badge.
+ */
+function badgedFigureTypes(body: string): string[] {
+  return [...body.matchAll(FIGURE_OPENING)]
+    .filter(([, attributes]) => !HIDDEN_BADGE.test(attributes))
+    .map(([, attributes]) => FIGURE_TYPE.exec(attributes)?.[1] ?? '');
+}
 
 /**
  * The opening tags of the Steps in an MDX body that do not contain exactly one `<Why` (spec §7.1:
@@ -129,6 +143,12 @@ describe('topic files', () => {
     }
   });
 
+  test('solo la figura del recurso prescrito lleva la insignia, con el tipo del frontmatter', () => {
+    for (const { fileName, file } of published) {
+      expect(badgedFigureTypes(file.content), fileName).toEqual([file.data.resourceType]);
+    }
+  });
+
   test('ningún tema próximamente declara concept', () => {
     for (const fileName of fileNames) {
       const data = readFrontmatter(fileName);
@@ -202,6 +222,31 @@ Sin justificar.
 
   test('un cuerpo sin pasos no tiene nada que señalar', () => {
     expect(stepsWithoutOneWhy('Texto con <Steps> y <UseCase>.')).toEqual([]);
+  });
+});
+
+describe('badgedFigureTypes', () => {
+  test('lista el tipo de cada Figure que no oculta su insignia', () => {
+    const body = `<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="a > b"
+  source={{ text: 'x > y' }}
+>
+  <Lab />
+</Figure>
+
+<Figure type="diagrama" caption="Uno" source={{ text: 'Dos' }}>
+  <Diagram />
+</Figure>
+
+<Figure caption="Sin tipo" source={{ text: 'Tres' }} />`;
+
+    expect(badgedFigureTypes(body)).toEqual(['diagrama', '']);
+  });
+
+  test('un cuerpo sin figuras no tiene insignias', () => {
+    expect(badgedFigureTypes('Texto con <FigureCaption> y <Figures>.')).toEqual([]);
   });
 });
 

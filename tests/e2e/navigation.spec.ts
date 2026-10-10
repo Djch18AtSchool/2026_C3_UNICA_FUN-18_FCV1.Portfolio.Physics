@@ -59,6 +59,32 @@ test('la portada ofrece un botón para ver el repositorio', async ({ page }) => 
   await expect(link).toHaveAttribute('href', REPO_URL);
 });
 
+test('la cabecera enlaza al repositorio con el icono de GitHub junto al tema', async ({ page }) => {
+  for (const path of ['./', './temas/llantas-f1/']) {
+    await page.goto(path);
+
+    const header = page.locator('header').first();
+    const link = header.getByRole('link', { name: 'Repositorio en GitHub' });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute('href', REPO_URL);
+    await expect(link.locator('svg')).toHaveAttribute('aria-hidden', 'true');
+    await expect(header.locator('[data-theme-toggle]')).toBeVisible();
+  }
+});
+
+test('las filas publicadas muestran número, título y tipo de recurso, sin el caso', async ({
+  page,
+}) => {
+  await page.goto('./');
+
+  const published = page.getByTestId('topic-card').filter({ hasNotText: 'Próximamente' });
+  await expect(published).toHaveCount(5);
+  await expect(page.locator('main')).not.toContainText('Caso:');
+  for (const product of ['Assetto Corsa', 'Celeste', 'DualSense']) {
+    await expect(published.filter({ hasText: product })).toHaveCount(0);
+  }
+});
+
 test('las filas de los temas futuros no muestran "Recurso por definir"', async ({ page }) => {
   await page.goto('./');
 

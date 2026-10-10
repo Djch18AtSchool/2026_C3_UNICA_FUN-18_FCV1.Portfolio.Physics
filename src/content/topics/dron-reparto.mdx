@@ -59,7 +59,7 @@ classRefs:
   - module: 'Módulo 1'
     topic: 'Tema 1.3 · Movimiento en Dos y Tres Dimensiones'
     note: 'Cada tramo se descompone en sus componentes rectangulares en x y en y con el rumbo del tramo; |v| es su módulo.'
-updated: 2026-10-09
+updated: 2026-10-10
 ---
 
 import Step from '../../components/ui/Step.astro';
@@ -72,7 +72,7 @@ import Callout from '../../components/ui/Callout.astro';
 import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
 import DroneFigure from '../../components/topics/dron-reparto/DroneFigure';
-import DroneLab from '../../components/topics/dron-reparto/DroneLab';
+import DroneLab, { TIME_LAPSE } from '../../components/topics/dron-reparto/DroneLab';
 
 Un dron de reparto vuela de punto en punto con posición, velocidad y aceleración vectoriales. A rapidez constante la velocidad saltaría en cada vértice; acotar la aceleración da un perfil trapezoidal.
 
@@ -108,6 +108,7 @@ La posición crece linealmente con t, y el rumbo reparte v en <Equation inline l
 
 <Figure
   type="visualizacion"
+  showBadge={false}
   caption="Ruta declarada: depósito (0; 0) → A (600; 200) → B (900; 800) → C (300; 1 100) → depósito, en metros, con tres entregas de 20 s en A, B y C. Los tramos miden 632,5 m, 670,8 m, 670,8 m y 1 140,2 m y, con el perfil del paso 3, duran 67,2 s, 71,1 s, 71,1 s y 118,0 s: con los 60 s de entregas, la ruta toma 387,4 s. El vector de posición de B, con componentes x = 900 m e y = 800 m, y la velocidad sobre el primer tramo, de rumbo θ = 18,4°, a escala 1 m/s = 15 m; en ese tramo, los 2,5 m/s² del arranque se reparten en aₓ = 2,37 m/s² y a_y = 0,79 m/s²."
   source={{ text: 'Ruta declarada por el autor en src/lib/data/droneRoute.ts' }}
 >
@@ -143,6 +144,7 @@ Por la (1.2), un salto <Equation inline latex="\Delta\vec v" /> en un instante d
 
 <Figure
   type="visualizacion"
+  showBadge={false}
   caption="Componentes vₓ y v_y de la velocidad si el dron vuela la ruta declarada a 10 m/s constantes, con las entregas de 20 s: cambian de golpe al despegar y al llegar a cada vértice (líneas discontinuas), donde a = dv/dt sería infinita."
   source={{ text: 'Curvas calculadas por el autor con la ecuación (1.1) sobre la ruta declarada' }}
 >
@@ -174,7 +176,7 @@ Cada tramo acelera con <Equation inline latex="a_\text{máx}" /> hasta <Equation
 
 <Fragment slot="fenomeno">
 
-Los motores dan un empuje finito: la velocidad no cambia más rápido que <Equation inline latex="a_\text{máx}" />, y la estructura, una rapidez tope, <Equation inline latex="v_\text{máx}" />.
+Los motores dan un empuje finito: la velocidad no cambia más rápido que <Equation inline latex="a_\text{máx}" />, y la misión, una rapidez tope, <Equation inline latex="v_\text{máx}" />.
 
 </Fragment>
 
@@ -188,6 +190,7 @@ Con aceleración constante en cada fase vale <Equation inline latex="\vec r = \v
 
 <Figure
   type="visualizacion"
+  showBadge={false}
   caption="Rapidez en el primer tramo (632,5 m): el perfil trapezoidal sube con 2,5 m/s² hasta 10 m/s en tₐ = 4 s, mantiene el crucero, empieza a frenar d_a = 20 m antes del vértice y se detiene en T = 67,2 s; a rapidez constante bastarían 63,2 s, con los saltos de la figura 1.2. El tramo más corto deja 592,5 m de crucero, así que ningún tramo es triangular. Parámetros de los autopilotos: en ArduPilot Copter, WP_SPD es la rapidez horizontal máxima de la misión, 10 m/s por defecto, y WP_JERK limita la sobreaceleración (jerk), el ritmo de cambio de la aceleración horizontal, en m/s³ (fuente 1); en la versión 4.6.3 se llaman WPNAV_SPEED y WPNAV_ACCEL y van en centímetros, 1 000 cm/s y 250 cm/s² por defecto, es decir, 10 m/s y 2,5 m/s², con un jerk de 1 m/s³ (fuente 2); la lista actual los llama WP_SPD, WP_ACC y WP_JERK (fuente 3). En PX4, por defecto, MPC_XY_VEL_MAX = 12 m/s, MPC_ACC_HOR = 3 m/s², MPC_XY_CRUISE = 5 m/s en misión y MPC_JERK_AUTO = 4 m/s³ (fuente 5)."
   source={{
     text: 'Curva calculada por el autor con la ecuación (1.3) y los límites de ArduPilot Copter 4.6.3 (fuente 2); parámetros de la documentación y el código de ArduPilot (fuentes 1, 2 y 3) y de la referencia de parámetros de PX4 (fuente 5)',
@@ -236,7 +239,6 @@ Con <Equation inline latex="\hat u" /> constante, derivar la (1.4) da <Equation 
 
 <Figure
   type="visualizacion"
-  showBadge={false}
   caption="Laboratorio del dron con las ecuaciones (1.3) y (1.4): arrastra las paradas A, B y C, o muévelas con las flechas, y la ruta se recalcula al soltar; la línea de tiempo, o el propio dron, recorre t con v y a dibujados a escala. Debajo, la visualización de datos: x(t) y y(t), las componentes y el módulo de v y de a, y la distancia recorrida frente a |Δr|, con las entregas sombreadas y una línea vertical en el instante elegido. Ahí se lee la ecuación (1.2): donde x(t) sube en recta, vₓ es constante; donde se curva, vₓ cambia en rampa y aₓ es un escalón, que con el muestreo de 0,5 s la gráfica dibuja como una rampa corta. Al frenar, la flecha de a apunta contra el movimiento. La distancia recorrida solo crece, hasta 3 114 m; el módulo del desplazamiento vuelve a cero en el depósito."
   source={{
     text: 'Datos generados por el autor con scripts/generate-drone-route.ts a partir de la ruta declarada; límites de velocidad y aceleración de ArduPilot Copter 4.6.3, fuente 2. Curvas muestreadas cada 0,5 s para la gráfica; datos completos a 0,1 s en el repositorio.',
@@ -244,7 +246,7 @@ Con <Equation inline latex="\hat u" /> constante, derivar la (1.4) da <Equation 
 >
   <DroneLab
     client:visible
-    footnote="Datos de la ruta declarada: las ecuaciones (1.3) y (1.4) evaluadas cada 0,1 s, 3 876 muestras de t, x, y, vₓ, v_y, |v|, aₓ, a_y y |a|. Con la salida del generador a precisión completa, derivar las posiciones con diferencias centrales reproduce vₓ y v_y con un error menor que 1 mm/s fuera de los instantes en que la aceleración cambia de valor; sobre el JSON publicado, redondeado al milímetro, unos 5 mm/s. Una ruta editada se genera en el navegador con el mismo código. Lo que el modelo deja fuera: la aceleración salta de 0 a 2,5 m/s² en un instante, lo que las curvas S evitan al limitar el jerk; el dron se detiene en cada vértice y gira en el aire, cosa que un autopiloto real no necesita en un punto de paso que no es una entrega; y no hay viento. La reproducción va 20 veces más rápida que el vuelo."
+    footnote={`Datos de la ruta declarada: las ecuaciones (1.3) y (1.4) evaluadas cada 0,1 s, 3 876 muestras de t, x, y, vₓ, v_y, |v|, aₓ, a_y y |a|. Con la salida del generador a precisión completa, derivar las posiciones con diferencias centrales reproduce vₓ y v_y con un error menor que 1 mm/s fuera de los instantes en que la aceleración cambia de valor; sobre el JSON publicado, redondeado al milímetro, unos 5 mm/s. Una ruta editada se genera en el navegador con el mismo código. Lo que el modelo deja fuera: la aceleración salta de 0 a 2,5 m/s² en un instante, lo que las curvas S evitan al limitar el jerk; el dron se detiene en cada vértice y gira en el aire, cosa que un autopiloto real no necesita en un punto de paso que no es una entrega; y no hay viento. La reproducción va ${TIME_LAPSE} veces más rápida que el vuelo.`}
   />
 </Figure>
 

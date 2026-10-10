@@ -160,8 +160,9 @@ test.describe('página', () => {
     await expect(figures.nth(1)).toHaveAttribute('data-type', 'simulacion');
     await expect(figures.nth(1).getByTestId('habitat-lab')).toBeAttached();
     await expect(step.getByText('Diagrama', { exact: true })).toHaveCount(1);
+    // Only the prescribed diagram carries a type badge; the lab shows none of its own.
     await expect(figures.nth(1).getByText('Simulación interactiva', { exact: true })).toHaveCount(
-      1,
+      0,
     );
     await expect(figures.nth(1).getByTestId('lab-footnote')).toContainText('Coriolis');
   });

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { HEADER_ICON_BUTTON } from './headerButton';
 import { THEME_TOGGLE_LABELS, type Theme, writeStoredTheme } from '../../lib/theme';
 
 /** The inline head script has already set data-theme; the DOM is the source of truth. */
@@ -35,7 +36,7 @@ export default function ThemeToggle() {
       aria-label={THEME_TOGGLE_LABELS[theme]}
       data-theme-toggle
       onClick={toggleTheme}
-      className="inline-flex size-10 shrink-0 items-center justify-center rounded-base border border-border bg-bg-elevated text-fg-muted transition-colors hover:border-fg-muted hover:text-fg"
+      className={`inline-flex ${HEADER_ICON_BUTTON}`}
     >
       {/* Icons follow data-theme through CSS, so they are right before hydration too. */}
       <svg

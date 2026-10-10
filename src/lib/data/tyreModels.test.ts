@@ -3,11 +3,13 @@ import { gripVsTemperature, maxLateralForce } from '../physics';
 import {
   COMPOUND_WINDOWS,
   LOAD_MODEL,
+  PACEJKA_EXAMPLE,
   TEMPERATURE_MODEL,
   WORKING_WINDOW,
   gripFactor,
   loadPoint,
   loadSeries,
+  pacejkaSeries,
   temperatureModelFor,
   temperatureSeries,
 } from './tyreModels';
@@ -252,5 +254,22 @@ describe('sourceLabel', () => {
   test('the illustrative models say so', () => {
     expect(TEMPERATURE_MODEL.sourceLabel).toMatch(/ilustrativ/);
     expect(LOAD_MODEL.sourceLabel).toMatch(/parámetros ilustrativos/);
+  });
+});
+
+describe('PACEJKA_EXAMPLE', () => {
+  test("carries Edy's example constants, marked illustrative", () => {
+    expect(PACEJKA_EXAMPLE.values).toEqual({ B: 10, C: 1.9, D: 1, E: 0.97 });
+    expect(PACEJKA_EXAMPLE.illustrative).toBe(true);
+    expect(PACEJKA_EXAMPLE.sourceLabel).toMatch(/Edy/);
+  });
+
+  test('its curve is 0 at x = 0 and 0,91 at x = 1, as the text states', () => {
+    const rows = pacejkaSeries(1, 0.01);
+
+    expect(rows[0]).toEqual({ x: 0, y: 0 });
+    expect(rows.at(-1)?.x).toBeCloseTo(1, 12);
+    expect(rows.at(-1)?.y).toBeCloseTo(0.91, 2);
+    expect(rows).toHaveLength(101);
   });
 });

@@ -205,7 +205,6 @@ export default function JumpLab({ footnote }: JumpLabProps): JSX.Element {
     <div className="flex flex-col gap-4">
       <LabShell
         title="Laboratorio del salto"
-        type="simulacion"
         clock={clock}
         readouts={readouts}
         params={params}

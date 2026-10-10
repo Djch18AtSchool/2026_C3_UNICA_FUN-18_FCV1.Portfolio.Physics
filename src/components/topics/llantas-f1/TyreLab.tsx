@@ -128,7 +128,6 @@ export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
   return (
     <LabShell
       title="Laboratorio de la llanta"
-      type="visualizacion"
       readouts={readouts}
       params={params}
       localSettings={localSettings}

@@ -153,18 +153,25 @@ test.describe('página', () => {
     await page.goto(PAGE);
   });
 
-  test('el paso 4 lleva el laboratorio con una sola insignia de visualización', async ({
+  test('el paso 4 lleva la curva de Pacejka y el laboratorio, con una sola insignia', async ({
     page,
   }) => {
     const step = page.locator('section.step#paso-4');
     // Content figures only: each lab plot's ChartFrame is a <figure> too.
     const figures = step.locator('figure[data-testid="figure"]');
 
-    await expect(figures).toHaveCount(1);
-    await expect(figures.nth(0)).toHaveAttribute('data-type', 'visualizacion');
-    await expect(figures.nth(0).getByTestId('tyre-lab')).toBeAttached();
+    await expect(figures).toHaveCount(2);
+    await expect(figures.nth(0).getByTestId('tyre-figure-pacejka')).toBeAttached();
+    await expect(figures.nth(0).locator('.figure-head')).toHaveCount(0);
+    await expect(figures.nth(0)).toContainText('x ≈ 0,18');
+    await expect(figures.nth(0)).toContainText('0,91');
+    await expect(figures.nth(1)).toHaveAttribute('data-type', 'visualizacion');
+    await expect(figures.nth(1).getByTestId('tyre-lab')).toBeAttached();
     await expect(step.getByText('Visualización de datos', { exact: true })).toHaveCount(1);
-    await expect(figures.nth(0).getByTestId('lab-footnote')).toContainText('ilustrativ');
+    await expect(figures.nth(1).getByText('Visualización de datos', { exact: true })).toHaveCount(
+      1,
+    );
+    await expect(figures.nth(1).getByTestId('lab-footnote')).toContainText('ilustrativ');
   });
 
   test('la página tiene cuatro pasos, cada uno con su "Por qué" y su figura', async ({ page }) => {

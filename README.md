@@ -14,25 +14,25 @@
 
 ## Temas
 
-| #   | Tema                                                                  | Avance        | Estado                 |
-| --- | --------------------------------------------------------------------- | ------------- | ---------------------- |
-| 1   | Rastreo y navegación de un dron de reparto                            | Avance 1      | Publicado (2026-10-08) |
-| 2   | El salto del personaje: cómo los motores de juego falsean la gravedad | Avance 1      | Publicado (2026-10-08) |
-| 3   | Gravedad artificial por rotación en hábitats espaciales               | Avance 1      | Publicado (2026-10-08) |
-| 4   | Llantas de Fórmula 1: la ventana de temperatura y el agarre           | Avance 1      | Publicado (2026-10-08) |
-| 5   | El resorte virtual detrás de un control háptico                       | Avance 1      | Publicado (2026-10-08) |
-| 6   | Frenado regenerativo en un vehículo eléctrico                         | Avance 2      | Próximamente           |
-| 7   | El coeficiente de restitución en un motor de videojuego               | Avance 2      | Próximamente           |
-| 8   | Ruedas de reacción en satélites                                       | Avance 2      | Próximamente           |
-| 9   | Asistencia gravitatoria de la Voyager                                 | Avance 2      | Próximamente           |
-| 10  | Spring animations en interfaces                                       | Entrega Final | Próximamente           |
-| 11  | Síntesis de sonido y armónicos                                        | Entrega Final | Próximamente           |
-| 12  | Resonancia estructural y Tacoma Narrows                               | Entrega Final | Próximamente           |
-| 13  | Enfriamiento líquido de un centro de datos                            | Entrega Final | Próximamente           |
+| #   | Tema                                                                  | Avance        | Estado       |
+| --- | --------------------------------------------------------------------- | ------------- | ------------ |
+| 1   | Rastreo y navegación de un dron de reparto                            | Avance 1      | Publicado    |
+| 2   | El salto del personaje: cómo los motores de juego falsean la gravedad | Avance 1      | Publicado    |
+| 3   | Gravedad artificial por rotación en hábitats espaciales               | Avance 1      | Publicado    |
+| 4   | Llantas de Fórmula 1: la ventana de temperatura y el agarre           | Avance 1      | Publicado    |
+| 5   | El resorte virtual detrás de un control háptico                       | Avance 1      | Publicado    |
+| 6   | Frenado regenerativo en un vehículo eléctrico                         | Avance 2      | Próximamente |
+| 7   | El coeficiente de restitución en un motor de videojuego               | Avance 2      | Próximamente |
+| 8   | Ruedas de reacción en satélites                                       | Avance 2      | Próximamente |
+| 9   | Asistencia gravitatoria de la Voyager                                 | Avance 2      | Próximamente |
+| 10  | Spring animations en interfaces                                       | Entrega Final | Próximamente |
+| 11  | Síntesis de sonido y armónicos                                        | Entrega Final | Próximamente |
+| 12  | Resonancia estructural y Tacoma Narrows                               | Entrega Final | Próximamente |
+| 13  | Enfriamiento líquido de un centro de datos                            | Entrega Final | Próximamente |
 
 ## Estado del Avance 1
 
-Los cinco temas del Avance 1 están publicados (2026-10-08) en el formato de pasos de la versión 2: cada tema se lee en pasos (`Step`), cada paso con su explicación de apoyo (`Why`) y un laboratorio interactivo propio (dron, salto, hábitat, llantas y gatillo). Cada uno conserva su análisis escrito y el tipo de recurso de apoyo prescrito, sin sustituciones: visualización de datos (Tema 1), simulación interactiva (Tema 2), diagrama (Tema 3), visualización de datos (Tema 4) y multimedia con análisis (Tema 5). El video del Tema 5 está pendiente de la grabación del autor: la página ya incluye el análisis escrito y muestra un recurso alternativo diseñado hasta que exista `public/media/tema-05-dualsense.mp4`. Los temas 6 a 13 figuran solo por su nombre y estarán próximamente.
+Los cinco temas del Avance 1 están publicados en el formato de pasos de la versión 2: cada tema se lee en pasos (`Step`), cada paso con su explicación de apoyo (`Why`) y un laboratorio interactivo propio (dron, salto, hábitat, llantas y gatillo). Cada uno conserva su análisis escrito y el tipo de recurso de apoyo prescrito, sin sustituciones: visualización de datos (Tema 1), simulación interactiva (Tema 2), diagrama (Tema 3), visualización de datos (Tema 4) y multimedia con análisis (Tema 5). El video del Tema 5 está pendiente de la grabación del autor: la página ya incluye el análisis escrito y muestra un recurso alternativo diseñado hasta que exista `public/media/tema-05-dualsense.mp4`. Los temas 6 a 13 figuran solo por su nombre y estarán próximamente.
 
 ## Estructura
 
