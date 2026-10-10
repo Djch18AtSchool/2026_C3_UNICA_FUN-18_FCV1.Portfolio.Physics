@@ -1,9 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import { DRONE_ROUTE, generateRoute, type RouteSample } from '../../../lib/data/droneRoute';
-import { decimate, distanceSeries, dwellWindows, motionPhase, sampleAt } from './routeSeries';
+import { decimate, distanceSeries, dwellWindows, motionPhase } from './routeSeries';
 
 const SAMPLES = generateRoute(DRONE_ROUTE);
-const DT = DRONE_ROUTE.dt;
 const LEG_LENGTHS = [Math.hypot(600, 200), Math.hypot(300, 600), Math.hypot(600, 300)];
 const ROUTE_LENGTH = LEG_LENGTHS.reduce((sum, d) => sum + d, 0) + Math.hypot(300, 1100);
 
@@ -27,15 +26,6 @@ describe('decimate', () => {
 
   test('rejects a step below 1', () => {
     expect(() => decimate([1, 2], 0)).toThrow(RangeError);
-  });
-});
-
-describe('sampleAt', () => {
-  test('returns the sample on the grid nearest to t, clamped to the route', () => {
-    expect(sampleAt(SAMPLES, 30, DT).t).toBe(30);
-    expect(sampleAt(SAMPLES, 30.04, DT).t).toBe(30);
-    expect(sampleAt(SAMPLES, -5, DT)).toBe(SAMPLES[0]);
-    expect(sampleAt(SAMPLES, 1e6, DT)).toBe(SAMPLES[SAMPLES.length - 1]);
   });
 });
 

@@ -135,6 +135,32 @@ describe('useSimClock', () => {
     expect(fast.result.current.state.t).toBeCloseTo(2 * normal.result.current.state.t, 10);
   });
 
+  test('a time scale of 20 advances the simulation 20 times the real time', () => {
+    stubAnimationFrame();
+    const real = renderClock(1000);
+    const lapse = renderHook(() => useSimClock(1000, { timeScale: 20 }));
+
+    act(() => {
+      real.result.current.play();
+      lapse.result.current.play();
+    });
+    advance(400);
+
+    expect(real.result.current.state.t).toBeGreaterThan(0);
+    expect(lapse.result.current.state.t).toBeCloseTo(20 * real.result.current.state.t, 10);
+  });
+
+  test('the time scale also stops at the end without looping', () => {
+    stubAnimationFrame();
+    const { result } = renderHook(() => useSimClock(10, { timeScale: 20 }));
+
+    act(() => result.current.play());
+    advance(1000);
+
+    expect(result.current.state.t).toBe(10);
+    expect(result.current.state.playing).toBe(false);
+  });
+
   test('caps the real dt of a frame at 50 ms', () => {
     stubAnimationFrame(1000);
     const { result } = renderClock(10);

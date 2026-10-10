@@ -45,14 +45,25 @@ function usePrefersReducedMotion(): boolean {
   return isReduced;
 }
 
-/** Ticks with the real elapsed time between animation frames, capped at MAX_FRAME_DT_S. */
-function startFrameLoop(dispatch: Dispatch<ClockAction>): () => void {
+export interface SimClockOptions {
+  /**
+   * Simulated seconds per real second at speed 1 (default 1), for motions too slow to watch in
+   * real time, such as a drone route of several minutes. The speed setting multiplies it.
+   */
+  timeScale?: number;
+}
+
+/**
+ * Ticks with the real elapsed time between animation frames, capped at MAX_FRAME_DT_S, times the
+ * time scale.
+ */
+function startFrameLoop(dispatch: Dispatch<ClockAction>, timeScale: number): () => void {
   let frame = 0;
   let last: number | undefined;
   const onFrame = (now: number) => {
     if (last !== undefined) {
       const dt = Math.min(Math.max((now - last) / MS_PER_S, 0), MAX_FRAME_DT_S);
-      dispatch({ type: 'tick', dt });
+      dispatch({ type: 'tick', dt: dt * timeScale });
     }
     last = now;
     frame = requestAnimationFrame(onFrame);
@@ -75,7 +86,7 @@ function startSteppedLoop(dispatch: Dispatch<ClockAction>, duration: number): ()
  * animation frame with the real dt (≤ 50 ms); under reduced motion it steps duration/60 every
  * 250 ms instead. The loop stops on pause, at the end (unless looping) and on unmount.
  */
-export function useSimClock(duration: number): SimClock {
+export function useSimClock(duration: number, { timeScale = 1 }: SimClockOptions = {}): SimClock {
   const [state, dispatch] = useReducer(clockReducer, duration, createClock);
   const settings = useGlobalSettings();
   const isReduced = motionReduced(settings, usePrefersReducedMotion());
@@ -87,8 +98,10 @@ export function useSimClock(duration: number): SimClock {
 
   useEffect(() => {
     if (!playing) return;
-    return isReduced ? startSteppedLoop(dispatch, clockDuration) : startFrameLoop(dispatch);
-  }, [playing, isReduced, clockDuration]);
+    return isReduced
+      ? startSteppedLoop(dispatch, clockDuration)
+      : startFrameLoop(dispatch, timeScale);
+  }, [playing, isReduced, clockDuration, timeScale]);
 
   const actions = useMemo(
     () => ({

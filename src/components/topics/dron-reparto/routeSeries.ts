@@ -21,12 +21,6 @@ export function decimate<T>(items: readonly T[], every: number): T[] {
   return items.filter((_, i) => i % every === 0 || i === last);
 }
 
-/** The sample on the dt grid nearest to t, clamped to the first and last samples. */
-export function sampleAt(samples: readonly RouteSample[], t: number, dt: number): RouteSample {
-  const index = Math.min(Math.max(Math.round(t / dt), 0), samples.length - 1);
-  return samples[index];
-}
-
 /** Distance travelled (trapezoidal integral of the speed) next to the magnitude of the displacement. */
 export function distanceSeries(samples: readonly RouteSample[]): DistanceRow[] {
   const origin = samples[0];

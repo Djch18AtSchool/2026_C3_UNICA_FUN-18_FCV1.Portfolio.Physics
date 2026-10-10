@@ -59,9 +59,11 @@ classRefs:
   - module: 'Módulo 1'
     topic: 'Tema 1.3 · Movimiento en Dos y Tres Dimensiones'
     note: 'Cada tramo se descompone en sus componentes rectangulares en x y en y con el rumbo del tramo; |v| es su módulo.'
-updated: 2026-10-08
+updated: 2026-10-09
 ---
 
+import Step from '../../components/ui/Step.astro';
+import Why from '../../components/ui/Why.astro';
 import UseCase from '../../components/ui/UseCase.astro';
 import Equation from '../../components/ui/Equation.astro';
 import Figure from '../../components/ui/Figure.astro';
@@ -69,28 +71,136 @@ import Cite from '../../components/ui/Cite.astro';
 import Callout from '../../components/ui/Callout.astro';
 import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
-import DroneProfiles from '../../components/topics/dron-reparto/DroneProfiles';
+import DroneFigure from '../../components/topics/dron-reparto/DroneFigure';
+import DroneLab from '../../components/topics/dron-reparto/DroneLab';
 
-<UseCase>
+Un dron de reparto vuela de punto en punto, y su posición, su velocidad y su aceleración son vectores del plano. Con rapidez constante la velocidad saltaría en cada vértice; acotar la aceleración da el perfil trapezoidal de cada tramo.
 
-<Fragment slot="caso">
+<Step n={1} title="Punto a punto">
 
-Tomo como caso la navegación por puntos de paso de ArduPilot y PX4, dos autopilotos de código abierto usados en multirrotores. En el modo Auto de ArduPilot Copter, el dron "follows a smooth curving path towards the next waypoint (S-Curve)"; `WP_SPD` fija la rapidez horizontal máxima de la misión, 10 m/s por defecto, y `WP_JERK` limita la sobreaceleración (_jerk_), lo rápido que cambia la aceleración horizontal, en m/s³ <Cite id="ardupilot-auto-mode" sources={frontmatter.sources} />. En la versión 4.6.3 los parámetros todavía se llaman `WPNAV_SPEED` y `WPNAV_ACCEL` y van en centímetros: el código fuente trae 1 000 cm/s y 250 cm/s² por defecto, es decir, 10 m/s y 2,5 m/s² <Cite id="ardupilot-wpnav-defaults" sources={frontmatter.sources} />; en la lista actual se llaman `WP_SPD`, `WP_ACC` y `WP_JERK` <Cite id="ardupilot-parameters" sources={frontmatter.sources} />. PX4 sigue la misma idea con su trayectoria limitada en jerk, que "generates symmetric smooth S-curves where the jerk and acceleration limits are always guaranteed" <Cite id="px4-position-controller" sources={frontmatter.sources} />; sus límites por defecto son `MPC_XY_VEL_MAX` = 12 m/s y `MPC_ACC_HOR` = 3 m/s², y en misión navega a `MPC_XY_CRUISE` = 5 m/s <Cite id="px4-parameter-reference" sources={frontmatter.sources} />.
+El dron es un punto del plano, con x hacia el este y y hacia el norte <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. Mi ruta tiene tres entregas de <Equation inline latex="20\ \mathrm{s}" />, y el primer modelo recorre cada tramo recto a rapidez constante.
 
-Lo que me interesa es qué hace el controlador entre dos puntos. Según esas dos descripciones, no lleva el dron en línea recta a rapidez fija: sigue una curva S con la aceleración y el jerk acotados <Cite id="ardupilot-auto-mode" sources={frontmatter.sources} /> <Cite id="px4-position-controller" sources={frontmatter.sources} />. Un generador de este tipo entrega en cada instante una posición, una velocidad y una aceleración de referencia, que son vectores del plano horizontal con dos componentes; es lo que reproduzco aquí con un modelo más simple. Para verlo declaré una ruta de reparto, depósito (0, 0) → A (600, 200) → B (900, 800) → C (300, 1 100) → depósito, en metros y con 20 s de entrega en A, B y C, y la recorrí con los valores por defecto de ArduPilot 4.6.3. Los tramos miden 632,5 m, 670,8 m, 670,8 m y 1 140,2 m, y duran 67,2 s, 71,1 s, 71,1 s y 118,0 s: con los 60 s de entregas, la ruta toma 387,4 s.
+<Equation
+  id="ec-dron-recta"
+  latex="\vec r(t) = x\,\hat\imath + y\,\hat\jmath = \vec r_0 + \vec v\,t, \qquad \vec v = v\,(\cos\theta\,\hat\imath + \sin\theta\,\hat\jmath)"
+  symbols={[
+    { symbol: '\\vec r_0', meaning: 'vértice de salida del tramo', unit: 'm' },
+    { symbol: 'v', meaning: 'rapidez constante sobre el tramo', unit: 'm/s' },
+    { symbol: '\\theta', meaning: 'rumbo del tramo, medido desde el eje x' },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Entre dos vértices el dron avanza lo mismo cada segundo, en línea recta: un MRU sobre el tramo.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-El dron es un punto del plano, con x hacia el este y y hacia el norte. Su posición, su velocidad y su aceleración son vectores, y las dos últimas son derivadas respecto del tiempo <Cite id="serway-jewett-2018" sources={frontmatter.sources} />:
+En la (1.1) la posición crece linealmente con t; el rumbo reparte v en <Equation inline latex="v_x = v\cos\theta" /> y <Equation inline latex="v_y = v\sin\theta" />.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  caption="Ruta declarada: depósito (0, 0) → A (600, 200) → B (900, 800) → C (300, 1 100) → depósito, en metros. Los tramos miden 632,5 m, 670,8 m, 670,8 m y 1 140,2 m. El vector de posición de B, con componentes x = 900 m e y = 800 m, y la velocidad sobre el primer tramo, de rumbo θ = 18,4°, a escala 1 m/s = 15 m."
+  source={{ text: 'Ruta declarada por el autor en src/lib/data/droneRoute.ts' }}
+>
+  <DroneFigure variant="ruta" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={2} title="Por qué no basta">
+
+Es la alternativa sin física de cualquiera con un mapa: rumbo fijo y rapidez constante. La velocidad salta de <Equation inline latex="0" /> a <Equation inline latex="10\ \mathrm{m/s}" /> al despegar y cambia de dirección de golpe en cada vértice.
 
 <Equation
   id="ec-dron-vectores"
-  latex="\vec r(t) = x\,\hat\imath + y\,\hat\jmath, \qquad \vec v = \frac{d\vec r}{dt} = v_x\,\hat\imath + v_y\,\hat\jmath, \qquad \vec a = \frac{d\vec v}{dt} = a_x\,\hat\imath + a_y\,\hat\jmath"
+  latex="\vec v = \frac{d\vec r}{dt} = v_x\,\hat\imath + v_y\,\hat\jmath, \qquad \vec a = \frac{d\vec v}{dt} = a_x\,\hat\imath + a_y\,\hat\jmath"
 />
 
-Cada tramo es recto, del vértice <Equation inline latex="\vec r_i" /> al siguiente. Lo recorro a lo largo de su vector unitario, así que basta una función escalar s(t), lo avanzado sobre el tramo con t medido desde su inicio, y las componentes salen de proyectar con el rumbo θ:
+<Why>
+
+<Fragment slot="fenomeno">
+
+Ningún motor entrega ese cambio: el dron real se queda atrás de la consigna, se pasa del punto y oscila, y no hay hora de llegada honesta.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Por la (1.2), un salto <Equation inline latex="\Delta\vec v" /> en un instante da <Equation inline latex="\vec a = \Delta\vec v/\Delta t \to \infty" />.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  caption="Componentes vₓ y v_y de la velocidad si el dron vuela la ruta declarada a 10 m/s constantes, con las entregas de 20 s: cambian de golpe al despegar y al llegar a cada vértice (líneas discontinuas), donde a = dv/dt sería infinita."
+  source={{ text: 'Curvas calculadas por el autor con la ecuación (1.1) sobre la ruta declarada' }}
+>
+  <DroneFigure variant="saltos" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={3} title="Qué falta: límites de velocidad y aceleración">
+
+Cada tramo acelera con <Equation inline latex="a_\text{máx}" /> hasta <Equation inline latex="v_\text{máx}" />, mantiene el crucero y frena con <Equation inline latex="-a_\text{máx}" /> hasta detenerse en el vértice. Con los valores por defecto de ArduPilot 4.6.3, <Equation inline latex="10\ \mathrm{m/s}" /> y <Equation inline latex="2{,}5\ \mathrm{m/s^2}" /> <Cite id="ardupilot-wpnav-defaults" sources={frontmatter.sources} />, quedan <Equation inline latex="t_a = 4\ \mathrm{s}" /> y <Equation inline latex="d_a = 20\ \mathrm{m}" />; el tramo más corto deja <Equation inline latex="592{,}5\ \mathrm{m}" /> de crucero: ninguno es triangular.
+
+<Equation
+  id="ec-dron-trapecio"
+  latex="\begin{gathered} s(t) = \begin{cases} \tfrac12 a_\text{máx} t^2 & 0 \le t < t_a \\ d_a + v_\text{máx}(t - t_a) & t_a \le t < T - t_a \\ d - \tfrac12 a_\text{máx} (T - t)^2 & T - t_a \le t \le T \end{cases} \\[6pt] t_a = \frac{v_\text{máx}}{a_\text{máx}}, \qquad d_a = \frac{v_\text{máx}^2}{2a_\text{máx}}, \qquad T = \frac{d}{v_\text{máx}} + \frac{v_\text{máx}}{a_\text{máx}} \end{gathered}"
+  symbols={[
+    {
+      symbol: 's(t)',
+      meaning: 'distancia avanzada sobre el tramo, con t desde su inicio',
+      unit: 'm',
+    },
+    { symbol: 'd', meaning: 'longitud del tramo', unit: 'm' },
+    { symbol: 't_a,\\ d_a', meaning: 'tiempo y distancia para llegar al crucero', unit: 's, m' },
+    { symbol: 'T', meaning: 'duración del tramo', unit: 's' },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+El dron empieza a frenar <Equation inline latex="20\ \mathrm{m}" /> antes del vértice y llega detenido.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Cada fase tiene aceleración constante: vale <Equation inline latex="\vec r = \vec r_0 + \vec v_0 t + \tfrac12 \vec a\, t^2" />, la ecuación del Tema 2 en forma vectorial, y T suma al crucero los <Equation inline latex="v_\text{máx}/a_\text{máx}" /> de arrancar y frenar.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  caption="Rapidez en el primer tramo (632,5 m): el perfil trapezoidal sube con 2,5 m/s² hasta 10 m/s en tₐ = 4 s, mantiene el crucero y frena hasta detenerse en T = 67,2 s; a rapidez constante bastarían 63,2 s, con los saltos de la figura 1.2."
+  source={{
+    text: 'Curva calculada por el autor con la ecuación (1.3); límites de ArduPilot Copter 4.6.3, fuente 2',
+  }}
+>
+  <DroneFigure variant="perfil" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={4} title="Modelo mejorado: la ruta completa">
+
+Cada tramo va del vértice <Equation inline latex="\vec r_i" /> al siguiente: basta s(t) y proyectar con el rumbo θ. Los tramos duran <Equation inline latex="67{,}2" />, <Equation inline latex="71{,}1" />, <Equation inline latex="71{,}1" /> y <Equation inline latex="118{,}0\ \mathrm{s}" />; con los <Equation inline latex="60\ \mathrm{s}" /> de entregas, la ruta toma <Equation inline latex="387{,}4\ \mathrm{s}" />.
 
 <Equation
   id="ec-dron-componentes"
@@ -100,7 +210,6 @@ Cada tramo es recto, del vértice <Equation inline latex="\vec r_i" /> al siguie
       symbol: '\\hat u',
       meaning: 'vector unitario del tramo, (cos θ, sin θ) = Δr/|Δr|',
     },
-    { symbol: 's(t)', meaning: 'distancia avanzada sobre el tramo', unit: 'm' },
     {
       symbol: '\\dot s,\\ \\ddot s',
       meaning: 'rapidez y aceleración sobre el tramo',
@@ -109,68 +218,75 @@ Cada tramo es recto, del vértice <Equation inline latex="\vec r_i" /> al siguie
   ]}
 />
 
-El perfil s(t), con t medido otra vez desde el inicio del tramo, es trapezoidal: acelera con <Equation inline latex="a_\text{máx}" /> hasta <Equation inline latex="v_\text{máx}" />, mantiene el crucero y frena con <Equation inline latex="-a_\text{máx}" /> hasta detenerse en el vértice.
+<Why>
 
-<Equation
-  id="ec-dron-trapecio"
-  latex="\begin{gathered} s(t) = \begin{cases} \tfrac12 a_\text{máx} t^2 & 0 \le t < t_a \\ d_a + v_\text{máx}(t - t_a) & t_a \le t < T - t_a \\ d - \tfrac12 a_\text{máx} (T - t)^2 & T - t_a \le t \le T \end{cases} \\[6pt] t_a = \frac{v_\text{máx}}{a_\text{máx}}, \qquad d_a = \frac{v_\text{máx}^2}{2a_\text{máx}}, \qquad T = \frac{d}{v_\text{máx}} + \frac{v_\text{máx}}{a_\text{máx}} \end{gathered}"
-  symbols={[
-    { symbol: 'd', meaning: 'longitud del tramo', unit: 'm' },
-    { symbol: 't_a,\\ d_a', meaning: 'tiempo y distancia para llegar al crucero', unit: 's, m' },
-    { symbol: 'T', meaning: 'duración del tramo', unit: 's' },
-  ]}
-/>
+<Fragment slot="fenomeno">
 
-Con 10 m/s y 2,5 m/s² quedan <Equation inline latex="t_a" /> = 4 s y <Equation inline latex="d_a" /> = 20 m; el tramo más corto deja 592,5 m de crucero, así que ningún tramo es triangular. En cada fase la aceleración es constante, así que la posición sigue <Equation inline latex="\vec r = \vec r_0 + \vec v_0 t + \tfrac12 \vec a\, t^2" />, la ecuación del Tema 2 en forma vectorial. En el primer tramo, θ = 18,4°, y los 2,5 m/s² del arranque se reparten en <Equation inline latex="a_x" /> = 2,37 m/s² y <Equation inline latex="a_y" /> = 0,79 m/s².
+Cambiar de ruta es cambiar los vértices, no rehacer el movimiento.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+En el primer tramo, <Equation inline latex="\theta = 18{,}4^\circ" />, los <Equation inline latex="2{,}5\ \mathrm{m/s^2}" /> del arranque se reparten en <Equation inline latex="a_x = 2{,}37\ \mathrm{m/s^2}" /> y <Equation inline latex="a_y = 0{,}79\ \mathrm{m/s^2}" />.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Laboratorio del dron con las ecuaciones (1.3) y (1.4): arrastra las paradas A, B y C, o muévelas con las flechas, y la ruta se recalcula al soltar; la línea de tiempo, o el propio dron, recorre t con v y a dibujados a escala. Debajo, la visualización de datos: x(t) y y(t), las componentes y el módulo de v y de a, y la distancia recorrida frente a |Δr|, con las entregas sombreadas y una línea vertical en el instante elegido. Ahí se lee la ecuación (1.2): donde x(t) sube en recta, vₓ es constante; donde se curva, vₓ cambia en rampa y aₓ es un escalón, que con el muestreo de 0,5 s la gráfica dibuja como una rampa corta. Al frenar, la flecha de a apunta contra el movimiento. La distancia recorrida solo crece, hasta 3 114 m; el módulo del desplazamiento vuelve a cero en el depósito."
+  source={{
+    text: 'Datos generados por el autor con scripts/generate-drone-route.ts a partir de la ruta declarada; límites de velocidad y aceleración de ArduPilot Copter 4.6.3, fuente 2. Curvas muestreadas cada 0,5 s para la gráfica; datos completos a 0,1 s en el repositorio.',
+  }}
+>
+  <DroneLab
+    client:visible
+    footnote="Datos de la ruta declarada: las ecuaciones (1.3) y (1.4) evaluadas cada 0,1 s, 3 876 muestras de t, x, y, vₓ, v_y, |v|, aₓ, a_y y |a|. Con la salida del generador a precisión completa, derivar las posiciones con diferencias centrales reproduce vₓ y v_y con un error menor que 1 mm/s fuera de los instantes en que la aceleración cambia de valor; sobre el JSON publicado, redondeado al milímetro, unos 5 mm/s. Una ruta editada se genera en el navegador con el mismo código. Lo que el modelo deja fuera: la aceleración salta de 0 a 2,5 m/s² en un instante, lo que las curvas S evitan al limitar el jerk; el dron se detiene en cada vértice y gira en el aire, cosa que un autopiloto real no necesita en un punto de paso que no es una entrega; y no hay viento. La reproducción va 20 veces más rápida que el vuelo."
+  />
+</Figure>
+
+</Step>
+
+<UseCase>
+
+<Fragment slot="caso">
+
+ArduPilot y PX4 son autopilotos de código abierto para multirrotores. En el modo Auto de ArduPilot Copter, el dron "follows a smooth curving path towards the next waypoint (S-Curve)"; `WP_SPD` es la rapidez horizontal máxima de la misión, <Equation inline latex="10\ \mathrm{m/s}" /> por defecto, y `WP_JERK` limita la sobreaceleración (_jerk_), el ritmo de cambio de la aceleración, en m/s³ <Cite id="ardupilot-auto-mode" sources={frontmatter.sources} />. En la 4.6.3 se llaman `WPNAV_SPEED` y `WPNAV_ACCEL`, en centímetros: <Equation inline latex="1\,000\ \mathrm{cm/s}" /> y <Equation inline latex="250\ \mathrm{cm/s^2}" />, o sea <Equation inline latex="10\ \mathrm{m/s}" /> y <Equation inline latex="2{,}5\ \mathrm{m/s^2}" /> <Cite id="ardupilot-wpnav-defaults" sources={frontmatter.sources} />; hoy, `WP_SPD`, `WP_ACC` y `WP_JERK` <Cite id="ardupilot-parameters" sources={frontmatter.sources} />. PX4 "generates symmetric smooth S-curves where the jerk and acceleration limits are always guaranteed" <Cite id="px4-position-controller" sources={frontmatter.sources} />; por defecto, <Equation inline latex="12\ \mathrm{m/s}" /> (`MPC_XY_VEL_MAX`), <Equation inline latex="3\ \mathrm{m/s^2}" /> (`MPC_ACC_HOR`) y <Equation inline latex="5\ \mathrm{m/s}" /> en misión (`MPC_XY_CRUISE`) <Cite id="px4-parameter-reference" sources={frontmatter.sources} />.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+El controlador no lleva el dron en recta a rapidez fija <Cite id="ardupilot-auto-mode" sources={frontmatter.sources} /> <Cite id="px4-position-controller" sources={frontmatter.sources} />: entrega en cada instante posición, velocidad y aceleración de referencia, vectores horizontales de dos componentes como los de las ecuaciones (1.2) y (1.4). Mi modelo usa el trapecio de la (1.3).
 
 </Fragment>
 
 <Fragment slot="justificacion">
 
-La alternativa sin física es la que haría cualquiera con un mapa: un rumbo fijo hacia el siguiente punto con rapidez constante, o una tabla de posiciones precalculada. Con rumbo y rapidez fijos, la velocidad salta de 0 a 10 m/s al despegar y cambia de dirección de golpe en cada vértice. Derivando con la ecuación (1.1), eso es una aceleración infinita que ningún motor entrega: el dron real se queda atrás de la consigna, se pasa del punto y oscila, y no hay de dónde sacar una hora de llegada honesta. Una trayectoria precalculada sí puede respetar los límites, pero solo para la ruta y el aire con los que se calculó. Si el viento saca al dron 15 m del tramo o aparece un obstáculo, la tabla sigue mandando posiciones que ya no corresponden a su estado.
-
-Con el modelo cinemático, un generador de este tipo puede partir del estado actual del dron, dónde está y qué velocidad lleva, y generar el resto del perfil sin pasar de <Equation inline latex="v_\text{máx}" /> ni de <Equation inline latex="a_\text{máx}" />. La ecuación (1.3) dice cuándo empezar a frenar (20 m antes del vértice con estos límites) y cuánto dura cada tramo; la (1.2) convierte todo en dos componentes que los motores pueden seguir. Cambiar de ruta es cambiar los vértices, no rehacer el movimiento.
+Una tabla precalculada respeta los límites solo para la ruta y el aire con que se calculó: si el viento saca al dron <Equation inline latex="15\ \mathrm{m}" /> del tramo o aparece un obstáculo, manda posiciones que ya no corresponden a su estado. El generador parte del estado actual, dónde está y qué velocidad lleva, y rehace el perfil sin pasar de <Equation inline latex="v_\text{máx}" /> ni de <Equation inline latex="a_\text{máx}" />: la (1.3) dice cuándo frenar y la (1.4) lo da en componentes que los motores siguen.
 
 </Fragment>
 
 <Fragment slot="balance">
 
-Se ganan coherencia y seguridad: el mismo generador sirve para cualquier ruta y nunca pide más de lo que el dron puede dar. Se gana previsibilidad: cada tramo dura <Equation inline latex="d/v_\text{máx} + v_\text{máx}/a_\text{máx}" />, así que sé que la ruta tarda 387,4 s antes de despegar. En mi modelo, dos parámetros deciden el compromiso entre rapidez y suavidad; las curvas S reales añaden un tercero, el jerk (`WP_JERK` en ArduPilot, `MPC_JERK_AUTO` en PX4).
-
-Lo que cuesta:
-
-- **Estimación de estado.** Generar el perfil desde el estado exige conocer <Equation inline latex="\vec r" /> y <Equation inline latex="\vec v" /> en cada instante, y esa estimación tiene su propio error.
-- **Ajuste de ganancias.** El perfil es una referencia; el lazo de control que la sigue necesita ganancias ajustadas a cada dron, y mal ajustado oscila o se retrasa.
-- **Cómputo a bordo.** Generar perfiles acotados en tiempo real, y rehacerlos cuando cambia el estado, ocupa un procesador pequeño que vuela con batería.
-- **Lo que simplifica mi modelo.** Mi perfil es trapezoidal: la aceleración salta de 0 a 2,5 m/s² en un instante, justo lo que las curvas S evitan al limitar el jerk, que por defecto vale 1 m/s³ en ArduPilot 4.6.3 <Cite id="ardupilot-wpnav-defaults" sources={frontmatter.sources} /> y 4 m/s³ (`MPC_JERK_AUTO`) en PX4 <Cite id="px4-parameter-reference" sources={frontmatter.sources} />. Además, mi dron se detiene en cada vértice y gira en el aire, cosa que un autopiloto real no necesita hacer en un punto de paso que no es una entrega. Y no hay viento.
+Se ganan coherencia y seguridad, pues un mismo generador sirve para cualquier ruta sin pedir más de lo que el dron da, y previsibilidad: la ruta tarda <Equation inline latex="387{,}4\ \mathrm{s}" />, sabido antes de despegar. Cuesta estimar <Equation inline latex="\vec r" /> y <Equation inline latex="\vec v" />, con su propio error; ajustar a cada dron las ganancias del lazo que sigue la referencia, que mal ajustado oscila o se retrasa, y rehacer perfiles en tiempo real en un procesador pequeño a batería. Mis dos parámetros reparten rapidez y suavidad; las curvas S suman el jerk, <Equation inline latex="1\ \mathrm{m/s^3}" /> por defecto en ArduPilot 4.6.3 <Cite id="ardupilot-wpnav-defaults" sources={frontmatter.sources} /> y <Equation inline latex="4\ \mathrm{m/s^3}" /> (`MPC_JERK_AUTO`) en PX4 <Cite id="px4-parameter-reference" sources={frontmatter.sources} />. La nota del laboratorio lista lo que el modelo omite.
 
 </Fragment>
 
 </UseCase>
 
-## Recurso de apoyo
-
-Los datos salen de evaluar las ecuaciones (1.2) y (1.3) cada 0,1 s con los límites por defecto de ArduPilot Copter 4.6.3 <Cite id="ardupilot-wpnav-defaults" sources={frontmatter.sources} />: 3 876 muestras de <Equation inline latex="t, x, y, v_x, v_y, |\vec v|, a_x, a_y" /> y <Equation inline latex="|\vec a|" />. El deslizador de tiempo mueve el dron por el mapa, con v y a dibujados a escala, y la línea vertical de las cuatro gráficas; las franjas sombreadas son las entregas. Ahí se lee la ecuación (1.1): donde <Equation inline latex="x(t)" /> sube en recta, <Equation inline latex="v_x" /> es constante; donde <Equation inline latex="x(t)" /> se curva, <Equation inline latex="v_x" /> cambia en rampa y <Equation inline latex="a_x" /> es un escalón, que con el muestreo de 0,5 s la gráfica dibuja como una rampa corta. Al frenar, la flecha de a apunta contra el movimiento. Comprobé además que, con la salida del generador a precisión completa, derivar las posiciones con diferencias centrales reproduce las <Equation inline latex="v_x" /> y <Equation inline latex="v_y" /> del perfil con un error menor que 1 mm/s fuera de los instantes en que la aceleración cambia de valor; sobre el JSON publicado, redondeado al milímetro, el error llega a unos 5 mm/s. La cuarta gráfica separa la distancia recorrida, que solo crece hasta 3 114 m, del módulo del desplazamiento, que vuelve a cero en el depósito.
-
-<Figure
-  type="visualizacion"
-  caption="Ruta del dron en el plano x–y con los vectores v y a en el instante elegido, y sus perfiles de posición, velocidad, aceleración y distancia en función del tiempo."
-  source={{
-    text: 'Datos generados por el autor con scripts/generate-drone-route.ts a partir de la ruta declarada; límites de velocidad y aceleración de ArduPilot Copter 4.6.3, fuente 2. Curvas muestreadas cada 0,5 s para la gráfica; datos completos a 0,1 s en el repositorio.',
-  }}
->
-  <DroneProfiles client:visible />
-</Figure>
-
 <Callout variant="clase" title="Módulo 1 · Temas 1.1 y 1.3">
 
-La ecuación (1.1) es la definición del Tema 1.1: <Equation inline latex="\vec v = d\vec r/dt" />, tangente a la trayectoria, y <Equation inline latex="\vec a = d\vec v/dt = d^2\vec r/dt^2" />. El criterio de signos de clase se ve en el mapa: al arrancar, v y a comparten sentido y la rapidez crece; al frenar, a apunta contra v y la rapidez baja. La cuarta gráfica es la distinción de clase entre distancia recorrida, un escalar que llega a 3 114,3 m, y desplazamiento, un vector que se anula al cerrar la ruta. La ecuación (1.2) es la descomposición en componentes rectangulares del Tema 1.3, <Equation inline latex="\vec A = A_x\hat\imath + A_y\hat\jmath" /> con módulo <Equation inline latex="\lVert\vec A\rVert = \sqrt{A_x^2 + A_y^2}" />: cos θ y sin θ son los cosenos directores del tramo en el plano. Lo nuevo frente a clase es que la aceleración no es constante en toda la ruta, sino constante a trozos, y cada trozo es un MRU o un MRUA sobre el tramo.
+La ecuación (1.2) es la definición del Tema 1.1: <Equation inline latex="\vec v = d\vec r/dt" />, tangente a la trayectoria, y <Equation inline latex="\vec a = d\vec v/dt = d^2\vec r/dt^2" />. En el mapa, al arrancar v y a comparten sentido y la rapidez crece; al frenar se oponen y baja. La cuarta gráfica separa la distancia recorrida, un escalar de <Equation inline latex="3\,114{,}3\ \mathrm{m}" />, del desplazamiento, un vector que se anula al cerrar la ruta. Las (1.1) y (1.4) descomponen como el Tema 1.3, <Equation inline latex="\vec A = A_x\hat\imath + A_y\hat\jmath" /> con <Equation inline latex="\lVert\vec A\rVert = \sqrt{A_x^2 + A_y^2}" />: cos θ y sin θ son los cosenos directores del tramo. Lo nuevo frente a clase: la aceleración es constante a trozos, un MRU o un MRUA por trozo.
 
 </Callout>
 
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-El Tema 2 usa las mismas ecuaciones de aceleración constante: cada fase del perfil trapezoidal es un MRU o un MRUA a lo largo del tramo, como el salto lo es en el eje vertical; la diferencia es quién fija la aceleración, allí una constante de diseño y aquí un límite del controlador. Con el Tema 3 comparte el lenguaje de vectores y componentes: allí la aceleración cambia de dirección con rapidez constante; aquí cambia de magnitud con dirección fija en cada tramo. El Tema 6 tratará la energía de acelerar y frenar: cada arranque de mi dron le da <Equation inline latex="\tfrac12 m v_\text{máx}^2" /> de energía cinética, y cada frenado la quita; un vehículo eléctrico recupera parte de ella al frenar. En clase, las definiciones son las del Tema 1.1 y las componentes las del Tema 1.3 del Módulo 1.
+Cada fase del perfil es un MRU o un MRUA sobre el tramo, como el salto del Tema 2 en el eje vertical, con la aceleración fijada aquí por el controlador y allí por diseño. En el Tema 3 la aceleración cambia de dirección con rapidez constante; aquí, de magnitud con dirección fija. El Tema 6 tratará la energía: cada arranque da al dron <Equation inline latex="\tfrac12 m v_\text{máx}^2" /> de energía cinética, cada frenado la quita y un vehículo eléctrico recupera parte.
 
 </Connections>
 

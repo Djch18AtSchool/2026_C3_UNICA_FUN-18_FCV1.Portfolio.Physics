@@ -1,6 +1,7 @@
 import { useRef, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
-import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
+import { TEXT_COLOR } from '../../charts/chartTheme';
+import { Arrow, Knob, Label, type Point } from '../../lab/OverlayMarks';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
 import { JUMP_LIMITS, type JumpResult, type JumpSettings } from './jumpModel';
 import {
@@ -30,22 +31,10 @@ export interface JumpOverlayProps {
   onSeek(t: number): void;
 }
 
-type Point = { x: number; y: number };
-
-const KNOB_RADIUS = 7;
-/** Invisible hit circle: a 32 px touch target. */
-const HIT_RADIUS = 16;
-const FOCUS_RING_RADIUS = 11;
-const FOCUS_RING_COLOR = 'var(--accent)';
 /** Neutral, so the launch vector never reads as the dashed blue Earth reference (dark mode). */
 const LAUNCH_COLOR = TEXT_COLOR;
-const VECTOR_WIDTH = 2;
-const ARROW_HEAD = 9;
 const TRAIL_WIDTH = 7;
 const TRAIL_OPACITY = 0.3;
-const LABEL_GAP = 10;
-const LABEL_SIZE = 13;
-const HALO_WIDTH = 4;
 /** Arrow keys move the handle by these amounts (m/s); the marker by t_air / MARKER_KEY_STEPS. */
 const V0_KEY_STEP = 0.5;
 const VX_KEY_STEP = 0.25;
@@ -53,69 +42,6 @@ const MARKER_KEY_STEPS = 40;
 
 const clampTo = (value: number, [min, max]: readonly [number, number]) =>
   Math.min(Math.max(value, min), max);
-
-/** Three corners of an arrowhead whose tip is `to`, pointing along from → to. */
-function arrowHead(from: Point, to: Point): string {
-  const angle = Math.atan2(to.y - from.y, to.x - from.x);
-  const corner = (offset: number) =>
-    `${to.x - ARROW_HEAD * Math.cos(angle + offset)},${to.y - ARROW_HEAD * Math.sin(angle + offset)}`;
-  return `${to.x},${to.y} ${corner(Math.PI / 7)} ${corner(-Math.PI / 7)}`;
-}
-
-function Arrow({ from, to, color }: { from: Point; to: Point; color: string }) {
-  const isVisible = Math.hypot(to.x - from.x, to.y - from.y) > ARROW_HEAD;
-  return (
-    <g className="pointer-events-none" stroke={color} fill={color}>
-      <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} strokeWidth={VECTOR_WIDTH} />
-      {isVisible ? <polygon points={arrowHead(from, to)} strokeWidth={1} /> : null}
-    </g>
-  );
-}
-
-function Label({ at, children }: { at: Point; children: string }) {
-  return (
-    <text
-      x={at.x + LABEL_GAP}
-      y={at.y - LABEL_GAP}
-      fill={TEXT_COLOR}
-      fontFamily={TICK_FONT_FAMILY}
-      fontSize={LABEL_SIZE}
-      stroke={SURFACE_COLOR}
-      strokeWidth={HALO_WIDTH}
-      paintOrder="stroke"
-      className="pointer-events-none"
-    >
-      {children}
-    </text>
-  );
-}
-
-/** Hit area, focus ring and knob of a draggable handle centred on `at`. */
-function Knob({ at, fill }: { at: Point; fill: string }) {
-  return (
-    <>
-      <circle cx={at.x} cy={at.y} r={HIT_RADIUS} fill="transparent" />
-      <circle
-        cx={at.x}
-        cy={at.y}
-        r={FOCUS_RING_RADIUS}
-        fill="none"
-        stroke={FOCUS_RING_COLOR}
-        strokeWidth={2}
-        className="opacity-0 group-focus-visible:opacity-100"
-      />
-      <circle
-        data-knob=""
-        cx={at.x}
-        cy={at.y}
-        r={KNOB_RADIUS}
-        fill={fill}
-        stroke={SURFACE_COLOR}
-        strokeWidth={2}
-      />
-    </>
-  );
-}
 
 /** The launch speeds an arrow key asks for, or undefined for keys the handle ignores. */
 function launchKeyTarget(key: string, { v0, vx }: LaunchSpeeds): LaunchSpeeds | undefined {
