@@ -1,0 +1,290 @@
+import { useEffect, useRef, type JSX, type KeyboardEvent, type RefObject } from 'react';
+import { formatNumber } from '../../../lib/format';
+import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
+import { useDrag, type DragPoint } from '../../lab/useDrag';
+import { JUMP_LIMITS, type JumpResult, type JumpSettings } from './jumpModel';
+import {
+  handleFromSettings,
+  settingsFromHandle,
+  stateAt,
+  timeFromMarkerDrag,
+  type PlotScales,
+} from './jumpScene';
+
+export type LaunchSpeeds = Pick<JumpSettings, 'v0' | 'vx'>;
+
+export interface JumpOverlayProps {
+  scales: PlotScales;
+  settings: JumpSettings;
+  live: JumpResult;
+  t: number;
+  /** Metres drawn per m/s, shared by the launch vector and the velocity vector. */
+  lengthPerMs: number;
+  color: string;
+  showTrail: boolean;
+  showVelocity: boolean;
+  decimals: number;
+  onLaunchChange(next: LaunchSpeeds): void;
+  /** A launch-vector drag starts or ends (the lab holds the plot window still meanwhile). */
+  onLaunchDragPhase(phase: 'start' | 'end'): void;
+  onSeek(t: number): void;
+}
+
+type Point = { x: number; y: number };
+
+const KNOB_RADIUS = 7;
+/** Invisible hit circle: a 32 px touch target. */
+const HIT_RADIUS = 16;
+const FOCUS_RING_RADIUS = 11;
+const FOCUS_RING_COLOR = 'var(--accent)';
+const LAUNCH_COLOR = 'var(--accent)';
+const VECTOR_WIDTH = 2;
+const ARROW_HEAD = 9;
+const TRAIL_WIDTH = 7;
+const TRAIL_OPACITY = 0.3;
+const LABEL_GAP = 10;
+const LABEL_SIZE = 13;
+const HALO_WIDTH = 4;
+/** Arrow keys move the handle by these amounts (m/s); the marker by t_air / MARKER_KEY_STEPS. */
+const V0_KEY_STEP = 0.5;
+const VX_KEY_STEP = 0.25;
+const MARKER_KEY_STEPS = 40;
+
+const clampTo = (value: number, [min, max]: readonly [number, number]) =>
+  Math.min(Math.max(value, min), max);
+
+/** Three corners of an arrowhead whose tip is `to`, pointing along from → to. */
+function arrowHead(from: Point, to: Point): string {
+  const angle = Math.atan2(to.y - from.y, to.x - from.x);
+  const corner = (offset: number) =>
+    `${to.x - ARROW_HEAD * Math.cos(angle + offset)},${to.y - ARROW_HEAD * Math.sin(angle + offset)}`;
+  return `${to.x},${to.y} ${corner(Math.PI / 7)} ${corner(-Math.PI / 7)}`;
+}
+
+function Arrow({ from, to, color }: { from: Point; to: Point; color: string }) {
+  const isVisible = Math.hypot(to.x - from.x, to.y - from.y) > ARROW_HEAD;
+  return (
+    <g className="pointer-events-none" stroke={color} fill={color}>
+      <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} strokeWidth={VECTOR_WIDTH} />
+      {isVisible ? <polygon points={arrowHead(from, to)} strokeWidth={1} /> : null}
+    </g>
+  );
+}
+
+function Label({ at, children }: { at: Point; children: string }) {
+  return (
+    <text
+      x={at.x + LABEL_GAP}
+      y={at.y - LABEL_GAP}
+      fill={TEXT_COLOR}
+      fontFamily={TICK_FONT_FAMILY}
+      fontSize={LABEL_SIZE}
+      stroke={SURFACE_COLOR}
+      strokeWidth={HALO_WIDTH}
+      paintOrder="stroke"
+      className="pointer-events-none"
+    >
+      {children}
+    </text>
+  );
+}
+
+/** Hit area, focus ring and knob of a draggable handle centred on `at`. */
+function Knob({ at, fill }: { at: Point; fill: string }) {
+  return (
+    <>
+      <circle cx={at.x} cy={at.y} r={HIT_RADIUS} fill="transparent" />
+      <circle
+        cx={at.x}
+        cy={at.y}
+        r={FOCUS_RING_RADIUS}
+        fill="none"
+        stroke={FOCUS_RING_COLOR}
+        strokeWidth={2}
+        className="opacity-0 group-focus-visible:opacity-100"
+      />
+      <circle
+        data-knob=""
+        cx={at.x}
+        cy={at.y}
+        r={KNOB_RADIUS}
+        fill={fill}
+        stroke={SURFACE_COLOR}
+        strokeWidth={2}
+      />
+    </>
+  );
+}
+
+/** The launch speeds an arrow key asks for, or undefined for keys the handle ignores. */
+function launchKeyTarget(key: string, { v0, vx }: LaunchSpeeds): LaunchSpeeds | undefined {
+  const moves: Record<string, LaunchSpeeds> = {
+    ArrowUp: { v0: v0 + V0_KEY_STEP, vx },
+    ArrowDown: { v0: v0 - V0_KEY_STEP, vx },
+    ArrowRight: { v0, vx: vx + VX_KEY_STEP },
+    ArrowLeft: { v0, vx: vx - VX_KEY_STEP },
+  };
+  const next = moves[key];
+  return next && { v0: clampTo(next.v0, JUMP_LIMITS.v0), vx: clampTo(next.vx, JUMP_LIMITS.vx) };
+}
+
+/** The t an arrow, Home or End key asks the marker for, or undefined for other keys. */
+function markerKeyTarget(key: string, t: number, tAir: number): number | undefined {
+  const step = tAir / MARKER_KEY_STEPS;
+  const moves: Record<string, number> = {
+    ArrowRight: t + step,
+    ArrowUp: t + step,
+    ArrowLeft: t - step,
+    ArrowDown: t - step,
+    Home: 0,
+    End: tAir,
+  };
+  const next = moves[key];
+  return next === undefined ? undefined : clampTo(next, [0, tAir]);
+}
+
+/**
+ * Chrome ignores `touch-action` on inner SVG elements, so a finger on a handle would also pan
+ * the page (and cancel the drag). A non-passive touchstart listener that prevents the default
+ * keeps the gesture for the pointer events; React's own touch listeners are passive.
+ */
+function useNoTouchPan<T extends Element>(): RefObject<T | null> {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const keepGesture = (event: Event) => event.preventDefault();
+    element.addEventListener('touchstart', keepGesture, { passive: false });
+    return () => element.removeEventListener('touchstart', keepGesture);
+  }, []);
+  return ref;
+}
+
+/** "M x y L x y …" through the samples up to t, ending at the state at t. */
+function trailPath(live: JumpResult, t: number, scales: PlotScales): string {
+  const swept = [...live.points.filter((p) => p.t < t), stateAt(live, t)];
+  return swept
+    .map((p, i) => `${i === 0 ? 'M' : 'L'}${scales.x.toPx(p.x)} ${scales.y.toPx(p.y)}`)
+    .join(' ');
+}
+
+/**
+ * Everything drawn over the jump plot: the trail up to t, the velocity vector at t, the draggable
+ * marker on the curve (seeks t) and the draggable launch vector v⃗₀ = (vₓ, v₀) from the origin.
+ * Both handles also take the arrow keys; the sliders below the canvas are their other alternative.
+ */
+export default function JumpOverlay({
+  scales,
+  settings,
+  live,
+  t,
+  lengthPerMs,
+  color,
+  showTrail,
+  showVelocity,
+  decimals,
+  onLaunchChange,
+  onLaunchDragPhase,
+  onSeek,
+}: JumpOverlayProps): JSX.Element {
+  const origin = { x: scales.x.toPx(0), y: scales.y.toPx(0) };
+  const tip = handleFromSettings(settings, scales, lengthPerMs);
+  const now = stateAt(live, t);
+  const body = { x: scales.x.toPx(now.x), y: scales.y.toPx(now.y) };
+  const velocityTip = {
+    x: scales.x.toPx(now.x + settings.vx * lengthPerMs),
+    y: scales.y.toPx(now.y + now.vy * lengthPerMs),
+  };
+  /** Pointer minus tip at grab time, so the knob keeps its offset instead of jumping. */
+  const grabOffsetRef = useRef<Point>({ x: 0, y: 0 });
+  const markerRef = useNoTouchPan<SVGGElement>();
+  const launchRef = useNoTouchPan<SVGGElement>();
+  const format = (value: number, unit: string) =>
+    formatNumber(value, { precision: decimals, unit });
+
+  const launchDrag = useDrag(({ x, y, phase }: DragPoint) => {
+    if (phase === 'start') {
+      grabOffsetRef.current = { x: x - tip.x, y: y - tip.y };
+      onLaunchDragPhase('start');
+      return;
+    }
+    const target = { x: x - grabOffsetRef.current.x, y: y - grabOffsetRef.current.y };
+    onLaunchChange(settingsFromHandle(target, scales, lengthPerMs, JUMP_LIMITS));
+    if (phase === 'end') onLaunchDragPhase('end');
+  });
+
+  const markerDrag = useDrag(({ x }: DragPoint) => onSeek(timeFromMarkerDrag(x, scales.x, live)));
+
+  const onLaunchKeyDown = (event: KeyboardEvent<SVGGElement>) => {
+    const next = launchKeyTarget(event.key, settings);
+    if (!next) return;
+    event.preventDefault();
+    onLaunchChange(next);
+  };
+
+  const onMarkerKeyDown = (event: KeyboardEvent<SVGGElement>) => {
+    const next = markerKeyTarget(event.key, t, live.tAir);
+    if (next === undefined) return;
+    event.preventDefault();
+    onSeek(next);
+  };
+
+  return (
+    <g>
+      {showTrail ? (
+        <path
+          data-trail=""
+          d={trailPath(live, t, scales)}
+          fill="none"
+          stroke={color}
+          strokeWidth={TRAIL_WIDTH}
+          strokeOpacity={TRAIL_OPACITY}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="pointer-events-none"
+        />
+      ) : null}
+      {showVelocity ? (
+        <g data-velocity="">
+          <Arrow from={body} to={velocityTip} color={TEXT_COLOR} />
+          <Label at={velocityTip}>v</Label>
+        </g>
+      ) : null}
+      <Arrow from={origin} to={tip} color={LAUNCH_COLOR} />
+      <Label at={tip}>v₀</Label>
+      <g
+        ref={markerRef}
+        data-testid="jump-marker"
+        role="slider"
+        tabIndex={0}
+        aria-label="Instante en la trayectoria"
+        aria-valuemin={0}
+        aria-valuemax={live.tAir}
+        aria-valuenow={t}
+        aria-valuetext={`t = ${format(t, 's')}`}
+        className="group cursor-ew-resize outline-none"
+        onKeyDown={onMarkerKeyDown}
+        {...markerDrag}
+      >
+        <Knob at={body} fill={TEXT_COLOR} />
+      </g>
+      <g
+        ref={launchRef}
+        data-testid="launch-handle"
+        role="slider"
+        tabIndex={0}
+        aria-label="Vector de lanzamiento"
+        aria-orientation="vertical"
+        aria-valuemin={JUMP_LIMITS.v0[0]}
+        aria-valuemax={JUMP_LIMITS.v0[1]}
+        aria-valuenow={settings.v0}
+        aria-valuetext={`v₀ = ${format(settings.v0, 'm/s')}, vₓ = ${format(settings.vx, 'm/s')}`}
+        className="group cursor-move outline-none"
+        onKeyDown={onLaunchKeyDown}
+        {...launchDrag}
+      >
+        <Knob at={tip} fill={LAUNCH_COLOR} />
+      </g>
+    </g>
+  );
+}

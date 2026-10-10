@@ -52,9 +52,11 @@ classRefs:
   - module: 'Módulo 1'
     topic: 'Tema 1.3 · Movimiento en Dos y Tres Dimensiones'
     note: 'Con velocidad horizontal, el salto es un MRU en x superpuesto a un MRUA en y.'
-updated: 2026-10-08
+updated: 2026-10-09
 ---
 
+import Step from '../../components/ui/Step.astro';
+import Why from '../../components/ui/Why.astro';
 import UseCase from '../../components/ui/UseCase.astro';
 import Equation from '../../components/ui/Equation.astro';
 import Figure from '../../components/ui/Figure.astro';
@@ -62,23 +64,14 @@ import Cite from '../../components/ui/Cite.astro';
 import Callout from '../../components/ui/Callout.astro';
 import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
-import JumpSimulator from '../../components/topics/salto-personaje/JumpSimulator';
+import JumpFigure from '../../components/topics/salto-personaje/JumpFigure';
+import JumpLab from '../../components/topics/salto-personaje/JumpLab';
 
-<UseCase>
+Un personaje que salta es un proyectil con aceleración constante. Casi ningún juego usa la gravedad terrestre: se fijan altura y tiempo, y de ellos salen g y el impulso.
 
-<Fragment slot="caso">
+<Step n={1} title="Caída libre">
 
-Tomo como caso Celeste, un juego de plataformas cuyo código de movimiento del jugador publicó Noel Berry en GitHub en 2018 <Cite id="celeste-player-cs" sources={frontmatter.sources} />. En `Player.cs` el salto depende de pocas constantes: `Gravity = 900`, `JumpSpeed = -105` (negativa: en pantalla, +y apunta hacia abajo), `MaxRun = 90`, `VarJumpTime = .2` y `HalfGravThreshold = 40`. Las unidades se deducen del uso, px/s y px/s²: en cada cuadro la velocidad vertical avanza `Gravity * mult * Engine.DeltaTime` hacia la de caída máxima, con `mult = .5` mientras la rapidez vertical es menor que 40 px/s y el botón sigue pulsado. Con el botón pulsado, la velocidad de salto se mantiene los primeros 0,2 s.
-
-Para hablar en metros declaro una escala propia: 8 px = 1 m, el ancho de la caja de colisión (hitbox) de Madeline (8 × 11 px en el mismo archivo), que la deja en 1,4 m de alto. Con ella, g = 112,5 m/s², 11,5 veces la terrestre; el impulso de salto (en el argot de los juegos, la rapidez de despegue) es 13,125 m/s, que redondeo a 13,1 m/s, y la carrera máxima, 11,25 m/s. Un toque breve da un salto balístico de 0,77 m con ápice a los 0,12 s (0,76 m con el valor redondeado del preajuste); sosteniendo el botón, mi cálculo con las mismas constantes da unos 28 px (3,5 m) en 0,36 s.
-
-El método de diseño viene de la charla de Kyle Pittman en GDC 2016, "Building a Better Jump" <Cite id="pittman-gdc-2016" sources={frontmatter.sources} />: el diseñador no elige g ni la velocidad inicial, sino la altura del ápice y el tiempo para alcanzarla. Como segundo producto uso Super Mario Bros.: su desensamblado comentado da un salto parado de 4 px/cuadro, con gravedad de 0,125 px/cuadro² mientras se sostiene A y de 0,4375 px/cuadro² al soltarlo o al empezar a caer <Cite id="smb-disassembly" sources={frontmatter.sources} />. Con 16 px = 1 m (el lado de un bloque) y 60 cuadros/s, supuestos míos que el desensamblado no fija, resultan 15 m/s, 28,1 m/s² y 98,4 m/s². Unity, en cambio, trae por defecto una gravedad 2D de (0; −9,8), la terrestre si cada unidad es un metro <Cite id="unity-physics2d-gravity" sources={frontmatter.sources} />: el motor parte de la Tierra y cada juego puede cambiarla.
-
-</Fragment>
-
-<Fragment slot="ecuacion">
-
-Entre dos cuadros, el personaje en el aire es un proyectil con aceleración constante: movimiento uniforme en x y uniformemente acelerado en y, con +y hacia arriba y el origen en el punto de despegue <Cite id="serway-jewett-2018" sources={frontmatter.sources} />.
+Con +y hacia arriba y origen en el despegue, el salto es un MRU en x y un MRUA en y <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. La velocidad vertical <Equation inline latex="v_y = v_0 - g t" /> se anula en el ápice; con la misma g al caer, el salto dura <Equation inline latex="2v_0/g" />.
 
 <Equation
   id="ec-salto-posicion"
@@ -94,14 +87,106 @@ Entre dos cuadros, el personaje en el aire es un proyectil con aceleración cons
   ]}
 />
 
-La velocidad vertical, <Equation inline latex="v_y = v_0 - g t" />, se anula en el ápice. De ahí salen el tiempo al ápice y la altura máxima:
+<Why>
+
+<Fragment slot="fenomeno">
+
+La gravedad frena la subida a ritmo constante; el personaje se detiene y cae.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+y(t) no depende de <Equation inline latex="v_x" />: cambiarla en el aire no altera la altura de la parábola.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  caption="Altura frente al tiempo de un lanzamiento vertical con v₀ = 13,1 m/s y g = 9,81 m/s²; el punto marca el ápice."
+  source={{ text: 'Curva calculada por el autor con la ecuación (2.1)' }}
+>
+  <JumpFigure variant="caida-libre" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={2} title="Por qué no basta la gravedad real">
+
+Con <Equation inline latex="g = 9{,}81\ \mathrm{m/s^2}" /> y el impulso de Madeline, protagonista de Celeste, el salto flota: sube <Equation inline latex="8{,}75\ \mathrm{m}" />. Subir g lo acorta, pero también lo baja.
 
 <Equation
   id="ec-salto-apice"
   latex="t_\text{ápice} = \frac{v_0}{g}, \qquad h_\text{máx} = \frac{v_0^2}{2g}"
 />
 
-Si la caída usa la misma gravedad, el tiempo en el aire es <Equation inline latex="2v_0/g" />. En Super Mario Bros., Mario cae con más gravedad de la que usa al subir; con un multiplicador de caída <Equation inline latex="k \ge 1" />, el descenso desde <Equation inline latex="h_\text{máx}" /> dura <Equation inline latex="\sqrt{2h_\text{máx}/(kg)}" /> y quedan
+<Why>
+
+<Fragment slot="fenomeno">
+
+Su salto sostenido de 3,5 m tardaría 0,84 s en llegar al ápice, más del doble que en el juego.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Con el impulso fijo, multiplicar g por n divide altura y tiempo entre n: en <Equation inline latex="(v_0, g)" /> no se ajustan por separado.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  caption="El mismo impulso, 13,1 m/s, con la gravedad de la Tierra (9,81 m/s²), la de Super Mario Bros. (28,1 m/s²) y la de Celeste (112,5 m/s²): altura y tiempo en el aire se encogen juntos."
+  source={{
+    text: 'Curvas calculadas por el autor con las ecuaciones (2.1) y (2.2); gravedades de los juegos convertidas como en la figura 2.3',
+  }}
+>
+  <JumpFigure variant="gravedades" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={3} title="Diseñar en altura y tiempo">
+
+Kyle Pittman propuso en GDC 2016 elegir la altura del ápice h y el tiempo <Equation inline latex="t_h" /> para alcanzarla, no g ni <Equation inline latex="v_0" /> <Cite id="pittman-gdc-2016" sources={frontmatter.sources} />. La figura 2.3 lo aplica a Celeste y a Super Mario Bros. <Cite id="smb-disassembly" sources={frontmatter.sources} />, con escalas que el código no fija.
+
+<Equation id="ec-salto-diseno" latex="g = \frac{2h}{t_h^2}, \qquad v_0 = \frac{2h}{t_h}" />
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+El diseñador piensa en alturas y cuadros: pedir <Equation inline latex="h = 4\ \mathrm{m}" /> y <Equation inline latex="t_h = 32\ \text{cuadros} = 0{,}533\ \mathrm{s}" /> devuelve <Equation inline latex="g = 28{,}1\ \mathrm{m/s^2}" /> y <Equation inline latex="v_0 = 15\ \mathrm{m/s}" />, el salto parado de Mario.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Es la ecuación (2.2) invertida; la diapositiva da g negativa, como componente con +y arriba, y en módulo coincide.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  caption="Subida hasta el ápice (tₕ, h) que pide cada diseño. Celeste (Player.cs), a 8 px = 1 m: Gravity 900 px/s² → 112,5 m/s²; JumpSpeed −105 px/s, negativa porque en pantalla +y apunta hacia abajo → 13,1 m/s; MaxRun 90 px/s → 11,25 m/s; HalfGravThreshold 40 px/s; VarJumpTime 0,2 s; MaxFall 160 px/s → 20 m/s. Super Mario Bros., a 16 px = 1 m y 60 cuadros/s: salto parado de 4 px/cuadro → 15 m/s; gravedad de 0,125 px/cuadro² con A sostenido → 28,1 m/s² y de 0,4375 px/cuadro² al soltar A o al empezar a caer → 98,4 m/s². Un toque en Celeste sube 0,77 m en 0,12 s (0,76 m con el valor redondeado); sostenido, según cálculo del autor, unos 28 px (3,5 m) en 0,36 s."
+  source={{
+    text: 'Curvas calculadas por el autor con la ecuación (2.1); constantes de Player.cs (fuente 1) y del desensamblado de Super Mario Bros. (fuente 3) convertidas con escalas supuestas por el autor',
+  }}
+>
+  <JumpFigure variant="diseno" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={4} title="Gravedad asimétrica">
+
+Mario cae con más gravedad de la que usa al subir: con un multiplicador <Equation inline latex="k \ge 1" />, el descenso dura <Equation inline latex="\sqrt{2h_\text{máx}/(kg)}" />.
 
 <Equation
   id="ec-salto-aire"
@@ -112,60 +197,69 @@ Si la caída usa la misma gravedad, el tiempo en el aire es <Equation inline lat
   ]}
 />
 
-Pittman invierte la ecuación (2.2): fijados la altura <Equation inline latex="h" /> y el tiempo al ápice <Equation inline latex="t_h" />, la gravedad y el impulso quedan determinados <Cite id="pittman-gdc-2016" sources={frontmatter.sources} />.
+<Why>
 
-<Equation id="ec-salto-diseno" latex="g = \frac{2h}{t_h^2}, \qquad v_0 = \frac{2h}{t_h}" />
+<Fragment slot="fenomeno">
 
-En su diapositiva g lleva signo negativo porque es una componente con +y hacia arriba; en módulo coincide. Como comprobación, pedir <Equation inline latex="h = 4\ \mathrm{m}" /> y <Equation inline latex="t_h" /> = 32 cuadros = 0,533 s devuelve g = 28,1 m/s² y <Equation inline latex="v_0" /> = 15 m/s: el salto parado de Mario con mi escala.
+El salto variable cambia un parámetro, no la curva: Celeste mantiene la velocidad 0,2 s y divide g entre dos cerca del ápice; Mario cambia de gravedad al soltar A.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+La subida sigue la ecuación (2.2); solo la caída usa <Equation inline latex="kg" />, y con <Equation inline latex="k = 1" /> vuelve <Equation inline latex="2v_0/g" />.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="simulacion"
+  caption="Laboratorio del salto con las ecuaciones (2.1) a (2.4): arrastra la punta de v₀ para fijar v₀ y vₓ, o el punto de la curva para recorrer t; la curva discontinua es el mismo impulso con la gravedad terrestre, y «Diseñar el salto» aplica la ecuación (2.3)."
+  source={{ text: 'Simulación del autor sobre src/lib/physics/projectile.ts' }}
+>
+  <JumpLab client:visible />
+</Figure>
+
+</Step>
+
+<UseCase>
+
+<Fragment slot="caso">
+
+Noel Berry publicó en 2018 el código de Celeste <Cite id="celeste-player-cs" sources={frontmatter.sources} />. En `Player.cs`, cada cuadro la velocidad vertical avanza `Gravity * mult * Engine.DeltaTime`, con `mult = .5` mientras <Equation inline latex="|v_y| < 40\ \text{px/s}" /> y el botón sigue pulsado. Con 8 px = 1 m, ancho de la caja de colisión de Madeline (<Equation inline latex="8 \times 11\ \text{px}" />, 1,4 m de alto), <Equation inline latex="g = 112{,}5\ \mathrm{m/s^2}" /> es 11,5 veces la terrestre y el impulso, <Equation inline latex="13{,}125 \approx 13{,}1\ \mathrm{m/s}" />.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Entre cuadros Madeline cumple la ecuación (2.1) con <Equation inline latex="v_0 = 105/8" /> y <Equation inline latex="g = 900/8" />. Unity trae por defecto una gravedad 2D de <Equation inline latex="(0;\ -9{,}8)" />, la terrestre si cada unidad es un metro <Cite id="unity-physics2d-gravity" sources={frontmatter.sources} />: el motor parte de la Tierra y cada juego la cambia.
 
 </Fragment>
 
 <Fragment slot="justificacion">
 
-La alternativa más directa a la física es una animación guionizada: una curva de posiciones dibujada a mano que se reproduce al pulsar el botón. Si el jugador suelta antes, despega desde una plataforma móvil, choca con un techo o lo empuja el viento, la curva deja de corresponder a lo que ocurre y cada caso pide otra animación. Un arco precalculado, una tabla de posiciones (x, y) por cuadro, falla igual y fija además el avance horizontal: no admite cambiar <Equation inline latex="v_x" /> en el aire. Los valores fijos, como subir y bajar a rapidez constante, eliminan la aceleración: el salto sale triangular, sin la desaceleración que hace legible el ápice.
-
-Con el modelo, posición y velocidad bastan para seguir desde cualquier cuadro, y cualquier combinación de entradas da una trayectoria coherente. Como los ejes son independientes, cambiar <Equation inline latex="v_x" /> en el aire no altera la altura. El salto variable de Celeste se reduce a mantener la velocidad 0,2 s y a dividir g entre dos cerca del ápice; el de Mario, a cambiar de gravedad al soltar A. Son cambios de un parámetro de la ecuación, no curvas nuevas.
-
-Que g valga 112,5 m/s² no es un error: es una decisión de sensación de juego. Con 9,81 m/s², los 3,5 m del salto sostenido de Madeline tardarían 0,84 s en llegar al ápice, más del doble que en el juego, y con el mismo impulso de 13,1 m/s subiría 8,75 m.
+Una animación guionizada falla si el jugador suelta antes, despega de una plataforma móvil, choca con un techo o lo empuja el viento; una tabla (x, y) precalculada también, y fija <Equation inline latex="v_x" />. Subir y bajar a rapidez constante da un salto triangular, sin la desaceleración que hace legible el ápice. El modelo sigue desde cualquier posición y velocidad.
 
 </Fragment>
 
 <Fragment slot="balance">
 
-Se gana coherencia: el mismo código resuelve cualquier entrada desde cualquier punto de partida. Se gana altura variable, cambiando la velocidad o g en pleno vuelo. Y se gana control de la sensación con dos parámetros que el diseñador entiende, <Equation inline latex="h" /> y <Equation inline latex="t_h" />: con la ecuación (2.4) piensa en alturas del escenario y en cuadros, y el código recibe g y <Equation inline latex="v_0" />.
-
-Lo que cuesta:
-
-- **Error de integración.** El motor no evalúa la ecuación (2.1): suma velocidad y posición cuadro a cuadro. Con Euler semiimplícito (primero la velocidad, después la posición) el ápice queda <Equation inline latex="v_0\,\Delta t/2" /> por debajo del analítico. Para el salto de Mario con mi escala son 3,75 m a 30 cuadros/s, 3,88 m a 60 y 3,95 m a 144, frente a 4,00 m. Si <Equation inline latex="\Delta t" /> sigue el refresco de la pantalla, el salto cambia de altura según la máquina; se evita integrando con paso fijo, como hace el NES por construcción: sus unidades ya son px/cuadro.
-- **Ajuste poco intuitivo en <Equation inline latex="(v_0, g)" />.** La altura crece con <Equation inline latex="v_0^2" /> y el tiempo con <Equation inline latex="v_0/g" />: subir g para acortar el salto también lo baja. Por eso conviene ajustar en <Equation inline latex="(h, t_h)" /> y derivar el resto.
-- **La gravedad falsa hay que documentarla.** 112,5 m/s² solo tiene sentido con la escala declarada, y "corregirla" a 9,81 m/s² perdería la sensación sin ganar nada.
-- **Lo que deja fuera el modelo simplificado.** Mi simulador usa una gravedad de subida y un multiplicador desde el ápice. No representa la prolongación del impulso durante 0,2 s ni la media gravedad de Celeste, ni el cambio de Mario al soltar A antes del ápice (el preajuste equivale a sostener A toda la subida), ni los topes de caída: 20 m/s en Celeste (`MaxFall = 160` px/s) y 15 m/s en Mario (4 px/cuadro). Por ese tope, según mi cálculo, Mario tarda en bajar unos 0,34 s, no los 0,29 s del modelo.
+Se gana coherencia, altura variable y control con <Equation inline latex="(h, t_h)" />. Cuesta el error de integración: con Euler semi-implícito el ápice baja <Equation inline latex="v_0\,\Delta t/2" /> (Mario: <Equation inline latex="3{,}75" />, <Equation inline latex="3{,}88" /> y <Equation inline latex="3{,}95\ \mathrm{m}" /> a 30, 60 y 144 cuadros/s, frente a 4,00 m), y si <Equation inline latex="\Delta t" /> sigue al refresco, la altura depende de la máquina; por eso el paso es fijo, como en el NES. Los 112,5 m/s², sensación de juego y no error, exigen documentar la escala; el modelo omite lo que anota el laboratorio.
 
 </Fragment>
 
 </UseCase>
 
-## Recurso de apoyo
-
-La curva continua se recalcula con las ecuaciones (2.1) a (2.3) en cada cambio de un control; la discontinua es el mismo impulso con la gravedad terrestre. El panel "Diseñar el salto" aplica la ecuación (2.4).
-
-<Figure
-  type="simulacion"
-  caption="Trayectoria del salto con la gravedad del juego frente a la terrestre; los controles recalculan la curva en vivo."
-  source={{ text: 'Simulación del autor sobre src/lib/physics/projectile.ts' }}
->
-  <JumpSimulator client:visible />
-</Figure>
-
 <Callout variant="clase" title="Módulo 1 · Temas 1.2 y 1.3">
 
-Las ecuaciones (2.1) y (2.2) son las de caída libre y lanzamiento vertical del Tema 1.2: <Equation inline latex="a_y = -g" />, <Equation inline latex="v_y = v_{0y} - g t" /> y <Equation inline latex="y = y_0 + v_{0y} t - \tfrac{1}{2} g t^2" />. Con <Equation inline latex="v_x" /> distinta de cero, el salto es el tiro parabólico del Tema 1.3, la superposición de un MRU en x y un MRUA en y. En clase el lanzamiento se da por rapidez y ángulo; aquí, por componentes: mi impulso de salto <Equation inline latex="v_0" /> es la componente vertical <Equation inline latex="v_{0y} = \lvert\vec v_0\rvert \sin\theta" /> de la velocidad inicial de clase, y con esa sustitución la <Equation inline latex="h_\text{máx} = \lvert\vec v_0\rvert^2 \sin^2\theta / (2g)" /> del Tema 1.3 es la ecuación (2.2). La diferencia es el papel de g: en clase es un dato, 9,8 m/s²; aquí es un parámetro de diseño.
+Las ecuaciones (2.1) y (2.2) son las del Tema 1.2: <Equation inline latex="a_y = -g" />, <Equation inline latex="v_y = v_{0y} - g t" /> y <Equation inline latex="y = y_0 + v_{0y} t - \tfrac{1}{2} g t^2" />. Con <Equation inline latex="v_x \neq 0" /> es el tiro parabólico del Tema 1.3, y con mi impulso, <Equation inline latex="v_{0y} = \lvert\vec v_0\rvert \sin\theta" />, su <Equation inline latex="h_\text{máx} = \lvert\vec v_0\rvert^2 \sin^2\theta / (2g)" /> es la (2.2). En clase g es un dato, 9,8 m/s²; aquí, una decisión de diseño.
 
 </Callout>
 
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-El Tema 1 usa las mismas ecuaciones de aceleración constante por componentes para un dron de reparto; allí la aceleración la limita un controlador, aquí es una constante de diseño. Con el Tema 3 forma un par: dos maneras de fabricar una gravedad aparente, escribiendo una constante en el código o haciendo girar un hábitat para que la aceleración centrípeta haga de peso. El salto termina cuando y vuelve a 0; si en ese contacto el objeto rebota, y con qué velocidad, lo decide el coeficiente de restitución del Tema 7.
+El dron del Tema 1 sigue estas ecuaciones con la aceleración limitada por un controlador. El Tema 3 fabrica gravedad aparente con un hábitat que gira, no con una constante, y el Tema 7, si el salto rebota al volver a y = 0.
 
 </Connections>
 

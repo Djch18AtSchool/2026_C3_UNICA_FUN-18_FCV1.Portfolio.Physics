@@ -6,14 +6,13 @@ import { TOPICS, topicBySlug } from '../consigna';
 import { topicSchema } from './topicSchema';
 
 const TOPICS_DIR = join(process.cwd(), 'src', 'content', 'topics');
-/** Rubric sections every published topic must keep: use case, resource, figure, connections, sources. */
-const PUBLISHED_BODY_MARKERS = [
-  '<UseCase',
-  '## Recurso de apoyo',
-  '<Figure',
-  '<Connections',
-  '<Sources',
-] as const;
+/** Rubric sections every published topic must keep: use case, figure, connections, sources. */
+const PUBLISHED_BODY_MARKERS = ['<UseCase', '<Figure', '<Connections', '<Sources'] as const;
+/** v1 topics (no Steps yet) still carry their resource under this heading. */
+const V1_RESOURCE_HEADING = '## Recurso de apoyo';
+/** A topic written in steps (spec §7.2) has at least this many and no manual closing headings. */
+const MIN_STEPS = 3;
+const MANUAL_CLOSING_HEADINGS = /^## (Conexiones|Fuentes)\s*$/m;
 
 /** Opening tag of a Step (a ">" inside a quoted attribute does not end it); self-closing ends in "/". */
 const STEP_OPENING = /<Step\b((?:[^>"']|"[^"]*"|'[^']*')*)>/g;
@@ -110,6 +109,13 @@ describe('topic files', () => {
       for (const marker of PUBLISHED_BODY_MARKERS) {
         expect(file.content.includes(marker), `${fileName} sin ${marker}`).toBe(true);
       }
+      const steps = [...file.content.matchAll(STEP_OPENING)].length;
+      if (steps === 0) {
+        expect(file.content.includes(V1_RESOURCE_HEADING), `${fileName} sin recurso`).toBe(true);
+        continue;
+      }
+      expect(steps, `${fileName}: pasos`).toBeGreaterThanOrEqual(MIN_STEPS);
+      expect(file.content, fileName).not.toMatch(MANUAL_CLOSING_HEADINGS);
     }
   });
 

@@ -112,7 +112,8 @@ test('el esquema de cada tema publicado lista sus h2 y cada ancla existe', async
     await page.goto(href);
     const outline = page.locator('nav[aria-label="Temas"] [data-outline-current]');
     await expect(outline).toHaveAttribute('open', '');
-    const texts = await page.locator('.topic-body h2').allInnerTexts();
+    // Section headings only: a lab's settings <dialog> titles itself with an h2 too.
+    const texts = await page.locator('.topic-body h2:not(dialog h2)').allInnerTexts();
     expect(texts.length, href).toBeGreaterThan(1);
     const links = outline.locator('a');
     await expect(links, href).toHaveText(texts);
