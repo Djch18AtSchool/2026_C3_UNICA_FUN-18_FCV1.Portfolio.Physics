@@ -29,6 +29,24 @@ function renderHandle(onDrag: (point: DragPoint) => void, { stubCtm = true } = {
   return { svg, handle };
 }
 
+function FocusableHandle({ onDrag }: { onDrag: (point: DragPoint) => void }) {
+  const drag = useDrag(onDrag);
+  return (
+    <svg>
+      <circle data-testid="handle" tabIndex={0} cx={0} cy={0} r={5} {...drag} />
+    </svg>
+  );
+}
+
+/** Renders a tabindex-0 handle inside an svg with an identity CTM already stubbed. */
+function renderFocusableHandle(onDrag: (point: DragPoint) => void) {
+  const { container } = render(<FocusableHandle onDrag={onDrag} />);
+  const svg = container.querySelector('svg') as SVGSVGElement;
+  const handle = container.querySelector('[data-testid="handle"]') as unknown as SVGGraphicsElement;
+  mockIdentityCtm(svg);
+  return { svg, handle };
+}
+
 describe('useDrag', () => {
   afterEach(() => {
     cleanup();
@@ -200,6 +218,61 @@ describe('useDrag', () => {
     expect(result.current.onPointerMove).toBe(first.onPointerMove);
     expect(result.current.onPointerUp).toBe(first.onPointerUp);
     expect(result.current.onPointerCancel).toBe(first.onPointerCancel);
+    expect(result.current.onLostPointerCapture).toBe(first.onLostPointerCapture);
+  });
+
+  test('focuses the handle on pointer down so pointer-then-keyboard interaction keeps working', () => {
+    // Arrange
+    const { handle } = renderFocusableHandle(vi.fn());
+
+    // Act
+    fireEvent.pointerDown(handle, { pointerId: 1, clientX: 0, clientY: 0 });
+
+    // Assert
+    expect(document.activeElement).toBe(handle);
+  });
+
+  test('ends the drag on lost pointer capture, firing exactly one end with the last move point', () => {
+    // Arrange
+    const onDrag = vi.fn();
+    const { handle } = renderHandle(onDrag);
+    fireEvent.pointerDown(handle, { pointerId: 1, clientX: 0, clientY: 0 });
+    fireEvent.pointerMove(handle, { pointerId: 1, clientX: 7, clientY: 9 });
+    onDrag.mockClear();
+
+    // Act
+    fireEvent.lostPointerCapture(handle, { pointerId: 1 });
+
+    // Assert
+    expect(onDrag).toHaveBeenCalledTimes(1);
+    expect(onDrag).toHaveBeenCalledWith({ x: 7, y: 9, phase: 'end' });
+  });
+
+  test('ignores lost pointer capture when no drag is active', () => {
+    // Arrange
+    const onDrag = vi.fn();
+    const { handle } = renderHandle(onDrag);
+
+    // Act
+    fireEvent.lostPointerCapture(handle, { pointerId: 1 });
+
+    // Assert
+    expect(onDrag).not.toHaveBeenCalled();
+  });
+
+  test('does not fire a second end when lost pointer capture follows a handled pointer up', () => {
+    // Arrange
+    const onDrag = vi.fn();
+    const { handle } = renderHandle(onDrag);
+    fireEvent.pointerDown(handle, { pointerId: 1, clientX: 0, clientY: 0 });
+    fireEvent.pointerUp(handle, { pointerId: 1, clientX: 3, clientY: 4 });
+    onDrag.mockClear();
+
+    // Act
+    fireEvent.lostPointerCapture(handle, { pointerId: 1 });
+
+    // Assert
+    expect(onDrag).not.toHaveBeenCalled();
   });
 
   test('calls the latest onDrag callback even though the handler identity is stable', () => {
