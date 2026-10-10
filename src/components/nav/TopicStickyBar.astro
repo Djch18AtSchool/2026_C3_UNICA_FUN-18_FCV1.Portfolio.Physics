@@ -28,7 +28,7 @@ const { class: className, number, phaseLabel, shortTitle, resourceType } = Astro
       </span>
       <span class="font-medium">{shortTitle}</span>
     </p>
-    <ResourceBadge type={resourceType} />
+    {resourceType && <ResourceBadge type={resourceType} />}
   </div>
 </div>
 

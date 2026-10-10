@@ -39,6 +39,17 @@ test('la portada muestra la lista de definición del curso en el orden exacto', 
   ]);
 });
 
+test('la fecha de "Última actualización" de la portada coincide con la del pie', async ({
+  page,
+}) => {
+  await page.goto('./');
+
+  const coverDate = await page.getByTestId('cover-meta').locator('dd').last().innerText();
+  const footerDate = await page.locator('footer time').innerText();
+
+  expect(coverDate).toBe(footerDate);
+});
+
 test('la portada ofrece un botón para ver el repositorio', async ({ page }) => {
   await page.goto('./');
 
@@ -71,6 +82,8 @@ test('un tema próximo muestra el aviso de su avance', async ({ page }) => {
   await expect(page.locator('main')).not.toContainText(
     'Trabajo, energía cinética y potencia en la recuperación de energía al frenar.',
   );
+  await expect(page.locator('main')).not.toContainText('Recurso por definir');
+  await expect(page.locator('main')).not.toContainText('Estado');
 });
 
 test('la barra lateral marca el tema activo y navega', async ({ page }) => {

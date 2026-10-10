@@ -98,6 +98,7 @@ export const COURSE = {
   section: 'FCV1',
   period: '2026-C3',
   university: 'Universidad CENFOTEC',
+  school: 'Escuela de Fundamentos',
   professor: 'Andrés Castro Núñez',
 } as const;
 

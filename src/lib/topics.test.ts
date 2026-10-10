@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { TOPICS } from '../consigna';
-import { neighbors, publishedCount, sortByNumber, toTopicSummary } from './topics';
+import { neighbors, sortByNumber, toTopicSummary } from './topics';
 
 const sorted = TOPICS.map(({ number }) => ({ number }));
 
@@ -50,18 +50,6 @@ describe('neighbors', () => {
 
   test('a number that is not in the list has no neighbors', () => {
     expect(neighbors(sorted, 99)).toEqual({});
-  });
-});
-
-describe('publishedCount', () => {
-  test('counts only topics with status publicado', () => {
-    const items = [{ status: 'publicado' }, { status: 'proximamente' }, { status: 'publicado' }];
-
-    expect(publishedCount(items)).toBe(2);
-  });
-
-  test('is zero for an empty list', () => {
-    expect(publishedCount([])).toBe(0);
   });
 });
 

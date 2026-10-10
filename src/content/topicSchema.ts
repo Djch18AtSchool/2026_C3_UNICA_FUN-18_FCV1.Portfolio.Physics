@@ -44,7 +44,16 @@ export const topicSchema = z
       });
     }
 
-    if (data.status !== 'publicado') return;
+    if (data.status !== 'publicado') {
+      if (data.concept) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['concept'],
+          message: 'El tema próximamente no debe declarar un concepto',
+        });
+      }
+      return;
+    }
 
     if (!data.concept) {
       ctx.addIssue({

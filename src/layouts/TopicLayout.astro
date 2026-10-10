@@ -55,20 +55,22 @@ const phaseLabel = PHASE_LABELS[phase];
             <h1 class="mt-2">{title}</h1>
             {concept && <p class="measure mt-4 text-lg leading-relaxed">{concept}</p>}
           </div>
-          <dl class="margin-note flex flex-wrap gap-x-8 gap-y-3 self-start xl:mt-8 xl:flex-col">
-            <div class="flex flex-col items-start gap-1">
-              <dt class="text-xs">Recurso de apoyo</dt>
-              <dd>
-                <ResourceBadge type={resourceType} />
-              </dd>
-            </div>
-            <div class="flex flex-col items-start gap-1">
-              <dt class="text-xs">Estado</dt>
-              <dd>
-                <StatusBadge status={status} />
-              </dd>
-            </div>
-          </dl>
+          {status === 'publicado' && (
+            <dl class="margin-note flex flex-wrap gap-x-8 gap-y-3 self-start xl:mt-8 xl:flex-col">
+              <div class="flex flex-col items-start gap-1">
+                <dt class="text-xs">Recurso de apoyo</dt>
+                <dd>
+                  <ResourceBadge type={resourceType} />
+                </dd>
+              </div>
+              <div class="flex flex-col items-start gap-1">
+                <dt class="text-xs">Estado</dt>
+                <dd>
+                  <StatusBadge status={status} />
+                </dd>
+              </div>
+            </dl>
+          )}
         </header>
       </div>
 
@@ -93,9 +95,11 @@ const phaseLabel = PHASE_LABELS[phase];
       <PrevNext all={all} number={number} />
 
       <footer class="flex flex-col gap-2 border-t border-border pt-4 text-sm text-fg-muted sm:flex-row sm:justify-between">
-        <p>
-          Actualizado el <time datetime={updatedIso}>{updatedLabel}</time>
-        </p>
+        {status === 'publicado' && (
+          <p>
+            Actualizado el <time datetime={updatedIso}>{updatedLabel}</time>
+          </p>
+        )}
         <p>
           <a href={sourceUrl}>Ver fuente de esta página en GitHub</a>
         </p>

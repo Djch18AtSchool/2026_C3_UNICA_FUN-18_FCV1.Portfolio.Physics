@@ -3,11 +3,8 @@ import { getCollection } from 'astro:content';
 import TopicCard from '../components/nav/TopicCard.astro';
 import { AUTHOR, COURSE, PHASE_LABELS, PHASES, REPO_URL, topicsByPhase } from '../consigna';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { BUILD_DATE_ISO, BUILD_DATE_LABEL } from '../lib/buildDate';
 import { sortByNumber, toTopicSummary } from '../lib/topics';
-
-const NOT_AVAILABLE = '—';
-// Frontmatter dates are calendar days parsed at UTC midnight (see TopicLayout); format in UTC.
-const UPDATED_TIME_ZONE = 'UTC';
 
 const entries = sortByNumber(
   (await getCollection('topics')).map((entry) => ({ ...toTopicSummary(entry), entry })),
@@ -18,20 +15,6 @@ const groups = PHASES.map((phase) => ({
   label: PHASE_LABELS[phase],
   topics: topicsByPhase(phase, entries),
 }));
-
-/** "Última actualización" on the cover: the latest `updated` date among published topics. */
-const latestUpdated = entries
-  .filter((entry) => entry.status === 'publicado')
-  .reduce<Date | undefined>((latest, entry) => {
-    const { updated } = entry.entry.data;
-    return !latest || updated > latest ? updated : latest;
-  }, undefined);
-const updatedLabel = latestUpdated
-  ? new Intl.DateTimeFormat('es-CR', { dateStyle: 'long', timeZone: UPDATED_TIME_ZONE }).format(
-      latestUpdated,
-    )
-  : undefined;
-const updatedIso = latestUpdated?.toISOString().slice(0, 10);
 ---
 
 <BaseLayout title="Portafolio de evidencias de Física I">
@@ -39,16 +22,6 @@ const updatedIso = latestUpdated?.toISOString().slice(0, 10);
     <h1 id="titulo-portada" class="max-w-[16ch] text-[2.5rem] sm:text-5xl">
       Portafolio de evidencias de Física I
     </h1>
-    <p class="mt-6 text-lg font-medium">{AUTHOR}</p>
-    <p class="mt-1 text-sm text-fg-muted">
-      <span class="font-mono">{COURSE.code}</span>
-      {' · '}
-      {COURSE.name}
-      {' · Sección '}
-      <span class="font-mono">{COURSE.section}</span>
-      {' · '}
-      <span class="font-mono">{COURSE.period}</span>
-    </p>
     <p class="measure mt-6 text-lg leading-relaxed">
       Este portafolio documenta cómo la física del curso aparece en el desarrollo de software: cada
       tema parte de un producto real, plantea la ecuación que lo gobierna y la acompaña con un
@@ -62,7 +35,9 @@ const updatedIso = latestUpdated?.toISOString().slice(0, 10);
       </div>
       <div class="flex flex-col gap-0.5">
         <dt class="text-xs text-fg-muted">Universidad</dt>
-        <dd>{COURSE.university} · Escuela de Fundamentos</dd>
+        <dd>
+          {COURSE.university} · {COURSE.school}
+        </dd>
       </div>
       <div class="flex flex-col gap-0.5">
         <dt class="text-xs text-fg-muted">Curso</dt>
@@ -81,11 +56,7 @@ const updatedIso = latestUpdated?.toISOString().slice(0, 10);
       <div class="flex flex-col gap-0.5">
         <dt class="text-xs text-fg-muted">Última actualización</dt>
         <dd>
-          {latestUpdated && updatedIso ? (
-            <time datetime={updatedIso}>{updatedLabel}</time>
-          ) : (
-            NOT_AVAILABLE
-          )}
+          <time datetime={BUILD_DATE_ISO}>{BUILD_DATE_LABEL}</time>
         </dd>
       </div>
     </dl>

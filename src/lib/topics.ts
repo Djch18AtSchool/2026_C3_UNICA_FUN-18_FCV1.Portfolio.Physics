@@ -29,10 +29,6 @@ export function neighbors<T extends { number: number }>(
   };
 }
 
-export function publishedCount(items: readonly { status: string }[]): number {
-  return items.filter((item) => item.status === 'publicado').length;
-}
-
 /** Narrow a collection entry ({ id, data }) to a summary; the entry id is the slug. */
 export function toTopicSummary(entry: { id: string; data: TopicData }): TopicSummary {
   const { number, phase, title, shortTitle, status, resourceType } = entry.data;

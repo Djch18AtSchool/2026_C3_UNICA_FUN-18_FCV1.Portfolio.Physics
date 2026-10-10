@@ -28,7 +28,6 @@ const valid = {
   phase: 1,
   title: 'El salto del personaje: cómo los motores de juego falsean la gravedad',
   shortTitle: 'El salto del personaje',
-  concept: 'Caída libre y tiro parabólico.',
   status: 'proximamente',
   updated: '2026-10-08',
 } as const;
@@ -36,6 +35,7 @@ const valid = {
 const validPublished = {
   ...valid,
   status: 'publicado',
+  concept: 'Caída libre y tiro parabólico.',
   resourceType: 'simulacion',
   useCase: { product: 'Un juego de plataformas', industry: 'Videojuegos' },
   sources: [{ id: 'giancoli-2008', title: 'Physics for Scientists and Engineers' }],
@@ -92,6 +92,15 @@ describe('topic files', () => {
       }
     }
   });
+
+  test('ningún tema próximamente declara concept', () => {
+    for (const fileName of fileNames) {
+      const data = readFrontmatter(fileName);
+      if (data.status === 'proximamente') {
+        expect(data, fileName).not.toHaveProperty('concept');
+      }
+    }
+  });
 });
 
 describe('topicSchema rules', () => {
@@ -132,16 +141,18 @@ describe('topicSchema rules', () => {
   });
 
   test('un tema proximamente no declara concept', () => {
-    const { concept, ...withoutConcept } = valid;
-
-    const parsed = topicSchema.parse(withoutConcept);
+    const parsed = topicSchema.parse(valid);
 
     expect(parsed.concept).toBeUndefined();
   });
 
   test('un tema publicado sin concept es rechazado', () => {
-    const { concept, ...withoutConcept } = validPublished;
+    const { concept: _concept, ...withoutConcept } = validPublished;
 
     expect(() => topicSchema.parse(withoutConcept)).toThrow(/concepto/);
+  });
+
+  test('un tema próximamente con concept es rechazado', () => {
+    expect(() => topicSchema.parse({ ...valid, concept: 'Algo' })).toThrow(/concepto/);
   });
 });

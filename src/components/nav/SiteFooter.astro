@@ -1,15 +1,6 @@
 ---
 import { REPO_URL } from '../../consigna';
-
-// The build date stands in for "last updated"; pinned to Costa Rica so CI (UTC) agrees.
-const TIME_ZONE = 'America/Costa_Rica';
-const buildDate = new Date();
-const generatedLabel = new Intl.DateTimeFormat('es-CR', {
-  dateStyle: 'long',
-  timeZone: TIME_ZONE,
-}).format(buildDate);
-// en-CA formats dates as YYYY-MM-DD, the shape <time datetime> expects.
-const generatedIso = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).format(buildDate);
+import { BUILD_DATE_ISO, BUILD_DATE_LABEL } from '../../lib/buildDate';
 ---
 
 <footer class="mt-16 border-t border-border">
@@ -18,7 +9,7 @@ const generatedIso = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).f
       <a href={REPO_URL}>Ver repositorio</a>
     </p>
     <p>
-      Sitio generado el <time datetime={generatedIso}>{generatedLabel}</time>
+      Sitio generado el <time datetime={BUILD_DATE_ISO}>{BUILD_DATE_LABEL}</time>
     </p>
   </div>
 </footer>
