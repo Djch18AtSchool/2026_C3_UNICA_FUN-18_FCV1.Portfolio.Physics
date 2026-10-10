@@ -1,13 +1,17 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { monoTextWidth } from '../../lab/plotScales';
 import DroneFigure from './DroneFigure';
 
 const strokeOf = (container: HTMLElement, id: string) =>
   container.querySelector(`[data-series="${id}"]`)?.getAttribute('stroke');
 
 describe('DroneFigure', () => {
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
 
   test('route: the declared stops on an x–y map with the position vector of B', () => {
     const { container } = render(<DroneFigure variant="ruta" />);
@@ -37,5 +41,28 @@ describe('DroneFigure', () => {
     expect(screen.getByText(/tₐ = 4,0\ss/)).toBeInTheDocument();
     expect(screen.getByText(/T = 67,2\ss/)).toBeInTheDocument();
     expect(screen.getByText(/d\/vₘₐₓ = 63,2\ss/)).toBeInTheDocument();
+  });
+  test('route on a phone: the x component letter clears the depot label', () => {
+    // The figure's plot is about 290 px wide on a 375 px phone.
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(private readonly callback: ResizeObserverCallback) {}
+        observe(target: Element) {
+          const entry = { target, contentRect: { width: 290 } } as unknown as ResizeObserverEntry;
+          this.callback([entry], this as unknown as ResizeObserver);
+        }
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    render(<DroneFigure variant="ruta" />);
+    const depot = screen.getByText('Depósito');
+    const letter = screen.getByText('x', { selector: 'text' });
+    const depotRight = Number(depot.getAttribute('x')) + monoTextWidth('Depósito', 13);
+    const letterLeft = Number(letter.getAttribute('x')) - monoTextWidth('x', 13) / 2;
+
+    // Both sit on the same line below the x axis; the halos (2 px each side) must not touch.
+    expect(letterLeft - depotRight).toBeGreaterThanOrEqual(8);
   });
 });

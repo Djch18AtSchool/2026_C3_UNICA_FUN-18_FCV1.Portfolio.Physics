@@ -67,6 +67,7 @@ export default function TopicTools({ url, githubUrl, markdownElementId }: TopicT
   }
 
   const status = outcome ? (outcome.isCopied ? COPIED_LABEL : FAILED_MESSAGE) : '';
+  const isFailureShown = outcome !== null && !outcome.isCopied;
 
   return (
     <div data-testid="topic-tools" className="flex flex-wrap items-center gap-3">
@@ -82,9 +83,16 @@ export default function TopicTools({ url, githubUrl, markdownElementId }: TopicT
       <a href={githubUrl} className={`${BUTTON} no-underline`}>
         Abrir en GitHub
       </a>
-      {/* The button already shows "Copiado"; only a failure needs visible text. */}
-      <p role="status" aria-live="polite" className="text-sm text-fg-muted">
-        <span className={outcome?.isCopied ? 'sr-only' : ''}>{status}</span>
+      {/*
+        The button already shows "Copiado"; only a failure needs visible text. Otherwise the
+        status is sr-only: still announced, but out of the flex flow, so it adds no gap.
+      */}
+      <p
+        role="status"
+        aria-live="polite"
+        className={isFailureShown ? 'text-sm text-fg-muted' : 'sr-only'}
+      >
+        {status}
       </p>
     </div>
   );

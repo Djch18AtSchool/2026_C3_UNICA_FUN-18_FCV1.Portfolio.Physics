@@ -53,6 +53,13 @@ function pointFromEvent(
   return svgPointFromClient(ctm.inverse(), event.clientX, event.clientY);
 }
 
+function releaseCapture(event: ReactPointerEvent<SVGGraphicsElement>): void {
+  const target = event.currentTarget;
+  if (typeof target.releasePointerCapture === 'function') {
+    target.releasePointerCapture(event.pointerId);
+  }
+}
+
 /**
  * Generic pointer-drag handler set for SVG handles drawn inside SvgPlot's overlay layer
  * (a launch vector, a map stop, a radius handle, a trigger lever, ...).
@@ -64,7 +71,7 @@ export function useDrag(onDrag: (point: DragPoint) => void): DragHandlers {
   const onDragRef = useRef(onDrag);
   onDragRef.current = onDrag;
   const isDraggingRef = useRef(false);
-  /** The last point reported by `start`/`move`, used by `onLostPointerCapture` to fire `end`. */
+  /** The last point reported by `start`/`move`, used to fire `end` on cancel or lost capture. */
   const lastPointRef = useRef<{ x: number; y: number } | undefined>(undefined);
 
   const onPointerDown = useCallback((event: ReactPointerEvent<SVGGraphicsElement>) => {
@@ -73,7 +80,8 @@ export function useDrag(onDrag: (point: DragPoint) => void): DragHandlers {
     const target = event.currentTarget;
     // preventDefault() suppresses the browser's focus-on-pointerdown, so restore it
     // explicitly: otherwise a tabindex handle becomes unreachable by pointer-then-keyboard.
-    if (typeof target.focus === 'function') target.focus();
+    // The handle is already under the pointer, so the page must not jump to it.
+    if (typeof target.focus === 'function') target.focus({ preventScroll: true });
     const point = pointFromEvent(event);
     if (!point) return;
     lastPointRef.current = point;
@@ -90,40 +98,51 @@ export function useDrag(onDrag: (point: DragPoint) => void): DragHandlers {
     onDragRef.current({ ...point, phase: 'move' });
   }, []);
 
-  const endDrag = useCallback((event: ReactPointerEvent<SVGGraphicsElement>) => {
+  /** Stops the drag and fires `end` once; guarded so later events for this drag are ignored. */
+  const finishDrag = useCallback((point: { x: number; y: number } | undefined) => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
-    const target = event.currentTarget;
-    if (typeof target.releasePointerCapture === 'function') {
-      target.releasePointerCapture(event.pointerId);
-    }
-    const point = pointFromEvent(event);
     if (point) onDragRef.current({ ...point, phase: 'end' });
   }, []);
+
+  const onPointerUp = useCallback(
+    (event: ReactPointerEvent<SVGGraphicsElement>) => {
+      if (!isDraggingRef.current) return;
+      // End first: a synchronous lostpointercapture from the release then finds no drag.
+      finishDrag(pointFromEvent(event));
+      releaseCapture(event);
+    },
+    [finishDrag],
+  );
+
+  /** Some browsers report (0, 0) on pointercancel, so the drag ends at the last known point. */
+  const onPointerCancel = useCallback(
+    (event: ReactPointerEvent<SVGGraphicsElement>) => {
+      if (!isDraggingRef.current) return;
+      finishDrag(lastPointRef.current);
+      releaseCapture(event);
+    },
+    [finishDrag],
+  );
 
   /**
    * Capture can be lost without an explicit pointerup/pointercancel (e.g. the browser
    * revokes it). Fires `end` with the last known point and stops the drag; guarded by the
-   * same `isDraggingRef` flag `endDrag` clears, so a lostpointercapture that follows an
-   * already-handled pointerup/pointercancel does not fire a second `end`.
+   * same `isDraggingRef` flag, so a lostpointercapture that follows an already-handled
+   * pointerup/pointercancel does not fire a second `end`.
    */
-  const onLostPointerCapture = useCallback(() => {
-    if (!isDraggingRef.current) return;
-    isDraggingRef.current = false;
-    const point = lastPointRef.current;
-    if (point) onDragRef.current({ ...point, phase: 'end' });
-  }, []);
+  const onLostPointerCapture = useCallback(() => finishDrag(lastPointRef.current), [finishDrag]);
 
   return useMemo(
     () => ({
       onPointerDown,
       onPointerMove,
-      onPointerUp: endDrag,
-      onPointerCancel: endDrag,
+      onPointerUp,
+      onPointerCancel,
       onLostPointerCapture,
       style: DRAG_STYLE,
       ref: preventTouchPan,
     }),
-    [onPointerDown, onPointerMove, endDrag, onLostPointerCapture],
+    [onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onLostPointerCapture],
   );
 }

@@ -45,6 +45,13 @@ describe('TopicTools', () => {
     );
   });
 
+  test('el estado vacío queda fuera del flujo de la fila y no añade un hueco', () => {
+    renderTools();
+
+    expect(screen.getByRole('status')).toHaveTextContent('');
+    expect(screen.getByRole('status')).toHaveClass('sr-only');
+  });
+
   test('"Copiar URL" copia la URL y confirma con "Copiado" durante un segundo', async () => {
     renderTools();
 
@@ -55,6 +62,8 @@ describe('TopicTools', () => {
     expect(writeText).toHaveBeenCalledWith(URL);
     expect(screen.getByRole('button', { name: 'Copiado' })).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Copiado');
+    // The button already shows it: the status only speaks, out of the row's flow.
+    expect(screen.getByRole('status')).toHaveClass('sr-only');
 
     act(() => {
       vi.advanceTimersByTime(CONFIRM_MS);
@@ -90,6 +99,7 @@ describe('TopicTools', () => {
     });
 
     expect(screen.getByRole('status')).toHaveTextContent('No se pudo copiar');
+    expect(screen.getByRole('status')).not.toHaveClass('sr-only');
     expect(screen.queryByRole('button', { name: 'Copiado' })).toBeNull();
   });
 

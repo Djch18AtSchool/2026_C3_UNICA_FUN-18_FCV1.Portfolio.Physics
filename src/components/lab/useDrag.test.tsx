@@ -201,6 +201,22 @@ describe('useDrag', () => {
     expect(onDrag).not.toHaveBeenCalled();
   });
 
+  test('ends a cancelled drag at the last known point, not at the cancel coordinates', () => {
+    // Arrange: some browsers report (0, 0) on pointercancel.
+    const onDrag = vi.fn();
+    const { handle } = renderHandle(onDrag);
+    fireEvent.pointerDown(handle, { pointerId: 1, clientX: 5, clientY: 6 });
+    fireEvent.pointerMove(handle, { pointerId: 1, clientX: 40, clientY: 50 });
+    onDrag.mockClear();
+
+    // Act
+    fireEvent.pointerCancel(handle, { pointerId: 1, clientX: 0, clientY: 0 });
+
+    // Assert
+    expect(onDrag).toHaveBeenCalledTimes(1);
+    expect(onDrag).toHaveBeenCalledWith({ x: 40, y: 50, phase: 'end' });
+  });
+
   test('does nothing on pointer down when the owner svg has no CTM', () => {
     // Arrange
     const onDrag = vi.fn();
@@ -241,6 +257,18 @@ describe('useDrag', () => {
 
     // Assert
     expect(document.activeElement).toBe(handle);
+  });
+
+  test('focuses the handle without scrolling the page to it', () => {
+    // Arrange
+    const { handle } = renderFocusableHandle(vi.fn());
+    const focus = vi.spyOn(handle, 'focus');
+
+    // Act
+    fireEvent.pointerDown(handle, { pointerId: 1, clientX: 0, clientY: 0 });
+
+    // Assert
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
   });
 
   test('ends the drag on lost pointer capture, firing exactly one end with the last move point', () => {

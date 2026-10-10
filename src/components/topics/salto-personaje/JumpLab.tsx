@@ -6,6 +6,7 @@ import { G_EARTH } from '../../../lib/physics';
 import Presets, { type Preset } from '../../controls/Presets';
 import { snapTo } from '../../lab/dragMath';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
+import { KNOB_HIT_RADIUS } from '../../lab/OverlayMarks';
 import ParamField from '../../lab/ParamField';
 import type { Domain } from '../../lab/plotScales';
 import SvgPlot, { type PlotSeries } from '../../lab/SvgPlot';
@@ -149,10 +150,10 @@ export default function JumpLab({ footnote }: JumpLabProps): JSX.Element {
   ];
 
   const readouts: LabReadout[] = [
-    { label: 'Altura máxima', value: live.hMax, unit: 'm' },
-    { label: 'Tiempo al ápice', value: live.tApex, unit: 's' },
-    { label: 'Tiempo en el aire', value: live.tAir, unit: 's' },
-    { label: 'Alcance', value: live.range, unit: 'm' },
+    { id: 'hMax', label: 'Altura máxima', value: live.hMax, unit: 'm' },
+    { id: 'tApex', label: 'Tiempo al ápice', value: live.tApex, unit: 's' },
+    { id: 'tAir', label: 'Tiempo en el aire', value: live.tAir, unit: 's' },
+    { id: 'range', label: 'Alcance', value: live.range, unit: 'm' },
   ];
 
   const localSettings = jumpLocalSettings({
@@ -227,6 +228,8 @@ export default function JumpLab({ footnote }: JumpLabProps): JSX.Element {
           xDomain={domains.x}
           yDomain={domains.y}
           equalAspect
+          // The marker starts on the origin, at the plot's corner: keep its knob whole.
+          overlayBleed={KNOB_HIT_RADIUS}
           ariaLabel={describePlot(live, shownGhost)}
           testId="jump-plot"
           overlay={(scales) => (

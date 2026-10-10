@@ -223,4 +223,29 @@ test.describe('con pantalla táctil', () => {
     await expect.poll(() => readoutText(page, 'Fuerza lateral real F_y')).not.toBe(before);
     expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore);
   });
+  test('un deslizamiento vertical que empieza sobre la línea del cursor desplaza la página', async ({
+    page,
+  }) => {
+    await openLab(page);
+    await centreLoadPlot(page);
+    const before = await readoutText(page, 'Fuerza lateral real F_y');
+    const knob = await knobCentre(page, LOAD_CURSOR);
+    // On the cursor line, well below the knob's touch target.
+    const x = knob.x;
+    const y = knob.y + 80;
+    const scrollBefore = await page.evaluate(() => window.scrollY);
+    const cdp = await page.context().newCDPSession(page);
+
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    for (const step of [1, 2, 3, 4, 5, 6]) {
+      await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [{ x, y: y - 25 * step }],
+      });
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(scrollBefore);
+    expect(await readoutText(page, 'Fuerza lateral real F_y')).toBe(before);
+  });
 });

@@ -3,7 +3,7 @@ import { CELESTE_JUMP, JUMP_PRESETS } from '../../../lib/data/jumpPresets';
 import { formatNumber } from '../../../lib/format';
 import { G_EARTH } from '../../../lib/physics';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
-import type { Scale } from '../../lab/plotScales';
+import { monoTextWidth, type Scale } from '../../lab/plotScales';
 import SvgPlot, { type PlotSeries } from '../../lab/SvgPlot';
 import { computeJump, type JumpResult, type JumpSettings } from './jumpModel';
 import { worldForPreset } from './jumpWorlds';
@@ -86,6 +86,9 @@ function Gravities(): JSX.Element {
 
 /** The x window reaches this multiple of Mario's t_h, leaving room for the labels on the right. */
 const APEX_X_ROOM = 2;
+/** Closest a label starts to its apex, and the room it keeps before another apex's guide. */
+const MIN_LABEL_GAP = 6;
+const LIMIT_GAP = 4;
 /** Line height of the two-line apex label. */
 const LABEL_LINE = 15;
 
@@ -94,10 +97,26 @@ const LABEL_LINE = 15;
  * its right (the x window leaves room for it): above the point when the plot has room there,
  * below it otherwise, so a short phone plot never clips it.
  */
-function Apex({ result, x, y }: { result: JumpResult; x: Scale; y: Scale }) {
+function Apex({
+  result,
+  x,
+  y,
+  labelLimit,
+}: {
+  result: JumpResult;
+  x: Scale;
+  y: Scale;
+  /** viewBox x the label should end LIMIT_GAP before (another apex's guide), when given. */
+  labelLimit?: number;
+}) {
   const cx = x.toPx(result.tApex);
   const cy = y.toPx(result.hMax);
-  const labelX = cx + LABEL_GAP;
+  const lines = [`h = ${m(result.hMax)}`, `tₕ = ${s(result.tApex)}`];
+  const width = Math.max(...lines.map((line) => monoTextWidth(line, LABEL_SIZE)));
+  // On a narrow plot the label slides a little left to clear the limit, but never onto its point
+  // (further left it would run into the steeper curve rising past it).
+  const latestStart = labelLimit === undefined ? Infinity : labelLimit - LIMIT_GAP - width;
+  const labelX = Math.max(cx + MIN_LABEL_GAP, Math.min(cx + LABEL_GAP, latestStart));
   const hasRoomAbove = cy - y.range[1] > 2 * LABEL_LINE + LABEL_GAP;
   const firstLineY = hasRoomAbove ? cy - LABEL_LINE - LABEL_GAP / 2 : cy + LABEL_LINE;
   return (
@@ -126,8 +145,10 @@ function Apex({ result, x, y }: { result: JumpResult; x: Scale; y: Scale }) {
         strokeWidth={HALO_WIDTH}
         paintOrder="stroke"
       >
-        <tspan x={labelX}>{`h = ${m(result.hMax)}`}</tspan>
-        <tspan x={labelX} dy={LABEL_LINE}>{`tₕ = ${s(result.tApex)}`}</tspan>
+        <tspan x={labelX}>{lines[0]}</tspan>
+        <tspan x={labelX} dy={LABEL_LINE}>
+          {lines[1]}
+        </tspan>
       </text>
     </g>
   );
@@ -151,7 +172,7 @@ function Design(): JSX.Element {
       overlay={({ x, y }) => (
         <>
           <Apex result={mario} x={x} y={y} />
-          <Apex result={celeste} x={x} y={y} />
+          <Apex result={celeste} x={x} y={y} labelLimit={x.toPx(mario.tApex)} />
         </>
       )}
       ariaLabel={`Subida de Super Mario Bros. hasta h = ${m(mario.hMax)} en tₕ = ${s(mario.tApex)} y de Celeste hasta h = ${m(celeste.hMax)} en tₕ = ${s(celeste.tApex)}.`}

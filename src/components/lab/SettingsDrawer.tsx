@@ -11,6 +11,7 @@ import {
 import GlobalSettingsTab from './GlobalSettingsTab';
 import { ICON_BUTTON } from './iconButton';
 import LocalSettingsTab from './LocalSettingsTab';
+import { lockPageScroll } from './scrollLock';
 
 export type SettingOption =
   | { key: string; label: string; kind: 'toggle'; value: boolean; onChange(v: boolean): void }
@@ -116,7 +117,7 @@ function CloseIcon() {
  * Settings panel on a native modal <dialog>: tabs "Este simulador" (the laboratory's options) and
  * "Global" (the site-wide store). The `open` prop drives showModal/close; Escape, the close button
  * and a backdrop click ask the owner to close through `onClose`, and focus returns to whatever
- * had it when the panel opened.
+ * had it when the panel opened. Page scrolling is locked while it is open.
  */
 export default function SettingsDrawer({
   open,
@@ -130,24 +131,23 @@ export default function SettingsDrawer({
   const dialogId = id ?? generatedId;
   const titleId = `${dialogId}-title`;
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const returnFocusRef = useRef<HTMLElement | null>(null);
   const tabRefs = useRef<Partial<Record<TabKey, HTMLButtonElement | null>>>({});
   const [activeTab, setActiveTab] = useState<TabKey>('local');
 
+  // Open: show the modal and lock page scrolling. The cleanup runs on close and on unmount
+  // alike, so an owner that unmounts with the drawer open still restores scroll and focus.
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open) {
-      const focused = document.activeElement;
-      returnFocusRef.current =
-        returnFocusTo?.current ?? (focused instanceof HTMLElement ? focused : null);
-      showDialog(dialog);
-      return;
-    }
-    hideDialog(dialog);
-    const returnTo = returnFocusRef.current;
-    returnFocusRef.current = null;
-    if (returnTo?.isConnected) returnTo.focus();
+    if (!dialog || !open) return undefined;
+    const focused = document.activeElement;
+    const returnTo = returnFocusTo?.current ?? (focused instanceof HTMLElement ? focused : null);
+    showDialog(dialog);
+    const releaseScroll = lockPageScroll();
+    return () => {
+      hideDialog(dialog);
+      releaseScroll();
+      if (returnTo?.isConnected) returnTo.focus();
+    };
     // returnFocusTo is a ref, read at open time; it never needs to re-run the effect.
   }, [open]);
 

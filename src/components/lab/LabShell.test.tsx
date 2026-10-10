@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { createClock, type ClockState } from '../../lib/physics/clock';
 import { resetSettingsForTests } from '../../lib/settingsStore';
 import { installDialogPolyfill } from '../../test-dialog';
 import { EXACT_TEXT } from '../../test-exact-text';
-import LabShell, { type LabShellProps } from './LabShell';
+import LabShell, { READOUT_ANNOUNCE_DELAY_MS, type LabShellProps } from './LabShell';
 import type { SimClock } from './useSimClock';
 
 function fakeClock(overrides: Partial<ClockState> = {}): SimClock {
@@ -23,13 +23,13 @@ function fakeClock(overrides: Partial<ClockState> = {}): SimClock {
   };
 }
 
-function renderShell(overrides: Partial<LabShellProps> = {}) {
-  const props: LabShellProps = {
+function shellProps(overrides: Partial<LabShellProps> = {}): LabShellProps {
+  return {
     title: 'Laboratorio del salto',
     type: 'simulacion',
     readouts: [
-      { label: 'Altura máxima', value: 1.234, unit: 'm' },
-      { label: 'Tiempo en el aire', value: 0.5, unit: 's' },
+      { id: 'hMax', label: 'Altura máxima', value: 1.234, unit: 'm' },
+      { id: 'tAir', label: 'Tiempo en el aire', value: 0.5, unit: 's' },
     ],
     params: <p>parámetros del salto</p>,
     localSettings: [
@@ -40,8 +40,22 @@ function renderShell(overrides: Partial<LabShellProps> = {}) {
     children: <svg data-testid="canvas" />,
     ...overrides,
   };
-  return render(<LabShell {...props} />);
 }
+
+function renderShell(overrides: Partial<LabShellProps> = {}) {
+  return render(<LabShell {...shellProps(overrides)} />);
+}
+
+/** The shell with a single "Altura máxima" readout at `value` metres. */
+function heightShell(value: number) {
+  return (
+    <LabShell
+      {...shellProps({ readouts: [{ id: 'hMax', label: 'Altura máxima', value, unit: 'm' }] })}
+    />
+  );
+}
+
+const announcer = () => screen.getByTestId('readout-announcer');
 
 const gear = () => screen.getByRole('button', { name: 'Ajustes del simulador' });
 
@@ -77,7 +91,9 @@ describe('LabShell', () => {
   });
 
   test('a readout with its own precision ignores the global decimals', () => {
-    renderShell({ readouts: [{ label: 'Fuerza', value: 11942.9, unit: 'N', precision: 0 }] });
+    renderShell({
+      readouts: [{ id: 'force', label: 'Fuerza', value: 11942.9, unit: 'N', precision: 0 }],
+    });
 
     expect(screen.getByText('11 943 N')).toBeInTheDocument();
   });
@@ -194,5 +210,46 @@ describe('LabShell', () => {
     renderShell();
 
     expect(screen.queryByTestId('lab-footnote')).toBeNull();
+  });
+  test('readouts are keyed by id, so two may share a label', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    renderShell({
+      readouts: [
+        { id: 'linear', label: 'Fuerza lateral F_y', value: 1, unit: 'N' },
+        { id: 'real', label: 'Fuerza lateral F_y', value: 2, unit: 'N' },
+      ],
+    });
+
+    expect(screen.getAllByText('Fuerza lateral F_y')).toHaveLength(2);
+    expect(error).not.toHaveBeenCalled();
+    error.mockRestore();
+  });
+
+  describe('readout announcements', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    test('a polite, atomic live region that says nothing on mount', () => {
+      renderShell();
+
+      expect(announcer()).toHaveAttribute('aria-live', 'polite');
+      expect(announcer()).toHaveAttribute('aria-atomic', 'true');
+      expect(announcer().textContent).toBe('');
+    });
+
+    test('announces the readouts once they settle, not on every step of a drag', () => {
+      vi.useFakeTimers();
+      const { rerender } = render(heightShell(1));
+
+      rerender(heightShell(2));
+      act(() => vi.advanceTimersByTime(300));
+      rerender(heightShell(3));
+      act(() => vi.advanceTimersByTime(300));
+      expect(announcer().textContent).toBe('');
+
+      act(() => vi.advanceTimersByTime(READOUT_ANNOUNCE_DELAY_MS));
+      expect(announcer().textContent).toBe('Altura máxima: 3,00\u202fm');
+    });
   });
 });

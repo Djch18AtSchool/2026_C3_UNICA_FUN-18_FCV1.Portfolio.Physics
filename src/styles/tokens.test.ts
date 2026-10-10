@@ -90,6 +90,13 @@ describe('tokens.css', () => {
         contrastRatio(token(selector, 'fg-muted'), token(selector, 'bg')),
       ).toBeGreaterThanOrEqual(4.5);
     });
+    // Plot tick labels (fg-muted) and titles, legends and labels (fg) sit on the figure surface;
+    // axe does not measure SVG text, so the pair is checked here.
+    test.each(['fg', 'fg-muted'])('%s on bg-elevated reaches 4.5:1 (plot text, AA)', (text) => {
+      expect(
+        contrastRatio(token(selector, text), token(selector, 'bg-elevated')),
+      ).toBeGreaterThanOrEqual(4.5);
+    });
     test('accent on bg reaches 4.5:1 (AA)', () => {
       expect(
         contrastRatio(token(selector, 'accent'), token(selector, 'bg')),

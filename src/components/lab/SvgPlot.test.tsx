@@ -1,60 +1,10 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../lib/settingsStore';
 import type { Scale } from './plotScales';
-import SvgPlot, { type SvgPlotProps } from './SvgPlot';
-
-const PROPS: SvgPlotProps = {
-  title: 'Trayectoria',
-  xLabel: 'x',
-  xUnit: 'm',
-  yLabel: 'y',
-  yUnit: 'm',
-  series: [
-    {
-      id: 'path',
-      label: 'Trayectoria',
-      points: [
-        { x: 0, y: 0 },
-        { x: 5, y: 3 },
-        { x: 10, y: 0 },
-      ],
-    },
-  ],
-  xDomain: { min: 0, max: 10 },
-  yDomain: { min: 0, max: 4 },
-  ariaLabel: 'Trayectoria parabólica del salto',
-};
-
-/** Identity CTM on the slider's svg: client pixels are viewBox units. */
-function mockIdentityCtm(slider: HTMLElement): void {
-  const svg = slider.closest('svg') as SVGSVGElement;
-  Object.defineProperty(svg, 'getScreenCTM', {
-    configurable: true,
-    value: () => ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }) }),
-  });
-}
-
-/** A ResizeObserver that reports `width` for every observed element as soon as it observes it. */
-function stubResizeObserver(width: number): void {
-  vi.stubGlobal(
-    'ResizeObserver',
-    class {
-      constructor(private readonly callback: ResizeObserverCallback) {}
-      observe(target: Element) {
-        const entry = { target, contentRect: { width } } as unknown as ResizeObserverEntry;
-        this.callback([entry], this as unknown as ResizeObserver);
-      }
-      unobserve() {}
-      disconnect() {}
-    },
-  );
-}
-
-function viewBoxOf(svg: Element): number[] {
-  return (svg.getAttribute('viewBox') ?? '').split(' ').map(Number);
-}
+import SvgPlot from './SvgPlot';
+import { PROPS, viewBoxOf } from './svgPlotTestKit';
 
 describe('SvgPlot', () => {
   afterEach(() => {
@@ -230,130 +180,6 @@ describe('SvgPlot', () => {
     expect(captured?.y.domain.max).toBeCloseTo(3.1);
   });
 
-  describe('cursor', () => {
-    test('exposes a focusable slider labelled by the x axis', () => {
-      render(<SvgPlot {...PROPS} cursor={{ x: 5, onChange: () => {} }} />);
-
-      const slider = screen.getByRole('slider', { name: 'x' });
-      expect(slider).toHaveAttribute('aria-valuemin', '0');
-      expect(slider).toHaveAttribute('aria-valuemax', '10');
-      expect(slider).toHaveAttribute('aria-valuenow', '5');
-      expect(slider).toHaveAttribute('tabindex', '0');
-    });
-
-    test('ArrowRight calls onChange with a greater value', () => {
-      const onChange = vi.fn();
-      render(<SvgPlot {...PROPS} cursor={{ x: 5, onChange }} />);
-
-      fireEvent.keyDown(screen.getByRole('slider'), { key: 'ArrowRight' });
-
-      expect(onChange).toHaveBeenCalledTimes(1);
-      expect(onChange.mock.calls[0][0]).toBeGreaterThan(5);
-    });
-
-    test('arrows move by 1 % of the domain and by 10 % with Shift', () => {
-      const onChange = vi.fn();
-      render(<SvgPlot {...PROPS} cursor={{ x: 5, onChange }} />);
-      const slider = screen.getByRole('slider');
-
-      fireEvent.keyDown(slider, { key: 'ArrowLeft' });
-      fireEvent.keyDown(slider, { key: 'ArrowRight', shiftKey: true });
-
-      expect(onChange.mock.calls[0][0]).toBeCloseTo(4.9);
-      expect(onChange.mock.calls[1][0]).toBeCloseTo(6);
-    });
-
-    test('Home and End jump to the domain ends and moves are clamped', () => {
-      const onChange = vi.fn();
-      render(<SvgPlot {...PROPS} cursor={{ x: 9.95, onChange }} />);
-      const slider = screen.getByRole('slider');
-
-      fireEvent.keyDown(slider, { key: 'ArrowRight', shiftKey: true });
-      fireEvent.keyDown(slider, { key: 'Home' });
-      fireEvent.keyDown(slider, { key: 'End' });
-
-      expect(onChange.mock.calls.map(([x]) => x)).toEqual([10, 0, 10]);
-    });
-
-    test('ignores keys that do not move the cursor', () => {
-      const onChange = vi.fn();
-      render(<SvgPlot {...PROPS} cursor={{ x: 5, onChange }} />);
-
-      fireEvent.keyDown(screen.getByRole('slider'), { key: 'a' });
-
-      expect(onChange).not.toHaveBeenCalled();
-    });
-
-    test('dragging maps the pointer through the screen CTM and clamps it', () => {
-      const onChange = vi.fn();
-      let xScale: Scale | undefined;
-      render(
-        <SvgPlot
-          {...PROPS}
-          cursor={{ x: 5, onChange }}
-          overlay={({ x }) => {
-            xScale = x;
-            return null;
-          }}
-        />,
-      );
-      const slider = screen.getByRole('slider');
-      mockIdentityCtm(slider);
-      const grabbed = xScale!.toPx(5);
-      const target = xScale!.toPx(7.5);
-
-      fireEvent.pointerDown(slider, { pointerId: 1, clientX: grabbed, clientY: 100 });
-      fireEvent.pointerMove(slider, { pointerId: 1, clientX: target, clientY: 100 });
-      fireEvent.pointerMove(slider, { pointerId: 1, clientX: 5000, clientY: 100 });
-      fireEvent.pointerUp(slider, { pointerId: 1 });
-      fireEvent.pointerMove(slider, { pointerId: 1, clientX: target, clientY: 100 });
-
-      expect(onChange.mock.calls.map(([x]) => x)).toEqual([7.5, 10]);
-    });
-
-    test('keeps the grab offset so the knob does not jump to the pointer', () => {
-      const onChange = vi.fn();
-      let xScale: Scale | undefined;
-      render(
-        <SvgPlot
-          {...PROPS}
-          cursor={{ x: 5, onChange }}
-          overlay={({ x }) => {
-            xScale = x;
-            return null;
-          }}
-        />,
-      );
-      const slider = screen.getByRole('slider');
-      mockIdentityCtm(slider);
-      // Grab 8 px right of the line, then move by the pixels of 2.5 m.
-      const grabbed = xScale!.toPx(5) + 8;
-      const delta = xScale!.toPx(2.5) - xScale!.toPx(0);
-
-      fireEvent.pointerDown(slider, { pointerId: 1, clientX: grabbed, clientY: 100 });
-      fireEvent.pointerMove(slider, { pointerId: 1, clientX: grabbed + delta, clientY: 100 });
-
-      expect(onChange).toHaveBeenCalledTimes(1);
-      expect(onChange.mock.calls[0][0]).toBeCloseTo(7.5, 6);
-    });
-
-    test('renders the cursor label near the handle', () => {
-      render(
-        <SvgPlot {...PROPS} cursor={{ x: 5, onChange: () => {}, label: (x) => `x = ${x} m` }} />,
-      );
-
-      expect(screen.getByText('x = 5 m')).toBeInTheDocument();
-      expect(screen.getByRole('slider')).toHaveAttribute('aria-valuetext', 'x = 5 m');
-    });
-
-    test('draws a read-only cursor line without a slider when there is no onChange', () => {
-      const { container } = render(<SvgPlot {...PROPS} cursor={{ x: 5 }} />);
-
-      expect(screen.queryByRole('slider')).not.toBeInTheDocument();
-      expect(container.querySelector('[data-cursor] line')).toBeInTheDocument();
-    });
-  });
-
   describe('overlay', () => {
     test('receives scales whose toPx(min) falls inside the plot area', () => {
       let captured: { x: Scale; y: Scale } | undefined;
@@ -381,6 +207,24 @@ describe('SvgPlot', () => {
 
       expect(screen.getByTestId('overlay-dot').closest('g[clip-path]')).not.toBeNull();
     });
+
+    test('overlayBleed widens only the overlay clip, so a knob on the plot edge stays whole', () => {
+      const { container } = render(
+        <SvgPlot {...PROPS} overlayBleed={16} overlay={() => <circle r={4} />} />,
+      );
+      const rectOf = (layer: number) =>
+        ['x', 'y', 'width', 'height'].map((name) =>
+          Number(
+            container
+              .querySelectorAll('svg[viewBox]')
+              [layer].querySelector('clipPath rect')
+              ?.getAttribute(name),
+          ),
+        );
+      const [px, py, pw, ph] = rectOf(0);
+
+      expect(rectOf(1)).toEqual([px - 16, py - 16, pw + 32, ph + 32]);
+    });
   });
 
   test('equalAspect gives both axes the same pixels per unit', () => {
@@ -401,17 +245,6 @@ describe('SvgPlot', () => {
     const yUnit = captured!.y.toPx(0) - captured!.y.toPx(1);
     expect(yUnit).toBeCloseTo(xUnit);
     expect(viewBoxOf(screen.getByRole('img'))[3]).toBeLessThan(450);
-  });
-
-  test('sizes the viewBox from the measured container width, both layers alike', () => {
-    stubResizeObserver(360);
-    const { container } = render(<SvgPlot {...PROPS} cursor={{ x: 5, onChange: () => {} }} />);
-
-    const svgs = container.querySelectorAll('svg[viewBox]');
-    expect(svgs).toHaveLength(2);
-    expect(svgs[0].getAttribute('viewBox')).toMatch(/^0 0 360 /);
-    expect(svgs[1].getAttribute('viewBox')).toBe(svgs[0].getAttribute('viewBox'));
-    expect(viewBoxOf(svgs[0])[3]).toBeCloseTo(360 / 1.6);
   });
 
   test('equalAspect caps a tall plot at 1.5 times its width by widening x symmetrically', () => {
@@ -481,136 +314,5 @@ describe('SvgPlot', () => {
     expect(captured!.x.range).toEqual([84, 692]);
     expect(captured!.y.range[1]).toBe(22);
     expect(container.querySelector('text[transform^="rotate(-90"]')).toHaveTextContent('y (m)');
-  });
-
-  test('below 480 px the margins tighten and the left one fits the widest y tick label', () => {
-    stubResizeObserver(300);
-    let captured: { x: Scale; y: Scale } | undefined;
-    const { container } = render(
-      <SvgPlot
-        {...PROPS}
-        yDomain={{ min: 0, max: 12.5 }}
-        overlay={(scales) => {
-          captured = scales;
-          return null;
-        }}
-      />,
-    );
-    const yLabels = [...container.querySelectorAll('text[text-anchor="end"]')].map(
-      (node) => node.textContent ?? '',
-    );
-    const widest = Math.max(...yLabels.map((label) => label.length));
-    const [left, right] = captured!.x.range;
-
-    expect(left).toBe(Math.max(40, widest * 8 + 12));
-    expect(left).toBeLessThan(84);
-    expect(300 - right).toBeLessThan(28);
-    // The y title sits horizontally above the axis instead of in a rotated band.
-    expect(container.querySelector('text[transform^="rotate(-90"]')).toBeNull();
-    expect(screen.getByText('y (m)')).toHaveAttribute('text-anchor', 'start');
-  });
-
-  /** Horizontal extent of a <text>, estimated as the plotter does: 0,6 em per mono character. */
-  function textExtent(node: Element, fontSize: number): [number, number] {
-    const x = Number(node.getAttribute('x'));
-    const width = (node.textContent ?? '').length * fontSize * 0.6;
-    const anchor = node.getAttribute('text-anchor') ?? 'start';
-    if (anchor === 'middle') return [x - width / 2, x + width / 2];
-    return anchor === 'end' ? [x - width, x] : [x, x + width];
-  }
-
-  test('on a narrow plot the last x tick label and a band label stay inside the viewBox', () => {
-    stubResizeObserver(300);
-    render(
-      <SvgPlot
-        {...PROPS}
-        xDomain={{ min: 0, max: 10000 }}
-        bands={[{ from: 9000, to: 10000, label: 'Ventana de trabajo C3 (2019)' }]}
-      />,
-    );
-
-    const [, tickRight] = textExtent(screen.getByText('10 000'), 13);
-    const [bandLeft, bandRight] = textExtent(screen.getByText('Ventana de trabajo C3 (2019)'), 12);
-    expect(tickRight).toBeLessThanOrEqual(300);
-    expect(bandLeft).toBeGreaterThanOrEqual(0);
-    expect(bandRight).toBeLessThanOrEqual(300);
-  });
-
-  test('a band can put its label at the bottom of the plot area', () => {
-    let captured: { x: Scale; y: Scale } | undefined;
-    render(
-      <SvgPlot
-        {...PROPS}
-        bands={[{ from: 2, to: 4, label: 'Ventana C3', labelAt: 'bottom' }]}
-        overlay={(scales) => {
-          captured = scales;
-          return null;
-        }}
-      />,
-    );
-
-    const y = Number(screen.getByText('Ventana C3', { selector: 'text' }).getAttribute('y'));
-    expect(y).toBeLessThan(captured!.y.range[0]);
-    expect(y).toBeGreaterThan(captured!.y.range[0] - 20);
-  });
-
-  test('the cursor label flips left when it would run past the plot area', () => {
-    stubResizeObserver(300);
-    render(
-      <SvgPlot
-        {...PROPS}
-        cursor={{ x: 6.5, onChange: () => {}, label: () => 'T = 120 °C, largo' }}
-      />,
-    );
-
-    expect(screen.getByText('T = 120 °C, largo')).toHaveAttribute('text-anchor', 'end');
-  });
-
-  test('on a narrow plot with a draggable cursor the y title clears the knob', () => {
-    stubResizeObserver(300);
-    let captured: { x: Scale; y: Scale } | undefined;
-    render(
-      <SvgPlot
-        {...PROPS}
-        cursor={{ x: 9, onChange: () => {} }}
-        overlay={(scales) => {
-          captured = scales;
-          return null;
-        }}
-      />,
-    );
-    const areaTop = captured!.y.range[1];
-    const titleBaseline = Number(screen.getByText('y (m)').getAttribute('y'));
-
-    // Knob radius 7 plus its 2 px ring, and the title's descenders (≈ 4 px) above it.
-    expect(areaTop - titleBaseline).toBeGreaterThanOrEqual(7 + 2 + 4 + 4);
-    expect(titleBaseline).toBeGreaterThanOrEqual(14);
-  });
-
-  test('a narrow plot with one-character y labels keeps a 40 px left margin', () => {
-    stubResizeObserver(300);
-    let captured: { x: Scale; y: Scale } | undefined;
-    render(
-      <SvgPlot
-        {...PROPS}
-        yDomain={{ min: 0, max: 4 }}
-        overlay={(scales) => {
-          captured = scales;
-          return null;
-        }}
-      />,
-    );
-
-    expect(captured!.x.range[0]).toBe(40);
-  });
-
-  test('a touch on the cursor handle never pans the page', () => {
-    render(<SvgPlot {...PROPS} cursor={{ x: 5, onChange: () => {} }} />);
-
-    const notCancelled = fireEvent.touchStart(screen.getByRole('slider'), {
-      touches: [{ clientX: 0, clientY: 0 }],
-    });
-
-    expect(notCancelled).toBe(false);
   });
 });

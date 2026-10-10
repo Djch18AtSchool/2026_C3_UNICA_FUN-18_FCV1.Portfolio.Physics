@@ -35,7 +35,8 @@ const DELIVERY_INDICES: readonly StopIndex[] = [1, 2, 3];
 const DEPOT_SIZE = 10;
 const TRAIL_WIDTH = 7;
 const TRAIL_OPACITY = 0.3;
-const DEPOT_LABEL_OFFSET = { dx: 10, dy: 18 };
+/** Below and right of the depot: under the first leg and inside the plot area on phones too. */
+const DEPOT_LABEL_OFFSET = { dx: 10, dy: 13 };
 /** Stop names sit up and to the left of their knob, clear of the vector labels past the tips. */
 const STOP_LABEL_OFFSET = { dx: -10, dy: -10, anchor: 'end' } as const;
 /** A vector's letter sits this far past its tip, along the vector. */

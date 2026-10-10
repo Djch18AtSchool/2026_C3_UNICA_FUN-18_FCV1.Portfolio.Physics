@@ -10,7 +10,7 @@ describe('LabShell on the server', () => {
       <LabShell
         title="Laboratorio"
         type="simulacion"
-        readouts={[{ label: 'Alcance', value: 2, unit: 'm' }]}
+        readouts={[{ id: 'range', label: 'Alcance', value: 2, unit: 'm' }]}
         params={null}
         localSettings={[
           { key: 'trail', label: 'Rastro', kind: 'toggle', value: true, onChange: () => {} },

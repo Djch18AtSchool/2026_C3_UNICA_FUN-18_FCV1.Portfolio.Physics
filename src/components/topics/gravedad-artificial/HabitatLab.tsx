@@ -68,11 +68,16 @@ export default function HabitatLab({ footnote }: HabitatLabProps): JSX.Element {
   };
 
   const readouts: LabReadout[] = [
-    { label: 'Velocidad angular ω', value: solution.omega, unit: 'rad/s' },
-    { label: 'Velocidad tangencial v', value: solution.v, unit: 'm/s' },
-    { label: 'Gravedad aparente a_c/g', value: solution.gRatio, unit: 'g' },
-    { label: 'Período T', value: solution.period, unit: 's' },
-    { label: 'Diferencia cabeza–pies h/r', value: solution.gradient * PERCENT, unit: '%' },
+    { id: 'omega', label: 'Velocidad angular ω', value: solution.omega, unit: 'rad/s' },
+    { id: 'v', label: 'Velocidad tangencial v', value: solution.v, unit: 'm/s' },
+    { id: 'gRatio', label: 'Gravedad aparente a_c/g', value: solution.gRatio, unit: 'g' },
+    { id: 'period', label: 'Período T', value: solution.period, unit: 's' },
+    {
+      id: 'gradient',
+      label: 'Diferencia cabeza–pies h/r',
+      value: solution.gradient * PERCENT,
+      unit: '%',
+    },
   ];
 
   const params = (

@@ -29,8 +29,13 @@ const LINE_WIDTH = 1.5;
 const KNOB_RADIUS = 7;
 const FOCUS_RING_RADIUS = 11;
 const FOCUS_RING_COLOR = 'var(--accent)';
-/** Half the width of the invisible hit strip along the line: a 24 px touch target. */
+/** Half the width of the invisible hit strip along the line: a 24 px target for mouse and pen. */
 const HIT_HALF_WIDTH = 12;
+/**
+ * Half the height of the knob's touch target (24 × 44 px). Only this target cancels touch
+ * panning: a vertical swipe that starts on the line below it still scrolls the page.
+ */
+const KNOB_TARGET_HALF_HEIGHT = 22;
 const LABEL_GAP = 14;
 /** Past this fraction of the plot width, or when it would overrun the plot, the label flips left. */
 const LABEL_FLIP_FRACTION = 0.7;
@@ -114,7 +119,7 @@ export default function SvgPlotCursor({
   const handlePointerDown = (event: PointerEvent<SVGGElement>) => {
     const handle = event.currentTarget;
     event.preventDefault();
-    handle.focus();
+    handle.focus({ preventScroll: true });
     if (typeof handle.setPointerCapture === 'function') handle.setPointerCapture(event.pointerId);
     const px = pointerViewBoxX(event);
     grabOffsetRef.current = px === undefined ? 0 : px - cx;
@@ -180,7 +185,6 @@ export default function SvgPlotCursor({
   return (
     <g data-cursor="">
       <g
-        ref={preventTouchPan}
         role="slider"
         tabIndex={0}
         aria-label={xLabel}
@@ -189,7 +193,7 @@ export default function SvgPlotCursor({
         aria-valuenow={value}
         aria-valuetext={labelText ?? formatNumber(value, { precision: decimals, unit: xUnit })}
         aria-orientation="horizontal"
-        className="group pointer-events-auto cursor-ew-resize touch-none outline-none"
+        className="group pointer-events-auto cursor-ew-resize outline-none"
         onKeyDown={handleKeyDown}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -200,11 +204,22 @@ export default function SvgPlotCursor({
         }}
       >
         <rect
+          data-cursor-strip=""
           x={cx - HIT_HALF_WIDTH}
-          y={area.top - HIT_HALF_WIDTH}
+          y={area.top}
           width={HIT_HALF_WIDTH * 2}
-          height={area.bottom - area.top + HIT_HALF_WIDTH}
+          height={area.bottom - area.top}
           fill="transparent"
+        />
+        <rect
+          ref={preventTouchPan}
+          data-cursor-knob-target=""
+          x={cx - HIT_HALF_WIDTH}
+          y={area.top - KNOB_TARGET_HALF_HEIGHT}
+          width={HIT_HALF_WIDTH * 2}
+          height={KNOB_TARGET_HALF_HEIGHT * 2}
+          fill="transparent"
+          className="touch-none"
         />
         {line}
         <circle
@@ -217,6 +232,7 @@ export default function SvgPlotCursor({
           className="opacity-0 group-focus-visible:opacity-100"
         />
         <circle
+          data-knob=""
           cx={cx}
           cy={area.top}
           r={KNOB_RADIUS}

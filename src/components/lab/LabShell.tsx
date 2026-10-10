@@ -1,14 +1,19 @@
 import { useId, useRef, useState, type JSX, type ReactNode } from 'react';
 import { RESOURCE_LABELS, type ResourceType } from '../../consigna';
+import { formatNumber } from '../../lib/format';
 import ControlPanel from '../controls/ControlPanel';
 import Readout from '../controls/Readout';
 import { RESOURCE_BADGE, RESOURCE_MARKS, RESOURCE_SWATCH } from '../ui/resourceMarks';
 import { ICON_BUTTON } from './iconButton';
 import SettingsDrawer, { type SettingOption } from './SettingsDrawer';
 import TransportBar from './TransportBar';
+import { useGlobalSettings } from './useGlobalSettings';
+import { useSettledText } from './useSettledText';
 import type { SimClock } from './useSimClock';
 
 export interface LabReadout {
+  /** Stable React key: labels may repeat or change with the parameters. */
+  id: string;
   label: string;
   value: number;
   unit: string;
@@ -27,6 +32,19 @@ export interface LabShellProps {
   footnote?: string;
   testId: string;
   children: ReactNode;
+}
+
+/** Quiet time after the last readout change before it is announced (drags, playback). */
+export const READOUT_ANNOUNCE_DELAY_MS = 750;
+
+/** "Label: value unit; …", formatted as the readouts show it. */
+function readoutSummary(readouts: LabReadout[], decimals: number): string {
+  return readouts
+    .map(({ label, value, unit, precision }) => {
+      const text = formatNumber(value, { precision: precision ?? decimals, unit });
+      return `${label}: ${text}`;
+    })
+    .join('; ');
 }
 
 function GearIcon() {
@@ -80,6 +98,11 @@ export default function LabShell({
   const drawerId = `${baseId}-settings`;
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const gearRef = useRef<HTMLButtonElement>(null);
+  const { decimals } = useGlobalSettings();
+  const announcement = useSettledText(
+    readoutSummary(readouts, decimals),
+    READOUT_ANNOUNCE_DELAY_MS,
+  );
 
   return (
     <div
@@ -119,7 +142,7 @@ export default function LabShell({
           <div className="grid gap-x-8 gap-y-2 sm:grid-cols-2">
             {readouts.map((readout) => (
               <Readout
-                key={readout.label}
+                key={readout.id}
                 label={readout.label}
                 value={readout.value}
                 unit={readout.unit}
@@ -128,6 +151,15 @@ export default function LabShell({
             ))}
           </div>
         ) : null}
+        {/* The readouts change every frame of a drag or playback: speak only the settled values. */}
+        <p
+          data-testid="readout-announcer"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {announcement}
+        </p>
       </div>
       <ControlPanel title="Parámetros" onReset={onReset}>
         {params}

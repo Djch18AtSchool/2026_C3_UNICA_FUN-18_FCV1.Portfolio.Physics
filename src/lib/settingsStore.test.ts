@@ -87,6 +87,28 @@ describe('getSettings / setSettings / subscribe', () => {
   });
 });
 
+describe('blocked localStorage', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test('falls back to the defaults in memory when reading window.localStorage throws', () => {
+    // Arrange: some privacy modes throw on the localStorage getter itself.
+    vi.stubGlobal('window', {
+      get localStorage(): Storage {
+        throw new DOMException('blocked', 'SecurityError');
+      },
+    });
+
+    // Act
+    resetSettingsForTests();
+    setSettings({ decimals: 1 });
+
+    // Assert
+    expect(getSettings()).toEqual({ ...DEFAULT_SETTINGS, decimals: 1 });
+  });
+});
+
 describe('motionReduced', () => {
   test('is true when motion is explicitly reduced', () => {
     expect(motionReduced({ ...DEFAULT_SETTINGS, motion: 'reduced' }, false)).toBe(true);

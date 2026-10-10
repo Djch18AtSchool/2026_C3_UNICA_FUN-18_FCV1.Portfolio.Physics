@@ -49,7 +49,7 @@ export interface SvgPlotProps {
   yDomain?: Domain;
   /** Equal units per pixel on both axes; the viewBox height then follows the y range. */
   equalAspect?: boolean;
-  /** viewBox width over height when not equalAspect (default 1.6). */
+  /** viewBox width over height when not equalAspect (default 1.6, or 1.25 below 480 px). */
   aspectRatio?: number;
   bands?: PlotBand[];
   cursor?: PlotCursor;
@@ -58,6 +58,11 @@ export interface SvgPlotProps {
   showGrid?: boolean;
   /** Custom SVG drawn in viewBox pixels, clipped to the plot area, above the series. */
   overlay?: (scales: { x: Scale; y: Scale }) => ReactNode;
+  /**
+   * Pixels the overlay may draw past the plot area on every side (default 0): a draggable knob
+   * that can sit on the plot's edge then stays whole and keeps its full hit target.
+   */
+  overlayBleed?: number;
   ariaLabel: string;
   testId?: string;
 }
@@ -76,6 +81,8 @@ const MARGIN: Margin = { top: 22, right: 28, bottom: 58, left: 84 };
 /** Below this viewBox width (phones) the margins tighten so the plot area keeps most of the width. */
 const COMPACT_WIDTH = 480;
 const COMPACT_MARGIN: Omit<Margin, 'left'> = { top: 30, right: 14, bottom: 50 };
+/** Default aspect below 480 px: at 1.6 a phone plot area would be under 90 px tall. */
+const COMPACT_ASPECT_RATIO = 1.25;
 /**
  * With a draggable cursor, its knob sits on the top edge of the plot area: a compact plot then
  * grows its top margin, and lifts its horizontal y title by as much, so the knob clears the title.
@@ -154,7 +161,8 @@ function equalAspectFit(domains: { x: Domain; y: Domain }, plotWidth: number) {
 }
 
 function layoutWith(props: SvgPlotProps, width: number, margin: Margin) {
-  const aspectRatio = props.aspectRatio ?? DEFAULT_ASPECT_RATIO;
+  const defaultAspect = width < COMPACT_WIDTH ? COMPACT_ASPECT_RATIO : DEFAULT_ASPECT_RATIO;
+  const aspectRatio = props.aspectRatio ?? defaultAspect;
   if (!(aspectRatio > 0) || !Number.isFinite(aspectRatio)) {
     throw new RangeError(`SvgPlot: aspectRatio debe ser positivo (${aspectRatio})`);
   }
@@ -264,14 +272,14 @@ export default function SvgPlot(props: SvgPlotProps) {
   const { x, y, area, width, height, compact, titleLift } = computeLayout(props, measuredWidth);
   const ticks = axisTicks(x, y);
   const viewBox = `0 0 ${width} ${height}`;
-  const clipRect = (id: string) => (
+  const clipRect = (id: string, bleed = 0) => (
     <defs>
       <clipPath id={id}>
         <rect
-          x={area.left}
-          y={area.top}
-          width={area.right - area.left}
-          height={area.bottom - area.top}
+          x={area.left - bleed}
+          y={area.top - bleed}
+          width={area.right - area.left + 2 * bleed}
+          height={area.bottom - area.top + 2 * bleed}
         />
       </clipPath>
     </defs>
@@ -328,7 +336,7 @@ export default function SvgPlot(props: SvgPlotProps) {
           viewBox={viewBox}
           className="pointer-events-none absolute inset-0 block h-full w-full"
         >
-          {clipRect(`${clipBase}-overlay`)}
+          {clipRect(`${clipBase}-overlay`, props.overlayBleed)}
           {overlay ? (
             <g clipPath={`url(#${clipBase}-overlay)`} className="pointer-events-auto">
               {overlay({ x, y })}

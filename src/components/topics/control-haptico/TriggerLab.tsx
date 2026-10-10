@@ -80,10 +80,15 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
   };
 
   const readouts: LabReadout[] = [
-    { label: 'Desplazamiento x', value: state.xMm, unit: 'mm', precision: X_PRECISION },
-    { label: 'Fuerza del gatillo F', value: readings.force, unit: 'N' },
-    { label: 'Energía elástica U, resorte ideal', value: readings.energy, unit: 'mJ' },
-    { label: 'Trabajo del dedo W', value: readings.work, unit: 'mJ' },
+    { id: 'x', label: 'Desplazamiento x', value: state.xMm, unit: 'mm', precision: X_PRECISION },
+    { id: 'force', label: 'Fuerza del gatillo F', value: readings.force, unit: 'N' },
+    {
+      id: 'energy',
+      label: 'Energía elástica U, resorte ideal',
+      value: readings.energy,
+      unit: 'mJ',
+    },
+    { id: 'work', label: 'Trabajo del dedo W', value: readings.work, unit: 'mJ' },
   ];
 
   const localSettings: SettingOption[] = [

@@ -65,20 +65,22 @@ export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
   const onLoad = (fz: number) => setState((previous) => setLoad(previous, fz));
 
   const readouts: LabReadout[] = [
-    { label: 'Coeficiente de agarre μ(T)', value: readings.mu, unit: '' },
+    { id: 'mu', label: 'Coeficiente de agarre μ(T)', value: readings.mu, unit: '' },
     {
+      id: 'linear',
       label: 'Fuerza lateral lineal F_y',
       value: readings.linear,
       unit: 'N',
       precision: FORCE_PRECISION,
     },
     {
+      id: 'real',
       label: 'Fuerza lateral real F_y',
       value: readings.real,
       unit: 'N',
       precision: FORCE_PRECISION,
     },
-    { label: 'Coeficiente efectivo μ', value: readings.muEff, unit: '' },
+    { id: 'muEff', label: 'Coeficiente efectivo μ', value: readings.muEff, unit: '' },
   ];
 
   const localSettings: SettingOption[] = [

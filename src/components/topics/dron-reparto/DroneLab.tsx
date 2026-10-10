@@ -160,11 +160,11 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
   const now = sampleAt(route.samples, clock.state.t);
 
   const readouts: LabReadout[] = [
-    { label: 'Posición x', value: now.x, unit: 'm' },
-    { label: 'Posición y', value: now.y, unit: 'm' },
-    { label: 'Rapidez |v|', value: now.speed, unit: 'm/s' },
-    { label: 'Aceleración |a|', value: now.accel, unit: 'm/s²' },
-    { label: 'Duración de la ruta', value: duration, unit: 's' },
+    { id: 'x', label: 'Posición x', value: now.x, unit: 'm' },
+    { id: 'y', label: 'Posición y', value: now.y, unit: 'm' },
+    { id: 'speed', label: 'Rapidez |v|', value: now.speed, unit: 'm/s' },
+    { id: 'accel', label: 'Aceleración |a|', value: now.accel, unit: 'm/s²' },
+    { id: 'duration', label: 'Duración de la ruta', value: duration, unit: 's' },
   ];
 
   const params = (

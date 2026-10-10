@@ -8,8 +8,8 @@ import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_FAMILY } from '../charts/chartThem
 export type Point = { x: number; y: number };
 
 const KNOB_RADIUS = 7;
-/** Invisible hit circle: a 32 px touch target. */
-const HIT_RADIUS = 16;
+/** Invisible hit circle: a 32 px touch target. A plot's `overlayBleed` uses it to keep knobs whole. */
+export const KNOB_HIT_RADIUS = 16;
 const FOCUS_RING_RADIUS = 11;
 const FOCUS_RING_COLOR = 'var(--accent)';
 const VECTOR_WIDTH = 2;
@@ -102,7 +102,7 @@ export function Knob({
 }): JSX.Element {
   return (
     <>
-      <circle cx={at.x} cy={at.y} r={HIT_RADIUS} fill="transparent" />
+      <circle cx={at.x} cy={at.y} r={KNOB_HIT_RADIUS} fill="transparent" />
       <circle
         cx={at.x}
         cy={at.y}

@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { waitForIsland } from './helpers';
 
 const PAGES = [
   { name: 'la portada', path: './' },
@@ -20,6 +21,18 @@ const THEMES = ['light', 'dark'] as const;
 const VIEWPORTS = [
   { name: 'escritorio', size: { width: 1280, height: 800 } },
   { name: 'móvil', size: { width: 375, height: 812 } },
+] as const;
+/** Each v2 laboratory, by the LabShell test id its page renders. */
+const LABS = [
+  { name: 'el laboratorio del tema 1', path: './temas/dron-reparto/', testId: 'drone-lab' },
+  { name: 'el laboratorio del tema 2', path: './temas/salto-personaje/', testId: 'jump-lab' },
+  {
+    name: 'el laboratorio del tema 3',
+    path: './temas/gravedad-artificial/',
+    testId: 'habitat-lab',
+  },
+  { name: 'el laboratorio del tema 4', path: './temas/llantas-f1/', testId: 'tyre-lab' },
+  { name: 'el laboratorio del tema 5', path: './temas/control-haptico/', testId: 'trigger-lab' },
 ] as const;
 const BLOCKING_IMPACTS = ['serious', 'critical'];
 const SCROLL_STEP_PX = 600;
@@ -101,3 +114,44 @@ test.describe('escritorio, búsqueda en la barra lateral', () => {
     });
   }
 });
+
+/** Opens a lab's settings drawer and waits for the modal to show. */
+async function openLabSettings(page: Page, testId: string): Promise<void> {
+  const lab = page.getByTestId(testId);
+  // Tema 1's lab shows a placeholder while its dataset chunk loads.
+  await page
+    .locator(`[data-testid="${testId}"], [data-testid="drone-lab-loading"]`)
+    .first()
+    .scrollIntoViewIfNeeded();
+  await expect(lab).toBeVisible();
+  await waitForIsland(page, `[data-testid="${testId}"]`);
+  await lab.getByRole('button', { name: 'Ajustes del simulador' }).click();
+  await expect(page.getByRole('dialog', { name: /^Ajustes: / })).toBeVisible();
+}
+
+for (const viewport of VIEWPORTS) {
+  for (const theme of THEMES) {
+    test.describe(`${viewport.name}, tema ${theme === 'light' ? 'claro' : 'oscuro'}, panel de ajustes abierto`, () => {
+      test.use({ viewport: viewport.size, colorScheme: theme });
+      test.beforeEach(async ({ page }) => {
+        await page.addInitScript((value) => window.localStorage.setItem('theme', value), theme);
+      });
+
+      for (const { name, path, testId } of LABS) {
+        test(`${name} no tiene violaciones serias ni críticas de axe en ninguna pestaña`, async ({
+          page,
+        }) => {
+          await page.goto(path);
+          await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+          await openLabSettings(page, testId);
+          await expectNoBlockingViolations(page);
+
+          const dialog = page.getByRole('dialog', { name: /^Ajustes: / });
+          await dialog.getByRole('tab', { name: 'Global' }).click();
+          await expect(dialog.getByRole('tabpanel', { name: 'Global' })).toBeVisible();
+          await expectNoBlockingViolations(page);
+        });
+      }
+    });
+  }
+}

@@ -26,6 +26,8 @@ const MAP_PAD_M = 100;
 const MAP_PAD_BOTTOM_M = 170;
 /** Below this plot width (px) the map drops the coordinates from its labels. */
 const COMPACT_PLOT_WIDTH = 360;
+/** Where along the x component its letter sits on a phone (the middle on wider plots). */
+const COMPACT_X_LABEL_SHARE = 0.75;
 /** Vertical label offsets (px): the depot's below its dot, C's beside it (it is near the top). */
 const STOP_LABEL_DY: Record<string, number> = { Depósito: 18, C: 4 };
 /** Extra room east of B for its label. */
@@ -64,6 +66,10 @@ function RouteMap(): JSX.Element {
     const isCompact = x.range[1] - x.range[0] < COMPACT_PLOT_WIDTH;
     const stopLabel = (stop: Point & { name: string }) =>
       isCompact ? stop.name : `${stop.name} ${coords(stop)}`;
+    // The x component's label shares the line below the axis with the depot's: on a phone it
+    // moves toward the corner, clear of "Depósito".
+    const xLetterShare = isCompact ? COMPACT_X_LABEL_SHARE : 0.5;
+    const xLetterAt = origin.x + (corner.x - origin.x) * xLetterShare;
     return (
       <g className="pointer-events-none">
         <polyline
@@ -72,7 +78,7 @@ function RouteMap(): JSX.Element {
           stroke={TEXT_COLOR}
           strokeDasharray={GUIDE_DASH}
         />
-        <Label at={{ x: (origin.x + corner.x) / 2, y: corner.y }} dx={0} dy={18} anchor="middle">
+        <Label at={{ x: xLetterAt, y: corner.y }} dx={0} dy={18} anchor="middle">
           {isCompact ? 'x' : `x = ${b.x} m`}
         </Label>
         <Label at={{ x: corner.x, y: (corner.y + px(b).y) / 2 }} dx={-8} dy={4} anchor="end">

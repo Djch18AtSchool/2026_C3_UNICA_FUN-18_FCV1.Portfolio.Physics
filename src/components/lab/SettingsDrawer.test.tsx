@@ -296,6 +296,47 @@ describe('SettingsDrawer', () => {
     expect(opener).toHaveFocus();
   });
 
+  test('locks page scrolling while open and restores it on close', async () => {
+    document.documentElement.style.overflow = 'auto';
+    const { user } = await openHarness();
+
+    expect(document.documentElement.style.overflow).toBe('hidden');
+
+    await user.click(screen.getByRole('button', { name: 'Cerrar ajustes' }));
+
+    expect(document.documentElement.style.overflow).toBe('auto');
+    document.documentElement.removeAttribute('style');
+  });
+
+  test('unmounting while open releases the scroll lock and returns focus to the opener', () => {
+    function UnmountHarness({ isDrawerMounted }: { isDrawerMounted: boolean }) {
+      const openerRef = useRef<HTMLButtonElement>(null);
+      return (
+        <>
+          <button ref={openerRef} type="button">
+            Abrir
+          </button>
+          {isDrawerMounted ? (
+            <SettingsDrawer
+              open
+              onClose={() => {}}
+              title="Ajustes"
+              local={[]}
+              returnFocusTo={openerRef}
+            />
+          ) : null}
+        </>
+      );
+    }
+    const { rerender } = render(<UnmountHarness isDrawerMounted />);
+    expect(document.documentElement.style.overflow).toBe('hidden');
+
+    rerender(<UnmountHarness isDrawerMounted={false} />);
+
+    expect(document.documentElement.style.overflow).toBe('');
+    expect(screen.getByRole('button', { name: 'Abrir' })).toHaveFocus();
+  });
+
   test('falls back to the open attribute where showModal is missing', () => {
     const restore = removeDialogMethods();
     try {
