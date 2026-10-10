@@ -35,6 +35,8 @@ const POINT_RADIUS = 5;
 /** Plot areas narrower than this (phones) split point labels into two lines. */
 const SPLIT_BELOW_PX = 400;
 const LABEL_LINE = 14;
+/** Width of one character of the 12 px mono label font, to keep centred labels inside the plot. */
+const CHAR_WIDTH = 7.3;
 /** Phones get a squarer plot so the curves and labels keep some height. */
 const COMPACT_WIDTH = 480;
 const COMPACT_ASPECT = 0.8;
@@ -62,6 +64,68 @@ type Scales = { x: Scale; y: Scale };
  * A point's label on one line or, on a narrow plot, split after its colon into two lines that
  * grow away from the point (upward above it, downward below it).
  */
+/** The label's lines: the whole label, or split after its colon on a narrow plot. */
+function labelLines(label: string, isSplit: boolean): string[] {
+  const colon = label.indexOf(': ');
+  return isSplit && colon > 0 ? [label.slice(0, colon + 1), label.slice(colon + 2)] : [label];
+}
+
+function PointDot({ x, y }: { x: number; y: number }) {
+  return (
+    <circle
+      cx={x}
+      cy={y}
+      r={POINT_RADIUS}
+      fill={TEXT_COLOR}
+      stroke={SURFACE_COLOR}
+      strokeWidth={2}
+    />
+  );
+}
+
+/**
+ * A point whose label sits away from it, at `labelAt`, centred and kept inside the plot, with a
+ * leader line from the point to just above the text.
+ */
+function LeaderLabel({
+  point,
+  scales,
+  isSplit,
+}: {
+  point: FigurePoint;
+  scales: Scales;
+  isSplit: boolean;
+}) {
+  const at = point.labelAt ?? point;
+  const lines = labelLines(point.label, isSplit);
+  const half = (Math.max(...lines.map((line) => line.length)) * CHAR_WIDTH) / 2;
+  const [left, right] = scales.x.range;
+  const x = Math.min(Math.max(scales.x.toPx(at.x), left + half), right - half);
+  const y = scales.y.toPx(at.y);
+  const cx = scales.x.toPx(point.x);
+  const cy = scales.y.toPx(point.y);
+  return (
+    <g data-point={point.id}>
+      <line
+        x1={cx}
+        y1={cy + POINT_RADIUS}
+        x2={x}
+        y2={y - LABEL_SIZE}
+        stroke={TICK_COLOR}
+        strokeDasharray="2 3"
+      />
+      <PointDot x={cx} y={cy} />
+      <text x={x} y={y} textAnchor="middle" {...haloText}>
+        {lines.map((line, index) => (
+          <tspan key={line} x={x} dy={index === 0 ? 0 : LABEL_LINE}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    </g>
+  );
+}
+
 function PointLabel({
   point,
   x,
@@ -73,11 +137,7 @@ function PointLabel({
   y: number;
   isSplit: boolean;
 }) {
-  const colon = point.label.indexOf(': ');
-  const lines =
-    isSplit && colon > 0
-      ? [point.label.slice(0, colon + 1), point.label.slice(colon + 2)]
-      : [point.label];
+  const lines = labelLines(point.label, isSplit);
   const firstY = point.side < 0 ? y - (lines.length - 1) * LABEL_LINE : y;
   return (
     <text x={x} y={firstY} textAnchor={point.anchor} {...haloText}>
@@ -97,24 +157,16 @@ function Points({ points, scales }: { points: readonly FigurePoint[]; scales: Sc
       {points.map((point) => {
         const cx = scales.x.toPx(point.x);
         const cy = scales.y.toPx(point.y);
+        const isSplit = scales.x.range[1] - scales.x.range[0] < SPLIT_BELOW_PX;
+        if (point.labelAt) {
+          return <LeaderLabel key={point.id} point={point} scales={scales} isSplit={isSplit} />;
+        }
         const dx = point.anchor === 'start' ? LABEL_GAP : -LABEL_GAP;
         const dy = point.side * LABEL_GAP + (point.side > 0 ? LABEL_SIZE / 2 : 0);
         return (
           <g key={point.id} data-point={point.id}>
-            <circle
-              cx={cx}
-              cy={cy}
-              r={POINT_RADIUS}
-              fill={TEXT_COLOR}
-              stroke={SURFACE_COLOR}
-              strokeWidth={2}
-            />
-            <PointLabel
-              point={point}
-              x={cx + dx}
-              y={cy + dy}
-              isSplit={scales.x.range[1] - scales.x.range[0] < SPLIT_BELOW_PX}
-            />
+            <PointDot x={cx} y={cy} />
+            <PointLabel point={point} x={cx + dx} y={cy + dy} isSplit={isSplit} />
           </g>
         );
       })}

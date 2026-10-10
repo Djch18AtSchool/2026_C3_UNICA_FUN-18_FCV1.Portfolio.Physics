@@ -62,11 +62,11 @@ import HabitatDiagram from '../../components/topics/gravedad-artificial/HabitatD
 import HabitatFigure from '../../components/topics/gravedad-artificial/HabitatFigure';
 import HabitatLab from '../../components/topics/gravedad-artificial/HabitatLab';
 
-Si una nave no gira, su piso no empuja: nadie siente peso. Si gira, el piso aporta la fuerza centrípeta; diseñar es elegir radio y giro.
+Sin giro, el piso de una nave no empuja: nadie siente peso. Con giro, el piso aporta la fuerza centrípeta; diseñar es elegir radio y giro.
 
 <Step n={1} title="Sin gravedad">
 
-Sentimos como peso la normal n del piso, no la atracción m g <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. Para SP-413, girar es la única manera factible de fabricarla <Cite id="nasa-sp413-1977" sources={frontmatter.sources} />.
+Sentimos como peso la normal n del piso, no m g <Cite id="serway-jewett-2018" sources={frontmatter.sources} />; la (3.1) es una extensión (ver recuadro de clase). Para SP-413, girar es la única manera factible de fabricarla <Cite id="nasa-sp413-1977" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-habitat-peso"
@@ -133,13 +133,13 @@ En el borde exterior de un anillo que gira, la persona describe un MCU, con acel
 
 <Fragment slot="fenomeno">
 
-Sin piso, la persona seguiría recta, tangente al anillo; el piso cambia la dirección de su velocidad, no su rapidez, empujándola hacia el eje, y ella siente ese empuje como peso.
+Sin piso, la persona seguiría por la tangente; al empujarla hacia el eje, el piso gira su velocidad sin cambiar su rapidez, y ella siente ese empuje como peso.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-La nave entera cae con <Equation inline latex="\vec g" />, así que respecto de ella la (3.1) queda <Equation inline latex="n = m\,\omega^2 r" />; como crece con ω², doblar el giro divide el radio entre cuatro.
+Respecto de la nave, que cae entera con <Equation inline latex="\vec g" />, la (3.1) queda <Equation inline latex="n = m\,\omega^2 r" />; con ω², doblar el giro divide el radio entre cuatro.
 
 </Fragment>
 
@@ -159,7 +159,7 @@ La nave entera cae con <Equation inline latex="\vec g" />, así que respecto de 
 
 <Step n={3} title="Por qué no basta un radio pequeño">
 
-Para 1 g, <Equation inline latex="\omega = \sqrt{g/r}" />: un radio menor gira más rápido. La cabeza, h más cerca del eje, siente <Equation inline latex="\omega^2 (r - h)" />; quien se mueve, una fuerza de Coriolis perpendicular a su velocidad y al eje <Cite id="nasa-sp413-1977" sources={frontmatter.sources} />.
+La cabeza, h más cerca del eje, siente <Equation inline latex="\omega^2 (r - h)" />. Quien se mueve siente además una fuerza de Coriolis, perpendicular a su velocidad y al eje <Cite id="nasa-sp413-1977" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-habitat-gradiente"
@@ -171,13 +171,13 @@ Para 1 g, <Equation inline latex="\omega = \sqrt{g/r}" />: un radio menor gira m
 
 <Fragment slot="fenomeno">
 
-Coriolis desvía a quien salta y, a varias RPM, girar la cabeza marea; SP-413 sitúa la adaptación por debajo de unas 3 RPM, tras una exposición prolongada.
+Como <Equation inline latex="a_c" /> crece con la distancia al eje, la cabeza siente menos. Un radio pequeño exige un <Equation inline latex="\omega = \sqrt{g/r}" /> alto, sobre las ≈ 3 RPM de adaptación tras una exposición prolongada (SP-413): Coriolis desvía a quien salta y girar la cabeza marea.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-En la (3.3) ω se cancela: el gradiente depende solo de r, 0,8 % a 223,6 m y 18 % en una centrífuga de 10 m.
+En la (3.3) ω se cancela: el gradiente depende solo de r, del 0,8 % a 223,6 m al 18 % a 10 m.
 
 </Fragment>
 
@@ -197,7 +197,7 @@ En la (3.3) ω se cancela: el gradiente depende solo de r, 0,8 % a 223,6 m y 18 
 
 <Step n={4} title="Diseño">
 
-El par (r, ω) fija la rapidez del piso, el período y el gradiente. El diagrama reúne el modelo; el laboratorio lo recorre durante una vuelta.
+El par (r, ω) fija la rapidez del piso, el período y el gradiente. El diagrama reúne el modelo, y el laboratorio lo recorre en una vuelta.
 
 <Equation
   id="ec-habitat-diseno"
@@ -209,7 +209,7 @@ El par (r, ω) fija la rapidez del piso, el período y el gradiente. El diagrama
 
 <Fragment slot="fenomeno">
 
-Solo el eje está en reposo: quien llega debe alinearse con él y girar a su ritmo; a R = 830 m, el piso pasa a 86,9 m/s.
+Solo el eje está en reposo: quien llega debe alinearse con él y girar a su ritmo; a R = 830 m el piso va a 86,9 m/s.
 
 </Fragment>
 
@@ -249,7 +249,7 @@ Con 1 g, la (3.2) en la (3.4) da <Equation inline latex="v = \sqrt{g r}" /> y <E
 
 <Fragment slot="caso">
 
-SpinCalc, de Theodore W. Hall <Cite id="hall-spincalc" sources={frontmatter.sources} />, toma dos de radio, velocidad angular, velocidad tangencial y aceleración centrípeta, calcula los otros dos y los compara con la zona de confort de cinco autores (figura 3.3). Hall trató este diseño en 2006 <Cite id="hall-2006-aiaa" sources={frontmatter.sources} />; lo aplico al Toro de Stanford de SP-413 <Cite id="nasa-sp413-1977" sources={frontmatter.sources} />.
+SpinCalc, de Theodore W. Hall <Cite id="hall-spincalc" sources={frontmatter.sources} />, toma dos de r, ω, v y <Equation inline latex="a_c" />, calcula los otros dos y los compara con la zona de confort de cinco autores (figura 3.3). Hall trató este diseño en 2006 <Cite id="hall-2006-aiaa" sources={frontmatter.sources} />; lo aplico al Toro de Stanford de SP-413 <Cite id="nasa-sp413-1977" sources={frontmatter.sources} />.
 
 </Fragment>
 
@@ -261,13 +261,13 @@ SpinCalc resuelve las (3.2) a (3.4) con dos datos. Según el informe, solo radio
 
 <Fragment slot="justificacion">
 
-La alternativa no física, una «gravedad» fija de 9,81 m/s² hacia el piso como en un videojuego, parece correcta mientras nadie se mueva, pero da gradiente nulo, ningún Coriolis y no deja preguntar si un par (r, ω) es habitable: decide ese par, no g.
+La alternativa no física es una «gravedad» fija de 9,81 m/s² hacia el piso, como en un videojuego. Parece correcta mientras nadie se mueva, pero da gradiente nulo, ningún Coriolis y no deja preguntar si un par (r, ω) es habitable. Decide ese par, no g.
 
 </Fragment>
 
 <Fragment slot="balance">
 
-Se gana un entorno habitable con física conocida y una ventana de confort cuantificada. Cuestan la escala (1 g bajo 1 RPM exige más de 895 m de radio; el informe estima unas 150 000 t solo de cáscara), el acoplamiento en el eje y el mareo: 10 m, más baratos, piden 9,46 RPM.
+Se gana un entorno habitable con física conocida, sin tecnología que no existe, y una ventana de confort cuantificada. Cuestan la escala (esos 895 m y, según el informe, unas 150 000 t solo de cáscara), el acoplamiento en el eje y el mareo: 10 m, más baratos, piden 9,46 RPM.
 
 </Fragment>
 
@@ -283,7 +283,7 @@ La (3.1) es una extensión: en clase solo se vio la cinemática. Con la segunda 
 
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-En el Tema 4 la (3.2) rige un auto en curva, con la fricción como fuerza centrípeta: <Equation inline latex="v_\text{máx} = \sqrt{\mu g r}" />. Con el Tema 2 forma un par: gravedad aparente escrita como constante o fabricada girando. Con el Tema 1 comparte vectores: allí la aceleración cambia de magnitud; aquí, de dirección. Girar exige un torque, y el momento angular <Equation inline latex="L = I\omega" /> resiste reorientar el hábitat; el Tema 8 trata las ruedas de reacción.
+En el Tema 4 la (3.2) rige un auto en curva, con la fricción en lugar de una normal como fuerza centrípeta: <Equation inline latex="v_\text{máx} = \sqrt{\mu g r}" />. Con el Tema 2 forma un par: gravedad aparente escrita como constante o fabricada girando. Con el Tema 1 comparte vectores: allí la aceleración cambia de magnitud; aquí, de dirección, con rapidez constante. Girar exige un torque, y su momento angular <Equation inline latex="L = I\omega" /> resiste reorientarlo (Tema 8, ruedas de reacción).
 
 </Connections>
 

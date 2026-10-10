@@ -49,7 +49,7 @@ const R_LABEL_SIDE = 10;
 const R_LABEL_AT = 0.5;
 const AC_LABEL_SIDE = 16;
 const CLIP_MARK = { at: 0.72, gap: 4, half: 5 } as const;
-const OMEGA_ARC = { from: -18, to: -66, gap: 16, head: 9 } as const;
+const OMEGA_ARC = { from: -18, to: -66, gap: 16, head: 12 } as const;
 const BAR_SIDE_PAD = 30;
 /** From the ring square to the bar track: room for the knob's value label. */
 const BAR_TOP_GAP = 34;
@@ -302,7 +302,7 @@ export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
             </li>
             <li className="m-0 flex items-center gap-2">
               <LegendKey color={GAP_COLOR} dashed />
-              Gravedad aparente g_ap, hacia afuera
+              Gravedad aparente g_ap = −a_c, hacia afuera
             </li>
           </>
         ) : null}
@@ -313,7 +313,9 @@ export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
       </ul>
       {showVectors ? (
         <p className="m-0 text-sm text-fg-muted">
-          Flechas a escala hasta 1,5 g; con doble trazo, más largas que lo dibujado.
+          g_ap es lo que la persona siente en el marco del anillo, que gira: ninguna fuerza tira de
+          ella hacia afuera; es el piso el que la empuja hacia el eje. Flechas a escala hasta 1,5 g;
+          con doble trazo, más largas que lo dibujado.
         </p>
       ) : null}
     </div>

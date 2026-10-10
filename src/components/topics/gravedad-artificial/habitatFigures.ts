@@ -11,6 +11,8 @@ export interface FigurePoint extends XY {
   anchor: 'start' | 'end';
   /** Label above (−1) or below (+1) the point. */
   side: -1 | 1;
+  /** Where to put the label instead (data units), joined to the point by a leader line. */
+  labelAt?: XY;
 }
 
 /**
@@ -67,6 +69,8 @@ export const RADIUS_POINTS: readonly FigurePoint[] = [
     label: `Toro de Stanford: ${comma(solveHabitat(STANFORD).gRatio, 2)} g`,
     anchor: 'end',
     side: 1,
+    // Below and right of the 1 rpm line, where nothing else is drawn.
+    labelAt: { x: STANFORD.r, y: 0.55 },
   },
 ];
 

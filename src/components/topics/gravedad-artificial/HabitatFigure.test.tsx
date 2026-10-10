@@ -1,13 +1,34 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import HabitatFigure from './HabitatFigure';
 
 const strokeOf = (container: HTMLElement, id: string) =>
   container.querySelector(`[data-series="${id}"]`)?.getAttribute('stroke');
 
+/** A ResizeObserver that reports every observed element at `width` px, as on a phone. */
+function stubWidth(width: number): void {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(private readonly callback: ResizeObserverCallback) {}
+      observe(element: Element) {
+        this.callback(
+          [{ target: element, contentRect: { width } } as unknown as ResizeObserverEntry],
+          this as unknown as ResizeObserver,
+        );
+      }
+      disconnect() {}
+      unobserve() {}
+    },
+  );
+}
+
 describe('HabitatFigure', () => {
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
 
   test('apparent weight: on Earth n = m g; in a ship that does not spin, n = 0', () => {
     render(<HabitatFigure variant="peso-aparente" />);
@@ -44,5 +65,37 @@ describe('HabitatFigure', () => {
     expect(screen.getByText('Giro máximo: 3 a 6 RPM')).toBeInTheDocument();
     expect(screen.getByText('10 m: 9,46 RPM, 18 %')).toBeInTheDocument();
     expect(container.querySelectorAll('[data-point]')).toHaveLength(3);
+  });
+
+  test('the Stanford label sits away from its point, joined by a leader line', () => {
+    const { container } = render(<HabitatFigure variant="radio" />);
+    const toro = container.querySelector('[data-point="toro"]') as SVGGElement;
+
+    expect(toro.querySelector('line')).not.toBeNull();
+    expect(toro.querySelector('text')?.getAttribute('text-anchor')).toBe('middle');
+  });
+
+  test('on a phone-width plot the figure gets taller and point labels split after the colon', () => {
+    stubWidth(320);
+    const { container } = render(<HabitatFigure variant="confort" />);
+    const label = container.querySelector('[data-point="cien"] text') as SVGTextElement;
+
+    expect([...label.querySelectorAll('tspan')].map((tspan) => tspan.textContent)).toEqual([
+      '100 m:',
+      '2,99 RPM, 1,8 %',
+    ]);
+    const [, , width, height] = (container.querySelector('svg')?.getAttribute('viewBox') ?? '')
+      .split(' ')
+      .map(Number);
+    expect(height).toBeGreaterThan(width);
+  });
+
+  test('on a phone the leader label is kept inside the plot', () => {
+    stubWidth(320);
+    const { container } = render(<HabitatFigure variant="radio" />);
+    const text = container.querySelector('[data-point="toro"] text') as SVGTextElement;
+
+    expect(Number(text.getAttribute('x'))).toBeLessThan(320 - 'Toro de Stanford:'.length * 3.6);
+    expect(text.querySelectorAll('tspan')).toHaveLength(2);
   });
 });

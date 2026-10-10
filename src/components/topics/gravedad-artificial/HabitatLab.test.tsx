@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
 import HabitatLab from './HabitatLab';
@@ -34,6 +34,28 @@ const rpmSlider = () => screen.getByRole('slider', { name: /^Velocidad de giro/ 
 const radiusField = () => screen.getByRole('textbox', { name: /^Radio del piso/ });
 const lockSwitch = () => screen.getByRole('switch', { name: 'Fijar 1 g' });
 const handle = () => screen.getByTestId('radius-handle');
+const timelineText = () =>
+  (
+    screen.getByRole('slider', { name: 'Línea de tiempo' }).getAttribute('aria-valuetext') ?? ''
+  ).replace(/\s/g, ' ');
+
+/** Replaces requestAnimationFrame with a queue the test flushes at chosen timestamps (ms). */
+function installFrameQueue() {
+  let queue: FrameRequestCallback[] = [];
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    queue.push(callback);
+    return queue.length;
+  });
+  vi.stubGlobal('cancelAnimationFrame', () => undefined);
+  return {
+    flush(now: number) {
+      const pending = queue;
+      queue = [];
+      act(() => pending.forEach((callback) => callback(now)));
+    },
+    restore: () => vi.unstubAllGlobals(),
+  };
+}
 
 function knobCentre(): { x: number; y: number } {
   const knob = handle().querySelector('[data-knob]') as SVGCircleElement;
@@ -199,15 +221,34 @@ describe('HabitatLab', () => {
     expect(readout('Gravedad aparente a_c/g')).toBe('1,00 g');
   });
 
-  test('the speed setting reaches the clock', async () => {
+  test('the speed setting reaches the clock: one 50 ms frame at 8× advances 6 · 8 · 0,05 s', async () => {
+    const frames = installFrameQueue();
     const user = userEvent.setup();
     renderLab();
     await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
     const speed = within(screen.getByRole('dialog')).getByRole('combobox', { name: 'Velocidad' });
-
     await user.selectOptions(speed, '8');
+    await user.keyboard('{Escape}');
 
-    expect(speed).toHaveValue('8');
+    await user.click(screen.getByRole('button', { name: 'Reproducir' }));
+    frames.flush(1000);
+    frames.flush(1050);
+
+    expect(timelineText()).toBe('t = 2,400 s');
+    frames.restore();
+  });
+
+  test('at 1× the same frame advances only 6 · 0,05 s', async () => {
+    const frames = installFrameQueue();
+    const user = userEvent.setup();
+    renderLab();
+
+    await user.click(screen.getByRole('button', { name: 'Reproducir' }));
+    frames.flush(1000);
+    frames.flush(1050);
+
+    expect(timelineText()).toBe('t = 0,300 s');
+    frames.restore();
   });
 
   test('moving a parameter pauses playback', async () => {

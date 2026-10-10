@@ -14,7 +14,10 @@ const FOCUS_RING_RADIUS = 11;
 const FOCUS_RING_COLOR = 'var(--accent)';
 const VECTOR_WIDTH = 2;
 const VECTOR_DASH = '6 3';
-const ARROW_HEAD = 9;
+/** Arrowhead length (px); an arrow at least this long gets a head. */
+export const ARROW_HEAD = 9;
+/** Float slack, so an arrow built to exactly ARROW_HEAD (e.g. 8,999999999999998) keeps its head. */
+const LENGTH_EPSILON = 1e-6;
 const LABEL_GAP = 10;
 const LABEL_SIZE = 13;
 const HALO_WIDTH = 4;
@@ -27,7 +30,7 @@ function arrowHead(from: Point, to: Point): string {
   return `${to.x},${to.y} ${corner(Math.PI / 7)} ${corner(-Math.PI / 7)}`;
 }
 
-/** A straight vector from → to (optionally dashed); the head is drawn only when the arrow is longer than it. */
+/** A straight vector from → to (optionally dashed); the head is drawn when the arrow is at least as long as it. */
 export function Arrow({
   from,
   to,
@@ -39,7 +42,7 @@ export function Arrow({
   color: string;
   dashed?: boolean;
 }): JSX.Element {
-  const isVisible = Math.hypot(to.x - from.x, to.y - from.y) > ARROW_HEAD;
+  const isVisible = Math.hypot(to.x - from.x, to.y - from.y) >= ARROW_HEAD - LENGTH_EPSILON;
   return (
     <g className="pointer-events-none" stroke={color} fill={color}>
       <line
