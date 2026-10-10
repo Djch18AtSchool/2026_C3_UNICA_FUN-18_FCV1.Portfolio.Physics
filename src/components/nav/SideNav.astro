@@ -1,29 +1,35 @@
 ---
-import { PHASE_LABELS, PHASES, topicsByPhase } from '../../consigna';
+import { PHASES, topicsByPhase, type Phase } from '../../consigna';
+import { NAV_CLOSED, NAV_OPEN, phaseKey } from '../../lib/navState';
+import type { SearchEntry, SearchHeading } from '../../lib/searchIndex';
 import type { TopicSummary } from '../../lib/topics';
-import { topicUrl } from '../../lib/url';
+import SideNavPhase from './SideNavPhase.astro';
+import SidebarSearch from './SidebarSearch';
 
 interface Props {
   /** All topics, sorted by number. */
   topics: TopicSummary[];
   /** Slug of the page being shown; omitted on pages that are not a topic (404). */
-  currentSlug?: string;
+  current?: string;
+  /** Section headings of each published topic, by slug. */
+  outlines: Record<string, SearchHeading[]>;
+  /** Build-time search index (spec §9). */
+  index: SearchEntry[];
+  /** Phase open by default: the current topic's, or the delivery in progress. */
+  currentPhase: Phase;
   /** Start with the drawer open on narrow screens (the 404 page, where the list is the way out). */
   isOpen?: boolean;
 }
-const { topics, currentSlug, isOpen = false } = Astro.props;
+const { topics, current, outlines, index, currentPhase, isOpen = false } = Astro.props;
 
-const groups = PHASES.map((phase) => ({
-  phase,
-  label: PHASE_LABELS[phase],
-  topics: topicsByPhase(phase, topics),
-}));
-const current = topics.find((topic) => topic.slug === currentSlug);
+const currentTopic = topics.find((topic) => topic.slug === current);
+const LIST_ID = 'sidenav-lista';
+const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phase)]));
 // One list serves both layouts: a closed <details> drawer on narrow screens (no JS), and on
 // wide screens the summary hides and the content is forced visible (see the scoped style).
 ---
 
-<nav aria-label="Temas" class="text-sm">
+<nav aria-label="Temas" class="text-sm" data-sidenav>
   <details
     open={isOpen}
     class="sidenav group rounded-base border border-border bg-bg-elevated lg:border-0 lg:bg-transparent"
@@ -31,10 +37,10 @@ const current = topics.find((topic) => topic.slug === currentSlug);
     <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-medium lg:hidden [&::-webkit-details-marker]:hidden">
       <span>
         Temas del portafolio
-        {current && (
+        {currentTopic && (
           <span class="font-normal text-fg-muted">
             {' '}
-            (tema <span class="font-mono">{current.number}</span> de{' '}
+            (tema <span class="font-mono">{currentTopic.number}</span> de{' '}
             <span class="font-mono">{topics.length}</span>)
           </span>
         )}
@@ -53,42 +59,94 @@ const current = topics.find((topic) => topic.slug === currentSlug);
       </svg>
     </summary>
     <div class="flex flex-col gap-5 border-t border-border px-2 pt-3 pb-4 lg:border-0 lg:p-0">
-      {groups.map((group) => (
-        <div>
-          <p id={`sidenav-fase-${group.phase}`} class="mb-1 px-2 text-xs font-medium text-fg-muted">
-            {group.label}
-          </p>
-          <ul aria-labelledby={`sidenav-fase-${group.phase}`} class="flex flex-col">
-            {group.topics.map((topic) => {
-              const isCurrent = topic.slug === currentSlug;
-              const isPublished = topic.status === 'publicado';
-              return (
-                <li>
-                  <a
-                    href={topicUrl(topic.slug)}
-                    data-testid="topic-link"
-                    aria-current={isCurrent ? 'page' : undefined}
-                    class:list={[
-                      'grid grid-cols-[1.5rem_minmax(0,1fr)] items-baseline gap-x-1 border-l-2 py-1.5 pr-2 pl-1.5 leading-snug no-underline hover:bg-bg hover:text-fg',
-                      isCurrent ? 'border-accent bg-bg font-medium text-fg' : 'border-transparent',
-                      !isCurrent && (isPublished ? 'text-fg' : 'text-fg-muted'),
-                    ]}
-                  >
-                    <span class="text-right font-mono text-xs">{topic.number}</span>
-                    <span class="pl-1.5">
-                      {topic.shortTitle}
-                      {!isPublished && <span class="sr-only"> (próximamente)</span>}
-                    </span>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
+      <SidebarSearch client:idle index={index} listId={LIST_ID} />
+      <div id={LIST_ID} class="flex flex-col gap-5">
+        {PHASES.map((phase) => (
+          <SideNavPhase
+            phase={phase}
+            topics={topicsByPhase(phase, topics)}
+            current={current}
+            outlines={outlines}
+            isOpen={phase === currentPhase}
+          />
+        ))}
+      </div>
     </div>
   </details>
 </nav>
+<!--
+  Runs as soon as the list is parsed, before it is painted, and cannot import modules: mirrors
+  readOpenPhases from src/lib/navState.ts (the server already opened the current phase).
+  Storage is guarded because touching or reading it may throw.
+-->
+<script
+  is:inline
+  define:vars={{ keysByPhase: phaseKeys, openValue: NAV_OPEN, closedValue: NAV_CLOSED }}
+>
+  var storage = null;
+  try {
+    storage = window.localStorage;
+  } catch (error) {}
+  var phases = document.querySelectorAll('[data-sidenav] details[data-phase]');
+  for (var i = 0; i < phases.length; i++) {
+    var stored = null;
+    try {
+      stored = storage ? storage.getItem(keysByPhase[phases[i].dataset.phase]) : null;
+    } catch (error) {}
+    if (stored === openValue) phases[i].open = true;
+    if (stored === closedValue) phases[i].open = false;
+  }
+</script>
+
+<script>
+  import { PHASES, type Phase } from '../../consigna';
+  import { safeLocalStorage, writePhaseOpen } from '../../lib/navState';
+
+  /** Fraction of the viewport from the top where a section counts as the one being read. */
+  const READING_LINE = 0.3;
+
+  function rememberPhases(): void {
+    document
+      .querySelectorAll<HTMLDetailsElement>('[data-sidenav] details[data-phase]')
+      .forEach((details) => {
+        const phase = Number(details.dataset.phase) as Phase;
+        if (!PHASES.includes(phase)) return;
+        details.addEventListener('toggle', () => {
+          writePhaseOpen(safeLocalStorage(), phase, details.open);
+        });
+      });
+  }
+
+  /** Mark the current topic's outline link of the last section whose top passed the line. */
+  function trackCurrentSection(): void {
+    const links = [
+      ...document.querySelectorAll<HTMLAnchorElement>('[data-outline-current] [data-outline-link]'),
+    ];
+    const sections = links.flatMap((link) => {
+      const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+      return target ? [{ link, target }] : [];
+    });
+    if (sections.length === 0) return;
+
+    const update = () => {
+      const line = window.innerHeight * READING_LINE;
+      const passed = sections.filter(({ target }) => target.getBoundingClientRect().top <= line);
+      const active = passed.at(-1)?.link;
+      sections.forEach(({ link }) => {
+        if (link === active) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      });
+    };
+    // The observer only says when a heading crosses the reading line; the rects decide which.
+    const observer = new IntersectionObserver(update, {
+      rootMargin: `0px 0px -${(1 - READING_LINE) * 100}% 0px`,
+    });
+    sections.forEach(({ target }) => observer.observe(target));
+  }
+
+  rememberPhases();
+  trackCurrentSection();
+</script>
 
 <style>
   /* Wide screens: the drawer is a permanent sidebar, open whatever the details state. */

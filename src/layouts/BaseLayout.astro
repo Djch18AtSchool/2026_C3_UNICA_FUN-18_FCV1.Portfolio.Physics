@@ -9,6 +9,7 @@ import '../styles/global.css';
 import SiteFooter from '../components/nav/SiteFooter.astro';
 import SiteHeader from '../components/nav/SiteHeader.astro';
 import { COURSE, SITE_URL } from '../consigna';
+import { NAV_CLOSED, SIDEBAR_KEY } from '../lib/navState';
 import { THEME_STORAGE_KEY } from '../lib/theme';
 import { canonicalUrl, withBase } from '../lib/url';
 
@@ -17,11 +18,14 @@ interface Props {
   description?: string;
   /** The 404 page is served for any missing path, so it has no canonical address. */
   hasCanonical?: boolean;
+  /** The page has the topic sidebar, so the header offers the button that hides it. */
+  hasSidebar?: boolean;
 }
 const {
   title,
   description = `Evidencias de aprendizaje de ${COURSE.name} (${COURSE.code}), ${COURSE.university}.`,
   hasCanonical = true,
+  hasSidebar = false,
 } = Astro.props;
 const pageUrl = hasCanonical ? canonicalUrl(Astro.url.pathname, SITE_URL) : undefined;
 ---
@@ -52,6 +56,21 @@ const pageUrl = hasCanonical ? canonicalUrl(Astro.url.pathname, SITE_URL) : unde
       document.documentElement.dataset.theme =
         stored === 'light' || stored === 'dark' ? stored : prefersDark ? 'dark' : 'light';
     </script>
+    {hasSidebar && (
+      <>
+        {/*
+            Hides the sidebar before the body is painted when the reader closed it; mirrors
+            readSidebarClosed from src/lib/navState.ts and never throws.
+          */}
+        <script is:inline define:vars={{ sidebarKey: SIDEBAR_KEY, closedValue: NAV_CLOSED }}>
+          try {
+            if (window.localStorage.getItem(sidebarKey) === closedValue) {
+              document.documentElement.dataset.sidebar = closedValue;
+            }
+          } catch (error) {}
+        </script>
+      </>
+    )}
   </head>
   <body class="flex min-h-dvh flex-col">
     <a
@@ -60,7 +79,7 @@ const pageUrl = hasCanonical ? canonicalUrl(Astro.url.pathname, SITE_URL) : unde
     >
       Saltar al contenido
     </a>
-    <SiteHeader />
+    <SiteHeader hasSidebar={hasSidebar} />
     <main id="contenido" class="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">
       <slot />
     </main>

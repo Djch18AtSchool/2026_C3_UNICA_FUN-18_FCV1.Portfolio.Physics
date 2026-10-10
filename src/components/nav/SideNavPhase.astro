@@ -1,0 +1,48 @@
+---
+/*
+ * One delivery as a collapsible group. The server opens the current phase; the inline script in
+ * SideNav then applies the remembered state before the list is painted.
+ */
+import { PHASE_LABELS, type Phase } from '../../consigna';
+import type { SearchHeading } from '../../lib/searchIndex';
+import type { TopicSummary } from '../../lib/topics';
+import SideNavTopic from './SideNavTopic.astro';
+
+interface Props {
+  phase: Phase;
+  /** This phase's topics, sorted by number. */
+  topics: TopicSummary[];
+  current?: string;
+  outlines: Record<string, SearchHeading[]>;
+  isOpen: boolean;
+}
+const { phase, topics, current, outlines, isOpen } = Astro.props;
+const labelId = `sidenav-fase-${phase}`;
+---
+
+<details data-phase={phase} open={isOpen} class="group/phase">
+  <summary class="mb-1 flex cursor-pointer list-none items-center justify-between gap-2 rounded-base px-2 py-1 text-xs font-medium text-fg-muted hover:text-fg [&::-webkit-details-marker]:hidden">
+    <span id={labelId}>{PHASE_LABELS[phase]}</span>
+    <svg
+      class="size-3.5 shrink-0 transition-transform group-open/phase:rotate-180"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m4 6 4 4 4-4"></path>
+    </svg>
+  </summary>
+  <ul aria-labelledby={labelId} class="flex flex-col">
+    {topics.map((topic) => (
+      <SideNavTopic
+        topic={topic}
+        isCurrent={topic.slug === current}
+        headings={outlines[topic.slug] ?? []}
+      />
+    ))}
+  </ul>
+</details>

@@ -1,17 +1,23 @@
 ---
-import { getCollection } from 'astro:content';
 import SideNav from '../components/nav/SideNav.astro';
+import { loadSidebarData } from '../components/nav/sidebarData';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { sortByNumber, toTopicSummary } from '../lib/topics';
+import { latestPublishedPhase } from '../lib/topics';
 import { withBase } from '../lib/url';
 
-const all = sortByNumber((await getCollection('topics')).map(toTopicSummary));
+const { all, index, outlines } = await loadSidebarData();
 ---
 
-<BaseLayout title="Página no encontrada | Física I" hasCanonical={false}>
-  <div class="grid gap-8 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
-    <div class="lg:sticky lg:top-8 lg:self-start">
-      <SideNav topics={all} isOpen />
+<BaseLayout title="Página no encontrada | Física I" hasCanonical={false} hasSidebar>
+  <div class="sidebar-layout grid gap-8 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
+    <div class="sidebar-column lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:self-start lg:overflow-y-auto">
+      <SideNav
+        topics={all}
+        outlines={outlines}
+        index={index}
+        currentPhase={latestPublishedPhase(all)}
+        isOpen
+      />
     </div>
     <div>
       <section class="grid-paper rounded-base border border-border px-5 py-6 sm:px-8 sm:py-8">

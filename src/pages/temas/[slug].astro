@@ -3,11 +3,12 @@ import type { GetStaticPaths } from 'astro';
 import { getCollection, render } from 'astro:content';
 import TopicLayout from '../../layouts/TopicLayout.astro';
 import { topicByNumber } from '../../consigna';
-import { sortByNumber, toTopicSummary } from '../../lib/topics';
+import { loadSidebarData } from '../../components/nav/sidebarData';
 
 export const getStaticPaths = (async () => {
   const entries = await getCollection('topics');
-  const all = sortByNumber(entries.map(toTopicSummary));
+  // Renders every published topic once, for the sidebar outlines and the search index.
+  const { all, index, outlines } = await loadSidebarData();
   return entries.map((entry) => {
     const expectedSlug = topicByNumber(entry.data.number)?.slug;
     if (entry.id !== expectedSlug) {
@@ -15,14 +16,14 @@ export const getStaticPaths = (async () => {
         `El archivo "${entry.id}.mdx" declara el tema ${entry.data.number}, cuyo slug en consigna.ts es "${expectedSlug}".`,
       );
     }
-    return { params: { slug: entry.id }, props: { entry, all } };
+    return { params: { slug: entry.id }, props: { entry, all, index, outlines } };
   });
 }) satisfies GetStaticPaths;
 
-const { entry, all } = Astro.props;
+const { entry, all, index, outlines } = Astro.props;
 const { Content } = await render(entry);
 ---
 
-<TopicLayout topic={{ ...entry.data, slug: entry.id }} all={all}>
+<TopicLayout topic={{ ...entry.data, slug: entry.id }} all={all} outlines={outlines} index={index}>
   <Content />
 </TopicLayout>

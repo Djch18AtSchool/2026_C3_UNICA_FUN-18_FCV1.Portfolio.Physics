@@ -7,6 +7,7 @@
 import { topicBySlug, type ConsignaTopic } from '../../consigna';
 import type { ClassRef } from '../../content/topicSchema';
 import { topicUrl } from '../../lib/url';
+import { SECTION_HEADINGS } from '../../lib/sectionHeadings';
 
 interface Props {
   related: string[];
@@ -19,10 +20,12 @@ const relatedTopics: ConsignaTopic[] = related.map((slug) => {
   if (!topic) throw new Error(`Connections: el tema "${slug}" no existe en la consigna`);
   return topic;
 });
+// The sidebar outline and the search index list this section by the same text and id.
+const heading = SECTION_HEADINGS.Connections;
 ---
 
-<section data-testid="connections" class="connections" aria-labelledby="conexiones">
-  <h2 id="conexiones">Conexiones</h2>
+<section data-testid="connections" class="connections" aria-labelledby={heading.slug}>
+  <h2 id={heading.slug}>{heading.text}</h2>
   <slot />
   <div class="connections-grid">
     {relatedTopics.length > 0 && (

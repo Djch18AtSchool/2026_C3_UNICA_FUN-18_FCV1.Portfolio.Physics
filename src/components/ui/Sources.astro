@@ -5,6 +5,7 @@
  */
 import type { Source } from '../../content/topicSchema';
 import { formatSource } from '../../lib/sources';
+import { SECTION_HEADINGS } from '../../lib/sectionHeadings';
 
 interface Props {
   sources: Source[];
@@ -18,10 +19,12 @@ function accessedLabel(accessed: string): string {
   const date = new Date(accessed);
   return Number.isNaN(date.getTime()) ? accessed : ACCESSED_FORMAT.format(date);
 }
+// The sidebar outline and the search index list this section by the same text and id.
+const heading = SECTION_HEADINGS.Sources;
 ---
 
-<section data-testid="sources" class="sources" aria-labelledby="fuentes">
-  <h2 id="fuentes">Fuentes</h2>
+<section data-testid="sources" class="sources" aria-labelledby={heading.slug}>
+  <h2 id={heading.slug}>{heading.text}</h2>
   <ol class="sources-list">
     {sources.map((source) => (
       <li id={`fuente-${source.id}`}>

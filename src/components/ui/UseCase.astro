@@ -15,15 +15,19 @@
  *
  *   </UseCase>
  */
+import { SECTION_HEADINGS } from '../../lib/sectionHeadings';
+
 const PART_NAMES = ['caso', 'ecuacion', 'justificacion', 'balance'] as const;
 
 for (const name of PART_NAMES) {
   if (!Astro.slots.has(name)) throw new Error(`UseCase: falta el slot "${name}"`);
 }
+// The sidebar outline and the search index list this section by the same text and id.
+const heading = SECTION_HEADINGS.UseCase;
 ---
 
-<section data-testid="use-case" class="use-case" aria-labelledby="caso-de-uso">
-  <h2 id="caso-de-uso">Caso de uso en Ingeniería del Software</h2>
+<section data-testid="use-case" class="use-case" aria-labelledby={heading.slug}>
+  <h2 id={heading.slug}>{heading.text}</h2>
   <div class="use-case-part">
     <h3 data-part="caso">El caso concreto</h3>
     <slot name="caso" />

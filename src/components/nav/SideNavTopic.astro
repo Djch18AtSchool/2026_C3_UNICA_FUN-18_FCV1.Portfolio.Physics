@@ -1,0 +1,77 @@
+---
+/*
+ * One topic in the sidebar: the v1 link, and for a published topic a <details> outline of its
+ * sections. The current topic's outline starts open; SideNav's script marks the visible section.
+ */
+import type { SearchHeading } from '../../lib/searchIndex';
+import type { TopicSummary } from '../../lib/topics';
+import { topicUrl } from '../../lib/url';
+
+interface Props {
+  topic: TopicSummary;
+  isCurrent: boolean;
+  /** Section headings; empty for upcoming topics, which show no outline. */
+  headings: SearchHeading[];
+}
+const { topic, isCurrent, headings } = Astro.props;
+const isPublished = topic.status === 'publicado';
+const hasOutline = isPublished && headings.length > 0;
+const url = topicUrl(topic.slug);
+---
+
+<li class="relative">
+  <a
+    href={url}
+    data-testid="topic-link"
+    aria-current={isCurrent ? 'page' : undefined}
+    class:list={[
+      'grid grid-cols-[1.5rem_minmax(0,1fr)] items-baseline gap-x-1 border-l-2 py-1.5 pl-1.5 leading-snug no-underline hover:bg-bg hover:text-fg',
+      // Room for the outline toggle that sits over the row's right edge.
+      hasOutline ? 'pr-9' : 'pr-2',
+      isCurrent ? 'border-accent bg-bg font-medium text-fg' : 'border-transparent',
+      !isCurrent && (isPublished ? 'text-fg' : 'text-fg-muted'),
+    ]}
+  >
+    <span class="text-right font-mono text-xs">{topic.number}</span>
+    <span class="pl-1.5">
+      {topic.shortTitle}
+      {!isPublished && <span class="sr-only"> (próximamente)</span>}
+    </span>
+  </a>
+  {hasOutline && (
+    <details
+      class="sidenav-outline group/outline"
+      open={isCurrent}
+      data-outline-current={isCurrent ? '' : undefined}
+    >
+      <summary class="absolute top-0 right-0 flex size-8 cursor-pointer list-none items-center justify-center rounded-base text-fg-muted hover:text-fg [&::-webkit-details-marker]:hidden">
+        <span class="sr-only">Secciones de {topic.shortTitle}</span>
+        <svg
+          class="size-3.5 transition-transform group-open/outline:rotate-180"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m4 6 4 4 4-4" />
+        </svg>
+      </summary>
+      <ul class="mt-0.5 mb-1.5 ml-[2.125rem] flex flex-col border-l border-border">
+        {headings.map((heading) => (
+          <li>
+            <a
+              href={`${url}#${heading.anchor}`}
+              data-outline-link
+              class="-ml-px block border-l border-transparent py-1 pr-2 pl-3 leading-snug text-fg-muted no-underline hover:border-fg-muted hover:text-fg aria-[current=location]:border-accent aria-[current=location]:text-fg"
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </details>
+  )}
+</li>

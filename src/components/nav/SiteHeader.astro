@@ -1,8 +1,15 @@
 ---
 import { AUTHOR } from '../../consigna';
+import SidebarToggle from './SidebarToggle';
 import ThemeToggle from './ThemeToggle';
+import { NAV_CLOSED, SIDEBAR_TOGGLE_LABELS } from '../../lib/navState';
 import { THEME_TOGGLE_LABELS } from '../../lib/theme';
 
+interface Props {
+  /** Show the button that hides the sidebar (wide screens only; pages with a sidebar). */
+  hasSidebar?: boolean;
+}
+const { hasSidebar = false } = Astro.props;
 const home = import.meta.env.BASE_URL;
 ---
 
@@ -14,18 +21,39 @@ const home = import.meta.env.BASE_URL;
       </a>
       <p class="text-sm text-fg-muted">{AUTHOR}</p>
     </div>
-    <ThemeToggle client:load />
+    <div class="flex shrink-0 items-center gap-2">
+      {hasSidebar && <SidebarToggle client:load />}
+      <ThemeToggle client:load />
+    </div>
     <!--
-      The server renders the light label; fix it from data-theme before hydration so the first
-      paint names the right action (React keeps server attributes it believes already match).
+      The server renders the light label and an open sidebar; fix both buttons from data-theme
+      and data-sidebar before hydration so the first paint names the right action (React keeps
+      server attributes it believes already match).
     -->
-    <script is:inline define:vars={{ labels: THEME_TOGGLE_LABELS }}>
+    <script
+      is:inline
+      define:vars={{
+        labels: THEME_TOGGLE_LABELS,
+        sidebarLabels: SIDEBAR_TOGGLE_LABELS,
+        closedValue: NAV_CLOSED,
+      }}
+    >
+      var root = document.documentElement;
       var toggle = document.querySelector('[data-theme-toggle]');
       if (toggle) {
         toggle.setAttribute(
           'aria-label',
-          document.documentElement.dataset.theme === 'dark' ? labels.dark : labels.light,
+          root.dataset.theme === 'dark' ? labels.dark : labels.light,
         );
+      }
+      var sidebarToggle = document.querySelector('[data-sidebar-toggle]');
+      if (sidebarToggle) {
+        var isClosed = root.dataset.sidebar === closedValue;
+        sidebarToggle.setAttribute(
+          'aria-label',
+          isClosed ? sidebarLabels.closed : sidebarLabels.open,
+        );
+        sidebarToggle.setAttribute('aria-pressed', String(isClosed));
       }
     </script>
   </div>

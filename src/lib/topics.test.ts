@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { TOPICS } from '../consigna';
-import { neighbors, sortByNumber, toTopicSummary } from './topics';
+import { latestPublishedPhase, neighbors, sortByNumber, toTopicSummary } from './topics';
 
 const sorted = TOPICS.map(({ number }) => ({ number }));
 
@@ -81,5 +81,26 @@ describe('toTopicSummary', () => {
       status: 'publicado',
       resourceType: 'simulacion',
     });
+  });
+});
+
+describe('latestPublishedPhase', () => {
+  const topic = (number: number, phase: 1 | 2 | 3, status: 'publicado' | 'proximamente') => ({
+    number,
+    phase,
+    status,
+  });
+
+  test('is the phase of the highest-numbered published topic', () => {
+    const topics = [
+      topic(1, 1, 'publicado'),
+      topic(6, 2, 'publicado'),
+      topic(10, 3, 'proximamente'),
+    ];
+    expect(latestPublishedPhase(topics)).toBe(2);
+  });
+
+  test('is the first phase while nothing is published', () => {
+    expect(latestPublishedPhase([topic(1, 1, 'proximamente')])).toBe(1);
   });
 });

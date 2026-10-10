@@ -8,14 +8,19 @@ import StatusBadge from '../components/ui/StatusBadge.astro';
 import TopicStickyBar from '../components/nav/TopicStickyBar.astro';
 import { COURSE, PHASE_LABELS, REPO_URL, type Phase } from '../consigna';
 import type { TopicData } from '../content/topicSchema';
+import type { SearchEntry, SearchHeading } from '../lib/searchIndex';
 import type { TopicSummary } from '../lib/topics';
 
 interface Props {
   topic: TopicData & { slug: string };
   /** All topics, sorted by number. */
   all: TopicSummary[];
+  /** Section headings of each published topic, for the sidebar outlines. */
+  outlines: Record<string, SearchHeading[]>;
+  /** Build-time search index for the sidebar. */
+  index: SearchEntry[];
 }
-const { topic, all } = Astro.props;
+const { topic, all, outlines, index } = Astro.props;
 const { slug, number, phase, title, shortTitle, concept, status, resourceType, updated } = topic;
 
 // "Se publica en el Avance 2" / "en la Entrega Final" (spec §4.2).
@@ -30,10 +35,10 @@ const sourceUrl = `${REPO_URL}/blob/main/src/content/topics/${slug}.mdx`;
 const phaseLabel = PHASE_LABELS[phase];
 ---
 
-<BaseLayout title={`Tema ${number}: ${title} | ${COURSE.name}`} description={concept}>
-  <div class="grid gap-8 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
-    <div class="lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:self-start lg:overflow-y-auto">
-      <SideNav topics={all} currentSlug={slug} />
+<BaseLayout title={`Tema ${number}: ${title} | ${COURSE.name}`} description={concept} hasSidebar>
+  <div class="sidebar-layout grid gap-8 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
+    <div class="sidebar-column lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:self-start lg:overflow-y-auto">
+      <SideNav topics={all} current={slug} outlines={outlines} index={index} currentPhase={phase} />
     </div>
 
     <article class="flex min-w-0 flex-col gap-12">

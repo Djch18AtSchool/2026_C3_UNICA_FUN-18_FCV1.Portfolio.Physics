@@ -8,6 +8,12 @@ const PAGES = [
   { name: 'el tema 3', path: './temas/gravedad-artificial/' },
   { name: 'el tema 4', path: './temas/llantas-f1/' },
   { name: 'el tema 5', path: './temas/control-haptico/' },
+  { name: 'la página 404', path: './no-existe/' },
+] as const;
+/** The sidebar can be hidden from the header; scan pages that have one in both states. */
+const SIDEBAR_STATES = [
+  { name: 'barra lateral abierta', stored: null },
+  { name: 'barra lateral cerrada', stored: 'closed' },
 ] as const;
 const THEMES = ['light', 'dark'] as const;
 /** Wide equations only overflow (and need a keyboard stop) on phones, so scan both widths. */
@@ -29,34 +35,69 @@ async function hydrateAllIslands(page: Page): Promise<void> {
   await page.evaluate(() => window.scrollTo(0, 0));
 }
 
+async function expectNoBlockingViolations(page: Page): Promise<void> {
+  const { violations } = await new AxeBuilder({ page }).analyze();
+  const blocking = violations
+    .filter((violation) => BLOCKING_IMPACTS.includes(violation.impact ?? ''))
+    .map(({ id, impact, nodes }) => ({
+      id,
+      impact,
+      targets: nodes.map((node) => node.target.join(' ')),
+    }));
+
+  expect(blocking).toEqual([]);
+}
+
 for (const viewport of VIEWPORTS) {
   for (const theme of THEMES) {
-    test.describe(`${viewport.name}, tema ${theme === 'light' ? 'claro' : 'oscuro'}`, () => {
-      test.use({ viewport: viewport.size });
-      test.beforeEach(async ({ page }) => {
-        await page.addInitScript((value) => {
-          window.localStorage.setItem('theme', value);
-        }, theme);
-      });
-
-      for (const { name, path } of PAGES) {
-        test(`${name} no tiene violaciones serias ni críticas de axe`, async ({ page }) => {
-          await page.goto(path);
-          await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-          await hydrateAllIslands(page);
-
-          const { violations } = await new AxeBuilder({ page }).analyze();
-          const blocking = violations
-            .filter((violation) => BLOCKING_IMPACTS.includes(violation.impact ?? ''))
-            .map(({ id, impact, nodes }) => ({
-              id,
-              impact,
-              targets: nodes.map((node) => node.target.join(' ')),
-            }));
-
-          expect(blocking).toEqual([]);
+    for (const sidebar of SIDEBAR_STATES) {
+      test.describe(`${viewport.name}, tema ${theme === 'light' ? 'claro' : 'oscuro'}, ${sidebar.name}`, () => {
+        test.use({ viewport: viewport.size });
+        test.beforeEach(async ({ page }) => {
+          await page.addInitScript(
+            ({ value, stored }) => {
+              window.localStorage.setItem('theme', value);
+              if (stored) window.localStorage.setItem('portafolio.nav.sidebar', stored);
+            },
+            { value: theme, stored: sidebar.stored },
+          );
         });
-      }
-    });
+
+        // The cover has no sidebar: scan it once, with the sidebar state untouched.
+        const pages = sidebar.stored ? PAGES.filter(({ path }) => path !== './') : PAGES;
+        for (const { name, path } of pages) {
+          test(`${name} no tiene violaciones serias ni críticas de axe`, async ({ page }) => {
+            await page.goto(path);
+            await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+            if (sidebar.stored) {
+              await expect(page.locator('html')).toHaveAttribute('data-sidebar', sidebar.stored);
+            }
+            await hydrateAllIslands(page);
+
+            await expectNoBlockingViolations(page);
+          });
+        }
+      });
+    }
   }
 }
+
+test.describe('escritorio, búsqueda en la barra lateral', () => {
+  test.use({ viewport: VIEWPORTS[0].size });
+
+  for (const query of ['conexiones', 'zzzz']) {
+    test(`los resultados de "${query}" no tienen violaciones serias ni críticas de axe`, async ({
+      page,
+    }) => {
+      await page.goto('./temas/salto-personaje/');
+      await hydrateAllIslands(page);
+
+      await page.getByRole('searchbox', { name: 'Buscar en el portafolio' }).fill(query);
+      await expect(
+        page.getByRole('status').filter({ hasText: /Sin resultados|encontrad/ }),
+      ).toHaveCount(1);
+
+      await expectNoBlockingViolations(page);
+    });
+  }
+});

@@ -1,4 +1,4 @@
-import type { Phase, ResourceType } from '../consigna';
+import { PHASES, type Phase, type ResourceType } from '../consigna';
 import type { TopicData } from '../content/topicSchema';
 
 /** What navigation needs from a topic entry. Pure: no astro:content import, so it unit-tests. */
@@ -27,6 +27,14 @@ export function neighbors<T extends { number: number }>(
     ...(index > 0 && { prev: sorted[index - 1] }),
     ...(index < sorted.length - 1 && { next: sorted[index + 1] }),
   };
+}
+
+/** The delivery in progress: the phase of the highest-numbered published topic (else the first). */
+export function latestPublishedPhase(
+  topics: readonly Pick<TopicSummary, 'number' | 'phase' | 'status'>[],
+): Phase {
+  const published = sortByNumber(topics.filter((topic) => topic.status === 'publicado'));
+  return published.at(-1)?.phase ?? PHASES[0];
 }
 
 /** Narrow a collection entry ({ id, data }) to a summary; the entry id is the slug. */

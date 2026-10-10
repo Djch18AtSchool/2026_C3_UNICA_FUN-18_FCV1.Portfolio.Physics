@@ -149,6 +149,21 @@
   background-position: -1px -1px;
 }
 
+/*
+ * Pages with a sidebar (topics, 404): the header button sets html[data-sidebar="closed"] to hide
+ * the sidebar column on wide screens and give the content the full width. Unlayered, so it beats
+ * the layered lg:grid-cols utility; narrow screens keep the drawer whatever the stored choice.
+ */
+@media (width >= 64rem) {
+  html[data-sidebar='closed'] .sidebar-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html[data-sidebar='closed'] .sidebar-column {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
