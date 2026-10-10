@@ -30,7 +30,7 @@ const REDUCED_STEPS = 60;
 const REDUCED_STEP_MS = 250;
 
 /** Follows `prefers-reduced-motion` live; false until mount and wherever matchMedia is missing. */
-function usePrefersReducedMotion(): boolean {
+export function usePrefersReducedMotion(): boolean {
   const [isReduced, setIsReduced] = useState(false);
 
   useEffect(() => {

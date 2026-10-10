@@ -8,29 +8,28 @@ import { topicSchema } from './topicSchema';
 const TOPICS_DIR = join(process.cwd(), 'src', 'content', 'topics');
 /** Rubric sections every published topic must keep: use case, figure, connections, sources. */
 const PUBLISHED_BODY_MARKERS = ['<UseCase', '<Figure', '<Connections', '<Sources'] as const;
-/** v1 topics (no Steps yet) still carry their resource under this heading. */
-const V1_RESOURCE_HEADING = '## Recurso de apoyo';
-/** A topic written in steps (spec §7.2) has at least this many and no manual closing headings. */
+/** Every published topic is written in steps (spec §7.2): at least this many, no manual closings. */
 const MIN_STEPS = 3;
 const MANUAL_CLOSING_HEADINGS = /^## (Conexiones|Fuentes)\s*$/m;
 
 /** Opening tag of a Step (a ">" inside a quoted attribute does not end it); self-closing ends in "/". */
 const STEP_OPENING = /<Step\b((?:[^>"']|"[^"]*"|'[^']*')*)>/g;
 const STEP_CLOSING = '</Step>';
-const WHY_MARKER = '<Why';
+/** A Why opening tag (`<Why>`, `<Why />`, `<Why …>`), not a longer name such as `<WhyNot`. */
+const WHY_OPENING = /<Why\b/g;
 
 /**
- * The opening tags of the Steps in an MDX body that do not contain a `<Why` (spec §7.1: every
- * step justifies itself twice). A self-closing or unclosed Step has no Why.
+ * The opening tags of the Steps in an MDX body that do not contain exactly one `<Why` (spec §7.1:
+ * every step justifies itself once, twice over). A self-closing or unclosed Step has no Why.
  */
-function stepsWithoutWhy(body: string): string[] {
+function stepsWithoutOneWhy(body: string): string[] {
   return [...body.matchAll(STEP_OPENING)].flatMap((match) => {
     const [tag, attributes] = match;
     if (attributes.trimEnd().endsWith('/')) return [tag];
     const start = match.index + tag.length;
     const end = body.indexOf(STEP_CLOSING, start);
-    const isJustified = end !== -1 && body.slice(start, end).includes(WHY_MARKER);
-    return isJustified ? [] : [tag];
+    const whys = end === -1 ? 0 : (body.slice(start, end).match(WHY_OPENING) ?? []).length;
+    return whys === 1 ? [] : [tag];
   });
 }
 
@@ -96,33 +95,37 @@ describe('topic files', () => {
     }
   });
 
-  test('cada tema publicado conserva las secciones de la rúbrica en su cuerpo', () => {
-    const published = fileNames
-      .map((fileName) => ({
-        fileName,
-        file: matter(readFileSync(join(TOPICS_DIR, fileName), 'utf8')),
-      }))
-      .filter(({ file }) => file.data.status === 'publicado');
+  const published = fileNames
+    .map((fileName) => ({
+      fileName,
+      file: matter(readFileSync(join(TOPICS_DIR, fileName), 'utf8')),
+    }))
+    .filter(({ file }) => file.data.status === 'publicado');
 
+  test('hay al menos cinco temas publicados', () => {
     expect(published.length).toBeGreaterThanOrEqual(5);
+  });
+
+  test('cada tema publicado conserva las secciones de la rúbrica en su cuerpo', () => {
     for (const { fileName, file } of published) {
       for (const marker of PUBLISHED_BODY_MARKERS) {
         expect(file.content.includes(marker), `${fileName} sin ${marker}`).toBe(true);
       }
-      const steps = [...file.content.matchAll(STEP_OPENING)].length;
-      if (steps === 0) {
-        expect(file.content.includes(V1_RESOURCE_HEADING), `${fileName} sin recurso`).toBe(true);
-        continue;
-      }
-      expect(steps, `${fileName}: pasos`).toBeGreaterThanOrEqual(MIN_STEPS);
       expect(file.content, fileName).not.toMatch(MANUAL_CLOSING_HEADINGS);
     }
   });
 
-  test('cada Step de un tema contiene un Why', () => {
+  test('cada tema publicado está escrito en al menos tres pasos', () => {
+    for (const { fileName, file } of published) {
+      const steps = [...file.content.matchAll(STEP_OPENING)].length;
+      expect(steps, `${fileName}: pasos`).toBeGreaterThanOrEqual(MIN_STEPS);
+    }
+  });
+
+  test('cada Step de un tema contiene exactamente un Why', () => {
     for (const fileName of fileNames) {
       const { content } = matter(readFileSync(join(TOPICS_DIR, fileName), 'utf8'));
-      expect(stepsWithoutWhy(content), fileName).toEqual([]);
+      expect(stepsWithoutOneWhy(content), fileName).toEqual([]);
     }
   });
 
@@ -136,7 +139,7 @@ describe('topic files', () => {
   });
 });
 
-describe('stepsWithoutWhy', () => {
+describe('stepsWithoutOneWhy', () => {
   test('acepta pasos que contienen un Why', () => {
     const body = `Intro.
 
@@ -155,8 +158,8 @@ describe('stepsWithoutWhy', () => {
 <Why />
 </Step>`;
 
-    expect(stepsWithoutWhy(body)).toEqual([]);
-    expect(stepsWithoutWhy('<Step title="Dos > tres" n={2}>\nTexto\n</Step>')).toEqual([
+    expect(stepsWithoutOneWhy(body)).toEqual([]);
+    expect(stepsWithoutOneWhy('<Step title="Dos > tres" n={2}>\nTexto\n</Step>')).toEqual([
       '<Step title="Dos > tres" n={2}>',
     ]);
   });
@@ -170,21 +173,35 @@ Sin justificar.
 <Why />
 </Step>`;
 
-    expect(stepsWithoutWhy(body)).toEqual(['<Step n={1} title="Uno">']);
+    expect(stepsWithoutOneWhy(body)).toEqual(['<Step n={1} title="Uno">']);
   });
 
   test('un paso que se cierra solo o nunca se cierra no tiene Why', () => {
-    expect(stepsWithoutWhy('<Step n={1} title="Uno" />')).toEqual(['<Step n={1} title="Uno" />']);
-    expect(stepsWithoutWhy('<Step n={2} title="Dos">\n<Why />')).toEqual([
+    expect(stepsWithoutOneWhy('<Step n={1} title="Uno" />')).toEqual([
+      '<Step n={1} title="Uno" />',
+    ]);
+    expect(stepsWithoutOneWhy('<Step n={2} title="Dos">\n<Why />')).toEqual([
       '<Step n={2} title="Dos">',
     ]);
-    expect(stepsWithoutWhy('<Step n={3} title="Tres">\nTexto')).toEqual([
+    expect(stepsWithoutOneWhy('<Step n={3} title="Tres">\nTexto')).toEqual([
       '<Step n={3} title="Tres">',
     ]);
   });
 
+  test('señala el paso con dos Why', () => {
+    const body = `<Step n={1} title="Uno">
+<Why />
+<Why />
+</Step>`;
+
+    expect(stepsWithoutOneWhy(body)).toEqual(['<Step n={1} title="Uno">']);
+    expect(stepsWithoutOneWhy('<Step n={2} title="Dos">\n<WhyNot />\n<Why />\n</Step>')).toEqual(
+      [],
+    );
+  });
+
   test('un cuerpo sin pasos no tiene nada que señalar', () => {
-    expect(stepsWithoutWhy('Texto con <Steps> y <UseCase>.')).toEqual([]);
+    expect(stepsWithoutOneWhy('Texto con <Steps> y <UseCase>.')).toEqual([]);
   });
 });
 
