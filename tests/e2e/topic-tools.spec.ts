@@ -1,11 +1,20 @@
 import { expect, test } from '@playwright/test';
 import { REPO_URL, RESOURCE_LABELS, SITE_URL } from '../../src/consigna';
+import { SECTION_HEADINGS } from '../../src/lib/sectionHeadings';
 import { waitForIsland } from './helpers';
 
 const TOPIC_2 = './temas/salto-personaje/';
 const UPCOMING_TOPIC = './temas/frenado-regenerativo/';
 const TOPIC_2_URL = `${SITE_URL}temas/salto-personaje/`;
 const TOPIC_2_SOURCE = `${REPO_URL}/blob/main/src/content/topics/salto-personaje.mdx`;
+const DESKTOP = { width: 1280, height: 800 };
+/**
+ * A section far enough down that the header has left the view (so the bar shows) and far enough
+ * from the bottom that the page can scroll it up to the bar.
+ */
+const ANCHOR_ID = SECTION_HEADINGS.Connections.slug;
+/** The jump must bring the target near the top, or the gap check proves nothing. */
+const NEAR_TOP_PX = 120;
 const OLD_FOOTER_TEXTS = ['Ver fuente de esta página en GitHub', 'Actualizado el'];
 
 test.describe('cabecera de un tema publicado', () => {
@@ -73,6 +82,25 @@ test.describe('cabecera de un tema publicado', () => {
     expect(second!.y).toBeGreaterThan(first!.y + first!.height);
     expect(second!.x).toBe(first!.x);
   });
+});
+
+test('un ancla deja su destino por debajo de la barra fija de escritorio', async ({ page }) => {
+  await page.setViewportSize(DESKTOP);
+  await page.goto(`${TOPIC_2}#${ANCHOR_ID}`);
+
+  const bar = page.locator('[data-topic-sticky-bar]');
+  await expect(bar).toHaveAttribute('data-visible', 'true');
+  // The bar slides in; measure once it rests at the top of the viewport.
+  await expect.poll(() => bar.evaluate((node) => node.getBoundingClientRect().top)).toBe(0);
+  const { barBottom, targetTop } = await page.evaluate(
+    (id) => ({
+      barBottom: document.querySelector('[data-topic-sticky-bar]')!.getBoundingClientRect().bottom,
+      targetTop: document.getElementById(id)!.getBoundingClientRect().top,
+    }),
+    ANCHOR_ID,
+  );
+  expect(targetTop).toBeGreaterThanOrEqual(barBottom);
+  expect(targetTop).toBeLessThan(NEAR_TOP_PX);
 });
 
 test('un tema próximo no tiene insignias, herramientas ni el pie anterior', async ({ page }) => {
