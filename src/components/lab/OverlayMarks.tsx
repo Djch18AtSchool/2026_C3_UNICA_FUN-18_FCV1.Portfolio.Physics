@@ -13,6 +13,7 @@ const HIT_RADIUS = 16;
 const FOCUS_RING_RADIUS = 11;
 const FOCUS_RING_COLOR = 'var(--accent)';
 const VECTOR_WIDTH = 2;
+const VECTOR_DASH = '6 3';
 const ARROW_HEAD = 9;
 const LABEL_GAP = 10;
 const LABEL_SIZE = 13;
@@ -26,12 +27,29 @@ function arrowHead(from: Point, to: Point): string {
   return `${to.x},${to.y} ${corner(Math.PI / 7)} ${corner(-Math.PI / 7)}`;
 }
 
-/** A straight vector from → to; the head is drawn only when the arrow is longer than it. */
-export function Arrow({ from, to, color }: { from: Point; to: Point; color: string }): JSX.Element {
+/** A straight vector from → to (optionally dashed); the head is drawn only when the arrow is longer than it. */
+export function Arrow({
+  from,
+  to,
+  color,
+  dashed = false,
+}: {
+  from: Point;
+  to: Point;
+  color: string;
+  dashed?: boolean;
+}): JSX.Element {
   const isVisible = Math.hypot(to.x - from.x, to.y - from.y) > ARROW_HEAD;
   return (
     <g className="pointer-events-none" stroke={color} fill={color}>
-      <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} strokeWidth={VECTOR_WIDTH} />
+      <line
+        x1={from.x}
+        y1={from.y}
+        x2={to.x}
+        y2={to.y}
+        strokeWidth={VECTOR_WIDTH}
+        strokeDasharray={dashed ? VECTOR_DASH : undefined}
+      />
       {isVisible ? <polygon points={arrowHead(from, to)} strokeWidth={1} /> : null}
     </g>
   );
