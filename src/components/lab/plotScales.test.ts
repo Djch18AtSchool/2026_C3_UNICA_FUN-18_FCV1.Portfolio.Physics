@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'vitest';
-import { linearScale, niceTicks, padDomain, tickDecimals } from './plotScales';
+import {
+  fitCentre,
+  linearScale,
+  monoTextWidth,
+  niceTicks,
+  padDomain,
+  tickDecimals,
+} from './plotScales';
 
 describe('linearScale', () => {
   test('maps a value to pixels and back', () => {
@@ -109,5 +116,26 @@ describe('tickDecimals', () => {
     expect(tickDecimals(2.5)).toBe(1);
     expect(tickDecimals(0.25)).toBe(2);
     expect(tickDecimals(0.025)).toBe(2);
+  });
+});
+
+describe('monoTextWidth', () => {
+  test('is 0,6 em per character', () => {
+    expect(monoTextWidth('10 000', 10)).toBeCloseTo(36, 10);
+  });
+});
+
+describe('fitCentre', () => {
+  test('keeps a centre that already fits', () => {
+    expect(fitCentre(150, 40, 0, 300)).toBe(150);
+  });
+
+  test('shifts a text that would cross either edge back inside', () => {
+    expect(fitCentre(290, 40, 0, 300)).toBe(280);
+    expect(fitCentre(5, 40, 0, 300)).toBe(20);
+  });
+
+  test('centres a text wider than the room', () => {
+    expect(fitCentre(10, 400, 0, 300)).toBe(150);
   });
 });

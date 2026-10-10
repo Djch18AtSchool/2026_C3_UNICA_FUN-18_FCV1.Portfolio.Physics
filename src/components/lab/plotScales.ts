@@ -102,3 +102,18 @@ export function padDomain(values: number[], padFraction: number, includeZero = f
   // Padding of zero around a single value: open a unit-wide window so a scale can be built.
   return { min: domain.min - span / 2, max: domain.max + span / 2 };
 }
+
+/** Advance of one character of the plots' monospace font, in em (IBM Plex Mono: 600/1000). */
+const MONO_CHAR_EM = 0.6;
+
+/** Estimated width (px) of `text` set in the plots' monospace font at `fontSize`. */
+export function monoTextWidth(text: string, fontSize: number): number {
+  return text.length * fontSize * MONO_CHAR_EM;
+}
+
+/** The centre x that keeps a text of `width` inside [min, max], or `x` when it already fits. */
+export function fitCentre(x: number, width: number, min: number, max: number): number {
+  const half = width / 2;
+  if (max - min <= width) return (min + max) / 2;
+  return Math.min(Math.max(x, min + half), max - half);
+}

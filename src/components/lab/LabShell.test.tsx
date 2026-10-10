@@ -76,6 +76,12 @@ describe('LabShell', () => {
     expect(screen.getByText('0,50 s', EXACT_TEXT)).toBeInTheDocument();
   });
 
+  test('a readout with its own precision ignores the global decimals', () => {
+    renderShell({ readouts: [{ label: 'Fuerza', value: 11942.9, unit: 'N', precision: 0 }] });
+
+    expect(screen.getByText('11 943 N')).toBeInTheDocument();
+  });
+
   test('the gear opens the settings drawer and reflects it in aria-expanded', async () => {
     const user = userEvent.setup();
     const { container } = renderShell();

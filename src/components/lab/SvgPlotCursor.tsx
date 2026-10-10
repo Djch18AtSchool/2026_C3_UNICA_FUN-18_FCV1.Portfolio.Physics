@@ -1,7 +1,7 @@
 import { useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import { formatNumber } from '../../lib/format';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_FAMILY } from '../charts/chartTheme';
-import type { Domain, Scale } from './plotScales';
+import { monoTextWidth, type Domain, type Scale } from './plotScales';
 import type { PlotCursor } from './SvgPlot';
 import { preventTouchPan } from './useDrag';
 
@@ -32,7 +32,7 @@ const FOCUS_RING_COLOR = 'var(--accent)';
 /** Half the width of the invisible hit strip along the line: a 24 px touch target. */
 const HIT_HALF_WIDTH = 12;
 const LABEL_GAP = 14;
-/** Past this fraction of the plot width the label flips to the left of the handle. */
+/** Past this fraction of the plot width, or when it would overrun the plot, the label flips left. */
 const LABEL_FLIP_FRACTION = 0.7;
 const HALO_WIDTH = 4;
 
@@ -94,7 +94,10 @@ export default function SvgPlotCursor({
   const value = clamp(cursor.x, x.domain);
   const cx = x.toPx(value);
   const labelText = cursor.label?.(value);
-  const isLabelLeft = cx > area.left + (area.right - area.left) * LABEL_FLIP_FRACTION;
+  const isPastFlipLine = cx > area.left + (area.right - area.left) * LABEL_FLIP_FRACTION;
+  const wouldOverrun =
+    labelText !== undefined && cx + LABEL_GAP + monoTextWidth(labelText, fontSize) > area.right;
+  const isLabelLeft = isPastFlipLine || wouldOverrun;
 
   const emit = (next: number) => {
     const clamped = clamp(next, x.domain);

@@ -7,7 +7,7 @@ import {
   TICK_FONT_FAMILY,
 } from '../charts/chartTheme';
 import { trimTrailingZeros } from '../charts/chartScale';
-import { niceTicks, tickDecimals, type Scale } from './plotScales';
+import { fitCentre, monoTextWidth, niceTicks, tickDecimals, type Scale } from './plotScales';
 import type { PlotArea } from './SvgPlotCursor';
 
 /** Viewbox pixels between ticks: about six on a 720-wide x axis, five on a 375-tall y axis. */
@@ -92,6 +92,8 @@ interface AxesProps extends GridProps {
   titleFontSize: number;
   /** Narrow plots: the y title goes horizontally above the axis instead of in a rotated band. */
   compact?: boolean;
+  /** viewBox width: an x tick label that would cross its edge is shifted inside. */
+  viewWidth?: number;
 }
 
 /** Baselines on the left and bottom of the plot, outward ticks, values and "label (unit)" titles. */
@@ -105,6 +107,7 @@ export function PlotAxes({
   tickFontSize,
   titleFontSize,
   compact = false,
+  viewWidth = Infinity,
 }: AxesProps) {
   const formatX = tickFormatter(ticks.x);
   const formatY = tickFormatter(ticks.y);
@@ -137,7 +140,12 @@ export function PlotAxes({
         {ticks.x.map((value) => (
           <text
             key={`lx-${value}`}
-            x={x.toPx(value)}
+            x={fitCentre(
+              x.toPx(value),
+              monoTextWidth(formatX(value), tickFontSize),
+              -Infinity,
+              viewWidth,
+            )}
             y={area.bottom + X_TICK_LABEL_OFFSET}
             textAnchor="middle"
           >

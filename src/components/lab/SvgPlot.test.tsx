@@ -94,11 +94,15 @@ describe('SvgPlot', () => {
     expect(screen.getAllByText(/^0,\d+$/).length).toBeGreaterThan(0);
   });
 
-  test('draws each band as a rect labelled with the band label', () => {
-    render(<SvgPlot {...PROPS} bands={[{ from: 2, to: 4, label: 'Ventana C3' }]} />);
+  test('draws each band as a rect tagged with its label, named by visible text only', () => {
+    const { container } = render(
+      <SvgPlot {...PROPS} bands={[{ from: 2, to: 4, label: 'Ventana C3' }]} />,
+    );
 
-    const band = screen.getByLabelText('Ventana C3');
-    expect(band.tagName.toLowerCase()).toBe('rect');
+    const band = container.querySelector('[data-band="Ventana C3"]');
+    expect(band?.tagName.toLowerCase()).toBe('rect');
+    // aria-label on a role-less <rect> is prohibited (axe aria-prohibited-attr).
+    expect(band).not.toHaveAttribute('aria-label');
     expect(screen.getByText('Ventana C3', { selector: 'text' })).toBeInTheDocument();
   });
 
@@ -504,6 +508,62 @@ describe('SvgPlot', () => {
     // The y title sits horizontally above the axis instead of in a rotated band.
     expect(container.querySelector('text[transform^="rotate(-90"]')).toBeNull();
     expect(screen.getByText('y (m)')).toHaveAttribute('text-anchor', 'start');
+  });
+
+  /** Horizontal extent of a <text>, estimated as the plotter does: 0,6 em per mono character. */
+  function textExtent(node: Element, fontSize: number): [number, number] {
+    const x = Number(node.getAttribute('x'));
+    const width = (node.textContent ?? '').length * fontSize * 0.6;
+    const anchor = node.getAttribute('text-anchor') ?? 'start';
+    if (anchor === 'middle') return [x - width / 2, x + width / 2];
+    return anchor === 'end' ? [x - width, x] : [x, x + width];
+  }
+
+  test('on a narrow plot the last x tick label and a band label stay inside the viewBox', () => {
+    stubResizeObserver(300);
+    render(
+      <SvgPlot
+        {...PROPS}
+        xDomain={{ min: 0, max: 10000 }}
+        bands={[{ from: 9000, to: 10000, label: 'Ventana de trabajo C3 (2019)' }]}
+      />,
+    );
+
+    const [, tickRight] = textExtent(screen.getByText('10 000'), 13);
+    const [bandLeft, bandRight] = textExtent(screen.getByText('Ventana de trabajo C3 (2019)'), 12);
+    expect(tickRight).toBeLessThanOrEqual(300);
+    expect(bandLeft).toBeGreaterThanOrEqual(0);
+    expect(bandRight).toBeLessThanOrEqual(300);
+  });
+
+  test('a band can put its label at the bottom of the plot area', () => {
+    let captured: { x: Scale; y: Scale } | undefined;
+    render(
+      <SvgPlot
+        {...PROPS}
+        bands={[{ from: 2, to: 4, label: 'Ventana C3', labelAt: 'bottom' }]}
+        overlay={(scales) => {
+          captured = scales;
+          return null;
+        }}
+      />,
+    );
+
+    const y = Number(screen.getByText('Ventana C3', { selector: 'text' }).getAttribute('y'));
+    expect(y).toBeLessThan(captured!.y.range[0]);
+    expect(y).toBeGreaterThan(captured!.y.range[0] - 20);
+  });
+
+  test('the cursor label flips left when it would run past the plot area', () => {
+    stubResizeObserver(300);
+    render(
+      <SvgPlot
+        {...PROPS}
+        cursor={{ x: 6.5, onChange: () => {}, label: () => 'T = 120 °C, largo' }}
+      />,
+    );
+
+    expect(screen.getByText('T = 120 °C, largo')).toHaveAttribute('text-anchor', 'end');
   });
 
   test('a narrow plot with one-character y labels keeps a 40 px left margin', () => {

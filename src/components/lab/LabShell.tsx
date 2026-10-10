@@ -12,6 +12,8 @@ export interface LabReadout {
   label: string;
   value: number;
   unit: string;
+  /** Fixed decimals for this readout; the global decimals setting when omitted. */
+  precision?: number;
 }
 
 export interface LabShellProps {
@@ -121,6 +123,7 @@ export default function LabShell({
                 label={readout.label}
                 value={readout.value}
                 unit={readout.unit}
+                precision={readout.precision}
               />
             ))}
           </div>

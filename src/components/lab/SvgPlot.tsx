@@ -5,15 +5,12 @@ import {
   DASH_PATTERN,
   DEFAULT_ASPECT_RATIO,
   LINE_WIDTH,
-  SURFACE_COLOR,
-  TEXT_COLOR,
-  TICK_COLOR,
-  TICK_FONT_FAMILY,
   TICK_FONT_SIZE,
 } from '../charts/chartTheme';
 import { linearScale, padDomain, type Domain, type Scale } from './plotScales';
 import { axisTicks, PlotAxes, PlotGrid, yTickLabelChars } from './SvgPlotAxes';
 import SvgPlotCursor, { type PlotArea } from './SvgPlotCursor';
+import { Bands, Marker } from './SvgPlotMarks';
 import { useElementWidth } from '../hooks/useElementWidth';
 import { useGlobalSettings } from './useGlobalSettings';
 
@@ -28,6 +25,8 @@ export interface PlotBand {
   from: number;
   to: number;
   label: string;
+  /** Where the label sits: along the top of the plot area (default) or along its bottom. */
+  labelAt?: 'top' | 'bottom';
 }
 export interface PlotCursor {
   x: number;
@@ -90,11 +89,6 @@ const MIN_SERIES_FOR_LEGEND = 2;
 const TICK_SIZE = TICK_FONT_SIZE + 1;
 const TITLE_SIZE = TICK_FONT_SIZE + 2;
 const NOTE_SIZE = TICK_FONT_SIZE;
-const BAND_OPACITY = 0.12;
-const BAND_LABEL_OFFSET = 16;
-const MARKER_RADIUS = 5;
-const MARKER_LABEL_GAP = 10;
-const HALO_WIDTH = 4;
 const PATH_DECIMALS = 2;
 const LEGEND_KEY_WIDTH = 18;
 
@@ -237,72 +231,6 @@ function Legend({ series }: { series: PlotSeries[] }) {
   );
 }
 
-const haloText = {
-  fill: TEXT_COLOR,
-  fontFamily: TICK_FONT_FAMILY,
-  fontSize: NOTE_SIZE,
-  stroke: SURFACE_COLOR,
-  strokeWidth: HALO_WIDTH,
-  paintOrder: 'stroke',
-} as const;
-
-function Bands({ bands, x, area }: { bands: PlotBand[]; x: Scale; area: PlotArea }) {
-  return (
-    <g>
-      {bands.map((band) => {
-        const from = x.toPx(Math.max(Math.min(band.from, band.to), x.domain.min));
-        const to = x.toPx(Math.min(Math.max(band.from, band.to), x.domain.max));
-        if (to <= from) return null;
-        return (
-          <g key={`${band.from}-${band.to}-${band.label}`}>
-            <rect
-              aria-label={band.label}
-              x={from}
-              y={area.top}
-              width={to - from}
-              height={area.bottom - area.top}
-              fill={TICK_COLOR}
-              fillOpacity={BAND_OPACITY}
-            />
-            <text
-              x={(from + to) / 2}
-              y={area.top + BAND_LABEL_OFFSET}
-              textAnchor="middle"
-              {...haloText}
-            >
-              {band.label}
-            </text>
-          </g>
-        );
-      })}
-    </g>
-  );
-}
-
-function Marker({ marker, x, y }: { marker: PlotMarker; x: Scale; y: Scale }) {
-  if (!isFinitePoint(marker)) return null;
-  const cx = x.toPx(marker.x);
-  const cy = y.toPx(marker.y);
-  return (
-    <g>
-      <circle
-        data-marker=""
-        cx={cx}
-        cy={cy}
-        r={MARKER_RADIUS}
-        fill={TEXT_COLOR}
-        stroke={SURFACE_COLOR}
-        strokeWidth={2}
-      />
-      {marker.label ? (
-        <text x={cx + MARKER_LABEL_GAP} y={cy - MARKER_LABEL_GAP} {...haloText}>
-          {marker.label}
-        </text>
-      ) : null}
-    </g>
-  );
-}
-
 /**
  * The lab plotter: an SVG whose viewBox follows its container's measured width (720 until
  * measured), so text and handles keep their CSS-pixel size on phones. The figure itself is one
@@ -355,7 +283,7 @@ export default function SvgPlot(props: SvgPlotProps) {
         >
           {clipRect(`${clipBase}-plot`)}
           {showGrid ? <PlotGrid ticks={ticks} x={x} y={y} area={area} /> : null}
-          <Bands bands={bands} x={x} area={area} />
+          <Bands bands={bands} x={x} area={area} width={width} />
           <PlotAxes
             ticks={ticks}
             x={x}
@@ -366,6 +294,7 @@ export default function SvgPlot(props: SvgPlotProps) {
             tickFontSize={TICK_SIZE}
             compact={compact}
             titleFontSize={TITLE_SIZE}
+            viewWidth={width}
           />
           <g
             clipPath={`url(#${clipBase}-plot)`}
