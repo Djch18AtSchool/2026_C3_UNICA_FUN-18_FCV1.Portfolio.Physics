@@ -144,7 +144,7 @@ Con el impulso fijo, multiplicar g por λ divide altura y tiempo entre λ: en <E
   showBadge={false}
   caption="El mismo impulso, 13,1 m/s, con la gravedad de la Tierra (9,81 m/s²), la de Super Mario Bros. (28,1 m/s²) y la de Celeste (112,5 m/s²): altura y tiempo en el aire se encogen juntos."
   source={{
-    text: 'Curvas calculadas por el autor con las ecuaciones (2.1) y (2.2); gravedades de los juegos convertidas como en la figura 2.3',
+    text: 'Curvas que calculé con las ecuaciones (2.1) y (2.2); gravedades de los juegos convertidas como en la figura 2.3',
   }}
 >
   <JumpFigure variant="gravedades" client:visible />
@@ -179,7 +179,7 @@ Es la (2.2) invertida; la diapositiva da g negativa, como componente con +y arri
   showBadge={false}
   caption="Subida hasta el ápice (tₕ, h) que pide cada diseño. Celeste (Player.cs), a 8 px = 1 m: Gravity 900 px/s² → 112,5 m/s²; JumpSpeed −105 px/s, negativa porque en pantalla +y apunta hacia abajo → 13,1 m/s; MaxRun 90 px/s → 11,25 m/s; HalfGravThreshold 40 px/s; VarJumpTime 0,2 s; MaxFall 160 px/s → 20 m/s. Super Mario Bros., a 16 px = 1 m (el lado de un bloque) y 60 cuadros/s: salto parado de 4 px/cuadro → 15 m/s; gravedad de 0,125 px/cuadro² con A sostenido → 28,1 m/s² y de 0,4375 px/cuadro² al soltar A o al empezar a caer → 98,4 m/s². Un toque en Celeste sube 0,77 m en 0,12 s (0,76 m con el valor redondeado); sostenido, según mi cálculo, unos 28 px (3,5 m) en 0,36 s."
   source={{
-    text: 'Curvas calculadas por el autor con la ecuación (2.1); constantes de Player.cs (fuente 1) y del desensamblado de Super Mario Bros. (fuente 3) convertidas con escalas que supongo yo y que el código no fija',
+    text: 'Curvas que calculé con la ecuación (2.1); constantes de Player.cs (fuente 1) y del desensamblado de Super Mario Bros. (fuente 3) convertidas con escalas que supongo yo y que el código no fija',
   }}
 >
   <JumpFigure variant="diseno" client:visible />
