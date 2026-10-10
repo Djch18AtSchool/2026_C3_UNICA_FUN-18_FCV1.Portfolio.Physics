@@ -84,10 +84,22 @@ function Gravities(): JSX.Element {
   );
 }
 
-/** The apex (t_h, h) of a designed jump, with dotted guides to both axes and its label. */
+/** The x window reaches this multiple of Mario's t_h, leaving room for the labels on the right. */
+const APEX_X_ROOM = 2;
+/** Line height of the two-line apex label. */
+const LABEL_LINE = 15;
+
+/**
+ * The apex (t_h, h) of a designed jump, with dotted guides to both axes and a two-line label to
+ * its right (the x window leaves room for it): above the point when the plot has room there,
+ * below it otherwise, so a short phone plot never clips it.
+ */
 function Apex({ result, x, y }: { result: JumpResult; x: Scale; y: Scale }) {
   const cx = x.toPx(result.tApex);
   const cy = y.toPx(result.hMax);
+  const labelX = cx + LABEL_GAP;
+  const hasRoomAbove = cy - y.range[1] > 2 * LABEL_LINE + LABEL_GAP;
+  const firstLineY = hasRoomAbove ? cy - LABEL_LINE - LABEL_GAP / 2 : cy + LABEL_LINE;
   return (
     <g data-apex="" className="pointer-events-none">
       <polyline
@@ -105,8 +117,8 @@ function Apex({ result, x, y }: { result: JumpResult; x: Scale; y: Scale }) {
         strokeWidth={2}
       />
       <text
-        x={cx + LABEL_GAP}
-        y={cy - LABEL_GAP}
+        x={labelX}
+        y={firstLineY}
         fill={TEXT_COLOR}
         fontFamily={TICK_FONT_FAMILY}
         fontSize={LABEL_SIZE}
@@ -114,7 +126,8 @@ function Apex({ result, x, y }: { result: JumpResult; x: Scale; y: Scale }) {
         strokeWidth={HALO_WIDTH}
         paintOrder="stroke"
       >
-        {`h = ${m(result.hMax)}, tₕ = ${s(result.tApex)}`}
+        <tspan x={labelX}>{`h = ${m(result.hMax)}`}</tspan>
+        <tspan x={labelX} dy={LABEL_LINE}>{`tₕ = ${s(result.tApex)}`}</tspan>
       </text>
     </g>
   );
@@ -134,7 +147,7 @@ function Design(): JSX.Element {
         seriesFor('celeste', label('celeste', CELESTE_JUMP), riseOnly(celeste)),
       ]}
       yDomain={{ min: 0, max: mario.hMax * 1.25 }}
-      xDomain={{ min: 0, max: mario.tApex * 1.6 }}
+      xDomain={{ min: 0, max: mario.tApex * APEX_X_ROOM }}
       overlay={({ x, y }) => (
         <>
           <Apex result={mario} x={x} y={y} />

@@ -16,8 +16,10 @@ function mockIdentityCtm(container: HTMLElement): void {
   }
 }
 
+const FOOTNOTE = 'Modelo: omite los topes de caída; Mario baja en unos 0,34 s, no en 0,29 s.';
+
 function renderLab() {
-  const view = render(<JumpLab />);
+  const view = render(<JumpLab footnote={FOOTNOTE} />);
   mockIdentityCtm(view.container);
   return view;
 }
@@ -71,7 +73,7 @@ describe('JumpLab', () => {
     expect(readout('Alcance')).toBe('2,62 m');
     expect(screen.getByText(/^Referencia terrestre, g = 9,81/)).toBeInTheDocument();
     expect(screen.getByText(/^Celeste, g = 112,50/)).toBeInTheDocument();
-    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(/topes de caída.*0,34 s/);
+    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
   });
 
   test('dragging the launch-vector handle upwards raises v0 and the maximum height', () => {
@@ -112,9 +114,11 @@ describe('JumpLab', () => {
     );
   });
 
-  test('dragging the marker along the curve seeks t and keeps the clock paused', () => {
+  test('dragging the marker along the curve seeks t and pauses a playing clock', async () => {
+    const user = userEvent.setup();
     renderLab();
-    expect(timeline()).toHaveValue('0');
+    await user.click(screen.getByRole('button', { name: 'Reproducir' }));
+    expect(screen.getByTestId('jump-lab')).toHaveAttribute('data-playing', 'true');
 
     drag('jump-marker', 120, 0);
 
@@ -144,6 +148,18 @@ describe('JumpLab', () => {
     expect(Number((timeline() as HTMLInputElement).value)).toBeLessThan(1000);
     await user.keyboard('{Home}');
     expect(timeline()).toHaveValue('0');
+  });
+
+  test('the plot frames the live jump, letting the much larger Earth reference run off', () => {
+    const { container } = renderLab();
+    const plot = screen.getByTestId('jump-plot');
+    const yTicks = [...plot.querySelectorAll('svg[role="img"] text[text-anchor="end"]')].map(
+      (node) => Number((node.textContent ?? '').replace(',', '.')),
+    );
+
+    // Celeste peaks at 0,76 m; the Earth reference with the same impulse at 8,75 m.
+    expect(Math.max(...yTicks)).toBeLessThan(3);
+    expect(container.querySelector('[data-series="ghost"]')).not.toBeNull();
   });
 
   test('the clock lasts the air time of the live jump', () => {
@@ -190,6 +206,7 @@ describe('JumpLab', () => {
 
     expect(readout('Altura máxima')).toBe('0,71 m');
     expect(screen.getByTestId('lab-footnote')).toHaveTextContent(/Euler semi-implícito/);
+    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
   });
 
   test('the local settings hide the Earth reference and change the fall multiplier', async () => {

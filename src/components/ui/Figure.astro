@@ -9,6 +9,9 @@
  *
  * `label` replaces the badge text while keeping the type's mark and color, e.g. for a supplementary
  * interactive figure that is not the topic's prescribed resource: label="Complemento interactivo".
+ *
+ * `showBadge={false}` drops the badge row for a resource that already shows its type, such as a
+ * laboratory, whose LabShell header carries the same mark (one badge per figure).
  */
 import ResourceBadge from './ResourceBadge.astro';
 import type { ResourceType } from '../../consigna';
@@ -20,16 +23,20 @@ interface Props {
   id?: string;
   /** Badge text in place of the resource-type name; the type still sets the mark and data-type. */
   label?: string;
+  /** False when the content already shows its resource type (a LabShell laboratory). */
+  showBadge?: boolean;
 }
-const { type, caption, source, id, label } = Astro.props;
+const { type, caption, source, id, label, showBadge = true } = Astro.props;
 
 if (!source?.text?.trim()) throw new Error('Figure: falta la fuente');
 ---
 
 <figure data-testid="figure" data-type={type} id={id} class="content-figure">
-  <div class="figure-head">
-    <ResourceBadge type={type} label={label} />
-  </div>
+  {showBadge && (
+    <div class="figure-head">
+      <ResourceBadge type={type} label={label} />
+    </div>
+  )}
   <div class="figure-frame grid-paper" data-scroll-label="Contenido desplazable de la figura">
     <slot />
   </div>

@@ -19,6 +19,10 @@ const X_TICK_LABEL_OFFSET = 20;
 const Y_TICK_LABEL_OFFSET = 9;
 const X_TITLE_OFFSET = 46;
 const Y_TITLE_X = 18;
+/** Compact layout (narrow plots): x title closer to its ticks, y title horizontal above the axis. */
+const COMPACT_X_TITLE_OFFSET = 40;
+const COMPACT_Y_TITLE_X = 2;
+const COMPACT_Y_TITLE_RISE = 10;
 
 export interface AxisTicks {
   x: number[];
@@ -40,6 +44,12 @@ function tickFormatter(ticks: number[]): (value: number) => string {
   const step = ticks.length > 1 ? ticks[1] - ticks[0] : 1;
   const precision = tickDecimals(step);
   return (value) => trimTrailingZeros(formatNumber(value, { precision }));
+}
+
+/** Characters of the longest y tick label, as PlotAxes prints it. */
+export function yTickLabelChars(ticks: number[]): number {
+  const format = tickFormatter(ticks);
+  return Math.max(0, ...ticks.map((value) => format(value).length));
 }
 
 interface GridProps {
@@ -80,6 +90,8 @@ interface AxesProps extends GridProps {
   yTitle: string;
   tickFontSize: number;
   titleFontSize: number;
+  /** Narrow plots: the y title goes horizontally above the axis instead of in a rotated band. */
+  compact?: boolean;
 }
 
 /** Baselines on the left and bottom of the plot, outward ticks, values and "label (unit)" titles. */
@@ -92,6 +104,7 @@ export function PlotAxes({
   yTitle,
   tickFontSize,
   titleFontSize,
+  compact = false,
 }: AxesProps) {
   const formatX = tickFormatter(ticks.x);
   const formatY = tickFormatter(ticks.y);
@@ -144,17 +157,27 @@ export function PlotAxes({
         ))}
       </g>
       <g fill={TEXT_COLOR} fontSize={titleFontSize}>
-        <text x={(area.left + area.right) / 2} y={area.bottom + X_TITLE_OFFSET} textAnchor="middle">
+        <text
+          x={(area.left + area.right) / 2}
+          y={area.bottom + (compact ? COMPACT_X_TITLE_OFFSET : X_TITLE_OFFSET)}
+          textAnchor="middle"
+        >
           {xTitle}
         </text>
-        <text
-          x={Y_TITLE_X}
-          y={middleY}
-          textAnchor="middle"
-          transform={`rotate(-90 ${Y_TITLE_X} ${middleY})`}
-        >
-          {yTitle}
-        </text>
+        {compact ? (
+          <text x={COMPACT_Y_TITLE_X} y={area.top - COMPACT_Y_TITLE_RISE} textAnchor="start">
+            {yTitle}
+          </text>
+        ) : (
+          <text
+            x={Y_TITLE_X}
+            y={middleY}
+            textAnchor="middle"
+            transform={`rotate(-90 ${Y_TITLE_X} ${middleY})`}
+          >
+            {yTitle}
+          </text>
+        )}
       </g>
     </g>
   );

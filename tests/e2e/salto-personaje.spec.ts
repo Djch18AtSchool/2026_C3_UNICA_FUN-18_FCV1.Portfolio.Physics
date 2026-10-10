@@ -138,3 +138,41 @@ test('la página cumple la estructura del tema', async ({ page }) => {
   await expect(page.getByTestId('connections')).toBeVisible();
   expect(await page.locator('.katex-display').count()).toBeGreaterThanOrEqual(4);
 });
+
+test('la figura del laboratorio muestra una sola vez "Simulación interactiva"', async ({
+  page,
+}) => {
+  const figure = page.locator('section.step#paso-4 figure[data-type="simulacion"]');
+
+  await expect(figure.getByText('Simulación interactiva', { exact: true })).toHaveCount(1);
+  await expect(figure.getByTestId('lab-footnote')).toContainText('0,34 s');
+});
+
+test.describe('con pantalla táctil', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 375, height: 812 } });
+
+  test('arrastrar el manejador con el dedo cambia la altura máxima sin desplazar la página', async ({
+    page,
+  }) => {
+    await page.getByTestId('jump-plot').scrollIntoViewIfNeeded();
+    const before = await readoutText(page, 'Altura máxima');
+    const box = await page.getByTestId('launch-handle').locator('[data-knob]').boundingBox();
+    expect(box).not.toBeNull();
+    const x = (box?.x ?? 0) + (box?.width ?? 0) / 2;
+    const y = (box?.y ?? 0) + (box?.height ?? 0) / 2;
+    const scrollBefore = await page.evaluate(() => window.scrollY);
+    const cdp = await page.context().newCDPSession(page);
+
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    for (const step of [1, 2, 3, 4]) {
+      await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [{ x: x + step, y: y - 3 * step }],
+      });
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+
+    await expect.poll(() => readoutText(page, 'Altura máxima')).not.toBe(before);
+    expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore);
+  });
+});

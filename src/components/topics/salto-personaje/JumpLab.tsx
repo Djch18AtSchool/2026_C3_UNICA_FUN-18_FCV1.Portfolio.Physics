@@ -42,9 +42,6 @@ const FIELD_NAMES: Record<JumpKey, string> = {
   fallMultiplier: 'multiplicador de caída',
 };
 
-/** What the model leaves out (the topic's balance points here). */
-const MODEL_FOOTNOTE =
-  'Modelo: g al subir y k·g desde el ápice. Omite la prolongación del impulso (0,2 s) y la media gravedad de Celeste, el cambio de Mario al soltar A antes del ápice (el preajuste sostiene A toda la subida) y los topes de caída, 20 m/s en Celeste (MaxFall = 160 px/s) y 15 m/s en Mario (4 px/cuadro); por ese tope, según cálculo del autor, Mario tarda unos 0,34 s en bajar, no los 0,29 s del modelo.';
 const EULER_FOOTNOTE = `Integrador: Euler semi-implícito con paso fijo Δt = 1/${Math.round(1 / EULER_DT)} s; las lecturas salen de la trayectoria muestreada.`;
 
 interface JumpState {
@@ -78,7 +75,12 @@ function describePlot(live: JumpResult, ghost: JumpResult | undefined): string {
  * launch vector that sets v₀ and vₓ. The clock lasts the live jump's air time; any change to the
  * trajectory rewinds it. "Diseñar el salto" sits below, compact.
  */
-export default function JumpLab(): JSX.Element {
+export interface JumpLabProps {
+  /** The model's caveats, written in the topic's MDX so they travel with its text. */
+  footnote?: string;
+}
+
+export default function JumpLab({ footnote }: JumpLabProps): JSX.Element {
   const [state, setState] = useState<JumpState>(INITIAL_STATE);
   const [display, setDisplay] = useState<JumpDisplay>(DEFAULT_DISPLAY);
   /** The plot window held still while the launch vector is dragged, so the handle maps stably. */
@@ -95,10 +97,8 @@ export default function JumpLab(): JSX.Element {
     [settings.v0, settings.vx],
   );
   const shownGhost = display.showGhost ? ghost : undefined;
-  const fitted = useMemo(
-    () => sceneDomains(shownGhost ? [live, shownGhost] : [live]),
-    [live, shownGhost],
-  );
+  // The window frames the live jump; a much larger Earth reference may run off the plot.
+  const fitted = useMemo(() => sceneDomains([live]), [live]);
   const domains = heldDomains ?? fitted;
   const lengthPerMs = launchLengthPerMs(domains.y, JUMP_LIMITS);
 
@@ -211,7 +211,9 @@ export default function JumpLab(): JSX.Element {
         localSettings={localSettings}
         onReset={() => setState(INITIAL_STATE)}
         footnote={
-          display.integrator === 'euler' ? `${EULER_FOOTNOTE} ${MODEL_FOOTNOTE}` : MODEL_FOOTNOTE
+          display.integrator === 'euler'
+            ? [EULER_FOOTNOTE, footnote].filter(Boolean).join(' ')
+            : footnote
         }
         testId="jump-lab"
       >

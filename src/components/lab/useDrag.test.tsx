@@ -103,6 +103,17 @@ describe('useDrag', () => {
     expect(result.current.style).toEqual({ touchAction: 'none' });
   });
 
+  test('a touch on the handle never pans the page: touchstart is cancelled from mount', () => {
+    // Arrange
+    const { handle } = renderHandle(vi.fn());
+
+    // Act: no pointerdown first; Chrome decides on panning at touchstart.
+    const notCancelled = fireEvent.touchStart(handle, { touches: [{ clientX: 0, clientY: 0 }] });
+
+    // Assert
+    expect(notCancelled).toBe(false);
+  });
+
   test('prevents the default pointer down action so the page does not scroll or select', () => {
     // Arrange
     const { handle } = renderHandle(vi.fn());

@@ -58,7 +58,7 @@ function ResourceMark({ type }: { type: ResourceType }): JSX.Element {
 /**
  * The frame every v2 laboratory renders inside, in the v1 figure style: header (title, resource
  * mark, settings gear), canvas, transport bar when there is a clock, readouts, the parameters
- * panel with "Restablecer", an optional footnote and the settings drawer. It owns only whether
+ * panel with "Restablecer" (and, at its end, an optional footnote) and the settings drawer. It owns only whether
  * the drawer is open; the simulation state belongs to the laboratory.
  */
 export default function LabShell({
@@ -108,7 +108,10 @@ export default function LabShell({
             <GearIcon />
           </button>
         </div>
-        <div className="w-full">{children}</div>
+        {/* On phones the canvas bleeds into the card's padding so the plot keeps its width. */}
+        <div data-lab-canvas="" className="-mx-3 sm:mx-0">
+          {children}
+        </div>
         {clock ? <TransportBar clock={clock} /> : null}
         {readouts.length > 0 ? (
           <div className="grid gap-x-8 gap-y-2 sm:grid-cols-2">
@@ -125,12 +128,12 @@ export default function LabShell({
       </div>
       <ControlPanel title="Parámetros" onReset={onReset}>
         {params}
+        {footnote ? (
+          <p data-testid="lab-footnote" className="m-0 text-xs text-fg-muted">
+            {footnote}
+          </p>
+        ) : null}
       </ControlPanel>
-      {footnote ? (
-        <p data-testid="lab-footnote" className="m-0 text-xs text-fg-muted">
-          {footnote}
-        </p>
-      ) : null}
       <SettingsDrawer
         id={drawerId}
         open={isSettingsOpen}

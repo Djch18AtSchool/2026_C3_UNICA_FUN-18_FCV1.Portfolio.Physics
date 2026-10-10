@@ -1,4 +1,4 @@
-import { useEffect, useRef, type JSX, type KeyboardEvent, type RefObject } from 'react';
+import { useRef, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
@@ -37,7 +37,8 @@ const KNOB_RADIUS = 7;
 const HIT_RADIUS = 16;
 const FOCUS_RING_RADIUS = 11;
 const FOCUS_RING_COLOR = 'var(--accent)';
-const LAUNCH_COLOR = 'var(--accent)';
+/** Neutral, so the launch vector never reads as the dashed blue Earth reference (dark mode). */
+const LAUNCH_COLOR = TEXT_COLOR;
 const VECTOR_WIDTH = 2;
 const ARROW_HEAD = 9;
 const TRAIL_WIDTH = 7;
@@ -143,23 +144,6 @@ function markerKeyTarget(key: string, t: number, tAir: number): number | undefin
   return next === undefined ? undefined : clampTo(next, [0, tAir]);
 }
 
-/**
- * Chrome ignores `touch-action` on inner SVG elements, so a finger on a handle would also pan
- * the page (and cancel the drag). A non-passive touchstart listener that prevents the default
- * keeps the gesture for the pointer events; React's own touch listeners are passive.
- */
-function useNoTouchPan<T extends Element>(): RefObject<T | null> {
-  const ref = useRef<T>(null);
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const keepGesture = (event: Event) => event.preventDefault();
-    element.addEventListener('touchstart', keepGesture, { passive: false });
-    return () => element.removeEventListener('touchstart', keepGesture);
-  }, []);
-  return ref;
-}
-
 /** "M x y L x y …" through the samples up to t, ending at the state at t. */
 function trailPath(live: JumpResult, t: number, scales: PlotScales): string {
   const swept = [...live.points.filter((p) => p.t < t), stateAt(live, t)];
@@ -197,8 +181,6 @@ export default function JumpOverlay({
   };
   /** Pointer minus tip at grab time, so the knob keeps its offset instead of jumping. */
   const grabOffsetRef = useRef<Point>({ x: 0, y: 0 });
-  const markerRef = useNoTouchPan<SVGGElement>();
-  const launchRef = useNoTouchPan<SVGGElement>();
   const format = (value: number, unit: string) =>
     formatNumber(value, { precision: decimals, unit });
 
@@ -253,7 +235,6 @@ export default function JumpOverlay({
       <Arrow from={origin} to={tip} color={LAUNCH_COLOR} />
       <Label at={tip}>v₀</Label>
       <g
-        ref={markerRef}
         data-testid="jump-marker"
         role="slider"
         tabIndex={0}
@@ -266,10 +247,9 @@ export default function JumpOverlay({
         onKeyDown={onMarkerKeyDown}
         {...markerDrag}
       >
-        <Knob at={body} fill={TEXT_COLOR} />
+        <Knob at={body} fill={color} />
       </g>
       <g
-        ref={launchRef}
         data-testid="launch-handle"
         role="slider"
         tabIndex={0}

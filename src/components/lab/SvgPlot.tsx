@@ -12,7 +12,7 @@ import {
   TICK_FONT_SIZE,
 } from '../charts/chartTheme';
 import { linearScale, padDomain, type Domain, type Scale } from './plotScales';
-import { axisTicks, PlotAxes, PlotGrid } from './SvgPlotAxes';
+import { axisTicks, PlotAxes, PlotGrid, yTickLabelChars } from './SvgPlotAxes';
 import SvgPlotCursor, { type PlotArea } from './SvgPlotCursor';
 import { useElementWidth } from '../hooks/useElementWidth';
 import { useGlobalSettings } from './useGlobalSettings';
@@ -72,7 +72,17 @@ const MIN_VIEWBOX_WIDTH = 240;
 /** equalAspect keeps the plot height within these multiples of the plot width. */
 const MIN_EQUAL_ASPECT_HEIGHT = 0.5;
 const MAX_EQUAL_ASPECT_HEIGHT = 1.5;
-const MARGIN = { top: 22, right: 28, bottom: 58, left: 84 } as const;
+type Margin = { top: number; right: number; bottom: number; left: number };
+const MARGIN: Margin = { top: 22, right: 28, bottom: 58, left: 84 };
+/** Below this viewBox width (phones) the margins tighten so the plot area keeps most of the width. */
+const COMPACT_WIDTH = 480;
+const COMPACT_MARGIN: Omit<Margin, 'left'> = { top: 30, right: 14, bottom: 50 };
+/** Compact left margin: the widest y tick label (≈ 8 px per mono character) plus tick and gap. */
+const COMPACT_CHAR_WIDTH = 8;
+const COMPACT_LABEL_PAD = 12;
+const MIN_COMPACT_LEFT = 40;
+/** Re-measures the tick labels this many times at most (labels change little between passes). */
+const COMPACT_PASSES = 2;
 const AUTO_PAD = 0.05;
 const FALLBACK_DOMAIN: Domain = { min: 0, max: 1 };
 const MIN_SERIES_FOR_LEGEND = 2;
@@ -146,27 +156,47 @@ function equalAspectFit(domains: { x: Domain; y: Domain }, plotWidth: number) {
   return { plotHeight, ...domains };
 }
 
-function computeLayout(props: SvgPlotProps, measuredWidth: number) {
+function layoutWith(props: SvgPlotProps, width: number, margin: Margin) {
   const aspectRatio = props.aspectRatio ?? DEFAULT_ASPECT_RATIO;
   if (!(aspectRatio > 0) || !Number.isFinite(aspectRatio)) {
     throw new RangeError(`SvgPlot: aspectRatio debe ser positivo (${aspectRatio})`);
   }
-  const width = Math.max(measuredWidth, MIN_VIEWBOX_WIDTH);
-  const plotWidth = width - MARGIN.left - MARGIN.right;
+  const plotWidth = width - margin.left - margin.right;
   const resolved = resolveDomains(props);
   const fit = props.equalAspect
     ? equalAspectFit(resolved, plotWidth)
-    : { plotHeight: width / aspectRatio - MARGIN.top - MARGIN.bottom, ...resolved };
+    : { plotHeight: width / aspectRatio - margin.top - margin.bottom, ...resolved };
   const area: PlotArea = {
-    left: MARGIN.left,
-    top: MARGIN.top,
-    right: MARGIN.left + plotWidth,
-    bottom: MARGIN.top + fit.plotHeight,
+    left: margin.left,
+    top: margin.top,
+    right: margin.left + plotWidth,
+    bottom: margin.top + fit.plotHeight,
   };
   const x = linearScale(fit.x, [area.left, area.right]);
   const y = linearScale(fit.y, [area.bottom, area.top]);
-  const height = Number((area.bottom + MARGIN.bottom).toFixed(PATH_DECIMALS));
+  const height = Number((area.bottom + margin.bottom).toFixed(PATH_DECIMALS));
   return { x, y, area, width, height };
+}
+
+const compactLeft = (chars: number) =>
+  Math.max(MIN_COMPACT_LEFT, chars * COMPACT_CHAR_WIDTH + COMPACT_LABEL_PAD);
+
+/**
+ * From 480 px up, the fixed margins (the desktop layout). Narrower, tight margins with the left
+ * one fitted to the widest y tick label; the labels depend on the layout, so it is re-measured.
+ */
+function computeLayout(props: SvgPlotProps, measuredWidth: number) {
+  const width = Math.max(measuredWidth, MIN_VIEWBOX_WIDTH);
+  if (width >= COMPACT_WIDTH) return { ...layoutWith(props, width, MARGIN), compact: false };
+  let left = MIN_COMPACT_LEFT;
+  let layout = layoutWith(props, width, { ...COMPACT_MARGIN, left });
+  for (let pass = 0; pass < COMPACT_PASSES; pass++) {
+    const needed = compactLeft(yTickLabelChars(axisTicks(layout.x, layout.y).y));
+    if (needed <= left) break;
+    left = needed;
+    layout = layoutWith(props, width, { ...COMPACT_MARGIN, left });
+  }
+  return { ...layout, compact: true };
 }
 
 const px = (value: number) => Number(value.toFixed(PATH_DECIMALS));
@@ -296,7 +326,7 @@ export default function SvgPlot(props: SvgPlotProps) {
   const showGrid = props.showGrid ?? settings.grid;
   const clipBase = `svgplot-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const [wrapperRef, measuredWidth] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
-  const { x, y, area, width, height } = computeLayout(props, measuredWidth);
+  const { x, y, area, width, height, compact } = computeLayout(props, measuredWidth);
   const ticks = axisTicks(x, y);
   const viewBox = `0 0 ${width} ${height}`;
   const clipRect = (id: string) => (
@@ -334,6 +364,7 @@ export default function SvgPlot(props: SvgPlotProps) {
             xTitle={`${xLabel} (${xUnit})`}
             yTitle={`${yLabel} (${yUnit})`}
             tickFontSize={TICK_SIZE}
+            compact={compact}
             titleFontSize={TITLE_SIZE}
           />
           <g

@@ -461,4 +461,75 @@ describe('SvgPlot', () => {
 
     expect(screen.getByTestId('plot').tagName.toLowerCase()).toBe('figure');
   });
+
+  test('keeps the 720 px layout: plot area from x = 84 to 692 and y from 22, title rotated', () => {
+    let captured: { x: Scale; y: Scale } | undefined;
+    const { container } = render(
+      <SvgPlot
+        {...PROPS}
+        overlay={(scales) => {
+          captured = scales;
+          return null;
+        }}
+      />,
+    );
+
+    expect(captured!.x.range).toEqual([84, 692]);
+    expect(captured!.y.range[1]).toBe(22);
+    expect(container.querySelector('text[transform^="rotate(-90"]')).toHaveTextContent('y (m)');
+  });
+
+  test('below 480 px the margins tighten and the left one fits the widest y tick label', () => {
+    stubResizeObserver(300);
+    let captured: { x: Scale; y: Scale } | undefined;
+    const { container } = render(
+      <SvgPlot
+        {...PROPS}
+        yDomain={{ min: 0, max: 12.5 }}
+        overlay={(scales) => {
+          captured = scales;
+          return null;
+        }}
+      />,
+    );
+    const yLabels = [...container.querySelectorAll('text[text-anchor="end"]')].map(
+      (node) => node.textContent ?? '',
+    );
+    const widest = Math.max(...yLabels.map((label) => label.length));
+    const [left, right] = captured!.x.range;
+
+    expect(left).toBe(Math.max(40, widest * 8 + 12));
+    expect(left).toBeLessThan(84);
+    expect(300 - right).toBeLessThan(28);
+    // The y title sits horizontally above the axis instead of in a rotated band.
+    expect(container.querySelector('text[transform^="rotate(-90"]')).toBeNull();
+    expect(screen.getByText('y (m)')).toHaveAttribute('text-anchor', 'start');
+  });
+
+  test('a narrow plot with one-character y labels keeps a 40 px left margin', () => {
+    stubResizeObserver(300);
+    let captured: { x: Scale; y: Scale } | undefined;
+    render(
+      <SvgPlot
+        {...PROPS}
+        yDomain={{ min: 0, max: 4 }}
+        overlay={(scales) => {
+          captured = scales;
+          return null;
+        }}
+      />,
+    );
+
+    expect(captured!.x.range[0]).toBe(40);
+  });
+
+  test('a touch on the cursor handle never pans the page', () => {
+    render(<SvgPlot {...PROPS} cursor={{ x: 5, onChange: () => {} }} />);
+
+    const notCancelled = fireEvent.touchStart(screen.getByRole('slider'), {
+      touches: [{ clientX: 0, clientY: 0 }],
+    });
+
+    expect(notCancelled).toBe(false);
+  });
 });

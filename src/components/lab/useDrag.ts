@@ -17,10 +17,26 @@ export interface DragHandlers {
   onPointerCancel(event: ReactPointerEvent<SVGGraphicsElement>): void;
   onLostPointerCapture(event: ReactPointerEvent<SVGGraphicsElement>): void;
   style: { touchAction: 'none' };
+  /** Attaches the touch guard (see preventTouchPan); spread with the handlers onto the handle. */
+  ref(element: SVGGraphicsElement | null): (() => void) | undefined;
 }
 
 /** So a dragged handle does not also scroll or select text on touch devices. */
 const DRAG_STYLE = { touchAction: 'none' } as const;
+
+const cancelTouch = (event: Event) => event.preventDefault();
+
+/**
+ * Ref callback for a touch-draggable SVG element. Chrome ignores `touch-action` on inner SVG
+ * elements and decides whether a touch pans the page at touchstart, before any pointerdown handler
+ * runs, so the element needs a non-passive touchstart listener from mount (React's own touch
+ * listeners are passive). Pointer events still fire. Returns the cleanup React 19 calls on detach.
+ */
+export function preventTouchPan(element: Element | null): (() => void) | undefined {
+  if (!element) return undefined;
+  element.addEventListener('touchstart', cancelTouch, { passive: false });
+  return () => element.removeEventListener('touchstart', cancelTouch);
+}
 
 /** The primary mouse button, or any touch/pen contact (which may report a different button). */
 function isPrimaryPointer(event: ReactPointerEvent): boolean {
@@ -106,6 +122,7 @@ export function useDrag(onDrag: (point: DragPoint) => void): DragHandlers {
       onPointerCancel: endDrag,
       onLostPointerCapture,
       style: DRAG_STYLE,
+      ref: preventTouchPan,
     }),
     [onPointerDown, onPointerMove, endDrag, onLostPointerCapture],
   );

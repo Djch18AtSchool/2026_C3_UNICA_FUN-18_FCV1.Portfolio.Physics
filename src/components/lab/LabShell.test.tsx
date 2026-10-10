@@ -177,6 +177,13 @@ describe('LabShell', () => {
     });
   });
 
+  test('the footnote sits inside the parameters card, within its padding', () => {
+    renderShell({ footnote: 'Modelo sin rozamiento del aire.' });
+
+    const card = screen.getByTestId('lab-footnote').closest('section') as HTMLElement;
+    expect(within(card).getByRole('button', { name: 'Restablecer' })).toBeInTheDocument();
+  });
+
   test('renders no footnote unless one is given', () => {
     renderShell();
 

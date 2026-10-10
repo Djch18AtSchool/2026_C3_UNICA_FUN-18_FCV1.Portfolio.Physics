@@ -3,6 +3,7 @@ import { formatNumber } from '../../lib/format';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_FAMILY } from '../charts/chartTheme';
 import type { Domain, Scale } from './plotScales';
 import type { PlotCursor } from './SvgPlot';
+import { preventTouchPan } from './useDrag';
 
 /** The plot area inside the viewBox, in viewBox units. */
 export interface PlotArea {
@@ -176,6 +177,7 @@ export default function SvgPlotCursor({
   return (
     <g data-cursor="">
       <g
+        ref={preventTouchPan}
         role="slider"
         tabIndex={0}
         aria-label={xLabel}
