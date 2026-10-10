@@ -24,6 +24,12 @@ const { entry, all, index, outlines } = Astro.props;
 const { Content } = await render(entry);
 ---
 
-<TopicLayout topic={{ ...entry.data, slug: entry.id }} all={all} outlines={outlines} index={index}>
+<TopicLayout
+  topic={{ ...entry.data, slug: entry.id }}
+  all={all}
+  outlines={outlines}
+  index={index}
+  body={entry.body ?? ''}
+>
   <Content />
 </TopicLayout>

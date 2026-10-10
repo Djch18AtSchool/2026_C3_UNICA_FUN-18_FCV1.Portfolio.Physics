@@ -6,11 +6,15 @@ import SideNav from '../components/nav/SideNav.astro';
 import ResourceBadge from '../components/ui/ResourceBadge.astro';
 import StatusBadge from '../components/ui/StatusBadge.astro';
 import TopicStickyBar from '../components/nav/TopicStickyBar.astro';
-import { COURSE, PHASE_LABELS, REPO_URL, type Phase } from '../consigna';
+import TopicTools from '../components/nav/TopicTools';
+import { COURSE, PHASE_LABELS, REPO_URL, SITE_URL, type Phase } from '../consigna';
 import type { TopicData } from '../content/topicSchema';
 import type { SearchEntry, SearchHeading } from '../lib/searchIndex';
 import type { TopicSummary } from '../lib/topics';
 import { SIDEBAR_ID } from '../lib/navState';
+import { markdownSource, readingMinutes } from '../lib/readingTime';
+import { embedScriptText } from '../lib/scriptText';
+import { canonicalUrl, topicUrl } from '../lib/url';
 
 interface Props {
   topic: TopicData & { slug: string };
@@ -20,8 +24,10 @@ interface Props {
   outlines: Record<string, SearchHeading[]>;
   /** Build-time search index for the sidebar. */
   index: SearchEntry[];
+  /** The topic's raw MDX body, for the reading time and "Copiar Markdown". */
+  body: string;
 }
-const { topic, all, outlines, index } = Astro.props;
+const { topic, all, outlines, index, body } = Astro.props;
 const { slug, number, phase, title, shortTitle, concept, status, resourceType, updated } = topic;
 
 // "Se publica en el Avance 2" / "en la Entrega Final" (spec §4.2).
@@ -33,7 +39,10 @@ const updatedLabel = new Intl.DateTimeFormat('es-CR', {
 }).format(updated);
 const updatedIso = updated.toISOString().slice(0, 10);
 const sourceUrl = `${REPO_URL}/blob/main/src/content/topics/${slug}.mdx`;
+const pageUrl = canonicalUrl(topicUrl(slug), SITE_URL);
+const MARKDOWN_ELEMENT_ID = 'topic-markdown';
 const phaseLabel = PHASE_LABELS[phase];
+const isPublished = status === 'publicado';
 ---
 
 <BaseLayout title={`Tema ${number}: ${title} | ${COURSE.name}`} description={concept} hasSidebar>
@@ -63,8 +72,38 @@ const phaseLabel = PHASE_LABELS[phase];
             </p>
             <h1 class="mt-2">{title}</h1>
             {concept && <p class="measure mt-4 text-lg leading-relaxed">{concept}</p>}
+            {isPublished && (
+              <>
+                <ul
+                  data-testid="topic-badges"
+                  class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-fg-muted"
+                >
+                  <li>
+                    <ResourceBadge type={resourceType} />
+                  </li>
+                  <li>≈ {readingMinutes(body)} min de lectura</li>
+                  <li>
+                    Contenido actualizado el <time datetime={updatedIso}>{updatedLabel}</time>
+                  </li>
+                </ul>
+                <div class="mt-4">
+                  <TopicTools
+                    client:idle
+                    url={pageUrl}
+                    githubUrl={sourceUrl}
+                    markdownElementId={MARKDOWN_ELEMENT_ID}
+                  />
+                </div>
+                <script
+                  is:inline
+                  type="text/plain"
+                  id={MARKDOWN_ELEMENT_ID}
+                  set:html={embedScriptText(markdownSource(body))}
+                />
+              </>
+            )}
           </div>
-          {status === 'publicado' && (
+          {isPublished && (
             <dl class="margin-note flex flex-wrap gap-x-8 gap-y-3 self-start xl:mt-8 xl:flex-col">
               <div class="flex flex-col items-start gap-1">
                 <dt class="text-xs">Recurso de apoyo</dt>
@@ -83,7 +122,7 @@ const phaseLabel = PHASE_LABELS[phase];
         </header>
       </div>
 
-      {status === 'publicado' ? (
+      {isPublished ? (
         <div class="topic-body" style={`counter-set: topic ${number}`}>
           <slot />
         </div>
@@ -102,17 +141,6 @@ const phaseLabel = PHASE_LABELS[phase];
       )}
 
       <PrevNext all={all} number={number} />
-
-      <footer class="flex flex-col gap-2 border-t border-border pt-4 text-sm text-fg-muted sm:flex-row sm:justify-between">
-        {status === 'publicado' && (
-          <p>
-            Actualizado el <time datetime={updatedIso}>{updatedLabel}</time>
-          </p>
-        )}
-        <p>
-          <a href={sourceUrl}>Ver fuente de esta página en GitHub</a>
-        </p>
-      </footer>
     </article>
   </div>
 </BaseLayout>

@@ -1,7 +1,7 @@
 ---
 /*
  * Links to the other portfolio topics and to the course sessions. The default slot holds the
- * connections prose, set under the heading and before the two lists. In MDX:
+ * connections prose, set under the heading and before the two lists, which stack vertically. In MDX:
  * <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>…</Connections>
  */
 import { topicBySlug, type ConsignaTopic } from '../../consigna';
@@ -27,7 +27,7 @@ const heading = SECTION_HEADINGS.Connections;
 <section data-testid="connections" class="connections" aria-labelledby={heading.slug}>
   <h2 id={heading.slug}>{heading.text}</h2>
   <slot />
-  <div class="connections-grid">
+  <div class="connections-lists">
     {relatedTopics.length > 0 && (
       <div>
         <h3>Con otros temas</h3>

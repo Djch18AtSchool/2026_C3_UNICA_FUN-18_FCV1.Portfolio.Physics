@@ -86,6 +86,33 @@
     margin-bottom: 0;
   }
 
+  /* ---- Step: one section of the model, headed "Paso N · título" ---- */
+
+  .step > :last-child {
+    margin-bottom: 0;
+  }
+
+  /* ---- Why: the step's double justification, ruled like the UseCase parts ---- */
+
+  .why {
+    margin-block: 1.5rem;
+  }
+  .why-part {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--border);
+  }
+  .why-part:first-child {
+    margin-top: 0;
+  }
+  .why-label {
+    margin-block: 0 0.25rem;
+    font-weight: 600;
+  }
+  .why-part > :last-child {
+    margin-bottom: 0;
+  }
+
   /* ---- Equation: display block with its number at the right edge ---- */
 
   .equation {
@@ -236,16 +263,12 @@
 
   /* ---- Connections ---- */
 
-  .connections-grid {
-    display: grid;
-    gap: 1.5rem 2.5rem;
+  .connections-lists {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
   }
-  @media (min-width: 48rem) {
-    .connections-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-  .connections-grid h3 {
+  .connections-lists h3 {
     margin-top: 0;
     margin-bottom: 0.75rem;
     font-size: 1rem;

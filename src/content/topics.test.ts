@@ -15,6 +15,26 @@ const PUBLISHED_BODY_MARKERS = [
   '<Sources',
 ] as const;
 
+/** Opening tag of a Step (a ">" inside a quoted attribute does not end it); self-closing ends in "/". */
+const STEP_OPENING = /<Step\b((?:[^>"']|"[^"]*"|'[^']*')*)>/g;
+const STEP_CLOSING = '</Step>';
+const WHY_MARKER = '<Why';
+
+/**
+ * The opening tags of the Steps in an MDX body that do not contain a `<Why` (spec §7.1: every
+ * step justifies itself twice). A self-closing or unclosed Step has no Why.
+ */
+function stepsWithoutWhy(body: string): string[] {
+  return [...body.matchAll(STEP_OPENING)].flatMap((match) => {
+    const [tag, attributes] = match;
+    if (attributes.trimEnd().endsWith('/')) return [tag];
+    const start = match.index + tag.length;
+    const end = body.indexOf(STEP_CLOSING, start);
+    const isJustified = end !== -1 && body.slice(start, end).includes(WHY_MARKER);
+    return isJustified ? [] : [tag];
+  });
+}
+
 const fileNames = readdirSync(TOPICS_DIR)
   .filter((name) => name.endsWith('.mdx'))
   .sort();
@@ -93,6 +113,13 @@ describe('topic files', () => {
     }
   });
 
+  test('cada Step de un tema contiene un Why', () => {
+    for (const fileName of fileNames) {
+      const { content } = matter(readFileSync(join(TOPICS_DIR, fileName), 'utf8'));
+      expect(stepsWithoutWhy(content), fileName).toEqual([]);
+    }
+  });
+
   test('ningún tema próximamente declara concept', () => {
     for (const fileName of fileNames) {
       const data = readFrontmatter(fileName);
@@ -100,6 +127,58 @@ describe('topic files', () => {
         expect(data, fileName).not.toHaveProperty('concept');
       }
     }
+  });
+});
+
+describe('stepsWithoutWhy', () => {
+  test('acepta pasos que contienen un Why', () => {
+    const body = `Intro.
+
+<Step n={1} title="Uno">
+
+<Figure n={1} />
+
+<Why>
+<Fragment slot="fenomeno">…</Fragment>
+<Fragment slot="ecuacion">…</Fragment>
+</Why>
+
+</Step>
+
+<Step title="Dos > tres" n={2}>
+<Why />
+</Step>`;
+
+    expect(stepsWithoutWhy(body)).toEqual([]);
+    expect(stepsWithoutWhy('<Step title="Dos > tres" n={2}>\nTexto\n</Step>')).toEqual([
+      '<Step title="Dos > tres" n={2}>',
+    ]);
+  });
+
+  test('señala el paso sin Why aunque el siguiente tenga uno', () => {
+    const body = `<Step n={1} title="Uno">
+Sin justificar.
+</Step>
+
+<Step n={2} title="Dos">
+<Why />
+</Step>`;
+
+    expect(stepsWithoutWhy(body)).toEqual(['<Step n={1} title="Uno">']);
+  });
+
+  test('un paso que se cierra solo o nunca se cierra no tiene Why', () => {
+    expect(stepsWithoutWhy('<Step n={1} title="Uno" />')).toEqual(['<Step n={1} title="Uno" />']);
+    expect(stepsWithoutWhy('<Step n={2} title="Dos">\n<Why />')).toEqual([
+      '<Step n={2} title="Dos">',
+    ]);
+    expect(stepsWithoutWhy('<Step n={3} title="Tres">\nTexto')).toEqual([
+      '<Step n={3} title="Tres">',
+    ]);
+  });
+
+  test('un cuerpo sin pasos no tiene nada que señalar', () => {
+    expect(stepsWithoutWhy('Texto con <Steps> y <UseCase>.')).toEqual([]);
   });
 });
 

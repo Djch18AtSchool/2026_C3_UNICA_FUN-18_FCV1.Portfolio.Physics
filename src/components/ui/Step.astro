@@ -1,0 +1,25 @@
+---
+/*
+ * One step of a topic's model (spec §7): "Paso N · title" as a section heading, then the slot.
+ * The text and the anchor come from stepHeading(), the same source the sidebar outline and the
+ * search index read, so their links land here. In MDX:
+ * <Step n={1} title="Qué se mide">…</Step>
+ */
+import { stepHeading } from '../../lib/sectionHeadings';
+
+interface Props {
+  n: number;
+  title: string;
+}
+const { n, title } = Astro.props;
+
+if (!Number.isInteger(n) || n < 1) {
+  throw new Error(`Step: n debe ser un entero positivo y es ${n}`);
+}
+const heading = stepHeading(n, title);
+---
+
+<section class="step" id={heading.slug}>
+  <h2>{heading.text}</h2>
+  <slot />
+</section>

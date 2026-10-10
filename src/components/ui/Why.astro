@@ -1,0 +1,37 @@
+---
+/*
+ * The double justification every step owes (spec §7.1): why the model holds, told once from the
+ * phenomenon and once from the equation. Both are block-level named slots in MDX:
+ *
+ *   <Why>
+ *
+ *   <Fragment slot="fenomeno">…</Fragment>
+ *
+ *   <Fragment slot="ecuacion">…</Fragment>
+ *
+ *   </Why>
+ *
+ * The labels are paragraphs, not headings: every step has a Why, and repeated headings would
+ * crowd the page's heading outline.
+ */
+const PART_NAMES = ['fenomeno', 'ecuacion'] as const;
+
+for (const name of PART_NAMES) {
+  if (!Astro.slots.has(name)) throw new Error(`Why: falta el slot "${name}"`);
+}
+---
+
+<div data-testid="why" class="why" role="group" aria-label="Por qué">
+  <div class="why-part">
+    <p class="why-label" data-part="fenomeno">
+      En el fenómeno
+    </p>
+    <slot name="fenomeno" />
+  </div>
+  <div class="why-part">
+    <p class="why-label" data-part="ecuacion">
+      En la ecuación
+    </p>
+    <slot name="ecuacion" />
+  </div>
+</div>
