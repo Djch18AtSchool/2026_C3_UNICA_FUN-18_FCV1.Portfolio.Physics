@@ -94,6 +94,8 @@ function LoadFigure(): JSX.Element {
       x: REFERENCE_LOAD,
       y: atReference.real,
       label: `${newtons(atReference.real)} a ${newtons(REFERENCE_LOAD)}`,
+      // On phones the 4 000 N is read off the tick right below; the force alone fits beside.
+      compactLabel: newtons(atReference.real),
       side: 1,
     },
     {
@@ -117,7 +119,7 @@ function LoadFigure(): JSX.Element {
       <SvgPlot
         aspectRatio={aspectRatio}
         title="Fuerza lateral máxima frente a la carga vertical sobre la llanta"
-        {...loadPlot(1, 'Modelo lineal F = μ₀ F_z')}
+        {...loadPlot()}
         overlay={(scales) => <PlotPoints points={points} scales={scales} />}
         ariaLabel="El modelo lineal y el de sensibilidad a la carga se cruzan en 6 400 N a 4 000 N; a 8 000 N el lineal da 12 800 N y el real, 11 943 N."
       />

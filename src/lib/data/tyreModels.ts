@@ -116,8 +116,8 @@ export function temperatureSeries(
 /**
  * Peak lateral force at one vertical load (N): the class model μ₀ F_z and the load-sensitive one
  * μ(F_z) F_z, both multiplied by a temperature grip factor (1 by default, the v1 curves). At zero
- * load both forces are zero and the effective μ is undefined (NaN): μ₀ (F_z/F_z0)^(n−1) grows
- * without bound as F_z → 0 when n < 1.
+ * load both forces are zero and the effective μ is undefined (NaN): μ₀ (F_z/F_z0)^(β−1) grows
+ * without bound as F_z → 0 when β < 1.
  */
 export function loadPoint(fz: number, factor = 1): Omit<LoadRow, 'fz'> {
   if (!(fz >= 0)) throw new RangeError(`La carga vertical no puede ser negativa (recibido ${fz})`);

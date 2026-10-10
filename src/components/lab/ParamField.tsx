@@ -72,6 +72,8 @@ export default function ParamField({
 }: ParamFieldProps): JSX.Element {
   const { decimals } = useGlobalSettings();
   const [draft, setDraft] = useState<string | null>(null);
+  /** The range hint prints the grid's own precision (40–160, 0,25–2,00), not the global one. */
+  const gridDecimals = Math.max(decimalsOf(step), decimalsOf(min));
   const labelId = `${id}-label`;
   const numberId = `${id}-number`;
   const unitId = `${id}-unit`;
@@ -126,7 +128,7 @@ export default function ParamField({
         className="h-6 w-full cursor-pointer accent-accent"
       />
       <span className="font-mono text-xs tabular-nums text-fg-muted">
-        {`${formatNumber(min, { precision: decimals })}–${formatNumber(max, { precision: decimals })}`}
+        {`${formatNumber(min, { precision: gridDecimals })}–${formatNumber(max, { precision: gridDecimals })}`}
       </span>
     </div>
   );

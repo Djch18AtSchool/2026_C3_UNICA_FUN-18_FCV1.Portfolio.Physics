@@ -184,3 +184,39 @@ describe('ParamField', () => {
     expect(field()).not.toHaveAttribute('aria-describedby');
   });
 });
+
+describe('ParamField range hint', () => {
+  afterEach(cleanup);
+
+  test('prints min and max with the decimals of the step, not the global decimals', () => {
+    render(
+      <ParamField
+        id="t"
+        label="T"
+        unit="°C"
+        min={40}
+        max={160}
+        step={1}
+        value={120}
+        onChange={() => {}}
+      />,
+    );
+    render(
+      <ParamField
+        id="fz"
+        label="F"
+        unit="N"
+        min={0}
+        max={10000}
+        step={50}
+        value={4000}
+        onChange={() => {}}
+      />,
+    );
+    render(<ParamField {...BASE} value={9.81} onChange={() => {}} />);
+
+    expect(screen.getByText('40–160')).toBeInTheDocument();
+    expect(screen.getByText('0–10 000')).toBeInTheDocument();
+    expect(screen.getByText('1,00–30,00')).toBeInTheDocument();
+  });
+});

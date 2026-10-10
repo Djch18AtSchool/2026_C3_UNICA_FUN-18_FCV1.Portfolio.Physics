@@ -566,6 +566,27 @@ describe('SvgPlot', () => {
     expect(screen.getByText('T = 120 °C, largo')).toHaveAttribute('text-anchor', 'end');
   });
 
+  test('on a narrow plot with a draggable cursor the y title clears the knob', () => {
+    stubResizeObserver(300);
+    let captured: { x: Scale; y: Scale } | undefined;
+    render(
+      <SvgPlot
+        {...PROPS}
+        cursor={{ x: 9, onChange: () => {} }}
+        overlay={(scales) => {
+          captured = scales;
+          return null;
+        }}
+      />,
+    );
+    const areaTop = captured!.y.range[1];
+    const titleBaseline = Number(screen.getByText('y (m)').getAttribute('y'));
+
+    // Knob radius 7 plus its 2 px ring, and the title's descenders (≈ 4 px) above it.
+    expect(areaTop - titleBaseline).toBeGreaterThanOrEqual(7 + 2 + 4 + 4);
+    expect(titleBaseline).toBeGreaterThanOrEqual(14);
+  });
+
   test('a narrow plot with one-character y labels keeps a 40 px left margin', () => {
     stubResizeObserver(300);
     let captured: { x: Scale; y: Scale } | undefined;

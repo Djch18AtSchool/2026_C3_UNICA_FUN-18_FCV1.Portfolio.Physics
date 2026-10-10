@@ -142,8 +142,8 @@ describe('TyreLab', () => {
     expect(screen.getByText('Temperatura T (°C)')).toBeInTheDocument();
     expect(screen.getByText('Carga vertical F_z (N)')).toBeInTheDocument();
     const legend = screen.getByRole('list', { name: 'Leyenda' });
-    expect(legend).toHaveTextContent('Modelo lineal');
-    expect(legend).toHaveTextContent('Con sensibilidad a la carga');
+    expect(legend).toHaveTextContent('Modelo lineal F = μ₀ f(T) F_z');
+    expect(legend).toHaveTextContent('Con sensibilidad a la carga, F = μ(F_z) f(T) F_z');
     expect(screen.queryByRole('button', { name: 'Reproducir' })).toBeNull();
     expect(screen.queryByRole('slider', { name: 'Línea de tiempo' })).toBeNull();
   });

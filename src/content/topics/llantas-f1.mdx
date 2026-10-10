@@ -86,11 +86,11 @@ import Sources from '../../components/ui/Sources.astro';
 import TyreFigure from '../../components/topics/llantas-f1/TyreFigure';
 import TyreLab from '../../components/topics/llantas-f1/TyreLab';
 
-En clase, la fricción máxima es proporcional a la normal. Una llanta de carreras no la cumple: su agarre depende de la carga y la temperatura.
+En clase, la fricción máxima es proporcional a la normal. Una llanta de carreras no cumple esa proporción: su agarre depende de la carga y la temperatura.
 
 <Step n={1} title="El modelo de clase">
 
-La fricción estática iguala la fuerza aplicada hasta un máximo; al deslizar, la cinética es menor. Ambas son proporcionales a la normal, con coeficientes constantes <Cite id="serway-jewett-2018" sources={frontmatter.sources} />.
+La fricción estática iguala la fuerza aplicada hasta un máximo; al deslizar, la cinética es menor; ambas, proporcionales a la normal con coeficientes constantes <Cite id="serway-jewett-2018" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-llantas-friccion"
@@ -105,13 +105,13 @@ La fricción estática iguala la fuerza aplicada hasta un máximo; al deslizar, 
 
 <Fragment slot="fenomeno">
 
-La normal aprieta las superficies: con más carga, más contacto entre asperezas y más cuesta arrancar. Al deslizar, los contactos no alcanzan a afianzarse.
+Arrancar exige romper los contactos entre las asperezas de las superficies; al deslizar, no alcanzan a afianzarse y la fricción baja.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Con μ constante, el máximo de la (4.1) es una recta por el origen: duplicar n duplica el agarre.
+En clase, n fija cuánto se traban las superficies y μ solo depende de los materiales: la (4.1) es lineal y duplicar n duplica el agarre.
 
 </Fragment>
 
@@ -131,7 +131,7 @@ Con μ constante, el máximo de la (4.1) es una recta por el origen: duplicar n 
 
 <Step n={2} title="Por qué no basta: la carga">
 
-En una llanta, la fuerza lateral máxima crece con la carga, pero cada vez menos: el coeficiente efectivo baja <Cite id="milliken-1995" sources={frontmatter.sources} />. La modelo con una ley de potencia.
+La fuerza lateral máxima de una llanta crece con la carga, pero cada vez menos <Cite id="milliken-1995" sources={frontmatter.sources} />; la modelo con una ley de potencia.
 
 <Equation
   id="ec-llantas-carga"
@@ -150,7 +150,7 @@ En una llanta, la fuerza lateral máxima crece con la carga, pero cada vez menos
 
 <Fragment slot="fenomeno">
 
-En una curva, la carga pasa de la rueda interior a la exterior, que gana menos agarre del que pierde la interior: el reparto de carga importa.
+Más carga aprieta la huella y satura el caucho: cada newton extra agarra menos, y en curva la rueda exterior gana menos de lo que pierde la interior.
 
 </Fragment>
 
@@ -176,7 +176,7 @@ Con β < 1, la (4.2) da <Equation inline latex="F_{y,\text{máx}} \propto F_z^{\
 
 <Step n={3} title="Qué falta: la temperatura">
 
-El agarre también depende de la temperatura de la banda. En 2019, Pirelli daba al C3 una ventana de 105–135 °C y al C4, 90–120 °C <Cite id="autosport-pirelli-ranges-2019" sources={frontmatter.sources} />: el agarre máximo menos un 3 %, por convención <Cite id="isola-operating-range" sources={frontmatter.sources} />.
+El agarre también depende de la temperatura de la banda. En la tabla de Autosport de 2019, el C3 trabaja en 105–135 °C y el C4, 90–120 °C <Cite id="autosport-pirelli-ranges-2019" sources={frontmatter.sources} />: el máximo menos un 3 %, por convención <Cite id="isola-operating-range" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-llantas-temperatura"
@@ -202,7 +202,7 @@ El agarre también depende de la temperatura de la banda. En 2019, Pirelli daba 
 
 <Fragment slot="fenomeno">
 
-La goma fría está rígida y se amolda poco al asfalto; la recalentada también agarra menos. De ahí calentar las llantas en la vuelta de salida y no recalentarlas.
+La goma fría está rígida y se amolda poco al asfalto; la recalentada se ablanda, pierde histéresis y se degrada. De ahí calentarlas en la vuelta de salida sin recalentarlas.
 
 </Fragment>
 
@@ -228,7 +228,7 @@ Con el óptimo en el centro de la ventana del C3, <Equation inline latex="T_\tex
 
 <Step n={4} title="El modelo de un simulador">
 
-Un simulador reúne los dos efectos. Para la forma de la fuerza frente al deslizamiento, la referencia de ingeniería es la Fórmula Mágica de Pacejka <Cite id="pacejka-2012" sources={frontmatter.sources} />.
+Un simulador reúne los dos efectos. Para la fuerza frente al deslizamiento, la referencia de ingeniería, no atribuida a ningún simulador, es la Fórmula Mágica de Pacejka <Cite id="pacejka-2012" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-llantas-pacejka"
@@ -249,13 +249,13 @@ Un simulador reúne los dos efectos. Para la forma de la fuerza frente al desliz
 
 <Fragment slot="fenomeno">
 
-Primero la huella se deforma sin deslizar y la fuerza crece casi en recta; pasado el pico desliza, y deslizar más da menos fuerza, como de <Equation inline latex="\mu_s" /> a <Equation inline latex="\mu_k" />.
+Primero la huella se deforma sin deslizar y la fuerza crece casi en recta; pasado el pico desliza, y más deslizamiento da menos fuerza, como de <Equation inline latex="\mu_s" /> a <Equation inline latex="\mu_k" />.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Con los valores de ejemplo de Edy <Cite id="edy-magic-formula" sources={frontmatter.sources} />, el pico cae en <Equation inline latex="x \approx 0{,}18" /> y en <Equation inline latex="x = 1" /> queda <Equation inline latex="y = 0{,}91" />. La (4.2) y la (4.3) dan su altura D, la que lee el laboratorio.
+Con <Equation inline latex="C > 1" />, al crecer x el argumento <Equation inline latex="C\arctan\varphi" /> pasa de <Equation inline latex="\pi/2" /> y el seno decrece: hay un pico, de altura D; B fija la pendiente inicial y E, la curvatura. Con los valores de Edy <Cite id="edy-magic-formula" sources={frontmatter.sources} />, cae en <Equation inline latex="x \approx 0{,}18" />.
 
 </Fragment>
 
@@ -264,14 +264,14 @@ Con los valores de ejemplo de Edy <Cite id="edy-magic-formula" sources={frontmat
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Laboratorio de la llanta con las ecuaciones (4.2) y (4.3): arrastra el cursor de temperatura para leer μ(T) sobre la ventana del compuesto elegido (C3 o C4, en los ajustes) y el de carga para leer la fuerza lateral máxima de los dos modelos y el μ efectivo; también se mueven con las flechas. Las curvas de carga se multiplican por μ(T)/μ_pico, como hace con el agarre la tabla de temperatura del tyres.ini: a 120 °C con el C3 son las de la figura 4.2, y a 8 000 N la real da 11 943 N. El tyres.ini del auto mur_2019 trae delante FZ0=1915, DY_REF=1.80 y LS_EXPY=0.49, y detrás FZ0=2142 y LS_EXPY=0.60; su línea PERFORMANCE_CURVE=tcurve_F3soft.lut ;File to use for temperature/grip relation apunta a una tabla de pares temperatura|multiplicador, 0|0.80, 40|0.96, 75|1.0, 100|1.0, 140|0.97 y 240|0.80, sin unidad impresa (supongo °C): entre 75 y 100 la llanta da todo su agarre; fría o recalentada, menos."
+  caption="Laboratorio de la llanta con las ecuaciones (4.2) y (4.3): arrastra el cursor de temperatura para leer μ(T) sobre la ventana del compuesto elegido (C3 o C4, en los ajustes) y el de carga para leer la fuerza lateral máxima de los dos modelos y el μ efectivo; también se mueven con las flechas. Las curvas de carga se multiplican por f(T) = μ(T)/μ_pico, como hace con el agarre la tabla de temperatura del tyres.ini: a 120 °C con el C3 son las de la figura 4.2, y a 8 000 N la real da 11 943 N. Ese máximo es la altura D de la ecuación (4.4), cuya curva, con los valores de ejemplo, vale 0,91 en x = 1. El tyres.ini del auto mur_2019 trae delante FZ0=1915, DY_REF=1.80 y LS_EXPY=0.49, y detrás FZ0=2142 y LS_EXPY=0.60; su línea PERFORMANCE_CURVE=tcurve_F3soft.lut ;File to use for temperature/grip relation apunta a una tabla de pares temperatura|multiplicador, 0|0.80, 40|0.96, 75|1.0, 100|1.0, 140|0.97 y 240|0.80, sin unidad impresa (supongo °C): entre 75 y 100 la llanta da todo su agarre; fría o recalentada, menos."
   source={{
     text: 'Visualización del autor sobre src/lib/data/tyreModels.ts, con las ecuaciones (4.2) y (4.3) y parámetros ilustrativos; ventanas del C3 y el C4 de 2019 según Autosport (Noble, 2019), fuente 1; tyres.ini y tabla de temperatura del equipo MUR, fuente 3',
   }}
 >
   <TyreLab
     client:visible
-    footnote="Parámetros ilustrativos, no medidos: μ_pico = 1,8 en la campana y μ₀ = 1,6, F_z0 = 4 000 N y β = 0,9 en la carga; son dos modelos independientes, cada uno aísla un efecto, y aquí solo se multiplican. Con el C4, la campana se calibra con el mismo criterio que la del C3: óptimo de 105 °C y el mismo ancho. Lo que deja fuera: el ángulo de deriva (la ecuación (4.2) da solo el pico de la (4.4)), el desgaste, la presión y la caída."
+    footnote="Parámetros ilustrativos, no medidos: μ_pico = 1,8 en la campana y μ₀ = 1,6, F_z0 = 4 000 N y β = 0,9 en la carga; son dos modelos independientes, cada uno aísla un efecto, y aquí solo se acoplan con f(T) = μ(T)/μ_pico, que multiplica las dos curvas de carga. La campana del C4 es un supuesto del modelo, no un dato: se calibra con el mismo criterio que la del C3 (óptimo de 105 °C y el mismo ancho) y conserva μ_pico = 1,8. Lo que deja fuera: el ángulo de deriva (la ecuación (4.2) da solo el pico de la (4.4)), el desgaste, la presión y la caída."
   />
 </Figure>
 
@@ -281,25 +281,25 @@ Con los valores de ejemplo de Edy <Cite id="edy-magic-formula" sources={frontmat
 
 <Fragment slot="caso">
 
-Tomo el modelo de neumático de Assetto Corsa, de Kunos Simulazioni. No encontré documentación oficial; lo estudio en el `tyres.ini` comentado del equipo MUR, de la Universidad de Melbourne <Cite id="mur-tyres-ini" sources={frontmatter.sources} /> (valores en la figura 4.4).
+Tomo el modelo de neumático de Assetto Corsa, de Kunos Simulazioni. No encontré documentación oficial; lo estudio en el `tyres.ini` comentado del equipo MUR, de la Universidad de Melbourne <Cite id="mur-tyres-ini" sources={frontmatter.sources} /> (figura 4.4).
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Leo `FZ0` como carga de referencia, `DY_REF` como μ a esa carga y `LS_EXPY` como el β de la (4.2); el archivo no imprime la fórmula: la lectura es mía. No sé si Kunos usa la Fórmula Mágica <Cite id="pacejka-2012" sources={frontmatter.sources} />.
+Leo `FZ0` como carga de referencia en newtons, `DY_REF` como μ a esa carga y `LS_EXPY` (LS, _load sensitivity_) como el β de la (4.2); el archivo no imprime la fórmula: la lectura es mía. No sé si Kunos usa la Fórmula Mágica <Cite id="pacejka-2012" sources={frontmatter.sources} />.
 
 </Fragment>
 
 <Fragment slot="justificacion">
 
-Con un μ constante, un auto el doble de pesado tomaría las curvas igual de rápido, una llanta fría agarraría como en ventana y la vuelta 30 sería como la 1. Una tabla guionizada fallaría fuera de lo previsto: otro reparto de peso, más carga aerodinámica, una llanta a 150 °C.
+Con μ constante, el doble de peso tomaría las curvas igual de rápido, una llanta fría agarraría como en ventana y la vuelta 30 sería como la 1. Una tabla guionizada fallaría fuera de lo previsto: otro reparto de peso, más carga aerodinámica, una llanta a 150 °C.
 
 </Fragment>
 
 <Fragment slot="balance">
 
-Se gana comportamiento emergente: el subviraje con llantas frías o la elección de compuesto salen de las ecuaciones. Cuesta medir los parámetros de cada compuesto, calibrarlos contra telemetría y evaluar las curvas por rueda en cada paso.
+Se gana comportamiento emergente: el subviraje con llantas frías o la elección de compuesto salen de las ecuaciones. Cuesta medir parámetros por compuesto, calibrarlos contra telemetría y evaluar las curvas por rueda en cada paso.
 
 </Fragment>
 
@@ -307,13 +307,13 @@ Se gana comportamiento emergente: el subviraje con llantas frías o la elección
 
 <Callout variant="clase" title="Módulo 2 · Tema 02, conceptos 01 a 03, y Tema 01, concepto 07">
 
-En la caja de 10 kg del Tema 02, con <Equation inline latex="\mu_s = 0{,}40" />, <Equation inline latex="\mu_k = 0{,}30" /> y <Equation inline latex="N = 98\ \text{N}\ (g = 9{,}8\ \text{m/s}^2)" />, la (4.1) da <Equation inline latex="39{,}2\ \text{N}" /> y <Equation inline latex="29{,}4\ \text{N}" />; las (4.2) a (4.4) son extensiones. El concepto 01 toma μ «constante como una aproximación del contacto real»: con la (4.2) y <Equation inline latex="\beta = 0{,}9,\ F_{z0} = 98\ \text{N}" />, duplicar N a <Equation inline latex="196\ \text{N}" /> daría <Equation inline latex="73{,}2\ \text{N}" />, no <Equation inline latex="78{,}4\ \text{N}" />. La normal «se calcula previamente a partir del DCL y puede ser diferente de mg», como <Equation inline latex="mg\cos\theta" /> en el plano inclinado: en un auto, la <Equation inline latex="F_z" /> de cada llanta cambia en cada frenada y curva.
+En la caja de 10 kg del Tema 02, con <Equation inline latex="\mu_s = 0{,}40" />, <Equation inline latex="\mu_k = 0{,}30" /> y <Equation inline latex="N = 98\ \text{N}\ (g = 9{,}8\ \text{m/s}^2)" />, la (4.1) da <Equation inline latex="39{,}2\ \text{N}" /> y <Equation inline latex="29{,}4\ \text{N}" />; las (4.2) a (4.4) son extensiones. El concepto 01 toma μ «constante como una aproximación del contacto real»: con la (4.2) y <Equation inline latex="\beta = 0{,}9,\ F_{z0} = 98\ \text{N}" />, duplicar N a <Equation inline latex="196\ \text{N}" /> daría <Equation inline latex="73{,}2\ \text{N}" />, no <Equation inline latex="78{,}4\ \text{N}" />. La normal «se calcula previamente a partir del DCL y puede ser diferente de mg», como <Equation inline latex="mg\cos\theta" /> en el plano inclinado; en un auto es la <Equation inline latex="F_z" /> de cada llanta.
 
 </Callout>
 
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-Con el Tema 3: en una curva plana, la centrípeta es la fricción lateral, <Equation inline latex="\mu m g = m v^2/r \Rightarrow v_\text{máx} = \sqrt{\mu g r} = \sqrt{1{,}6 \cdot 9{,}81 \cdot 50} = 28{,}0\ \text{m/s} \approx 101\ \text{km/h}" /> (lo mismo con g = 9,8). Si μ cae un 10 %, la rapidez cae solo un 5,1 %, porque va con la raíz: <Equation inline latex="\mu = 1{,}44 \Rightarrow v_\text{máx} = 26{,}6\ \text{m/s}\ (95{,}7\ \text{km/h})" />. Con el Tema 5, el resorte <Equation inline latex="F = -kx" /> es otro contacto idealizado, sin la huella que deforma la llanta. Con el Tema 6, bloqueada disiparía <Equation inline latex="W_f = -\mu_k N d" />; rodando, los <Equation inline latex="\tfrac12 m v^2 \approx 314\ \text{kJ}" /> de 800 kg (masa ilustrativa) a 28,0 m/s van a los frenos o, en un eléctrico, en parte a la batería.
+Con el Tema 3: en curva plana, la fricción lateral es la centrípeta, <Equation inline latex="\mu m g = m v^2/r \Rightarrow v_\text{máx} = \sqrt{\mu g r} = \sqrt{1{,}6 \cdot 9{,}81 \cdot 50} = 28{,}0\ \text{m/s} \approx 101\ \text{km/h}" /> (igual con g = 9,8); si μ cae un 10 %, la rapidez cae solo un 5,1 %, por la raíz: <Equation inline latex="\mu = 1{,}44 \Rightarrow v_\text{máx} = 26{,}6\ \text{m/s}\ (95{,}7\ \text{km/h})" />. Con el Tema 5, el resorte <Equation inline latex="F = -kx" /> es otro contacto idealizado; la llanta se deforma en su huella, algo que el modelo de clase no tiene. Con el Tema 6: bloqueada, disiparía <Equation inline latex="W_f = -\mu_k N d" />; rodando, su energía, <Equation inline latex="\tfrac12 (800\ \text{kg})(28{,}0\ \text{m/s})^2 \approx 314\ \text{kJ}" /> (masa ilustrativa), va a los frenos o, en un eléctrico, en parte a la batería.
 
 </Connections>
 

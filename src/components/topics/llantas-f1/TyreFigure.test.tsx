@@ -47,7 +47,8 @@ describe('TyreFigure', () => {
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
     expect(legend).toHaveTextContent('Modelo lineal F = μ₀ F_z');
-    expect(legend).toHaveTextContent('Con sensibilidad a la carga');
+    expect(legend).toHaveTextContent('Con sensibilidad a la carga, F = μ(F_z) F_z');
+    expect(legend).not.toHaveTextContent('f(T)');
     expect(strokeOf(container, 'lineal')).toBe('var(--chart-1)');
     expect(strokeOf(container, 'real')).toBe('var(--chart-2)');
     expect(screen.getByText('6 400 N a 4 000 N')).toBeInTheDocument();
@@ -62,6 +63,16 @@ describe('TyreFigure', () => {
     expect(screen.getByText('60 °C: 1,11')).toBeInTheDocument();
     expect(screen.getByText('160 °C: 1,45')).toBeInTheDocument();
     expect(screen.getByText('Temperatura T (°C)')).toBeInTheDocument();
+  });
+
+  test('on a phone the crossing label shortens to its force, clear of the curves', () => {
+    stubWidth(300);
+    const { container } = render(<TyreFigure variant="carga" />);
+    const label = container.querySelector('[data-point="referencia"] text');
+
+    expect(label).toHaveTextContent(/^6\s400\sN$/);
+    expect(label).toHaveAttribute('text-anchor', 'start');
+    expect(screen.getByText('Fuerza lateral máx. F_y (N)')).toBeInTheDocument();
   });
 
   test('on a phone-width plot the figure gets taller', () => {

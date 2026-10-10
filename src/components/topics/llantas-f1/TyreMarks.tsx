@@ -17,6 +17,8 @@ export interface PlotPoint {
   y: number;
   /** Text beside the point; none draws only the dot. */
   label?: string;
+  /** Shorter text used when `label` does not fit on its preferred side (phones). */
+  compactLabel?: string;
   /** The side of the point the label prefers (see labelPlacement for the fallbacks). */
   anchor?: 'start' | 'end';
   /** Label above (−1, the default) or below (+1) the point. */
@@ -58,12 +60,13 @@ export function PlotPoints({
     <g className="pointer-events-none">
       {points.map((point) => {
         const at = { x: scales.x.toPx(point.x), y: scales.y.toPx(point.y) };
-        const { anchor, dx } = labelPlacement(
-          at.x,
-          monoTextWidth(point.label ?? '', LABEL_SIZE),
-          point.anchor ?? 'start',
-          scales.x.range,
-        );
+        const preferred = point.anchor ?? 'start';
+        const place = (text: string) =>
+          labelPlacement(at.x, monoTextWidth(text, LABEL_SIZE), preferred, scales.x.range);
+        const full = place(point.label ?? '');
+        const short = full.anchor === preferred ? undefined : point.compactLabel;
+        const text = short ?? point.label;
+        const { anchor, dx } = short === undefined ? full : place(short);
         const dy = (point.side ?? -1) < 0 ? -LABEL_GAP : BELOW_DROP;
         return (
           <g key={point.id} data-point={point.id}>
@@ -75,9 +78,9 @@ export function PlotPoints({
               stroke={SURFACE_COLOR}
               strokeWidth={2}
             />
-            {point.label ? (
+            {text ? (
               <Label at={at} dx={dx} dy={dy} anchor={anchor}>
-                {point.label}
+                {text}
               </Label>
             ) : null}
           </g>

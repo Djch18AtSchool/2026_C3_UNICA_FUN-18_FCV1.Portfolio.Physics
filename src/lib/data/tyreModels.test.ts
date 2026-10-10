@@ -125,7 +125,7 @@ describe('temperatureSeries', () => {
 });
 
 describe('LOAD_MODEL', () => {
-  test('is the illustrative power law μ0 = 1,6, F_z0 = 4 000 N, n = 0,9', () => {
+  test('is the illustrative power law μ0 = 1,6, F_z0 = 4 000 N, β = 0,9', () => {
     expect(LOAD_MODEL.values).toEqual({ mu0: 1.6, fz0: 4000, exponent: 0.9 });
     expect(LOAD_MODEL.illustrative).toBe(true);
   });

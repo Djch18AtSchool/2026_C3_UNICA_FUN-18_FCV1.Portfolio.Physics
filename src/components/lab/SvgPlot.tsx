@@ -7,7 +7,7 @@ import {
   LINE_WIDTH,
   TICK_FONT_SIZE,
 } from '../charts/chartTheme';
-import { linearScale, padDomain, type Domain, type Scale } from './plotScales';
+import { isFinitePoint, linearScale, padDomain, type Domain, type Scale } from './plotScales';
 import { axisTicks, PlotAxes, PlotGrid, yTickLabelChars } from './SvgPlotAxes';
 import SvgPlotCursor, { type PlotArea } from './SvgPlotCursor';
 import { Bands, Marker } from './SvgPlotMarks';
@@ -76,6 +76,11 @@ const MARGIN: Margin = { top: 22, right: 28, bottom: 58, left: 84 };
 /** Below this viewBox width (phones) the margins tighten so the plot area keeps most of the width. */
 const COMPACT_WIDTH = 480;
 const COMPACT_MARGIN: Omit<Margin, 'left'> = { top: 30, right: 14, bottom: 50 };
+/**
+ * With a draggable cursor, its knob sits on the top edge of the plot area: a compact plot then
+ * grows its top margin, and lifts its horizontal y title by as much, so the knob clears the title.
+ */
+const COMPACT_HANDLE_LIFT = 12;
 /** Compact left margin: the widest y tick label (≈ 8 px per mono character) plus tick and gap. */
 const COMPACT_CHAR_WIDTH = 8;
 const COMPACT_LABEL_PAD = 12;
@@ -93,8 +98,6 @@ const PATH_DECIMALS = 2;
 const LEGEND_KEY_WIDTH = 18;
 
 type Point = { x: number; y: number };
-
-const isFinitePoint = (p: Point) => Number.isFinite(p.x) && Number.isFinite(p.y);
 
 function seriesColor(series: PlotSeries, index: number): string {
   return series.color ?? CHART_COLORS[index % CHART_COLORS.length];
@@ -181,16 +184,20 @@ const compactLeft = (chars: number) =>
  */
 function computeLayout(props: SvgPlotProps, measuredWidth: number) {
   const width = Math.max(measuredWidth, MIN_VIEWBOX_WIDTH);
-  if (width >= COMPACT_WIDTH) return { ...layoutWith(props, width, MARGIN), compact: false };
+  if (width >= COMPACT_WIDTH) {
+    return { ...layoutWith(props, width, MARGIN), compact: false, titleLift: 0 };
+  }
+  const titleLift = props.cursor?.onChange ? COMPACT_HANDLE_LIFT : 0;
+  const margin = { ...COMPACT_MARGIN, top: COMPACT_MARGIN.top + titleLift };
   let left = MIN_COMPACT_LEFT;
-  let layout = layoutWith(props, width, { ...COMPACT_MARGIN, left });
+  let layout = layoutWith(props, width, { ...margin, left });
   for (let pass = 0; pass < COMPACT_PASSES; pass++) {
     const needed = compactLeft(yTickLabelChars(axisTicks(layout.x, layout.y).y));
     if (needed <= left) break;
     left = needed;
-    layout = layoutWith(props, width, { ...COMPACT_MARGIN, left });
+    layout = layoutWith(props, width, { ...margin, left });
   }
-  return { ...layout, compact: true };
+  return { ...layout, compact: true, titleLift };
 }
 
 const px = (value: number) => Number(value.toFixed(PATH_DECIMALS));
@@ -254,7 +261,7 @@ export default function SvgPlot(props: SvgPlotProps) {
   const showGrid = props.showGrid ?? settings.grid;
   const clipBase = `svgplot-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const [wrapperRef, measuredWidth] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
-  const { x, y, area, width, height, compact } = computeLayout(props, measuredWidth);
+  const { x, y, area, width, height, compact, titleLift } = computeLayout(props, measuredWidth);
   const ticks = axisTicks(x, y);
   const viewBox = `0 0 ${width} ${height}`;
   const clipRect = (id: string) => (
@@ -293,6 +300,7 @@ export default function SvgPlot(props: SvgPlotProps) {
             yTitle={`${yLabel} (${yUnit})`}
             tickFontSize={TICK_SIZE}
             compact={compact}
+            compactTitleLift={titleLift}
             titleFontSize={TITLE_SIZE}
             viewWidth={width}
           />

@@ -92,6 +92,8 @@ interface AxesProps extends GridProps {
   titleFontSize: number;
   /** Narrow plots: the y title goes horizontally above the axis instead of in a rotated band. */
   compact?: boolean;
+  /** Extra rise of the compact y title above the plot area (room for a cursor knob). */
+  compactTitleLift?: number;
   /** viewBox width: an x tick label that would cross its edge is shifted inside. */
   viewWidth?: number;
 }
@@ -107,6 +109,7 @@ export function PlotAxes({
   tickFontSize,
   titleFontSize,
   compact = false,
+  compactTitleLift = 0,
   viewWidth = Infinity,
 }: AxesProps) {
   const formatX = tickFormatter(ticks.x);
@@ -173,7 +176,11 @@ export function PlotAxes({
           {xTitle}
         </text>
         {compact ? (
-          <text x={COMPACT_Y_TITLE_X} y={area.top - COMPACT_Y_TITLE_RISE} textAnchor="start">
+          <text
+            x={COMPACT_Y_TITLE_X}
+            y={area.top - COMPACT_Y_TITLE_RISE - compactTitleLift}
+            textAnchor="start"
+          >
             {yTitle}
           </text>
         ) : (

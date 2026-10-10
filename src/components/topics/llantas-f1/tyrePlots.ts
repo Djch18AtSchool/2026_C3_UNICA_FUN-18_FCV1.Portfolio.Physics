@@ -63,29 +63,32 @@ export function temperaturePlot(compound: Compound): PlotFrame {
 }
 
 /**
- * Peak lateral force over 0–10 000 N: the linear model (dashed) and the load-sensitive one, both
- * multiplied by the temperature factor (1 for the static figure).
+ * Peak lateral force over 0–10 000 N: the linear model (dashed) and the load-sensitive one. Given
+ * a temperature factor f(T) = μ(T)/μ_pico, both curves are multiplied by it and the legend says
+ * so; without one they are the v1 curves (the static figure).
  */
-export function loadPlot(factor: number, linearLabel: string): PlotFrame {
+export function loadPlot(temperatureFactor?: number): PlotFrame {
+  const factor = temperatureFactor ?? 1;
+  const thermal = temperatureFactor === undefined ? '' : ' f(T)';
   const rows = loadSeries(LOAD_DOMAIN.min, LOAD_DOMAIN.max, LOAD_SAMPLE_STEP, factor);
   return {
     xLabel: LOAD_AXIS.label,
     xUnit: LOAD_AXIS.unit,
-    yLabel: 'Fuerza lateral máxima F_y',
+    yLabel: 'Fuerza lateral máx. F_y',
     yUnit: 'N',
     xDomain: LOAD_DOMAIN,
     yDomain: FORCE_DOMAIN,
     series: [
       {
         id: 'lineal',
-        label: linearLabel,
+        label: `Modelo lineal F = μ₀${thermal} F_z`,
         points: rows.map(({ fz, linear }) => ({ x: fz, y: linear })),
         color: LINEAR_COLOR,
         dashed: true,
       },
       {
         id: 'real',
-        label: 'Con sensibilidad a la carga',
+        label: `Con sensibilidad a la carga, F = μ(F_z)${thermal} F_z`,
         points: rows.map(({ fz, real }) => ({ x: fz, y: real })),
         color: REAL_COLOR,
       },

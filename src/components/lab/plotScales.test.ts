@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   fitCentre,
+  isFinitePoint,
   linearScale,
   monoTextWidth,
   niceTicks,
@@ -137,5 +138,13 @@ describe('fitCentre', () => {
 
   test('centres a text wider than the room', () => {
     expect(fitCentre(10, 400, 0, 300)).toBe(150);
+  });
+});
+
+describe('isFinitePoint', () => {
+  test('accepts finite coordinates and rejects NaN or infinite ones', () => {
+    expect(isFinitePoint({ x: 1, y: -2 })).toBe(true);
+    expect(isFinitePoint({ x: Number.NaN, y: 0 })).toBe(false);
+    expect(isFinitePoint({ x: 0, y: Infinity })).toBe(false);
   });
 });

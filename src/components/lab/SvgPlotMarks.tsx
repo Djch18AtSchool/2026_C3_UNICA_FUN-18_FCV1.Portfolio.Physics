@@ -6,7 +6,7 @@ import {
   TICK_FONT_FAMILY,
   TICK_FONT_SIZE,
 } from '../charts/chartTheme';
-import { fitCentre, monoTextWidth, type Scale } from './plotScales';
+import { fitCentre, isFinitePoint, monoTextWidth, type Scale } from './plotScales';
 import type { PlotBand, PlotMarker } from './SvgPlot';
 import type { PlotArea } from './SvgPlotCursor';
 
@@ -19,8 +19,6 @@ const BAND_LABEL_BOTTOM_INSET = 8;
 const MARKER_RADIUS = 5;
 const MARKER_LABEL_GAP = 10;
 const HALO_WIDTH = 4;
-
-const isFinitePoint = (p: { x: number; y: number }) => Number.isFinite(p.x) && Number.isFinite(p.y);
 
 const haloText = {
   fill: TEXT_COLOR,

@@ -15,7 +15,7 @@ export function normalOnIncline(m: number, g: number, thetaRad: number): number 
   return m * g * Math.cos(thetaRad);
 }
 
-/** Load-sensitive friction coefficient: μ(F_z) = μ₀ (F_z/F_z0)^(n − 1). */
+/** Load-sensitive friction coefficient: μ(F_z) = μ₀ (F_z/F_z0)^(β − 1), β = `exponent`. */
 export function loadSensitiveMu(mu0: number, fz: number, fz0: number, exponent: number): number {
   requirePositive('fz', fz);
   requirePositive('fz0', fz0);

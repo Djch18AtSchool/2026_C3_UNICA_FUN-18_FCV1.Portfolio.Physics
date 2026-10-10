@@ -153,7 +153,7 @@ export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
           <SvgPlot
             aspectRatio={loadAspect.aspectRatio}
             title="Fuerza lateral máxima frente a la carga vertical"
-            {...loadPlot(readings.factor, 'Modelo lineal F = μ₀ f(T) F_z')}
+            {...loadPlot(readings.factor)}
             cursor={{
               x: state.fz,
               onChange: onLoad,

@@ -5,6 +5,11 @@ export interface Domain {
   max: number;
 }
 
+/** True when both coordinates are finite numbers (a drawable point). */
+export function isFinitePoint(p: { x: number; y: number }): boolean {
+  return Number.isFinite(p.x) && Number.isFinite(p.y);
+}
+
 export interface Scale {
   toPx(v: number): number;
   toValue(px: number): number;
