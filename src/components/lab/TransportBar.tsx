@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../lib/format';
+import { ICON_BUTTON } from './iconButton';
 import type { SimClock } from './useSimClock';
 
 export interface TransportBarProps {
@@ -11,9 +12,6 @@ export interface TransportBarProps {
 /** The timeline maps t ∈ [0, duration] onto 0..RANGE_MAX integer positions. */
 const RANGE_MAX = 1000;
 const TIME_PRECISION = 3;
-
-const ICON_BUTTON =
-  'inline-flex size-11 shrink-0 items-center justify-center rounded-base border border-border bg-bg-elevated text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
 
 function PlayIcon() {
   return (
