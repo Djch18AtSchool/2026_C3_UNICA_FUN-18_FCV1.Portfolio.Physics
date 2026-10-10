@@ -36,6 +36,12 @@ const DEPOT_SIZE = 10;
 const TRAIL_WIDTH = 7;
 const TRAIL_OPACITY = 0.3;
 const DEPOT_LABEL_OFFSET = { dx: 10, dy: 18 };
+/** Stop names sit up and to the left of their knob, clear of the vector labels past the tips. */
+const STOP_LABEL_OFFSET = { dx: -10, dy: -10, anchor: 'end' } as const;
+/** A vector's letter sits this far past its tip, along the vector. */
+const VECTOR_LABEL_GAP = 12;
+/** Half the letter height, to centre it vertically on its anchor point. */
+const LABEL_HALF_HEIGHT = 4;
 /** The drone marker steps duration / DRONE_KEY_STEPS per arrow key. */
 const DRONE_KEY_STEPS = 100;
 
@@ -45,6 +51,22 @@ function path(points: Point[], scales: RouteOverlayProps['scales']): string {
   return points
     .map((p, i) => `${i === 0 ? 'M' : 'L'}${scales.x.toPx(p.x)} ${scales.y.toPx(p.y)}`)
     .join(' ');
+}
+
+/** A vector's letter just past its tip, along the vector, so it points away from the drone. */
+function VectorLabel({ from, to, text }: { from: Point; to: Point; text: string }): JSX.Element {
+  const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
+  const along = { x: (to.x - from.x) / length, y: (to.y - from.y) / length };
+  return (
+    <Label
+      at={to}
+      dx={along.x * VECTOR_LABEL_GAP}
+      dy={along.y * VECTOR_LABEL_GAP + LABEL_HALF_HEIGHT}
+      anchor="middle"
+    >
+      {text}
+    </Label>
+  );
 }
 
 interface StopHandleProps {
@@ -86,7 +108,9 @@ function StopHandle({ index, stop, scales, onStopDrag }: StopHandleProps): JSX.E
       {...drag}
     >
       <Knob at={at} fill={SURFACE_COLOR} stroke={TEXT_COLOR} />
-      <Label at={at}>{stop.name}</Label>
+      <Label at={at} {...STOP_LABEL_OFFSET}>
+        {stop.name}
+      </Label>
     </g>
   );
 }
@@ -161,9 +185,9 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
       {props.showVectors ? (
         <g data-vectors="">
           <Arrow from={drone} to={velocityTip} color={VELOCITY_COLOR} />
-          <Label at={velocityTip}>v</Label>
+          <VectorLabel from={drone} to={velocityTip} text="v" />
           <Arrow from={drone} to={accelTip} color={ACCEL_COLOR} />
-          <Label at={accelTip}>a</Label>
+          <VectorLabel from={drone} to={accelTip} text="a" />
         </g>
       ) : null}
       <g

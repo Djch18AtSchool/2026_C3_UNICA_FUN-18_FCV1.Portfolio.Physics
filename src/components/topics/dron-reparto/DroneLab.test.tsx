@@ -119,6 +119,18 @@ describe('DroneLab', () => {
     expect(modifiedNote()).toBeInTheDocument();
   });
 
+  test('moving a stop with the arrow keys pauses playback, like a drag', async () => {
+    const user = userEvent.setup();
+    await renderLab();
+    await user.click(screen.getByRole('button', { name: 'Reproducir' }));
+    expect(screen.getByTestId('drone-lab')).toHaveAttribute('data-playing', 'true');
+
+    screen.getByTestId('stop-A').focus();
+    await user.keyboard('{ArrowUp}');
+
+    expect(screen.getByTestId('drone-lab')).toHaveAttribute('data-playing', 'false');
+  });
+
   test('dropping B on C keeps the last valid route and says why', async () => {
     await renderLab();
     const before = readout('Duración de la ruta');

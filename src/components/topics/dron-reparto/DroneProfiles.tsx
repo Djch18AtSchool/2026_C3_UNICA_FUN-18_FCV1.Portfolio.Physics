@@ -1,18 +1,20 @@
 import { memo, useDeferredValue, useMemo, type JSX } from 'react';
-import type { RouteSample, RouteStop } from '../../../lib/data/droneRoute';
+import type { RouteDefinition, RouteSample } from '../../../lib/data/droneRoute';
 import { CHART_COLORS } from '../../charts/chartTheme';
 import LineChart, {
   type AxisSpec,
   type ReferenceBand,
   type SeriesSpec,
 } from '../../charts/LineChart';
+import { niceTicks } from '../../lab/plotScales';
 import { chartStep, timeAxisEnd } from './droneScene';
 import { decimate, distanceSeries, dwellWindows } from './routeSeries';
 
 export interface DroneProfilesProps {
   /** The flight being shown: the declared route's samples or an edited route's. */
   samples: RouteSample[];
-  stops: readonly RouteStop[];
+  /** The route flown: its stops label the delivery bands and its limits fix the y ranges. */
+  definition: RouteDefinition;
   /** The laboratory's instant (s); every chart draws a vertical marker there. */
   t: number;
 }
@@ -21,8 +23,19 @@ export interface DroneProfilesProps {
 const MARKER_STEPS = 400;
 /** The stops stay inside 0–1 300 m; a 0–1 500 m range keeps the position ticks every 500 m. */
 const POSITION_AXIS_END_M = 1500;
+/** Velocity and acceleration charts span ±1,15 times their limit, so an edit never stretches them. */
+const LIMIT_HEADROOM = 1.15;
 
-interface ChartSpec {
+const TICK_COUNT = 5;
+
+/** ±1,15·limit with round ticks inside it (Recharts would otherwise tick at the odd ends). */
+function symmetricAxis(label: string, unit: string, limit: number): AxisSpec {
+  const domain: [number, number] = [-LIMIT_HEADROOM * limit, LIMIT_HEADROOM * limit];
+  const ticks = niceTicks({ min: domain[0], max: domain[1] }, TICK_COUNT);
+  return { label, unit, domain, ticks };
+}
+
+export interface ChartSpec {
   id: string;
   title: string;
   data: Record<string, number>[];
@@ -30,7 +43,8 @@ interface ChartSpec {
   series: SeriesSpec[];
 }
 
-function buildCharts(samples: RouteSample[]): ChartSpec[] {
+/** The four charts of a flight: rows thinned for Recharts, axes fixed by the route's limits. */
+export function buildCharts(samples: RouteSample[], { vMax, aMax }: RouteDefinition): ChartSpec[] {
   const every = chartStep(samples.length);
   const kinematicRows = decimate(samples, every).map((sample) => ({ ...sample }));
   const distanceRows = decimate(distanceSeries(samples), every).map((row) => ({ ...row }));
@@ -49,7 +63,7 @@ function buildCharts(samples: RouteSample[]): ChartSpec[] {
       id: 'velocidad',
       title: 'Velocidad: vx(t), vy(t) y |v|(t)',
       data: kinematicRows,
-      yAxis: { label: 'Velocidad', unit: 'm/s' },
+      yAxis: symmetricAxis('Velocidad', 'm/s', vMax),
       series: [
         { key: 'vx', name: 'vx' },
         { key: 'vy', name: 'vy' },
@@ -60,7 +74,7 @@ function buildCharts(samples: RouteSample[]): ChartSpec[] {
       id: 'aceleracion',
       title: 'Aceleración: ax(t), ay(t) y |a|(t)',
       data: kinematicRows,
-      yAxis: { label: 'Aceleración', unit: 'm/s²' },
+      yAxis: symmetricAxis('Aceleración', 'm/s²', aMax),
       series: [
         { key: 'ax', name: 'ax' },
         { key: 'ay', name: 'ay' },
@@ -119,9 +133,9 @@ const ProfileCharts = memo(function ProfileCharts({
  * for the flight the laboratory shows, with the deliveries shaded and a marker at its t. The
  * marker snaps to the charts' sample grid (or ~1 px steps) and may lag the map by a frame (deferred value).
  */
-export default function DroneProfiles({ samples, stops, t }: DroneProfilesProps): JSX.Element {
-  const charts = useMemo(() => buildCharts(samples), [samples]);
-  const bands = useMemo(() => dwellWindows(samples, stops), [samples, stops]);
+export default function DroneProfiles({ samples, definition, t }: DroneProfilesProps): JSX.Element {
+  const charts = useMemo(() => buildCharts(samples, definition), [samples, definition]);
+  const bands = useMemo(() => dwellWindows(samples, definition.stops), [samples, definition.stops]);
   const duration = samples[samples.length - 1].t;
   const timeAxis = useMemo<AxisSpec>(
     () => ({ label: 't', unit: 's', domain: [0, timeAxisEnd(duration)] }),

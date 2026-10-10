@@ -137,7 +137,8 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
   }, [limits, route.def]);
 
   const onStopDrag = (index: StopIndex, at: Point, phase: DragPoint['phase']) => {
-    if (phase === 'start') pause();
+    // Any edit, by pointer or by arrow key, pauses playback like a timeline drag.
+    pause();
     if (phase !== 'end') {
       setPreview({ index, at });
       return;
@@ -222,7 +223,7 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
           onSeek={seek}
         />
       </LabShell>
-      <DroneProfiles samples={route.samples} stops={route.def.stops} t={clock.state.t} />
+      <DroneProfiles samples={route.samples} definition={route.def} t={clock.state.t} />
     </div>
   );
 }
