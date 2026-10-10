@@ -67,9 +67,6 @@ const isPublished = status === 'publicado';
         <Breadcrumbs number={number} phase={phase} />
         <header data-topic-head class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_13rem] xl:gap-10">
           <div>
-            <p class="text-sm font-medium text-fg-muted">
-              Tema <span class="font-mono">{number}</span> · {phaseLabel}
-            </p>
             <h1 class="mt-2">{title}</h1>
             {concept && <p class="measure mt-4 text-lg leading-relaxed">{concept}</p>}
             {isPublished && (
