@@ -32,7 +32,7 @@
 
 ## Estado del Avance 1
 
-Los cinco temas del Avance 1 están publicados (2026-10-08), cada uno con su análisis escrito y el tipo de recurso de apoyo prescrito, sin sustituciones: visualización de datos (Tema 1), simulación interactiva (Tema 2), diagrama (Tema 3), visualización de datos (Tema 4) y multimedia con análisis (Tema 5). El video del Tema 5 está pendiente de la grabación del autor: la página ya incluye el análisis escrito y muestra un recurso alternativo diseñado hasta que exista `public/media/tema-05-dualsense.mp4`.
+Los cinco temas del Avance 1 están publicados (2026-10-08) en el formato de pasos de la versión 2: cada tema se lee en pasos (`Step`), cada paso con su explicación de apoyo (`Why`) y un laboratorio interactivo propio (dron, salto, hábitat, llantas y gatillo). Cada uno conserva su análisis escrito y el tipo de recurso de apoyo prescrito, sin sustituciones: visualización de datos (Tema 1), simulación interactiva (Tema 2), diagrama (Tema 3), visualización de datos (Tema 4) y multimedia con análisis (Tema 5). El video del Tema 5 está pendiente de la grabación del autor: la página ya incluye el análisis escrito y muestra un recurso alternativo diseñado hasta que exista `public/media/tema-05-dualsense.mp4`. Los temas 6 a 13 figuran solo por su nombre y estarán próximamente.
 
 ## Estructura
 
@@ -40,16 +40,19 @@ Los cinco temas del Avance 1 están publicados (2026-10-08), cada uno con su an�
 - `docs/`: especificaciones, planes e investigación del proyecto.
 - `public/`: recursos estáticos: el favicon y, cuando exista, `media/` con el video del Tema 5 y su póster.
 - `scripts/`: `generate-drone-route.ts` (genera el conjunto de datos del dron) y `compress-video.sh` (comprime videos).
-- `src/content/topics/`: un archivo MDX por tema.
+- `src/content/topics/`: un archivo MDX por tema. Todo tema publicado tiene al menos 3 `Step` y un `Why` por cada `Step`; `src/content/topics.test.ts` lo verifica.
 - `src/data/`: conjuntos de datos generados.
+- `src/lib/settingsStore.ts`: ajustes globales (decimales, cuadrícula, movimiento) guardados en `localStorage` bajo la clave `portafolio.settings`.
+- `src/lib/`: también el índice de búsqueda (`searchIndex.ts`, `sectionHeadings.ts`), el estado persistido de la navegación (`navState.ts`, claves `portafolio.nav.avance-N` y `portafolio.nav.sidebar`), `readingTime.ts` y `buildDate.ts`.
 - `src/lib/physics/`: núcleo de física puro, con pruebas.
 - `src/lib/data/`: modelos y preajustes con sus fuentes.
-- `src/components/ui/`: componentes de interfaz base.
+- `src/components/ui/`: componentes de interfaz base, incluidos `Step.astro` y `Why.astro` (el modelo de contenido por pasos).
+- `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `SettingsDrawer`, `ParamField`, `TransportBar`, `useSimClock`), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
 - `src/components/controls/`: controles interactivos (deslizadores, botones).
 - `src/components/charts/`: gráficas.
-- `src/components/nav/`: navegación.
+- `src/components/nav/`: navegación: barra lateral con búsqueda (`SidebarSearch`), `SidebarToggle` y `TopicTools`.
 - `src/components/hooks/`: hooks de React compartidos.
-- `src/components/topics/`: simulaciones y figuras de cada tema.
+- `src/components/topics/`: laboratorios y figuras de cada tema (`JumpLab`, `DroneLab`, `HabitatLab`, `TyreLab`, `TriggerLab`).
 - `src/layouts/`: plantillas de página.
 - `src/pages/`: páginas del sitio (`temas/` para cada tema).
 - `src/styles/`: estilos globales.
@@ -66,7 +69,10 @@ pnpm run check
 pnpm run test
 pnpm run test:cov
 pnpm run e2e
+E2E_PORT=4322 pnpm run e2e
 pnpm run format
 pnpm run data:drone
 bash scripts/compress-video.sh media-raw/<archivo>
 ```
+
+`E2E_PORT=4322 pnpm run e2e` ejecuta las pruebas de extremo a extremo en otro puerto; úsalo en local cuando un servidor de desarrollo ocupa el 4321.
