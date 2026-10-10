@@ -12,11 +12,12 @@ export const phaseKey = (p: Phase) => `portafolio.nav.avance-${p}`;
 export const NAV_OPEN = 'open';
 export const NAV_CLOSED = 'closed';
 
-/** The header button names the action it performs; shared with its pre-hydration script. */
-export const SIDEBAR_TOGGLE_LABELS = {
-  open: 'Ocultar barra lateral',
-  closed: 'Mostrar barra lateral',
-} as const;
+/**
+ * The header button is a disclosure for the sidebar column: a fixed name, with aria-expanded
+ * and aria-controls pointing at the column's id (set by TopicLayout and the 404 page).
+ */
+export const SIDEBAR_TOGGLE_LABEL = 'Barra lateral';
+export const SIDEBAR_ID = 'barra-lateral';
 
 type Reader = Pick<Storage, 'getItem'> | undefined;
 type Writer = Pick<Storage, 'setItem'> | undefined;

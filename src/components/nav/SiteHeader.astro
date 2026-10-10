@@ -2,7 +2,7 @@
 import { AUTHOR } from '../../consigna';
 import SidebarToggle from './SidebarToggle';
 import ThemeToggle from './ThemeToggle';
-import { NAV_CLOSED, SIDEBAR_TOGGLE_LABELS } from '../../lib/navState';
+import { NAV_CLOSED } from '../../lib/navState';
 import { THEME_TOGGLE_LABELS } from '../../lib/theme';
 
 interface Props {
@@ -26,15 +26,14 @@ const home = import.meta.env.BASE_URL;
       <ThemeToggle client:load />
     </div>
     <!--
-      The server renders the light label and an open sidebar; fix both buttons from data-theme
-      and data-sidebar before hydration so the first paint names the right action (React keeps
-      server attributes it believes already match).
+      The server renders the light label and an expanded sidebar; fix both buttons from
+      data-theme and data-sidebar before hydration so the first paint states the right action and
+      state (React keeps server attributes it believes already match).
     -->
     <script
       is:inline
       define:vars={{
         labels: THEME_TOGGLE_LABELS,
-        sidebarLabels: SIDEBAR_TOGGLE_LABELS,
         closedValue: NAV_CLOSED,
       }}
     >
@@ -48,12 +47,7 @@ const home = import.meta.env.BASE_URL;
       }
       var sidebarToggle = document.querySelector('[data-sidebar-toggle]');
       if (sidebarToggle) {
-        var isClosed = root.dataset.sidebar === closedValue;
-        sidebarToggle.setAttribute(
-          'aria-label',
-          isClosed ? sidebarLabels.closed : sidebarLabels.open,
-        );
-        sidebarToggle.setAttribute('aria-pressed', String(isClosed));
+        sidebarToggle.setAttribute('aria-expanded', String(root.dataset.sidebar !== closedValue));
       }
     </script>
   </div>

@@ -3,7 +3,8 @@ import {
   NAV_CLOSED,
   NAV_OPEN,
   safeLocalStorage,
-  SIDEBAR_TOGGLE_LABELS,
+  SIDEBAR_ID,
+  SIDEBAR_TOGGLE_LABEL,
   writeSidebarClosed,
 } from '../../lib/navState';
 
@@ -14,7 +15,7 @@ function readDocumentClosed(): boolean {
 
 /** Header button that hides or shows the sidebar on wide screens (spec §5). */
 export default function SidebarToggle() {
-  // The server renders the open state; SiteHeader's inline script corrects the attributes before
+  // The server renders the open state; SiteHeader's inline script corrects aria-expanded before
   // hydration and the client starts from the same DOM value, so the two agree.
   const [isClosed, setIsClosed] = useState(() =>
     typeof document === 'undefined' ? false : readDocumentClosed(),
@@ -30,8 +31,9 @@ export default function SidebarToggle() {
   return (
     <button
       type="button"
-      aria-label={SIDEBAR_TOGGLE_LABELS[isClosed ? 'closed' : 'open']}
-      aria-pressed={isClosed}
+      aria-label={SIDEBAR_TOGGLE_LABEL}
+      aria-controls={SIDEBAR_ID}
+      aria-expanded={!isClosed}
       data-sidebar-toggle
       onClick={toggleSidebar}
       className="hidden size-10 shrink-0 items-center justify-center rounded-base border border-border bg-bg-elevated text-fg-muted transition-colors hover:border-fg-muted hover:text-fg lg:inline-flex"

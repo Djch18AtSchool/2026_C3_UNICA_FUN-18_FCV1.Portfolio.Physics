@@ -21,33 +21,81 @@ type SectionComponent = keyof typeof SECTION_HEADINGS;
 const SECTION_DEPTH = 2;
 const FENCE = /^\s*(```|~~~)/;
 const MARKDOWN_SECTION = /^##\s/;
-const COMPONENT_TAG = /^\s*<(Step|UseCase|Connections|Sources)\b([^>]*)/;
+const COMPONENT_START = /^\s*<(Step|UseCase|Connections|Sources)\b/;
 const STEP_NUMBER = /\bn=\{\s*(\d+)\s*\}/;
-const STEP_TITLE = /\btitle=(?:"([^"]*)"|'([^']*)'|\{\s*["']([^"']*)["']\s*\})/;
+const STEP_TITLE = /\btitle=(?:"([^"]*)"|'([^']*)'|\{\s*"([^"]*)"\s*\}|\{\s*'([^']*)'\s*\})/;
+const QUOTES = new Set(['"', "'", '`']);
 
 /** A Step's heading: "Paso N · title", anchored to the step's section id. */
 export function stepHeading(n: number, title: string): { text: string; slug: string } {
   return { text: `Paso ${n} · ${title}`, slug: `paso-${n}` };
 }
 
-function componentHeading(name: string, attributes: string): RawHeading | undefined {
+/** Where a heading could not be read: the file and the 1-based line of the MDX body. */
+interface Place {
+  file: string;
+  line: number;
+}
+
+function placeLabel({ file, line }: Place): string {
+  return `"${file}", línea ${line} del cuerpo MDX`;
+}
+
+/**
+ * The opening tag that starts at `lines[start]`, possibly wrapped over several lines: everything
+ * up to the first `>` outside quotes and braces. Returns the tag text and its last line index.
+ */
+function readOpeningTag(
+  lines: string[],
+  start: number,
+  place: Place,
+): { tag: string; end: number } {
+  let quote = '';
+  let depth = 0;
+  for (let i = start; i < lines.length; i++) {
+    for (let j = 0; j < lines[i].length; j++) {
+      const char = lines[i][j];
+      if (quote) {
+        if (char === quote) quote = '';
+      } else if (QUOTES.has(char)) quote = char;
+      else if (char === '{') depth++;
+      else if (char === '}') depth--;
+      else if (char === '>' && depth === 0) {
+        const tag = [...lines.slice(start, i), lines[i].slice(0, j)].join('\n');
+        return { tag, end: i };
+      }
+    }
+  }
+  throw new Error(`sectionHeadings: en ${placeLabel(place)}, la etiqueta no se cierra con ">".`);
+}
+
+function componentHeading(name: string, tag: string, place: Place): RawHeading {
   if (name !== 'Step')
     return { depth: SECTION_DEPTH, ...SECTION_HEADINGS[name as SectionComponent] };
-  const n = STEP_NUMBER.exec(attributes)?.[1];
-  const title = STEP_TITLE.exec(attributes)
+  const n = STEP_NUMBER.exec(tag)?.[1];
+  const title = STEP_TITLE.exec(tag)
     ?.slice(1)
     .find((group) => group !== undefined);
-  return n && title !== undefined
-    ? { depth: SECTION_DEPTH, ...stepHeading(Number(n), title) }
-    : undefined;
+  if (!n || title === undefined) {
+    throw new Error(
+      `sectionHeadings: en ${placeLabel(place)}, el <Step> necesita n={número} y title="texto" literales para listarlo en la barra lateral.`,
+    );
+  }
+  return { depth: SECTION_DEPTH, ...stepHeading(Number(n), title) };
 }
 
 /**
  * Walk the MDX body line by line, outside code fences. A `## ` line takes the next depth-2 heading
  * Astro rendered (keeping its text and slug), followed by any deeper ones before the next; a
- * section component tag adds its fixed heading. Rendered headings left unplaced go at the end.
+ * section component's opening tag (even wrapped over lines) adds its fixed heading. Rendered
+ * headings left unplaced go at the end. Throws, naming `file` and the line, on a Step it cannot
+ * read, so the build fails instead of silently dropping the step.
  */
-export function collectSectionHeadings(body: string, rendered: RawHeading[]): RawHeading[] {
+export function collectSectionHeadings(
+  body: string,
+  rendered: RawHeading[],
+  file = 'MDX',
+): RawHeading[] {
   const queue = [...rendered];
   const takeSection = (): RawHeading[] => {
     const start = queue.findIndex((heading) => heading.depth === SECTION_DEPTH);
@@ -56,17 +104,22 @@ export function collectSectionHeadings(body: string, rendered: RawHeading[]): Ra
     return queue.splice(start, (next === -1 ? queue.length : next) - start);
   };
 
+  const lines = body.split('\n');
+  const collected: RawHeading[] = [];
   let isInFence = false;
-  const collected = body.split('\n').flatMap((line): RawHeading[] => {
-    if (FENCE.test(line)) {
-      isInFence = !isInFence;
-      return [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (FENCE.test(line)) isInFence = !isInFence;
+    else if (isInFence) continue;
+    else if (MARKDOWN_SECTION.test(line)) collected.push(...takeSection());
+    else {
+      const name = COMPONENT_START.exec(line)?.[1];
+      if (!name) continue;
+      const place = { file, line: i + 1 };
+      const { tag, end } = readOpeningTag(lines, i, place);
+      collected.push(componentHeading(name, tag, place));
+      i = end;
     }
-    if (isInFence) return [];
-    if (MARKDOWN_SECTION.test(line)) return takeSection();
-    const tag = COMPONENT_TAG.exec(line);
-    const heading = tag ? componentHeading(tag[1], tag[2]) : undefined;
-    return heading ? [heading] : [];
-  });
+  }
   return [...collected, ...queue];
 }

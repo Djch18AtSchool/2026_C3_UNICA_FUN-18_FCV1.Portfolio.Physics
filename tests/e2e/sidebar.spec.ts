@@ -2,8 +2,12 @@ import { expect, test, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
 
 const DESKTOP = { width: 1280, height: 800 };
+const TALL = { width: 1280, height: 2000 };
 const PHASE_1_TOPIC = './temas/dron-reparto/';
+const PHASE_2_TOPIC = './temas/frenado-regenerativo/';
 const SIDEBAR_KEY = 'portafolio.nav.sidebar';
+const TOGGLE_NAME = 'Barra lateral';
+const PUBLISHED_MIN = 5;
 
 test.use({ viewport: DESKTOP });
 
@@ -41,6 +45,31 @@ test('un avance plegado sigue plegado al recargar', async ({ page }) => {
   await expect(phase(page, 2)).toHaveAttribute('open', '');
 });
 
+test('visitar un tema sin tocar la barra no guarda el estado por defecto de los avances', async ({
+  page,
+}) => {
+  await page.goto(PHASE_1_TOPIC);
+  await expect(phase(page, 1)).toHaveAttribute('open', '');
+  // Give any parser-initiated toggle event time to fire, then replay one: Chromium can fire
+  // `toggle` for a <details> parsed with `open`, which is not a change by the reader.
+  await page.waitForLoadState('networkidle');
+  await page.evaluate(() => {
+    document
+      .querySelectorAll('[data-sidenav] details[data-phase]')
+      .forEach((details) => details.dispatchEvent(new Event('toggle')));
+  });
+  const storedPhases = await page.evaluate(() =>
+    Object.keys(window.localStorage).filter((key) => key.startsWith('portafolio.nav.avance-')),
+  );
+  expect(storedPhases).toEqual([]);
+
+  await page.goto(PHASE_2_TOPIC);
+
+  await expect(phase(page, 2)).toHaveAttribute('open', '');
+  await expect(phase(page, 1)).not.toHaveAttribute('open');
+  await expect(phase(page, 3)).not.toHaveAttribute('open');
+});
+
 test('con el almacenamiento bloqueado la página carga y el avance actual está abierto', async ({
   page,
 }) => {
@@ -63,32 +92,58 @@ test('con el almacenamiento bloqueado la página carga y el avance actual está 
   await phase(page, 1).locator('> summary').click();
   await expect(phase(page, 1)).not.toHaveAttribute('open');
   await waitForIsland(page, '[data-sidebar-toggle]');
-  await page.getByRole('button', { name: 'Ocultar barra lateral' }).click();
+  const toggle = page.getByRole('button', { name: TOGGLE_NAME });
+  await toggle.click();
   await expect(page.locator('nav[aria-label="Temas"]')).toBeHidden();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   expect(errors).toEqual([]);
 });
 
-test('el esquema del tema actual lista sus h2 y marca la sección que se lee', async ({ page }) => {
-  await page.goto('./temas/llantas-f1/');
+test('el esquema de cada tema publicado lista sus h2 y cada ancla existe', async ({ page }) => {
+  await page.goto(PHASE_1_TOPIC);
+  const published = await page
+    .locator(
+      'nav[aria-label="Temas"] li:has(> details.sidenav-outline) > a[data-testid="topic-link"]',
+    )
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
+  expect(published.length).toBeGreaterThanOrEqual(PUBLISHED_MIN);
 
-  const outline = page.locator('nav[aria-label="Temas"] [data-outline-current]');
-  await expect(outline).toHaveAttribute('open', '');
-  const headings = page.locator('.topic-body h2');
-  const texts = await headings.allInnerTexts();
-  expect(texts.length).toBeGreaterThan(1);
-  const links = outline.locator('a');
-  await expect(links).toHaveText(texts);
-  for (const [i, link] of (await links.all()).entries()) {
-    const anchor = (await link.getAttribute('href'))?.split('#')[1] ?? '';
-    await expect(page.locator(`[id="${anchor}"]`)).toContainText(texts[i]);
+  for (const href of published) {
+    await page.goto(href);
+    const outline = page.locator('nav[aria-label="Temas"] [data-outline-current]');
+    await expect(outline).toHaveAttribute('open', '');
+    const texts = await page.locator('.topic-body h2').allInnerTexts();
+    expect(texts.length, href).toBeGreaterThan(1);
+    const links = outline.locator('a');
+    await expect(links, href).toHaveText(texts);
+    for (const [i, link] of (await links.all()).entries()) {
+      const anchor = (await link.getAttribute('href'))?.split('#')[1] ?? '';
+      await expect(page.locator(`[id="${anchor}"]`), `${href}#${anchor}`).toContainText(texts[i]);
+    }
   }
+});
+
+test('el esquema marca la sección que se lee y la última al llegar al final', async ({ page }) => {
+  // Tall enough that, at the bottom, the last heading stays below the reading line: only the
+  // bottom-of-page rule can mark it.
+  await page.setViewportSize(TALL);
+  await page.goto('./temas/llantas-f1/');
+  const links = page.locator('nav[aria-label="Temas"] [data-outline-current] a');
+  const texts = await links.allInnerTexts();
 
   // A mid-page section, so the page can scroll it to the top of the viewport.
   const anchor = (await links.nth(1).getAttribute('href'))?.split('#')[1] ?? '';
   await page.evaluate((id) => document.getElementById(id)?.scrollIntoView(), anchor);
-
-  await expect(outline.locator('a[aria-current="location"]')).toHaveText(texts[1]);
+  await expect(links.and(page.locator('[aria-current="location"]'))).toHaveText(texts[1]);
   await expect(links.first()).not.toHaveAttribute('aria-current');
+
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const lastTop = await page.evaluate(
+    (id) => document.getElementById(id)?.getBoundingClientRect().top ?? 0,
+    (await links.last().getAttribute('href'))?.split('#')[1] ?? '',
+  );
+  expect(lastTop).toBeGreaterThan(TALL.height * 0.3);
+  await expect(links.and(page.locator('[aria-current="location"]'))).toHaveText(texts.at(-1) ?? '');
 });
 
 test('los esquemas de los otros temas publicados están plegados', async ({ page }) => {
@@ -133,32 +188,36 @@ test('el botón de la cabecera oculta la barra, persiste y no desborda', async (
   const openWidth = (await article.boundingBox())?.width ?? 0;
   await expectNoHorizontalOverflow(page);
 
-  const hide = page.getByRole('button', { name: 'Ocultar barra lateral' });
-  await expect(hide).toHaveAttribute('aria-pressed', 'false');
-  await hide.click();
+  const toggle = page.getByRole('button', { name: TOGGLE_NAME });
+  await expect(toggle).toHaveAttribute('aria-controls', 'barra-lateral');
+  await expect(page.locator('#barra-lateral')).toContainText('Temas del portafolio');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await toggle.click();
 
   await expect(nav).toBeHidden();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('html')).toHaveAttribute('data-sidebar', 'closed');
   expect((await article.boundingBox())?.width ?? 0).toBeGreaterThan(openWidth);
   await expectNoHorizontalOverflow(page);
 
   await page.reload();
   await expect(nav).toBeHidden();
-  const show = page.getByRole('button', { name: 'Mostrar barra lateral' });
-  await expect(show).toHaveAttribute('aria-pressed', 'true');
+  // Corrected before hydration by SiteHeader's inline script.
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expectNoHorizontalOverflow(page);
 
   await waitForIsland(page, '[data-sidebar-toggle]');
-  await show.click();
+  await toggle.click();
   await expect(nav).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Ocultar barra lateral' })).toBeFocused();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(toggle).toBeFocused();
 });
 
 test('el botón de la cabecera responde al teclado', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
   await waitForIsland(page, '[data-sidebar-toggle]');
 
-  await page.getByRole('button', { name: 'Ocultar barra lateral' }).focus();
+  await page.getByRole('button', { name: TOGGLE_NAME }).focus();
   await page.keyboard.press('Enter');
 
   await expect(page.locator('nav[aria-label="Temas"]')).toBeHidden();

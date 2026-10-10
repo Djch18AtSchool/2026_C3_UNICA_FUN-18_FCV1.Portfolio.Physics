@@ -4,13 +4,17 @@ import { loadSidebarData } from '../components/nav/sidebarData';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { latestPublishedPhase } from '../lib/topics';
 import { withBase } from '../lib/url';
+import { SIDEBAR_ID } from '../lib/navState';
 
 const { all, index, outlines } = await loadSidebarData();
 ---
 
 <BaseLayout title="Página no encontrada | Física I" hasCanonical={false} hasSidebar>
   <div class="sidebar-layout grid gap-8 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
-    <div class="sidebar-column lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:self-start lg:overflow-y-auto">
+    <div
+      id={SIDEBAR_ID}
+      class="sidebar-column lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:self-start lg:overflow-y-auto"
+    >
       <SideNav
         topics={all}
         outlines={outlines}

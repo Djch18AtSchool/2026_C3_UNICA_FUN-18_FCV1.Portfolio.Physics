@@ -71,6 +71,51 @@ describe('collectSectionHeadings', () => {
     expect(collectSectionHeadings('Sin encabezados.', [extra])).toEqual([extra]);
   });
 
+  test('reads an opening tag wrapped over several lines, with ">" inside the title', () => {
+    const body = [
+      '<Step',
+      '  n={3}',
+      '  title="Cuando v > 0: tiempo al ápice"',
+      '>',
+      '',
+      'Texto.',
+      '',
+      '</Step>',
+    ].join('\n');
+
+    expect(collectSectionHeadings(body, [])).toEqual([
+      { depth: 2, text: 'Paso 3 · Cuando v > 0: tiempo al ápice', slug: 'paso-3' },
+    ]);
+  });
+
+  test('reads a wrapped section component tag', () => {
+    const body = [
+      '<Connections',
+      '  related={frontmatter.related}',
+      '  classRefs={frontmatter.classRefs}',
+      '>',
+    ].join('\n');
+
+    expect(collectSectionHeadings(body, [])).toEqual([
+      { depth: 2, ...SECTION_HEADINGS.Connections },
+    ]);
+  });
+
+  test('fails loudly, naming the file and line, when a Step lacks a readable n or title', () => {
+    const body = ['Intro.', '', '<Step n={2}>', '</Step>'].join('\n');
+
+    expect(() => collectSectionHeadings(body, [], 'salto-personaje.mdx')).toThrow(
+      /salto-personaje\.mdx.*línea 3.*<Step>/,
+    );
+    expect(() => collectSectionHeadings('<Step title={titulo} n={1}>', [], 'x.mdx')).toThrow(Error);
+  });
+
+  test('fails loudly when a component tag is never closed', () => {
+    expect(() => collectSectionHeadings('<Step n={1} title="Sin cierre"', [], 'x.mdx')).toThrow(
+      /x\.mdx.*línea 1/,
+    );
+  });
+
   test('the section components carry their fixed anchors', () => {
     expect(SECTION_HEADINGS.UseCase.slug).toBe('caso-de-uso');
     expect(SECTION_HEADINGS.Connections.slug).toBe('conexiones');

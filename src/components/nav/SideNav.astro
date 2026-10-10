@@ -104,21 +104,40 @@ const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phas
 
   /** Fraction of the viewport from the top where a section counts as the one being read. */
   const READING_LINE = 0.3;
+  /** Slack, in px, for deciding that the page is scrolled to the bottom (subpixel rounding). */
+  const BOTTOM_SLACK_PX = 2;
 
+  /**
+   * Store only the reader's changes. Chromium can fire `toggle` for a <details> parsed with
+   * `open`; an event whose state equals the last one seen is not a change and is skipped.
+   */
   function rememberPhases(): void {
     document
       .querySelectorAll<HTMLDetailsElement>('[data-sidenav] details[data-phase]')
       .forEach((details) => {
         const phase = Number(details.dataset.phase) as Phase;
         if (!PHASES.includes(phase)) return;
+        let lastOpen = details.open;
         details.addEventListener('toggle', () => {
+          if (details.open === lastOpen) return;
+          lastOpen = details.open;
           writePhaseOpen(safeLocalStorage(), phase, details.open);
         });
       });
   }
 
-  /** Mark the current topic's outline link of the last section whose top passed the line. */
+  function isScrolledToBottom(): boolean {
+    const { scrollHeight } = document.documentElement;
+    return window.scrollY + window.innerHeight >= scrollHeight - BOTTOM_SLACK_PX;
+  }
+
+  /**
+   * Mark the current topic's outline link of the last section whose top passed the reading
+   * line, or the last section once the page reaches its bottom (a short final section may never
+   * reach the line). Without IntersectionObserver the outline simply has no marker.
+   */
   function trackCurrentSection(): void {
+    if (!('IntersectionObserver' in window)) return;
     const links = [
       ...document.querySelectorAll<HTMLAnchorElement>('[data-outline-current] [data-outline-link]'),
     ];
@@ -131,17 +150,33 @@ const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phas
     const update = () => {
       const line = window.innerHeight * READING_LINE;
       const passed = sections.filter(({ target }) => target.getBoundingClientRect().top <= line);
-      const active = passed.at(-1)?.link;
+      const active = isScrolledToBottom() ? sections.at(-1)?.link : passed.at(-1)?.link;
       sections.forEach(({ link }) => {
         if (link === active) link.setAttribute('aria-current', 'location');
         else link.removeAttribute('aria-current');
       });
     };
-    // The observer only says when a heading crosses the reading line; the rects decide which.
-    const observer = new IntersectionObserver(update, {
+    // The observers only say when something crosses; the rects and scroll position decide.
+    // The first watches headings crossing the reading line, the second the page footer coming
+    // fully into view, which is when the page reaches its bottom.
+    const headingObserver = new IntersectionObserver(update, {
       rootMargin: `0px 0px -${(1 - READING_LINE) * 100}% 0px`,
     });
-    sections.forEach(({ target }) => observer.observe(target));
+    const bottomObserver = new IntersectionObserver(update, { threshold: [0, 1] });
+    const footer = document.querySelector('body > footer');
+    const observe = () => {
+      sections.forEach(({ target }) => headingObserver.observe(target));
+      if (footer) bottomObserver.observe(footer);
+    };
+    observe();
+    window.addEventListener('pagehide', () => {
+      headingObserver.disconnect();
+      bottomObserver.disconnect();
+    });
+    // A page restored from the back-forward cache resumes tracking.
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) observe();
+    });
   }
 
   rememberPhases();

@@ -24,7 +24,8 @@ export async function loadSidebarData(): Promise<SidebarData> {
     await Promise.all(
       published.map(async (entry) => {
         const { headings } = await render(entry);
-        return [entry.id, collectSectionHeadings(entry.body ?? '', headings)] as const;
+        const file = entry.filePath ?? `${entry.id}.mdx`;
+        return [entry.id, collectSectionHeadings(entry.body ?? '', headings, file)] as const;
       }),
     ),
   );
