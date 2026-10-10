@@ -1,5 +1,5 @@
 import { useState, type JSX } from 'react';
-import { TRIGGER_LIMITS, TRIGGER_TRAVEL_MM } from '../../../lib/data/triggerModel';
+import { TRIGGER_LIMITS } from '../../../lib/data/triggerModel';
 import { formatNumber } from '../../../lib/format';
 import { motionReduced } from '../../../lib/settingsStore';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
@@ -14,6 +14,7 @@ import {
   DAMPING_OPTIONS,
   dampingRatio,
   releaseParams,
+  SLOW_MOTION,
   triggerReadings,
   type Damping,
 } from './triggerScene';
@@ -68,11 +69,15 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
     release.cancel();
     setState((previous) => ({ ...previous, xMm }));
   };
+  /** The pointer let go at xMm: the lever starts its return from there, not from the last render. */
+  const letGo = (xMm: number) => {
+    press(xMm);
+    release.start(xMm);
+  };
   const onReset = () => {
     release.cancel();
     setState(INITIAL_STATE);
   };
-  const isOnPlot = state.xMm >= 0 && state.xMm <= TRIGGER_TRAVEL_MM;
 
   const readouts: LabReadout[] = [
     { label: 'Desplazamiento x', value: state.xMm, unit: 'mm', precision: X_PRECISION },
@@ -151,28 +156,26 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
           x0Mm={state.x0Mm}
           forceN={readings.force}
           onPress={press}
-          onRelease={() => release.start(state.xMm)}
+          onRelease={letGo}
         />
         <div ref={plotAspect.ref} data-testid="trigger-plot">
           <SvgPlot
             aspectRatio={plotAspect.aspectRatio}
             title="Fuerza frente al desplazamiento del gatillo"
             {...labPlot(spring)}
-            marker={isOnPlot ? { x: state.xMm, y: readings.force } : undefined}
-            overlay={(scales) =>
-              isOnPlot ? (
-                <circle
-                  data-point="hooke"
-                  cx={scales.x.toPx(state.xMm)}
-                  cy={scales.y.toPx(readings.hooke)}
-                  r={HOOKE_RING}
-                  fill="none"
-                  stroke={HOOKE_COLOR}
-                  strokeWidth={2}
-                  className="pointer-events-none"
-                />
-              ) : null
-            }
+            marker={{ x: state.xMm, y: readings.force }}
+            overlay={(scales) => (
+              <circle
+                data-point="hooke"
+                cx={scales.x.toPx(state.xMm)}
+                cy={scales.y.toPx(readings.hooke)}
+                r={HOOKE_RING}
+                fill="none"
+                stroke={HOOKE_COLOR}
+                strokeWidth={2}
+                className="pointer-events-none"
+              />
+            )}
             ariaLabel={`A ${formatNumber(state.xMm, { precision: X_PRECISION, unit: 'mm' })}, el gatillo empuja con ${formatNumber(readings.force, { precision: settings.decimals, unit: 'N' })} y el resorte ideal, con ${formatNumber(readings.hooke, { precision: settings.decimals, unit: 'N' })}.`}
           />
         </div>
@@ -180,7 +183,8 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
           U = ½ k x² es la energía elástica del resorte ideal en el x actual; W = ½ k (x − x₀)², el
           área bajo el perfil, es el trabajo del dedo contra el gatillo, que el actuador absorbe en
           lugar de guardarlo. La flecha F es la fuerza del gatillo sobre el dedo, a escala; el aro
-          marca el resorte ideal en el mismo x.
+          marca el resorte ideal en el mismo x.{' '}
+          {`Al soltarla, la palanca vuelve ${SLOW_MOTION} veces más lenta que el retorno calculado, para que se vea, y se detiene en el tope del reposo.`}
         </p>
       </div>
     </LabShell>

@@ -9,7 +9,7 @@ import { PROFILE_COLOR } from './hapticPlots';
 import { leverAngle, triggerKeyTarget, xFromPointer } from './triggerScene';
 
 export interface TriggerLeverProps {
-  /** Travel of the trigger, mm (negative while an underdamped release overshoots rest). */
+  /** Travel of the trigger, mm (0–8). */
   xMm: number;
   /** Start of the resistance x₀, mm. */
   x0Mm: number;
@@ -17,8 +17,8 @@ export interface TriggerLeverProps {
   forceN: number;
   /** A travel picked by pointer or key (mm): the finger holds the trigger there. */
   onPress(xMm: number): void;
-  /** The pointer let go of the lever. */
-  onRelease(): void;
+  /** The pointer let go of the lever at this travel (mm), read from the release point. */
+  onRelease(xMm: number): void;
 }
 
 /** The lever turns this much over the 8 mm travel, from REST_DEG (slightly up) to 12° down. */
@@ -34,8 +34,6 @@ const PIVOT_SHIFT = 20;
 const PX_PER_NEWTON = 15;
 const MAX_ARROW = 72;
 const TOP_ROOM = 22;
-/** Room above the rest position for an underdamped overshoot past rest (about 3 mm, 9°). */
-const OVERSHOOT_DEG = 9;
 /** The finger presses here along the lever, so the force arrow stays clear of the travel arc. */
 const CONTACT_SHARE = 0.86;
 const BOTTOM_ROOM = 46;
@@ -51,6 +49,7 @@ const MOUNT = { width: 34, height: 44, hatch: 9 } as const;
 /** The value label sits below the tip, leaning left, clear of the arc labels on the right. */
 const VALUE_LABEL_DROP = 30;
 const VALUE_LABEL_LEAN = 10;
+/** F sits left of its arrow tip, away from the x₀ mark and the arc on the right. */
 const FORCE_LABEL_GAP = 8;
 const TICKS_MM = [0, 2, 4, 6, 8];
 const TEXT_SIZE = 12;
@@ -69,11 +68,8 @@ function sceneGeometry(width: number) {
   const arm = Math.min(MAX_ARM, Math.max(MIN_ARM, width * ARM_SHARE));
   const rise = arm * Math.sin(Math.abs(REST_DEG) * DEG);
   const contactRise = CONTACT_SHARE * rise;
-  // Above the pivot: the lever overshooting rest, or the longest arrow on the pressed lever.
-  const above = Math.max(
-    arm * Math.sin((Math.abs(REST_DEG) + OVERSHOOT_DEG) * DEG),
-    MAX_ARROW - contactRise,
-  );
+  // Above the pivot: the lever at rest, or the longest arrow on the pressed lever.
+  const above = Math.max(rise, MAX_ARROW - contactRise);
   const pivot = { x: (width - arm) / 2 - PIVOT_SHIFT, y: TOP_ROOM + above };
   return { arm, pivot, height: pivot.y + rise + BOTTOM_ROOM };
 }
@@ -174,8 +170,9 @@ export default function TriggerLever({
   // The trigger pushes the finger back along the lever's normal, against the press.
   const arrowTip = polar(contact, arrowLength, angle - 90);
   const drag = useDrag(({ x, y, phase }: DragPoint) => {
-    if (phase === 'end') onRelease();
-    else onPress(xFromPointer({ x, y }, pivot, REST_DEG, TRIGGER_TRAVEL_MM, MAX_ANGLE_DEG));
+    const travel = xFromPointer({ x, y }, pivot, REST_DEG, TRIGGER_TRAVEL_MM, MAX_ANGLE_DEG);
+    if (phase === 'end') onRelease(travel);
+    else onPress(travel);
   });
   const onKeyDown = (event: KeyboardEvent<SVGGElement>) => {
     const next = triggerKeyTarget(event.key, event.shiftKey, xMm);
@@ -239,7 +236,7 @@ export default function TriggerLever({
           {arrowLength >= ARROW_HEAD ? (
             <g data-vector="fuerza">
               <Arrow from={contact} to={arrowTip} color={PROFILE_COLOR} />
-              <Label at={arrowTip} dx={FORCE_LABEL_GAP} dy={4}>
+              <Label at={arrowTip} dx={-FORCE_LABEL_GAP} dy={4} anchor="end">
                 F
               </Label>
             </g>

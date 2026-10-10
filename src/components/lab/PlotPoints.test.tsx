@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { labelPlacement } from './TyreMarks';
+import { labelPlacement } from './PlotPoints';
 
 const RANGE: [number, number] = [50, 300];
 

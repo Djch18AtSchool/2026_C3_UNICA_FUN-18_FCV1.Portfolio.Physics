@@ -208,24 +208,52 @@ describe('TriggerLab', () => {
     expect(readout('Energía elástica U, resorte ideal')).toBe('12,80 mJ');
   });
 
-  test('an underdamped release overshoots past rest before settling', () => {
+  test('the release stops at rest, never below 0, and sooner when underdamped', () => {
     stubAnimationFrame();
     renderLab();
+    /** Presses to 8 mm with the keys, lets go and counts frames until rest; returns the lowest x. */
+    const releaseOnce = () => {
+      fireEvent.keyDown(lever(), { key: 'End' });
+      fireEvent.click(releaseButton());
+      const samples: number[] = [];
+      while (
+        readout('Desplazamiento x') !== '0,0 mm' &&
+        samples.length * FRAME_MS < RELEASE_BOUND_MS
+      ) {
+        advance(FRAME_MS);
+        samples.push(Number(lever().getAttribute('aria-valuenow')));
+      }
+      return { frames: samples.length, lowest: Math.min(...samples) };
+    };
+
+    const critical = releaseOnce();
     fireEvent.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
-    const dialog = screen.getByRole('dialog');
-    fireEvent.change(within(dialog).getByRole('combobox', { name: /^Amortiguación/ }), {
-      target: { value: 'subamortiguada' },
-    });
-    fireEvent.keyDown(lever(), { key: 'End' });
+    fireEvent.change(
+      within(screen.getByRole('dialog')).getByRole('combobox', { name: /^Amortiguación/ }),
+      {
+        target: { value: 'subamortiguada' },
+      },
+    );
+    const underdamped = releaseOnce();
 
-    fireEvent.click(releaseButton());
-    const samples: number[] = [];
-    for (let elapsed = 0; elapsed < RELEASE_BOUND_MS; elapsed += FRAME_MS) {
-      advance(FRAME_MS);
-      samples.push(Number(lever().getAttribute('aria-valuenow')));
-    }
+    expect(critical.lowest).toBeGreaterThanOrEqual(0);
+    expect(underdamped.lowest).toBeGreaterThanOrEqual(0);
+    expect(underdamped.frames).toBeLessThan(critical.frames);
+    expect(readout('Desplazamiento x')).toBe('0,0 mm');
+  });
 
-    expect(Math.min(...samples)).toBeLessThan(0);
+  test('a pointer release starts the return from the release point', () => {
+    stubAnimationFrame();
+    renderLab();
+    pressToBottom();
+    const hit = lever().querySelector('line') as SVGLineElement;
+    const pivot = { x: Number(hit.getAttribute('x1')), y: Number(hit.getAttribute('y1')) };
+
+    // Halfway through the 24° turn from rest (−12°) is 0°: straight right of the pivot, 4 mm.
+    fireEvent.pointerUp(lever(), { pointerId: 1, clientX: pivot.x + 200, clientY: pivot.y });
+
+    expect(readout('Desplazamiento x')).toBe('4,0 mm');
+    advance(RELEASE_BOUND_MS);
     expect(readout('Desplazamiento x')).toBe('0,0 mm');
   });
 

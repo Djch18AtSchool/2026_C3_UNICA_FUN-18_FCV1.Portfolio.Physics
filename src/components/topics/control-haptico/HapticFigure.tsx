@@ -3,7 +3,7 @@ import { formatNumber } from '../../../lib/format';
 import SvgPlot from '../../lab/SvgPlot';
 import { Label } from '../../lab/OverlayMarks';
 import type { Scale } from '../../lab/plotScales';
-import { PlotPoints, type PlotPoint } from '../llantas-f1/TyreMarks';
+import { PlotPoints, type PlotPoint } from '../../lab/PlotPoints';
 import {
   FORCE_AXES,
   HOOKE_COLOR,

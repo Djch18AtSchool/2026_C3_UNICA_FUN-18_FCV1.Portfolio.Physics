@@ -5,7 +5,7 @@ import { gripVsTemperature } from '../../../lib/physics';
 import { CHART_COLORS } from '../../charts/chartTheme';
 import SvgPlot from '../../lab/SvgPlot';
 import { BOX, boxFriction } from './tyreLabModel';
-import { PlotPoints, type PlotPoint } from './TyreMarks';
+import { PlotPoints, type PlotPoint } from '../../lab/PlotPoints';
 import { loadPlot, temperaturePlot, usePlotAspect } from './tyrePlots';
 
 export type TyreFigureVariant = 'caja' | 'carga' | 'temperatura';

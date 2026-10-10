@@ -1,8 +1,8 @@
-/** Labelled points drawn over Tema 4's plots, in viewBox pixels. */
+/** Labelled points over SvgPlot overlays (labs and static figures), in viewBox pixels. */
 import type { JSX } from 'react';
-import { SURFACE_COLOR, TEXT_COLOR } from '../../charts/chartTheme';
-import { fitCentre, monoTextWidth, type Scale } from '../../lab/plotScales';
-import { Label } from '../../lab/OverlayMarks';
+import { SURFACE_COLOR, TEXT_COLOR } from '../charts/chartTheme';
+import { fitCentre, monoTextWidth, type Scale } from './plotScales';
+import { Label } from './OverlayMarks';
 
 const DOT_RADIUS = 5;
 const LABEL_GAP = 10;

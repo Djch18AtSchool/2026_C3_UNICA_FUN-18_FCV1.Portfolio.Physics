@@ -17,10 +17,21 @@ import { TRIGGER_TRAVEL_MM } from '../../../lib/data/triggerModel';
 
 /** Assumed mass of the lever for the release, 20 g: an illustrative value, not a measured one. */
 export const TRIGGER_MASS_KG = 0.02;
-/** Fixed integration step of the release, s; each animation frame runs as many as fit. */
-export const RELEASE_DT = 1 / 240;
-/** The release never animates longer than this, s; it then snaps to rest. */
+/**
+ * Fixed integration step of the release, s of simulated time; each animation frame runs as many
+ * as fit. At k = 600 N/m and 20 g, ω₀·dt = 173 · 1/4800 ≈ 0,036: the semi-implicit Euler steps
+ * follow the analytic return within about 2 % over its visible part.
+ */
+export const RELEASE_DT = 1 / 4800;
+/**
+ * The release is displayed this many times slower than computed: the real return lasts a few
+ * hundredths of a second, too fast to watch. The physics is unchanged; only the clock is.
+ */
+export const SLOW_MOTION = 10;
+/** The release never animates longer than this, s of displayed time; it then snaps to rest. */
 export const MAX_RELEASE_S = 3;
+/** Simulated time that fills MAX_RELEASE_S of display. */
+const MAX_SIMULATED_S = MAX_RELEASE_S / SLOW_MOTION;
 /** Longest real time a single frame may add, s: a background tab must not jump the lever. */
 const MAX_FRAME_S = 0.05;
 /** Float slack when counting whole steps in a frame. */
@@ -104,7 +115,7 @@ export function triggerKeyTarget(key: string, isShift: boolean, xMm: number): nu
   return Number(clampTravel(target).toFixed(GRID_DECIMALS));
 }
 
-/** A release in progress: the oscillator in SI, the simulated time and the unspent frame time. */
+/** A release in progress: the oscillator in SI, the simulated time and the unspent simulated time. */
 export interface ReleaseState {
   state: OscillatorState;
   elapsed: number;
@@ -120,9 +131,10 @@ export function startRelease(xMm: number): ReleaseState {
 const AT_REST: OscillatorState = { x: 0, v: 0 };
 
 /**
- * Advances a release by one frame of real time: whole steps of RELEASE_DT (the remainder carries
- * to the next frame), at most 50 ms per frame. It ends, snapped to x = 0, as soon as the kernel's
- * isAtRest holds or MAX_RELEASE_S has passed.
+ * Advances a release by one frame of real time (at most 50 ms), which is frameSeconds/SLOW_MOTION
+ * of simulated time, in whole steps of RELEASE_DT (the remainder carries to the next frame). The
+ * rest stop is inelastic: a step that reaches x ≤ 0 ends the release at x = 0, still. It also ends
+ * when the kernel's isAtRest holds or after MAX_RELEASE_S of displayed time.
  */
 export function advanceRelease(
   release: ReleaseState,
@@ -131,14 +143,16 @@ export function advanceRelease(
 ): ReleaseState {
   if (release.isDone) return release;
   if (isAtRest(release.state)) return { ...release, state: AT_REST, carry: 0, isDone: true };
-  let budget = release.carry + Math.min(Math.max(frameSeconds, 0), MAX_FRAME_S);
+  const frame = Math.min(Math.max(frameSeconds, 0), MAX_FRAME_S);
+  let budget = release.carry + frame / SLOW_MOTION;
   let state = release.state;
   let elapsed = release.elapsed;
   while (budget + STEP_EPSILON >= RELEASE_DT) {
     state = dampedSpringStep(state, params, RELEASE_DT);
     elapsed += RELEASE_DT;
     budget -= RELEASE_DT;
-    if (isAtRest(state) || elapsed + STEP_EPSILON >= MAX_RELEASE_S) {
+    const isAtStop = state.x <= 0;
+    if (isAtStop || isAtRest(state) || elapsed + STEP_EPSILON >= MAX_SIMULATED_S) {
       return { state: AT_REST, elapsed, carry: 0, isDone: true };
     }
   }
@@ -154,7 +168,7 @@ export interface SpringSettings {
 export interface TriggerReadings {
   /** Resistance of the trigger profile, equation (5.4), N. */
   force: number;
-  /** k·x, the magnitude of the ideal spring's force −k x (negative past rest), N. */
+  /** k·x, the magnitude of the ideal spring's force −k x, N. */
   hooke: number;
   /** Elastic energy ½ k x² of the ideal spring at x, mJ. */
   energy: number;

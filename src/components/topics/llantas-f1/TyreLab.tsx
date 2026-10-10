@@ -20,7 +20,7 @@ import {
   tyreReadings,
   type TyreLabState,
 } from './tyreLabModel';
-import { PlotPoints } from './TyreMarks';
+import { PlotPoints } from '../../lab/PlotPoints';
 import {
   LINEAR_COLOR,
   LOAD_AXIS,

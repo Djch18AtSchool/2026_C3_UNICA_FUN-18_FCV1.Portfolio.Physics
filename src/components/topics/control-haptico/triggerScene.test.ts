@@ -7,6 +7,7 @@ import {
   MAX_RELEASE_S,
   releaseParams,
   RELEASE_DT,
+  SLOW_MOTION,
   startRelease,
   TRIGGER_MASS_KG,
   triggerKeyTarget,
@@ -80,6 +81,18 @@ describe('releaseParams', () => {
 });
 
 describe('advanceRelease', () => {
+  /** Runs a release frame by frame, recording the lowest x it ever reaches. */
+  function releaseFrom(xMm: number, k: number, ratio = 1) {
+    const params = releaseParams(k, ratio);
+    let release = startRelease(xMm);
+    let lowest = Infinity;
+    while (!release.isDone) {
+      release = advanceRelease(release, FRAME_S, params);
+      lowest = Math.min(lowest, release.state.x);
+    }
+    return { release, lowest };
+  }
+
   test('starts at rest velocity from the released displacement, in metres', () => {
     expect(startRelease(8)).toEqual({
       state: { x: 0.008, v: 0 },
@@ -89,58 +102,79 @@ describe('advanceRelease', () => {
     });
   });
 
-  test('brings a critically damped lever from 8 mm to rest without crossing x = 0', () => {
+  test('integrates finely enough: ω₀·dt ≤ 0,04 at k = 600 with critical damping', () => {
+    const omega = Math.sqrt(600 / TRIGGER_MASS_KG);
+
+    expect(RELEASE_DT).toBe(1 / 4800);
+    expect(omega * RELEASE_DT).toBeLessThanOrEqual(0.04);
+  });
+
+  test('the first sub-steps track the analytic critically damped return within 3 %', () => {
     const params = releaseParams(400);
+    const omega = Math.sqrt(400 / TRIGGER_MASS_KG);
     let release = startRelease(8);
-    let lowest = Infinity;
-    while (!release.isDone) {
-      release = advanceRelease(release, FRAME_S, params);
-      lowest = Math.min(lowest, release.state.x);
+    for (let step = 1; step <= 96; step++) {
+      release = advanceRelease(release, RELEASE_DT * SLOW_MOTION, params);
+      const t = step * RELEASE_DT;
+      const analytic = 0.008 * (1 + omega * t) * Math.exp(-omega * t);
+      expect(release.elapsed).toBeCloseTo(t, 12);
+      expect(Math.abs(release.state.x - analytic) / analytic).toBeLessThan(0.03);
     }
+  });
+
+  test('brings a critically damped lever from 8 mm to rest, never below x = 0', () => {
+    const { release, lowest } = releaseFrom(8, 400);
 
     expect(release.state).toEqual({ x: 0, v: 0 });
     expect(release.elapsed).toBeLessThan(0.2);
-    expect(lowest).toBeGreaterThanOrEqual(-1e-4);
+    expect(lowest).toBeGreaterThanOrEqual(0);
   });
 
-  test('an underdamped lever overshoots past rest before it settles, within 3 s', () => {
-    const params = releaseParams(50, 0.3);
-    let release = startRelease(8);
-    let lowest = Infinity;
-    while (!release.isDone) {
-      release = advanceRelease(release, FRAME_S, params);
-      lowest = Math.min(lowest, release.state.x);
+  test('an underdamped lever stops at the rest stop, never below 0, sooner than a critical one', () => {
+    for (const k of [50, 400, 600]) {
+      const critical = releaseFrom(8, k);
+      const underdamped = releaseFrom(8, k, 0.3);
+
+      expect(underdamped.lowest).toBeGreaterThanOrEqual(0);
+      expect(underdamped.release.state).toEqual({ x: 0, v: 0 });
+      expect(underdamped.release.elapsed).toBeLessThan(critical.release.elapsed);
     }
-
-    expect(lowest).toBeLessThan(-0.002);
-    expect(release.elapsed).toBeLessThan(MAX_RELEASE_S);
-    expect(release.state).toEqual({ x: 0, v: 0 });
   });
 
-  test('integrates whole steps of 1/240 s and carries the remainder to the next frame', () => {
+  test('plays 10 times slower than real: whole steps of 1/4800 s, the remainder carried', () => {
     const params = releaseParams(400);
-    const once = advanceRelease(startRelease(8), 2.5 * RELEASE_DT, params);
+    const once = advanceRelease(startRelease(8), 2.5 * RELEASE_DT * SLOW_MOTION, params);
 
+    expect(SLOW_MOTION).toBe(10);
     expect(once.elapsed).toBeCloseTo(2 * RELEASE_DT, 12);
     expect(once.carry).toBeCloseTo(0.5 * RELEASE_DT, 12);
-    const twice = advanceRelease(once, 0.5 * RELEASE_DT, params);
+    const twice = advanceRelease(once, 0.5 * RELEASE_DT * SLOW_MOTION, params);
     expect(twice.elapsed).toBeCloseTo(3 * RELEASE_DT, 12);
     expect(twice.carry).toBeCloseTo(0, 12);
   });
 
-  test('a long frame (a background tab) adds at most 50 ms', () => {
+  test('a long frame (a background tab) adds at most 50 ms of displayed time', () => {
     const release = advanceRelease(startRelease(8), 2, releaseParams(50, 0.3));
 
-    expect(release.elapsed).toBeLessThanOrEqual(0.05 + 1e-9);
+    expect(release.elapsed * SLOW_MOTION).toBeLessThanOrEqual(0.05 + 1e-9);
   });
 
-  test('stops at 3 s even when the lever is not yet at rest', () => {
-    const undamped = { k: 50, m: TRIGGER_MASS_KG, c: 0 };
+  test('stops after 3 s of displayed time even when the lever never reaches rest', () => {
+    const stuck = { k: 0, m: TRIGGER_MASS_KG, c: 0 };
     let release = startRelease(8);
-    while (!release.isDone) release = advanceRelease(release, FRAME_S, undamped);
+    while (!release.isDone) release = advanceRelease(release, FRAME_S, stuck);
 
-    expect(release.elapsed).toBeCloseTo(MAX_RELEASE_S, 6);
+    expect(release.elapsed * SLOW_MOTION).toBeCloseTo(MAX_RELEASE_S, 6);
     expect(release.state).toEqual({ x: 0, v: 0 });
+  });
+
+  test('every displayed release from the travel ends within 3 s', () => {
+    for (const k of [50, 400, 600]) {
+      for (const ratio of [1, 0.3]) {
+        const { release } = releaseFrom(8, k, ratio);
+        expect(release.elapsed * SLOW_MOTION).toBeLessThan(MAX_RELEASE_S);
+      }
+    }
   });
 
   test('a finished release stays as it is', () => {
@@ -176,12 +210,8 @@ describe('triggerReadings', () => {
     expect(readings.work).toBeCloseTo(5, 12);
   });
 
-  test('before x₀, and past rest, the trigger pushes nothing', () => {
+  test('before x₀ the trigger pushes nothing', () => {
     expect(triggerReadings({ k: 400, x0Mm: 3 }, 2)).toMatchObject({ force: 0, work: 0 });
-    const overshoot = triggerReadings({ k: 400, x0Mm: 0 }, -1);
-    expect(overshoot.force).toBe(0);
-    expect(overshoot.work).toBe(0);
-    expect(overshoot.energy).toBeCloseTo(0.2, 12);
   });
 });
 
