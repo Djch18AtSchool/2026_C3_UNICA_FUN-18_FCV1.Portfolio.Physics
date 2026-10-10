@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const BASE_PATH = '/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics/';
-const PORT = 4321;
+const PORT = Number(process.env.E2E_PORT ?? 4321);
 const IS_CI = !!process.env.CI;
 const PREVIEW_COMMAND = `pnpm run preview --ignore-lock --port ${PORT}`;
 

@@ -1,52 +1,24 @@
 ---
-import { COURSE, REPO_URL } from '../../consigna';
+import { REPO_URL } from '../../consigna';
 
 // The build date stands in for "last updated"; pinned to Costa Rica so CI (UTC) agrees.
 const TIME_ZONE = 'America/Costa_Rica';
 const buildDate = new Date();
-const updatedLabel = new Intl.DateTimeFormat('es-CR', {
+const generatedLabel = new Intl.DateTimeFormat('es-CR', {
   dateStyle: 'long',
   timeZone: TIME_ZONE,
 }).format(buildDate);
 // en-CA formats dates as YYYY-MM-DD, the shape <time datetime> expects.
-const updatedIso = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).format(buildDate);
+const generatedIso = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).format(buildDate);
 ---
 
 <footer class="mt-16 border-t border-border">
-  <div class="mx-auto flex w-full max-w-6xl flex-col-reverse gap-6 px-4 pt-8 pb-10 sm:px-6 lg:flex-row lg:items-end lg:justify-between">
-    <p class="text-sm">
+  <div class="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 pt-8 pb-10 text-sm text-fg-muted sm:flex-row sm:items-end sm:justify-between sm:px-6">
+    <p>
       <a href={REPO_URL}>Ver repositorio</a>
     </p>
-    <!-- Laid out like a drawing sheet's title block: heavier outer frame, hairline cells. -->
-    <dl class="grid grid-cols-2 gap-px overflow-hidden rounded-base border border-fg-muted bg-border text-sm lg:w-[40rem] lg:grid-cols-3">
-      <div class="bg-bg-elevated px-3 py-2">
-        <dt class="text-xs text-fg-muted">Curso</dt>
-        <dd>
-          <span class="font-mono">{COURSE.code}</span> {COURSE.name}
-        </dd>
-      </div>
-      <div class="bg-bg-elevated px-3 py-2">
-        <dt class="text-xs text-fg-muted">Sección</dt>
-        <dd class="font-mono">{COURSE.section}</dd>
-      </div>
-      <div class="bg-bg-elevated px-3 py-2">
-        <dt class="text-xs text-fg-muted">Periodo</dt>
-        <dd class="font-mono">{COURSE.period}</dd>
-      </div>
-      <div class="bg-bg-elevated px-3 py-2">
-        <dt class="text-xs text-fg-muted">Universidad</dt>
-        <dd>{COURSE.university}</dd>
-      </div>
-      <div class="bg-bg-elevated px-3 py-2">
-        <dt class="text-xs text-fg-muted">Profesor</dt>
-        <dd>{COURSE.professor}</dd>
-      </div>
-      <div class="bg-bg-elevated px-3 py-2">
-        <dt class="text-xs text-fg-muted">Última actualización</dt>
-        <dd>
-          <time datetime={updatedIso}>{updatedLabel}</time>
-        </dd>
-      </div>
-    </dl>
+    <p>
+      Sitio generado el <time datetime={generatedIso}>{generatedLabel}</time>
+    </p>
   </div>
 </footer>

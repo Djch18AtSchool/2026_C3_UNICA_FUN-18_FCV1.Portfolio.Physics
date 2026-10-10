@@ -1,83 +1,104 @@
 ---
 import { getCollection } from 'astro:content';
 import TopicCard from '../components/nav/TopicCard.astro';
-import { AUTHOR, COURSE, PHASE_LABELS, PHASES, TOPICS, topicsByPhase } from '../consigna';
+import { AUTHOR, COURSE, PHASE_LABELS, PHASES, REPO_URL, topicsByPhase } from '../consigna';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { publishedCount, sortByNumber, toTopicSummary } from '../lib/topics';
+import { sortByNumber, toTopicSummary } from '../lib/topics';
+
+const NOT_AVAILABLE = '—';
+// Frontmatter dates are calendar days parsed at UTC midnight (see TopicLayout); format in UTC.
+const UPDATED_TIME_ZONE = 'UTC';
 
 const entries = sortByNumber(
   (await getCollection('topics')).map((entry) => ({ ...toTopicSummary(entry), entry })),
 );
-const published = publishedCount(entries);
 
-const groups = PHASES.map((phase) => {
-  const topics = topicsByPhase(phase, entries);
-  return {
-    phase,
-    label: PHASE_LABELS[phase],
-    topics,
-    first: topics[0]?.number,
-    last: topics.at(-1)?.number,
-  };
-});
+const groups = PHASES.map((phase) => ({
+  phase,
+  label: PHASE_LABELS[phase],
+  topics: topicsByPhase(phase, entries),
+}));
+
+/** "Última actualización" on the cover: the latest `updated` date among published topics. */
+const latestUpdated = entries
+  .filter((entry) => entry.status === 'publicado')
+  .reduce<Date | undefined>((latest, entry) => {
+    const { updated } = entry.entry.data;
+    return !latest || updated > latest ? updated : latest;
+  }, undefined);
+const updatedLabel = latestUpdated
+  ? new Intl.DateTimeFormat('es-CR', { dateStyle: 'long', timeZone: UPDATED_TIME_ZONE }).format(
+      latestUpdated,
+    )
+  : undefined;
+const updatedIso = latestUpdated?.toISOString().slice(0, 10);
 ---
 
 <BaseLayout title="Portafolio de evidencias de Física I">
-  <section
-    aria-labelledby="titulo-portada"
-    class="grid gap-10 border-b border-border pb-12 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end lg:gap-16"
-  >
-    <div>
-      <h1 id="titulo-portada" class="max-w-[16ch] text-[2.5rem] sm:text-5xl">
-        Portafolio de evidencias de Física I
-      </h1>
-      <p class="mt-6 text-lg font-medium">{AUTHOR}</p>
-      <p class="mt-1 text-sm text-fg-muted">
-        <span class="font-mono">{COURSE.code}</span>
-        {' · '}
-        {COURSE.name}
-        {' · Sección '}
-        <span class="font-mono">{COURSE.section}</span>
-        {' · '}
-        <span class="font-mono">{COURSE.period}</span>
-      </p>
-      <p class="measure mt-6 text-lg leading-relaxed">
-        Este portafolio documenta cómo la física del curso aparece en el desarrollo de software:
-        cada tema parte de un producto real, plantea la ecuación que lo gobierna y la acompaña con
-        un recurso para explorarla.
-      </p>
-    </div>
+  <section aria-labelledby="titulo-portada" class="border-b border-border pb-12">
+    <h1 id="titulo-portada" class="max-w-[16ch] text-[2.5rem] sm:text-5xl">
+      Portafolio de evidencias de Física I
+    </h1>
+    <p class="mt-6 text-lg font-medium">{AUTHOR}</p>
+    <p class="mt-1 text-sm text-fg-muted">
+      <span class="font-mono">{COURSE.code}</span>
+      {' · '}
+      {COURSE.name}
+      {' · Sección '}
+      <span class="font-mono">{COURSE.section}</span>
+      {' · '}
+      <span class="font-mono">{COURSE.period}</span>
+    </p>
+    <p class="measure mt-6 text-lg leading-relaxed">
+      Este portafolio documenta cómo la física del curso aparece en el desarrollo de software: cada
+      tema parte de un producto real, plantea la ecuación que lo gobierna y la acompaña con un
+      recurso para explorarla.
+    </p>
 
-    {/* Progress as a graduated scale: one division per topic, bracketed by delivery. */}
-    <div class="grid-paper rounded-base border border-border p-5">
-      <p class="font-medium">
-        <span class="font-mono">{published}</span>
-        {' de '}
-        <span class="font-mono">{TOPICS.length}</span>
-        {' temas publicados'}
-      </p>
-      <div class="mt-4 flex items-start gap-3" aria-hidden="true">
-        {groups.map((group) => (
-          <div class="flex flex-col gap-1.5">
-            <div class="flex gap-1">
-              {group.topics.map((topic) => (
-                <span
-                  class:list={[
-                    'size-4 rounded-[2px] border sm:size-5',
-                    topic.status === 'publicado'
-                      ? 'border-accent bg-accent'
-                      : 'border-fg-muted/60 bg-bg-elevated',
-                  ]}
-                />
-              ))}
-            </div>
-            <span class="border-t border-fg-muted pt-1 text-xs leading-tight text-fg-muted">
-              {group.label}
-            </span>
-          </div>
-        ))}
+    <dl class="mt-8 flex flex-col gap-3 text-sm sm:max-w-md" data-testid="cover-meta">
+      <div class="flex flex-col gap-0.5">
+        <dt class="text-xs text-fg-muted">Autor</dt>
+        <dd>{AUTHOR}</dd>
       </div>
-    </div>
+      <div class="flex flex-col gap-0.5">
+        <dt class="text-xs text-fg-muted">Universidad</dt>
+        <dd>{COURSE.university} · Escuela de Fundamentos</dd>
+      </div>
+      <div class="flex flex-col gap-0.5">
+        <dt class="text-xs text-fg-muted">Curso</dt>
+        <dd>
+          <span class="font-mono">{COURSE.code}</span> {COURSE.name}
+          {' · Sección '}
+          <span class="font-mono">{COURSE.section}</span>
+          {' · '}
+          <span class="font-mono">{COURSE.period}</span>
+        </dd>
+      </div>
+      <div class="flex flex-col gap-0.5">
+        <dt class="text-xs text-fg-muted">Docente</dt>
+        <dd>{COURSE.professor}</dd>
+      </div>
+      <div class="flex flex-col gap-0.5">
+        <dt class="text-xs text-fg-muted">Última actualización</dt>
+        <dd>
+          {latestUpdated && updatedIso ? (
+            <time datetime={updatedIso}>{updatedLabel}</time>
+          ) : (
+            NOT_AVAILABLE
+          )}
+        </dd>
+      </div>
+    </dl>
+
+    <a
+      href={REPO_URL}
+      class="mt-6 inline-flex h-9 items-center gap-2 rounded-base border border-border px-3 text-sm text-fg-muted transition-colors hover:border-fg-muted hover:text-fg"
+    >
+      <svg class="size-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+      </svg>
+      Ver repositorio
+    </a>
   </section>
 
   <div class="mt-12 flex flex-col gap-14">
@@ -88,12 +109,8 @@ const groups = PHASES.map((phase) => {
         aria-labelledby={`fase-${group.phase}-titulo`}
         class="scroll-mt-8"
       >
-        <div class="flex items-baseline justify-between gap-4 border-b-[3px] border-double border-border pb-2">
+        <div class="border-b-[3px] border-double border-border pb-2">
           <h2 id={`fase-${group.phase}-titulo`}>{group.label}</h2>
-          <p class="text-sm text-fg-muted">
-            Temas <span class="font-mono">{group.first}</span> a{' '}
-            <span class="font-mono">{group.last}</span>
-          </p>
         </div>
         <ol class="divide-y divide-border border-b border-border">
           {group.topics.map((topic) => (

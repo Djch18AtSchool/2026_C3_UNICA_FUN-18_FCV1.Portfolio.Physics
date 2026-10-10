@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { PHASE_LABELS, TOPICS } from '../../src/consigna';
+import { PHASE_LABELS, REPO_URL, TOPICS } from '../../src/consigna';
 
 test('la portada lista los 13 temas con sus títulos exactos agrupados por avance', async ({
   page,
@@ -21,7 +21,39 @@ test('la portada lista los 13 temas con sus títulos exactos agrupados por avanc
   await expect(groups.nth(1).getByTestId('topic-card')).toHaveCount(4);
   await expect(groups.nth(2).getByTestId('topic-card')).toHaveCount(4);
 
-  await expect(page.locator('main')).toContainText('de 13 temas publicados');
+  await expect(page.locator('main')).not.toContainText('de 13 temas publicados');
+  await expect(page.locator('main')).not.toContainText('Temas 1 a 5');
+  await expect(page.locator('main')).not.toContainText('Publicado');
+});
+
+test('la portada muestra la lista de definición del curso en el orden exacto', async ({ page }) => {
+  await page.goto('./');
+
+  const meta = page.getByTestId('cover-meta');
+  await expect(meta.locator('dt')).toHaveText([
+    'Autor',
+    'Universidad',
+    'Curso',
+    'Docente',
+    'Última actualización',
+  ]);
+});
+
+test('la portada ofrece un botón para ver el repositorio', async ({ page }) => {
+  await page.goto('./');
+
+  const link = page
+    .getByRole('region', { name: 'Portafolio de evidencias de Física I' })
+    .getByRole('link', { name: 'Ver repositorio' });
+  await expect(link).toHaveAttribute('href', REPO_URL);
+});
+
+test('las filas de los temas futuros no muestran "Recurso por definir"', async ({ page }) => {
+  await page.goto('./');
+
+  const upcomingCards = page.getByTestId('topic-card').filter({ hasText: 'Próximamente' });
+  await expect(upcomingCards).toHaveCount(8);
+  await expect(page.locator('main')).not.toContainText('Recurso por definir');
 });
 
 test('un tema próximo muestra el aviso de su avance', async ({ page }) => {
@@ -34,6 +66,11 @@ test('un tema próximo muestra el aviso de su avance', async ({ page }) => {
   const notice = page.getByTestId('upcoming-notice');
   await expect(notice).toBeVisible();
   await expect(notice).toContainText(`Se publica en el ${PHASE_LABELS[2]}`);
+  await expect(notice).not.toContainText('Caso de uso en Ingeniería del Software');
+  await expect(notice).not.toContainText('estas secciones, en este orden');
+  await expect(page.locator('main')).not.toContainText(
+    'Trabajo, energía cinética y potencia en la recuperación de energía al frenar.',
+  );
 });
 
 test('la barra lateral marca el tema activo y navega', async ({ page }) => {

@@ -25,7 +25,7 @@ export const topicSchema = z
     phase: z.union([z.literal(1), z.literal(2), z.literal(3)]),
     title: z.string(),
     shortTitle: z.string().max(40),
-    concept: z.string(),
+    concept: z.string().optional(),
     status: z.enum(['publicado', 'proximamente']),
     resourceType: z.enum(['simulacion', 'visualizacion', 'diagrama', 'multimedia']).optional(),
     useCase: z.object({ product: z.string(), industry: z.string() }).optional(),
@@ -46,6 +46,13 @@ export const topicSchema = z
 
     if (data.status !== 'publicado') return;
 
+    if (!data.concept) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['concept'],
+        message: 'El tema publicado necesita un concepto',
+      });
+    }
     if (!data.resourceType) {
       ctx.addIssue({
         code: 'custom',

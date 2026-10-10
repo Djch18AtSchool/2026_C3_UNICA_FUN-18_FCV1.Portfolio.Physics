@@ -20,13 +20,6 @@ const { slug, number, phase, title, shortTitle, concept, status, resourceType, u
 
 // "Se publica en el Avance 2" / "en la Entrega Final" (spec §4.2).
 const PHASE_ARTICLE: Record<Phase, string> = { 1: 'el', 2: 'el', 3: 'la' };
-// The fixed order of a published topic page (spec §4.3), previewed while the topic is upcoming.
-const UPCOMING_SECTIONS = [
-  'Caso de uso en Ingeniería del Software',
-  'Recurso de apoyo',
-  'Conexiones con otros temas y con la clase',
-  'Fuentes',
-];
 // Frontmatter dates are calendar days parsed at UTC midnight; format them in UTC.
 const updatedLabel = new Intl.DateTimeFormat('es-CR', {
   dateStyle: 'long',
@@ -60,7 +53,7 @@ const phaseLabel = PHASE_LABELS[phase];
               Tema <span class="font-mono">{number}</span> · {phaseLabel}
             </p>
             <h1 class="mt-2">{title}</h1>
-            <p class="measure mt-4 text-lg leading-relaxed">{concept}</p>
+            {concept && <p class="measure mt-4 text-lg leading-relaxed">{concept}</p>}
           </div>
           <dl class="margin-note flex flex-wrap gap-x-8 gap-y-3 self-start xl:mt-8 xl:flex-col">
             <div class="flex flex-col items-start gap-1">
@@ -93,17 +86,6 @@ const phaseLabel = PHASE_LABELS[phase];
             <h2 id="aviso-proximamente" class="text-xl">
               Se publica en {PHASE_ARTICLE[phase]} {phaseLabel}
             </h2>
-            <p class="mt-2 text-fg-muted">
-              Cuando se publique, esta página tendrá estas secciones, en este orden:
-            </p>
-            <ol class="mt-4 flex flex-col gap-2">
-              {UPCOMING_SECTIONS.map((section, index) => (
-                <li class="grid grid-cols-[1.5rem_minmax(0,1fr)] items-baseline border-b border-dashed border-border pb-2 last:border-0 last:pb-0">
-                  <span class="font-mono text-sm text-fg-muted">{index + 1}</span>
-                  <span>{section}</span>
-                </li>
-              ))}
-            </ol>
           </div>
         </section>
       )}

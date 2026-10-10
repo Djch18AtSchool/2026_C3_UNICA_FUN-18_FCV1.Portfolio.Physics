@@ -130,4 +130,18 @@ describe('topicSchema rules', () => {
   test('un tema próximamente no exige fuentes ni relaciones', () => {
     expect(() => topicSchema.parse(valid)).not.toThrow();
   });
+
+  test('un tema proximamente no declara concept', () => {
+    const { concept, ...withoutConcept } = valid;
+
+    const parsed = topicSchema.parse(withoutConcept);
+
+    expect(parsed.concept).toBeUndefined();
+  });
+
+  test('un tema publicado sin concept es rechazado', () => {
+    const { concept, ...withoutConcept } = validPublished;
+
+    expect(() => topicSchema.parse(withoutConcept)).toThrow(/concepto/);
+  });
 });
