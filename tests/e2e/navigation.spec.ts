@@ -58,6 +58,19 @@ test('la portada muestra la lista de definición del curso en el orden exacto', 
   ]);
 });
 
+test('la portada nombra la universidad y el curso sin la escuela ni los datos del curso', async ({
+  page,
+}) => {
+  await page.goto('./');
+
+  const meta = page.getByTestId('cover-meta');
+  await expect(meta.locator('dd').nth(1)).toHaveText('Universidad CENFOTEC');
+  await expect(meta.locator('dd').nth(2)).toHaveText('Física I');
+  const main = page.locator('main');
+  for (const text of ['Escuela de Fundamentos', 'FUN-18', 'FCV1', 'Sección', '2026-C3'])
+    await expect(main).not.toContainText(text);
+});
+
 test('la fecha de "Última actualización" de la portada coincide con la del pie', async ({
   page,
 }) => {

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { PHASE_LABELS, PHASES, TOPICS, topicByNumber, topicsByPhase } from './consigna';
+import { COURSE, PHASE_LABELS, PHASES, TOPICS, topicByNumber, topicsByPhase } from './consigna';
 
 describe('consigna', () => {
   test('hay 13 temas numerados 1..13 en orden', () => {
@@ -33,6 +33,11 @@ describe('consigna', () => {
       'Avance 2',
       'Entrega Final',
     ]);
+  });
+  test('COURSE guarda solo lo que el sitio muestra: sin escuela, sección ni periodo', () => {
+    expect(Object.keys(COURSE).sort()).toEqual(['code', 'name', 'professor', 'university']);
+    expect(COURSE.university).toBe('Universidad CENFOTEC');
+    expect(COURSE.name).toBe('Física I');
   });
   test('topicsByPhase ordena por número cualquier lista de temas', () => {
     const shuffled = [

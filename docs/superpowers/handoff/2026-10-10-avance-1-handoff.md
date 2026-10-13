@@ -64,9 +64,10 @@ tar czf ~/portafolio-fisica-estado-local.tgz -C "$HOME/projects/university/2026/
    Resultado esperado: `public/media/tema-05-dualsense.mp4` y el póster `tema-05-dualsense.jpg`.
 2. **Lectura de los cinco textos.** Son de autoría de Dylan ante el profesor (el plagio se
    sanciona). El botón "Copiar Markdown" de cada tema entrega el texto completo.
-3. **Nombre de la escuela.** La portada dice "Universidad CENFOTEC · Escuela de Fundamentos"
-   (`COURSE.school` en `src/consigna.ts`). Viene de la especificación aprobada, no del
-   material de clase, que solo dice "Fundamentos Teórico-Prácticos". Confirmar o corregir.
+3. ~~**Nombre de la escuela.**~~ Resuelto el 13 de octubre: la portada ya no nombra la escuela
+   ni los datos del curso (código, sección, periodo); dice solo "Universidad CENFOTEC" y
+   "Física I", y el pie igual. `COURSE.school`, `section` y `period` se quitaron de
+   `src/consigna.ts` (`COURSE.code` sigue solo en la descripción de la página).
 4. ~~**Línea "Tema N · Avance X".**~~ Resuelto el 13 de octubre: se quitó de la cabecera del
    tema (la barra fija de escritorio la conserva).
 5. **Texto en leyendas.** Para respetar el tope de 650 palabras de prosa por tema, parámetros y
@@ -117,8 +118,9 @@ Avance 2 y la Entrega Final.
 - **Tema 4:** curvas de carga escaladas por μ(T)/μ_pico; ventana del C4 marcada como supuesto
   del modelo. **Tema 1:** cuatro gráficas de perfiles; el laboratorio abre con el dron en
   crucero (t = 30 s). **Temas 1 a 4:** `updated` = 2026-10-10.
-- **Portada:** lista Autor, Universidad, Curso, Docente y Última actualización (fecha del último
-  commit, compartida con el pie), botón e icono del repositorio, filas de temas sin
+- **Portada:** lista Autor, Universidad ("Universidad CENFOTEC", sin escuela), Curso
+  ("Física I", sin código, sección ni periodo), Docente y Última actualización (fecha del
+  último commit, compartida con el pie), botón e icono del repositorio, filas de temas sin
   "Caso:". El portal del curso no se enlaza. Las fases sin temas publicados muestran solo su
   encabezado y la insignia "Se publica con su consigna"; en la barra lateral quedan
   deshabilitadas, y la búsqueda solo indexa temas publicados.

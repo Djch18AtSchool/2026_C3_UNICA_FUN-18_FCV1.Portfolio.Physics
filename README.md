@@ -1,7 +1,7 @@
 # Portafolio de evidencias de Física I
 
 - **Autor:** Dylan Chaves
-- **Universidad:** Universidad CENFOTEC, Escuela de Fundamentos
+- **Universidad:** Universidad CENFOTEC
 - **Curso:** FUN-18 Física I
 - **Sección:** FCV1
 - **Periodo:** 2026-C3

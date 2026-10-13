@@ -92,13 +92,11 @@ export const RESOURCE_LABELS: Record<ResourceType, string> = {
   multimedia: 'Multimedia con análisis',
 };
 
+/** What the site states about the course; `code` only reaches the page description. */
 export const COURSE = {
   code: 'FUN-18',
   name: 'Física I',
-  section: 'FCV1',
-  period: '2026-C3',
   university: 'Universidad CENFOTEC',
-  school: 'Escuela de Fundamentos',
   professor: 'Andrés Castro Núñez',
 } as const;
 
