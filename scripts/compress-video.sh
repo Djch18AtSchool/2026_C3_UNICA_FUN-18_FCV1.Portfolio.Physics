@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Compresses the raw DualSense clip of Tema 5 to 720p H.264 (≤ 15 MB) and extracts its poster.
+# Plan B only, unused today: Tema 5 embeds a third-party video. If an own recording were required,
+# this compresses the raw DualSense clip to 720p H.264 (≤ 15 MB) and extracts its poster; the local
+# player comes back from commit cbad0a8 (see the handoff, pending item 1).
 # Usage: scripts/compress-video.sh media-raw/<clip>.mp4   (raw captures stay in media-raw/, untracked)
 set -euo pipefail
 

@@ -21,7 +21,7 @@ test-results/
 # course material kept for reference only, not part of the portfolio
 .reference/
 
-# raw video captures before compression
+# raw video captures for the Tema 5 plan B (scripts/compress-video.sh), unused today
 media-raw/
 
 # subagent-driven-development scratch
