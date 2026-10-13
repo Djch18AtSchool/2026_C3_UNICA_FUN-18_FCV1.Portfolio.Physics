@@ -1,9 +1,10 @@
 ---
 /*
- * The strip under a published topic's title, between two hairlines: what the page is (resource
- * badge, reading time, last update) on the left, what the reader can do with it on the right.
- * It also embeds the topic's Markdown for "Copiar Markdown". The halves share a row only where
- * both fit with every word; otherwise (beside the sidebar, on a phone) the tools wrap below.
+ * The strip under a published topic's concept: what the page is (resource badge, reading time,
+ * last update) on the left, what the reader can do with it on the right. No rules frame it; the
+ * spacing alone sets it apart from the concept above and the body below. It also embeds the
+ * topic's Markdown for "Copiar Markdown". The halves share a row only where both fit with every
+ * word; otherwise (beside the sidebar, on a phone) the tools wrap below.
  */
 import ResourceBadge from '../ui/ResourceBadge.astro';
 import ToolIcon from './ToolIcon';
@@ -37,7 +38,7 @@ const FACT = 'inline-flex items-center gap-1.5';
 
 <div
   data-testid="topic-meta"
-  class="mt-6 flex flex-col gap-2 border-y border-border py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-6"
+  class="mt-8 flex flex-col gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-6"
 >
   <ul
     data-testid="topic-facts"
@@ -48,11 +49,15 @@ const FACT = 'inline-flex items-center gap-1.5';
     </li>
     <li class={FACT}>
       <ToolIcon name="clock" />
-      <span><span class="font-mono">{readingMinutes(body)}</span> min de lectura</span>
+      <span>
+        <span class="font-mono">{readingMinutes(body)}</span> min de lectura
+      </span>
     </li>
     <li class={FACT}>
       <ToolIcon name="calendar" />
-      <span>Actualizado <time datetime={updatedIso}>{updatedLabel}</time></span>
+      <span>
+        Actualizado <time datetime={updatedIso}>{updatedLabel}</time>
+      </span>
     </li>
   </ul>
   <div class="-ml-2">

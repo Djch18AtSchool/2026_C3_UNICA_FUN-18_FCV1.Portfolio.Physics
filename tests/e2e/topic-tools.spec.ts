@@ -9,7 +9,12 @@ const TOPIC_2_URL = `${SITE_URL}temas/salto-personaje/`;
 const TOPIC_2_SOURCE = `${REPO_URL}/blob/main/src/content/topics/salto-personaje.mdx`;
 const DESKTOP = { width: 1280, height: 800 };
 const NARROW_DESKTOP = { width: 1024, height: 768 };
+const TABLET = { width: 768, height: 1024 };
 const PHONE = { width: 390, height: 844 };
+/** Vertical rhythm that replaces the strip's old hairlines. */
+const MIN_GAP_BEFORE_STRIP_PX = 32;
+const MIN_GAP_INSIDE_STRIP_PX = 16;
+const MIN_GAP_AFTER_STRIP_PX = 48;
 /** Viewports where the sidebar sits beside the article, so the strip is at most ~830 px wide. */
 const WITH_SIDEBAR = [DESKTOP, NARROW_DESKTOP];
 /** A word that is really on screen, not a 1 px visually-hidden box. */
@@ -54,15 +59,13 @@ for (const [slug, type] of PRESCRIBED_TYPES) {
 test.describe('cabecera de un tema publicado', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
-  test('una franja entre dos líneas reúne los metadatos y las tres herramientas', async ({
-    page,
-  }) => {
+  test('una franja sin líneas reúne los metadatos y las tres herramientas', async ({ page }) => {
     await page.goto(TOPIC_2);
 
     const strip = page.getByTestId('topic-meta');
     await expect(strip).toBeVisible();
-    await expect(strip).toHaveCSS('border-top-width', '1px');
-    await expect(strip).toHaveCSS('border-bottom-width', '1px');
+    await expect(strip).toHaveCSS('border-top-width', '0px');
+    await expect(strip).toHaveCSS('border-bottom-width', '0px');
 
     const facts = strip.getByTestId('topic-facts').locator('> li');
     await expect(facts).toHaveCount(3);
@@ -101,6 +104,35 @@ test.describe('cabecera de un tema publicado', () => {
       `Tema 2 · ${PHASE_LABELS[1]}`,
     );
   });
+
+  for (const viewport of [DESKTOP, NARROW_DESKTOP, TABLET, PHONE]) {
+    test(`a ${viewport.width} px el espaciado separa concepto, metadatos, herramientas y cuerpo`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await page.goto(TOPIC_2);
+
+      const bottomOf = async (selector: string) => {
+        const box = (await page.locator(selector).first().boundingBox())!;
+        return box.y + box.height;
+      };
+      const topOf = async (selector: string) =>
+        (await page.locator(selector).first().boundingBox())!.y;
+      const concept = await bottomOf('[data-topic-head] > p');
+      const factsTop = await topOf('[data-testid="topic-facts"]');
+      const factsBottom = await bottomOf('[data-testid="topic-facts"]');
+      const toolsTop = await topOf('[data-testid="topic-tools"]');
+      const toolsBottom = await bottomOf('[data-testid="topic-tools"]');
+      const body = await topOf('.topic-body');
+
+      // A clear rhythm stands in for the hairlines: wider before the strip and after it than
+      // inside it, so the facts and the tools still read as one group.
+      expect(factsTop - concept).toBeGreaterThanOrEqual(MIN_GAP_BEFORE_STRIP_PX);
+      if (toolsTop >= factsBottom)
+        expect(toolsTop - factsBottom).toBeGreaterThanOrEqual(MIN_GAP_INSIDE_STRIP_PX);
+      expect(body - toolsBottom).toBeGreaterThanOrEqual(MIN_GAP_AFTER_STRIP_PX);
+    });
+  }
 
   for (const viewport of [DESKTOP, NARROW_DESKTOP, PHONE]) {
     test(`a ${viewport.width} px se ven las palabras completas de los metadatos`, async ({
