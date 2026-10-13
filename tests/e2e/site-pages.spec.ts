@@ -6,7 +6,8 @@ import { TOPICS } from '../../src/consigna';
 /**
  * Topics of the Avance 2 and the Entrega Final do not exist on the site until their consigna
  * arrives: no page, no link, no name. These are the names and slugs they had while the site
- * listed them by name only; nothing built may carry them again.
+ * listed them by name only, and nothing built may carry them now. This is a guard to update
+ * when those consignas arrive: a retired name or slug may legitimately come back with them.
  */
 const RETIRED_SLUGS = [
   'frenado-regenerativo',
@@ -32,6 +33,8 @@ const RETIRED_NAMES = [
 const DIST_DIR = join(process.cwd(), 'dist');
 const TEXT_FILE = /\.(html|js|mjs|css|json|txt|xml|svg)$/;
 const FUTURE_PHASE_LABELS = ['Avance 2', 'Entrega Final'];
+/** The pages that are not a topic: the cover and the 404. */
+const NON_TOPIC_PAGES = ['404.html', 'index.html'];
 
 /** Every file under `dir`, as paths relative to it. */
 function listFiles(dir: string, prefix = ''): string[] {
@@ -49,8 +52,8 @@ test('la construcción tiene la portada, la 404 y una página por tema, nada má
     .sort();
   const topicPages = TOPICS.map((topic) => join('temas', topic.slug, 'index.html'));
 
-  expect(pages).toEqual(['404.html', 'index.html', ...topicPages].sort());
-  expect(topicPages).toHaveLength(5);
+  expect(pages).toEqual([...NON_TOPIC_PAGES, ...topicPages].sort());
+  expect(pages).toHaveLength(NON_TOPIC_PAGES.length + TOPICS.length);
 });
 
 test('ningún archivo construido nombra ni enlaza un tema futuro', () => {

@@ -1,12 +1,23 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { resetSettingsForTests } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
 import DroneLab from './DroneLab';
 
 const FOOTNOTE = 'Mi dron se detiene en cada vértice y no hay viento.';
+/**
+ * The declared route is a large JSON the lab imports lazily; under coverage instrumentation the
+ * first import can outlast findBy's 1 s default. The dataset is warmed in beforeAll, and this
+ * timeout is the margin left for the render itself.
+ */
+const LAB_READY_TIMEOUT_MS = 5_000;
+
+// Load the dataset once, so the lab's own dynamic import resolves from the module cache.
+beforeAll(async () => {
+  await import('../../../data/drone-route.json');
+});
 
 /** Identity CTM on every svg: client pixels are viewBox units, so DOM coordinates are pointer ones. */
 function mockIdentityCtm(): void {
@@ -21,7 +32,7 @@ function mockIdentityCtm(): void {
 /** Renders the lab and waits for the lazily loaded declared route. */
 async function renderLab() {
   const view = render(<DroneLab footnote={FOOTNOTE} />);
-  await screen.findByTestId('drone-lab');
+  await screen.findByTestId('drone-lab', {}, { timeout: LAB_READY_TIMEOUT_MS });
   mockIdentityCtm();
   return view;
 }
@@ -74,7 +85,7 @@ describe('DroneLab', () => {
     render(<DroneLab footnote={FOOTNOTE} />);
     expect(screen.getByRole('status')).toHaveTextContent('Cargando los datos de la ruta…');
 
-    await screen.findByTestId('drone-lab');
+    await screen.findByTestId('drone-lab', {}, { timeout: LAB_READY_TIMEOUT_MS });
 
     expect(readout('Duración de la ruta')).toBe(DECLARED_DURATION);
     expect(valueText(timeline())).toBe('t = 30,000 s');

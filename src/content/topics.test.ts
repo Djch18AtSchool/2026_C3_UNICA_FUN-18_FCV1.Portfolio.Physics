@@ -281,6 +281,11 @@ describe('topicSchema rules', () => {
   });
 
   test('un estado en el frontmatter es rechazado: no hay temas a medias', () => {
-    expect(() => topicSchema.parse({ ...valid, status: 'proximamente' })).toThrow();
+    const result = topicSchema.safeParse({ ...valid, status: 'proximamente' });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues).toEqual([
+      expect.objectContaining({ code: 'unrecognized_keys', keys: ['status'] }),
+    ]);
   });
 });
