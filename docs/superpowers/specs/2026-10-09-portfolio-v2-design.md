@@ -4,6 +4,8 @@ Fecha: 2026-10-09
 Estado: borrador para revisión de Dylan
 Base: `docs/superpowers/specs/2026-10-08-physics-portfolio-design.md` (v1). Este documento describe solo lo que cambia. Todo lo que no se menciona sigue como en la v1.
 
+> **Actualización 13 de octubre de 2026.** Los ajustes de interfaz del 13 de octubre (rama `polish/ui-adjustments`) y el retiro de los temas futuros cambian varias secciones; cada una lleva una nota como esta. El estado vigente completo está en el traspaso (`docs/superpowers/handoff/2026-10-10-avance-1-handoff.md`).
+
 ## 1. Objetivo
 
 Convertir el portafolio v1, ya publicado y revisado, en la versión que Dylan quiere entregar: misma identidad visual, pero con una portada más simple y sin información inventada, una barra lateral de documentación con buscador, una cabecera de tema con insignias y herramientas, contenido explicado en pasos incrementales justificados por el fenómeno y por la matemática, y simuladores con manipulación directa, transporte mínimo y ajustes en un panel.
@@ -19,6 +21,8 @@ Fecha de entrega del Avance 1: sábado 17 de octubre de 2026, 23:59 (el docente 
 - **Manipulación directa primero.** Arrastrar y mover es la interacción principal de cada simulador; los botones de transporte son mínimos y la animación termina al final.
 - **Ajustes fuera del lienzo.** Las opciones viven en un panel que se abre con un engranaje, con una pestaña local y una global.
 
+> **Actualización 13 de octubre de 2026.** "Nada inventado" se endureció: los temas futuros no existen en el sitio hasta que llegue su consigna, ni siquiera por nombre. El Avance 2 y la Entrega Final aparecen solo como secciones con la insignia "Se publica con su consigna".
+
 ## 3. Portada (`src/pages/index.astro`)
 
 - Debajo del título y del resumen, una lista de definición en este orden exacto, una línea por fila: Autor (Dylan Chaves), Universidad (Universidad CENFOTEC · Escuela de Fundamentos), Curso (FUN-18 Física I · Sección FCV1 · 2026-C3), Docente (Andrés Castro Núñez), Última actualización (fecha del build en español).
@@ -27,10 +31,14 @@ Fecha de entrega del Avance 1: sábado 17 de octubre de 2026, 23:59 (el docente 
 - Tabla de contenidos: se eliminan el rótulo "Temas X a Y" de cada grupo y la insignia "Publicado". Las filas muestran número, título y, en los temas publicados, el tipo de recurso. Las filas de los avances 2 y 3 muestran número, título y "Próximamente"; no muestran "Recurso por definir" ni el producto del caso.
 - El pie del sitio deja de repetir curso, sección, periodo, universidad y docente; conserva solo el enlace al repositorio y la fecha de generación del sitio.
 
+> **Actualización 13 de octubre de 2026.** La lista dice Universidad "Universidad CENFOTEC" (sin escuela) y Curso "Física I" (sin código, sección ni periodo); "Última actualización" es la fecha del último commit (`src/lib/buildDate.ts`, zona America/Costa_Rica; el build falla si git no la da), no la del build. El botón "Ver repositorio" lleva el icono en contorno. No hay filas de temas futuros: el Avance 2 y la Entrega Final muestran solo su encabezado con la insignia punteada "Se publica con su consigna". El pie dice "Actualizado el <fecha del último commit>", con el enlace "Repositorio" y "Volver arriba".
+
 ## 4. Temas futuros (6 a 13)
 
 - Esquema (`src/content/topicSchema.ts`): `concept` pasa a ser obligatorio solo cuando `status` es `publicado`. Los ocho MDX futuros quedan sin `concept`.
 - `TopicLayout` para `proximamente`: título, "Tema N · Avance X" y la frase "Se publica en el Avance 2" o "en la Entrega Final". Se retiran el concepto y la lista de secciones futuras. La prueba de contenido verifica que ningún tema `proximamente` declare `concept`.
+
+> **Actualización 13 de octubre de 2026.** Esta sección ya no rige. Los ocho MDX de los temas 6 a 13, sus entradas en `consigna.ts` y la rama `proximamente` de `TopicLayout` se eliminaron; sus direcciones responden 404. El frontmatter no lleva `status` y `concept` es obligatorio para todo tema.
 
 ## 5. Barra lateral (`src/components/nav/SideNav.astro` + `SidebarSearch.tsx`)
 
@@ -40,6 +48,8 @@ Fecha de entrega del Avance 1: sábado 17 de octubre de 2026, 23:59 (el docente 
 - **Botón de la cabecera** (en `SiteHeader`, icono de panel) abre o cierra la barra lateral en pantallas anchas y recuerda la elección (`portafolio.nav.sidebar`); en móvil sigue el cajón `<details>` actual. Desaparece el "modo foco" si existiera.
 - La prueba de accesibilidad y la de respuesta en móvil cubren ambos estados.
 
+> **Actualización 13 de octubre de 2026.** El botón de la cabecera y su clave `portafolio.nav.sidebar` se retiraron: en pantallas anchas la barra lateral está siempre visible y en móvil sigue el cajón "Temas del portafolio". Los subtemas ya no se despliegan por tema: solo el tema actual muestra siempre su índice de secciones, con la sección activa en acento. Los encabezados de fase van en mayúsculas pequeñas con −/+; las fases sin temas están deshabilitadas, con "se publica con su consigna" debajo. El estado recordado lo aplica un script inline en `SideNav`. El buscador indexa todos los temas, que hoy son todos publicados.
+
 ## 6. Página de tema (`src/layouts/TopicLayout.astro`)
 
 - Bajo el resumen: tres insignias en una fila. Tipo de recurso (componente actual), duración aproximada de lectura ("≈ N min", con N = palabras del cuerpo / 200 + 0,5 por figura o laboratorio, mínimo 1), y "Contenido actualizado el <updated del tema>". La fecha de generación del sitio solo aparece en el pie general, para que se distingan ambas.
@@ -47,6 +57,8 @@ Fecha de entrega del Avance 1: sábado 17 de octubre de 2026, 23:59 (el docente 
 - Se elimina la línea final del tema con "Actualizado el" y "Ver fuente de esta página en GitHub". Se conserva la navegación anterior y siguiente.
 - `Connections`: las dos listas se apilan en vertical, "Con otros temas" y debajo "Con lo visto en clase".
 - Figuras y laboratorios ocupan el ancho de la columna de lectura; no existe variante a dos columnas.
+
+> **Actualización 13 de octubre de 2026.** Bajo el concepto hay una franja sin bordes: insignia del recurso, "N min de lectura" y "Actualizado <updated>", y las herramientas "Copiar URL", "Copiar Markdown" y "GitHub" como botones fantasma (al copiar, el icono pasa a una marca de verificación). La cabecera no lleva "Tema N · Avance X" ni el bloque "Estado" (la barra fija de escritorio conserva "Tema N · Avance X"). Una barra de progreso de lectura de 3 px recorre el tema.
 
 ## 7. Modelo de contenido: pasos
 
@@ -67,6 +79,8 @@ Fecha de entrega del Avance 1: sábado 17 de octubre de 2026, 23:59 (el docente 
 7. `Sources`.
 
 La prueba de contenido exige al menos tres `Step`, un `Why` por `Step` y la ausencia de `## Conexiones`/`## Fuentes` manuales.
+
+> **Actualización 13 de octubre de 2026.** El frontmatter ya no lleva `status`: todo tema con archivo está publicado y `concept` es obligatorio.
 
 ### 7.3 Recorrido por tema (contenido a reescribir)
 
@@ -121,12 +135,16 @@ Las fuentes, los números y las salvedades ya verificados en la v1 se conservan;
 - Solo los temas publicados aportan encabezados. Los futuros aportan solo el título.
 - `filterIndex(index, query)` es pura y probada: normaliza acentos y mayúsculas, busca por subcadena en títulos y encabezados, devuelve temas y secciones ordenados por número.
 
+> **Actualización 13 de octubre de 2026.** `SearchEntry` ya no lleva `status` y todo tema aporta sus encabezados: no hay temas futuros en el índice.
+
 ## 10. Pruebas
 
 - Unitarias: `clockReducer` (avanza, se detiene en `duration`, `loop`, `seek` acotado), `settingsStore` (valores por defecto sin almacenamiento, persistencia, suscriptores), `filterIndex`, `readingMinutes`, `dampedSpringStep` (converge al reposo), `eulerStep`, `useDrag` (conversión de coordenadas), componentes `Step`/`Why` (no hay Container API: verificación por build y e2e), `SvgPlot` (escalas), `DroneLab` (regeneración al arrastrar), `JumpLab` (arrastre del vector cambia v0 y vx).
 - Contenido: temas `proximamente` sin `concept`; publicados con ≥ 3 `Step`, un `Why` por paso, `UseCase`, `Connections`, `Sources`; ninguna figura a dos columnas (no existe el componente).
 - E2E: portada (orden de la lista, sin conteo, sin "Publicado", sin rótulo de rango); barra lateral (buscador filtra y enlaza, avances se pliegan y recuerdan, subtemas del tema actual, botón de cabecera cierra y recuerda); cabecera de tema (tres insignias, tres herramientas, copiar URL escribe en el portapapeles); conexiones verticales; cada laboratorio: reproducir termina al final sin repetir, arrastrar cambia una lectura, el panel de ajustes abre y cierra con teclado, cambiar decimales globales afecta a dos laboratorios distintos; accesibilidad (axe) y respuesta en móvil en todas las páginas publicadas con la barra abierta y cerrada; errores de consola.
 - CI y Lighthouse como en la v1.
+
+> **Actualización 13 de octubre de 2026.** Ya no hay pruebas de temas `proximamente` ni del botón de la cabecera (retirados). Las e2e comprueban, en cambio, que el sitio construye solo la portada, la 404 y los cinco temas, que las direcciones de los temas retirados responden 404 y que ningún archivo construido los nombra.
 
 ## 11. Orden de trabajo
 
@@ -140,6 +158,8 @@ Las fuentes, los números y las salvedades ya verificados en la v1 se conservan;
 8. Pase de accesibilidad, respuesta en móvil y rendimiento.
 9. Revisión final de la rama.
 10. Lectura de Dylan, video del Tema 5, verificación y entrega.
+
+> **Actualización 13 de octubre de 2026.** El video del Tema 5 quedó resuelto con un video de terceros incrustado; queda la lectura de Dylan (traspaso, pendientes).
 
 Cada paso termina revisado y en verde antes del siguiente. Nada se publica a medias: el trabajo avanza en una rama `v2` y se integra a `main` por bloques completos (pasos 3, 4 y 5 juntos; luego cada tema), para que el sitio publicado siempre sea coherente.
 

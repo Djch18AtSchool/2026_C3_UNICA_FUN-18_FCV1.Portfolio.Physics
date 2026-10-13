@@ -4,6 +4,8 @@ Fecha: 2026-10-08
 Estado: borrador para revisión de Dylan
 Alcance de este documento: la base del sitio para las tres entregas y el contenido completo del Avance 1 (temas 1 a 5).
 
+> **Actualización 13 de octubre de 2026.** Este documento es historia de la v1. El estado vigente está en la especificación v2 (`2026-10-09-portfolio-v2-design.md`, con sus propias notas) y en el traspaso (`docs/superpowers/handoff/2026-10-10-avance-1-handoff.md`). Cada sección que ya no rige lleva una nota como esta.
+
 ## 1. Objetivo
 
 Construir la página web personal que pide la consigna del portafolio de FUN-18 Física I (Universidad CENFOTEC, sección FCV1, periodo 2026-C3): un sitio público, con repositorio público, donde cada uno de los 13 temas del curso tiene su sección con (a) un caso de uso en Ingeniería de Software y (b) el recurso de apoyo del tipo prescrito. El sitio se entrega en tres avances acumulativos. El Avance 1 cubre los temas 1 a 5 y vence el sábado 10 de octubre de 2026 a las 23:59.
@@ -45,6 +47,8 @@ Entrega Final: spring animations en interfaces; síntesis de sonido y armónicos
 
 Sus tipos de recurso se publican en las consignas siguientes. El sitio los muestra desde el día uno como "próximamente", con título provisional tomado de esta consigna.
 
+> **Actualización 13 de octubre de 2026.** Los temas futuros ya no existen en el sitio: no tienen página, archivo MDX ni entrada en `src/consigna.ts`, y sus direcciones responden 404. El Avance 2 y la Entrega Final aparecen solo como secciones con la insignia "Se publica con su consigna" (portada) o deshabilitadas (barra lateral). Sus temas entran al sitio cuando llegue su consigna.
+
 ### 2.4 Requisitos de la página
 
 - Publicada en una URL pública. Repositorio público entregado también. La calidad del código no se evalúa; el historial de commits evidencia autoría.
@@ -59,6 +63,8 @@ Sus tipos de recurso se publican en las consignas siguientes. El sitio los muest
 | Recursos de apoyo | Del tipo prescrito, elaborados por el estudiante, que enriquecen la comprensión | Una isla o figura propia por tema, con `Figure` que exige fuente y muestra el tipo (§7, §8) |
 | Cobertura y profundidad | Todos los temas, desarrollo propio, conexiones explícitas entre temas y con clase | Esquema que exige los 13 temas; bloque `Connections` con temas relacionados y referencias a módulos del curso (§4.4, §8.6) |
 | Calidad y publicación | Presentación profesional, navegación fluida, diseño cuidado, jerarquía clara, fuentes con rigor | Diseño "cuaderno de laboratorio técnico", menú persistente de 13 temas, orden fijo de secciones, despliegue continuo (§9, §11) |
+
+> **Actualización 13 de octubre de 2026.** El esquema y el menú cubren los temas que tienen consigna (hoy los cinco del Avance 1), no los 13.
 
 ## 3. Decisiones tomadas
 
@@ -77,6 +83,8 @@ Sus tipos de recurso se publican en las consignas siguientes. El sitio los muest
 | Commits | Identidad universitaria de Dylan, formato convencional, sin línea de coautoría | Configuración global de Dylan |
 | Video del tema 5 | Grabado por Dylan con su DualSense | Recurso propio, más fuerte para la rúbrica |
 | Material de clase | Extraído a `.reference/class-material/`, fuera de git | Para las conexiones con clase; no es contenido del portafolio |
+
+> **Actualización 13 de octubre de 2026.** El video del Tema 5 ya no se graba: el tema incrusta un video de terceros citado (entrevista de PlayStation Access, 2021) con análisis propio. La consigna no pide que el video sea propio; ver el traspaso, pendiente 1.
 
 ## 4. Arquitectura
 
@@ -119,12 +127,16 @@ Sus tipos de recurso se publican en las consignas siguientes. El sitio los muest
 └── README.md
 ```
 
+> **Actualización 13 de octubre de 2026.** No existe `public/media/` (el video del Tema 5 se incrusta desde YouTube), `consigna.ts` lista solo los temas con consigna y `src/content/topics/` tiene un MDX por cada uno (hoy cinco).
+
 ### 4.2 Rutas
 
 - `/`: portada. Encabezado con nombre, curso, sección, periodo y docente. Indicador "N de 13 temas publicados". Tarjetas de tema agrupadas en Avance 1, Avance 2 y Entrega Final. Cada tarjeta: número, título exacto, tipo de recurso (o "por definir"), estado, producto del caso de uso cuando está publicado.
 - `/temas/<slug>/`: una página por tema, generada estáticamente para los 13. Un tema con estado `proximamente` muestra encabezado, concepto, fase y la leyenda "Se publica en el Avance 2" o "Se publica en la Entrega Final".
 - `/404`: página con el menú de temas.
 - Toda URL interna se construye con el `base` de Astro para que funcione bajo el subdirectorio de GitHub Pages. Política de barra final: `always`.
+
+> **Actualización 13 de octubre de 2026.** La portada no lleva conteo de temas, estado ni producto del caso; solo existen las páginas de los temas publicados (no hay estado `proximamente` ni leyenda "Se publica en…"). Ver v2 §3 y su nota.
 
 ### 4.3 Orden fijo de secciones en una página de tema publicada
 
@@ -134,6 +146,8 @@ Sus tipos de recurso se publican en las consignas siguientes. El sitio los muest
 4. Conexiones: con otros temas del portafolio y con lo visto en clase.
 5. Fuentes: lista numerada.
 6. Pie: fecha de actualización, enlace "Ver fuente de esta página en GitHub", navegación anterior y siguiente.
+
+> **Actualización 13 de octubre de 2026.** La cabecera ya no lleva "Tema N · Avance X" (solo la barra fija de escritorio la conserva) y la fecha y el enlace al MDX pasaron a la franja de metadatos y herramientas bajo el concepto (v2 §6).
 
 ### 4.4 Colección de contenido
 
@@ -175,6 +189,8 @@ updated       fecha
 ```
 
 Reglas de refinamiento: un tema `publicado` exige `resourceType`, `useCase` y al menos una fuente. El build falla si no se cumplen.
+
+> **Actualización 13 de octubre de 2026.** La tabla y el esquema de arriba ya no rigen para los temas 6 a 13 ni para `status`: `consigna.ts` lista solo los temas con consigna, el frontmatter no lleva `status` (un esquema estricto lo rechaza), `number` debe existir en la consigna y `concept`, `resourceType`, `useCase`, al menos una fuente, dos relacionados y una referencia a clase son obligatorios para todo tema.
 
 ### 4.5 Flujo de datos
 
@@ -264,6 +280,8 @@ Astro para lo estático, React solo donde hay estado.
 | `SideNav` | Astro | 13 temas agrupados por fase, estado, ítem activo. Cajón en móvil |
 | `TopicCard`, `Breadcrumbs`, `PrevNext`, `ThemeToggle`, `StatusBadge`, `ResourceBadge` | Astro, salvo `ThemeToggle` que es React | Navegación y señalización |
 
+> **Actualización 13 de octubre de 2026.** `StatusBadge` ya no existe y `SideNav` lista solo los temas publicados, agrupados por fase; las fases sin temas se muestran deshabilitadas.
+
 Formateo numérico centralizado en `src/lib/format.ts` con `Intl.NumberFormat('es-CR')` para coma decimal y separador de miles con espacio fino.
 
 ## 7. Islas por tema
@@ -299,6 +317,8 @@ Formateo numérico centralizado en `src/lib/format.ts` con `Intl.NumberFormat('e
 - `HapticVideo` (React): elemento video con controles nativos, póster, pista de texto, y una lista de marcas de tiempo. Cada marca tiene título y un párrafo de análisis; al pulsar, el video salta al instante. La marca activa se resalta mientras el video avanza.
 - `SpringForceCurve` (React): control de rigidez k (50 a 600 N/m) y de posición de inicio de la resistencia (0 a 6 mm sobre un recorrido de 8 mm). Series: Hooke ideal F = k x, y modo de resistencia por tramos del gatillo. Área sombreada bajo la curva con la energía elástica en mJ. Anotación de la tercera ley: la fuerza del gatillo sobre el dedo es igual y opuesta a la del dedo sobre el gatillo.
 - El video se guarda en `public/media/` comprimido a 720p, ≤ 15 MB, con póster JPG. Tiene texto alternativo y enlace de descarga.
+
+> **Actualización 13 de octubre de 2026.** `HapticVideo` ya no reproduce un archivo local: muestra una fachada que no carga nada de YouTube hasta que el lector pulsa (`youtube-nocookie.com`), con cuatro marcas comprobadas y su análisis; sin JavaScript, la fachada y cada marca enlazan a YouTube. No hay `public/media/`, límite de 15 MB ni enlace de descarga.
 
 ## 8. Plan de contenido del Avance 1
 
@@ -351,9 +371,13 @@ Cada tema sigue las cuatro subsecciones del caso de uso. Las fuentes listadas fu
 - Conexiones: tema 4 (fuerzas de contacto), tema 10 futuro (spring animations), tema 12 futuro (resonancia); clase Módulo 2, tema 02 concepto 04 y tema 01 concepto 05.
 - Video: grabado por Dylan según el guion de §13.
 
+> **Actualización 13 de octubre de 2026.** El video es de terceros e incrustado (ver la nota de §3); el guion de §13 quedó sin uso.
+
 ### 8.6 Conexiones transversales
 
 Cada tema publicado enlaza a al menos dos temas más y cita al menos un módulo del curso en `classRefs`. Las conexiones se escriben en la prosa, no solo en la lista, para que sean "explícitas" como pide la rúbrica.
+
+> **Actualización 13 de octubre de 2026.** Las conexiones con temas futuros de §8.2, §8.3 y §8.5 (temas 7, 8, 10 y 12) y con el Tema 6 se quitaron de los textos y de `related`: cada tema enlaza solo temas publicados. El Tema 5 conserva dos relacionados con el Tema 4 y el Tema 3.
 
 ## 9. Diseño visual y UX
 
@@ -371,6 +395,8 @@ Cada tema publicado enlaza a al menos dos temas más y cita al menos un módulo 
 
 - Toda figura declara fuente. Los datos generados se etiquetan como tales y enlazan al script. Los valores de terceros llevan título, autor, año, URL y fecha de consulta.
 - No se incluyen imágenes de terceros. El video del tema 5 es propio.
+
+> **Actualización 13 de octubre de 2026.** El video del Tema 5 es de terceros, incrustado y acreditado como tal ("no es de mi autoría") en el reproductor, la figura y la fuente 8; el análisis es propio.
 - Las citas en la prosa usan `Cite` con el id de la fuente del frontmatter.
 - `src/lib/data/tyreModels.ts` guarda los parámetros de los modelos de llantas con un comentario por parámetro que indica su fuente.
 
@@ -380,6 +406,8 @@ Cada tema publicado enlaza a al menos dos temas más y cita al menos un módulo 
 - De extremo a extremo (Playwright, contra `astro preview` del build): la portada lista 13 temas con sus títulos exactos; cada tema publicado muestra las cuatro subsecciones del caso de uso, al menos una figura con línea de fuente y la lista de fuentes; en el tema 2, mover el control de gravedad cambia la lectura de altura máxima; el alternador de tema cambia el atributo del documento; ninguna página registra errores de consola; todos los enlaces internos de cada página, incluidos los de la barra lateral, resuelven con el `base` y responden 200 en preview.
 - `astro check` para tipos.
 - `ci.yml`: en push y PR, instala con pnpm, corre unitarias con cobertura mínima del 80% en `src/lib/**`, `astro check`, build y e2e.
+
+> **Actualización 13 de octubre de 2026.** Las pruebas cubren los temas con consigna, no 13: la portada lista los cinco temas, las direcciones de los temas retirados responden 404 y ningún archivo construido nombra un tema futuro (`tests/e2e/site-pages.spec.ts`).
 - `deploy.yml`: en push a `main`, build con `site` y `base` y despliegue a GitHub Pages con las acciones oficiales de Pages.
 
 ## 12. Despliegue y repositorio
@@ -404,12 +432,16 @@ Para que Dylan grabe en Astro's Playroom (preinstalado en PS5), zona Cooling Spr
 3. Anotar los segundos aproximados de inicio de resistencia, fondo y liberación; se afinan al montar.
 4. Dejar los archivos originales en `media-raw/` (fuera de git). La compresión a 720p con ffmpeg y el póster los produce un script del repo.
 
+> **Actualización 13 de octubre de 2026.** Sin uso: el Tema 5 incrusta un video de terceros. El guion, `media-raw/` (en `.gitignore`) y `scripts/compress-video.sh` quedan solo como plan B si el docente exigiera un video propio (traspaso, pendiente 1).
+
 ## 14. Manejo de errores
 
 - Build: esquema zod con mensajes que nombran el tema y el campo; `UseCase`, `Figure` y `Cite` fallan con mensaje claro si falta un slot, una fuente o un id.
 - Simulaciones: los controles acotan al rango declarado y muestran el rango; valores no finitos se reemplazan por el último válido; si un preajuste trae valores fuera de rango, se recortan y se avisa.
 - Gráficas: estado vacío con mensaje si no hay datos; sin unidad de eje, error en desarrollo.
 - Video: si falla la carga, se muestra texto alternativo, el análisis completo y el enlace de descarga.
+
+> **Actualización 13 de octubre de 2026.** Con el video incrustado, el análisis completo está siempre en la página y, sin JavaScript o si el reproductor no carga, la fachada y cada marca enlazan a YouTube.
 - Navegación: página 404 con menú; prueba e2e que detecta enlaces internos rotos.
 - Preferencias: lectura y escritura de `localStorage` envueltas en try/catch; sin almacenamiento, el tema sigue a la preferencia del sistema.
 
@@ -422,9 +454,13 @@ Para que Dylan grabe en Astro's Playroom (preinstalado en PS5), zona Cooling Spr
 
 Dependencias de Dylan: cargar la llave SSH antes del primer push; grabar el video; revisar y aprobar los cinco textos.
 
+> **Actualización 13 de octubre de 2026.** Grabar el video ya no es una dependencia. Las fechas de esta secuencia son las de la v1; la entrega del Avance 1 se movió al 17 de octubre de 2026.
+
 ## 16. Fuera de alcance
 
 Buscador, comentarios, analítica, internacionalización, PWA, CMS, cuentas de usuario, y el contenido de los temas 6 a 13 más allá de su página "próximamente".
+
+> **Actualización 13 de octubre de 2026.** Los temas 6 a 13 ya no tienen página "próximamente": no existen en el sitio hasta su consigna. El buscador de la barra lateral se añadió en la v2.
 
 ## 17. Riesgos y mitigaciones
 
@@ -436,3 +472,5 @@ Buscador, comentarios, analítica, internacionalización, PWA, CMS, cuentas de u
 | Constantes de juegos mal recordadas | Se verifican contra el código o documento fuente antes de citarlas; si no se confirman, el preajuste no se publica |
 | Tamaño del video en el repo | Compresión a 720p, ≤ 15 MB; originales fuera de git |
 | Llave SSH sin cargar en el momento del push | Avisar a Dylan al inicio; el repo y Pages se crean con gh por HTTPS, solo el push necesita SSH |
+
+> **Actualización 13 de octubre de 2026.** El riesgo del tamaño del video desapareció: no hay video en el repositorio.

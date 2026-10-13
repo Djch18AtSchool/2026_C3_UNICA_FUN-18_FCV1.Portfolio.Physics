@@ -12,6 +12,8 @@
 **Research (leer antes de las tareas 1, 11, 13, 14):** `docs/superpowers/research/2026-10-08-stack-apis.md` (APIs verificadas con un build real) y `docs/superpowers/research/2026-10-08-sources.md` (fuentes y valores confirmados para el contenido).
 **Material de clase (solo para redactar "conexiones con clase"):** `.reference/class-material/00-indice.md`.
 
+> **Actualización 13 de octubre de 2026.** Plan ejecutado; se conserva como historia. Ya no rigen: la base de 13 temas y el estado `proximamente` (Tareas 3, 11 y 13), porque el sitio solo tiene los temas con consigna y el frontmatter no lleva `status`; el conteo "N de 13 temas publicados", `StatusBadge` y la línea "Tema N · Avance X" de la cabecera (Tarea 13); el video local del Tema 5 (Review Focus 5, Tareas 20 y 22), porque el Tema 5 incrusta un video de terceros y `scripts/compress-video.sh` queda solo como plan B. El estado vigente está en el traspaso (`docs/superpowers/handoff/2026-10-10-avance-1-handoff.md`).
+
 ## Global Constraints
 
 - Node 24.14, pnpm 11.1.1; `package.json` lleva `"packageManager": "pnpm@11.1.1"` y se commitean `pnpm-lock.yaml` y `pnpm-workspace.yaml`.

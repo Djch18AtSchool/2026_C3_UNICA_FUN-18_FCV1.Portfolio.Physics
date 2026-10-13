@@ -11,6 +11,8 @@
 **Spec:** `docs/superpowers/specs/2026-10-09-portfolio-v2-design.md` (deltas) sobre `docs/superpowers/specs/2026-10-08-physics-portfolio-design.md` (v1).
 **Fuentes verificadas:** `docs/superpowers/research/2026-10-08-sources.md`. **Material de clase:** `.reference/class-material/00-indice.md`.
 
+> **Actualización 13 de octubre de 2026.** Plan ejecutado; se conserva como historia. Ya no rigen: los ocho MDX de los temas 6 a 13 y la rama `proximamente` de `TopicLayout` (Tarea 7), retirados junto con `status`; el "Sitio generado el <fecha>" del pie (Tarea 7), hoy "Actualizado el <fecha del último commit>"; `SidebarToggle`, la clave `portafolio.nav.sidebar`, los esquemas desplegables por tema y `status` en `SearchEntry` (Tarea 8); el video grabado del Tema 5 (Tareas 14 y 16), resuelto con un video de terceros incrustado. El estado vigente está en el traspaso (`docs/superpowers/handoff/2026-10-10-avance-1-handoff.md`).
+
 ## Global Constraints
 
 - El formato visual de la v1 no cambia: tokens, tipografía, utilidades y componentes de contenido se reutilizan; nada del preview descartado.
