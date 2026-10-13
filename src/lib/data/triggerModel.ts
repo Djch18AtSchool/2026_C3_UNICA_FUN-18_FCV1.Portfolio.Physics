@@ -10,8 +10,8 @@ export interface TriggerSettings {
 }
 
 /**
- * Slider ranges of Tema 5. k and x₀ are illustrative: Sony publishes no mapping from the API's
- * 0–255 `startPosition`/`force` to metres and newtons (sources document, section 15).
+ * Slider ranges of Tema 5. k and x₀ are illustrative: no published mapping turns the trigger API's
+ * 0–1 positions and intensities (Apple's GCDualSenseAdaptiveTrigger) into metres and newtons.
  */
 export const TRIGGER_LIMITS = { k: [50, 600], start: [0, 6] } as const;
 

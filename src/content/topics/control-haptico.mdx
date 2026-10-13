@@ -16,12 +16,12 @@ sources:
     publisher: 'PlayStation.com, accesorios (sección de gatillos adaptativos)'
     url: 'https://www.playstation.com/en-us/accessories/dualsense-wireless-controller/'
     accessed: '2026-10-08'
-  - id: dualsense-windows-ds5state
-    title: 'DualSense-Windows, archivo DS5State.h (enum TriggerEffectType y parámetros de los gatillos)'
-    authors: 'Ohjurot'
-    publisher: 'GitHub, licencia MIT'
-    url: 'https://github.com/Ohjurot/DualSense-Windows/blob/main/VS19_Solution/DualSenseWindows/include/DualSenseWindows/DS5State.h'
-    accessed: '2026-10-08'
+  - id: apple-gcdualsense
+    title: 'GCDualSenseAdaptiveTrigger (modos del gatillo adaptativo y posición del brazo)'
+    authors: 'Apple'
+    publisher: 'Apple Developer Documentation, framework Game Controller'
+    url: 'https://developer.apple.com/documentation/gamecontroller/gcdualsenseadaptivetrigger'
+    accessed: '2026-10-13'
   - id: thegamer-astro-playroom
     title: "Astro's Playroom: Cooling Springs PS5 - Gameplay And DualSense Impressions"
     authors: 'Kirk McKeand'
@@ -42,6 +42,20 @@ sources:
     publisher: 'Cengage Learning'
     url: 'https://cengagelatam.editorialdc.com/libros/fisica-para-ciencias-e-ingenieria-vol-1/'
     accessed: '2026-10-08'
+  - id: klein-trigger-effects
+    title: 'Factories for all DualSense trigger effects (ingeniería inversa de los efectos del gatillo)'
+    authors: 'John «Nielk1» Klein'
+    year: 2022
+    publisher: 'GitHub Gist, licencia MIT'
+    url: 'https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db'
+    accessed: '2026-10-13'
+  - id: restore-technique-2020
+    title: 'PS5 Adaptive Trigger Live Mechanics in Game - Full Teardown'
+    authors: 'Restore Technique'
+    year: 2020
+    publisher: 'YouTube, 20 de noviembre de 2020 (desmontaje del gatillo)'
+    url: 'https://www.youtube.com/watch?v=8VBZ1upH93w'
+    accessed: '2026-10-13'
 related: ['llantas-f1', 'spring-animations', 'resonancia-tacoma']
 classRefs:
   - module: 'Módulo 2'
@@ -53,7 +67,7 @@ classRefs:
   - module: 'Módulo 2'
     topic: 'Tema 04 · Energía mecánica · Concepto 03 · Energía potencial elástica'
     note: 'Uₑₗ = kx²/2: los 12,8 mJ que guardaría un resorte ideal de 400 N/m comprimido 8 mm.'
-updated: 2026-10-10
+updated: 2026-10-13
 ---
 
 import Step from '../../components/ui/Step.astro';
@@ -84,7 +98,7 @@ Lo más simple es una vibración fija: el control zumba igual apriete poco o muc
     {
       symbol: 'F_0',
       meaning:
-        'intensidad fija de la vibración, expresada como fuerza; uso 1,6 N, supuesto del modelo',
+        'amplitud fija de la fuerza con que vibra el control; uso 1,6 N, supuesto del modelo',
       unit: 'N',
     },
     { symbol: 'x', meaning: 'desplazamiento del gatillo desde el reposo', unit: 'm' },
@@ -110,7 +124,7 @@ Con <Equation inline latex="dF/dx = 0" />, la (5.1) no se invierte: de F no se d
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Fuerza sobre el dedo a lo largo del recorrido supuesto de 8 mm. La vibración fija de la ecuación (5.1) da 1,6 N a 2 mm y a 8 mm: su lectura no distingue las dos posiciones. El resorte de 400 N/m de la ecuación (5.2) da 0,8 N a 2 mm y 3,2 N a 8 mm: a un cuarto del recorrido, un cuarto de la fuerza. F₀ = 1,6 N es un supuesto del modelo, igual a la fuerza del resorte a 4 mm para poder compararlas."
+  caption="Fuerza sobre el dedo a lo largo del recorrido supuesto de 8 mm. La vibración fija de la ecuación (5.1) tiene la misma amplitud, 1,6 N, a 2 mm y a 8 mm: su lectura no distingue las dos posiciones. Además oscila alrededor de cero, así que en promedio no empuja el gatillo de vuelta. El resorte de 400 N/m de la ecuación (5.2) da 0,8 N a 2 mm y 3,2 N a 8 mm: a un cuarto del recorrido, un cuarto de la fuerza. F₀ = 1,6 N es un supuesto del modelo, igual a la fuerza del resorte a 4 mm para poder compararlas."
   source={{
     text: 'Gráfica del autor con las ecuaciones (5.1) y (5.2); recorrido de 8 mm, k y F₀ ilustrativos',
   }}
@@ -196,9 +210,9 @@ Para sostener el gatillo en x, el dedo lo empuja con <Equation inline latex="k\,
 <Figure
   type="diagrama"
   showBadge={false}
-  caption="Par de tercera ley entre el dedo y el gatillo, ecuación (5.3), no a escala: el dedo empuja el gatillo hacia abajo y el gatillo empuja el dedo hacia arriba, con el mismo módulo. Cada fuerza se dibuja sobre el cuerpo en que actúa; por eso no se anulan. Con k = 400 N/m, x₀ = 0 y el gatillo quieto al fondo, cada una vale 3,2 N."
+  caption="Par de tercera ley entre el dedo y el gatillo, ecuación (5.3), no a escala: el dedo empuja el gatillo hacia abajo y el gatillo empuja el dedo hacia arriba, con el mismo módulo. Cada fuerza se dibuja sobre el cuerpo en que actúa; por eso no se anulan. Con k = 400 N/m, x₀ = 0 y el gatillo quieto a 8 mm, cada una vale 3,2 N. En el DualSense, quien empuja el gatillo es un brazo interno que un motor mueve con un tornillo sin fin y un engranaje; un potenciómetro mide su posición."
   source={{
-    text: 'Diagrama del autor; tercera ley de Newton según Serway y Jewett (2018), fuente 5',
+    text: 'Diagrama del autor; tercera ley de Newton según Serway y Jewett (2018), fuente 5. Mecanismo visto en el desmontaje de Restore Technique (2020), fuente 7, de 0:41 a 1:46; Apple llama a la posición de ese brazo armPosition, fuente 2',
   }}
 >
   <HapticFigure variant="tercera-ley" client:visible />
@@ -208,14 +222,14 @@ Para sostener el gatillo en x, el dedo lo empuja con <Equation inline latex="k\,
 
 <Step n={4} title="Resorte virtual">
 
-Para el modo continuo, con inicio y fuerza <Cite id="dualsense-windows-ds5state" sources={frontmatter.sources} />, modelo un perfil por tramos. La rampa es supuesto mío: con un solo `force`, el firmware podría aplicar una resistencia constante, un escalón.
+La API de Apple para el DualSense tiene un modo de pendiente: la resistencia sube en recta entre dos posiciones <Cite id="apple-gcdualsense" sources={frontmatter.sources} /> <Cite id="klein-trigger-effects" sources={frontmatter.sources} />. Con intensidad inicial nula, es este perfil por tramos.
 
 <Equation
   id="ec-haptico-tramos"
   latex="F(x) = \begin{cases} 0 & x < x_0 \\ k\,(x - x_0) & x \ge x_0 \end{cases}"
   symbols={[
     { symbol: 'F', meaning: 'módulo de la resistencia del gatillo', unit: 'N' },
-    { symbol: 'x_0', meaning: 'inicio de la resistencia, el papel de startPosition', unit: 'm' },
+    { symbol: 'x_0', meaning: 'inicio de la resistencia, la posición de inicio de la API', unit: 'm' },
   ]}
 />
 
@@ -275,12 +289,12 @@ Para <Equation inline latex="x \ge x_0" />, la (5.4) es la (5.2) corrida a x₀;
   showBadge={false}
   caption={`Laboratorio del gatillo con las ecuaciones (5.2) y (5.4): arrastra la palanca, o muévela con las flechas, y la curva marca F en el x actual; al soltarla vuelve al reposo con un oscilador amortiguado, mostrado ${SLOW_MOTION} veces más lento. Con k = 400 N/m y x₀ = 0, el fondo da 3,2 N y 12,8 mJ; con x₀ = 3 mm, 2,0 N y 5,0 mJ de trabajo del dedo. Duplicar k duplica fuerza y energía; acercar x₀ al fondo recorta la rampa, y el área cae con el cuadrado del tramo que queda.`}
   source={{
-    text: 'Simulación del autor sobre src/lib/physics/spring.ts; recorrido del gatillo supuesto de 8 mm; k y x₀ ilustrativos. Efectos de los gatillos según DS5State.h de DualSense-Windows, fuente 2: el enum class TriggerEffectType trae NoResitance, ContinuousResitance, SectionResitance, EffectEx y Calibrate (las erratas son del código); el modo continuo recibe startPosition y force; el modo por tramos, startPosition y endPosition; el efecto extendido, entre otros, beginForce, middleForce, endForce y frequency; salvo keepEffect, un booleano, todos son unsigned char: enteros de 0 a 255, sin milímetros ni newtons. La documentación LaTeX del mismo repositorio intercambia force y endPosition; cito el archivo de cabecera. Lo que el modelo no da, según McMullen, de Guerrilla, en el PlayStation Blog (2021), fuente 4: en Horizon Forbidden West, “the pop of the adaptive trigger as you reach maximum draw with a bow” («el chasquido del gatillo adaptativo al llegar a la tensión máxima del arco»), un evento al final del recorrido, no una tensión que crece; un resorte ideal no hace pop.',
+    text: 'Simulación del autor sobre src/lib/physics/spring.ts; recorrido del gatillo supuesto de 8 mm; k y x₀ ilustrativos. Modos del gatillo según Apple, fuente 2: resistencia desde una posición con una sola intensidad, que da un escalón; resistencia de arma entre dos posiciones; vibración; y pendiente, que sube de una intensidad inicial a una final entre dos posiciones, la base de la ecuación (5.4). Posiciones e intensidades van de 0 a 1, sin milímetros ni newtons. Según la ingeniería inversa de Klein, fuente 6, el firmware recibe la resistencia por zonas: 10 zonas del recorrido, cada una con una intensidad entera de 0 a 8, y la pendiente se redondea a esa escalera. Lo que el modelo no da, según McMullen, de Guerrilla, en el PlayStation Blog (2021), fuente 4: en Horizon Forbidden West, “the pop of the adaptive trigger as you reach maximum draw with a bow” («el chasquido del gatillo adaptativo al llegar a la tensión máxima del arco»), un evento al final del recorrido, no una tensión que crece; un resorte ideal no hace pop.',
   }}
 >
   <TriggerLab
     client:visible
-    footnote={`Recorrido supuesto de 8 mm; k y x₀ son ilustrativos: no hay una relación publicada entre force y newtons, ni entre startPosition y milímetros. Al soltar, la palanca sigue m ẍ = −k x − c ẋ con el k del laboratorio, una masa supuesta de 20 g y c = 2√(k m), el amortiguamiento crítico, o 0,3 de él, hasta un tope en el reposo que la detiene sin rebote; la animación va ${SLOW_MOTION} veces más lenta que el retorno calculado, que dura centésimas de segundo. En el control, el resorte de retorno, de constante desconocida, suma su fuerza a la del actuador y es el que devuelve el gatillo a x = 0; aquí lo representan el k virtual y el tope, y la F de las lecturas es solo la del perfil, no toda la fuerza que siente el dedo. Lo que deja fuera: la histéresis (al soltar, un mecanismo real no devuelve la misma fuerza que al apretar), la dinámica del actuador, con su inercia y su tiempo de respuesta, su saturación, que con un k alto aplanaría la recta antes del fondo, su latencia respecto de la imagen y la batería que gasta sostener la fuerza aunque el gatillo no se mueva.`}
+    footnote={`Recorrido supuesto de 8 mm; k y x₀ son ilustrativos: no hay una relación publicada entre las intensidades de la API y los newtons, ni entre sus posiciones y los milímetros. Al soltar, la palanca sigue m ẍ = −k x − c ẋ con el k del laboratorio, una masa supuesta de 20 g y c = 2√(k m), el amortiguamiento crítico, o 0,3 de él, hasta un tope en el reposo que la detiene sin rebote; la animación va ${SLOW_MOTION} veces más lenta que el retorno calculado, que dura centésimas de segundo. En el control, el resorte de retorno del gatillo, de constante desconocida (se ve en el desmontaje de Restore Technique, fuente 7, a los 2:16), suma su fuerza a la del actuador y es el que devuelve el gatillo a x = 0; aquí lo representan el k virtual y el tope, y la F de las lecturas es solo la del perfil, no toda la fuerza que siente el dedo. Lo que deja fuera: la escalera del firmware (10 zonas de intensidad entera en lugar de la recta continua), la histéresis (al soltar, un mecanismo real no devuelve la misma fuerza que al apretar), la dinámica del actuador, con su inercia y su tiempo de respuesta, su saturación, que con un k alto aplanaría la recta antes del fondo, su latencia respecto de la imagen y la batería que gasta sostener la fuerza aunque el gatillo no se mueva.`}
   />
 </Figure>
 
@@ -296,7 +310,7 @@ Tomo los gatillos adaptativos del DualSense (PlayStation 5). Sony: "Dynamic resi
 
 <Fragment slot="ecuacion">
 
-Sony no lo documenta; la biblioteca abierta DualSense-Windows declara los efectos en `DS5State.h` <Cite id="dualsense-windows-ds5state" sources={frontmatter.sources} />. Leo sus `startPosition` y `force`, enteros de 0 a 255, como x₀ y k; no hay conversión publicada a milímetros ni newtons.
+Sony no publica su API; la de Apple da posiciones e intensidades de 0 a 1 <Cite id="apple-gcdualsense" sources={frontmatter.sources} />. Leo el inicio y la pendiente como x₀ y k; no hay conversión publicada a milímetros ni newtons.
 
 </Fragment>
 
@@ -308,7 +322,7 @@ Una tabla guionizada, escrita a mano por posición, sirve en los casos previstos
 
 <Fragment slot="balance">
 
-Se gana una fuerza continua con un parámetro físico: F crece con k, y U con k y el cuadrado del recorrido. Cuesta la saturación del actuador, la latencia y la batería; el modelo omite la histéresis, la dinámica del actuador y el resorte de retorno, que suma su fuerza.
+Se gana una fuerza continua con un parámetro físico: F crece con k, y U con k y el cuadrado del recorrido. Cuesta la saturación del actuador, la latencia y la batería; el modelo omite la histéresis, la dinámica del actuador, la escalera del firmware y el resorte de retorno, que suma su fuerza.
 
 </Fragment>
 
