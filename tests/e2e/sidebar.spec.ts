@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { PHASE_LABELS, TOPICS } from '../../src/consigna';
 import { waitForIsland } from './helpers';
 
 const DESKTOP = { width: 1280, height: 800 };
@@ -6,11 +7,27 @@ const TALL = { width: 1280, height: 2000 };
 const PHASE_1_TOPIC = './temas/dron-reparto/';
 const PHASE_2_TOPIC = './temas/frenado-regenerativo/';
 const PUBLISHED_MIN = 5;
+const FUTURE_PHASES = [2, 3] as const;
+const FUTURE_NOTE = 'se publica con su consigna';
 
 test.use({ viewport: DESKTOP });
 
 function phase(page: Page, n: number) {
   return page.locator(`nav[aria-label="Temas"] details[data-phase="${n}"]`);
+}
+
+function futurePhase(page: Page, n: number) {
+  return page.locator(`nav[aria-label="Temas"] [data-phase-future="${n}"]`);
+}
+
+/** Future phases: a disabled header and the note, with nothing of their topics. */
+async function expectFuturePhasesDisabled(page: Page): Promise<void> {
+  for (const n of FUTURE_PHASES) {
+    const header = futurePhase(page, n).getByRole('button', { name: PHASE_LABELS[n] });
+    await expect(header).toBeDisabled();
+    await expect(futurePhase(page, n)).toContainText(FUTURE_NOTE);
+    await expect(futurePhase(page, n).getByRole('link')).toHaveCount(0);
+  }
 }
 
 async function expectNoHorizontalOverflow(page: Page): Promise<void> {
@@ -21,13 +38,56 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
   expect(scrollWidth).toBeLessThanOrEqual(innerWidth);
 }
 
-test('en un tema del Avance 1, solo el Avance 1 está desplegado', async ({ page }) => {
+test('en un tema del Avance 1, el Avance 1 está desplegado y las fases futuras deshabilitadas', async ({
+  page,
+}) => {
   await page.goto(PHASE_1_TOPIC);
 
   await expect(phase(page, 1)).toHaveAttribute('open', '');
-  await expect(phase(page, 2)).not.toHaveAttribute('open');
-  await expect(phase(page, 3)).not.toHaveAttribute('open');
   await expect(phase(page, 1).locator('> summary')).toHaveText('Avance 1');
+  await expect(page.locator('nav[aria-label="Temas"] details[data-phase]')).toHaveCount(1);
+  await expectFuturePhasesDisabled(page);
+});
+
+test('los encabezados de fase van en mayúsculas pequeñas y las fases futuras no responden', async ({
+  page,
+}) => {
+  await page.goto(PHASE_1_TOPIC);
+  const summary = phase(page, 1).locator('> summary');
+  const header = futurePhase(page, 2).getByRole('button');
+
+  await expect(summary).toHaveCSS('text-transform', 'uppercase');
+  await expect(summary).toHaveCSS('font-size', '12px');
+  await expect(summary).toHaveCSS('font-weight', '600');
+  await expect(header).toHaveCSS('text-transform', 'uppercase');
+  await expect(header).not.toHaveCSS('cursor', 'pointer');
+  await header.click({ force: true });
+  await expect(futurePhase(page, 2).getByRole('link')).toHaveCount(0);
+});
+
+test('la barra no revela nombres ni conteos de los temas futuros', async ({ page }) => {
+  await page.goto(PHASE_1_TOPIC);
+  const list = page.locator('#sidenav-lista');
+  const futureTopics = TOPICS.filter((topic) => topic.phase !== 1);
+
+  const hrefs = await list
+    .getByRole('link')
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
+  for (const topic of futureTopics) {
+    expect(hrefs.some((href) => href.includes(`/temas/${topic.slug}/`))).toBe(false);
+    await expect(list).not.toContainText(topic.title);
+  }
+  await expect(list).not.toContainText('Próximamente');
+  await expect(list).not.toContainText(/\b13\b|temas?\s+\d/);
+});
+
+test('los temas publicados son filas planas con número de dos cifras', async ({ page }) => {
+  await page.goto(PHASE_1_TOPIC);
+  const links = page.locator('nav[aria-label="Temas"]').getByTestId('topic-link');
+
+  await expect(links).toHaveCount(PUBLISHED_MIN);
+  await expect(links.locator('.font-mono')).toHaveText(['01', '02', '03', '04', '05']);
+  await expect(page.locator('#sidenav-lista details:not([data-phase])')).toHaveCount(0);
 });
 
 test('un avance plegado sigue plegado al recargar', async ({ page }) => {
@@ -35,12 +95,19 @@ test('un avance plegado sigue plegado al recargar', async ({ page }) => {
 
   await phase(page, 1).locator('> summary').click();
   await expect(phase(page, 1)).not.toHaveAttribute('open');
-  await phase(page, 2).locator('> summary').click();
-  await expect(phase(page, 2)).toHaveAttribute('open', '');
   await page.reload();
 
   await expect(phase(page, 1)).not.toHaveAttribute('open');
-  await expect(phase(page, 2)).toHaveAttribute('open', '');
+  await phase(page, 1).locator('> summary').click();
+  await page.reload();
+  await expect(phase(page, 1)).toHaveAttribute('open', '');
+});
+
+test('un valor guardado de una fase futura no la abre', async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem('portafolio.nav.avance-2', 'open'));
+  await page.goto(PHASE_1_TOPIC);
+
+  await expectFuturePhasesDisabled(page);
 });
 
 test('visitar un tema sin tocar la barra no guarda el estado por defecto de los avances', async ({
@@ -60,12 +127,23 @@ test('visitar un tema sin tocar la barra no guarda el estado por defecto de los 
     Object.keys(window.localStorage).filter((key) => key.startsWith('portafolio.nav.avance-')),
   );
   expect(storedPhases).toEqual([]);
+});
 
+test('en un tema futuro el Avance 1 sigue abierto, sin fila actual', async ({ page }) => {
+  await page.goto(PHASE_2_TOPIC);
+  const nav = page.locator('nav[aria-label="Temas"]');
+
+  await expect(phase(page, 1)).toHaveAttribute('open', '');
+  await expectFuturePhasesDisabled(page);
+  await expect(nav.locator('[aria-current="page"]')).toHaveCount(0);
+  await expect(nav.locator('[data-outline-current]')).toHaveCount(0);
+});
+
+test('en un tema futuro se respeta el Avance 1 plegado', async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem('portafolio.nav.avance-1', 'closed'));
   await page.goto(PHASE_2_TOPIC);
 
-  await expect(phase(page, 2)).toHaveAttribute('open', '');
   await expect(phase(page, 1)).not.toHaveAttribute('open');
-  await expect(phase(page, 3)).not.toHaveAttribute('open');
 });
 
 test('con el almacenamiento bloqueado la página carga y el avance actual está abierto', async ({
@@ -86,26 +164,25 @@ test('con el almacenamiento bloqueado la página carga y el avance actual está 
 
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(phase(page, 1)).toHaveAttribute('open', '');
-  await expect(phase(page, 2)).not.toHaveAttribute('open');
+  await expectFuturePhasesDisabled(page);
   await phase(page, 1).locator('> summary').click();
   await expect(phase(page, 1)).not.toHaveAttribute('open');
   await expect(page.locator('nav[aria-label="Temas"]')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
-test('el esquema de cada tema publicado lista sus h2 y cada ancla existe', async ({ page }) => {
+test('el tema actual lista siempre sus h2 y cada ancla existe', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
   const published = await page
-    .locator(
-      'nav[aria-label="Temas"] li:has(> details.sidenav-outline) > a[data-testid="topic-link"]',
-    )
+    .locator('nav[aria-label="Temas"] [data-testid="topic-link"]')
     .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
   expect(published.length).toBeGreaterThanOrEqual(PUBLISHED_MIN);
 
   for (const href of published) {
     await page.goto(href);
     const outline = page.locator('nav[aria-label="Temas"] [data-outline-current]');
-    await expect(outline).toHaveAttribute('open', '');
+    await expect(outline).toHaveCount(1);
+    await expect(outline).toBeVisible();
     // Section headings only: a lab's settings <dialog> titles itself with an h2 too.
     const texts = await page.locator('.topic-body h2:not(dialog h2)').allInnerTexts();
     expect(texts.length, href).toBeGreaterThan(1);
@@ -141,12 +218,35 @@ test('el esquema marca la sección que se lee y la última al llegar al final', 
   await expect(links.and(page.locator('[aria-current="location"]'))).toHaveText(texts.at(-1) ?? '');
 });
 
-test('los esquemas de los otros temas publicados están plegados', async ({ page }) => {
+test('solo el tema actual muestra su esquema, sin desplegables por tema', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
+  const nav = page.locator('nav[aria-label="Temas"]');
 
-  const outlines = page.locator('nav[aria-label="Temas"] details.sidenav-outline');
-  await expect(outlines).toHaveCount(5);
-  await expect(outlines.and(page.locator('[open]'))).toHaveCount(1);
+  await expect(nav.locator('[data-outline-current]')).toHaveCount(1);
+  await expect(nav.locator('[data-outline-link]').first()).toBeVisible();
+  await expect(nav.locator('details.sidenav-outline')).toHaveCount(0);
+  const current = nav.locator('[aria-current="page"]');
+  await expect(current).toHaveAttribute('href', /\/temas\/dron-reparto\/$/);
+});
+
+test('la sección activa del esquema usa el color de acento', async ({ page }) => {
+  await page.setViewportSize(TALL);
+  await page.goto('./temas/llantas-f1/');
+  const links = page.locator('nav[aria-label="Temas"] [data-outline-current] a');
+  const anchor = (await links.nth(1).getAttribute('href'))?.split('#')[1] ?? '';
+  await page.evaluate((id) => document.getElementById(id)?.scrollIntoView(), anchor);
+  const active = links.and(page.locator('[aria-current="location"]'));
+  await expect(active).toHaveCount(1);
+
+  const [color, accent] = await active.evaluate((link) => {
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--accent)';
+    document.body.append(probe);
+    const result = [getComputedStyle(link).color, getComputedStyle(probe).color];
+    probe.remove();
+    return result;
+  });
+  expect(color).toBe(accent);
 });
 
 test('buscar "llantas" deja una coincidencia y su enlace navega', async ({ page }) => {

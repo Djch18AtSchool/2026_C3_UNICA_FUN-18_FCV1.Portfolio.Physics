@@ -1,0 +1,61 @@
+---
+/*
+ * A sidebar phase header in small caps with a − / + at the right. A published phase's header is
+ * the <summary> of its group (the vertical stroke hides while open); a future phase's is a
+ * disabled button that always shows the +.
+ */
+interface Props {
+  /** The phase opens and closes (published) or is still to come (future). */
+  isFuture: boolean;
+  label: string;
+  labelId?: string;
+  /** Id of the note that describes a future phase. */
+  noteId?: string;
+}
+const { isFuture, label, labelId, noteId } = Astro.props;
+const HEADER =
+  'flex w-full items-center justify-between gap-2 rounded-base px-2 py-1 text-[12px] leading-5 font-semibold tracking-[.02em] text-fg-muted uppercase';
+---
+
+{isFuture ? (
+  <button
+    type="button"
+    disabled
+    aria-describedby={noteId}
+    class:list={[HEADER, 'cursor-default opacity-60']}
+  >
+    <span>{label}</span>
+    <svg
+      class="size-3 shrink-0"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      aria-hidden="true"
+    >
+      <path d="M2.5 6h7M6 2.5v7" />
+    </svg>
+  </button>
+) : (
+  <summary
+    class:list={[
+      HEADER,
+      'mb-1 cursor-pointer list-none hover:text-fg [&::-webkit-details-marker]:hidden',
+    ]}
+  >
+    <span id={labelId}>{label}</span>
+    <svg
+      class="size-3 shrink-0"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      aria-hidden="true"
+    >
+      <path d="M2.5 6h7" />
+      <path class="group-open/phase:hidden" d="M6 2.5v7" />
+    </svg>
+  </summary>
+)}

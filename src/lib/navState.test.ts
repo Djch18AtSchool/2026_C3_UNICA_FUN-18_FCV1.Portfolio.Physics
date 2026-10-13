@@ -21,12 +21,14 @@ describe('keys', () => {
 });
 
 describe('readOpenPhases', () => {
-  test('without storage only the current phase is open', () => {
-    expect(readOpenPhases(undefined, 2)).toEqual({ 1: false, 2: true, 3: false });
+  const ALL = [1, 2, 3] as const;
+
+  test('without storage only the default phase is open', () => {
+    expect(readOpenPhases(undefined, 2, ALL)).toEqual({ 1: false, 2: true, 3: false });
   });
 
-  test('without stored values only the current phase is open', () => {
-    expect(readOpenPhases(storageWith({}), 1)).toEqual({ 1: true, 2: false, 3: false });
+  test('without stored values only the default phase is open', () => {
+    expect(readOpenPhases(storageWith({}), 1, ALL)).toEqual({ 1: true, 2: false, 3: false });
   });
 
   test('stored values win over the default', () => {
@@ -34,11 +36,11 @@ describe('readOpenPhases', () => {
       'portafolio.nav.avance-1': 'closed',
       'portafolio.nav.avance-3': 'open',
     });
-    expect(readOpenPhases(storage, 1)).toEqual({ 1: false, 2: false, 3: true });
+    expect(readOpenPhases(storage, 1, ALL)).toEqual({ 1: false, 2: false, 3: true });
   });
 
   test('ignores unknown stored values', () => {
-    expect(readOpenPhases(storageWith({ 'portafolio.nav.avance-2': 'yes' }), 2)).toEqual({
+    expect(readOpenPhases(storageWith({ 'portafolio.nav.avance-2': 'yes' }), 2, ALL)).toEqual({
       1: false,
       2: true,
       3: false,
@@ -46,7 +48,12 @@ describe('readOpenPhases', () => {
   });
 
   test('falls back to the default when storage throws', () => {
-    expect(readOpenPhases(throwing, 3)).toEqual({ 1: false, 2: false, 3: true });
+    expect(readOpenPhases(throwing, 3, ALL)).toEqual({ 1: false, 2: false, 3: true });
+  });
+
+  test('reports only the collapsible phases: a stored "open" cannot open a future phase', () => {
+    const storage = storageWith({ 'portafolio.nav.avance-2': 'open' });
+    expect(readOpenPhases(storage, 1, [1])).toEqual({ 1: true });
   });
 });
 

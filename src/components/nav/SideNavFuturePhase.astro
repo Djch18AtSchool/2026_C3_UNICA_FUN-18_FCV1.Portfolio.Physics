@@ -1,0 +1,22 @@
+---
+/*
+ * A phase with nothing published yet: a disabled header and a note, never its topics, their
+ * names or how many there are (they arrive with the phase's consigna).
+ */
+import type { Phase } from '../../consigna';
+import PhaseHeader from './PhaseHeader.astro';
+
+interface Props {
+  phase: Phase;
+  label: string;
+}
+const { phase, label } = Astro.props;
+const noteId = `sidenav-fase-${phase}-nota`;
+---
+
+<div data-phase-future={phase}>
+  <PhaseHeader isFuture label={label} noteId={noteId} />
+  <p id={noteId} class="px-2 text-[12px] leading-5 text-fg-muted">
+    se publica con su consigna
+  </p>
+</div>

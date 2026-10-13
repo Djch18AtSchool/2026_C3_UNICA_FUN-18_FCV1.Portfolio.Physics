@@ -2,7 +2,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
 
 const PHONE = { width: 375, height: 812 };
-const TOPIC_COUNT = 13;
+const PUBLISHED_COUNT = 5;
 /** WCAG 2.2 target size (minimum): a drag handle answers anywhere in a 24 × 24 px square. */
 const MIN_TARGET_PX = 24;
 /** Sub-pixel slack for layout rounding. */
@@ -36,20 +36,26 @@ test('el tema 2 no desborda en horizontal a 375 px', async ({ page }) => {
   await expectNoHorizontalOverflow(page);
 });
 
-test('el cajón de temas se abre en móvil y lista los 13 temas', async ({ page }) => {
+test('el cajón de temas se abre en móvil y lista los temas publicados', async ({ page }) => {
   await page.goto('./temas/salto-personaje/');
   const nav = page.locator('nav[aria-label="Temas"]');
+  const drawer = nav.locator('summary').first();
   const links = nav.getByTestId('topic-link');
   await expect(links.first()).toBeHidden();
+  await expect(drawer).toContainText('Temas del portafolio (tema 2)');
+  await expect(drawer).not.toContainText(/\bde\s+\d/);
 
-  await nav.locator('summary').first().click();
+  await drawer.click();
 
-  await expect(links).toHaveCount(TOPIC_COUNT);
-  await expect(
-    nav.locator('details[data-phase="1"] [data-testid="topic-link"]').first(),
-  ).toBeVisible();
-  for (const phase of [2, 3]) await nav.locator(`details[data-phase="${phase}"] > summary`).click();
+  await expect(links).toHaveCount(PUBLISHED_COUNT);
   for (const link of await links.all()) await expect(link).toBeVisible();
+  await expect(nav.locator('[data-outline-current]')).toBeVisible();
+  for (const phase of [2, 3]) {
+    const future = nav.locator(`[data-phase-future="${phase}"]`);
+    await expect(future.getByRole('button')).toBeDisabled();
+    await expect(future).toContainText('se publica con su consigna');
+  }
+  await expectNoHorizontalOverflow(page);
 });
 
 for (const width of [360, PHONE.width]) {

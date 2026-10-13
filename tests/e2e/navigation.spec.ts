@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { PHASE_LABELS, REPO_URL, TOPICS } from '../../src/consigna';
 
+const PUBLISHED_TOPICS = TOPICS.filter((topic) => topic.phase === 1);
+
 test('la portada lista los 13 temas con sus títulos exactos agrupados por avance', async ({
   page,
 }) => {
@@ -117,7 +119,7 @@ test('la barra lateral marca el tema activo y navega', async ({ page }) => {
 
   const nav = page.locator('nav[aria-label="Temas"]');
   const links = nav.getByTestId('topic-link');
-  await expect(links).toHaveCount(13);
+  await expect(links).toHaveCount(PUBLISHED_TOPICS.length);
 
   const current = nav.locator('[aria-current="page"]');
   await expect(current).toHaveCount(1);
@@ -139,5 +141,6 @@ test('la página 404 muestra la navegación', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Página no encontrada');
   const nav = page.locator('nav[aria-label="Temas"]');
   await expect(nav).toBeVisible();
-  await expect(nav.getByTestId('topic-link')).toHaveCount(13);
+  await expect(nav.getByTestId('topic-link')).toHaveCount(PUBLISHED_TOPICS.length);
+  await expect(nav.locator('[data-phase-future]')).toHaveCount(2);
 });

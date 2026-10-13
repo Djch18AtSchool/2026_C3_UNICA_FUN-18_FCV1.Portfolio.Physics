@@ -1,4 +1,4 @@
-import { PHASES, type Phase } from '../consigna';
+import type { Phase } from '../consigna';
 
 /**
  * Sidebar phase state remembered in localStorage (spec §5). The inline script in SideNav cannot
@@ -37,15 +37,22 @@ function safeWrite(storage: Writer, key: string, value: string): boolean {
   }
 }
 
-/** Each phase's remembered state; without a valid stored value only the current phase is open. */
-export function readOpenPhases(storage: Reader, currentPhase: Phase): Record<Phase, boolean> {
-  const entries = PHASES.map((phase) => {
+/**
+ * The remembered state of each collapsible phase (future phases never open); without a valid
+ * stored value only the default phase is open.
+ */
+export function readOpenPhases(
+  storage: Reader,
+  defaultPhase: Phase,
+  collapsible: readonly Phase[],
+): Partial<Record<Phase, boolean>> {
+  const entries = collapsible.map((phase) => {
     const stored = safeRead(storage, phaseKey(phase));
     if (stored === NAV_OPEN) return [phase, true];
     if (stored === NAV_CLOSED) return [phase, false];
-    return [phase, phase === currentPhase];
+    return [phase, phase === defaultPhase];
   });
-  return Object.fromEntries(entries) as Record<Phase, boolean>;
+  return Object.fromEntries(entries) as Partial<Record<Phase, boolean>>;
 }
 
 /** Persist a phase's open state; returns whether it was saved. Never throws. */
