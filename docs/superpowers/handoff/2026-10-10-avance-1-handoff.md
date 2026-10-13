@@ -16,9 +16,11 @@ con el repositorio.
   (umbral 80 % en `src/lib/**` y `src/components/**`); 15 páginas construidas; 226 pruebas e2e
   con axe sin fallos; Lighthouse en portada, Tema 1 y Tema 2: rendimiento 95 a 100,
   accesibilidad 100, buenas prácticas 100.
-- **Rama `wip/quitar-linea-tema-avance` (`caf7433`):** quita la línea "Tema N · Avance X" sobre
-  el título de los temas publicados. Es un cambio de origen desconocido que apareció en el
-  árbol de trabajo de `v2`; se guardó como rama para que Dylan decida (pendiente 4).
+- **Ajustes de interfaz del 13 de octubre (rama `polish/ui-adjustments`, sobre `v2`):** botón del
+  repositorio, chevron de los selects, sin botón de barra lateral, fecha del último commit,
+  cabecera del tema con franja de metadatos y herramientas (sin "Tema N · Avance X" ni "Estado"),
+  barra lateral plana con fases futuras deshabilitadas y barra de progreso de lectura. La rama
+  `wip/quitar-linea-tema-avance` quedó superada por estos cambios.
 
 ## Dónde está cada cosa
 
@@ -65,8 +67,8 @@ tar czf ~/portafolio-fisica-estado-local.tgz -C "$HOME/projects/university/2026/
 3. **Nombre de la escuela.** La portada dice "Universidad CENFOTEC · Escuela de Fundamentos"
    (`COURSE.school` en `src/consigna.ts`). Viene de la especificación aprobada, no del
    material de clase, que solo dice "Fundamentos Teórico-Prácticos". Confirmar o corregir.
-4. **Línea "Tema N · Avance X".** Decidir si se queda (no hacer nada) o se va (integrar la
-   rama `wip/quitar-linea-tema-avance`, que es un commit limpio sobre `v2`).
+4. ~~**Línea "Tema N · Avance X".**~~ Resuelto el 13 de octubre: se quitó de la cabecera del
+   tema (la barra fija de escritorio la conserva).
 5. **Texto en leyendas.** Para respetar el tope de 650 palabras de prosa por tema, parámetros y
    salvedades viven en leyendas de figura (800 a 1 200 palabras por tema). Opción recomendada:
    convertir los datos en tablas y recortar las leyendas. Decisión de Dylan.
@@ -117,7 +119,9 @@ Avance 2 y la Entrega Final.
   crucero (t = 30 s). **Temas 1 a 4:** `updated` = 2026-10-10.
 - **Portada:** lista Autor, Universidad, Curso, Docente y Última actualización (fecha del último
   commit, compartida con el pie), botón e icono del repositorio, filas de temas sin
-  "Caso:". El portal del curso no se enlaza.
+  "Caso:". El portal del curso no se enlaza. Las fases sin temas publicados muestran solo su
+  encabezado y la insignia "Se publica con su consigna"; en la barra lateral quedan
+  deshabilitadas, y la búsqueda solo indexa temas publicados.
 
 ## Forma de trabajo acordada
 
