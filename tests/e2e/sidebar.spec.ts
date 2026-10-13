@@ -5,8 +5,8 @@ import { waitForIsland } from './helpers';
 const DESKTOP = { width: 1280, height: 800 };
 const TALL = { width: 1280, height: 2000 };
 const PHASE_1_TOPIC = './temas/dron-reparto/';
-const PHASE_2_TOPIC = './temas/frenado-regenerativo/';
-const PUBLISHED_MIN = 5;
+const NOT_FOUND_PAGE = './no-existe/';
+const TOPICS_MIN = 5;
 const FUTURE_PHASES = [2, 3] as const;
 const FUTURE_NOTE = 'se publica con su consigna';
 
@@ -87,27 +87,28 @@ test('el encabezado de una fase futura no responde al clic ni recibe el foco', a
   }
 });
 
-test('la barra no revela nombres ni conteos de los temas futuros', async ({ page }) => {
+test('la barra solo enlaza los temas del sitio, sin conteos de temas futuros', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
   const list = page.locator('#sidenav-lista');
-  const futureTopics = TOPICS.filter((topic) => topic.phase !== 1);
 
   const hrefs = await list
     .getByRole('link')
     .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
-  for (const topic of futureTopics) {
-    expect(hrefs.some((href) => href.includes(`/temas/${topic.slug}/`))).toBe(false);
-    await expect(list).not.toContainText(topic.title);
+  for (const href of hrefs) {
+    expect(
+      TOPICS.some((topic) => href.includes(`/temas/${topic.slug}/`)),
+      href,
+    ).toBe(true);
   }
   await expect(list).not.toContainText('Próximamente');
   await expect(list).not.toContainText(/\b13\b|temas?\s+\d/);
 });
 
-test('los temas publicados son filas planas con número de dos cifras', async ({ page }) => {
+test('los temas son filas planas con número de dos cifras', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
   const links = page.locator('nav[aria-label="Temas"]').getByTestId('topic-link');
 
-  await expect(links).toHaveCount(PUBLISHED_MIN);
+  await expect(links).toHaveCount(TOPICS_MIN);
   await expect(links.locator('.font-mono')).toHaveText(['01', '02', '03', '04', '05']);
   await expect(page.locator('#sidenav-lista details:not([data-phase])')).toHaveCount(0);
 });
@@ -151,8 +152,8 @@ test('visitar un tema sin tocar la barra no guarda el estado por defecto de los 
   expect(storedPhases).toEqual([]);
 });
 
-test('en un tema futuro el Avance 1 sigue abierto, sin fila actual', async ({ page }) => {
-  await page.goto(PHASE_2_TOPIC);
+test('en la página 404 el avance en curso está abierto, sin fila actual', async ({ page }) => {
+  await page.goto(NOT_FOUND_PAGE);
   const nav = page.locator('nav[aria-label="Temas"]');
 
   await expect(phase(page, 1)).toHaveAttribute('open', '');
@@ -161,9 +162,9 @@ test('en un tema futuro el Avance 1 sigue abierto, sin fila actual', async ({ pa
   await expect(nav.locator('[data-outline-current]')).toHaveCount(0);
 });
 
-test('en un tema futuro se respeta el Avance 1 plegado', async ({ page }) => {
+test('en la página 404 se respeta el Avance 1 plegado', async ({ page }) => {
   await page.addInitScript(() => window.localStorage.setItem('portafolio.nav.avance-1', 'closed'));
-  await page.goto(PHASE_2_TOPIC);
+  await page.goto(NOT_FOUND_PAGE);
 
   await expect(phase(page, 1)).not.toHaveAttribute('open');
 });
@@ -195,12 +196,12 @@ test('con el almacenamiento bloqueado la página carga y el avance actual está 
 
 test('el tema actual lista siempre sus h2 y cada ancla existe', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
-  const published = await page
+  const topicHrefs = await page
     .locator('nav[aria-label="Temas"] [data-testid="topic-link"]')
     .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
-  expect(published.length).toBeGreaterThanOrEqual(PUBLISHED_MIN);
+  expect(topicHrefs.length).toBeGreaterThanOrEqual(TOPICS_MIN);
 
-  for (const href of published) {
+  for (const href of topicHrefs) {
     await page.goto(href);
     const outline = page.locator('nav[aria-label="Temas"] [data-outline-current]');
     await expect(outline).toHaveCount(1);
@@ -293,14 +294,11 @@ test('buscar "llantas" deja una coincidencia y su enlace navega', async ({ page 
   await expect(page).toHaveURL(/\/temas\/llantas-f1\/$/);
 });
 
-test('la búsqueda no encuentra ni cuenta los temas futuros', async ({ page }) => {
+test('la búsqueda solo encuentra y cuenta los temas del sitio', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
   await waitForIsland(page, 'input[type="search"]');
   const nav = page.locator('nav[aria-label="Temas"]');
   const search = nav.getByRole('searchbox', { name: 'Buscar en el portafolio' });
-
-  await search.fill('frenado');
-  await expect(nav.getByRole('status')).toHaveText('Sin resultados');
 
   await search.fill('a');
   const results = nav.getByRole('list', { name: 'Resultados de la búsqueda' });
@@ -308,16 +306,15 @@ test('la búsqueda no encuentra ni cuenta los temas futuros', async ({ page }) =
   const hrefs = await results
     .getByRole('link')
     .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
-  const published = TOPICS.filter((topic) => topic.phase === 1).map((topic) => topic.slug);
+  const slugs = TOPICS.map((topic) => topic.slug);
   for (const href of hrefs) {
     expect(
-      published.some((slug) => href.includes(`/temas/${slug}/`)),
+      slugs.some((slug) => href.includes(`/temas/${slug}/`)),
       href,
     ).toBe(true);
   }
   const announced = Number((await nav.getByRole('status').textContent())?.match(/\d+/)?.[0]);
-  expect(announced).toBeLessThanOrEqual(published.length);
-  await expect(results).not.toContainText('próximamente');
+  expect(announced).toBeLessThanOrEqual(slugs.length);
   await expect(results.getByRole('link').first()).toContainText(/^01/);
 });
 

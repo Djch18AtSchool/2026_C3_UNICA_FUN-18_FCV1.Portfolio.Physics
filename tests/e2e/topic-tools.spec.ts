@@ -4,7 +4,6 @@ import { SECTION_HEADINGS } from '../../src/lib/sectionHeadings';
 import { waitForIsland } from './helpers';
 
 const TOPIC_2 = './temas/salto-personaje/';
-const UPCOMING_TOPIC = './temas/frenado-regenerativo/';
 const TOPIC_2_URL = `${SITE_URL}temas/salto-personaje/`;
 const TOPIC_2_SOURCE = `${REPO_URL}/blob/main/src/content/topics/salto-personaje.mdx`;
 const DESKTOP = { width: 1280, height: 800 };
@@ -30,7 +29,7 @@ const ANCHOR_ID = SECTION_HEADINGS.Connections.slug;
 const NEAR_TOP_PX = 120;
 const OLD_FOOTER_TEXTS = ['Ver fuente de esta página en GitHub', 'Actualizado el'];
 
-/** Each published topic and its prescribed resource type (frontmatter `resourceType`). */
+/** Each topic and its prescribed resource type (frontmatter `resourceType`). */
 const PRESCRIBED_TYPES = [
   ['dron-reparto', 'visualizacion'],
   ['salto-personaje', 'simulacion'],
@@ -56,7 +55,7 @@ for (const [slug, type] of PRESCRIBED_TYPES) {
   });
 }
 
-test.describe('cabecera de un tema publicado', () => {
+test.describe('cabecera de un tema', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
   test('una franja sin líneas reúne los metadatos y las tres herramientas', async ({ page }) => {
@@ -255,14 +254,4 @@ test('un ancla deja su destino por debajo de la barra fija de escritorio', async
   );
   expect(targetTop).toBeGreaterThanOrEqual(barBottom);
   expect(targetTop).toBeLessThan(NEAR_TOP_PX);
-});
-
-test('un tema próximo no tiene franja, herramientas ni el pie anterior', async ({ page }) => {
-  await page.goto(UPCOMING_TOPIC);
-
-  await expect(page.getByTestId('topic-meta')).toHaveCount(0);
-  await expect(page.getByTestId('topic-tools')).toHaveCount(0);
-  await expect(page.locator('#topic-markdown')).toHaveCount(0);
-  for (const text of OLD_FOOTER_TEXTS)
-    await expect(page.locator('article')).not.toContainText(text);
 });

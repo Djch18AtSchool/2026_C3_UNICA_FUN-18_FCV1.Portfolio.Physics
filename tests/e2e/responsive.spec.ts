@@ -2,7 +2,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
 
 const PHONE = { width: 375, height: 812 };
-const PUBLISHED_COUNT = 5;
+const TOPIC_COUNT = 5;
 /** WCAG 2.2 target size (minimum): a drag handle answers anywhere in a 24 × 24 px square. */
 const MIN_TARGET_PX = 24;
 /** Sub-pixel slack for layout rounding. */
@@ -36,7 +36,7 @@ test('el tema 2 no desborda en horizontal a 375 px', async ({ page }) => {
   await expectNoHorizontalOverflow(page);
 });
 
-test('el cajón de temas se abre en móvil y lista los temas publicados', async ({ page }) => {
+test('el cajón de temas se abre en móvil y lista los temas', async ({ page }) => {
   await page.goto('./temas/salto-personaje/');
   const nav = page.locator('nav[aria-label="Temas"]');
   const drawer = nav.locator('summary').first();
@@ -47,7 +47,7 @@ test('el cajón de temas se abre en móvil y lista los temas publicados', async 
 
   await drawer.click();
 
-  await expect(links).toHaveCount(PUBLISHED_COUNT);
+  await expect(links).toHaveCount(TOPIC_COUNT);
   for (const link of await links.all()) await expect(link).toBeVisible();
   await expect(nav.locator('[data-outline-current]')).toBeVisible();
   for (const phase of [2, 3]) {

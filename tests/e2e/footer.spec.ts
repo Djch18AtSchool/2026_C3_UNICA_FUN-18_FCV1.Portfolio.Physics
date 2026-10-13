@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { AUTHOR, COURSE, REPO_URL } from '../../src/consigna';
 
-const PAGES = ['./', './temas/salto-personaje/', './temas/frenado-regenerativo/', './no-existe/'];
+const PAGES = ['./', './temas/salto-personaje/', './no-existe/'];
 const DESKTOP = { width: 1280, height: 900 };
 const PHONE = { width: 390, height: 844 };
 /** Touch target on a phone (Apple HIG 44 pt; WCAG 2.5.5 enhanced). */

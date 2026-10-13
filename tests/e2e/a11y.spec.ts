@@ -9,7 +9,6 @@ const PAGES = [
   { name: 'el tema 3', path: './temas/gravedad-artificial/' },
   { name: 'el tema 4', path: './temas/llantas-f1/' },
   { name: 'el tema 5', path: './temas/control-haptico/' },
-  { name: 'un tema futuro', path: './temas/frenado-regenerativo/' },
   { name: 'la página 404', path: './no-existe/' },
 ] as const;
 const THEMES = ['light', 'dark'] as const;

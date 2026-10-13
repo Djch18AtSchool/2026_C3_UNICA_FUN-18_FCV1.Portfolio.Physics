@@ -1,7 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const TOPIC = './temas/salto-personaje/';
-const UPCOMING_TOPIC = './temas/frenado-regenerativo/';
 const BAR = '[data-reading-progress]';
 const BAR_HEIGHT_PX = 3;
 const DESKTOP = { width: 1280, height: 800 };
@@ -84,11 +83,12 @@ test.describe('barra de progreso de lectura', () => {
     });
   }
 
-  test('un tema aún no publicado no tiene barra', async ({ page }) => {
-    await page.goto(UPCOMING_TOPIC);
+  test('la portada y la página 404 no tienen barra', async ({ page }) => {
+    for (const path of ['./', './no-existe/']) {
+      await page.goto(path);
 
-    await expect(page.getByTestId('upcoming-notice')).toBeVisible();
-    await expect(page.locator(BAR)).toHaveCount(0);
+      await expect(page.locator(BAR), path).toHaveCount(0);
+    }
   });
 
   test('sin JavaScript la barra no se muestra', async ({ browser }) => {

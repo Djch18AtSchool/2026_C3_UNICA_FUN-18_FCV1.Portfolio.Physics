@@ -3,9 +3,8 @@ import { TOPICS } from '../../src/consigna';
 
 const BASE_PATH = '/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics/';
 const PAGES = ['./', ...TOPICS.map((topic) => `./temas/${topic.slug}/`)];
-const PUBLISHED = TOPICS.filter((topic) => topic.phase === 1);
 
-test('todos los enlaces internos de la portada y de los 13 temas responden 200', async ({
+test('todos los enlaces internos de la portada y de los temas responden 200', async ({
   page,
   request,
 }) => {
@@ -24,10 +23,9 @@ test('todos los enlaces internos de la portada y de los 13 temas responden 200',
     found.forEach((href) => hrefs.add(href.split('#')[0]));
   }
 
-  // The index and every published topic, at minimum; every page itself answered 200 above,
-  // including the upcoming topics, which the previous/next navigation no longer links.
+  // The index and every topic, at minimum; every page itself answered 200 above.
   expect(hrefs).toContain(BASE_PATH);
-  for (const topic of PUBLISHED) expect(hrefs).toContain(`${BASE_PATH}temas/${topic.slug}/`);
+  for (const topic of TOPICS) expect(hrefs).toContain(`${BASE_PATH}temas/${topic.slug}/`);
   for (const href of hrefs) {
     const response = await request.get(href);
     expect(response.status(), href).toBe(200);
@@ -37,7 +35,7 @@ test('todos los enlaces internos de la portada y de los 13 temas responden 200',
 test('cada cita [n] se anuncia con su fuente y apunta a una entrada de Fuentes', async ({
   page,
 }) => {
-  for (const topic of PUBLISHED) {
+  for (const topic of TOPICS) {
     await page.goto(`./temas/${topic.slug}/`);
     const cites = page.locator('a.cite');
     expect(await cites.count(), topic.slug).toBeGreaterThan(0);

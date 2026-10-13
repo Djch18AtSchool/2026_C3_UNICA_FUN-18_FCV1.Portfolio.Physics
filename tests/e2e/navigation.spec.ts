@@ -1,15 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
-import { PHASE_LABELS, REPO_URL, TOPICS } from '../../src/consigna';
+import { REPO_URL, TOPICS } from '../../src/consigna';
 
-const PUBLISHED_TOPICS = TOPICS.filter((topic) => topic.phase === 1);
-
-test('la portada lista los temas publicados con sus títulos exactos agrupados por avance', async ({
+test('la portada lista los temas con sus títulos exactos agrupados por avance', async ({
   page,
 }) => {
   await page.goto('./');
 
   const links = page.getByTestId('topic-link');
-  await expect(links).toHaveText(PUBLISHED_TOPICS.map((topic) => topic.title));
+  await expect(links).toHaveText(TOPICS.map((topic) => topic.title));
 
   const groups = page.getByTestId('phase-group');
   await expect(groups).toHaveCount(3);
@@ -18,7 +16,7 @@ test('la portada lista los temas publicados con sus títulos exactos agrupados p
     'Avance 2',
     'Entrega Final',
   ]);
-  await expect(groups.nth(0).getByTestId('topic-card')).toHaveCount(PUBLISHED_TOPICS.length);
+  await expect(groups.nth(0).getByTestId('topic-card')).toHaveCount(TOPICS.length);
 
   await expect(page.locator('main')).not.toContainText('de 13 temas publicados');
   await expect(page.locator('main')).not.toContainText('Temas 1 a 5');
@@ -38,9 +36,6 @@ test('las fases futuras de la portada solo muestran su encabezado y la insignia'
     await expect(group.getByRole('listitem')).toHaveCount(0);
     await expect(group.getByTestId('upcoming-phase')).toHaveText('Se publica con su consigna');
     await expect(group.getByTestId('upcoming-phase')).toHaveCSS('border-style', 'dashed');
-  }
-  for (const topic of TOPICS.filter((item) => item.phase !== 1)) {
-    await expect(page.locator('main')).not.toContainText(topic.title);
   }
   await expect(page.locator('main')).not.toContainText('Próximamente');
 });
@@ -163,13 +158,13 @@ for (const { width, isStacked } of [
   });
 }
 
-test('las filas publicadas muestran número, título y tipo de recurso, sin el caso', async ({
+test('las filas de los temas muestran número, título y tipo de recurso, sin el caso', async ({
   page,
 }) => {
   await page.goto('./');
 
   const published = page.getByTestId('topic-card');
-  await expect(published).toHaveCount(PUBLISHED_TOPICS.length);
+  await expect(published).toHaveCount(TOPICS.length);
   await expect(page.locator('main')).not.toContainText('Caso:');
   for (const product of ['Assetto Corsa', 'Celeste', 'DualSense']) {
     await expect(published.filter({ hasText: product })).toHaveCount(0);
@@ -177,69 +172,34 @@ test('las filas publicadas muestran número, título y tipo de recurso, sin el c
   await expect(page.locator('main')).not.toContainText('Recurso por definir');
 });
 
-test('un tema próximo muestra el aviso de su avance', async ({ page }) => {
-  await page.goto('./temas/frenado-regenerativo/');
-
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    'Frenado regenerativo en un vehículo eléctrico',
-  );
-  await expect(page.getByRole('navigation', { name: 'Ruta de navegación' })).toContainText(
-    PHASE_LABELS[2],
-  );
-  await expect(page.locator('[data-topic-head]')).not.toContainText('Tema 6 ·');
-  const notice = page.getByTestId('upcoming-notice');
-  await expect(notice).toBeVisible();
-  await expect(notice).toContainText(`Se publica en el ${PHASE_LABELS[2]}`);
-  await expect(notice).not.toContainText('Caso de uso en Ingeniería del Software');
-  await expect(notice).not.toContainText('estas secciones, en este orden');
-  await expect(page.locator('main')).not.toContainText(
-    'Trabajo, energía cinética y potencia en la recuperación de energía al frenar.',
-  );
-  await expect(page.locator('main')).not.toContainText('Recurso por definir');
-  await expect(page.locator('main')).not.toContainText('Estado');
-});
-
 const PREV_NEXT = 'Tema anterior y siguiente';
-const LAST_PUBLISHED = PUBLISHED_TOPICS.at(-1)!;
-const SECOND_TO_LAST_PUBLISHED = PUBLISHED_TOPICS.at(-2)!;
+const LAST_TOPIC = TOPICS.at(-1)!;
+const SECOND_TO_LAST_TOPIC = TOPICS.at(-2)!;
 
-test('anterior y siguiente solo enlazan temas publicados', async ({ page }) => {
-  await page.goto(`./temas/${LAST_PUBLISHED.slug}/`);
+test('anterior y siguiente enlazan los temas vecinos; el último no ofrece siguiente', async ({
+  page,
+}) => {
+  await page.goto(`./temas/${LAST_TOPIC.slug}/`);
   const nav = page.getByRole('navigation', { name: PREV_NEXT });
   await expect(nav.locator('a[rel="prev"]')).toHaveAttribute(
     'href',
-    new RegExp(`/temas/${SECOND_TO_LAST_PUBLISHED.slug}/$`),
+    new RegExp(`/temas/${SECOND_TO_LAST_TOPIC.slug}/$`),
   );
   await expect(nav.locator('a[rel="next"]')).toHaveCount(0);
   await expect(nav).not.toContainText('Tema siguiente');
 
-  await page.goto(`./temas/${PUBLISHED_TOPICS[0].slug}/`);
+  await page.goto(`./temas/${TOPICS[0].slug}/`);
   await expect(page.getByRole('navigation', { name: PREV_NEXT }).locator('a')).toHaveCount(1);
   await expect(
     page.getByRole('navigation', { name: PREV_NEXT }).locator('a[rel="next"]'),
-  ).toHaveAttribute('href', new RegExp(`/temas/${PUBLISHED_TOPICS[1].slug}/$`));
-});
-
-test('un tema próximo solo vuelve al último tema publicado, rotulado como tal', async ({
-  page,
-}) => {
-  for (const upcoming of TOPICS.filter((topic) => topic.phase !== 1)) {
-    await page.goto(`./temas/${upcoming.slug}/`);
-    const nav = page.getByRole('navigation', { name: PREV_NEXT });
-    const links = nav.locator('a');
-    await expect(links, upcoming.slug).toHaveCount(1);
-    await expect(links).not.toHaveAttribute('rel', /./);
-    await expect(links).toHaveAttribute('href', new RegExp(`/temas/${LAST_PUBLISHED.slug}/$`));
-    await expect(links).toContainText('Último tema publicado');
-    await expect(nav).not.toContainText('Tema anterior');
-  }
+  ).toHaveAttribute('href', new RegExp(`/temas/${TOPICS[1].slug}/$`));
 });
 
 test('con un solo lado, la tarjeta ocupa su columna sin dejar el otro lado vacío', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto(`./temas/${LAST_PUBLISHED.slug}/`);
+  await page.goto(`./temas/${LAST_TOPIC.slug}/`);
 
   const nav = page.getByRole('navigation', { name: PREV_NEXT });
   // The previous card keeps the left column, where it sits on every other topic.
@@ -254,7 +214,7 @@ test('la barra lateral marca el tema activo y navega', async ({ page }) => {
 
   const nav = page.locator('nav[aria-label="Temas"]');
   const links = nav.getByTestId('topic-link');
-  await expect(links).toHaveCount(PUBLISHED_TOPICS.length);
+  await expect(links).toHaveCount(TOPICS.length);
 
   const current = nav.locator('[aria-current="page"]');
   await expect(current).toHaveCount(1);
@@ -276,7 +236,7 @@ test('la página 404 muestra la navegación', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Página no encontrada');
   const nav = page.locator('nav[aria-label="Temas"]');
   await expect(nav).toBeVisible();
-  await expect(nav.getByTestId('topic-link')).toHaveCount(PUBLISHED_TOPICS.length);
+  await expect(nav.getByTestId('topic-link')).toHaveCount(TOPICS.length);
   await expect(nav.locator('[data-phase-future]')).toHaveCount(2);
   await expect(page.locator('main')).not.toContainText('trece');
   await expect(page.locator('main')).toContainText('ver los temas por avance');
