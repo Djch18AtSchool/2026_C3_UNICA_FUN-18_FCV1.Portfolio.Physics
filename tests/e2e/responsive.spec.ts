@@ -63,6 +63,7 @@ for (const width of [360, PHONE.width]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: PHONE.height });
+    // Obsolete key from the removed sidebar toggle: it must stay inert, so keep it written by hand.
     await page.addInitScript(() => window.localStorage.setItem('portafolio.nav.sidebar', 'closed'));
     await page.goto('./temas/salto-personaje/');
     const nav = page.locator('nav[aria-label="Temas"]');
