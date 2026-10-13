@@ -3,12 +3,10 @@ import { TOPICS } from '../consigna';
 import {
   isPublished,
   latestPublishedPhase,
-  neighbors,
+  publishedNeighbors,
   sortByNumber,
   toTopicSummary,
 } from './topics';
-
-const sorted = TOPICS.map(({ number }) => ({ number }));
 
 describe('sortByNumber', () => {
   test('orders items by ascending topic number', () => {
@@ -32,30 +30,64 @@ describe('sortByNumber', () => {
   });
 });
 
-describe('neighbors', () => {
+describe('publishedNeighbors', () => {
+  const topic = (number: number, status: 'publicado' | 'proximamente') => ({ number, status });
+  // Topics 1 to 5 published, 6 to 13 upcoming: the Avance 1 state.
+  const all = TOPICS.map(({ number }) => topic(number, number <= 5 ? 'publicado' : 'proximamente'));
+
   test('the first topic has no previous topic', () => {
-    const { prev, next } = neighbors(sorted, 1);
+    const { prev, next } = publishedNeighbors(all, 1);
 
     expect(prev).toBeUndefined();
     expect(next?.number).toBe(2);
   });
 
-  test('the last topic has no next topic', () => {
-    const { prev, next } = neighbors(sorted, 13);
+  test('a middle published topic links to the topics on each side', () => {
+    const { prev, next } = publishedNeighbors(all, 3);
 
-    expect(prev?.number).toBe(12);
+    expect(prev?.number).toBe(2);
+    expect(next?.number).toBe(4);
+  });
+
+  test('the last published topic offers no next topic, even though topic 6 exists', () => {
+    const { prev, next } = publishedNeighbors(all, 5);
+
+    expect(prev?.number).toBe(4);
     expect(next).toBeUndefined();
   });
 
-  test('a middle topic links to the topics on each side', () => {
-    const { prev, next } = neighbors(sorted, 5);
+  test('an upcoming topic links back only to the last published topic', () => {
+    for (const number of [6, 9, 13]) {
+      const { prev, next } = publishedNeighbors(all, number);
 
-    expect(prev?.number).toBe(4);
-    expect(next?.number).toBe(6);
+      expect(prev?.number).toBe(5);
+      expect(next).toBeUndefined();
+    }
   });
 
-  test('a number that is not in the list has no neighbors', () => {
-    expect(neighbors(sorted, 99)).toEqual({});
+  test('skips an upcoming topic between two published ones', () => {
+    const gapped = [topic(1, 'publicado'), topic(2, 'proximamente'), topic(3, 'publicado')];
+
+    const { prev, next } = publishedNeighbors(gapped, 1);
+
+    expect(prev).toBeUndefined();
+    expect(next?.number).toBe(3);
+    expect(publishedNeighbors(gapped, 3).prev?.number).toBe(1);
+  });
+
+  test('accepts an unsorted list', () => {
+    const shuffled = [topic(3, 'publicado'), topic(1, 'publicado'), topic(2, 'publicado')];
+
+    const { prev, next } = publishedNeighbors(shuffled, 2);
+
+    expect(prev?.number).toBe(1);
+    expect(next?.number).toBe(3);
+  });
+
+  test('nothing published means no neighbors', () => {
+    expect(publishedNeighbors([topic(1, 'proximamente'), topic(2, 'proximamente')], 1)).toEqual(
+      {},
+    );
   });
 });
 

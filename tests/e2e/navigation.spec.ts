@@ -147,6 +147,51 @@ test('un tema próximo muestra el aviso de su avance', async ({ page }) => {
   await expect(page.locator('main')).not.toContainText('Estado');
 });
 
+const PREV_NEXT = 'Tema anterior y siguiente';
+const LAST_PUBLISHED = PUBLISHED_TOPICS.at(-1)!;
+const SECOND_TO_LAST_PUBLISHED = PUBLISHED_TOPICS.at(-2)!;
+
+test('anterior y siguiente solo enlazan temas publicados', async ({ page }) => {
+  await page.goto(`./temas/${LAST_PUBLISHED.slug}/`);
+  const nav = page.getByRole('navigation', { name: PREV_NEXT });
+  await expect(nav.locator('a[rel="prev"]')).toHaveAttribute(
+    'href',
+    new RegExp(`/temas/${SECOND_TO_LAST_PUBLISHED.slug}/$`),
+  );
+  await expect(nav.locator('a[rel="next"]')).toHaveCount(0);
+  await expect(nav).not.toContainText('Tema siguiente');
+
+  await page.goto(`./temas/${PUBLISHED_TOPICS[0].slug}/`);
+  await expect(page.getByRole('navigation', { name: PREV_NEXT }).locator('a')).toHaveCount(1);
+  await expect(
+    page.getByRole('navigation', { name: PREV_NEXT }).locator('a[rel="next"]'),
+  ).toHaveAttribute('href', new RegExp(`/temas/${PUBLISHED_TOPICS[1].slug}/$`));
+});
+
+test('un tema próximo solo vuelve al último tema publicado', async ({ page }) => {
+  for (const upcoming of TOPICS.filter((topic) => topic.phase !== 1)) {
+    await page.goto(`./temas/${upcoming.slug}/`);
+    const links = page.getByRole('navigation', { name: PREV_NEXT }).locator('a');
+    await expect(links, upcoming.slug).toHaveCount(1);
+    await expect(links).toHaveAttribute('rel', 'prev');
+    await expect(links).toHaveAttribute('href', new RegExp(`/temas/${LAST_PUBLISHED.slug}/$`));
+  }
+});
+
+test('con un solo lado, la tarjeta ocupa su columna sin dejar el otro lado vacío', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(`./temas/${LAST_PUBLISHED.slug}/`);
+
+  const nav = page.getByRole('navigation', { name: PREV_NEXT });
+  // The previous card keeps the left column, where it sits on every other topic.
+  const navBox = (await nav.boundingBox())!;
+  const prevBox = (await nav.locator('a[rel="prev"]').boundingBox())!;
+  expect(Math.round(prevBox.x)).toBe(Math.round(navBox.x));
+  await expect(nav.locator('> *')).toHaveCount(1);
+});
+
 test('la barra lateral marca el tema activo y navega', async ({ page }) => {
   await page.goto('./temas/dron-reparto/');
 

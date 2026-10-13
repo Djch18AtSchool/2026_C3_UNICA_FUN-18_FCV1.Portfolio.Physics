@@ -16,17 +16,18 @@ export function sortByNumber<T extends { number: number }>(items: readonly T[]):
   return [...items].sort((a, b) => a.number - b.number);
 }
 
-/** Previous and next items around `number` in a list already sorted by number. */
-export function neighbors<T extends { number: number }>(
-  sorted: readonly T[],
+/**
+ * The published topics just before and after `number`. Only published topics are offered, so the
+ * last published topic has no next and an upcoming topic only points back to the last published.
+ */
+export function publishedNeighbors<T extends Pick<TopicSummary, 'number' | 'status'>>(
+  topics: readonly T[],
   number: number,
 ): { prev?: T; next?: T } {
-  const index = sorted.findIndex((item) => item.number === number);
-  if (index === -1) return {};
-  return {
-    ...(index > 0 && { prev: sorted[index - 1] }),
-    ...(index < sorted.length - 1 && { next: sorted[index + 1] }),
-  };
+  const published = sortByNumber(topics.filter(isPublished));
+  const prev = published.findLast((topic) => topic.number < number);
+  const next = published.find((topic) => topic.number > number);
+  return { ...(prev && { prev }), ...(next && { next }) };
 }
 
 /** Whether a topic is published: only these show in the navigation and the search. */
