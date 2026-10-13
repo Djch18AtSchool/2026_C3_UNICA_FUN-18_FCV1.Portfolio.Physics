@@ -67,28 +67,33 @@ tar czf ~/portafolio-fisica-estado-local.tgz -C "$HOME/projects/university/2026/
 
 ## Pendientes de Dylan para cerrar el Avance 1
 
-1. **Confirmar con el docente el video del Tema 5 (opcional).** Resuelto el 13 de octubre: ya no
-   hay que grabar. La consigna pide para "Multimedia con análisis" "un video o audio
-   incrustado, acompañado de un análisis escrito propio" y exige citar "todo contenido tomado de
-   terceros (imágenes, datos, videos)"; a diferencia de la gráfica y el diagrama ("construida
-   por usted", "hecho por usted"), no pide que el video sea propio. Grabarlo fue una decisión de
-   la especificación v1, no de la consigna. El Tema 5 incrusta "A Game Developer Explains How
-   PS5's DualSense Actually Works" (PlayStation Access, 5 de agosto de 2021, `CaPHUZapCTI`), una
-   entrevista a Toshimasa Aoki (Sony Interactive Entertainment) y Mike Daly (Insomniac Games),
-   con cuatro marcadores comprobados con los subtítulos y con fotogramas: 2:18 (vibración),
-   3:18 (motores que empujan el gatillo), 4:02 (media presión) y 4:15 (la tensión crece con el
-   recorrido: el instante de la fuerza restauradora). Se eligió frente a dos anuncios oficiales
-   de PlayStation (1:26 y 20 s, animación y escenas de juego, sin explicación) y el desmontaje
-   de Restore Technique (sin narración; queda citado como fuente del mecanismo) porque es
-   oficial, tiene capítulos y en él Sony describe la curva fuerza contra recorrido. Se ve tras
-   una fachada que no carga nada de YouTube hasta que el lector pulsa (`youtube-nocookie.com`).
-   **Queda para Dylan:** la rúbrica, en el nivel Bueno, habla de un recurso "elaborado por el
-   estudiante"; si quiere certeza, confirmar con el docente que un video de terceros con
-   análisis propio cuenta. **Plan B**, solo si exigiera video propio: grabar, comprimir con
-   `bash scripts/compress-video.sh media-raw/<archivo>` (`media-raw/` está en `.gitignore`) y
-   recuperar del commit `cbad0a8` el reproductor local
-   (`src/components/topics/control-haptico/HapticVideo.tsx`) y sus tipos (`VideoMarker`,
-   `HapticVideoProps` en `src/lib/data/triggerModel.ts`). Hoy el script no se usa.
+1. **Video del Tema 5: confirmar con el docente (opcional).**
+   - **Resuelto el 13 de octubre: no hay que grabar.** La consigna pide para "Multimedia con
+     análisis" "un video o audio incrustado, acompañado de un análisis escrito propio" y exige
+     citar "todo contenido tomado de terceros (imágenes, datos, videos)"; a diferencia de la
+     gráfica y el diagrama ("construida por usted", "hecho por usted"), no pide que el video sea
+     propio. Grabarlo fue una decisión de la especificación v1, no de la consigna. El Tema 5
+     incrusta "A Game Developer Explains How PS5's DualSense Actually Works" (PlayStation
+     Access, 5 de agosto de 2021, `CaPHUZapCTI`), una entrevista a Toshimasa Aoki (Sony
+     Interactive Entertainment) y Mike Daly (Insomniac Games), con cuatro marcadores comprobados
+     con los subtítulos y con fotogramas: 2:18 (vibración), 3:18 (motores que empujan el
+     gatillo), 4:02 (media presión) y 4:15 (la tensión crece con el recorrido: el instante de la
+     fuerza restauradora). Se eligió frente a dos anuncios oficiales de PlayStation (1:26 y 20 s,
+     animación y escenas de juego, sin explicación) y el desmontaje de Restore Technique (sin
+     narración; queda citado como fuente del mecanismo) porque es oficial, tiene capítulos y en
+     él Sony describe la curva fuerza contra recorrido. Se ve tras una fachada que no carga nada
+     de YouTube hasta que el lector pulsa (`youtube-nocookie.com`).
+   - **Queda para Dylan, opcional:** la rúbrica, en el nivel Bueno, habla de un recurso
+     "elaborado por el estudiante"; si quiere certeza, confirmar con el docente que un video de
+     terceros con análisis propio cuenta.
+   - **Plan B**, solo si el docente exigiera video propio: grabar, comprimir con
+     `bash scripts/compress-video.sh media-raw/<archivo>` (`media-raw/` está en `.gitignore`;
+     hoy el script no se usa) y recuperar del commit `cbad0a8` el reproductor local
+     (`src/components/topics/control-haptico/HapticVideo.tsx`) y sus tipos (`VideoMarker`,
+     `HapticVideoProps` en `src/lib/data/triggerModel.ts`).
+   - **Advertencia:** `cbad0a8` hoy solo existe en la rama `polish/ui-adjustments`, que no está
+     en el remoto. Hay que integrarla a `main` con avance rápido (sin squash ni rebase); si no,
+     ese commit se pierde y el plan B con él.
 2. **Lectura de los cinco textos.** Son de autoría de Dylan ante el profesor (el plagio se
    sanciona). El botón "Copiar Markdown" de cada tema entrega el texto completo. Incluye las
    ediciones del 13 de octubre en "Conexiones" (pendiente 3).
@@ -104,8 +109,8 @@ tar czf ~/portafolio-fisica-estado-local.tgz -C "$HOME/projects/university/2026/
    análisis por instante del video, es el más largo: 14 min de lectura). Opción recomendada:
    convertir los datos en tablas y recortar las leyendas. Decisión de Dylan.
 5. **Integración, etiqueta y entrega.** Con los puntos anteriores resueltos: subir la rama, CI
-   en verde, integrar a `main` con avance rápido (`git push origin polish/ui-adjustments:main`)
-   y verificar las páginas vivas. Luego:
+   en verde, integrar a `main` con avance rápido (`git push origin polish/ui-adjustments:main`,
+   sin squash ni rebase: conserva `cbad0a8`, ver pendiente 1) y verificar las páginas vivas. Luego:
    ```
    git tag -a avance-1 -m "Avance 1: Temas 1 a 5"
    git push origin avance-1

@@ -395,10 +395,10 @@ Cada tema publicado enlaza a al menos dos temas más y cita al menos un módulo 
 
 - Toda figura declara fuente. Los datos generados se etiquetan como tales y enlazan al script. Los valores de terceros llevan título, autor, año, URL y fecha de consulta.
 - No se incluyen imágenes de terceros. El video del tema 5 es propio.
-
-> **Actualización 13 de octubre de 2026.** El video del Tema 5 es de terceros, incrustado y acreditado como tal ("no es de mi autoría") en el reproductor, la figura y la fuente 8; el análisis es propio.
 - Las citas en la prosa usan `Cite` con el id de la fuente del frontmatter.
 - `src/lib/data/tyreModels.ts` guarda los parámetros de los modelos de llantas con un comentario por parámetro que indica su fuente.
+
+> **Actualización 13 de octubre de 2026.** El video del Tema 5 es de terceros, incrustado y acreditado como tal ("no es de mi autoría") en el reproductor, la figura y la fuente 8; el análisis es propio.
 
 ## 11. Pruebas y CI
 
@@ -406,9 +406,9 @@ Cada tema publicado enlaza a al menos dos temas más y cita al menos un módulo 
 - De extremo a extremo (Playwright, contra `astro preview` del build): la portada lista 13 temas con sus títulos exactos; cada tema publicado muestra las cuatro subsecciones del caso de uso, al menos una figura con línea de fuente y la lista de fuentes; en el tema 2, mover el control de gravedad cambia la lectura de altura máxima; el alternador de tema cambia el atributo del documento; ninguna página registra errores de consola; todos los enlaces internos de cada página, incluidos los de la barra lateral, resuelven con el `base` y responden 200 en preview.
 - `astro check` para tipos.
 - `ci.yml`: en push y PR, instala con pnpm, corre unitarias con cobertura mínima del 80% en `src/lib/**`, `astro check`, build y e2e.
+- `deploy.yml`: en push a `main`, build con `site` y `base` y despliegue a GitHub Pages con las acciones oficiales de Pages.
 
 > **Actualización 13 de octubre de 2026.** Las pruebas cubren los temas con consigna, no 13: la portada lista los cinco temas, las direcciones de los temas retirados responden 404 y ningún archivo construido nombra un tema futuro (`tests/e2e/site-pages.spec.ts`).
-- `deploy.yml`: en push a `main`, build con `site` y `base` y despliegue a GitHub Pages con las acciones oficiales de Pages.
 
 ## 12. Despliegue y repositorio
 
@@ -440,10 +440,10 @@ Para que Dylan grabe en Astro's Playroom (preinstalado en PS5), zona Cooling Spr
 - Simulaciones: los controles acotan al rango declarado y muestran el rango; valores no finitos se reemplazan por el último válido; si un preajuste trae valores fuera de rango, se recortan y se avisa.
 - Gráficas: estado vacío con mensaje si no hay datos; sin unidad de eje, error en desarrollo.
 - Video: si falla la carga, se muestra texto alternativo, el análisis completo y el enlace de descarga.
-
-> **Actualización 13 de octubre de 2026.** Con el video incrustado, el análisis completo está siempre en la página y, sin JavaScript o si el reproductor no carga, la fachada y cada marca enlazan a YouTube.
 - Navegación: página 404 con menú; prueba e2e que detecta enlaces internos rotos.
 - Preferencias: lectura y escritura de `localStorage` envueltas en try/catch; sin almacenamiento, el tema sigue a la preferencia del sistema.
+
+> **Actualización 13 de octubre de 2026.** Con el video incrustado, el análisis completo está siempre en la página y, sin JavaScript o si el reproductor no carga, la fachada y cada marca enlazan a YouTube.
 
 ## 15. Secuencia de trabajo
 
