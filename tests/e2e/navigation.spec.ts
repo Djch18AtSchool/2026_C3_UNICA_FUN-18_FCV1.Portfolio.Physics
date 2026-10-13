@@ -91,6 +91,26 @@ test('la cabecera enlaza al repositorio con el icono de GitHub junto al tema', a
   }
 });
 
+for (const { width, isStacked } of [
+  { width: 390, isStacked: true },
+  { width: 1280, isStacked: false },
+]) {
+  test(`a ${width} px las fases futuras de la portada se maquetan igual`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('./');
+    const groups = page.getByTestId('phase-group');
+
+    for (const n of [1, 2]) {
+      const heading = await groups.nth(n).getByRole('heading', { level: 2 }).boundingBox();
+      const badge = await groups.nth(n).getByTestId('upcoming-phase').boundingBox();
+      if (!heading || !badge) throw new Error('missing heading or badge');
+      const isBelow = badge.y >= heading.y + heading.height - 1;
+      expect(isBelow, `fase ${n + 1}`).toBe(isStacked);
+      if (isStacked) expect(Math.round(badge.x)).toBe(Math.round(heading.x));
+    }
+  });
+}
+
 test('las filas publicadas muestran número, título y tipo de recurso, sin el caso', async ({
   page,
 }) => {
@@ -156,4 +176,6 @@ test('la página 404 muestra la navegación', async ({ page }) => {
   await expect(nav).toBeVisible();
   await expect(nav.getByTestId('topic-link')).toHaveCount(PUBLISHED_TOPICS.length);
   await expect(nav.locator('[data-phase-future]')).toHaveCount(2);
+  await expect(page.locator('main')).not.toContainText('trece');
+  await expect(page.locator('main')).toContainText('ver los temas por avance');
 });
