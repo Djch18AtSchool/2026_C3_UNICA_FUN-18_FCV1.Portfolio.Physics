@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { PHASE_LABELS, REPO_URL, TOPICS } from '../../src/consigna';
 
 const PUBLISHED_TOPICS = TOPICS.filter((topic) => topic.phase === 1);
@@ -103,6 +103,45 @@ test('la cabecera enlaza al repositorio con el icono de GitHub junto al tema', a
     await expect(header.locator('[data-theme-toggle]')).toBeVisible();
   }
 });
+
+const COURSE_NAME = 'Física I';
+/** Phone widths where the header title must wrap, and a narrow one to be safe. */
+const NARROW_WIDTHS = [320, 360, 390];
+
+/** How many lines the first occurrence of `phrase` spans inside the element. */
+async function linesSpanned(page: Page, selector: string, phrase: string): Promise<number> {
+  return page.locator(selector).evaluate((element, wanted) => {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      // The markup may join the words with a no-break space.
+      const text = (node.textContent ?? '').replace(/\u00a0/g, ' ');
+      const start = text.indexOf(wanted);
+      if (start === -1) continue;
+      const range = document.createRange();
+      range.setStart(node, start);
+      range.setEnd(node, start + wanted.length);
+      return new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size;
+    }
+    throw new Error(`"${wanted}" not found`);
+  }, phrase);
+}
+
+for (const width of NARROW_WIDTHS) {
+  test(`a ${width} px los títulos no separan un numeral de su palabra («Física I», «Fórmula 1»)`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto('./');
+
+    expect(await linesSpanned(page, 'header a[href$="/"] >> nth=0', COURSE_NAME)).toBe(1);
+    expect(await linesSpanned(page, 'footer p >> nth=0', COURSE_NAME)).toBe(1);
+    expect(await linesSpanned(page, 'main h1', COURSE_NAME)).toBe(1);
+
+    // A topic title keeps its numeral with the word before it too.
+    await page.goto('./temas/llantas-f1/');
+    expect(await linesSpanned(page, 'main h1', 'Fórmula 1')).toBe(1);
+  });
+}
 
 for (const { width, isStacked } of [
   { width: 390, isStacked: true },

@@ -12,6 +12,7 @@ import type { SearchEntry, SearchHeading } from '../lib/searchIndex';
 import type { TopicSummary } from '../lib/topics';
 import { SIDEBAR_ID } from '../lib/navState';
 import { phaseWithArticle } from '../lib/phases';
+import { bindNumerals } from '../lib/typography';
 
 interface Props {
   topic: TopicData & { slug: string };
@@ -53,7 +54,7 @@ const isPublished = status === 'publicado';
       <div class="flex flex-col gap-6">
         <Breadcrumbs number={number} phase={phase} />
         <header data-topic-head>
-          <h1>{title}</h1>
+          <h1>{bindNumerals(title)}</h1>
           {concept && <p class="measure mt-4 text-lg leading-relaxed">{concept}</p>}
           {isPublished && (
             <TopicMeta slug={slug} resourceType={resourceType} updated={updated} body={body} />
