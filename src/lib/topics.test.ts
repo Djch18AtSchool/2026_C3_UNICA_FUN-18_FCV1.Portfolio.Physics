@@ -4,6 +4,7 @@ import {
   isPublished,
   latestPublishedPhase,
   publishedNeighbors,
+  publishedSlugs,
   sortByNumber,
   toTopicSummary,
 } from './topics';
@@ -145,5 +146,17 @@ describe('isPublished', () => {
   test('is true only for the publicado status', () => {
     expect(isPublished({ status: 'publicado' })).toBe(true);
     expect(isPublished({ status: 'proximamente' })).toBe(false);
+  });
+});
+
+describe('publishedSlugs', () => {
+  test('holds the slug of every published topic and nothing else', () => {
+    const slugs = publishedSlugs([
+      { slug: 'dron-reparto', status: 'publicado' },
+      { slug: 'frenado-regenerativo', status: 'proximamente' },
+      { slug: 'llantas-f1', status: 'publicado' },
+    ]);
+
+    expect([...slugs].sort()).toEqual(['dron-reparto', 'llantas-f1']);
   });
 });

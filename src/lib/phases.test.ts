@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import type { Phase } from '../consigna';
-import { defaultOpenPhase, groupByPhase, topicNumberLabel } from './phases';
+import { defaultOpenPhase, groupByPhase, phaseWithArticle, topicNumberLabel } from './phases';
 
 type Status = 'publicado' | 'proximamente';
 
@@ -83,5 +83,13 @@ describe('topicNumberLabel', () => {
 
   test('keeps two-digit numbers as they are', () => {
     expect(topicNumberLabel(13)).toBe('13');
+  });
+});
+
+describe('phaseWithArticle', () => {
+  test('puts the article each delivery takes before its label', () => {
+    expect(phaseWithArticle(1)).toBe('el Avance 1');
+    expect(phaseWithArticle(2)).toBe('el Avance 2');
+    expect(phaseWithArticle(3)).toBe('la Entrega Final');
   });
 });

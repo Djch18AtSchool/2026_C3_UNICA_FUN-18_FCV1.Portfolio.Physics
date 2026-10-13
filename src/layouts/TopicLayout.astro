@@ -6,11 +6,12 @@ import ReadingProgress from '../components/nav/ReadingProgress.astro';
 import SideNav from '../components/nav/SideNav.astro';
 import TopicMeta from '../components/nav/TopicMeta.astro';
 import TopicStickyBar from '../components/nav/TopicStickyBar.astro';
-import { COURSE, PHASE_LABELS, type Phase } from '../consigna';
+import { COURSE, PHASE_LABELS } from '../consigna';
 import type { TopicData } from '../content/topicSchema';
 import type { SearchEntry, SearchHeading } from '../lib/searchIndex';
 import type { TopicSummary } from '../lib/topics';
 import { SIDEBAR_ID } from '../lib/navState';
+import { phaseWithArticle } from '../lib/phases';
 
 interface Props {
   topic: TopicData & { slug: string };
@@ -26,8 +27,6 @@ interface Props {
 const { topic, all, outlines, index, body } = Astro.props;
 const { slug, number, phase, title, shortTitle, concept, status, resourceType, updated } = topic;
 
-// "Se publica en el Avance 2" / "en la Entrega Final" (spec §4.2).
-const PHASE_ARTICLE: Record<Phase, string> = { 1: 'el', 2: 'el', 3: 'la' };
 const phaseLabel = PHASE_LABELS[phase];
 const isPublished = status === 'publicado';
 ---
@@ -74,7 +73,7 @@ const isPublished = status === 'publicado';
         >
           <div class="measure rounded-base border border-border bg-bg-elevated p-5 sm:p-6">
             <h2 id="aviso-proximamente" class="text-xl">
-              Se publica en {PHASE_ARTICLE[phase]} {phaseLabel}
+              Se publica en {phaseWithArticle(phase)}
             </h2>
           </div>
         </section>

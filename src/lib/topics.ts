@@ -35,6 +35,13 @@ export function isPublished(topic: Pick<TopicSummary, 'status'>): boolean {
   return topic.status === 'publicado';
 }
 
+/** Slugs of the published topics: the only ones another page may link to. */
+export function publishedSlugs(
+  topics: readonly Pick<TopicSummary, 'slug' | 'status'>[],
+): Set<string> {
+  return new Set(topics.filter(isPublished).map((topic) => topic.slug));
+}
+
 /** The delivery in progress: the phase of the highest-numbered published topic (else the first). */
 export function latestPublishedPhase(
   topics: readonly Pick<TopicSummary, 'number' | 'phase' | 'status'>[],

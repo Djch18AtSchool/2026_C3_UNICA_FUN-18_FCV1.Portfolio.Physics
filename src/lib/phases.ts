@@ -14,6 +14,8 @@ export interface PhaseGroup<T> {
 }
 
 const TOPIC_NUMBER_DIGITS = 2;
+/** "el Avance 2", "la Entrega Final": the article each delivery's label takes in a sentence. */
+const PHASE_ARTICLES: Record<Phase, string> = { 1: 'el', 2: 'el', 3: 'la' };
 
 /** Every phase in order with its published topics; future phases carry none. */
 export function groupByPhase<T extends PhaseTopic>(topics: readonly T[]): PhaseGroup<T>[] {
@@ -37,4 +39,9 @@ export function defaultOpenPhase(topics: readonly PhaseTopic[], currentPhase: Ph
 /** A topic number as the lists print it: 01, 02, … 13. */
 export function topicNumberLabel(number: number): string {
   return String(number).padStart(TOPIC_NUMBER_DIGITS, '0');
+}
+
+/** A delivery's label with its article, for "se publica en el Avance 2" (spec §4.2). */
+export function phaseWithArticle(phase: Phase): string {
+  return `${PHASE_ARTICLES[phase]} ${PHASE_LABELS[phase]}`;
 }
