@@ -124,6 +124,21 @@ Avance 2 y la Entrega Final.
   "Caso:". El portal del curso no se enlaza. Las fases sin temas publicados muestran solo su
   encabezado y la insignia "Se publica con su consigna"; en la barra lateral quedan
   deshabilitadas, y la búsqueda solo indexa temas publicados.
+- **Solo se enlazan temas publicados.** Anterior/siguiente se calcula entre temas publicados
+  (`publishedNeighbors`): el último publicado no ofrece "siguiente", y un tema próximo solo
+  muestra "Último tema publicado" (sin `rel="prev"`). En "Conexiones", un tema relacionado sin
+  contenido aparece solo por número y título de la consigna, apagado y sin enlace, con "se
+  publica en el Avance 2 / la Entrega Final" (`resolveRelated`). La búsqueda de la barra
+  lateral tampoco indexa temas próximos. Las páginas 6 a 13 siguen existiendo por URL.
+- **Franja del tema sin bordes:** insignia, lectura y fecha, y debajo las herramientas, sin
+  líneas; el espaciado (más amplio antes y después de la franja que dentro) hace de separador.
+- **Pie:** doble línea como el encabezado; "Portafolio de evidencias de Física I", "Dylan
+  Chaves · Universidad CENFOTEC", "Actualizado el <fecha del último commit>", enlace
+  "Repositorio" (nombre accesible "Repositorio en GitHub") y "Volver arriba". Sin escuela,
+  datos de curso ni conteos. Un solo `body > footer` (lo observa el script de la barra
+  lateral).
+- **Títulos que se parten:** "Física I" va con espacio de no separación en encabezado, portada y
+  pie, y los títulos de tema pasan por `bindNumerals` ("Fórmula 1" no se separa).
 
 ## Forma de trabajo acordada
 
