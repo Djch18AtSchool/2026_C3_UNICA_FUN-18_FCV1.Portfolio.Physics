@@ -49,9 +49,7 @@ test('en un tema del Avance 1, el Avance 1 está desplegado y las fases futuras 
   await expectFuturePhasesDisabled(page);
 });
 
-test('los encabezados de fase van en mayúsculas pequeñas y las fases futuras no responden', async ({
-  page,
-}) => {
+test('los encabezados de fase van en mayúsculas pequeñas', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
   const summary = phase(page, 1).locator('> summary');
   const header = futurePhase(page, 2).getByRole('button');
@@ -61,8 +59,32 @@ test('los encabezados de fase van en mayúsculas pequeñas y las fases futuras n
   await expect(summary).toHaveCSS('font-weight', '600');
   await expect(header).toHaveCSS('text-transform', 'uppercase');
   await expect(header).not.toHaveCSS('cursor', 'pointer');
+  // Only the + is dimmed: the label keeps the muted text color at full strength.
+  await expect(header).toHaveCSS('opacity', '1');
+  await expect(header.locator('span')).toHaveCSS('opacity', '1');
+});
+
+test('el encabezado de una fase futura no responde al clic ni recibe el foco', async ({ page }) => {
+  await page.goto(PHASE_1_TOPIC);
+  const future = futurePhase(page, 2);
+  const header = future.getByRole('button');
+  const before = {
+    html: await future.innerHTML(),
+    links: await page.locator('nav[aria-label="Temas"] a').count(),
+  };
+
   await header.click({ force: true });
-  await expect(futurePhase(page, 2).getByRole('link')).toHaveCount(0);
+
+  expect(await future.innerHTML()).toBe(before.html);
+  await expect(page.locator('nav[aria-label="Temas"] a')).toHaveCount(before.links);
+  await expect(header).not.toHaveAttribute('aria-expanded');
+
+  await page.locator('nav[aria-label="Temas"] a').last().focus();
+  for (let i = 0; i < 4; i++) {
+    await page.keyboard.press('Tab');
+    await expect(header).not.toBeFocused();
+    await expect(futurePhase(page, 3).getByRole('button')).not.toBeFocused();
+  }
 });
 
 test('la barra no revela nombres ni conteos de los temas futuros', async ({ page }) => {
@@ -221,12 +243,20 @@ test('el esquema marca la sección que se lee y la última al llegar al final', 
 test('solo el tema actual muestra su esquema, sin desplegables por tema', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
   const nav = page.locator('nav[aria-label="Temas"]');
+  const outline = nav.locator('[data-outline-current]');
 
-  await expect(nav.locator('[data-outline-current]')).toHaveCount(1);
-  await expect(nav.locator('[data-outline-link]').first()).toBeVisible();
-  await expect(nav.locator('details.sidenav-outline')).toHaveCount(0);
+  await expect(outline).toHaveCount(1);
   const current = nav.locator('[aria-current="page"]');
   await expect(current).toHaveAttribute('href', /\/temas\/dron-reparto\/$/);
+  const outlineLinks = await outline.locator('[data-outline-link]').count();
+  expect(outlineLinks).toBeGreaterThan(1);
+  await expect(nav.locator('[data-outline-link]')).toHaveCount(outlineLinks);
+  for (const href of await outline
+    .locator('[data-outline-link]')
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''))) {
+    expect(href).toMatch(/\/temas\/dron-reparto\/#/);
+  }
+  await expect(nav.locator('[data-outline-link]').first()).toBeVisible();
 });
 
 test('la sección activa del esquema usa el color de acento', async ({ page }) => {
@@ -261,6 +291,34 @@ test('buscar "llantas" deja una coincidencia y su enlace navega', async ({ page 
   await expect(nav.getByTestId('topic-link').first()).toBeHidden();
   await results.getByRole('link').click();
   await expect(page).toHaveURL(/\/temas\/llantas-f1\/$/);
+});
+
+test('la búsqueda no encuentra ni cuenta los temas futuros', async ({ page }) => {
+  await page.goto(PHASE_1_TOPIC);
+  await waitForIsland(page, 'input[type="search"]');
+  const nav = page.locator('nav[aria-label="Temas"]');
+  const search = nav.getByRole('searchbox', { name: 'Buscar en el portafolio' });
+
+  await search.fill('frenado');
+  await expect(nav.getByRole('status')).toHaveText('Sin resultados');
+
+  await search.fill('a');
+  const results = nav.getByRole('list', { name: 'Resultados de la búsqueda' });
+  await expect(results).toBeVisible();
+  const hrefs = await results
+    .getByRole('link')
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
+  const published = TOPICS.filter((topic) => topic.phase === 1).map((topic) => topic.slug);
+  for (const href of hrefs) {
+    expect(
+      published.some((slug) => href.includes(`/temas/${slug}/`)),
+      href,
+    ).toBe(true);
+  }
+  const announced = Number((await nav.getByRole('status').textContent())?.match(/\d+/)?.[0]);
+  expect(announced).toBeLessThanOrEqual(published.length);
+  await expect(results).not.toContainText('próximamente');
+  await expect(results.getByRole('link').first()).toContainText(/^01/);
 });
 
 test('una búsqueda sin coincidencias dice "Sin resultados"', async ({ page }) => {

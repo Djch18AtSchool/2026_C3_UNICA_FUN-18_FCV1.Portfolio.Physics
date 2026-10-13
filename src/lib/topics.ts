@@ -29,11 +29,16 @@ export function neighbors<T extends { number: number }>(
   };
 }
 
+/** Whether a topic is published: only these show in the navigation and the search. */
+export function isPublished(topic: Pick<TopicSummary, 'status'>): boolean {
+  return topic.status === 'publicado';
+}
+
 /** The delivery in progress: the phase of the highest-numbered published topic (else the first). */
 export function latestPublishedPhase(
   topics: readonly Pick<TopicSummary, 'number' | 'phase' | 'status'>[],
 ): Phase {
-  const published = sortByNumber(topics.filter((topic) => topic.status === 'publicado'));
+  const published = sortByNumber(topics.filter(isPublished));
   return published.at(-1)?.phase ?? PHASES[0];
 }
 

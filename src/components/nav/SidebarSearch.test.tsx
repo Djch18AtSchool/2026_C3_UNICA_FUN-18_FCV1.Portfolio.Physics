@@ -78,6 +78,14 @@ describe('SidebarSearch', () => {
     expect(screen.getByRole('status')).toHaveTextContent('1 tema encontrado');
   });
 
+  test('numbers each result with two digits, as the topic list does', () => {
+    const { input } = setup();
+
+    fireEvent.change(input, { target: { value: 'llantas' } });
+
+    expect(screen.getByRole('link')).toHaveTextContent(/^04/);
+  });
+
   test('says "Sin resultados" when nothing matches', () => {
     const { input } = setup();
 

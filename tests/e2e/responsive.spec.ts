@@ -42,7 +42,7 @@ test('el cajón de temas se abre en móvil y lista los temas publicados', async 
   const drawer = nav.locator('summary').first();
   const links = nav.getByTestId('topic-link');
   await expect(links.first()).toBeHidden();
-  await expect(drawer).toContainText('Temas del portafolio (tema 2)');
+  await expect(drawer).toContainText('Temas del portafolio (tema 02)');
   await expect(drawer).not.toContainText(/\bde\s+\d/);
 
   await drawer.click();

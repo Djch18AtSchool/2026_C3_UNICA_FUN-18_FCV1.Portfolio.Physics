@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'vitest';
 import { TOPICS } from '../consigna';
-import { latestPublishedPhase, neighbors, sortByNumber, toTopicSummary } from './topics';
+import {
+  isPublished,
+  latestPublishedPhase,
+  neighbors,
+  sortByNumber,
+  toTopicSummary,
+} from './topics';
 
 const sorted = TOPICS.map(({ number }) => ({ number }));
 
@@ -102,5 +108,12 @@ describe('latestPublishedPhase', () => {
 
   test('is the first phase while nothing is published', () => {
     expect(latestPublishedPhase([topic(1, 1, 'proximamente')])).toBe(1);
+  });
+});
+
+describe('isPublished', () => {
+  test('is true only for the publicado status', () => {
+    expect(isPublished({ status: 'publicado' })).toBe(true);
+    expect(isPublished({ status: 'proximamente' })).toBe(false);
   });
 });

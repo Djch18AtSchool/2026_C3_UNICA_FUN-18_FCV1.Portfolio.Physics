@@ -1,16 +1,17 @@
 import { useEffect, useId, useState } from 'react';
+import { topicNumberLabel } from '../../lib/phases';
 import { filterIndex, type SearchEntry } from '../../lib/searchIndex';
 import { topicUrl } from '../../lib/url';
 
 interface SidebarSearchProps {
-  /** Build-time index of every topic and the sections of the published ones. */
+  /** Build-time index of the published topics and their sections. */
   index: SearchEntry[];
   /** Id of the normal topic list, hidden while a query shows results in its place. */
   listId: string;
 }
 
 const RESULT_LINK =
-  'grid grid-cols-[1.5rem_minmax(0,1fr)] items-baseline gap-x-1 border-l-2 border-transparent py-1.5 pr-2 pl-1.5 leading-snug no-underline hover:bg-bg hover:text-fg';
+  'grid grid-cols-[1.5rem_minmax(0,1fr)] items-baseline gap-x-1 border-l-2 border-transparent py-1.5 pr-2 pl-1.5 leading-snug text-fg no-underline hover:bg-bg hover:text-fg';
 
 /** Announced as the results change; visible only when nothing matches. */
 function statusText(count: number): string {
@@ -55,15 +56,11 @@ export default function SidebarSearch({ index, listId }: SidebarSearchProps) {
         <ul aria-label="Resultados de la búsqueda" className="flex flex-col">
           {results.map(({ entry, headings }) => (
             <li key={entry.slug}>
-              <a
-                href={topicUrl(entry.slug)}
-                className={`${RESULT_LINK} ${entry.status === 'publicado' ? 'text-fg' : 'text-fg-muted'}`}
-              >
-                <span className="text-right font-mono text-xs">{entry.number}</span>
-                <span className="pl-1.5">
-                  {entry.shortTitle}
-                  {entry.status !== 'publicado' && <span className="sr-only"> (próximamente)</span>}
+              <a href={topicUrl(entry.slug)} className={RESULT_LINK}>
+                <span className="text-right font-mono text-xs text-fg-muted">
+                  {topicNumberLabel(entry.number)}
                 </span>
+                <span className="pl-1.5">{entry.shortTitle}</span>
               </a>
               {headings.length > 0 && (
                 <ul className="mb-1 ml-[2.125rem] flex flex-col border-l border-border">

@@ -11,12 +11,9 @@ interface Props {
   label: string;
 }
 const { phase, label } = Astro.props;
-const noteId = `sidenav-fase-${phase}-nota`;
 ---
 
 <div data-phase-future={phase}>
-  <PhaseHeader isFuture label={label} noteId={noteId} />
-  <p id={noteId} class="px-2 text-[12px] leading-5 text-fg-muted">
-    se publica con su consigna
-  </p>
+  <PhaseHeader isFuture label={label} />
+  <p class="px-2 text-[12px] leading-5 text-fg-muted">se publica con su consigna</p>
 </div>

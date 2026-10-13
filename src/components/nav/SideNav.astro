@@ -1,9 +1,9 @@
 ---
 import { PHASES, type Phase } from '../../consigna';
 import { NAV_CLOSED, NAV_OPEN, phaseKey } from '../../lib/navState';
-import { defaultOpenPhase, groupByPhase } from '../../lib/phases';
+import { defaultOpenPhase, groupByPhase, topicNumberLabel } from '../../lib/phases';
 import type { SearchEntry, SearchHeading } from '../../lib/searchIndex';
-import type { TopicSummary } from '../../lib/topics';
+import { isPublished, type TopicSummary } from '../../lib/topics';
 import SideNavFuturePhase from './SideNavFuturePhase.astro';
 import SideNavPhase from './SideNavPhase.astro';
 import SidebarSearch from './SidebarSearch';
@@ -27,6 +27,8 @@ const { topics, current, outlines, index, currentPhase, isOpen = false } = Astro
 const currentTopic = topics.find((topic) => topic.slug === current);
 const groups = groupByPhase(topics);
 const openPhase = defaultOpenPhase(topics, currentPhase);
+// Future topics have no content yet, so the search neither finds nor counts them.
+const searchIndex = index.filter(isPublished);
 const LIST_ID = 'sidenav-lista';
 const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phase)]));
 // One list serves both layouts: a closed <details> drawer on narrow screens (no JS), and on
@@ -44,7 +46,7 @@ const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phas
         {currentTopic && (
           <span class="font-normal text-fg-muted">
             {' '}
-            (tema <span class="font-mono">{currentTopic.number}</span>)
+            (tema <span class="font-mono">{topicNumberLabel(currentTopic.number)}</span>)
           </span>
         )}
       </span>
@@ -62,7 +64,7 @@ const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phas
       </svg>
     </summary>
     <div class="flex flex-col gap-5 border-t border-border px-2 pt-3 pb-4 lg:border-0 lg:p-0">
-      <SidebarSearch client:idle index={index} listId={LIST_ID} />
+      <SidebarSearch client:idle index={searchIndex} listId={LIST_ID} />
       <div id={LIST_ID} class="flex flex-col gap-5">
         {groups.map(({ phase, label, topics: published, isFuture }) =>
           isFuture ? (

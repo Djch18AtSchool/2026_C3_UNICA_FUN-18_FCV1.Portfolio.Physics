@@ -1,5 +1,5 @@
 import { PHASE_LABELS, PHASES, topicsByPhase, type Phase } from '../consigna';
-import { latestPublishedPhase, type TopicSummary } from './topics';
+import { isPublished, latestPublishedPhase, type TopicSummary } from './topics';
 
 type PhaseTopic = Pick<TopicSummary, 'number' | 'phase' | 'status'>;
 
@@ -14,8 +14,6 @@ export interface PhaseGroup<T> {
 }
 
 const TOPIC_NUMBER_DIGITS = 2;
-
-const isPublished = (topic: PhaseTopic) => topic.status === 'publicado';
 
 /** Every phase in order with its published topics; future phases carry none. */
 export function groupByPhase<T extends PhaseTopic>(topics: readonly T[]): PhaseGroup<T>[] {
