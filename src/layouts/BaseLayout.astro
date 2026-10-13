@@ -53,7 +53,7 @@ const pageUrl = hasCanonical ? canonicalUrl(Astro.url.pathname, SITE_URL) : unde
         stored === 'light' || stored === 'dark' ? stored : prefersDark ? 'dark' : 'light';
     </script>
   </head>
-  <body class="flex min-h-dvh flex-col">
+  <body id="top" class="flex min-h-dvh flex-col">
     <a
       href="#contenido"
       class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-4 focus:z-50 focus:rounded-base focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-fg"

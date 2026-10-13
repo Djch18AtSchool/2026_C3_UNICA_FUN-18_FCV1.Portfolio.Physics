@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { GITHUB_OUTLINE_PATH } from '../ui/githubMark';
 
-export type ToolIconName = 'copy' | 'check' | 'github' | 'external' | 'clock' | 'calendar';
+export type ToolIconName =
+  'copy' | 'check' | 'github' | 'external' | 'clock' | 'calendar' | 'arrow-up';
 
 /** Line icons drawn like the rest of the site's: 24-unit grid, 1.6 stroke, round ends. */
 const SHAPES: Record<ToolIconName, ReactNode> = {
@@ -26,6 +27,7 @@ const SHAPES: Record<ToolIconName, ReactNode> = {
       <path d="M3.5 10h17M8 3v4M16 3v4" />
     </>
   ),
+  'arrow-up': <path d="M12 19V5m-6 6 6-6 6 6" />,
 };
 
 interface ToolIconProps {

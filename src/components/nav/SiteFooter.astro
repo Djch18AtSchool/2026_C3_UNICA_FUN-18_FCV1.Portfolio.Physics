@@ -1,15 +1,42 @@
 ---
-import { REPO_URL } from '../../consigna';
+/*
+ * The page foot, closing the sheet the way the header opens it (a double rule): who made the
+ * portfolio and where, when it last changed (the last commit's day), and two ways onward.
+ * Only one <footer> sits under <body>: the sidebar's script watches it.
+ */
+import ToolIcon from './ToolIcon';
+import GithubIcon from '../ui/GithubIcon.astro';
+import { AUTHOR, COURSE, REPO_URL } from '../../consigna';
 import { BUILD_DATE_ISO, BUILD_DATE_LABEL } from '../../lib/buildDate';
+
+const LINK =
+  'inline-flex items-center gap-1.5 text-fg-muted no-underline transition-colors hover:text-fg';
 ---
 
-<footer class="mt-16 border-t border-border">
-  <div class="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 pt-8 pb-10 text-sm text-fg-muted sm:flex-row sm:items-end sm:justify-between sm:px-6">
-    <p>
-      <a href={REPO_URL}>Ver repositorio</a>
-    </p>
-    <p>
-      Actualizado el <time datetime={BUILD_DATE_ISO}>{BUILD_DATE_LABEL}</time>
-    </p>
+<footer class="mt-16 border-t-[3px] border-double border-border">
+  <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pt-8 pb-10 text-sm leading-snug sm:flex-row sm:items-end sm:justify-between sm:px-6">
+    <div class="flex flex-col gap-1">
+      <p class="font-semibold tracking-tight text-fg">Portafolio de evidencias de Física I</p>
+      <p class="text-fg-muted">
+        {AUTHOR} · {COURSE.university}
+      </p>
+      <p class="mt-2 text-fg-muted">
+        Actualizado el <time datetime={BUILD_DATE_ISO}>{BUILD_DATE_LABEL}</time>
+      </p>
+    </div>
+    <ul class="flex flex-wrap items-center gap-x-6 gap-y-2">
+      <li class="flex">
+        <a href={REPO_URL} class={LINK}>
+          <GithubIcon variant="outline" />
+          Repositorio
+        </a>
+      </li>
+      <li class="flex">
+        <a href="#top" class={LINK}>
+          <ToolIcon name="arrow-up" />
+          Volver arriba
+        </a>
+      </li>
+    </ul>
   </div>
 </footer>
