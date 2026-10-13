@@ -1,12 +1,17 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
 
+/** `inline`: short selects the lab must show, each one on the same row as its label. */
 const LABS = [
-  { path: './temas/dron-reparto/', testId: 'drone-lab' },
-  { path: './temas/salto-personaje/', testId: 'jump-lab' },
-  { path: './temas/gravedad-artificial/', testId: 'habitat-lab' },
-  { path: './temas/llantas-f1/', testId: 'tyre-lab' },
-  { path: './temas/control-haptico/', testId: 'trigger-lab' },
+  { path: './temas/dron-reparto/', testId: 'drone-lab', inline: ['Movimiento'] },
+  {
+    path: './temas/salto-personaje/',
+    testId: 'jump-lab',
+    inline: ['Integrador', 'Velocidad', 'Movimiento'],
+  },
+  { path: './temas/gravedad-artificial/', testId: 'habitat-lab', inline: ['Movimiento'] },
+  { path: './temas/llantas-f1/', testId: 'tyre-lab', inline: ['Movimiento'] },
+  { path: './temas/control-haptico/', testId: 'trigger-lab', inline: ['Movimiento'] },
 ] as const;
 const VIEWPORTS = [
   { name: '1280', size: { width: 1280, height: 800 } },
@@ -14,8 +19,6 @@ const VIEWPORTS = [
 ] as const;
 const SCHEMES = ['light', 'dark'] as const;
 const TABS = ['Este simulador', 'Global'] as const;
-/** Selects that must keep label and control on one row. */
-const INLINE_SELECTS = ['Integrador', 'Velocidad', 'Movimiento'] as const;
 const SAME_ROW_TOLERANCE_PX = 6;
 const SUBPIXEL_PX = 1;
 
@@ -41,7 +44,8 @@ async function selectLongestAndMeasure(select: Locator): Promise<SelectMetrics> 
       .value;
   });
   await select.selectOption(longest);
-  return select.evaluate((node) => {
+  return select.evaluate(async (node) => {
+    await document.fonts.ready;
     const element = node as HTMLSelectElement;
     const dialog = element.closest('dialog') as HTMLDialogElement;
     const labelNode = document.querySelector(`label[for="${element.id}"]`) as HTMLElement;
@@ -96,6 +100,7 @@ for (const viewport of VIEWPORTS) {
           await page.goto(lab.path);
           const dialog = await openSettings(page, lab.testId);
           let checked = 0;
+          const inlineChecked: string[] = [];
 
           for (const tabName of TABS) {
             await dialog.getByRole('tab', { name: tabName }).click();
@@ -114,7 +119,8 @@ for (const viewport of VIEWPORTS) {
               expect(metrics.textWidth, `${where} recorta el texto`).toBeLessThanOrEqual(
                 metrics.textRoom + SUBPIXEL_PX,
               );
-              if (INLINE_SELECTS.includes(metrics.label as (typeof INLINE_SELECTS)[number])) {
+              if ((lab.inline as readonly string[]).includes(metrics.label)) {
+                inlineChecked.push(metrics.label);
                 expect(
                   Math.abs(metrics.centerY - metrics.labelCenterY),
                   `${where} debería seguir en línea con su etiqueta`,
@@ -125,6 +131,7 @@ for (const viewport of VIEWPORTS) {
           }
 
           expect(checked).toBeGreaterThan(0);
+          expect(inlineChecked.sort()).toEqual([...lab.inline].sort());
           for (const tabName of TABS) {
             await dialog.getByRole('tab', { name: tabName }).click();
             const strays = await dialog.evaluate((node) => {

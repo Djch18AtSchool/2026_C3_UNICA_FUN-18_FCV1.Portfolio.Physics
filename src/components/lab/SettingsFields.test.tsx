@@ -11,7 +11,7 @@ const OPTIONS = [
 afterEach(cleanup);
 
 describe('SelectField', () => {
-  test('wraps the native select with its own aria-hidden chevron', () => {
+  test('labels the native select and hides its decorative chevron from assistive tech', () => {
     const { container } = render(
       <SelectField
         id="integrator"
@@ -22,58 +22,16 @@ describe('SelectField', () => {
       />,
     );
 
-    const select = screen.getByLabelText('Integrador');
-    const wrapper = select.parentElement as HTMLElement;
-    const chevron = wrapper.querySelector('svg');
+    const select = screen.getByLabelText('Integrador') as HTMLSelectElement;
 
-    expect(wrapper.className).toContain('relative');
-    expect(select.className).toContain('appearance-none');
-    expect(chevron?.getAttribute('aria-hidden')).toBe('true');
-    expect(chevron?.getAttribute('class')).toContain('pointer-events-none');
+    expect(select.tagName).toBe('SELECT');
+    expect(select.value).toBe('rk4');
+    expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+      'RK4',
+      'Euler',
+    ]);
     expect(container.querySelectorAll('select')).toHaveLength(1);
-  });
-
-  test('keeps a short select on one row with its label', () => {
-    render(
-      <SelectField
-        id="integrator"
-        label="Integrador"
-        value="rk4"
-        options={OPTIONS}
-        onChange={vi.fn()}
-      />,
-    );
-
-    const row = screen.getByLabelText('Integrador').parentElement?.parentElement as HTMLElement;
-
-    expect(row.className).toContain('justify-between');
-    expect(row.className).not.toContain('flex-col');
-  });
-
-  test('stacks a long option under its label and gives the select the full width', () => {
-    const longOptions = [
-      { value: 'critica', label: 'Crítica, c = 2√(k m)' },
-      { value: 'sub', label: 'Subamortiguada, 0,3 del valor crítico' },
-    ];
-    render(
-      <SelectField
-        id="damping"
-        label="Amortiguación al soltar"
-        value="critica"
-        options={longOptions}
-        onChange={vi.fn()}
-      />,
-    );
-
-    const select = screen.getByLabelText('Amortiguación al soltar');
-    const wrapper = select.parentElement as HTMLElement;
-    const row = wrapper.parentElement as HTMLElement;
-
-    expect(row.className).toContain('flex-col');
-    expect(wrapper.className).toContain('w-full');
-    expect(select.className).toContain('w-full');
-    expect(select.className).toContain('max-w-full');
-    expect(select.className).toContain('min-w-0');
+    expect(container.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
   });
 
   test('reports the chosen option value', () => {

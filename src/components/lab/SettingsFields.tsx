@@ -9,12 +9,6 @@ const SWITCH_TRACK = `relative h-6 w-10 shrink-0 rounded-base border border-bord
 const SELECT =
   'min-h-11 max-w-full min-w-0 appearance-none rounded-base border border-border bg-bg-elevated pr-9 pl-3 text-sm text-fg';
 
-/**
- * Longest option label (characters) a select can have and still sit beside its label in the
- * 22 rem drawer ("Euler semi-implícito" does); a longer one stacks under it at full width.
- */
-const INLINE_OPTION_MAX_CHARS = 24;
-
 /** Sits 13 px from the right edge, vertically centred; the select reserves it with pr-9. */
 const SELECT_CHEVRON =
   'pointer-events-none absolute top-1/2 right-[13px] size-4 -translate-y-1/2 text-fg-muted';
@@ -59,24 +53,17 @@ export function SelectField({
   options,
   onChange,
 }: SelectFieldProps): JSX.Element {
-  const isStacked = options.some((option) => option.label.length > INLINE_OPTION_MAX_CHARS);
   return (
-    <div
-      className={
-        isStacked
-          ? 'flex flex-col gap-1.5'
-          : 'flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5'
-      }
-    >
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
       <label htmlFor={id} className="text-sm font-medium">
         {label}
       </label>
-      <div className={isStacked ? 'relative w-full min-w-0' : 'relative max-w-full min-w-0'}>
+      <div className="relative max-w-full min-w-0">
         <select
           id={id}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className={isStacked ? `${SELECT} w-full` : SELECT}
+          className={SELECT}
         >
           {options.map((option) => (
             <option key={option.value} value={option.value}>
