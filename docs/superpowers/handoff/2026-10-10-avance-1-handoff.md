@@ -115,8 +115,8 @@ Avance 2 y la Entrega Final.
 - **Tema 4:** curvas de carga escaladas por μ(T)/μ_pico; ventana del C4 marcada como supuesto
   del modelo. **Tema 1:** cuatro gráficas de perfiles; el laboratorio abre con el dron en
   crucero (t = 30 s). **Temas 1 a 4:** `updated` = 2026-10-10.
-- **Portada:** lista Autor, Universidad, Curso, Docente y Última actualización (fecha de
-  construcción, compartida con el pie), botón e icono del repositorio, filas de temas sin
+- **Portada:** lista Autor, Universidad, Curso, Docente y Última actualización (fecha del último
+  commit, compartida con el pie), botón e icono del repositorio, filas de temas sin
   "Caso:". El portal del curso no se enlaza.
 
 ## Forma de trabajo acordada
