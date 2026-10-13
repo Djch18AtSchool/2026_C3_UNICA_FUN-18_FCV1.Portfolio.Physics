@@ -266,13 +266,13 @@ describe('trigger presets', () => {
   test("are the text's examples: ideal spring, x₀ = 3 mm and 0,3 of the critical damping", () => {
     expect(TRIGGER_PRESETS.map(({ name, values }) => [name, values])).toEqual([
       ['Resorte ideal', { k: 400, x0Mm: 0, damping: 'critica' }],
-      ['Gatillo DualSense', { k: 400, x0Mm: 3, damping: 'critica' }],
+      ['Resorte tardío', { k: 400, x0Mm: 3, damping: 'critica' }],
       ['Subamortiguado', { k: 400, x0Mm: 0, damping: 'subamortiguada' }],
     ]);
     expect(dampingRatio('subamortiguada')).toBe(0.3);
   });
 
-  test('at the bottom, the DualSense example gives 2,0 N and 5,0 mJ of finger work', () => {
+  test('at the bottom, the late spring of step 4 gives 2,0 N and 5,0 mJ of finger work', () => {
     const { k, x0Mm } = TRIGGER_PRESETS[1].values;
     const readings = triggerReadings({ k, x0Mm }, TRAVEL_MM);
 
@@ -281,7 +281,7 @@ describe('trigger presets', () => {
   });
 
   test('triggerPresetIdFor names the matching preset, or none', () => {
-    expect(triggerPresetIdFor({ k: 400, x0Mm: 3, damping: 'critica' })).toBe('dualsense');
+    expect(triggerPresetIdFor({ k: 400, x0Mm: 3, damping: 'critica' })).toBe('tardio');
     expect(triggerPresetIdFor({ k: 410, x0Mm: 3, damping: 'critica' })).toBeUndefined();
   });
 });

@@ -287,12 +287,12 @@ describe('TriggerLab', () => {
     lever().focus();
     fireEvent.keyDown(lever(), { key: 'End' });
 
-    fireEvent.click(preset(/^Gatillo DualSense/));
+    fireEvent.click(preset(/^Resorte tardío/));
     expect(kField()).toHaveValue('400');
     expect(startField()).toHaveValue('3');
     expect(readout('Fuerza del gatillo F')).toBe('2,00 N');
     expect(readout('Trabajo del dedo W')).toBe('5,00 mJ');
-    expect(preset(/^Gatillo DualSense/)).toHaveAttribute('aria-pressed', 'true');
+    expect(preset(/^Resorte tardío/)).toHaveAttribute('aria-pressed', 'true');
 
     fireEvent.click(preset(/^Subamortiguado/));
     expect(startField()).toHaveValue('0');

@@ -68,8 +68,9 @@ export interface TriggerPresetValues {
 
 /**
  * The text's worked examples: the ideal spring (k = 400 N/m from x₀ = 0), the late-engaging
- * trigger of step 4 (x₀ = 3 mm) and the same spring released with 0,3 of the critical damping.
- * k and x₀ are illustrative: no published mapping turns force and startPosition into N/m and mm.
+ * spring of step 4 (x₀ = 3 mm) and the same spring released with 0,3 of the critical damping.
+ * k and x₀ are illustrative: no published mapping turns the API's 0–1 intensities and positions
+ * into N/m and mm, so no preset claims to be the DualSense's own values.
  */
 export const TRIGGER_PRESETS: Preset<TriggerPresetValues>[] = [
   {
@@ -80,11 +81,11 @@ export const TRIGGER_PRESETS: Preset<TriggerPresetValues>[] = [
     note: 'Al fondo, 3,2 N y 12,8 mJ: la ecuación (5.2) desde el reposo.',
   },
   {
-    id: 'dualsense',
-    name: 'Gatillo DualSense',
+    id: 'tardio',
+    name: 'Resorte tardío',
     values: { k: 400, x0Mm: 3, damping: 'critica' },
     sourceLabel: 'k = 400 N/m · x₀ = 3 mm',
-    note: 'El ejemplo del paso 4, con valores ilustrativos: al fondo, 2,0 N y 5,0 mJ de trabajo del dedo.',
+    note: 'El ejemplo del paso 4, con valores ilustrativos: la resistencia empieza a 3 mm y al fondo da 2,0 N y 5,0 mJ de trabajo del dedo.',
   },
   {
     id: 'subamortiguado',

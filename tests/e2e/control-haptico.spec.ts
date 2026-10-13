@@ -125,7 +125,7 @@ test.describe('laboratorio', () => {
     const replay = lab.getByRole('button', { name: 'Repetir retorno' });
     await expect(replay).toBeDisabled();
 
-    await presets.getByRole('button', { name: /^Gatillo DualSense/ }).click();
+    await presets.getByRole('button', { name: /^Resorte tardío/ }).click();
     await pressToBottomWithKeys(page);
     await expect.poll(() => readoutText(page, 'Fuerza del gatillo F')).toBe('2,00 N');
     await lab.getByRole('button', { name: 'Soltar el gatillo' }).click();
