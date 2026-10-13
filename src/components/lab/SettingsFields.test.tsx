@@ -33,6 +33,49 @@ describe('SelectField', () => {
     expect(container.querySelectorAll('select')).toHaveLength(1);
   });
 
+  test('keeps a short select on one row with its label', () => {
+    render(
+      <SelectField
+        id="integrator"
+        label="Integrador"
+        value="rk4"
+        options={OPTIONS}
+        onChange={vi.fn()}
+      />,
+    );
+
+    const row = screen.getByLabelText('Integrador').parentElement?.parentElement as HTMLElement;
+
+    expect(row.className).toContain('justify-between');
+    expect(row.className).not.toContain('flex-col');
+  });
+
+  test('stacks a long option under its label and gives the select the full width', () => {
+    const longOptions = [
+      { value: 'critica', label: 'Crítica, c = 2√(k m)' },
+      { value: 'sub', label: 'Subamortiguada, 0,3 del valor crítico' },
+    ];
+    render(
+      <SelectField
+        id="damping"
+        label="Amortiguación al soltar"
+        value="critica"
+        options={longOptions}
+        onChange={vi.fn()}
+      />,
+    );
+
+    const select = screen.getByLabelText('Amortiguación al soltar');
+    const wrapper = select.parentElement as HTMLElement;
+    const row = wrapper.parentElement as HTMLElement;
+
+    expect(row.className).toContain('flex-col');
+    expect(wrapper.className).toContain('w-full');
+    expect(select.className).toContain('w-full');
+    expect(select.className).toContain('max-w-full');
+    expect(select.className).toContain('min-w-0');
+  });
+
   test('reports the chosen option value', () => {
     const onChange = vi.fn();
     render(
