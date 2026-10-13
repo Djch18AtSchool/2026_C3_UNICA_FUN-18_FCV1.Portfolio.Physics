@@ -29,9 +29,9 @@ con el repositorio.
 - **Entrega:** Avance 1 (Temas 1 a 5), fecha límite movida por el docente al sábado
   17 de octubre de 2026 a las 23:59, en Moodle, con la URL del sitio y la del repositorio.
 - **Puertas en `polish/ui-adjustments` (13 de octubre):** `pnpm run check` sin errores ni
-  avisos; 973 pruebas unitarias en 98 archivos, cobertura 98,2 % de sentencias, 94,5 % de
+  avisos; 977 pruebas unitarias en 99 archivos, cobertura 98,2 % de sentencias, 94,6 % de
   ramas, 98,4 % de funciones y 98,8 % de líneas (umbral 80 % en `src/lib/**` y
-  `src/components/**`); 7 páginas construidas (portada, 404 y los cinco temas); 292 pruebas e2e
+  `src/components/**`); 7 páginas construidas (portada, 404 y los cinco temas); 298 pruebas e2e
   con axe sin fallos. Lighthouse no se volvió a medir desde la v2 (portada, Tema 1 y Tema 2:
   rendimiento 95 a 100, accesibilidad 100, buenas prácticas 100).
 
@@ -191,8 +191,12 @@ Avance 2 y la Entrega Final.
   escritorio). Sin fecha de actualización (queda en la portada), sin escuela, datos de curso
   ni conteos. Un solo `body > footer` (lo observa el script de la barra lateral).
 - **Volver arriba:** botón flotante siempre visible (`BackToTop.astro`, en `BaseLayout`),
-  fijo abajo a la derecha, 44 px, `z-30`; un `<a href="#top">` sin JS ni scroll suave. El
-  cajón de ajustes es un `<dialog>` modal (capa superior), así que lo cubre; el pie lleva
+  fijo abajo a la derecha, 44 px, `z-30`, en reposo al 80 % de opacidad (sólido con hover o
+  foco; el icono conserva más de 3:1 en ambos temas). Es un `<a href="#top">` que sin JS
+  funciona tal cual; con JS, `goToTop` (`src/lib/backToTop.ts`) cancela el ancla para que no
+  añada `#top` ni historial, sube con `scrollTo(0, 0)` (instantáneo, el sitio no tiene scroll
+  suave) y deja el foco en el `body` para que el siguiente Tab caiga en "Saltar al contenido".
+  El cajón de ajustes es un `<dialog>` modal (capa superior), así que lo cubre; el pie lleva
   `pb-20` para no quedar bajo el botón.
 - **Títulos que se parten:** "Física I" va con espacio de no separación en encabezado, portada y
   pie, y los títulos de tema pasan por `bindNumerals` ("Fórmula 1" no se separa).

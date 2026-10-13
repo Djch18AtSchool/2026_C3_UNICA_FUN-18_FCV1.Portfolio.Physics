@@ -1,9 +1,12 @@
 ---
 /*
  * A floating "Volver arriba" button, always visible in the bottom-right corner of every page
- * (it lives in the base layout). A plain link to #top, so it needs no script: the browser scrolls
- * to the top and moves the keyboard's starting point there, which is what the old footer link did.
- * The page has no smooth scrolling, so reduced motion needs no special case either.
+ * (it lives in the base layout). A link to #top, so without JS the browser still scrolls; with JS
+ * goToTop keeps `#top` out of the address bar and the history. Scrolling is instant, so reduced
+ * motion needs no special case.
+ *
+ * At rest it is 80 % opaque, so what scrolls under it stays legible (contrast of the icon over
+ * its worst case is still above 3:1 in both themes); hover and keyboard focus make it solid.
  *
  * Layers: above the content and the desktop sticky bar (z-20), below the reading bar (z-40, at
  * the top edge, so they never meet) and the skip link (z-50). The settings drawer is a modal
@@ -19,10 +22,16 @@ const LABEL = 'Volver arriba';
   href="#top"
   aria-label={LABEL}
   title={LABEL}
-  class="back-to-top fixed z-30 inline-flex size-11 items-center justify-center rounded-base border border-border bg-bg-elevated text-fg-muted no-underline shadow-sm transition-colors hover:border-fg-muted hover:text-fg print:hidden"
+  class="back-to-top fixed z-30 inline-flex size-11 items-center justify-center rounded-base border border-border bg-bg-elevated text-fg-muted no-underline shadow-sm opacity-80 transition-[color,border-color,opacity] hover:border-fg-muted hover:text-fg hover:opacity-100 focus-visible:opacity-100 print:hidden"
 >
   <ToolIcon name="arrow-up" className="size-5" />
 </a>
+
+<script>
+  import { goToTop } from '../../lib/backToTop';
+
+  document.querySelector<HTMLAnchorElement>('.back-to-top')?.addEventListener('click', goToTop);
+</script>
 
 <style>
   /* 16 px from the edges on a phone, 24 px from `sm` up, past the notch or home bar if any. */

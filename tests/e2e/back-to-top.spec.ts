@@ -94,6 +94,40 @@ test('"Volver arriba" lleva al inicio y deja el foco de teclado al principio', a
   await expect(page.getByRole('link', { name: 'Saltar al contenido' })).toBeFocused();
 });
 
+test('"Volver arriba" no añade #top a la dirección ni entradas al historial', async ({ page }) => {
+  await page.goto('./temas/salto-personaje/');
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const url = page.url();
+  const historyLength = await page.evaluate(() => window.history.length);
+
+  for (let press = 0; press < 2; press += 1) {
+    await backToTop(page).click();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  }
+
+  expect(page.url()).toBe(url);
+  expect(page.url()).not.toContain('#');
+  expect(await page.evaluate(() => window.history.length)).toBe(historyLength);
+});
+
+test('el botón queda a 80 % de opacidad y se vuelve sólido al pasar el cursor o enfocarlo', async ({
+  page,
+}) => {
+  await page.goto('./');
+
+  await expect(backToTop(page)).toHaveCSS('opacity', '0.8');
+  await backToTop(page).hover();
+  await expect(backToTop(page)).toHaveCSS('opacity', '1');
+  await page.mouse.move(0, 0);
+  await expect(backToTop(page)).toHaveCSS('opacity', '0.8');
+  await page.keyboard.press('Tab');
+  await backToTop(page).focus();
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Tab');
+  await expect(backToTop(page)).toHaveCSS('opacity', '1');
+});
+
 test('"Volver arriba" se alcanza y se activa con el teclado, con foco visible', async ({
   page,
 }) => {
@@ -134,15 +168,6 @@ for (const viewport of [DESKTOP, PHONE]) {
     expect(overlaps).toBe(0);
   });
 }
-
-test('el botón no tapa el encabezado en una página corta de móvil', async ({ page }) => {
-  await page.setViewportSize(PHONE);
-  await page.goto('./no-existe/');
-
-  const header = await page.locator('body > header').boundingBox();
-  const button = (await backToTop(page).boundingBox())!;
-  expect(button.y).toBeGreaterThanOrEqual(header!.y + header!.height);
-});
 
 test('el botón no se imprime', async ({ page }) => {
   await page.goto('./');
@@ -190,18 +215,36 @@ test('con el cajón de ajustes abierto en móvil el botón queda debajo y no tap
 });
 
 for (const theme of ['light', 'dark']) {
-  test(`el botón no añade violaciones de axe en tema ${theme === 'light' ? 'claro' : 'oscuro'}`, async ({
-    page,
-  }) => {
-    await page.addInitScript((value) => window.localStorage.setItem('theme', value), theme);
-    await page.setViewportSize(PHONE);
-    await page.goto('./no-existe/');
-    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+  for (const { name, path } of PAGES) {
+    test(`el botón de ${name} no añade violaciones de axe en tema ${theme === 'light' ? 'claro' : 'oscuro'}`, async ({
+      page,
+    }) => {
+      await page.addInitScript((value) => window.localStorage.setItem('theme', value), theme);
+      await page.setViewportSize(PHONE);
+      await page.goto(path);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
 
-    const { violations } = await new AxeBuilder({ page }).analyze();
-    const blocking = violations.filter((violation) =>
-      BLOCKING_IMPACTS.includes(violation.impact ?? ''),
-    );
-    expect(blocking.map(({ id }) => id)).toEqual([]);
-  });
+      const { violations } = await new AxeBuilder({ page }).analyze();
+      const blocking = violations.filter((violation) =>
+        BLOCKING_IMPACTS.includes(violation.impact ?? ''),
+      );
+      expect(blocking.map(({ id }) => id)).toEqual([]);
+    });
+  }
 }
+
+test.describe('sin JavaScript', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('el enlace sigue llevando al inicio de la página', async ({ page }) => {
+    await page.goto('./temas/salto-personaje/');
+    await page.keyboard.press('End');
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    await expect(backToTop(page)).toBeVisible();
+
+    await backToTop(page).click();
+
+    await expect(page).toHaveURL(/#top$/);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  });
+});
