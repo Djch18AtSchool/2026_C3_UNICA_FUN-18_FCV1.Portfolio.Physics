@@ -4,7 +4,7 @@ import TopicCard from '../components/nav/TopicCard.astro';
 import GithubIcon from '../components/ui/GithubIcon.astro';
 import { AUTHOR, COURSE, REPO_URL } from '../consigna';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { BUILD_DATE_ISO, BUILD_DATE_LABEL } from '../lib/buildDate';
+import { LAST_UPDATE_ISO, LAST_UPDATE_LABEL } from '../lib/lastUpdate';
 import { groupByPhase } from '../lib/phases';
 import { sortByNumber, toTopicSummary } from '../lib/topics';
 
@@ -47,7 +47,7 @@ const groups = groupByPhase(entries);
       <div class="flex flex-col gap-0.5">
         <dt class="text-xs text-fg-muted">Última actualización</dt>
         <dd>
-          <time datetime={BUILD_DATE_ISO}>{BUILD_DATE_LABEL}</time>
+          <time datetime={LAST_UPDATE_ISO}>{LAST_UPDATE_LABEL}</time>
         </dd>
       </div>
     </dl>

@@ -4,12 +4,12 @@ import { execFileSync } from 'node:child_process';
 const TIME_ZONE = 'America/Costa_Rica';
 
 /** Spanish long-date label for a date, e.g. "9 de octubre de 2026". */
-export function formatBuildDateLabel(date: Date): string {
+export function formatLastUpdateLabel(date: Date): string {
   return new Intl.DateTimeFormat('es-CR', { dateStyle: 'long', timeZone: TIME_ZONE }).format(date);
 }
 
 /** ISO (YYYY-MM-DD) for the same date, the shape `<time datetime>` expects. */
-export function formatBuildDateIso(date: Date): string {
+export function formatLastUpdateIso(date: Date): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).format(date);
 }
 
@@ -43,8 +43,8 @@ export function readLastCommitDate(run: GitRunner = runGitLog): Date {
   return date;
 }
 
-const LAST_UPDATE = readLastCommitDate();
+const LAST_COMMIT = readLastCommitDate();
 
 /** Last-update date (last commit), shared by the cover and the footer so both show the same day. */
-export const BUILD_DATE_LABEL = formatBuildDateLabel(LAST_UPDATE);
-export const BUILD_DATE_ISO = formatBuildDateIso(LAST_UPDATE);
+export const LAST_UPDATE_LABEL = formatLastUpdateLabel(LAST_COMMIT);
+export const LAST_UPDATE_ISO = formatLastUpdateIso(LAST_COMMIT);
