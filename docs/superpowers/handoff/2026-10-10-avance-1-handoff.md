@@ -21,6 +21,11 @@ con el repositorio.
   cabecera del tema con franja de metadatos y herramientas (sin "Tema N · Avance X" ni "Estado"),
   barra lateral plana con fases futuras deshabilitadas y barra de progreso de lectura. La rama
   `wip/quitar-linea-tema-avance` quedó superada por estos cambios.
+- **Tema 5 terminado el 13 de octubre (misma rama):** video de terceros incrustado con análisis
+  por instante (pendiente 1), modelo del gatillo apoyado en la API de Apple, la ingeniería
+  inversa de los efectos y un desmontaje, y preajuste "Resorte tardío". Revisión independiente
+  aprobada con cambios, ya aplicados (commits `fd6dfbd` a `5048467`). Textos a la espera de la
+  lectura de Dylan (pendiente 2).
 
 ## Dónde está cada cosa
 
@@ -29,6 +34,7 @@ con el repositorio.
 | Especificación v1 y v2 | `docs/superpowers/specs/2026-10-08-physics-portfolio-design.md`, `docs/superpowers/specs/2026-10-09-portfolio-v2-design.md` |
 | Planes v1 y v2 | `docs/superpowers/plans/2026-10-08-physics-portfolio-avance-1.md`, `docs/superpowers/plans/2026-10-09-portfolio-v2.md` |
 | Fuentes verificadas y notas de la pila | `docs/superpowers/research/` |
+| Consigna original del Avance 1 (PDF del docente, fuera de git) | `C:\Users\dylan\Downloads\Portafolio - Avance 1.pdf` (en WSL, `/mnt/c/Users/dylan/Downloads/`); la especificación v1 §2 la resume |
 | Datos del curso, temas y fases | `src/consigna.ts` |
 | Textos de los temas | `src/content/topics/*.mdx` |
 | Cascarón de laboratorio | `src/components/lab/` |
@@ -53,15 +59,26 @@ tar czf ~/portafolio-fisica-estado-local.tgz -C "$HOME/projects/university/2026/
 
 ## Pendientes de Dylan para cerrar el Avance 1
 
-1. **Video del Tema 5.** Grabar el clip con el DualSense, dejarlo en `media-raw/` (carpeta
-   ignorada por git), comprimirlo y ajustar marcadores y transcripción en
-   `src/content/topics/control-haptico.mdx`. Los marcadores actuales están en 5, 15 y 18 s y
-   el marcador 3 cita la ecuación (5.2). Hasta entonces la página muestra "El video no está
-   disponible" y el análisis escrito.
-   ```
-   bash scripts/compress-video.sh media-raw/<archivo>
-   ```
-   Resultado esperado: `public/media/tema-05-dualsense.mp4` y el póster `tema-05-dualsense.jpg`.
+1. ~~**Video del Tema 5.**~~ Resuelto el 13 de octubre, ya no hay que grabar. La consigna pide
+   para "Multimedia con análisis" "un video o audio incrustado, acompañado de un análisis escrito
+   propio" y exige citar "todo contenido tomado de terceros (imágenes, datos, videos)"; a
+   diferencia de la gráfica y el diagrama ("construida por usted", "hecho por usted"), no pide
+   que el video sea propio. Grabarlo fue una decisión de la especificación v1, no de la
+   consigna. El Tema 5 incrusta "A Game Developer Explains How PS5's DualSense Actually Works"
+   (PlayStation Access, 5 de agosto de 2021, `CaPHUZapCTI`), una entrevista a Toshimasa Aoki
+   (Sony Interactive Entertainment) y Mike Daly (Insomniac Games), con cuatro marcadores
+   comprobados con los subtítulos y con fotogramas: 2:18 (vibración), 3:18 (motores que empujan
+   el gatillo), 4:02 (media presión) y 4:15 (la tensión crece con el recorrido: el instante de
+   la fuerza restauradora). Se eligió frente a dos anuncios oficiales de PlayStation (1:26 y 20 s,
+   animación y escenas de juego, sin explicación) y el desmontaje de Restore Technique (sin narración; queda citado como fuente del
+   mecanismo) porque es oficial, tiene capítulos y en él Sony describe la curva fuerza contra
+   recorrido. Se ve tras una fachada que no carga nada de YouTube hasta que el lector pulsa
+   (`youtube-nocookie.com`). **Queda para Dylan:** la rúbrica, en el nivel Bueno, habla de un
+   recurso "elaborado por el estudiante"; si quiere certeza, confirmar con el docente que un
+   video de terceros con análisis propio cuenta. Plan B si exigiera video propio: grabar,
+   comprimir con `bash scripts/compress-video.sh media-raw/<archivo>` y recuperar del commit
+   `cbad0a8` el reproductor local (`src/components/topics/control-haptico/HapticVideo.tsx`) y
+   sus tipos (`VideoMarker`, `HapticVideoProps` en `src/lib/data/triggerModel.ts`).
 2. **Lectura de los cinco textos.** Son de autoría de Dylan ante el profesor (el plagio se
    sanciona). El botón "Copiar Markdown" de cada tema entrega el texto completo.
 3. ~~**Nombre de la escuela.**~~ Resuelto el 13 de octubre: la portada ya no nombra la escuela
@@ -71,7 +88,8 @@ tar czf ~/portafolio-fisica-estado-local.tgz -C "$HOME/projects/university/2026/
 4. ~~**Línea "Tema N · Avance X".**~~ Resuelto el 13 de octubre: se quitó de la cabecera del
    tema (la barra fija de escritorio la conserva).
 5. **Texto en leyendas.** Para respetar el tope de 650 palabras de prosa por tema, parámetros y
-   salvedades viven en leyendas de figura (800 a 1 200 palabras por tema). Opción recomendada:
+   salvedades viven en leyendas de figura (800 a 1 700 palabras por tema; el Tema 5, con el
+   análisis por instante del video, es el más largo: 14 min de lectura). Opción recomendada:
    convertir los datos en tablas y recortar las leyendas. Decisión de Dylan.
 6. **Etiqueta y entrega.** Con los puntos anteriores resueltos y la puerta completa en verde:
    ```
@@ -87,7 +105,6 @@ tar czf ~/portafolio-fisica-estado-local.tgz -C "$HOME/projects/university/2026/
 - La línea de fuente de la figura 5.5 lleva contenido que debería estar en la leyenda.
 - El factor `${60 / TIME_LAPSE}` se interpola crudo en el MDX del Tema 1 (formato).
 - La definición del presupuesto de 650 palabras: tokens crudos frente a palabras.
-- Nombre del preajuste "Gatillo DualSense" en el laboratorio del Tema 5.
 - Leyenda larga de la figura 1.3 del Tema 1 (≈ 150 palabras de parámetros).
 
 ## Decisiones vigentes que condicionan el contenido
@@ -118,6 +135,13 @@ Avance 2 y la Entrega Final.
 - **Tema 4:** curvas de carga escaladas por μ(T)/μ_pico; ventana del C4 marcada como supuesto
   del modelo. **Tema 1:** cuatro gráficas de perfiles; el laboratorio abre con el dron en
   crucero (t = 30 s). **Temas 1 a 4:** `updated` = 2026-10-10.
+- **Tema 5** (`updated` = 2026-10-13): el video es de terceros, incrustado y acreditado ("no es
+  de mi autoría") en el reproductor, la figura y la fuente 8; el análisis es propio. La rampa
+  (5.4) es el modo de pendiente de la API (Apple, fuente 2); el firmware la cumple en 10 zonas
+  de intensidad entera 0 a 8 (Klein, fuente 6), una escalera que el modelo idealiza. El brazo,
+  el motor con tornillo sin fin y el resorte de retorno se citan del desmontaje de Restore
+  Technique (fuente 7). El preajuste del paso 4 se llama "Resorte tardío": sus valores son
+  ilustrativos, no del DualSense.
 - **Portada:** lista Autor, Universidad ("Universidad CENFOTEC", sin escuela), Curso
   ("Física I", sin código, sección ni periodo), Docente y Última actualización (fecha del
   último commit, compartida con el pie), botón e icono del repositorio, filas de temas sin
