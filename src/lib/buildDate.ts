@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 
-// Pinned to Costa Rica so CI (UTC) and a local build agree on which calendar day "today" is.
+// Pinned to Costa Rica so CI (UTC) and a local build agree on which calendar day the last commit falls on.
 const TIME_ZONE = 'America/Costa_Rica';
 
 /** Spanish long-date label for a date, e.g. "9 de octubre de 2026". */
@@ -16,7 +16,7 @@ export function formatBuildDateIso(date: Date): string {
 type GitRunner = () => string;
 
 const runGitLog: GitRunner = () =>
-  execFileSync('git', ['log', '-1', '--format=%cI'], { cwd: process.cwd(), encoding: 'utf8' });
+  execFileSync('git', ['log', '-1', '--format=%cI'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
 /**
  * Date of the last commit (HEAD). Throws, never falls back to "today": a wrong date on a

@@ -4,6 +4,7 @@ import {
   formatBuildDateLabel,
   readLastCommitDate,
   BUILD_DATE_ISO,
+  BUILD_DATE_LABEL,
 } from './buildDate';
 
 describe('formatBuildDateLabel', () => {
@@ -57,8 +58,26 @@ describe('readLastCommitDate', () => {
   });
 });
 
-describe('BUILD_DATE_ISO', () => {
-  test('is the last commit date of this repository', () => {
-    expect(BUILD_DATE_ISO).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+describe('commit date to calendar day in Costa Rica time', () => {
+  test('keeps the day for a late evening commit with a Costa Rica offset', () => {
+    const date = readLastCommitDate(() => '2026-10-10T23:30:00-06:00');
+
+    expect(formatBuildDateIso(date)).toBe('2026-10-10');
+  });
+
+  test('moves to the previous day for an early commit east of Costa Rica', () => {
+    // 01:00 at +02:00 is 17:00 the day before in Costa Rica (UTC-6).
+    const date = readLastCommitDate(() => '2026-10-10T01:00:00+02:00');
+
+    expect(formatBuildDateIso(date)).toBe('2026-10-09');
+  });
+});
+
+describe('BUILD_DATE exports', () => {
+  test('match the last commit date of this repository', () => {
+    const date = readLastCommitDate();
+
+    expect(BUILD_DATE_ISO).toBe(formatBuildDateIso(date));
+    expect(BUILD_DATE_LABEL).toBe(formatBuildDateLabel(date));
   });
 });
