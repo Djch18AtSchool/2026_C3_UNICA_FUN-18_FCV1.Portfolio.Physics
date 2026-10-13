@@ -66,15 +66,12 @@ test('la portada nombra la universidad y el curso sin la escuela ni los datos de
     await expect(main).not.toContainText(text);
 });
 
-test('la fecha de "Última actualización" de la portada coincide con la del pie', async ({
-  page,
-}) => {
+test('la portada da la fecha de "Última actualización" y el pie ya no', async ({ page }) => {
   await page.goto('./');
 
-  const coverDate = await page.getByTestId('cover-meta').locator('dd').last().innerText();
-  const footerDate = await page.locator('footer time').innerText();
-
-  expect(coverDate).toBe(footerDate);
+  const coverDate = page.getByTestId('cover-meta').locator('dd').last();
+  await expect(coverDate).toHaveText(/^\d{1,2} de \S+ de \d{4}$/);
+  await expect(page.locator('footer time')).toHaveCount(0);
 });
 
 test('la portada ofrece un botón para ver el repositorio', async ({ page }) => {

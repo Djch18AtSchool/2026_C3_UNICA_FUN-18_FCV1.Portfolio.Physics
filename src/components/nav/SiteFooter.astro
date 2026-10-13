@@ -1,20 +1,25 @@
 ---
 /*
  * The page foot, closing the sheet the way the header opens it (a double rule): who made the
- * portfolio and where, when it last changed (the last commit's day), and two ways onward.
+ * portfolio and, as a lone icon, where its repository lives. "Volver arriba" is the floating
+ * BackToTop button, not part of the foot.
  * Only one <footer> sits under <body>: the sidebar's script watches it.
  */
 import ToolIcon from './ToolIcon';
 import { AUTHOR, COURSE, REPO_URL } from '../../consigna';
-import { LAST_UPDATE_ISO, LAST_UPDATE_LABEL } from '../../lib/lastUpdate';
 
-/** On a phone each link is a 44 px tall target; the list's negative margin keeps the spacing. */
-const LINK =
-  'inline-flex items-center gap-1.5 text-fg-muted no-underline transition-colors hover:text-fg max-sm:min-h-11';
+const REPO_LABEL = 'Repositorio en GitHub';
+/**
+ * The icon alone is a 44 px target on a phone and 40 px from `sm` up (the header buttons' size);
+ * on a phone its negative margin lines the glyph up with the text above.
+ */
+const REPO_LINK =
+  'inline-flex size-11 items-center justify-center rounded-base text-fg-muted no-underline transition-colors hover:bg-bg-elevated hover:text-fg max-sm:-ml-3 sm:size-10';
 ---
 
+<!-- The bottom padding clears the floating BackToTop button, which sits over the page's end. -->
 <footer class="mt-16 border-t-[3px] border-double border-border">
-  <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pt-8 pb-10 text-sm leading-snug sm:flex-row sm:items-end sm:justify-between sm:px-6">
+  <div class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 pt-8 pb-20 text-sm leading-snug sm:flex-row sm:items-end sm:justify-between sm:px-6">
     <div class="flex flex-col gap-1">
       <p class="font-semibold tracking-tight text-balance text-fg">
         Portafolio de evidencias de Física&nbsp;I
@@ -22,23 +27,9 @@ const LINK =
       <p class="text-fg-muted">
         {AUTHOR} · {COURSE.university}
       </p>
-      <p class="mt-2 text-fg-muted">
-        Actualizado el <time datetime={LAST_UPDATE_ISO}>{LAST_UPDATE_LABEL}</time>
-      </p>
     </div>
-    <ul class="flex flex-wrap items-center gap-x-6 gap-y-2 max-sm:-my-3">
-      <li class="flex">
-        <a href={REPO_URL} class={LINK} aria-label="Repositorio en GitHub">
-          <ToolIcon name="github" />
-          Repositorio
-        </a>
-      </li>
-      <li class="flex">
-        <a href="#top" class={LINK}>
-          <ToolIcon name="arrow-up" />
-          Volver arriba
-        </a>
-      </li>
-    </ul>
+    <a href={REPO_URL} class={REPO_LINK} aria-label={REPO_LABEL} title={REPO_LABEL}>
+      <ToolIcon name="github" className="size-5" />
+    </a>
   </div>
 </footer>

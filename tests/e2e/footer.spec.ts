@@ -6,6 +6,8 @@ const DESKTOP = { width: 1280, height: 900 };
 const PHONE = { width: 390, height: 844 };
 /** Touch target on a phone (Apple HIG 44 pt; WCAG 2.5.5 enhanced). */
 const MIN_TOUCH_PX = 44;
+/** Smallest pointer target on a desktop (the header's icon buttons are 40 px). */
+const MIN_POINTER_PX = 40;
 const FOOTER_ICON_STROKE = '1.6';
 /** Sub-pixel slack for layout rounding. */
 const ROUNDING_PX = 1;
@@ -35,63 +37,58 @@ test('cada página tiene un solo pie con la identidad del portafolio', async ({ 
   }
 });
 
-test('el pie enlaza al repositorio con el icono de GitHub de trazo fino', async ({ page }) => {
+test('el pie enlaza al repositorio solo con el icono de GitHub de trazo fino', async ({ page }) => {
   await page.goto('./');
 
-  const link = page
-    .getByRole('contentinfo')
-    .getByRole('link', { name: 'Repositorio en GitHub', exact: true });
+  const footer = page.getByRole('contentinfo');
+  const link = footer.getByRole('link', { name: 'Repositorio en GitHub', exact: true });
   await expect(link).toHaveAttribute('href', REPO_URL);
-  // WCAG 2.5.3: the spoken name starts with the visible label.
-  await expect(link).toHaveText('Repositorio');
+  await expect(link).toHaveAttribute('title', 'Repositorio en GitHub');
+  // Icon only: no visible text, and no other link or button in the footer.
+  await expect(link).toHaveText('');
+  await expect(footer.getByRole('link')).toHaveCount(1);
+  await expect(footer).not.toContainText('Repositorio');
   const icon = link.locator('svg');
   await expect(icon).toHaveAttribute('aria-hidden', 'true');
   await expect(icon).toHaveAttribute('fill', 'none');
-  // The same 1.6 stroke as the footer's other icon.
   await expect(icon).toHaveAttribute('stroke-width', FOOTER_ICON_STROKE);
-  await expect(
-    page.getByRole('contentinfo').getByRole('link', { name: 'Volver arriba' }).locator('svg'),
-  ).toHaveAttribute('stroke-width', FOOTER_ICON_STROKE);
 });
 
-for (const { viewport, isTall } of [
-  { viewport: PHONE, isTall: true },
-  { viewport: DESKTOP, isTall: false },
+test('el enlace del pie se alcanza con el teclado y muestra el foco', async ({ page }) => {
+  await page.goto('./');
+
+  const link = page.getByRole('contentinfo').getByRole('link');
+  await link.focus();
+  await expect(link).toBeFocused();
+  await expect(link).toHaveCSS('outline-style', 'solid');
+});
+
+for (const { viewport, minPx } of [
+  { viewport: PHONE, minPx: MIN_TOUCH_PX },
+  { viewport: DESKTOP, minPx: MIN_POINTER_PX },
 ]) {
-  test(`a ${viewport.width} px los enlaces del pie ${isTall ? 'son áreas táctiles amplias' : 'conservan su línea'}`, async ({
+  test(`a ${viewport.width} px el enlace del pie es un área de al menos ${minPx} px`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
     await page.goto('./');
 
-    const links = page.getByRole('contentinfo').getByRole('link');
-    await expect(links).toHaveCount(2);
-    for (const link of await links.all()) {
-      const { height } = (await link.boundingBox())!;
-      if (isTall) expect(height).toBeGreaterThanOrEqual(MIN_TOUCH_PX);
-      else expect(height).toBeLessThan(MIN_TOUCH_PX / 2);
-    }
+    const box = (await page.getByRole('contentinfo').getByRole('link').boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(minPx);
+    expect(box.height).toBeGreaterThanOrEqual(minPx);
   });
 }
 
-test('el pie dice cuándo se actualizó, con la fecha del último commit', async ({ page }) => {
-  await page.goto('./');
+test('el pie ya no dice cuándo se actualizó ni trae "Volver arriba"', async ({ page }) => {
+  for (const path of PAGES) {
+    await page.goto(path);
 
-  const footer = page.getByRole('contentinfo');
-  await expect(footer).toContainText(/Actualizado el \d{1,2} de \S+ de \d{4}/);
-  await expect(footer.locator('time')).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}$/);
-});
-
-test('"Volver arriba" lleva al inicio de la página', async ({ page }) => {
-  await page.setViewportSize(DESKTOP);
-  await page.goto('./temas/salto-personaje/');
-
-  const backToTop = page.getByRole('contentinfo').getByRole('link', { name: 'Volver arriba' });
-  await backToTop.scrollIntoViewIfNeeded();
-  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
-  await backToTop.click();
-
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+    const footer = page.getByRole('contentinfo');
+    await expect(footer, path).not.toContainText('Actualizado');
+    await expect(footer, path).not.toContainText('Volver arriba');
+    await expect(footer.locator('time'), path).toHaveCount(0);
+    await expect(footer.locator('a[href="#top"]'), path).toHaveCount(0);
+  }
 });
 
 for (const viewport of [DESKTOP, PHONE]) {

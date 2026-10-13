@@ -6,6 +6,7 @@ import '@fontsource/ibm-plex-mono/400.css';
 import '@fontsource/ibm-plex-mono/500.css';
 import 'katex/dist/katex.min.css';
 import '../styles/global.css';
+import BackToTop from '../components/nav/BackToTop.astro';
 import SiteFooter from '../components/nav/SiteFooter.astro';
 import SiteHeader from '../components/nav/SiteHeader.astro';
 import { COURSE, SITE_URL } from '../consigna';
@@ -65,6 +66,7 @@ const pageUrl = hasCanonical ? canonicalUrl(Astro.url.pathname, SITE_URL) : unde
       <slot />
     </main>
     <SiteFooter />
+    <BackToTop />
     <script>
       import { syncScrollRegion, syncScrollRegions } from '../lib/scrollRegion';
 

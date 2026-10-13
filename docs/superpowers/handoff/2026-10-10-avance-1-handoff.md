@@ -14,7 +14,7 @@ con el repositorio.
   - Ajustes de interfaz: botón del repositorio, chevron de los selects, sin botón de barra
     lateral, fecha del último commit en portada y pie, franja de metadatos y herramientas bajo
     el concepto (sin "Tema N · Avance X" ni "Estado" en la cabecera), barra lateral plana con
-    las fases futuras deshabilitadas, barra de progreso de lectura y pie nuevo. La rama
+    las fases futuras deshabilitadas, barra de progreso de lectura, pie nuevo (solo icono de GitHub) y botón flotante "Volver arriba". La rama
     `wip/quitar-linea-tema-avance` quedó superada.
   - Tema 5 terminado: video de terceros incrustado con análisis por instante (pendiente 1),
     modelo del gatillo apoyado en la API de Apple, la ingeniería inversa de los efectos y un
@@ -31,7 +31,7 @@ con el repositorio.
 - **Puertas en `polish/ui-adjustments` (13 de octubre):** `pnpm run check` sin errores ni
   avisos; 973 pruebas unitarias en 98 archivos, cobertura 98,2 % de sentencias, 94,5 % de
   ramas, 98,4 % de funciones y 98,8 % de líneas (umbral 80 % en `src/lib/**` y
-  `src/components/**`); 7 páginas construidas (portada, 404 y los cinco temas); 274 pruebas e2e
+  `src/components/**`); 7 páginas construidas (portada, 404 y los cinco temas); 292 pruebas e2e
   con axe sin fallos. Lighthouse no se volvió a medir desde la v2 (portada, Tema 1 y Tema 2:
   rendimiento 95 a 100, accesibilidad 100, buenas prácticas 100).
 
@@ -181,15 +181,19 @@ Avance 2 y la Entrega Final.
   ilustrativos, no del DualSense.
 - **Portada:** lista Autor, Universidad ("Universidad CENFOTEC", sin escuela), Curso
   ("Física I", sin código, sección ni periodo), Docente y Última actualización (fecha del
-  último commit, `src/lib/lastUpdate.ts`, compartida con el pie), botón e icono del
+  último commit, `src/lib/lastUpdate.ts`), botón e icono del
   repositorio, filas de temas sin "Caso:". El portal del curso no se enlaza.
 - **Franja del tema sin bordes:** insignia, lectura y fecha, y debajo las herramientas, sin
   líneas; el espaciado (más amplio antes y después de la franja que dentro) hace de separador.
 - **Pie:** doble línea como el encabezado; "Portafolio de evidencias de Física I", "Dylan
-  Chaves · Universidad CENFOTEC", "Actualizado el <fecha del último commit>", enlace
-  "Repositorio" (nombre accesible "Repositorio en GitHub") y "Volver arriba". Sin escuela,
-  datos de curso ni conteos. Un solo `body > footer` (lo observa el script de la barra
-  lateral).
+  Chaves · Universidad CENFOTEC" y un único enlace, solo con el icono de GitHub (trazo 1,6,
+  nombre accesible y `title` "Repositorio en GitHub", área de 44 px en móvil y 40 px en
+  escritorio). Sin fecha de actualización (queda en la portada), sin escuela, datos de curso
+  ni conteos. Un solo `body > footer` (lo observa el script de la barra lateral).
+- **Volver arriba:** botón flotante siempre visible (`BackToTop.astro`, en `BaseLayout`),
+  fijo abajo a la derecha, 44 px, `z-30`; un `<a href="#top">` sin JS ni scroll suave. El
+  cajón de ajustes es un `<dialog>` modal (capa superior), así que lo cubre; el pie lleva
+  `pb-20` para no quedar bajo el botón.
 - **Títulos que se parten:** "Física I" va con espacio de no separación en encabezado, portada y
   pie, y los títulos de tema pasan por `bindNumerals` ("Fórmula 1" no se separa).
 

@@ -1,0 +1,39 @@
+---
+/*
+ * A floating "Volver arriba" button, always visible in the bottom-right corner of every page
+ * (it lives in the base layout). A plain link to #top, so it needs no script: the browser scrolls
+ * to the top and moves the keyboard's starting point there, which is what the old footer link did.
+ * The page has no smooth scrolling, so reduced motion needs no special case either.
+ *
+ * Layers: above the content and the desktop sticky bar (z-20), below the reading bar (z-40, at
+ * the top edge, so they never meet) and the skip link (z-50). The settings drawer is a modal
+ * <dialog> in the top layer, which paints over any z-index and makes the page behind it inert.
+ * The footer's bottom padding keeps its last line clear of the button.
+ */
+import ToolIcon from './ToolIcon';
+
+const LABEL = 'Volver arriba';
+---
+
+<a
+  href="#top"
+  aria-label={LABEL}
+  title={LABEL}
+  class="back-to-top fixed z-30 inline-flex size-11 items-center justify-center rounded-base border border-border bg-bg-elevated text-fg-muted no-underline shadow-sm transition-colors hover:border-fg-muted hover:text-fg print:hidden"
+>
+  <ToolIcon name="arrow-up" className="size-5" />
+</a>
+
+<style>
+  /* 16 px from the edges on a phone, 24 px from `sm` up, past the notch or home bar if any. */
+  .back-to-top {
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  @media (width >= 40rem) {
+    .back-to-top {
+      right: max(1.5rem, env(safe-area-inset-right));
+      bottom: max(1.5rem, env(safe-area-inset-bottom));
+    }
+  }
+</style>
