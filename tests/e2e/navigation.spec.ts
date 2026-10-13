@@ -111,7 +111,10 @@ test('un tema próximo muestra el aviso de su avance', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'Frenado regenerativo en un vehículo eléctrico',
   );
-  await expect(page.locator('main')).toContainText('Tema 6 · Avance 2');
+  await expect(page.getByRole('navigation', { name: 'Ruta de navegación' })).toContainText(
+    PHASE_LABELS[2],
+  );
+  await expect(page.locator('[data-topic-head]')).not.toContainText('Tema 6 ·');
   const notice = page.getByTestId('upcoming-notice');
   await expect(notice).toBeVisible();
   await expect(notice).toContainText(`Se publica en el ${PHASE_LABELS[2]}`);
