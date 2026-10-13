@@ -16,7 +16,10 @@ export function formatBuildDateIso(date: Date): string {
 type GitRunner = () => string;
 
 const runGitLog: GitRunner = () =>
-  execFileSync('git', ['log', '-1', '--format=%cI'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  execFileSync('git', ['log', '-1', '--format=%cI'], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
 
 /**
  * Date of the last commit (HEAD). Throws, never falls back to "today": a wrong date on a
@@ -35,9 +38,7 @@ export function readLastCommitDate(run: GitRunner = runGitLog): Date {
   }
   const date = new Date(output.trim());
   if (Number.isNaN(date.getTime())) {
-    throw new Error(
-      `La salida de git (${JSON.stringify(output.trim())}) no es una fecha válida.`,
-    );
+    throw new Error(`La salida de git (${JSON.stringify(output.trim())}) no es una fecha válida.`);
   }
   return date;
 }
