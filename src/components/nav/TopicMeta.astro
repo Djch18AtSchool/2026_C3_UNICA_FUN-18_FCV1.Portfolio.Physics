@@ -2,9 +2,11 @@
 /*
  * The strip under a published topic's title, between two hairlines: what the page is (resource
  * badge, reading time, last update) on the left, what the reader can do with it on the right.
- * It also embeds the topic's Markdown for "Copiar Markdown". On a phone the two halves stack.
+ * It also embeds the topic's Markdown for "Copiar Markdown". The halves share a row only where
+ * both fit with every word; otherwise (beside the sidebar, on a phone) the tools wrap below.
  */
 import ResourceBadge from '../ui/ResourceBadge.astro';
+import ToolIcon from './ToolIcon';
 import TopicTools from './TopicTools';
 import { REPO_URL, SITE_URL, type ResourceType } from '../../consigna';
 import { markdownSource, readingMinutes } from '../../lib/readingTime';
@@ -31,12 +33,6 @@ const updatedIso = updated.toISOString().slice(0, 10);
 const sourceUrl = `${REPO_URL}/blob/main/src/content/topics/${slug}.mdx`;
 const pageUrl = canonicalUrl(topicUrl(slug), SITE_URL);
 const FACT = 'inline-flex items-center gap-1.5';
-const ICON = 'size-4 shrink-0';
-/*
- * Beside the sidebar the column is at most ~830 px: the facts drop their words (the icons carry
- * them, and they are still read aloud) so the facts and the tools share one row.
- */
-const COMPACT = 'lg:sr-only';
 ---
 
 <div
@@ -51,42 +47,12 @@ const COMPACT = 'lg:sr-only';
       <ResourceBadge type={resourceType} />
     </li>
     <li class={FACT}>
-      <svg
-        class={ICON}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.6"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="8.5"></circle>
-        <path d="M12 7.5V12l3 2"></path>
-      </svg>
-      <span>
-        <span class="font-mono">{readingMinutes(body)}</span> min<span class={COMPACT}
-          >{' de lectura'}</span
-        >
-      </span>
+      <ToolIcon name="clock" />
+      <span><span class="font-mono">{readingMinutes(body)}</span> min de lectura</span>
     </li>
     <li class={FACT}>
-      <svg
-        class={ICON}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.6"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <rect x="3.5" y="5" width="17" height="15.5" rx="2"></rect>
-        <path d="M3.5 10h17M8 3v4M16 3v4"></path>
-      </svg>
-      <span>
-        <span class={COMPACT}>Actualizado </span><time datetime={updatedIso}>{updatedLabel}</time>
-      </span>
+      <ToolIcon name="calendar" />
+      <span>Actualizado <time datetime={updatedIso}>{updatedLabel}</time></span>
     </li>
   </ul>
   <div class="-ml-2">

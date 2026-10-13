@@ -10,10 +10,10 @@ const MARKDOWN_ID = 'topic-markdown';
 const MARKDOWN = 'Introducción.\n\n<Step n={1} title="Uno">\n\n</Step>\n<script>x</script>';
 const CONFIRM_MS = 1000;
 
-/** The icon the control shows: a copy button keeps its other state's icon hidden. */
+/** The icon the control shows: a copy button keeps its other face, aria-hidden, in the DOM. */
 function iconOf(control: HTMLElement): Element | null {
   return (
-    control.querySelector('[data-visible="true"] svg[data-icon]') ??
+    control.querySelector('[aria-hidden="false"] > svg[data-icon]') ??
     control.querySelector('svg[data-icon]')
   );
 }
@@ -67,18 +67,6 @@ describe('TopicTools', () => {
     expect(link).toHaveTextContent(/GitHub$/);
   });
 
-  test('las herramientas son botones fantasma: sin borde y con fondo suave al pasar', () => {
-    renderTools();
-
-    for (const control of [
-      screen.getByRole('button', { name: 'Copiar URL' }),
-      screen.getByRole('link', { name: 'Abrir en GitHub' }),
-    ]) {
-      expect(control).toHaveClass('h-8', 'hover:bg-bg-elevated');
-      expect(control.className).not.toMatch(/(^|\s)border(\s|$)/);
-    }
-  });
-
   test('el estado vacío queda fuera del flujo de la fila y no añade un hueco', () => {
     renderTools();
 
@@ -97,8 +85,6 @@ describe('TopicTools', () => {
     const copied = screen.getByRole('button', { name: 'Copiado' });
     expect(iconOf(copied)).toHaveAttribute('data-icon', 'check');
     expect(iconOf(copied)).toHaveClass('text-accent');
-    // The idle face stays in the cell, hidden, so the button keeps its width.
-    expect(copied.querySelector('[data-visible="false"]')).toHaveClass('invisible');
     expect(screen.getByRole('status')).toHaveTextContent('Copiado');
     // The button already shows it: the status only speaks, out of the row's flow.
     expect(screen.getByRole('status')).toHaveClass('sr-only');

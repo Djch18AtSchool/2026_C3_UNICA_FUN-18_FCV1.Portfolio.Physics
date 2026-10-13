@@ -8,9 +8,14 @@ const UPCOMING_TOPIC = './temas/frenado-regenerativo/';
 const TOPIC_2_URL = `${SITE_URL}temas/salto-personaje/`;
 const TOPIC_2_SOURCE = `${REPO_URL}/blob/main/src/content/topics/salto-personaje.mdx`;
 const DESKTOP = { width: 1280, height: 800 };
+const NARROW_DESKTOP = { width: 1024, height: 768 };
 const PHONE = { width: 390, height: 844 };
-/** Facts and tools on one row: their tops differ by less than this. */
-const SAME_ROW_PX = 8;
+/** Viewports where the sidebar sits beside the article, so the strip is at most ~830 px wide. */
+const WITH_SIDEBAR = [DESKTOP, NARROW_DESKTOP];
+/** A word that is really on screen, not a 1 px visually-hidden box. */
+const MIN_WORD_PX = 30;
+/** The tools row starts flush with the facts: its ghost padding is pulled back into the margin. */
+const ALIGN_TOLERANCE_PX = 2;
 /**
  * A section far enough down that the header has left the view (so the bar shows) and far enough
  * from the bottom that the page can scroll it up to the bar.
@@ -97,19 +102,37 @@ test.describe('cabecera de un tema publicado', () => {
     );
   });
 
-  test('en escritorio los metadatos y las herramientas comparten una fila', async ({ page }) => {
-    await page.setViewportSize(DESKTOP);
-    await page.goto(TOPIC_2);
+  for (const viewport of [DESKTOP, NARROW_DESKTOP, PHONE]) {
+    test(`a ${viewport.width} px se ven las palabras completas de los metadatos`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await page.goto(TOPIC_2);
 
-    const facts = await page.getByTestId('topic-facts').boundingBox();
-    const tools = await page.getByTestId('topic-tools').boundingBox();
-    expect(facts).not.toBeNull();
-    expect(tools).not.toBeNull();
-    expect(Math.abs(tools!.y + tools!.height / 2 - (facts!.y + facts!.height / 2))).toBeLessThan(
-      SAME_ROW_PX,
-    );
-    expect(tools!.x).toBeGreaterThan(facts!.x + facts!.width);
-  });
+      const facts = page.getByTestId('topic-facts');
+      for (const words of [/de lectura/, /Actualizado/]) {
+        const text = facts.getByText(words);
+        await expect(text).toBeVisible();
+        const box = await text.boundingBox();
+        expect(box!.width).toBeGreaterThan(MIN_WORD_PX);
+      }
+    });
+  }
+
+  for (const viewport of WITH_SIDEBAR) {
+    test(`a ${viewport.width} px las herramientas pasan bajo los metadatos`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.goto(TOPIC_2);
+
+      const facts = await page.getByTestId('topic-facts').boundingBox();
+      const firstTool = page.getByRole('button', { name: 'Copiar URL' });
+      const toolBox = await firstTool.boundingBox();
+      expect(toolBox!.y).toBeGreaterThanOrEqual(facts!.y + facts!.height);
+      // Its copy icon lines up with the badge's edge, not indented by the button's padding.
+      const icon = await firstTool.locator('svg[data-icon="copy"]').boundingBox();
+      expect(Math.abs(icon!.x - facts!.x)).toBeLessThan(ALIGN_TOLERANCE_PX);
+    });
+  }
 
   test('en un teléfono la franja se apila en dos filas sin desbordar', async ({ page }) => {
     await page.setViewportSize(PHONE);
@@ -136,10 +159,14 @@ test.describe('cabecera de un tema publicado', () => {
     await page.goto(TOPIC_2);
     await waitForIsland(page, '[data-testid="topic-tools"]');
 
-    await page.getByRole('button', { name: 'Copiar URL' }).click();
+    const button = page.getByRole('button', { name: 'Copiar URL' });
+    const idleWidth = (await button.boundingBox())!.width;
+    await button.click();
 
     const copied = page.getByRole('button', { name: 'Copiado' });
     await expect(copied).toBeVisible();
+    // Both faces share one cell: confirming never resizes the button or shifts its neighbours.
+    expect((await copied.boundingBox())!.width).toBe(idleWidth);
     await expect(copied.locator('svg[data-icon="check"]')).toBeVisible();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(TOPIC_2_URL);
     await expect(page.getByRole('button', { name: 'Copiar URL' })).toBeVisible();

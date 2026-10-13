@@ -20,14 +20,16 @@ const CONFIRM_MS = 1000;
 const COPIED_LABEL = 'Copiado';
 const FAILED_MESSAGE = 'No se pudo copiar; selecciona el texto y cópialo a mano.';
 const COPY_VERB = 'Copiar';
-const ICON = 'size-4';
 /** The copy icon turns into an accent check mark while the button says "Copiado". */
 const CHECK_ICON = 'size-4 text-accent';
 /** What each copy button copies; the verb is shown on wide screens and always spoken. */
 const TOOL_OBJECTS: Record<Tool, string> = { url: 'URL', markdown: 'Markdown' };
-/** Ghost buttons: no frame, a soft fill on hover; taller where the pointer is a finger. */
+/**
+ * Ghost buttons: no frame, a soft ink wash on hover (bg-elevated is too close to the page in the
+ * light theme); taller where the pointer is a finger.
+ */
 const BUTTON =
-  'inline-flex h-8 items-center gap-1.5 rounded-base px-2 text-sm text-fg-muted no-underline transition-colors hover:bg-bg-elevated hover:text-fg pointer-coarse:h-10';
+  'inline-flex h-8 items-center gap-1.5 rounded-base px-2 text-sm text-fg-muted no-underline transition-colors hover:bg-fg/7 hover:text-fg pointer-coarse:h-10';
 
 /** Each state is an icon and a label; both states share one grid cell. */
 const STATE = 'col-start-1 row-start-1 inline-flex items-center gap-1.5';
@@ -43,17 +45,15 @@ function CopyFace({ object, isCopied }: { object: string; isCopied: boolean }) {
   return (
     <span className="grid justify-items-center max-sm:justify-items-start">
       <span
-        data-visible={!isCopied}
         aria-hidden={isCopied}
         className={`${STATE} ${isCopied ? 'invisible' : ''}`}
       >
-        <ToolIcon name="copy" className={ICON} />
+        <ToolIcon name="copy" />
         <span>
           <span className="max-sm:sr-only">{COPY_VERB}</span> {object}
         </span>
       </span>
       <span
-        data-visible={isCopied}
         aria-hidden={!isCopied}
         className={`${STATE} ${isCopied ? '' : 'invisible'}`}
       >
@@ -98,7 +98,7 @@ export default function TopicTools({ url, githubUrl, markdownElementId }: TopicT
         );
       })}
       <a href={githubUrl} className={BUTTON}>
-        <ToolIcon name="github" className={ICON} />
+        <ToolIcon name="github" />
         <span>
           <span className="sr-only">Abrir en</span> GitHub
         </span>
