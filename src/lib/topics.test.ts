@@ -85,9 +85,7 @@ describe('publishedNeighbors', () => {
   });
 
   test('nothing published means no neighbors', () => {
-    expect(publishedNeighbors([topic(1, 'proximamente'), topic(2, 'proximamente')], 1)).toEqual(
-      {},
-    );
+    expect(publishedNeighbors([topic(1, 'proximamente'), topic(2, 'proximamente')], 1)).toEqual({});
   });
 });
 
