@@ -181,13 +181,18 @@ test('anterior y siguiente solo enlazan temas publicados', async ({ page }) => {
   ).toHaveAttribute('href', new RegExp(`/temas/${PUBLISHED_TOPICS[1].slug}/$`));
 });
 
-test('un tema próximo solo vuelve al último tema publicado', async ({ page }) => {
+test('un tema próximo solo vuelve al último tema publicado, rotulado como tal', async ({
+  page,
+}) => {
   for (const upcoming of TOPICS.filter((topic) => topic.phase !== 1)) {
     await page.goto(`./temas/${upcoming.slug}/`);
-    const links = page.getByRole('navigation', { name: PREV_NEXT }).locator('a');
+    const nav = page.getByRole('navigation', { name: PREV_NEXT });
+    const links = nav.locator('a');
     await expect(links, upcoming.slug).toHaveCount(1);
-    await expect(links).toHaveAttribute('rel', 'prev');
+    await expect(links).not.toHaveAttribute('rel', /./);
     await expect(links).toHaveAttribute('href', new RegExp(`/temas/${LAST_PUBLISHED.slug}/$`));
+    await expect(links).toContainText('Último tema publicado');
+    await expect(nav).not.toContainText('Tema anterior');
   }
 });
 

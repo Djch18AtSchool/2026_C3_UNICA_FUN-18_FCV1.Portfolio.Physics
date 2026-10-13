@@ -1,5 +1,5 @@
 ---
-import { publishedNeighbors, type TopicSummary } from '../../lib/topics';
+import { isPublished, publishedNeighbors, type TopicSummary } from '../../lib/topics';
 import { topicUrl } from '../../lib/url';
 
 interface Props {
@@ -9,6 +9,10 @@ interface Props {
 }
 const { all, number } = Astro.props;
 const { prev, next } = publishedNeighbors(all, number);
+// From an upcoming topic the only way is back to the last published one, which is not its
+// previous topic: say so, and leave out rel="prev".
+const isCurrentPublished = all.some((topic) => topic.number === number && isPublished(topic));
+const prevLabel = isCurrentPublished ? 'Tema anterior' : 'Último tema publicado';
 
 const LINK_CLASSES =
   'flex flex-col gap-0.5 rounded-base border border-border bg-bg-elevated px-4 py-3 no-underline hover:border-fg-muted';
@@ -17,8 +21,12 @@ const LINK_CLASSES =
 {(prev || next) && (
   <nav aria-label="Tema anterior y siguiente" class="grid gap-3 sm:grid-cols-2">
     {prev ? (
-      <a href={topicUrl(prev.slug)} rel="prev" class={LINK_CLASSES}>
-        <span class="text-xs text-fg-muted">Tema anterior</span>
+      <a
+        href={topicUrl(prev.slug)}
+        rel={isCurrentPublished ? 'prev' : undefined}
+        class={LINK_CLASSES}
+      >
+        <span class="text-xs text-fg-muted">{prevLabel}</span>
         <span class="text-fg">
           <span class="font-mono text-fg-muted">{prev.number}</span> {prev.shortTitle}
         </span>
