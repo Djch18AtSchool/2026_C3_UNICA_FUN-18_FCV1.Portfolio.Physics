@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { copyText } from '../../lib/clipboard';
 import { readScriptText } from '../../lib/scriptText';
+import ToolIcon from './ToolIcon';
 
 export interface TopicToolsProps {
   /** The topic's public address. */
@@ -18,28 +19,45 @@ type Outcome = { tool: Tool; isCopied: boolean };
 const CONFIRM_MS = 1000;
 const COPIED_LABEL = 'Copiado';
 const FAILED_MESSAGE = 'No se pudo copiar; selecciona el texto y cópialo a mano.';
-const TOOL_LABELS: Record<Tool, string> = { url: 'Copiar URL', markdown: 'Copiar Markdown' };
-/** The v1 bordered button, as the cover's "Ver repositorio". */
+const COPY_VERB = 'Copiar';
+const ICON = 'size-4';
+/** The copy icon turns into an accent check mark while the button says "Copiado". */
+const CHECK_ICON = 'size-4 text-accent';
+/** What each copy button copies; the verb is shown on wide screens and always spoken. */
+const TOOL_OBJECTS: Record<Tool, string> = { url: 'URL', markdown: 'Markdown' };
+/** Ghost buttons: no frame, a soft fill on hover; taller where the pointer is a finger. */
 const BUTTON =
-  'inline-flex h-9 items-center gap-2 rounded-base border border-border px-3 text-sm text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
+  'inline-flex h-8 items-center gap-1.5 rounded-base px-2 text-sm text-fg-muted no-underline transition-colors hover:bg-bg-elevated hover:text-fg pointer-coarse:h-10';
+
+/** Each state is an icon and a label; both states share one grid cell. */
+const STATE = 'col-start-1 row-start-1 inline-flex items-center gap-1.5';
 
 /**
- * Both labels share one grid cell, so the button keeps its width while it says "Copiado"; the
- * hidden one is also aria-hidden, so the button's name is only the visible label.
+ * The idle and "Copiado" states overlap in one grid cell, so the button keeps its width while it
+ * confirms and the shown state stays centred (left-aligned on a phone, so the row's first icon
+ * lines up with the facts above); the hidden one is also aria-hidden, so the button's
+ * name is only the visible label. On a phone the verb is visually hidden (the copy icon carries
+ * it) so the three tools fit on one row.
  */
-function CopyLabel({ label, isCopied }: { label: string; isCopied: boolean }) {
+function CopyFace({ object, isCopied }: { object: string; isCopied: boolean }) {
   return (
-    <span className="grid justify-items-center">
+    <span className="grid justify-items-center max-sm:justify-items-start">
       <span
+        data-visible={!isCopied}
         aria-hidden={isCopied}
-        className={`col-start-1 row-start-1 ${isCopied ? 'invisible' : ''}`}
+        className={`${STATE} ${isCopied ? 'invisible' : ''}`}
       >
-        {label}
+        <ToolIcon name="copy" className={ICON} />
+        <span>
+          <span className="max-sm:sr-only">{COPY_VERB}</span> {object}
+        </span>
       </span>
       <span
+        data-visible={isCopied}
         aria-hidden={!isCopied}
-        className={`col-start-1 row-start-1 ${isCopied ? '' : 'invisible'}`}
+        className={`${STATE} ${isCopied ? '' : 'invisible'}`}
       >
+        <ToolIcon name="check" className={CHECK_ICON} />
         {COPIED_LABEL}
       </span>
     </span>
@@ -70,27 +88,30 @@ export default function TopicTools({ url, githubUrl, markdownElementId }: TopicT
   const isFailureShown = outcome !== null && !outcome.isCopied;
 
   return (
-    <div data-testid="topic-tools" className="flex flex-wrap items-center gap-3">
-      {(Object.keys(TOOL_LABELS) as Tool[]).map((tool) => (
-        <button key={tool} type="button" className={BUTTON} onClick={() => void copy(tool)}>
-          <CopyLabel
-            label={TOOL_LABELS[tool]}
-            isCopied={outcome?.tool === tool && outcome.isCopied}
-          />
-        </button>
-      ))}
-      {/* A link styled as its neighbours: no underline, so the row reads as one set of buttons. */}
-      <a href={githubUrl} className={`${BUTTON} no-underline`}>
-        Abrir en GitHub
+    <div data-testid="topic-tools" className="flex flex-wrap items-center gap-1 max-sm:gap-3">
+      {(Object.keys(TOOL_OBJECTS) as Tool[]).map((tool) => {
+        const isCopied = outcome?.tool === tool && outcome.isCopied;
+        return (
+          <button key={tool} type="button" className={BUTTON} onClick={() => void copy(tool)}>
+            <CopyFace object={TOOL_OBJECTS[tool]} isCopied={isCopied} />
+          </button>
+        );
+      })}
+      <a href={githubUrl} className={BUTTON}>
+        <ToolIcon name="github" className={ICON} />
+        <span>
+          <span className="sr-only">Abrir en</span> GitHub
+        </span>
+        <ToolIcon name="external" className="size-3 opacity-70" />
       </a>
       {/*
-        The button already shows "Copiado"; only a failure needs visible text. Otherwise the
-        status is sr-only: still announced, but out of the flex flow, so it adds no gap.
+        The button already shows "Copiado"; only a failure needs visible text, on its own line.
+        Otherwise the status is sr-only: still announced, but out of the flex flow.
       */}
       <p
         role="status"
         aria-live="polite"
-        className={isFailureShown ? 'text-sm text-fg-muted' : 'sr-only'}
+        className={isFailureShown ? 'basis-full px-2 text-sm text-fg-muted' : 'sr-only'}
       >
         {status}
       </p>

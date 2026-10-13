@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { REPO_URL, RESOURCE_LABELS, SITE_URL } from '../../src/consigna';
+import { PHASE_LABELS, REPO_URL, RESOURCE_LABELS, SITE_URL } from '../../src/consigna';
 import { SECTION_HEADINGS } from '../../src/lib/sectionHeadings';
 import { waitForIsland } from './helpers';
 
@@ -8,6 +8,9 @@ const UPCOMING_TOPIC = './temas/frenado-regenerativo/';
 const TOPIC_2_URL = `${SITE_URL}temas/salto-personaje/`;
 const TOPIC_2_SOURCE = `${REPO_URL}/blob/main/src/content/topics/salto-personaje.mdx`;
 const DESKTOP = { width: 1280, height: 800 };
+const PHONE = { width: 390, height: 844 };
+/** Facts and tools on one row: their tops differ by less than this. */
+const SAME_ROW_PX = 8;
 /**
  * A section far enough down that the header has left the view (so the bar shows) and far enough
  * from the bottom that the page can scroll it up to the bar.
@@ -46,17 +49,27 @@ for (const [slug, type] of PRESCRIBED_TYPES) {
 test.describe('cabecera de un tema publicado', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
-  test('muestra las tres insignias y los tres botones de herramientas', async ({ page }) => {
+  test('una franja entre dos líneas reúne los metadatos y las tres herramientas', async ({
+    page,
+  }) => {
     await page.goto(TOPIC_2);
 
-    const badges = page.getByTestId('topic-badges').locator('> li');
-    await expect(badges).toHaveCount(3);
-    await expect(badges.nth(0)).toHaveText(RESOURCE_LABELS.simulacion);
-    await expect(badges.nth(1)).toHaveText(/^≈ \d+ min de lectura$/);
-    await expect(badges.nth(2)).toHaveText(/^Contenido actualizado el \d{1,2} de \S+ de \d{4}$/);
-    await expect(badges.nth(2).locator('time')).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}$/);
+    const strip = page.getByTestId('topic-meta');
+    await expect(strip).toBeVisible();
+    await expect(strip).toHaveCSS('border-top-width', '1px');
+    await expect(strip).toHaveCSS('border-bottom-width', '1px');
 
-    const tools = page.getByTestId('topic-tools');
+    const facts = strip.getByTestId('topic-facts').locator('> li');
+    await expect(facts).toHaveCount(3);
+    await expect(facts.nth(0)).toHaveText(RESOURCE_LABELS.simulacion);
+    await expect(facts.nth(1)).toHaveText(/^\d+ min de lectura$/);
+    await expect(facts.nth(2)).toHaveText(/^Actualizado \d{1,2} \S+ \d{4}$/);
+    await expect(facts.nth(2).locator('time')).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}$/);
+    // The reading time and the date each carry a small decorative icon.
+    for (const index of [1, 2])
+      await expect(facts.nth(index).locator('svg[aria-hidden="true"]')).toHaveCount(1);
+
+    const tools = strip.getByTestId('topic-tools');
     await expect(tools.getByRole('button', { name: 'Copiar URL' })).toBeVisible();
     await expect(tools.getByRole('button', { name: 'Copiar Markdown' })).toBeVisible();
     await expect(tools.getByRole('link', { name: 'Abrir en GitHub' })).toHaveAttribute(
@@ -65,13 +78,69 @@ test.describe('cabecera de un tema publicado', () => {
     );
   });
 
+  test('la cabecera ya no repite el tema y el avance ni lleva el bloque "Estado"', async ({
+    page,
+  }) => {
+    await page.setViewportSize(DESKTOP);
+    await page.goto(TOPIC_2);
+
+    const head = page.locator('[data-topic-head]');
+    await expect(head).not.toContainText('Tema 2 ·');
+    await expect(head).not.toContainText('Estado');
+    await expect(head).not.toContainText('Publicado');
+    // The breadcrumbs and the sticky bar still say where the reader is.
+    await expect(page.getByRole('navigation', { name: 'Ruta de navegación' })).toContainText(
+      PHASE_LABELS[1],
+    );
+    await expect(page.locator('[data-topic-sticky-bar]')).toContainText(
+      `Tema 2 · ${PHASE_LABELS[1]}`,
+    );
+  });
+
+  test('en escritorio los metadatos y las herramientas comparten una fila', async ({ page }) => {
+    await page.setViewportSize(DESKTOP);
+    await page.goto(TOPIC_2);
+
+    const facts = await page.getByTestId('topic-facts').boundingBox();
+    const tools = await page.getByTestId('topic-tools').boundingBox();
+    expect(facts).not.toBeNull();
+    expect(tools).not.toBeNull();
+    expect(Math.abs(tools!.y + tools!.height / 2 - (facts!.y + facts!.height / 2))).toBeLessThan(
+      SAME_ROW_PX,
+    );
+    expect(tools!.x).toBeGreaterThan(facts!.x + facts!.width);
+  });
+
+  test('en un teléfono la franja se apila en dos filas sin desbordar', async ({ page }) => {
+    await page.setViewportSize(PHONE);
+    await page.goto(TOPIC_2);
+
+    const facts = await page.getByTestId('topic-facts').boundingBox();
+    const tools = await page.getByTestId('topic-tools').boundingBox();
+    expect(facts).not.toBeNull();
+    expect(tools).not.toBeNull();
+    expect(tools!.y).toBeGreaterThanOrEqual(facts!.y + facts!.height);
+    expect(tools!.x + tools!.width).toBeLessThanOrEqual(PHONE.width);
+    const controls = page.getByTestId('topic-tools').locator('button, a');
+    await expect(controls).toHaveCount(3);
+    const tops = await controls.evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().top),
+    );
+    // The three tools fit on a single row.
+    expect(new Set(tops).size).toBe(1);
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(scrollWidth).toBeLessThanOrEqual(PHONE.width);
+  });
+
   test('"Copiar URL" escribe la URL del tema en el portapapeles', async ({ page }) => {
     await page.goto(TOPIC_2);
     await waitForIsland(page, '[data-testid="topic-tools"]');
 
     await page.getByRole('button', { name: 'Copiar URL' }).click();
 
-    await expect(page.getByRole('button', { name: 'Copiado' })).toBeVisible();
+    const copied = page.getByRole('button', { name: 'Copiado' });
+    await expect(copied).toBeVisible();
+    await expect(copied.locator('svg[data-icon="check"]')).toBeVisible();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(TOPIC_2_URL);
     await expect(page.getByRole('button', { name: 'Copiar URL' })).toBeVisible();
   });
@@ -129,10 +198,10 @@ test('un ancla deja su destino por debajo de la barra fija de escritorio', async
   expect(targetTop).toBeLessThan(NEAR_TOP_PX);
 });
 
-test('un tema próximo no tiene insignias, herramientas ni el pie anterior', async ({ page }) => {
+test('un tema próximo no tiene franja, herramientas ni el pie anterior', async ({ page }) => {
   await page.goto(UPCOMING_TOPIC);
 
-  await expect(page.getByTestId('topic-badges')).toHaveCount(0);
+  await expect(page.getByTestId('topic-meta')).toHaveCount(0);
   await expect(page.getByTestId('topic-tools')).toHaveCount(0);
   await expect(page.locator('#topic-markdown')).toHaveCount(0);
   for (const text of OLD_FOOTER_TEXTS)

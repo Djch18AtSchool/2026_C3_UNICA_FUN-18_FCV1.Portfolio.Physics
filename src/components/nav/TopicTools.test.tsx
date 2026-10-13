@@ -10,6 +10,14 @@ const MARKDOWN_ID = 'topic-markdown';
 const MARKDOWN = 'Introducción.\n\n<Step n={1} title="Uno">\n\n</Step>\n<script>x</script>';
 const CONFIRM_MS = 1000;
 
+/** The icon the control shows: a copy button keeps its other state's icon hidden. */
+function iconOf(control: HTMLElement): Element | null {
+  return (
+    control.querySelector('[data-visible="true"] svg[data-icon]') ??
+    control.querySelector('svg[data-icon]')
+  );
+}
+
 function renderTools() {
   return render(<TopicTools url={URL} githubUrl={GITHUB_URL} markdownElementId={MARKDOWN_ID} />);
 }
@@ -45,6 +53,32 @@ describe('TopicTools', () => {
     );
   });
 
+  test('cada herramienta lleva su icono decorativo y el enlace, la flecha de salida', () => {
+    renderTools();
+
+    for (const name of ['Copiar URL', 'Copiar Markdown']) {
+      const icon = iconOf(screen.getByRole('button', { name }));
+      expect(icon).toHaveAttribute('data-icon', 'copy');
+      expect(icon).toHaveAttribute('aria-hidden', 'true');
+    }
+    const link = screen.getByRole('link', { name: 'Abrir en GitHub' });
+    expect(iconOf(link)).toHaveAttribute('data-icon', 'github');
+    expect(link.querySelector('svg[data-icon="external"]')).toHaveAttribute('aria-hidden', 'true');
+    expect(link).toHaveTextContent(/GitHub$/);
+  });
+
+  test('las herramientas son botones fantasma: sin borde y con fondo suave al pasar', () => {
+    renderTools();
+
+    for (const control of [
+      screen.getByRole('button', { name: 'Copiar URL' }),
+      screen.getByRole('link', { name: 'Abrir en GitHub' }),
+    ]) {
+      expect(control).toHaveClass('h-8', 'hover:bg-bg-elevated');
+      expect(control.className).not.toMatch(/(^|\s)border(\s|$)/);
+    }
+  });
+
   test('el estado vacío queda fuera del flujo de la fila y no añade un hueco', () => {
     renderTools();
 
@@ -60,7 +94,11 @@ describe('TopicTools', () => {
     });
 
     expect(writeText).toHaveBeenCalledWith(URL);
-    expect(screen.getByRole('button', { name: 'Copiado' })).toBeInTheDocument();
+    const copied = screen.getByRole('button', { name: 'Copiado' });
+    expect(iconOf(copied)).toHaveAttribute('data-icon', 'check');
+    expect(iconOf(copied)).toHaveClass('text-accent');
+    // The idle face stays in the cell, hidden, so the button keeps its width.
+    expect(copied.querySelector('[data-visible="false"]')).toHaveClass('invisible');
     expect(screen.getByRole('status')).toHaveTextContent('Copiado');
     // The button already shows it: the status only speaks, out of the row's flow.
     expect(screen.getByRole('status')).toHaveClass('sr-only');
@@ -69,7 +107,8 @@ describe('TopicTools', () => {
       vi.advanceTimersByTime(CONFIRM_MS);
     });
 
-    expect(screen.getByRole('button', { name: 'Copiar URL' })).toBeInTheDocument();
+    const restored = screen.getByRole('button', { name: 'Copiar URL' });
+    expect(iconOf(restored)).toHaveAttribute('data-icon', 'copy');
     expect(screen.queryByRole('button', { name: 'Copiado' })).toBeNull();
     expect(screen.getByRole('status')).toHaveTextContent('');
   });
@@ -83,7 +122,11 @@ describe('TopicTools', () => {
 
     expect(writeText).toHaveBeenCalledWith(MARKDOWN);
     expect(screen.getByRole('button', { name: 'Copiado' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Copiar URL' })).toBeInTheDocument();
+    // Only the clicked button confirms; its neighbour keeps its copy icon.
+    expect(iconOf(screen.getByRole('button', { name: 'Copiar URL' }))).toHaveAttribute(
+      'data-icon',
+      'copy',
+    );
   });
 
   test('si no se puede copiar, lo dice en el estado sin lanzar', async () => {
@@ -101,6 +144,35 @@ describe('TopicTools', () => {
     expect(screen.getByRole('status')).toHaveTextContent('No se pudo copiar');
     expect(screen.getByRole('status')).not.toHaveClass('sr-only');
     expect(screen.queryByRole('button', { name: 'Copiado' })).toBeNull();
+    // No check mark for a copy that did not happen.
+    expect(iconOf(screen.getByRole('button', { name: 'Copiar URL' }))).toHaveAttribute(
+      'data-icon',
+      'copy',
+    );
+  });
+
+  test('un segundo intento exitoso reemplaza el aviso de fallo', async () => {
+    const failing = vi.fn(async (): Promise<void> => {
+      throw new Error('denied');
+    });
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: failing },
+    });
+    Object.defineProperty(document, 'execCommand', { configurable: true, value: () => false });
+    renderTools();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Copiar URL' }));
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('No se pudo copiar');
+
+    failing.mockImplementation(async () => {});
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Copiar Markdown' }));
+    });
+
+    expect(screen.getByRole('status')).toHaveTextContent('Copiado');
+    expect(screen.getByRole('status')).toHaveClass('sr-only');
   });
 
   test('sin el Markdown embebido, avisa en vez de copiar texto vacío', async () => {
