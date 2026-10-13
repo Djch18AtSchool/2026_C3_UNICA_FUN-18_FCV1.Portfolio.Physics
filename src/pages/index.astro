@@ -2,20 +2,18 @@
 import { getCollection } from 'astro:content';
 import TopicCard from '../components/nav/TopicCard.astro';
 import GithubIcon from '../components/ui/GithubIcon.astro';
-import { AUTHOR, COURSE, PHASE_LABELS, PHASES, REPO_URL, topicsByPhase } from '../consigna';
+import { AUTHOR, COURSE, REPO_URL } from '../consigna';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { BUILD_DATE_ISO, BUILD_DATE_LABEL } from '../lib/buildDate';
+import { groupByPhase } from '../lib/phases';
 import { sortByNumber, toTopicSummary } from '../lib/topics';
 
 const entries = sortByNumber(
   (await getCollection('topics')).map((entry) => ({ ...toTopicSummary(entry), entry })),
 );
 
-const groups = PHASES.map((phase) => ({
-  phase,
-  label: PHASE_LABELS[phase],
-  topics: topicsByPhase(phase, entries),
-}));
+// Future phases show only their heading and a pencil badge: no rows, names or counts.
+const groups = groupByPhase(entries);
 ---
 
 <BaseLayout title="Portafolio de evidencias de Física I">
@@ -79,16 +77,26 @@ const groups = PHASES.map((phase) => ({
         aria-labelledby={`fase-${group.phase}-titulo`}
         class="scroll-mt-8"
       >
-        <div class="border-b-[3px] border-double border-border pb-2">
+        <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b-[3px] border-double border-border pb-2">
           <h2 id={`fase-${group.phase}-titulo`}>{group.label}</h2>
+          {group.isFuture && (
+            <span
+              data-testid="upcoming-phase"
+              class="inline-flex shrink-0 items-center rounded-base border border-dashed border-fg-muted px-1.5 py-px text-xs leading-5 whitespace-nowrap text-fg-muted"
+            >
+              Se publica con su consigna
+            </span>
+          )}
         </div>
-        <ol class="divide-y divide-border border-b border-border">
-          {group.topics.map((topic) => (
-            <li>
-              <TopicCard topic={topic} />
-            </li>
-          ))}
-        </ol>
+        {!group.isFuture && (
+          <ol class="divide-y divide-border border-b border-border">
+            {group.topics.map((topic) => (
+              <li>
+                <TopicCard topic={topic} />
+              </li>
+            ))}
+          </ol>
+        )}
       </section>
     ))}
   </div>

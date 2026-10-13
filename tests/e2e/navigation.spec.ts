@@ -3,14 +3,13 @@ import { PHASE_LABELS, REPO_URL, TOPICS } from '../../src/consigna';
 
 const PUBLISHED_TOPICS = TOPICS.filter((topic) => topic.phase === 1);
 
-test('la portada lista los 13 temas con sus títulos exactos agrupados por avance', async ({
+test('la portada lista los temas publicados con sus títulos exactos agrupados por avance', async ({
   page,
 }) => {
   await page.goto('./');
 
   const links = page.getByTestId('topic-link');
-  await expect(links).toHaveCount(13);
-  await expect(links).toHaveText(TOPICS.map((topic) => topic.title));
+  await expect(links).toHaveText(PUBLISHED_TOPICS.map((topic) => topic.title));
 
   const groups = page.getByTestId('phase-group');
   await expect(groups).toHaveCount(3);
@@ -19,13 +18,31 @@ test('la portada lista los 13 temas con sus títulos exactos agrupados por avanc
     'Avance 2',
     'Entrega Final',
   ]);
-  await expect(groups.nth(0).getByTestId('topic-card')).toHaveCount(5);
-  await expect(groups.nth(1).getByTestId('topic-card')).toHaveCount(4);
-  await expect(groups.nth(2).getByTestId('topic-card')).toHaveCount(4);
+  await expect(groups.nth(0).getByTestId('topic-card')).toHaveCount(PUBLISHED_TOPICS.length);
 
   await expect(page.locator('main')).not.toContainText('de 13 temas publicados');
   await expect(page.locator('main')).not.toContainText('Temas 1 a 5');
   await expect(page.locator('main')).not.toContainText('Publicado');
+});
+
+test('las fases futuras de la portada solo muestran su encabezado y la insignia', async ({
+  page,
+}) => {
+  await page.goto('./');
+  const groups = page.getByTestId('phase-group');
+
+  await expect(groups.nth(0).getByTestId('upcoming-phase')).toHaveCount(0);
+  for (const n of [1, 2]) {
+    const group = groups.nth(n);
+    await expect(group.getByTestId('topic-card')).toHaveCount(0);
+    await expect(group.getByRole('listitem')).toHaveCount(0);
+    await expect(group.getByTestId('upcoming-phase')).toHaveText('Se publica con su consigna');
+    await expect(group.getByTestId('upcoming-phase')).toHaveCSS('border-style', 'dashed');
+  }
+  for (const topic of TOPICS.filter((item) => item.phase !== 1)) {
+    await expect(page.locator('main')).not.toContainText(topic.title);
+  }
+  await expect(page.locator('main')).not.toContainText('Próximamente');
 });
 
 test('la portada muestra la lista de definición del curso en el orden exacto', async ({ page }) => {
@@ -79,19 +96,12 @@ test('las filas publicadas muestran número, título y tipo de recurso, sin el c
 }) => {
   await page.goto('./');
 
-  const published = page.getByTestId('topic-card').filter({ hasNotText: 'Próximamente' });
-  await expect(published).toHaveCount(5);
+  const published = page.getByTestId('topic-card');
+  await expect(published).toHaveCount(PUBLISHED_TOPICS.length);
   await expect(page.locator('main')).not.toContainText('Caso:');
   for (const product of ['Assetto Corsa', 'Celeste', 'DualSense']) {
     await expect(published.filter({ hasText: product })).toHaveCount(0);
   }
-});
-
-test('las filas de los temas futuros no muestran "Recurso por definir"', async ({ page }) => {
-  await page.goto('./');
-
-  const upcomingCards = page.getByTestId('topic-card').filter({ hasText: 'Próximamente' });
-  await expect(upcomingCards).toHaveCount(8);
   await expect(page.locator('main')).not.toContainText('Recurso por definir');
 });
 

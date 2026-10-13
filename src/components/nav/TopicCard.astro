@@ -4,12 +4,12 @@ import type { TopicSummary } from '../../lib/topics';
 import { topicUrl } from '../../lib/url';
 
 interface Props {
+  /** A published topic: future phases list no rows. */
   topic: TopicSummary;
 }
 const { topic } = Astro.props;
-const isPublished = topic.status === 'publicado';
-// One entry of the notebook's table of contents: margin number, double margin rule, title,
-// a dotted leader on wide screens, then the resource type (published) or "Próximamente". The whole row is the link target.
+// One published entry of the notebook's table of contents: margin number, double margin rule,
+// title, a dotted leader on wide screens, then the resource type. The whole row is the link target.
 ---
 
 <article
@@ -37,11 +37,7 @@ const isPublished = topic.status === 'publicado';
       aria-hidden="true"
     ></span>
     <div class="flex flex-col items-start gap-1.5 md:shrink-0 md:flex-row md:items-center md:gap-2">
-      {isPublished ? (
-        <ResourceBadge type={topic.resourceType} />
-      ) : (
-        <span class="text-sm text-fg-muted">Próximamente</span>
-      )}
+      <ResourceBadge type={topic.resourceType} />
     </div>
   </div>
 </article>
