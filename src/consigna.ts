@@ -8,6 +8,10 @@ export interface ConsignaTopic {
   readonly phase: Phase;
 }
 
+/**
+ * The topics whose consigna has arrived, by number. A later delivery's topics join this list, and
+ * get their page, only when the professor publishes its consigna.
+ */
 export const TOPICS: readonly ConsignaTopic[] = Object.freeze(
   [
     {
@@ -39,39 +43,6 @@ export const TOPICS: readonly ConsignaTopic[] = Object.freeze(
       slug: 'control-haptico',
       phase: 1,
       title: 'El resorte virtual detrás de un control háptico',
-    },
-    {
-      number: 6,
-      slug: 'frenado-regenerativo',
-      phase: 2,
-      title: 'Frenado regenerativo en un vehículo eléctrico',
-    },
-    {
-      number: 7,
-      slug: 'coeficiente-restitucion',
-      phase: 2,
-      title: 'El coeficiente de restitución en un motor de videojuego',
-    },
-    { number: 8, slug: 'ruedas-reaccion', phase: 2, title: 'Ruedas de reacción en satélites' },
-    {
-      number: 9,
-      slug: 'asistencia-gravitatoria',
-      phase: 2,
-      title: 'Asistencia gravitatoria de la Voyager',
-    },
-    { number: 10, slug: 'spring-animations', phase: 3, title: 'Spring animations en interfaces' },
-    { number: 11, slug: 'sintesis-sonido', phase: 3, title: 'Síntesis de sonido y armónicos' },
-    {
-      number: 12,
-      slug: 'resonancia-tacoma',
-      phase: 3,
-      title: 'Resonancia estructural y Tacoma Narrows',
-    },
-    {
-      number: 13,
-      slug: 'enfriamiento-datacenter',
-      phase: 3,
-      title: 'Enfriamiento líquido de un centro de datos',
     },
   ].map((topic) => Object.freeze(topic) as ConsignaTopic),
 );

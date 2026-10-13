@@ -9,7 +9,7 @@ const TOPICS: TopicSummary[] = [
     phase: 1,
     title: 'El salto del personaje: cómo los motores de juego falsean la gravedad',
     shortTitle: 'Salto del personaje',
-    status: 'publicado',
+    resourceType: 'simulacion',
   },
   {
     slug: 'dron-reparto',
@@ -17,15 +17,15 @@ const TOPICS: TopicSummary[] = [
     phase: 1,
     title: 'Rastreo y navegación de un dron de reparto',
     shortTitle: 'Dron de reparto',
-    status: 'publicado',
+    resourceType: 'visualizacion',
   },
   {
-    slug: 'frenado-regenerativo',
-    number: 6,
-    phase: 2,
-    title: 'Frenado regenerativo en un vehículo eléctrico',
-    shortTitle: 'Frenado regenerativo',
-    status: 'proximamente',
+    slug: 'gravedad-artificial',
+    number: 3,
+    phase: 1,
+    title: 'Gravedad artificial por rotación en hábitats espaciales',
+    shortTitle: 'Gravedad artificial',
+    resourceType: 'diagrama',
   },
 ];
 
@@ -36,7 +36,7 @@ const HEADINGS = {
     { depth: 2, text: 'Conexiones', slug: 'conexiones' },
   ],
   'dron-reparto': [{ depth: 2, text: 'Recurso de apoyo#', slug: 'recurso-de-apoyo' }],
-  'frenado-regenerativo': [{ depth: 2, text: 'Energía al frenar', slug: 'energia-al-frenar' }],
+  'gravedad-artificial': [{ depth: 2, text: 'Peso aparente', slug: 'peso-aparente' }],
 };
 
 function index(): SearchEntry[] {
@@ -58,16 +58,15 @@ describe('buildSearchIndex', () => {
     ]);
   });
 
-  test('upcoming topics contribute only their title', () => {
-    const frenado = index().find((entry) => entry.slug === 'frenado-regenerativo');
-    expect(frenado).toEqual({
-      slug: 'frenado-regenerativo',
-      number: 6,
-      phase: 2,
-      title: 'Frenado regenerativo en un vehículo eléctrico',
-      shortTitle: 'Frenado regenerativo',
-      status: 'proximamente',
-      headings: [],
+  test('every topic contributes its title and its section headings', () => {
+    const gravedad = index().find((entry) => entry.slug === 'gravedad-artificial');
+    expect(gravedad).toEqual({
+      slug: 'gravedad-artificial',
+      number: 3,
+      phase: 1,
+      title: 'Gravedad artificial por rotación en hábitats espaciales',
+      shortTitle: 'Gravedad artificial',
+      headings: [{ text: 'Peso aparente', anchor: 'peso-aparente' }],
     });
   });
 
@@ -76,13 +75,13 @@ describe('buildSearchIndex', () => {
     expect(dron?.headings).toEqual([{ text: 'Recurso de apoyo', anchor: 'recurso-de-apoyo' }]);
   });
 
-  test('a published topic without collected headings gets an empty list', () => {
+  test('a topic without collected headings gets an empty list', () => {
     const [entry] = buildSearchIndex([TOPICS[1]], {});
     expect(entry.headings).toEqual([]);
   });
 
   test('sorts the entries by number', () => {
-    expect(index().map((entry) => entry.number)).toEqual([1, 2, 6]);
+    expect(index().map((entry) => entry.number)).toEqual([1, 2, 3]);
   });
 });
 
@@ -102,7 +101,7 @@ describe('filterIndex', () => {
 
   test('an empty query returns every entry without headings, by number', () => {
     const results = filterIndex(index(), '');
-    expect(results.map((result) => result.entry.number)).toEqual([1, 2, 6]);
+    expect(results.map((result) => result.entry.number)).toEqual([1, 2, 3]);
     expect(results.every((result) => result.headings.length === 0)).toBe(true);
   });
 
@@ -111,7 +110,7 @@ describe('filterIndex', () => {
   });
 
   test('matches titles and short titles case-insensitively, without headings', () => {
-    const results = filterIndex(index(), 'FRENADO');
+    const results = filterIndex(index(), 'GRAVEDAD ARTIFICIAL');
     expect(results).toEqual([{ entry: index()[2], headings: [] }]);
     expect(filterIndex(index(), 'dron de reparto').map((r) => r.entry.slug)).toEqual([
       'dron-reparto',
@@ -120,10 +119,10 @@ describe('filterIndex', () => {
 
   test('returns topics and sections ordered by number', () => {
     const results = filterIndex(index(), 'e');
-    expect(results.map((result) => result.entry.number)).toEqual([1, 2, 6]);
+    expect(results.map((result) => result.entry.number)).toEqual([1, 2, 3]);
   });
 
   test('returns nothing when nothing matches', () => {
-    expect(filterIndex(index(), 'tacoma')).toEqual([]);
+    expect(filterIndex(index(), 'ornitorrinco')).toEqual([]);
   });
 });

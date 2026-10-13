@@ -1,6 +1,6 @@
 ---
 /*
- * The strip under a published topic's concept: what the page is (resource badge, reading time,
+ * The strip under a topic's concept: what the page is (resource badge, reading time,
  * last update) on the left, what the reader can do with it on the right. No rules frame it; the
  * spacing alone sets it apart from the concept above and the body below. It also embeds the
  * topic's Markdown for "Copiar Markdown". The halves share a row only where both fit with every
@@ -16,7 +16,7 @@ import { canonicalUrl, topicUrl } from '../../lib/url';
 
 interface Props {
   slug: string;
-  resourceType?: ResourceType;
+  resourceType: ResourceType;
   /** Frontmatter `updated`: a calendar day parsed at UTC midnight. */
   updated: Date;
   /** The topic's raw MDX body. */

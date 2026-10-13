@@ -292,12 +292,6 @@
   .connections-list > li.margin-note .connections-number {
     display: inline;
   }
-  .connections-upcoming {
-    color: var(--fg-muted);
-  }
-  .connections-pending {
-    font-family: var(--font-sans);
-  }
   .connections-note {
     display: block;
     margin-top: 0.15rem;

@@ -2,7 +2,7 @@
 import SideNav from '../components/nav/SideNav.astro';
 import { loadSidebarData } from '../components/nav/sidebarData';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { latestPublishedPhase } from '../lib/topics';
+import { latestPhase } from '../lib/topics';
 import { withBase } from '../lib/url';
 import { SIDEBAR_ID } from '../lib/navState';
 
@@ -19,7 +19,7 @@ const { all, index, outlines } = await loadSidebarData();
         topics={all}
         outlines={outlines}
         index={index}
-        currentPhase={latestPublishedPhase(all)}
+        currentPhase={latestPhase(all)}
         isOpen
       />
     </div>

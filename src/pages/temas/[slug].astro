@@ -7,7 +7,7 @@ import { loadSidebarData } from '../../components/nav/sidebarData';
 
 export const getStaticPaths = (async () => {
   const entries = await getCollection('topics');
-  // Renders every published topic once, for the sidebar outlines and the search index.
+  // Renders every topic once, for the sidebar outlines and the search index.
   const { all, index, outlines } = await loadSidebarData();
   return entries.map((entry) => {
     const expectedSlug = topicByNumber(entry.data.number)?.slug;

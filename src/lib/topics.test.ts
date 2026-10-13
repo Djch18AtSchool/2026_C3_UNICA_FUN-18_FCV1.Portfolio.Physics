@@ -1,24 +1,17 @@
 import { describe, expect, test } from 'vitest';
 import { TOPICS } from '../consigna';
-import {
-  isPublished,
-  latestPublishedPhase,
-  publishedNeighbors,
-  publishedSlugs,
-  sortByNumber,
-  toTopicSummary,
-} from './topics';
+import { latestPhase, neighbors, sortByNumber, toTopicSummary } from './topics';
 
 describe('sortByNumber', () => {
   test('orders items by ascending topic number', () => {
     // Arrange
-    const shuffled = [{ number: 3 }, { number: 1 }, { number: 13 }, { number: 2 }];
+    const shuffled = [{ number: 3 }, { number: 1 }, { number: 12 }, { number: 2 }];
 
     // Act
     const result = sortByNumber(shuffled);
 
     // Assert
-    expect(result.map((item) => item.number)).toEqual([1, 2, 3, 13]);
+    expect(result.map((item) => item.number)).toEqual([1, 2, 3, 12]);
   });
 
   test('returns a new array and leaves the input untouched', () => {
@@ -31,62 +24,48 @@ describe('sortByNumber', () => {
   });
 });
 
-describe('publishedNeighbors', () => {
-  const topic = (number: number, status: 'publicado' | 'proximamente') => ({ number, status });
-  // Topics 1 to 5 published, 6 to 13 upcoming: the Avance 1 state.
-  const all = TOPICS.map(({ number }) => topic(number, number <= 5 ? 'publicado' : 'proximamente'));
+describe('neighbors', () => {
+  const all = TOPICS.map(({ number }) => ({ number }));
 
   test('the first topic has no previous topic', () => {
-    const { prev, next } = publishedNeighbors(all, 1);
+    const { prev, next } = neighbors(all, 1);
 
     expect(prev).toBeUndefined();
     expect(next?.number).toBe(2);
   });
 
-  test('a middle published topic links to the topics on each side', () => {
-    const { prev, next } = publishedNeighbors(all, 3);
+  test('a middle topic links to the topics on each side', () => {
+    const { prev, next } = neighbors(all, 3);
 
     expect(prev?.number).toBe(2);
     expect(next?.number).toBe(4);
   });
 
-  test('the last published topic offers no next topic, even though topic 6 exists', () => {
-    const { prev, next } = publishedNeighbors(all, 5);
+  test('the last topic offers no next topic', () => {
+    const last = all.at(-1)!.number;
 
-    expect(prev?.number).toBe(4);
+    const { prev, next } = neighbors(all, last);
+
+    expect(prev?.number).toBe(last - 1);
     expect(next).toBeUndefined();
   });
 
-  test('an upcoming topic links back only to the last published topic', () => {
-    for (const number of [6, 9, 13]) {
-      const { prev, next } = publishedNeighbors(all, number);
+  test('skips a gap in the numbering', () => {
+    const gapped = [{ number: 1 }, { number: 3 }];
 
-      expect(prev?.number).toBe(5);
-      expect(next).toBeUndefined();
-    }
-  });
-
-  test('skips an upcoming topic between two published ones', () => {
-    const gapped = [topic(1, 'publicado'), topic(2, 'proximamente'), topic(3, 'publicado')];
-
-    const { prev, next } = publishedNeighbors(gapped, 1);
-
-    expect(prev).toBeUndefined();
-    expect(next?.number).toBe(3);
-    expect(publishedNeighbors(gapped, 3).prev?.number).toBe(1);
+    expect(neighbors(gapped, 1).next?.number).toBe(3);
+    expect(neighbors(gapped, 3).prev?.number).toBe(1);
   });
 
   test('accepts an unsorted list', () => {
-    const shuffled = [topic(3, 'publicado'), topic(1, 'publicado'), topic(2, 'publicado')];
-
-    const { prev, next } = publishedNeighbors(shuffled, 2);
+    const { prev, next } = neighbors([{ number: 3 }, { number: 1 }, { number: 2 }], 2);
 
     expect(prev?.number).toBe(1);
     expect(next?.number).toBe(3);
   });
 
-  test('nothing published means no neighbors', () => {
-    expect(publishedNeighbors([topic(1, 'proximamente'), topic(2, 'proximamente')], 1)).toEqual({});
+  test('a single topic has no neighbors', () => {
+    expect(neighbors([{ number: 1 }], 1)).toEqual({});
   });
 });
 
@@ -100,8 +79,8 @@ describe('toTopicSummary', () => {
         title: 'El salto del personaje: cómo los motores de juego falsean la gravedad',
         shortTitle: 'El salto del personaje',
         concept: 'Caída libre y tiro parabólico.',
-        status: 'publicado' as const,
         resourceType: 'simulacion' as const,
+        useCase: { product: 'Un juego de plataformas', industry: 'Videojuegos' },
         sources: [],
         related: [],
         classRefs: [],
@@ -115,48 +94,22 @@ describe('toTopicSummary', () => {
       phase: 1,
       title: entry.data.title,
       shortTitle: 'El salto del personaje',
-      status: 'publicado',
       resourceType: 'simulacion',
     });
   });
 });
 
-describe('latestPublishedPhase', () => {
-  const topic = (number: number, phase: 1 | 2 | 3, status: 'publicado' | 'proximamente') => ({
-    number,
-    phase,
-    status,
-  });
-
-  test('is the phase of the highest-numbered published topic', () => {
+describe('latestPhase', () => {
+  test('is the phase of the highest-numbered topic', () => {
     const topics = [
-      topic(1, 1, 'publicado'),
-      topic(6, 2, 'publicado'),
-      topic(10, 3, 'proximamente'),
+      { number: 6, phase: 2 as const },
+      { number: 1, phase: 1 as const },
     ];
-    expect(latestPublishedPhase(topics)).toBe(2);
+
+    expect(latestPhase(topics)).toBe(2);
   });
 
-  test('is the first phase while nothing is published', () => {
-    expect(latestPublishedPhase([topic(1, 1, 'proximamente')])).toBe(1);
-  });
-});
-
-describe('isPublished', () => {
-  test('is true only for the publicado status', () => {
-    expect(isPublished({ status: 'publicado' })).toBe(true);
-    expect(isPublished({ status: 'proximamente' })).toBe(false);
-  });
-});
-
-describe('publishedSlugs', () => {
-  test('holds the slug of every published topic and nothing else', () => {
-    const slugs = publishedSlugs([
-      { slug: 'dron-reparto', status: 'publicado' },
-      { slug: 'frenado-regenerativo', status: 'proximamente' },
-      { slug: 'llantas-f1', status: 'publicado' },
-    ]);
-
-    expect([...slugs].sort()).toEqual(['dron-reparto', 'llantas-f1']);
+  test('is the first phase when there are no topics', () => {
+    expect(latestPhase([])).toBe(1);
   });
 });

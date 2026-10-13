@@ -1,16 +1,13 @@
 ---
 /*
  * Links to the other portfolio topics and to the course sessions. The default slot holds the
- * connections prose, set under the heading and before the two lists, which stack vertically. A
- * related topic without published content is named only, muted and unlinked. In MDX:
+ * connections prose, set under the heading and before the two lists, which stack vertically. In
+ * MDX:
  * <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>…</Connections>
  */
-import { getCollection } from 'astro:content';
 import type { ClassRef } from '../../content/topicSchema';
-import { phaseWithArticle } from '../../lib/phases';
 import { resolveRelated } from '../../lib/related';
 import { SECTION_HEADINGS } from '../../lib/sectionHeadings';
-import { publishedSlugs, toTopicSummary } from '../../lib/topics';
 import { topicUrl } from '../../lib/url';
 
 interface Props {
@@ -19,8 +16,7 @@ interface Props {
 }
 const { related, classRefs } = Astro.props;
 
-const published = publishedSlugs((await getCollection('topics')).map(toTopicSummary));
-const relatedTopics = resolveRelated(related, published);
+const relatedTopics = resolveRelated(related);
 // The sidebar outline and the search index list this section by the same text and id.
 const heading = SECTION_HEADINGS.Connections;
 ---
@@ -33,25 +29,12 @@ const heading = SECTION_HEADINGS.Connections;
       <div>
         <h3>Con otros temas</h3>
         <ul class="connections-list">
-          {relatedTopics.map((topic) =>
-            topic.isPublished ? (
-              <li>
-                <span class="connections-number">Tema {topic.number}</span>
-                <a href={topicUrl(topic.slug)}>{topic.title}</a>
-              </li>
-            ) : (
-              <li class="connections-upcoming" data-upcoming>
-                <span class="connections-number">
-                  Tema {topic.number}
-                  <span class="connections-pending">
-                    {' '}
-                    · se publica en {phaseWithArticle(topic.phase)}
-                  </span>
-                </span>
-                {topic.title}
-              </li>
-            ),
-          )}
+          {relatedTopics.map((topic) => (
+            <li>
+              <span class="connections-number">Tema {topic.number}</span>
+              <a href={topicUrl(topic.slug)}>{topic.title}</a>
+            </li>
+          ))}
         </ul>
       </div>
     )}

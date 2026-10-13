@@ -1,6 +1,6 @@
 ---
 /*
- * A phase with published topics, as a collapsible group. The server opens the default phase; the
+ * A phase with topics, as a collapsible group. The server opens the default phase; the
  * inline script in SideNav then applies the remembered state before the list is painted.
  */
 import type { Phase } from '../../consigna';
@@ -12,7 +12,7 @@ import SideNavTopic from './SideNavTopic.astro';
 interface Props {
   phase: Phase;
   label: string;
-  /** This phase's published topics, sorted by number. */
+  /** This phase's topics, sorted by number. */
   topics: TopicSummary[];
   current?: string;
   outlines: Record<string, SearchHeading[]>;

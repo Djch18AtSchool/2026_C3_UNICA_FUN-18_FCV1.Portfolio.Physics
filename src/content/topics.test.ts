@@ -6,9 +6,9 @@ import { TOPICS, topicBySlug } from '../consigna';
 import { topicSchema } from './topicSchema';
 
 const TOPICS_DIR = join(process.cwd(), 'src', 'content', 'topics');
-/** Rubric sections every published topic must keep: use case, figure, connections, sources. */
-const PUBLISHED_BODY_MARKERS = ['<UseCase', '<Figure', '<Connections', '<Sources'] as const;
-/** Every published topic is written in steps (spec §7.2): at least this many, no manual closings. */
+/** Rubric sections every topic must keep: use case, figure, connections, sources. */
+const BODY_MARKERS = ['<UseCase', '<Figure', '<Connections', '<Sources'] as const;
+/** Every topic is written in steps (spec §7.2): at least this many, no manual closings. */
 const MIN_STEPS = 3;
 const MANUAL_CLOSING_HEADINGS = /^## (Conexiones|Fuentes)\s*$/m;
 
@@ -60,13 +60,7 @@ const valid = {
   phase: 1,
   title: 'El salto del personaje: cómo los motores de juego falsean la gravedad',
   shortTitle: 'El salto del personaje',
-  status: 'proximamente',
   updated: '2026-10-08',
-} as const;
-
-const validPublished = {
-  ...valid,
-  status: 'publicado',
   concept: 'Caída libre y tiro parabólico.',
   resourceType: 'simulacion',
   useCase: { product: 'Un juego de plataformas', industry: 'Videojuegos' },
@@ -76,7 +70,7 @@ const validPublished = {
 } as const;
 
 describe('topic files', () => {
-  test('existen exactamente 13 archivos, uno por slug de la consigna', () => {
+  test('hay exactamente un archivo por tema de la consigna, y ninguno más', () => {
     const expected = TOPICS.map((topic) => `${topic.slug}.mdx`).sort();
     expect(fileNames).toEqual(expected);
   });
@@ -109,28 +103,32 @@ describe('topic files', () => {
     }
   });
 
-  const published = fileNames
-    .map((fileName) => ({
-      fileName,
-      file: matter(readFileSync(join(TOPICS_DIR, fileName), 'utf8')),
-    }))
-    .filter(({ file }) => file.data.status === 'publicado');
+  const files = fileNames.map((fileName) => ({
+    fileName,
+    file: matter(readFileSync(join(TOPICS_DIR, fileName), 'utf8')),
+  }));
 
-  test('hay al menos cinco temas publicados', () => {
-    expect(published.length).toBeGreaterThanOrEqual(5);
+  test('hay al menos cinco temas', () => {
+    expect(files.length).toBeGreaterThanOrEqual(5);
   });
 
-  test('cada tema publicado conserva las secciones de la rúbrica en su cuerpo', () => {
-    for (const { fileName, file } of published) {
-      for (const marker of PUBLISHED_BODY_MARKERS) {
+  test('ningún frontmatter declara un estado: todo tema con archivo está publicado', () => {
+    for (const { fileName, file } of files) {
+      expect(file.data, fileName).not.toHaveProperty('status');
+    }
+  });
+
+  test('cada tema conserva las secciones de la rúbrica en su cuerpo', () => {
+    for (const { fileName, file } of files) {
+      for (const marker of BODY_MARKERS) {
         expect(file.content.includes(marker), `${fileName} sin ${marker}`).toBe(true);
       }
       expect(file.content, fileName).not.toMatch(MANUAL_CLOSING_HEADINGS);
     }
   });
 
-  test('cada tema publicado está escrito en al menos tres pasos', () => {
-    for (const { fileName, file } of published) {
+  test('cada tema está escrito en al menos tres pasos', () => {
+    for (const { fileName, file } of files) {
       const steps = [...file.content.matchAll(STEP_OPENING)].length;
       expect(steps, `${fileName}: pasos`).toBeGreaterThanOrEqual(MIN_STEPS);
     }
@@ -144,17 +142,8 @@ describe('topic files', () => {
   });
 
   test('solo la figura del recurso prescrito lleva la insignia, con el tipo del frontmatter', () => {
-    for (const { fileName, file } of published) {
+    for (const { fileName, file } of files) {
       expect(badgedFigureTypes(file.content), fileName).toEqual([file.data.resourceType]);
-    }
-  });
-
-  test('ningún tema próximamente declara concept', () => {
-    for (const fileName of fileNames) {
-      const data = readFrontmatter(fileName);
-      if (data.status === 'proximamente') {
-        expect(data, fileName).not.toHaveProperty('concept');
-      }
     }
   });
 });
@@ -251,21 +240,25 @@ describe('badgedFigureTypes', () => {
 });
 
 describe('topicSchema rules', () => {
-  test('acepta un tema publicado completo', () => {
-    expect(() => topicSchema.parse(validPublished)).not.toThrow();
+  test('acepta un tema completo', () => {
+    expect(() => topicSchema.parse(valid)).not.toThrow();
   });
 
-  test('un tema publicado sin fuentes es rechazado', () => {
-    expect(() => topicSchema.parse({ ...validPublished, sources: [] })).toThrow(/fuente/);
+  test('un tema sin fuentes es rechazado', () => {
+    expect(() => topicSchema.parse({ ...valid, sources: [] })).toThrow(/fuente/);
   });
 
-  test('un tema publicado sin tipo de recurso o caso de uso es rechazado', () => {
-    expect(() => topicSchema.parse({ ...validPublished, resourceType: undefined })).toThrow(
+  test('un tema sin tipo de recurso o caso de uso es rechazado', () => {
+    expect(() => topicSchema.parse({ ...valid, resourceType: undefined })).toThrow(
       /tipo de recurso/,
     );
-    expect(() => topicSchema.parse({ ...validPublished, useCase: undefined })).toThrow(
-      /caso de uso/,
-    );
+    expect(() => topicSchema.parse({ ...valid, useCase: undefined })).toThrow(/caso de uso/);
+  });
+
+  test('un tema sin concept es rechazado', () => {
+    const { concept: _concept, ...withoutConcept } = valid;
+
+    expect(() => topicSchema.parse(withoutConcept)).toThrow(/concepto/);
   });
 
   test('un título distinto al de la consigna es rechazado', () => {
@@ -276,30 +269,18 @@ describe('topicSchema rules', () => {
     expect(() => topicSchema.parse({ ...valid, phase: 2 })).toThrow(/consigna/);
   });
 
-  test('un tema publicado necesita dos temas relacionados y una referencia a clase', () => {
-    expect(() => topicSchema.parse({ ...validPublished, related: ['salto-personaje'] })).toThrow(
+  test('un número que la consigna no lista es rechazado', () => {
+    expect(() => topicSchema.parse({ ...valid, number: 6, phase: 2 })).toThrow(/consigna/);
+  });
+
+  test('un tema necesita dos temas relacionados y una referencia a clase', () => {
+    expect(() => topicSchema.parse({ ...valid, related: ['dron-reparto'] })).toThrow(
       /relacionados/,
     );
-    expect(() => topicSchema.parse({ ...validPublished, classRefs: [] })).toThrow(/clase/);
+    expect(() => topicSchema.parse({ ...valid, classRefs: [] })).toThrow(/clase/);
   });
 
-  test('un tema próximamente no exige fuentes ni relaciones', () => {
-    expect(() => topicSchema.parse(valid)).not.toThrow();
-  });
-
-  test('un tema proximamente no declara concept', () => {
-    const parsed = topicSchema.parse(valid);
-
-    expect(parsed.concept).toBeUndefined();
-  });
-
-  test('un tema publicado sin concept es rechazado', () => {
-    const { concept: _concept, ...withoutConcept } = validPublished;
-
-    expect(() => topicSchema.parse(withoutConcept)).toThrow(/concepto/);
-  });
-
-  test('un tema próximamente con concept es rechazado', () => {
-    expect(() => topicSchema.parse({ ...valid, concept: 'Algo' })).toThrow(/concepto/);
+  test('un estado en el frontmatter es rechazado: no hay temas a medias', () => {
+    expect(() => topicSchema.parse({ ...valid, status: 'proximamente' })).toThrow();
   });
 });

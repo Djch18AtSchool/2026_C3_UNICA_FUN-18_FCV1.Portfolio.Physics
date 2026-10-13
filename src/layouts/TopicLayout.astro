@@ -11,14 +11,13 @@ import type { TopicData } from '../content/topicSchema';
 import type { SearchEntry, SearchHeading } from '../lib/searchIndex';
 import type { TopicSummary } from '../lib/topics';
 import { SIDEBAR_ID } from '../lib/navState';
-import { phaseWithArticle } from '../lib/phases';
 import { bindNumerals } from '../lib/typography';
 
 interface Props {
   topic: TopicData & { slug: string };
   /** All topics, sorted by number. */
   all: TopicSummary[];
-  /** Section headings of each published topic, for the sidebar outlines. */
+  /** Section headings of each topic, for the sidebar outlines. */
   outlines: Record<string, SearchHeading[]>;
   /** Build-time search index for the sidebar. */
   index: SearchEntry[];
@@ -26,14 +25,13 @@ interface Props {
   body: string;
 }
 const { topic, all, outlines, index, body } = Astro.props;
-const { slug, number, phase, title, shortTitle, concept, status, resourceType, updated } = topic;
+const { slug, number, phase, title, shortTitle, concept, resourceType, updated } = topic;
 
 const phaseLabel = PHASE_LABELS[phase];
-const isPublished = status === 'publicado';
 ---
 
 <BaseLayout title={`Tema ${number}: ${title} | ${COURSE.name}`} description={concept}>
-  {isPublished && <ReadingProgress />}
+  <ReadingProgress />
   <div class="grid gap-8 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
     <div
       id={SIDEBAR_ID}
@@ -55,30 +53,14 @@ const isPublished = status === 'publicado';
         <Breadcrumbs number={number} phase={phase} />
         <header data-topic-head>
           <h1>{bindNumerals(title)}</h1>
-          {concept && <p class="measure mt-4 text-lg leading-relaxed">{concept}</p>}
-          {isPublished && (
-            <TopicMeta slug={slug} resourceType={resourceType} updated={updated} body={body} />
-          )}
+          <p class="measure mt-4 text-lg leading-relaxed">{concept}</p>
+          <TopicMeta slug={slug} resourceType={resourceType} updated={updated} body={body} />
         </header>
       </div>
 
-      {isPublished ? (
-        <div class="topic-body" data-topic-number={number} style={`counter-set: topic ${number}`}>
-          <slot />
-        </div>
-      ) : (
-        <section
-          data-testid="upcoming-notice"
-          aria-labelledby="aviso-proximamente"
-          class="grid-paper rounded-base border border-border px-5 py-6 sm:px-8 sm:py-8"
-        >
-          <div class="measure rounded-base border border-border bg-bg-elevated p-5 sm:p-6">
-            <h2 id="aviso-proximamente" class="text-xl">
-              Se publica en {phaseWithArticle(phase)}
-            </h2>
-          </div>
-        </section>
-      )}
+      <div class="topic-body" data-topic-number={number} style={`counter-set: topic ${number}`}>
+        <slot />
+      </div>
 
       <PrevNext all={all} number={number} />
     </article>

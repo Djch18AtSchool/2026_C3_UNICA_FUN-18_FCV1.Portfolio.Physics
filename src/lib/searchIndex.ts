@@ -1,7 +1,7 @@
 import type { Phase } from '../consigna';
 import { sortByNumber, type TopicSummary } from './topics';
 
-/** A section of a published topic: its heading text and the id it links to. */
+/** A section of a topic: its heading text and the id it links to. */
 export interface SearchHeading {
   text: string;
   anchor: string;
@@ -14,7 +14,6 @@ export interface SearchEntry {
   phase: Phase;
   title: string;
   shortTitle: string;
-  status: 'publicado' | 'proximamente';
   headings: SearchHeading[];
 }
 
@@ -42,19 +41,18 @@ function toSearchHeadings(headings: readonly RawHeading[]): SearchHeading[] {
     .map((heading) => ({ text: heading.text.replace(TRAILING_ANCHOR, ''), anchor: heading.slug }));
 }
 
-/** Every topic with its title; only published topics contribute their section headings. */
+/** Every topic with its title and its section headings, by number. */
 export function buildSearchIndex(
   topics: TopicSummary[],
   headingsBySlug: Record<string, RawHeading[]>,
 ): SearchEntry[] {
-  return sortByNumber(topics).map(({ slug, number, phase, title, shortTitle, status }) => ({
+  return sortByNumber(topics).map(({ slug, number, phase, title, shortTitle }) => ({
     slug,
     number,
     phase,
     title,
     shortTitle,
-    status,
-    headings: status === 'publicado' ? toSearchHeadings(headingsBySlug[slug] ?? []) : [],
+    headings: toSearchHeadings(headingsBySlug[slug] ?? []),
   }));
 }
 

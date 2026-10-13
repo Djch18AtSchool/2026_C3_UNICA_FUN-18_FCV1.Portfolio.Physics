@@ -12,7 +12,6 @@ const INDEX: SearchEntry[] = [
     phase: 1,
     title: 'El salto del personaje: cómo los motores de juego falsean la gravedad',
     shortTitle: 'Salto del personaje',
-    status: 'publicado',
     headings: [
       { text: 'Paso 3 · Qué falta: tiempo al ápice', anchor: 'paso-3' },
       { text: 'Conexiones', anchor: 'conexiones' },
@@ -24,7 +23,6 @@ const INDEX: SearchEntry[] = [
     phase: 1,
     title: 'Llantas de Fórmula 1: la ventana de temperatura y el agarre',
     shortTitle: 'Llantas de Fórmula 1',
-    status: 'publicado',
     headings: [{ text: 'Conexiones', anchor: 'conexiones' }],
   },
 ];
@@ -89,7 +87,7 @@ describe('SidebarSearch', () => {
   test('says "Sin resultados" when nothing matches', () => {
     const { input } = setup();
 
-    fireEvent.change(input, { target: { value: 'tacoma' } });
+    fireEvent.change(input, { target: { value: 'ornitorrinco' } });
 
     expect(screen.getByRole('status')).toHaveTextContent('Sin resultados');
     expect(screen.queryByRole('link')).not.toBeInTheDocument();

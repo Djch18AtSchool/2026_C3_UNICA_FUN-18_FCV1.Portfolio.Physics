@@ -4,11 +4,11 @@ import type { TopicSummary } from '../../lib/topics';
 import { topicUrl } from '../../lib/url';
 
 interface Props {
-  /** A published topic: future phases list no rows. */
+  /** A topic of a phase with topics: future phases list no rows. */
   topic: TopicSummary;
 }
 const { topic } = Astro.props;
-// One published entry of the notebook's table of contents: margin number, double margin rule,
+// One entry of the notebook's table of contents: margin number, double margin rule,
 // title, a dotted leader on wide screens, then the resource type. The whole row is the link target.
 ---
 

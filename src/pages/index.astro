@@ -12,7 +12,7 @@ const entries = sortByNumber(
   (await getCollection('topics')).map((entry) => ({ ...toTopicSummary(entry), entry })),
 );
 
-// Future phases show only their heading and a pencil badge: no rows, names or counts.
+// Future phases (no topics yet) show only their heading and a dashed badge: no rows or counts.
 const groups = groupByPhase(entries);
 ---
 

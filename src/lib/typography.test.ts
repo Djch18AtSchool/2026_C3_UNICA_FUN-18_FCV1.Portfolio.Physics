@@ -17,7 +17,7 @@ describe('bindNumerals', () => {
   });
 
   test('leaves short words and numerals inside words alone', () => {
-    const text = 'Gravedad artificial y el Tema 10x en la Voyager';
+    const text = 'Gravedad artificial y el Tema 10x en la estación';
 
     expect(bindNumerals(text)).toBe(text);
   });

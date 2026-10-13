@@ -1,11 +1,11 @@
 ---
 /*
- * A sidebar phase header in small caps with a − / + at the right. A published phase's header is
- * the <summary> of its group (the vertical stroke hides while open); a future phase's is a
+ * A sidebar phase header in small caps with a − / + at the right. A phase with topics has the
+ * <summary> of its group as header (the vertical stroke hides while open); a future phase's is a
  * disabled button whose + alone is dimmed (the label keeps its contrast).
  */
 interface Props {
-  /** The phase opens and closes (published) or is still to come (future). */
+  /** The phase opens and closes (it has topics) or is still to come (future). */
   isFuture: boolean;
   label: string;
   labelId?: string;

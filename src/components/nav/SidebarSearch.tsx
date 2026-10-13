@@ -4,7 +4,7 @@ import { filterIndex, type SearchEntry } from '../../lib/searchIndex';
 import { topicUrl } from '../../lib/url';
 
 interface SidebarSearchProps {
-  /** Build-time index of the published topics and their sections. */
+  /** Build-time index of the topics and their sections. */
   index: SearchEntry[];
   /** Id of the normal topic list, hidden while a query shows results in its place. */
   listId: string;

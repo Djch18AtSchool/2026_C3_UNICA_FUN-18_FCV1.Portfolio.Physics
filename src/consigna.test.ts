@@ -2,12 +2,12 @@ import { describe, expect, test } from 'vitest';
 import { COURSE, PHASE_LABELS, PHASES, TOPICS, topicByNumber, topicsByPhase } from './consigna';
 
 describe('consigna', () => {
-  test('hay 13 temas numerados 1..13 en orden', () => {
-    expect(TOPICS.map((t) => t.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+  test('lista solo los temas con consigna publicada: los del Avance 1, numerados 1..5', () => {
+    expect(TOPICS.map((t) => t.number)).toEqual([1, 2, 3, 4, 5]);
   });
   test('los slugs son únicos y en kebab-case', () => {
     const slugs = TOPICS.map((t) => t.slug);
-    expect(new Set(slugs).size).toBe(13);
+    expect(new Set(slugs).size).toBe(slugs.length);
     for (const s of slugs) expect(s).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
   });
   test('los títulos del Avance 1 son idénticos a la consigna', () => {
@@ -21,10 +21,10 @@ describe('consigna', () => {
     );
     expect(topicByNumber(5)?.title).toBe('El resorte virtual detrás de un control háptico');
   });
-  test('las fases agrupan 5, 4 y 4 temas', () => {
+  test('el Avance 2 y la Entrega Final aún no tienen temas', () => {
     expect(topicsByPhase(1, TOPICS).map((t) => t.number)).toEqual([1, 2, 3, 4, 5]);
-    expect(topicsByPhase(2, TOPICS).map((t) => t.number)).toEqual([6, 7, 8, 9]);
-    expect(topicsByPhase(3, TOPICS).map((t) => t.number)).toEqual([10, 11, 12, 13]);
+    expect(topicsByPhase(2, TOPICS)).toEqual([]);
+    expect(topicsByPhase(3, TOPICS)).toEqual([]);
   });
   test('PHASES lista cada fase con etiqueta, en orden', () => {
     expect(PHASES).toEqual([1, 2, 3]);
