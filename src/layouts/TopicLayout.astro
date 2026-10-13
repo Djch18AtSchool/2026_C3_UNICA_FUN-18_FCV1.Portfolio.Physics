@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumbs from '../components/nav/Breadcrumbs.astro';
 import PrevNext from '../components/nav/PrevNext.astro';
+import ReadingProgress from '../components/nav/ReadingProgress.astro';
 import SideNav from '../components/nav/SideNav.astro';
 import TopicMeta from '../components/nav/TopicMeta.astro';
 import TopicStickyBar from '../components/nav/TopicStickyBar.astro';
@@ -32,6 +33,7 @@ const isPublished = status === 'publicado';
 ---
 
 <BaseLayout title={`Tema ${number}: ${title} | ${COURSE.name}`} description={concept}>
+  {isPublished && <ReadingProgress />}
   <div class="grid gap-8 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
     <div
       id={SIDEBAR_ID}
@@ -54,11 +56,9 @@ const isPublished = status === 'publicado';
         <header data-topic-head>
           <h1>{title}</h1>
           {concept && <p class="measure mt-4 text-lg leading-relaxed">{concept}</p>}
-          {
-            isPublished && (
-              <TopicMeta slug={slug} resourceType={resourceType} updated={updated} body={body} />
-            )
-          }
+          {isPublished && (
+            <TopicMeta slug={slug} resourceType={resourceType} updated={updated} body={body} />
+          )}
         </header>
       </div>
 
