@@ -43,14 +43,14 @@ Los cinco temas del Avance 1 están publicados en el formato de pasos de la vers
 - `src/content/topics/`: un archivo MDX por tema. Todo tema publicado tiene al menos 3 `Step` y un `Why` por cada `Step`; `src/content/topics.test.ts` lo verifica.
 - `src/data/`: conjuntos de datos generados.
 - `src/lib/settingsStore.ts`: ajustes globales (decimales, cuadrícula, movimiento) guardados en `localStorage` bajo la clave `portafolio.settings`.
-- `src/lib/`: también el índice de búsqueda (`searchIndex.ts`, `sectionHeadings.ts`), el estado persistido de la navegación (`navState.ts`, claves `portafolio.nav.avance-N` y `portafolio.nav.sidebar`), `readingTime.ts` y `buildDate.ts`.
+- `src/lib/`: también el índice de búsqueda (`searchIndex.ts`, `sectionHeadings.ts`), el estado persistido de la navegación (`navState.ts`, claves `portafolio.nav.avance-N`), `readingTime.ts` y `buildDate.ts`.
 - `src/lib/physics/`: núcleo de física puro, con pruebas.
 - `src/lib/data/`: modelos y preajustes con sus fuentes.
 - `src/components/ui/`: componentes de interfaz base, incluidos `Step.astro` y `Why.astro` (el modelo de contenido por pasos).
 - `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `SettingsDrawer`, `ParamField`, `TransportBar`, `useSimClock`), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), los ajustes de reproducción comunes (`clockSettings`), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
 - `src/components/controls/`: controles interactivos (deslizadores, botones).
 - `src/components/charts/`: gráficas.
-- `src/components/nav/`: navegación: barra lateral con búsqueda (`SidebarSearch`), `SidebarToggle` y `TopicTools`.
+- `src/components/nav/`: navegación: barra lateral con búsqueda (`SidebarSearch`) y `TopicTools`.
 - `src/components/hooks/`: hooks de React compartidos.
 - `src/components/topics/`: laboratorios y figuras de cada tema (`JumpLab`, `DroneLab`, `HabitatLab`, `TyreLab`, `TriggerLab`).
 - `src/layouts/`: plantillas de página.

@@ -1,12 +1,5 @@
-import { describe, expect, test, vi } from 'vitest';
-import {
-  phaseKey,
-  readOpenPhases,
-  readSidebarClosed,
-  SIDEBAR_KEY,
-  writePhaseOpen,
-  writeSidebarClosed,
-} from './navState';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { phaseKey, safeLocalStorage, readOpenPhases, writePhaseOpen } from './navState';
 
 const throwing = {
   getItem(): string | null {
@@ -23,7 +16,6 @@ function storageWith(values: Record<string, string>) {
 
 describe('keys', () => {
   test('use the portafolio.nav namespace', () => {
-    expect(SIDEBAR_KEY).toBe('portafolio.nav.sidebar');
     expect(phaseKey(2)).toBe('portafolio.nav.avance-2');
   });
 });
@@ -58,41 +50,38 @@ describe('readOpenPhases', () => {
   });
 });
 
-describe('readSidebarClosed', () => {
-  test('is true only for a stored "closed"', () => {
-    expect(readSidebarClosed(storageWith({ 'portafolio.nav.sidebar': 'closed' }))).toBe(true);
-    expect(readSidebarClosed(storageWith({ 'portafolio.nav.sidebar': 'open' }))).toBe(false);
-    expect(readSidebarClosed(storageWith({}))).toBe(false);
-  });
-
-  test('is false without storage', () => {
-    expect(readSidebarClosed(undefined)).toBe(false);
-  });
-
-  test('is false when storage throws', () => {
-    expect(readSidebarClosed(throwing)).toBe(false);
-  });
-});
-
 describe('writers', () => {
-  test('store "open"/"closed" under the phase and sidebar keys', () => {
+  test('store "open"/"closed" under the phase keys', () => {
     const setItem = vi.fn();
     expect(writePhaseOpen({ setItem }, 1, false)).toBe(true);
     expect(writePhaseOpen({ setItem }, 3, true)).toBe(true);
-    expect(writeSidebarClosed({ setItem }, true)).toBe(true);
-    expect(writeSidebarClosed({ setItem }, false)).toBe(true);
     expect(setItem.mock.calls).toEqual([
       ['portafolio.nav.avance-1', 'closed'],
       ['portafolio.nav.avance-3', 'open'],
-      ['portafolio.nav.sidebar', 'closed'],
-      ['portafolio.nav.sidebar', 'open'],
     ]);
   });
 
   test('never throw and report failure', () => {
     expect(writePhaseOpen(throwing, 1, true)).toBe(false);
-    expect(writeSidebarClosed(throwing, true)).toBe(false);
     expect(writePhaseOpen(undefined, 1, true)).toBe(false);
-    expect(writeSidebarClosed(undefined, true)).toBe(false);
+  });
+});
+
+describe('safeLocalStorage', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  test('returns the window storage', () => {
+    const localStorage = { getItem: vi.fn() };
+    vi.stubGlobal('window', { localStorage });
+    expect(safeLocalStorage()).toBe(localStorage);
+  });
+
+  test('is undefined when touching the storage throws', () => {
+    vi.stubGlobal('window', {
+      get localStorage(): Storage {
+        throw new Error('blocked');
+      },
+    });
+    expect(safeLocalStorage()).toBeUndefined();
   });
 });

@@ -2,16 +2,9 @@
 import { AUTHOR, REPO_URL } from '../../consigna';
 import GithubIcon from '../ui/GithubIcon.astro';
 import { HEADER_ICON_BUTTON } from './headerButton';
-import SidebarToggle from './SidebarToggle';
 import ThemeToggle from './ThemeToggle';
-import { NAV_CLOSED } from '../../lib/navState';
 import { THEME_TOGGLE_LABELS } from '../../lib/theme';
 
-interface Props {
-  /** Show the button that hides the sidebar (wide screens only; pages with a sidebar). */
-  hasSidebar?: boolean;
-}
-const { hasSidebar = false } = Astro.props;
 const home = import.meta.env.BASE_URL;
 ---
 
@@ -24,7 +17,6 @@ const home = import.meta.env.BASE_URL;
       <p class="text-sm text-fg-muted">{AUTHOR}</p>
     </div>
     <div class="flex shrink-0 items-center gap-2">
-      {hasSidebar && <SidebarToggle client:load />}
       <a
         href={REPO_URL}
         aria-label="Repositorio en GitHub"
@@ -35,17 +27,11 @@ const home = import.meta.env.BASE_URL;
       <ThemeToggle client:load />
     </div>
     <!--
-      The server renders the light label and an expanded sidebar; fix both buttons from
-      data-theme and data-sidebar before hydration so the first paint states the right action and
-      state (React keeps server attributes it believes already match).
+      The server renders the light label; fix the button from data-theme before hydration so the
+      first paint states the right action (React keeps server attributes it believes already
+      match).
     -->
-    <script
-      is:inline
-      define:vars={{
-        labels: THEME_TOGGLE_LABELS,
-        closedValue: NAV_CLOSED,
-      }}
-    >
+    <script is:inline define:vars={{ labels: THEME_TOGGLE_LABELS }}>
       var root = document.documentElement;
       var toggle = document.querySelector('[data-theme-toggle]');
       if (toggle) {
@@ -53,10 +39,6 @@ const home = import.meta.env.BASE_URL;
           'aria-label',
           root.dataset.theme === 'dark' ? labels.dark : labels.light,
         );
-      }
-      var sidebarToggle = document.querySelector('[data-sidebar-toggle]');
-      if (sidebarToggle) {
-        sidebarToggle.setAttribute('aria-expanded', String(root.dataset.sidebar !== closedValue));
       }
     </script>
   </div>

@@ -5,8 +5,6 @@ const DESKTOP = { width: 1280, height: 800 };
 const TALL = { width: 1280, height: 2000 };
 const PHASE_1_TOPIC = './temas/dron-reparto/';
 const PHASE_2_TOPIC = './temas/frenado-regenerativo/';
-const SIDEBAR_KEY = 'portafolio.nav.sidebar';
-const TOGGLE_NAME = 'Barra lateral';
 const PUBLISHED_MIN = 5;
 
 test.use({ viewport: DESKTOP });
@@ -91,11 +89,7 @@ test('con el almacenamiento bloqueado la página carga y el avance actual está 
   await expect(phase(page, 2)).not.toHaveAttribute('open');
   await phase(page, 1).locator('> summary').click();
   await expect(phase(page, 1)).not.toHaveAttribute('open');
-  await waitForIsland(page, '[data-sidebar-toggle]');
-  const toggle = page.getByRole('button', { name: TOGGLE_NAME });
-  await toggle.click();
-  await expect(page.locator('nav[aria-label="Temas"]')).toBeHidden();
-  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('nav[aria-label="Temas"]')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -181,80 +175,27 @@ test('una búsqueda sin coincidencias dice "Sin resultados"', async ({ page }) =
   await expect(nav.getByTestId('topic-link').first()).toBeVisible();
 });
 
-test('el botón de la cabecera oculta la barra, persiste y no desborda', async ({ page }) => {
+test('en escritorio la barra lateral está siempre visible y no desborda', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
-  await waitForIsland(page, '[data-sidebar-toggle]');
-  const nav = page.locator('nav[aria-label="Temas"]');
-  const article = page.locator('article');
-  const openWidth = (await article.boundingBox())?.width ?? 0;
-  await expectNoHorizontalOverflow(page);
-
-  const toggle = page.getByRole('button', { name: TOGGLE_NAME });
-  await expect(toggle).toHaveAttribute('aria-controls', 'barra-lateral');
-  await expect(page.locator('#barra-lateral')).toContainText('Temas del portafolio');
-  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  await toggle.click();
-
-  await expect(nav).toBeHidden();
-  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.locator('html')).toHaveAttribute('data-sidebar', 'closed');
-  expect((await article.boundingBox())?.width ?? 0).toBeGreaterThan(openWidth);
-  await expectNoHorizontalOverflow(page);
-
-  await page.reload();
-  await expect(nav).toBeHidden();
-  // Corrected before hydration by SiteHeader's inline script.
-  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  await expectNoHorizontalOverflow(page);
-
-  await waitForIsland(page, '[data-sidebar-toggle]');
-  await toggle.click();
-  await expect(nav).toBeVisible();
-  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  await expect(toggle).toBeFocused();
-});
-
-test('el botón de la cabecera responde al teclado', async ({ page }) => {
-  await page.goto(PHASE_1_TOPIC);
-  await waitForIsland(page, '[data-sidebar-toggle]');
-
-  await page.getByRole('button', { name: TOGGLE_NAME }).focus();
-  await page.keyboard.press('Enter');
-
-  await expect(page.locator('nav[aria-label="Temas"]')).toBeHidden();
-  await page.keyboard.press('Space');
   await expect(page.locator('nav[aria-label="Temas"]')).toBeVisible();
+  await expect(page.locator('#barra-lateral')).toContainText('Temas del portafolio');
+  await expectNoHorizontalOverflow(page);
 });
 
-test('sin parpadeo: la barra cerrada ya está aplicada al empezar a pintar el cuerpo', async ({
-  page,
-}) => {
-  await page.addInitScript((key) => {
-    window.localStorage.setItem(key, 'closed');
-    const record = window as unknown as Record<string, string | undefined>;
-    // The value when <body> first enters the DOM, before anything in it can be painted. Init
-    // scripts run before <html> exists, so watch the whole document.
-    new MutationObserver((_, observer) => {
-      if (!document.body) return;
-      record.__sidebarAtBody = document.documentElement.dataset.sidebar ?? 'none';
-      observer.disconnect();
-    }).observe(document, { childList: true, subtree: true });
-    document.addEventListener('DOMContentLoaded', () => {
-      record.__sidebarAtDcl = document.documentElement.dataset.sidebar ?? 'none';
-    });
-  }, SIDEBAR_KEY);
+test('una clave antigua de barra cerrada no oculta la barra lateral', async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem('portafolio.nav.sidebar', 'closed'));
+  await page.goto(PHASE_1_TOPIC);
 
-  await page.goto(PHASE_1_TOPIC, { waitUntil: 'domcontentloaded' });
-
-  const captured = await page.evaluate(() => {
-    const record = window as unknown as Record<string, string | undefined>;
-    return { body: record.__sidebarAtBody, dcl: record.__sidebarAtDcl };
-  });
-  expect(captured).toEqual({ body: 'closed', dcl: 'closed' });
+  await expect(page.locator('nav[aria-label="Temas"]')).toBeVisible();
+  await expect(page.locator('html')).not.toHaveAttribute('data-sidebar');
 });
 
-test('la portada no muestra el botón de la barra lateral', async ({ page }) => {
-  await page.goto('./');
-
-  await expect(page.locator('[data-sidebar-toggle]')).toHaveCount(0);
+test('la cabecera ya no tiene el botón de la barra lateral', async ({ page }) => {
+  for (const path of [PHASE_1_TOPIC, './no-existe/', './']) {
+    await page.goto(path);
+    await expect(page.locator('[data-sidebar-toggle]')).toHaveCount(0);
+    await expect(page.locator('header').getByRole('button', { name: 'Barra lateral' })).toHaveCount(
+      0,
+    );
+  }
 });

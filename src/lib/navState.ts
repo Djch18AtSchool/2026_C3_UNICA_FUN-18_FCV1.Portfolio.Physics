@@ -1,22 +1,17 @@
 import { PHASES, type Phase } from '../consigna';
 
 /**
- * Sidebar state remembered in localStorage (spec §5). The inline scripts in BaseLayout and
- * SideNav cannot import modules: they mirror readSidebarClosed and readOpenPhases and receive
- * these keys and values through define:vars, so this file stays the single source.
+ * Sidebar phase state remembered in localStorage (spec §5). The inline script in SideNav cannot
+ * import modules: it mirrors readOpenPhases and receives these keys and values through
+ * define:vars, so this file stays the single source.
  */
-export const SIDEBAR_KEY = 'portafolio.nav.sidebar';
 export const phaseKey = (p: Phase) => `portafolio.nav.avance-${p}`;
 
-/** Stored values for both the sidebar and each phase. */
+/** Stored values for each phase. */
 export const NAV_OPEN = 'open';
 export const NAV_CLOSED = 'closed';
 
-/**
- * The header button is a disclosure for the sidebar column: a fixed name, with aria-expanded
- * and aria-controls pointing at the column's id (set by TopicLayout and the 404 page).
- */
-export const SIDEBAR_TOGGLE_LABEL = 'Barra lateral';
+/** Id of the sidebar column (set by TopicLayout and the 404 page). */
 export const SIDEBAR_ID = 'barra-lateral';
 
 type Reader = Pick<Storage, 'getItem'> | undefined;
@@ -53,19 +48,9 @@ export function readOpenPhases(storage: Reader, currentPhase: Phase): Record<Pha
   return Object.fromEntries(entries) as Record<Phase, boolean>;
 }
 
-/** Whether the reader hid the sidebar on wide screens. Never throws. */
-export function readSidebarClosed(storage: Reader): boolean {
-  return safeRead(storage, SIDEBAR_KEY) === NAV_CLOSED;
-}
-
 /** Persist a phase's open state; returns whether it was saved. Never throws. */
 export function writePhaseOpen(storage: Writer, phase: Phase, isOpen: boolean): boolean {
   return safeWrite(storage, phaseKey(phase), isOpen ? NAV_OPEN : NAV_CLOSED);
-}
-
-/** Persist the sidebar choice; returns whether it was saved. Never throws. */
-export function writeSidebarClosed(storage: Writer, isClosed: boolean): boolean {
-  return safeWrite(storage, SIDEBAR_KEY, isClosed ? NAV_CLOSED : NAV_OPEN);
 }
 
 /** Even touching `window.localStorage` can throw when site data is blocked. */
