@@ -52,6 +52,7 @@
     const start = () => {
       window.addEventListener('scroll', schedule, { passive: true });
       window.addEventListener('resize', schedule);
+      resizeObserver.observe(head);
       resizeObserver.observe(body);
       schedule();
     };
