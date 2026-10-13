@@ -5,12 +5,12 @@
  * Only one <footer> sits under <body>: the sidebar's script watches it.
  */
 import ToolIcon from './ToolIcon';
-import GithubIcon from '../ui/GithubIcon.astro';
 import { AUTHOR, COURSE, REPO_URL } from '../../consigna';
 import { BUILD_DATE_ISO, BUILD_DATE_LABEL } from '../../lib/buildDate';
 
+/** On a phone each link is a 44 px tall target; the list's negative margin keeps the spacing. */
 const LINK =
-  'inline-flex items-center gap-1.5 text-fg-muted no-underline transition-colors hover:text-fg';
+  'inline-flex items-center gap-1.5 text-fg-muted no-underline transition-colors hover:text-fg max-sm:min-h-11';
 ---
 
 <footer class="mt-16 border-t-[3px] border-double border-border">
@@ -26,10 +26,10 @@ const LINK =
         Actualizado el <time datetime={BUILD_DATE_ISO}>{BUILD_DATE_LABEL}</time>
       </p>
     </div>
-    <ul class="flex flex-wrap items-center gap-x-6 gap-y-2">
+    <ul class="flex flex-wrap items-center gap-x-6 gap-y-2 max-sm:-my-3">
       <li class="flex">
-        <a href={REPO_URL} class={LINK}>
-          <GithubIcon variant="outline" />
+        <a href={REPO_URL} class={LINK} aria-label="Repositorio en GitHub">
+          <ToolIcon name="github" />
           Repositorio
         </a>
       </li>
