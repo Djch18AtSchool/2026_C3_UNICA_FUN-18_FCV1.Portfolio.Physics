@@ -14,25 +14,19 @@
 
 ## Temas
 
-| #   | Tema                                                                  | Avance        | Estado       |
-| --- | --------------------------------------------------------------------- | ------------- | ------------ |
-| 1   | Rastreo y navegación de un dron de reparto                            | Avance 1      | Publicado    |
-| 2   | El salto del personaje: cómo los motores de juego falsean la gravedad | Avance 1      | Publicado    |
-| 3   | Gravedad artificial por rotación en hábitats espaciales               | Avance 1      | Publicado    |
-| 4   | Llantas de Fórmula 1: la ventana de temperatura y el agarre           | Avance 1      | Publicado    |
-| 5   | El resorte virtual detrás de un control háptico                       | Avance 1      | Publicado    |
-| 6   | Frenado regenerativo en un vehículo eléctrico                         | Avance 2      | Próximamente |
-| 7   | El coeficiente de restitución en un motor de videojuego               | Avance 2      | Próximamente |
-| 8   | Ruedas de reacción en satélites                                       | Avance 2      | Próximamente |
-| 9   | Asistencia gravitatoria de la Voyager                                 | Avance 2      | Próximamente |
-| 10  | Spring animations en interfaces                                       | Entrega Final | Próximamente |
-| 11  | Síntesis de sonido y armónicos                                        | Entrega Final | Próximamente |
-| 12  | Resonancia estructural y Tacoma Narrows                               | Entrega Final | Próximamente |
-| 13  | Enfriamiento líquido de un centro de datos                            | Entrega Final | Próximamente |
+| #   | Tema                                                                  | Avance   |
+| --- | --------------------------------------------------------------------- | -------- |
+| 1   | Rastreo y navegación de un dron de reparto                            | Avance 1 |
+| 2   | El salto del personaje: cómo los motores de juego falsean la gravedad | Avance 1 |
+| 3   | Gravedad artificial por rotación en hábitats espaciales               | Avance 1 |
+| 4   | Llantas de Fórmula 1: la ventana de temperatura y el agarre           | Avance 1 |
+| 5   | El resorte virtual detrás de un control háptico                       | Avance 1 |
+
+Los temas del Avance 2 y de la Entrega Final se agregan cuando llegue su consigna. Hasta entonces, el sitio muestra esas dos entregas solo como secciones con la insignia «Se publica con su consigna».
 
 ## Estado del Avance 1
 
-Los cinco temas del Avance 1 están publicados en el formato de pasos de la versión 2: cada tema se lee en pasos (`Step`), cada paso con su explicación de apoyo (`Why`) y un laboratorio interactivo propio (dron, salto, hábitat, llantas y gatillo). Cada uno conserva su análisis escrito y el tipo de recurso de apoyo prescrito, sin sustituciones: visualización de datos (Tema 1), simulación interactiva (Tema 2), diagrama (Tema 3), visualización de datos (Tema 4) y multimedia con análisis (Tema 5). El Tema 5 incrusta un video de terceros, citado como fuente: la entrevista de PlayStation Access «A Game Developer Explains How PS5's DualSense Actually Works» (2021), con el análisis propio de cuatro instantes. Se carga desde `youtube-nocookie.com` solo cuando el lector lo pide (`src/lib/youtube.ts`, `HapticVideo`); sin JavaScript, la fachada y cada marca enlazan a YouTube. Los temas 6 a 13 figuran solo por su nombre y estarán próximamente.
+Los cinco temas del Avance 1 están publicados en el formato de pasos de la versión 2: cada tema se lee en pasos (`Step`), cada paso con su explicación de apoyo (`Why`) y un laboratorio interactivo propio (dron, salto, hábitat, llantas y gatillo). Cada uno conserva su análisis escrito y el tipo de recurso de apoyo prescrito, sin sustituciones: visualización de datos (Tema 1), simulación interactiva (Tema 2), diagrama (Tema 3), visualización de datos (Tema 4) y multimedia con análisis (Tema 5). El Tema 5 incrusta un video de terceros, citado como fuente: la entrevista de PlayStation Access «A Game Developer Explains How PS5's DualSense Actually Works» (2021), con el análisis propio de cuatro instantes. Se carga desde `youtube-nocookie.com` solo cuando el lector lo pide (`src/lib/youtube.ts`, `HapticVideo`); sin JavaScript, la fachada y cada marca enlazan a YouTube.
 
 ## Estructura
 
@@ -40,10 +34,11 @@ Los cinco temas del Avance 1 están publicados en el formato de pasos de la vers
 - `docs/`: especificaciones, planes e investigación del proyecto.
 - `public/`: recursos estáticos (el favicon).
 - `scripts/`: `generate-drone-route.ts` (genera el conjunto de datos del dron) y `compress-video.sh` (comprime un video propio a 720p; hoy sin uso, queda como plan B si el Tema 5 necesitara un video grabado por el autor).
+- `src/consigna.ts`: datos del curso, fases y temas con consigna (hoy los cinco del Avance 1); un tema nuevo entra aquí y en `src/content/topics/` cuando llega su consigna.
 - `src/content/topics/`: un archivo MDX por tema. Todo tema publicado tiene al menos 3 `Step` y un `Why` por cada `Step`; `src/content/topics.test.ts` lo verifica.
 - `src/data/`: conjuntos de datos generados.
 - `src/lib/settingsStore.ts`: ajustes globales (decimales, cuadrícula, movimiento) guardados en `localStorage` bajo la clave `portafolio.settings`.
-- `src/lib/`: también el índice de búsqueda (`searchIndex.ts`, `sectionHeadings.ts`), el estado persistido de la navegación (`navState.ts`, claves `portafolio.nav.avance-N`), `readingTime.ts` y `buildDate.ts`.
+- `src/lib/`: también el índice de búsqueda (`searchIndex.ts`, `sectionHeadings.ts`), el estado persistido de la navegación (`navState.ts`, claves `portafolio.nav.avance-N`), `readingTime.ts` y `lastUpdate.ts` (la fecha del último commit, que muestran la portada y el pie).
 - `src/lib/physics/`: núcleo de física puro, con pruebas.
 - `src/lib/data/`: modelos y preajustes con sus fuentes.
 - `src/components/ui/`: componentes de interfaz base, incluidos `Step.astro` y `Why.astro` (el modelo de contenido por pasos).
@@ -72,7 +67,7 @@ pnpm run e2e
 E2E_PORT=4322 pnpm run e2e
 pnpm run format
 pnpm run data:drone
-bash scripts/compress-video.sh media-raw/<archivo>
+bash scripts/compress-video.sh media-raw/<archivo>  # plan B del Tema 5, hoy sin uso
 ```
 
 `E2E_PORT=4322 pnpm run e2e` ejecuta las pruebas de extremo a extremo en otro puerto; úsalo en local cuando un servidor de desarrollo ocupa el 4321.

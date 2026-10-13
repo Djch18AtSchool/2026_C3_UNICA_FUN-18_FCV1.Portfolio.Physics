@@ -11,7 +11,8 @@ Reglas que no se negocian:
 - Con Dylan, en español. Claude redacta; Dylan revisa los textos antes de que cuenten como publicados.
 - Notación de libro de texto: g = 9,81 m/s², decimales con coma, fuerza normal `n`.
 - Colores con significado real en figuras (Tierra azul, Marte naranja, Luna gris).
-- No inventar lo que no se sabe: los temas futuros solo por nombre.
+- Los temas futuros no existen en el sitio hasta que llegue su consigna; Avance 2 y Entrega Final
+  aparecen solo como secciones con la insignia “Se publica con su consigna”.
 - Nunca recortar calidad, alcance ni diseño por falta de tiempo; ordenar el trabajo, no bajar la barra.
 - Implementar con subagentes, modelo y esfuerzo según la tarea, con revisión independiente por tarea.
 - Commits en inglés, formato convencional, solo con la identidad de Dylan, sin línea de coautor.
