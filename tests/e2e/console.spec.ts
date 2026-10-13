@@ -1,6 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
 import { TOPICS } from '../../src/consigna';
-import { PENDING_MEDIA } from './helpers';
 
 const HTTP_ERROR_MIN = 400;
 const HTTP_NOT_FOUND = 404;
@@ -26,19 +25,14 @@ const PAGES: PageCase[] = [
 
 const FAILED_LOAD_PREFIX = 'Failed to load resource';
 
-function isPendingMedia(url: string): boolean {
-  return url.includes(PENDING_MEDIA);
-}
-
 /**
- * Collect console errors, uncaught exceptions and failed same-origin responses of a page. Only two
- * failures are expected: the pending Tema 5 media, and the document itself on the 404 page (its
- * status is asserted by the test). Chromium reports each failed load as a console error too.
+ * Collect console errors, uncaught exceptions and failed same-origin responses of a page. Only one
+ * failure is expected: the document itself on the 404 page (its status is asserted by the test).
+ * Chromium reports each failed load as a console error too.
  */
 function watchProblems(page: Page, documentUrl: string, isDocumentError: boolean): string[] {
   const { origin } = new URL(documentUrl);
-  const isExpectedFailure = (url: string) =>
-    isPendingMedia(url) || (isDocumentError && url === documentUrl);
+  const isExpectedFailure = (url: string) => isDocumentError && url === documentUrl;
   const problems: string[] = [];
   page.on('console', (message) => {
     if (message.type() !== 'error') return;

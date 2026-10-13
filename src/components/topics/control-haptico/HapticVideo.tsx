@@ -1,90 +1,144 @@
-import { useEffect, useId, useRef, useState } from 'react';
-import type { HapticVideoProps, VideoMarker } from '../../../lib/data/triggerModel';
-import { withBase } from '../../../lib/url';
+import { useEffect, useId, useState, type JSX } from 'react';
+import {
+  activeMarkerIndex,
+  formatTimestamp,
+  formatVideoDate,
+  requireEmbeddedVideo,
+  type EmbeddedVideo,
+  type VideoMarker,
+} from '../../../lib/videoMarkers';
+import { watchUrl } from '../../../lib/youtube';
+import { useYouTubePlayer, type YouTubePlayer } from './useYouTubePlayer';
 
-const SECONDS_PER_MINUTE = 60;
-/** A seek lands on the nearest frame, a few ms before the requested time; still "at" the marker. */
-const SEEK_TOLERANCE_S = 0.05;
-const NO_MARKER = -1;
-
-const BUTTON_BASE =
-  'inline-flex min-h-9 items-center gap-2 self-start rounded-base border px-3 py-1.5 text-left text-sm font-medium text-fg transition-colors';
-const BUTTON_ACTIVE = 'border-accent bg-accent/10';
-const BUTTON_IDLE = 'border-border bg-bg-elevated hover:border-fg-muted';
-const LABEL_STATIC =
-  'm-0 inline-flex items-center gap-2 self-start text-sm font-medium text-fg-muted';
-
-/** 18 → "0:18", 75 → "1:15". */
-function formatTimestamp(seconds: number): string {
-  const minutes = Math.floor(seconds / SECONDS_PER_MINUTE);
-  const rest = Math.floor(seconds % SECONDS_PER_MINUTE);
-  return `${minutes}:${String(rest).padStart(2, '0')}`;
-}
-
-/** Index of the last marker (in ascending time order) the playback has reached, or −1. */
-function activeMarkerIndex(markers: VideoMarker[], time: number): number {
-  return markers.map((marker) => marker.time <= time + SEEK_TOLERANCE_S).lastIndexOf(true);
-}
-
-interface FallbackProps {
+export interface HapticVideoProps {
+  /** The third-party video, embedded from YouTube. */
+  video: EmbeddedVideo;
+  /** The analysed instants, in ascending time. */
+  markers: VideoMarker[];
+  /** What is seen and heard in the analysed fragments, for readers who cannot play the video. */
   transcript: string;
 }
 
-/**
- * Shown whenever the video cannot load (not published yet, or a network error). It offers the
- * transcript only: a download link would point at the very URL that just failed.
- */
-function VideoFallback({ transcript }: FallbackProps) {
+const NO_MARKER = -1;
+const MARKER_BASE =
+  'inline-flex min-h-9 items-center gap-2 self-start rounded-base border px-3 py-1.5 text-left text-sm font-medium text-fg no-underline motion-safe:transition-colors';
+const MARKER_ACTIVE = 'border-accent bg-accent/10';
+const MARKER_IDLE = 'border-border bg-bg-elevated hover:border-fg-muted';
+const FACADE =
+  'group flex aspect-video w-full flex-col items-center justify-center gap-3 bg-bg p-5 text-center text-fg no-underline sm:p-8';
+const IFRAME_ALLOW =
+  'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+
+function PlayIcon(): JSX.Element {
   return (
-    <div
-      data-testid="haptic-video-fallback"
-      className="flex flex-col justify-center gap-4 p-5 sm:min-h-80 sm:p-8"
+    <svg
+      viewBox="0 0 48 48"
+      className="size-14 shrink-0 text-accent motion-safe:transition-transform motion-safe:group-hover:scale-105"
+      aria-hidden="true"
     >
-      <div className="flex items-center gap-3">
-        <svg
-          viewBox="0 0 24 24"
-          className="size-8 shrink-0 text-fg-muted"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          aria-hidden="true"
-        >
-          <rect x="2.5" y="5" width="19" height="14" rx="1.5" strokeDasharray="3 2" />
-          <path d="M10 9.5v5l4-2.5z" fill="currentColor" stroke="none" />
-        </svg>
-        <p className="m-0 text-base font-medium">El video no está disponible en este momento.</p>
-      </div>
-      <p className="m-0 text-sm text-fg-muted">
-        Mientras tanto, la transcripción describe la secuencia del clip y cada marca de tiempo de
-        abajo conserva su análisis completo.
-      </p>
-      <div className="border-l-2 border-border pl-3">
-        <p className="m-0 mb-1 text-xs font-medium uppercase tracking-wider text-fg-muted">
-          Transcripción
-        </p>
-        <p data-testid="haptic-video-transcript" className="m-0 text-sm">
-          {transcript}
-        </p>
-      </div>
-    </div>
+      <circle cx="24" cy="24" r="23" fill="currentColor" />
+      <path d="M19 15.5v17l14-8.5z" fill="var(--bg)" />
+    </svg>
+  );
+}
+
+function ExternalIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 16 16" className="ml-1 inline size-3.5 align-[-2px]" aria-hidden="true">
+      <path
+        d="M6 3H3v10h10v-3M9 3h4v4M13 3 7.5 8.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+interface FacadeProps {
+  video: EmbeddedVideo;
+  /** Before hydration the facade is a plain link to YouTube; after, a button that embeds. */
+  isHydrated: boolean;
+  onPlay(): void;
+}
+
+/** The privacy facade: names the video and loads nothing from YouTube until it is pressed. */
+function VideoFacade({ video, isHydrated, onPlay }: FacadeProps): JSX.Element {
+  const action = isHydrated ? 'Reproducir el video aquí' : 'Ver el video en YouTube';
+  const body = (
+    <>
+      <PlayIcon />
+      <span className="text-base font-semibold">{action}</span>
+      <span lang="en" className="max-w-[34rem] text-sm font-medium">
+        {video.title}
+      </span>
+      <span className="text-xs text-fg-muted">
+        {`${video.channel} · ${formatTimestamp(video.duration)} · ${video.language}`}
+      </span>
+      <span className="text-xs text-fg-muted">
+        Se carga desde youtube-nocookie.com solo al pulsar.
+      </span>
+    </>
+  );
+  return isHydrated ? (
+    <button type="button" data-testid="haptic-video-facade" onClick={onPlay} className={FACADE}>
+      {body}
+    </button>
+  ) : (
+    <a data-testid="haptic-video-facade" href={watchUrl(video.id)} className={FACADE}>
+      {body}
+    </a>
+  );
+}
+
+function PlayerFrame({ video, player }: { video: EmbeddedVideo; player: YouTubePlayer }) {
+  return (
+    <iframe
+      ref={player.frameRef}
+      src={player.src}
+      title={`Video de YouTube: «${video.title}», de ${video.channel}`}
+      allow={IFRAME_ALLOW}
+      allowFullScreen
+      referrerPolicy="strict-origin-when-cross-origin"
+      onLoad={player.subscribe}
+      className="block aspect-video w-full border-0 bg-black"
+    />
+  );
+}
+
+/** The credit line: whose video it is, when it was published and where it lives. */
+function VideoCredit({ video }: { video: EmbeddedVideo }): JSX.Element {
+  return (
+    <p data-testid="haptic-video-credit" className="m-0 text-sm text-fg-muted">
+      {`Video de terceros; no es de mi autoría: ${video.channel}, ${formatVideoDate(video.published)}. `}
+      <a href={watchUrl(video.id)}>
+        Ver en YouTube
+        <ExternalIcon />
+      </a>
+    </p>
   );
 }
 
 interface MarkerItemProps {
   marker: VideoMarker;
+  videoId: string;
+  playerId: string;
   isActive: boolean;
-  /** Without a playable video there is nothing to seek, so the label is plain text. */
-  onSeek?: (time: number) => void;
+  /** Without JS the label links to the instant on YouTube; hydrated, it seeks the player. */
+  onSeek?: () => void;
 }
 
-/** One timestamp of the analysis: a seek button (or plain label) and its always-visible paragraph. */
-function MarkerItem({ marker, isActive, onSeek }: MarkerItemProps) {
+/** One analysed instant: a seek control (or link) and its always-visible paragraph. */
+function MarkerItem({ marker, videoId, playerId, isActive, onSeek }: MarkerItemProps) {
   const label = (
     <>
       <span className="font-mono tabular-nums">{formatTimestamp(marker.time)}</span>
       {` · ${marker.title}`}
     </>
   );
+  const className = `${MARKER_BASE} ${isActive ? MARKER_ACTIVE : MARKER_IDLE}`;
   return (
     <li className="m-0 flex flex-col gap-1.5">
       {onSeek ? (
@@ -92,15 +146,16 @@ function MarkerItem({ marker, isActive, onSeek }: MarkerItemProps) {
           type="button"
           data-testid="marker-label"
           aria-current={isActive ? 'true' : undefined}
-          onClick={() => onSeek(marker.time)}
-          className={`${BUTTON_BASE} ${isActive ? BUTTON_ACTIVE : BUTTON_IDLE}`}
+          aria-controls={playerId}
+          onClick={onSeek}
+          className={className}
         >
           {label}
         </button>
       ) : (
-        <p data-testid="marker-label" className={LABEL_STATIC}>
+        <a data-testid="marker-label" href={watchUrl(videoId, marker.time)} className={className}>
           {label}
-        </p>
+        </a>
       )}
       <p data-testid="marker-analysis" className="m-0 text-sm">
         {marker.analysis}
@@ -109,71 +164,49 @@ function MarkerItem({ marker, isActive, onSeek }: MarkerItemProps) {
   );
 }
 
+/** The highlighted marker: the playback position once the player reports it, else the last pick. */
+function useActiveMarker(markers: VideoMarker[], player: YouTubePlayer) {
+  const [picked, setPicked] = useState(NO_MARKER);
+  const times = markers.map(({ time }) => time);
+  const active =
+    player.currentTime === undefined ? picked : activeMarkerIndex(times, player.currentTime);
+  return { active, pick: setPicked };
+}
+
 /**
- * The Tema 5 video with its timestamped analysis. Each marker seeks the video and stays
- * highlighted while playback is past it; the analysis paragraphs never depend on the video.
+ * Tema 5's multimedia resource: a third-party YouTube video behind a privacy facade, its credit,
+ * a description of the analysed fragments and the timestamped analysis. Each marker seeks the
+ * player (or opens it at that instant) and stays highlighted while playback is past it; without
+ * JS every control is a link to YouTube and the written analysis reads the same.
  */
-export default function HapticVideo({ src, poster, markers, transcript }: HapticVideoProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const transcriptId = useId();
-  const [hasError, setHasError] = useState(false);
-  const [isReady, setIsReady] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const videoUrl = withBase(src);
-  const posterUrl = poster ? withBase(poster) : undefined;
-  // Without a playable video there is no playback position to point at.
-  const activeIndex = hasError ? NO_MARKER : activeMarkerIndex(markers, currentTime);
-
-  useEffect(() => {
-    setIsReady(true);
-    // The server-rendered <video> starts loading before hydration; a 404 may already be in.
-    if (videoRef.current?.error) setHasError(true);
-  }, []);
-
-  const seekTo = (time: number) => {
-    if (videoRef.current) videoRef.current.currentTime = time;
-    setCurrentTime(time);
-  };
+export default function HapticVideo({ video, markers, transcript }: HapticVideoProps) {
+  requireEmbeddedVideo(video, markers);
+  const playerId = useId();
+  const [isHydrated, setIsHydrated] = useState(false);
+  const player = useYouTubePlayer(video.id);
+  const { active, pick } = useActiveMarker(markers, player);
+  useEffect(() => setIsHydrated(true), []);
 
   return (
     <div
       data-testid="haptic-video-player"
-      data-state={hasError ? 'error' : 'ok'}
-      data-ready={isReady}
+      data-state={player.phase}
       className="flex min-w-0 flex-col gap-4"
     >
-      <div className="overflow-hidden rounded-base border border-border bg-bg-elevated">
-        {hasError ? (
-          <VideoFallback transcript={transcript} />
+      <div id={playerId} className="overflow-hidden rounded-base border border-border">
+        {player.phase === 'facade' ? (
+          <VideoFacade video={video} isHydrated={isHydrated} onPlay={() => player.play(0, true)} />
         ) : (
-          <video
-            ref={videoRef}
-            data-testid="haptic-video"
-            controls
-            preload="metadata"
-            playsInline
-            src={videoUrl}
-            poster={posterUrl}
-            aria-describedby={transcriptId}
-            onError={() => setHasError(true)}
-            onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
-            className="block aspect-video w-full bg-black"
-          />
+          <PlayerFrame video={video} player={player} />
         )}
       </div>
-      {hasError ? null : (
-        <>
-          <a href={videoUrl} download className="self-start text-sm">
-            Descargar el video (MP4)
-          </a>
-          <details className="text-sm">
-            <summary className="cursor-pointer text-fg-muted">Transcripción del video</summary>
-            <p id={transcriptId} className="mb-0 mt-2">
-              {transcript}
-            </p>
-          </details>
-        </>
-      )}
+      <VideoCredit video={video} />
+      <details className="text-sm">
+        <summary className="cursor-pointer text-fg-muted">
+          Descripción de los fragmentos analizados
+        </summary>
+        <p className="mb-0 mt-2">{transcript}</p>
+      </details>
       <div className="flex flex-col gap-3 rounded-base border border-border bg-bg-elevated p-4">
         <p className="m-0 text-xs font-medium uppercase tracking-wider text-fg-muted">
           Análisis por instante
@@ -183,8 +216,17 @@ export default function HapticVideo({ src, poster, markers, transcript }: Haptic
             <MarkerItem
               key={marker.time}
               marker={marker}
-              isActive={index === activeIndex}
-              onSeek={hasError ? undefined : seekTo}
+              videoId={video.id}
+              playerId={playerId}
+              isActive={index === active}
+              onSeek={
+                isHydrated
+                  ? () => {
+                      pick(index);
+                      player.seek(marker.time);
+                    }
+                  : undefined
+              }
             />
           ))}
         </ol>

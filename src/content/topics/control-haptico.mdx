@@ -56,6 +56,13 @@ sources:
     publisher: 'YouTube, 20 de noviembre de 2020 (desmontaje del gatillo)'
     url: 'https://www.youtube.com/watch?v=8VBZ1upH93w'
     accessed: '2026-10-13'
+  - id: playstation-access-2021
+    title: "A Game Developer Explains How PS5's DualSense Actually Works"
+    authors: 'PlayStation Access; entrevista a Toshimasa Aoki (Sony Interactive Entertainment) y Mike Daly (Insomniac Games)'
+    year: 2021
+    publisher: 'YouTube, 5 de agosto de 2021; video de terceros incrustado, no es de mi autoría'
+    url: 'https://www.youtube.com/watch?v=CaPHUZapCTI'
+    accessed: '2026-10-13'
 related: ['llantas-f1', 'spring-animations', 'resonancia-tacoma']
 classRefs:
   - module: 'Módulo 2'
@@ -88,7 +95,7 @@ Un gatillo adaptativo hace sentir un resorte que no existe. Un actuador empuja e
 
 <Step n={1} title="Vibración fija">
 
-Lo más simple es una vibración fija: el control zumba igual apriete poco o mucho. La modelo como una fuerza constante.
+Lo más simple es una vibración fija: el control zumba igual apriete poco o mucho. La modelo con una amplitud constante.
 
 <Equation
   id="ec-haptico-vibracion"
@@ -229,7 +236,11 @@ La API de Apple para el DualSense tiene un modo de pendiente: la resistencia sub
   latex="F(x) = \begin{cases} 0 & x < x_0 \\ k\,(x - x_0) & x \ge x_0 \end{cases}"
   symbols={[
     { symbol: 'F', meaning: 'módulo de la resistencia del gatillo', unit: 'N' },
-    { symbol: 'x_0', meaning: 'inicio de la resistencia, la posición de inicio de la API', unit: 'm' },
+    {
+      symbol: 'x_0',
+      meaning: 'inicio de la resistencia, la posición de inicio de la API',
+      unit: 'm',
+    },
   ]}
 />
 
@@ -251,36 +262,49 @@ Para <Equation inline latex="x \ge x_0" />, la (5.4) es la (5.2) corrida a x₀;
 
 <Figure
   type="multimedia"
-  caption="Gatillo R2 del DualSense en Astro's Playroom: reposo, compresión lenta hasta el fondo, pausa y liberación. Cada marca de tiempo salta al instante analizado; el análisis está escrito debajo del reproductor y se lee aunque el video no cargue."
+  caption="Entrevista de PlayStation Access a Toshimasa Aoki, director de gestión de producto de Sony Interactive Entertainment, y a Mike Daly, director de juego en Insomniac Games. No es mi video: lo incrusto y analizo cuatro instantes. Cada marca de tiempo abre el reproductor en ese instante, o salta a él; el análisis está escrito debajo y se lee aunque el video no cargue. El instante clave es el de las 4:15: ahí se describe la fuerza restauradora que crece con el recorrido."
   source={{
-    text: "Video del autor con un DualSense en Astro's Playroom; análisis propio.",
+    text: "Video de terceros incrustado; no es de mi autoría: PlayStation Access, «A Game Developer Explains How PS5's DualSense Actually Works», 5 de agosto de 2021, YouTube, fuente 8. Análisis propio; cito los subtítulos automáticos en inglés y la traducción es mía.",
+    url: 'https://www.youtube.com/watch?v=CaPHUZapCTI',
   }}
 >
   <HapticVideo
-    client:load
-    src="media/tema-05-dualsense.mp4"
-    poster="media/tema-05-dualsense.jpg"
+    client:visible
+    video={{
+      id: 'CaPHUZapCTI',
+      title: "A Game Developer Explains How PS5's DualSense Actually Works",
+      channel: 'PlayStation Access',
+      published: '2021-08-05',
+      duration: 610,
+      language: 'en inglés, con subtítulos automáticos',
+    }}
     markers={[
       {
-        time: 5,
-        title: 'Empieza la resistencia',
+        time: 138,
+        title: 'Vibración: un altavoz, no un resorte',
         analysis:
-          'El gatillo pasa x₀. Hasta aquí el dedo lo baja sin oposición: F = 0 en la ecuación (5.4). Desde este instante, en mi modelo, la fuerza crece como k (x − x₀), así que cada milímetro más pide la misma fuerza extra; con k = 400 N/m, 0,4 N por milímetro.',
+          'Toshimasa Aoki explica que la vibración sale de un actuador de bobina móvil, «like a small speaker» («como un pequeño altavoz»), y Mike Daly añade que se controlan su frecuencia y su amplitud. Es el modelo del paso 1: la fuerza oscila alrededor de cero con una amplitud F₀ que no depende de cuánto apriete el gatillo, ecuación (5.1). Avisa, pero no empuja de vuelta con una fuerza que crezca con x: no hay fuerza restauradora.',
       },
       {
-        time: 15,
-        title: 'Fondo del recorrido',
+        time: 198,
+        title: 'Un motor empuja el gatillo',
         analysis:
-          'x llega a su máximo, 8 mm en mi modelo, y la fuerza también: 2,0 N con x₀ = 3 mm, o 3,2 N si la resistencia empezara en cero. Un resorte ideal comprimido desde x = 0 guardaría aquí ½ k x² = 12,8 mJ, ecuación (5.2); con x₀ = 3 mm, el dedo lleva hechos 5,0 mJ de trabajo contra el gatillo. Mientras sostengo el gatillo, dedo y gatillo se empujan con fuerzas iguales y opuestas.',
+          'Aoki lo resume así: «motors kind of pushing (…) back to the triggers, and the way it pushes back is controlled by the games» («motores que empujan de vuelta los gatillos, y cómo empujan lo controla el juego»). Es la tercera ley del paso 3, ecuación (5.3): el motor empuja el gatillo y el gatillo empuja mi dedo con la misma fuerza con que yo lo aprieto. Que lo controle el juego es la ecuación (5.4): el juego elige x₀ y k, y mi dedo solo siente el resultado; no distingue un motor de un resorte.',
       },
       {
-        time: 18,
-        title: 'Liberación: la fuerza restauradora',
+        time: 242,
+        title: 'Media presión: un tope, no un resorte',
         analysis:
-          'Al soltar, el perfil virtual de la ecuación (5.4) solo empujaría el gatillo de vuelta hasta x₀, donde su fuerza se anula. Lo que lo devuelve a x = 0 es su resorte de retorno mecánico: un resorte real que cumple la ecuación (5.2) con su propia constante, desconocida y distinta de los 400 N/m virtuales, quizá ayudado por el actuador. Mientras lo apretaba, por la tercera ley, ecuación (5.3), el gatillo empujaba mi dedo con la misma magnitud con la que yo lo empujaba; al retirar el dedo desaparecen a la vez las dos fuerzas del par.',
+          'La narración habla de la «half press» («media presión»), que deja apuntar y disparar con un solo dedo, sobre escenas de disparos. Para que el dedo encuentre la mitad del recorrido, la fuerza tiene que cambiar de golpe ahí; lo leo como el modo de arma de la API, una resistencia entre dos posiciones con una sola intensidad, fuente 2. Es un escalón, no la recta de la ecuación (5.2): la fuerza no es proporcional a x. Hooke describe el arco del instante siguiente, no este tope.',
+      },
+      {
+        time: 255,
+        title: 'El arco: la tensión crece con el recorrido',
+        analysis:
+          "Este es el instante de la fuerza restauradora. Mientras Astro tensa un arco en Astro's Playroom, Aoki dice: «as you go through that long stroke you feel that the tension is getting stronger and stronger» («a lo largo de ese recorrido largo, sientes que la tensión es cada vez más fuerte»). Una fuerza que crece con el recorrido y apunta hacia el reposo es Fₓ = −k x, ecuación (5.2): con mis 400 N/m, 1,6 N a mitad y 3,2 N al fondo. Aoki añade que dividieron el recorrido en «multiple levels», cada uno más fuerte: la curva real es una escalera; si las 10 zonas del firmware fueran iguales, cada escalón de 0,8 mm sumaría 0,32 N. En un arco real ese trabajo queda como energía elástica, U = ½ k x² = 12,8 mJ al fondo; en el control lo absorbe el motor, y al soltar, el gatillo vuelve a x = 0 por su resorte de retorno.",
       },
     ]}
-    transcript="Plano lateral de una mano sobre el gatillo R2 de un DualSense, con Astro's Playroom en la zona Cooling Springs. Durante los primeros 5 segundos, el índice descansa sobre el gatillo sin presionarlo. Entre los 5 y los 15 segundos, el dedo presiona el gatillo muy despacio hasta el fondo del recorrido y lo mantiene ahí unos 3 segundos. Hacia los 18 segundos, el dedo se retira de golpe y el gatillo vuelve solo a su posición de reposo. Después, la secuencia se repite una vez."
+    transcript="2:15 a 2:48: Toshimasa Aoki, de Sony, explica la vibración con un actuador de bobina móvil y Mike Daly, de Insomniac Games, habla de controlar su frecuencia y su amplitud; se ven el DualSense y la pantalla «Vibration» del tutorial. 3:11 a 3:44: la narración separa los gatillos adaptativos de la vibración y Aoki dice que unos motores empujan los gatillos y que el juego controla cómo; se ven el gatillo de cerca, a Aoki y la pantalla «Adaptive triggers». 4:00 a 4:42: la narración menciona la media presión para apuntar y disparar, sobre escenas de disparos; desde 4:12, Astro tensa un arco en Astro's Playroom mientras Aoki explica que el recorrido largo se divide en niveles y que la tensión crece hasta el fondo."
   />
 </Figure>
 

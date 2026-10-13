@@ -1,11 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
 
-/**
- * Tema 5's video and poster are published after the author records them; until then requests
- * to them 404 by design. control-haptico.spec.ts checks the fallback while they are missing.
- */
-export const PENDING_MEDIA = 'media/tema-05-dualsense.';
-
 /** Set a native range input and fire the events React listens to. */
 export async function setRange(slider: Locator, value: string): Promise<void> {
   await slider.fill(value);

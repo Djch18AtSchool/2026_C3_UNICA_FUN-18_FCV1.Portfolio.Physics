@@ -1,154 +1,256 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, test } from 'vitest';
-import { withBase } from '../../../lib/url';
-import type { VideoMarker } from '../../../lib/data/triggerModel';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import type { EmbeddedVideo, VideoMarker } from '../../../lib/videoMarkers';
+import { YOUTUBE_EMBED_ORIGIN } from '../../../lib/youtube';
 import HapticVideo from './HapticVideo';
 
+const VIDEO: EmbeddedVideo = {
+  id: 'CaPHUZapCTI',
+  title: "A Game Developer Explains How PS5's DualSense Actually Works",
+  channel: 'PlayStation Access',
+  published: '2021-08-05',
+  duration: 610,
+  language: 'en inglés, con subtítulos automáticos',
+};
 const MARKERS: VideoMarker[] = [
-  { time: 5, title: 'Empieza la resistencia', analysis: 'El gatillo pasa x₀.' },
-  { time: 15, title: 'Fondo del recorrido', analysis: 'x máxima y F máxima.' },
-  { time: 18, title: 'Liberación', analysis: 'La fuerza restauradora −kx.' },
+  { time: 138, title: 'Vibración', analysis: 'Un altavoz, no un resorte.' },
+  { time: 198, title: 'Un motor empuja', analysis: 'Tercera ley.' },
+  { time: 255, title: 'El arco', analysis: 'La tensión crece con el recorrido.' },
 ];
-const TRANSCRIPT = 'El dedo descansa sobre el gatillo y luego lo presiona despacio.';
-const VIDEO_PATH = 'media/tema-05-dualsense.mp4';
+const TRANSCRIPT = 'Aoki explica cómo funciona el gatillo.';
+const WATCH = `https://www.youtube.com/watch?v=${VIDEO.id}`;
+const PLAY = /^Reproducir el video aquí/;
 
-function renderPlayer(): void {
-  render(
-    <HapticVideo
-      src={VIDEO_PATH}
-      poster="media/tema-05-dualsense.jpg"
-      markers={MARKERS}
-      transcript={TRANSCRIPT}
-    />,
-  );
+function renderPlayer() {
+  return render(<HapticVideo video={VIDEO} markers={MARKERS} transcript={TRANSCRIPT} />);
 }
 
-function videoElement(): HTMLVideoElement {
-  return screen.getByTestId('haptic-video') as HTMLVideoElement;
+function frame(): HTMLIFrameElement {
+  return screen.getByTitle(/^Video de YouTube/) as HTMLIFrameElement;
+}
+
+function startParam(iframe: HTMLIFrameElement): string | null {
+  return new URL(iframe.src).searchParams.get('start');
 }
 
 function markerButton(name: RegExp): HTMLElement {
-  return screen.getByRole('button', { name });
+  return within(screen.getByTestId('haptic-video-markers')).getByRole('button', { name });
+}
+
+/** A message from the embedded player, as the browser would deliver it. */
+function playerSays(data: unknown, origin = YOUTUBE_EMBED_ORIGIN, source = frame().contentWindow) {
+  act(() => {
+    window.dispatchEvent(
+      new MessageEvent('message', { data: JSON.stringify(data), origin, source }),
+    );
+  });
+}
+
+/** The JSON messages the page posted to the player, parsed. */
+function sentMessages(spy: { mock: { calls: unknown[][] } }): unknown[] {
+  return spy.mock.calls.map(([message]) => JSON.parse(String(message)));
 }
 
 describe('HapticVideo', () => {
-  afterEach(cleanup);
-
-  test('renders a native player with controls, metadata preload and base-prefixed URLs', () => {
-    renderPlayer();
-    const video = videoElement();
-
-    expect(video).toHaveAttribute('controls');
-    expect(video).toHaveAttribute('preload', 'metadata');
-    expect(video).toHaveAttribute('src', withBase(VIDEO_PATH));
-    expect(video).toHaveAttribute('poster', withBase('media/tema-05-dualsense.jpg'));
-    expect(screen.queryByTestId('haptic-video-fallback')).toBeNull();
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
   });
 
-  test('offers the MP4 download link below a working player', () => {
-    renderPlayer();
+  test('without JS (server render) the facade and every marker link to YouTube, with no embed', () => {
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(
+      <HapticVideo video={VIDEO} markers={MARKERS} transcript={TRANSCRIPT} />,
+    );
 
-    const download = screen.getByRole('link', { name: 'Descargar el video (MP4)' });
-    expect(download).toHaveAttribute('href', withBase(VIDEO_PATH));
-    expect(download).toHaveAttribute('download');
-    // The link follows the player in document order.
-    expect(
-      videoElement().compareDocumentPosition(download) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-  });
-
-  test('lists each marker as "m:ss · title" with its analysis always visible', () => {
-    renderPlayer();
-
-    expect(markerButton(/^0:05 · Empieza la resistencia$/)).toBeInTheDocument();
-    expect(markerButton(/^0:15 · Fondo del recorrido$/)).toBeInTheDocument();
-    expect(markerButton(/^0:18 · Liberación$/)).toBeInTheDocument();
-    MARKERS.forEach(({ analysis }) => expect(screen.getByText(analysis)).toBeVisible());
-  });
-
-  test('a load error shows the fallback with the transcript and no link to the failed URL', () => {
-    renderPlayer();
-    const video = videoElement();
-
-    fireEvent.error(video);
-
-    expect(screen.getByTestId('haptic-video-player')).toHaveAttribute('data-state', 'error');
-    const fallback = screen.getByTestId('haptic-video-fallback');
-    expect(within(fallback).getByText(TRANSCRIPT)).toBeVisible();
-    expect(screen.queryByRole('link', { name: /Descargar el video/ })).toBeNull();
-    // The written analysis does not depend on the video.
-    MARKERS.forEach(({ analysis }) => expect(screen.getByText(analysis)).toBeVisible());
-  });
-
-  test('in the error state the markers are plain time labels, not seek buttons', () => {
-    renderPlayer();
-    fireEvent.error(videoElement());
-
-    expect(
-      within(screen.getByTestId('haptic-video-markers')).queryAllByRole('button'),
-    ).toHaveLength(0);
-    const labels = screen.getAllByTestId('marker-label');
-    expect(labels.map((label) => label.textContent)).toEqual([
-      '0:05 · Empieza la resistencia',
-      '0:15 · Fondo del recorrido',
-      '0:18 · Liberación',
+    const facade = container.querySelector('[data-testid="haptic-video-facade"]');
+    expect(facade?.tagName).toBe('A');
+    expect(facade).toHaveAttribute('href', WATCH);
+    const labels = [...container.querySelectorAll('[data-testid="marker-label"]')];
+    expect(labels.map((label) => label.getAttribute('href'))).toEqual([
+      `${WATCH}&t=138s`,
+      `${WATCH}&t=198s`,
+      `${WATCH}&t=255s`,
     ]);
-    labels.forEach((label) => expect(label).not.toHaveAttribute('aria-current'));
+    expect(container.querySelector('iframe')).toBeNull();
+    expect(container.innerHTML).not.toContain('youtube-nocookie.com/embed');
   });
 
-  test('the fallback copy is neutral, so it also fits a later network error', () => {
+  test('hydrated, the facade is a button and nothing loads from YouTube until it is pressed', () => {
     renderPlayer();
 
-    fireEvent.error(videoElement());
-
-    const fallback = screen.getByTestId('haptic-video-fallback');
-    expect(
-      within(fallback).getByText('El video no está disponible en este momento.'),
-    ).toBeVisible();
-    expect(fallback).not.toHaveTextContent(/en cuanto lo publique/);
+    expect(screen.getByRole('button', { name: PLAY })).toBeInTheDocument();
+    expect(document.querySelector('iframe')).toBeNull();
+    expect(screen.getByTestId('haptic-video-player')).toHaveAttribute('data-state', 'facade');
+    expect(within(screen.getByTestId('haptic-video-markers')).getAllByRole('button')).toHaveLength(
+      3,
+    );
   });
 
-  test('an error that happened before hydration is detected on mount', () => {
-    const descriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'error');
-    Object.defineProperty(HTMLMediaElement.prototype, 'error', {
-      configurable: true,
-      get: () => ({ code: 4 }),
-    });
-    try {
-      renderPlayer();
-
-      expect(screen.getByTestId('haptic-video-player')).toHaveAttribute('data-state', 'error');
-    } finally {
-      if (descriptor) Object.defineProperty(HTMLMediaElement.prototype, 'error', descriptor);
-      else Reflect.deleteProperty(HTMLMediaElement.prototype, 'error');
-    }
-  });
-
-  test('clicking a marker seeks the video to its time and highlights it', () => {
+  test('the facade names the video: title, channel, length and language', () => {
     renderPlayer();
-    const video = videoElement();
+    const facade = screen.getByTestId('haptic-video-facade');
 
-    fireEvent.click(markerButton(/Fondo del recorrido/));
-
-    expect(video.currentTime).toBe(15);
-    expect(markerButton(/Fondo del recorrido/)).toHaveAttribute('aria-current', 'true');
-    expect(markerButton(/Empieza la resistencia/)).not.toHaveAttribute('aria-current');
+    expect(within(facade).getByText(VIDEO.title)).toHaveAttribute('lang', 'en');
+    expect(facade).toHaveTextContent('PlayStation Access · 10:10 · en inglés');
+    expect(facade).toHaveTextContent(/youtube-nocookie\.com/);
   });
 
-  test('timeupdate highlights the last marker the playback has reached', () => {
+  test('pressing the facade embeds the video from youtube-nocookie at 0 s and focuses it', () => {
     renderPlayer();
-    const video = videoElement();
 
-    video.currentTime = 2;
-    fireEvent.timeUpdate(video);
+    fireEvent.click(screen.getByRole('button', { name: PLAY }));
+
+    const iframe = frame();
+    expect(new URL(iframe.src).origin).toBe(YOUTUBE_EMBED_ORIGIN);
+    expect(new URL(iframe.src).pathname).toBe(`/embed/${VIDEO.id}`);
+    expect(startParam(iframe)).toBe('0');
+    expect(new URL(iframe.src).searchParams.get('origin')).toBe(window.location.origin);
+    expect(iframe).toHaveAttribute(
+      'title',
+      `Video de YouTube: «${VIDEO.title}», de PlayStation Access`,
+    );
+    expect(iframe).toHaveAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    expect(iframe).toHaveFocus();
+    expect(screen.queryByTestId('haptic-video-facade')).toBeNull();
+    expect(screen.getByTestId('haptic-video-player')).toHaveAttribute('data-state', 'loading');
+  });
+
+  test('a marker pressed on the facade opens the player at its instant and stays highlighted', () => {
+    renderPlayer();
+    markerButton(/El arco/).focus();
+
+    fireEvent.click(markerButton(/El arco/));
+
+    expect(startParam(frame())).toBe('255');
+    expect(markerButton(/El arco/)).toHaveAttribute('aria-current', 'true');
+    expect(markerButton(/Vibración/)).not.toHaveAttribute('aria-current');
+    expect(markerButton(/El arco/)).toHaveFocus();
+  });
+
+  test('once loaded, the page subscribes to the player events', () => {
+    renderPlayer();
+    fireEvent.click(screen.getByRole('button', { name: PLAY }));
+    const post = vi.spyOn(frame().contentWindow as Window, 'postMessage');
+
+    fireEvent.load(frame());
+
+    expect(post).toHaveBeenCalledWith(expect.any(String), YOUTUBE_EMBED_ORIGIN);
+    expect(sentMessages(post)).toContainEqual({ event: 'listening', id: 1, channel: 'widget' });
+  });
+
+  test('until the player answers, the subscription is repeated; then it stops', () => {
+    vi.useFakeTimers();
+    renderPlayer();
+    fireEvent.click(screen.getByRole('button', { name: PLAY }));
+    const post = vi.spyOn(frame().contentWindow as Window, 'postMessage');
+
+    act(() => vi.advanceTimersByTime(1000));
+    const whileWaiting = post.mock.calls.length;
+    playerSays({ event: 'onReady', info: null });
+    act(() => vi.advanceTimersByTime(5000));
+
+    expect(whileWaiting).toBeGreaterThanOrEqual(2);
+    expect(post.mock.calls.length).toBe(whileWaiting);
+    expect(screen.getByTestId('haptic-video-player')).toHaveAttribute('data-state', 'connected');
+  });
+
+  test('the playback time the player reports highlights the last marker reached', () => {
+    renderPlayer();
+    fireEvent.click(screen.getByRole('button', { name: PLAY }));
+
+    playerSays({ event: 'infoDelivery', info: { currentTime: 100 } });
     MARKERS.forEach(({ title }) =>
       expect(markerButton(new RegExp(title))).not.toHaveAttribute('aria-current'),
     );
 
-    video.currentTime = 16.4;
-    fireEvent.timeUpdate(video);
-    expect(markerButton(/Fondo del recorrido/)).toHaveAttribute('aria-current', 'true');
-    expect(markerButton(/Liberación/)).not.toHaveAttribute('aria-current');
+    playerSays({ event: 'infoDelivery', info: { currentTime: 241 } });
+    expect(markerButton(/Un motor empuja/)).toHaveAttribute('aria-current', 'true');
+    expect(markerButton(/El arco/)).not.toHaveAttribute('aria-current');
+  });
+
+  test('with the player answering, a marker seeks in place without reloading the iframe', () => {
+    renderPlayer();
+    fireEvent.click(screen.getByRole('button', { name: PLAY }));
+    playerSays({ event: 'infoDelivery', info: { currentTime: 3 } });
+    const src = frame().src;
+    const post = vi.spyOn(frame().contentWindow as Window, 'postMessage');
+
+    fireEvent.click(markerButton(/Un motor empuja/));
+
+    expect(frame().src).toBe(src);
+    expect(sentMessages(post)).toEqual([
+      { event: 'command', func: 'seekTo', args: [198, true], id: 1, channel: 'widget' },
+      { event: 'command', func: 'playVideo', args: [], id: 1, channel: 'widget' },
+    ]);
+    expect(markerButton(/Un motor empuja/)).toHaveAttribute('aria-current', 'true');
+  });
+
+  test('without an answer from the player, a marker reloads the embed at its instant', () => {
+    renderPlayer();
+    fireEvent.click(screen.getByRole('button', { name: PLAY }));
+
+    fireEvent.click(markerButton(/Vibración/));
+
+    expect(startParam(frame())).toBe('138');
+    expect(markerButton(/Vibración/)).toHaveAttribute('aria-current', 'true');
+  });
+
+  test('messages from another origin or another window are ignored', () => {
+    renderPlayer();
+    fireEvent.click(screen.getByRole('button', { name: PLAY }));
+
+    playerSays({ event: 'infoDelivery', info: { currentTime: 300 } }, 'https://evil.example');
+    playerSays({ event: 'infoDelivery', info: { currentTime: 300 } }, YOUTUBE_EMBED_ORIGIN, window);
+
+    expect(screen.getByTestId('haptic-video-player')).toHaveAttribute('data-state', 'loading');
+    expect(markerButton(/El arco/)).not.toHaveAttribute('aria-current');
+  });
+
+  test('credits the third-party video and links to it on YouTube', () => {
+    renderPlayer();
+    const credit = screen.getByTestId('haptic-video-credit');
+
+    expect(credit).toHaveTextContent('Video de terceros; no es de mi autoría');
+    expect(credit).toHaveTextContent('PlayStation Access, 5 de agosto de 2021');
+    expect(within(credit).getByRole('link', { name: /Ver en YouTube/ })).toHaveAttribute(
+      'href',
+      WATCH,
+    );
+  });
+
+  test('the description of the analysed fragments sits in a details element', () => {
+    renderPlayer();
+
+    const summary = screen.getByText('Descripción de los fragmentos analizados');
+    expect(summary.tagName).toBe('SUMMARY');
+    expect(summary.closest('details')).toHaveTextContent(TRANSCRIPT);
+  });
+
+  test('every analysis is visible before and after the video loads', () => {
+    renderPlayer();
+    MARKERS.forEach(({ analysis }) => expect(screen.getByText(analysis)).toBeVisible());
+
+    fireEvent.click(screen.getByRole('button', { name: PLAY }));
+
+    MARKERS.forEach(({ analysis }) => expect(screen.getByText(analysis)).toBeVisible());
+    expect(screen.getAllByTestId('marker-label').map((label) => label.textContent)).toEqual([
+      '2:18 · Vibración',
+      '3:18 · Un motor empuja',
+      '4:15 · El arco',
+    ]);
+  });
+
+  test('invalid video data fails the render with a clear message', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    expect(() =>
+      render(<HapticVideo video={{ ...VIDEO, id: 'bad' }} markers={MARKERS} transcript="" />),
+    ).toThrow(/identificador de YouTube/);
+    expect(() =>
+      render(<HapticVideo video={VIDEO} markers={[...MARKERS].reverse()} transcript="" />),
+    ).toThrow(/orden creciente/);
   });
 });

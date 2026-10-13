@@ -47,18 +47,3 @@ export function triggerCurves({ k, start }: TriggerSettings): TriggerPoint[] {
   );
   return hooke.map((point, index) => ({ x: point.x, hooke: point.f, trigger: trigger[index].f }));
 }
-
-/** One timestamp of the Tema 5 video: the instant (s), its title and the written analysis. */
-export interface VideoMarker {
-  time: number;
-  title: string;
-  analysis: string;
-}
-
-/** Props of HapticVideo; `src` and `poster` are site paths, prefixed with the base inside. */
-export interface HapticVideoProps {
-  src: string;
-  poster?: string;
-  markers: VideoMarker[];
-  transcript: string;
-}

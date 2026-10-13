@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
+import { stubYouTube } from './youtubeStub';
 
 const PAGE = './temas/control-haptico/';
-const VIDEO_URL = './media/tema-05-dualsense.mp4';
-const HTTP_NOT_FOUND = 404;
-const HTTP_OK = 200;
+const PLAYER = '[data-testid="haptic-video-player"]';
+const WATCH = 'https://www.youtube.com/watch?v=CaPHUZapCTI';
+const EMBED = /^https:\/\/www\.youtube-nocookie\.com\/embed\/CaPHUZapCTI\?/;
+const MARKER_TIMES = ['2:18', '3:18', '4:02', '4:15'];
 const LAB = '[data-testid="trigger-lab"]';
 const LEVER = 'Recorrido del gatillo x';
 /** The lab must fill the reading column (spec §6): at least this share of the article width. */
@@ -45,53 +47,125 @@ async function pressToBottomWithKeys(page: Page): Promise<void> {
   await page.keyboard.press('End');
 }
 
+/** Brings the player into view and waits until its island hydrated (client:visible). */
+async function openPlayer(page: Page): Promise<void> {
+  await page.goto(PAGE);
+  await page.locator(PLAYER).scrollIntoViewIfNeeded();
+  await waitForIsland(page, PLAYER);
+}
+
+function playerFrame(page: Page) {
+  return page.locator(PLAYER).locator('iframe');
+}
+
+async function startParam(page: Page): Promise<string | null> {
+  const src = (await playerFrame(page).getAttribute('src')) ?? '';
+  return new URL(src).searchParams.get('start');
+}
+
 test.describe('video', () => {
+  let requested: string[] = [];
+
   test.beforeEach(async ({ page }) => {
-    await page.goto(PAGE);
+    requested = await stubYouTube(page);
+    await openPlayer(page);
   });
 
-  test('el video se reproduce o, si aún no está publicado, muestra el respaldo', async ({
+  test('sin pulsar nada, la página no pide nada a YouTube y muestra la fachada', async ({
     page,
-    request,
   }) => {
-    const response = await request.get(VIDEO_URL);
-    const player = page.getByTestId('haptic-video-player');
+    const player = page.locator(PLAYER);
 
-    if (response.status() === HTTP_NOT_FOUND) {
-      await expect(page.locator('[data-state="error"]')).toBeVisible();
-      const fallback = page.getByTestId('haptic-video-fallback');
-      await expect(fallback).toBeVisible();
-      await expect(fallback.getByTestId('haptic-video-transcript')).toBeVisible();
-      // No link to the URL that just failed, and nothing to seek.
-      await expect(player.getByRole('link', { name: /Descargar el video/ })).toHaveCount(0);
-      await expect(page.getByTestId('haptic-video-markers').getByRole('button')).toHaveCount(0);
-    } else {
-      expect(response.status()).toBe(HTTP_OK);
-      await expect(player).toHaveAttribute('data-state', 'ok');
-      await expect(player.getByTestId('haptic-video')).toHaveAttribute('controls', '');
-      await expect(page.getByTestId('haptic-video-fallback')).toHaveCount(0);
-      await expect(player.getByRole('link', { name: 'Descargar el video (MP4)' })).toBeVisible();
-      await expect(page.getByTestId('haptic-video-markers').getByRole('button')).toHaveCount(3);
-    }
+    await expect(player).toHaveAttribute('data-state', 'facade');
+    await expect(player.getByRole('button', { name: /^Reproducir el video aquí/ })).toBeVisible();
+    await expect(player.locator('iframe')).toHaveCount(0);
+    await page.waitForLoadState('networkidle');
+    expect(requested).toEqual([]);
   });
 
-  test('hay tres marcas de tiempo con su análisis escrito', async ({ page }) => {
+  test('la fachada carga el reproductor de youtube-nocookie en 0 s, le pasa el foco y se conecta', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: /^Reproducir el video aquí/ }).click();
+
+    await expect(playerFrame(page)).toHaveAttribute('src', EMBED);
+    expect(await startParam(page)).toBe('0');
+    await expect(playerFrame(page)).toHaveAttribute(
+      'title',
+      /^Video de YouTube: «A Game Developer/,
+    );
+    await expect(playerFrame(page)).toBeFocused();
+    await expect(page.locator(PLAYER)).toHaveAttribute('data-state', 'connected');
+  });
+
+  test('con el reproductor conectado, una marca salta a su instante sin recargarlo', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: /^Reproducir el video aquí/ }).click();
+    await expect(page.locator(PLAYER)).toHaveAttribute('data-state', 'connected');
+    const src = await playerFrame(page).getAttribute('src');
+    const marker = page.getByTestId('haptic-video-markers').getByRole('button', { name: /^4:15/ });
+
+    await marker.click();
+
+    await expect(page.frameLocator(`${PLAYER} iframe`).locator('#time')).toHaveText('t = 255');
+    await expect(marker).toHaveAttribute('aria-current', 'true');
+    expect(await playerFrame(page).getAttribute('src')).toBe(src);
+  });
+
+  test('una marca pulsada sobre la fachada abre el reproductor en su instante', async ({
+    page,
+  }) => {
+    const marker = page.getByTestId('haptic-video-markers').getByRole('button', { name: /^2:18/ });
+
+    await marker.click();
+
+    await expect(playerFrame(page)).toHaveAttribute('src', EMBED);
+    expect(await startParam(page)).toBe('138');
+    await expect(marker).toHaveAttribute('aria-current', 'true');
+  });
+
+  test('hay cuatro marcas de tiempo con su análisis escrito', async ({ page }) => {
     const markers = page.getByTestId('haptic-video-markers');
 
-    await expect(markers.getByTestId('marker-label')).toHaveCount(3);
-    await expect(markers.getByTestId('marker-label').nth(0)).toHaveText(/^0:05 · /);
-    await expect(markers.getByTestId('marker-analysis')).toHaveCount(3);
+    await expect(markers.getByTestId('marker-label')).toHaveCount(MARKER_TIMES.length);
+    for (const [index, time] of MARKER_TIMES.entries()) {
+      await expect(markers.getByTestId('marker-label').nth(index)).toHaveText(
+        new RegExp(`^${time} · `),
+      );
+    }
     for (const analysis of await markers.getByTestId('marker-analysis').all()) {
       await expect(analysis).toBeVisible();
     }
   });
 
-  test('el recurso es multimedia con fuente', async ({ page }) => {
+  test('el recurso es multimedia y acredita el video de terceros', async ({ page }) => {
     const figure = page.locator('figure[data-type="multimedia"]');
 
     await expect(figure).toHaveCount(1);
     await expect(figure.getByTestId('haptic-video-player')).toBeVisible();
-    await expect(figure.locator('.figure-source')).toContainText('Astro');
+    await expect(figure.locator('.figure-source')).toContainText('no es de mi autoría');
+    await expect(figure.locator('.figure-source a')).toHaveAttribute('href', WATCH);
+    await expect(figure.getByTestId('haptic-video-credit')).toContainText('PlayStation Access');
+  });
+});
+
+test.describe('video sin JavaScript', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('la fachada y cada marca son enlaces a YouTube, y el análisis se lee igual', async ({
+    page,
+  }) => {
+    const requested = await stubYouTube(page);
+    await page.goto(PAGE);
+    const player = page.locator(PLAYER);
+
+    await expect(player.getByTestId('haptic-video-facade')).toHaveAttribute('href', WATCH);
+    const labels = player.getByTestId('marker-label');
+    await expect(labels).toHaveCount(MARKER_TIMES.length);
+    await expect(labels.nth(3)).toHaveAttribute('href', `${WATCH}&t=255s`);
+    await expect(player.getByTestId('marker-analysis').first()).toBeVisible();
+    expect(requested).toEqual([]);
   });
 });
 
