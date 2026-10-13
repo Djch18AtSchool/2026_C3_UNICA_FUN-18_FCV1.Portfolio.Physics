@@ -37,7 +37,7 @@ function PlayIcon(): JSX.Element {
       aria-hidden="true"
     >
       <circle cx="24" cy="24" r="23" fill="currentColor" />
-      <path d="M19 15.5v17l14-8.5z" fill="var(--bg)" />
+      <path d="M19 15.5v17l14-8.5z" style={{ fill: 'var(--bg)' }} />
     </svg>
   );
 }
@@ -77,9 +77,11 @@ function VideoFacade({ video, isHydrated, onPlay }: FacadeProps): JSX.Element {
       <span className="text-xs text-fg-muted">
         {`${video.channel} · ${formatTimestamp(video.duration)} · ${video.language}`}
       </span>
-      <span className="text-xs text-fg-muted">
-        Se carga desde youtube-nocookie.com solo al pulsar.
-      </span>
+      {isHydrated ? (
+        <span className="text-xs text-fg-muted">
+          Se carga desde youtube-nocookie.com solo al pulsar.
+        </span>
+      ) : null}
     </>
   );
   return isHydrated ? (
@@ -96,6 +98,7 @@ function VideoFacade({ video, isHydrated, onPlay }: FacadeProps): JSX.Element {
 function PlayerFrame({ video, player }: { video: EmbeddedVideo; player: YouTubePlayer }) {
   return (
     <iframe
+      key={player.frameKey}
       ref={player.frameRef}
       src={player.src}
       title={`Video de YouTube: «${video.title}», de ${video.channel}`}
@@ -164,6 +167,38 @@ function MarkerItem({ marker, videoId, playerId, isActive, onSeek }: MarkerItemP
   );
 }
 
+interface MarkerListProps {
+  markers: VideoMarker[];
+  videoId: string;
+  playerId: string;
+  active: number;
+  /** Seeks to marker `index`; undefined before hydration, when the markers are links. */
+  onSeek?: (index: number) => void;
+}
+
+/** The "Análisis por instante" box: every marker with its analysis, in time order. */
+function MarkerList({ markers, videoId, playerId, active, onSeek }: MarkerListProps) {
+  return (
+    <div className="flex flex-col gap-3 rounded-base border border-border bg-bg-elevated p-4">
+      <p className="m-0 text-xs font-medium uppercase tracking-wider text-fg-muted">
+        Análisis por instante
+      </p>
+      <ol data-testid="haptic-video-markers" className="m-0 flex list-none flex-col gap-4 p-0">
+        {markers.map((marker, index) => (
+          <MarkerItem
+            key={marker.time}
+            marker={marker}
+            videoId={videoId}
+            playerId={playerId}
+            isActive={index === active}
+            onSeek={onSeek ? () => onSeek(index) : undefined}
+          />
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 /** The highlighted marker: the playback position once the player reports it, else the last pick. */
 function useActiveMarker(markers: VideoMarker[], player: YouTubePlayer) {
   const [picked, setPicked] = useState(NO_MARKER);
@@ -186,6 +221,10 @@ export default function HapticVideo({ video, markers, transcript }: HapticVideoP
   const player = useYouTubePlayer(video.id);
   const { active, pick } = useActiveMarker(markers, player);
   useEffect(() => setIsHydrated(true), []);
+  const seekMarker = (index: number) => {
+    pick(index);
+    player.seek(markers[index].time);
+  };
 
   return (
     <div
@@ -207,30 +246,13 @@ export default function HapticVideo({ video, markers, transcript }: HapticVideoP
         </summary>
         <p className="mb-0 mt-2">{transcript}</p>
       </details>
-      <div className="flex flex-col gap-3 rounded-base border border-border bg-bg-elevated p-4">
-        <p className="m-0 text-xs font-medium uppercase tracking-wider text-fg-muted">
-          Análisis por instante
-        </p>
-        <ol data-testid="haptic-video-markers" className="m-0 flex list-none flex-col gap-4 p-0">
-          {markers.map((marker, index) => (
-            <MarkerItem
-              key={marker.time}
-              marker={marker}
-              videoId={video.id}
-              playerId={playerId}
-              isActive={index === active}
-              onSeek={
-                isHydrated
-                  ? () => {
-                      pick(index);
-                      player.seek(marker.time);
-                    }
-                  : undefined
-              }
-            />
-          ))}
-        </ol>
-      </div>
+      <MarkerList
+        markers={markers}
+        videoId={video.id}
+        playerId={playerId}
+        active={active}
+        onSeek={isHydrated ? seekMarker : undefined}
+      />
     </div>
   );
 }

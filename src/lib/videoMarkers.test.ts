@@ -68,6 +68,8 @@ describe('requireEmbeddedVideo', () => {
     expect(() => requireEmbeddedVideo({ ...VIDEO, id: 'x' }, [])).toThrow(RangeError);
     expect(() => requireEmbeddedVideo({ ...VIDEO, duration: 0 }, [])).toThrow(/duración/);
     expect(() => requireEmbeddedVideo({ ...VIDEO, published: '5/8/2021' }, [])).toThrow(/fecha/);
+    expect(() => requireEmbeddedVideo({ ...VIDEO, published: '2021-13-45' }, [])).toThrow(/fecha/);
+    expect(() => requireEmbeddedVideo({ ...VIDEO, published: '2021-02-30' }, [])).toThrow(/fecha/);
   });
 
   test('rejects markers outside the video or out of order', () => {

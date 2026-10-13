@@ -46,6 +46,12 @@ export function activeMarkerIndex(times: readonly number[], time: number): numbe
   return times.map((markerTime) => markerTime <= time + SEEK_TOLERANCE_S).lastIndexOf(true);
 }
 
+/** "2021-08-05" is a day; "5/8/2021" or "2021-02-30" are not (the round trip must match). */
+function isCalendarDay(text: string): boolean {
+  const date = new Date(text);
+  return DAY.test(text) && !Number.isNaN(date.getTime()) && date.toISOString().startsWith(text);
+}
+
 function requireMarkersInside(markers: readonly VideoMarker[], duration: number): void {
   markers.forEach(({ time }, index) => {
     if (!(time >= 0 && time < duration)) {
@@ -71,7 +77,7 @@ export function requireEmbeddedVideo(
   if (!(video.duration > 0)) {
     throw new RangeError(`La duración del video debe ser positiva, no ${video.duration} s`);
   }
-  if (!DAY.test(video.published)) {
+  if (!isCalendarDay(video.published)) {
     throw new RangeError(`La fecha del video debe ser AAAA-MM-DD, no "${video.published}"`);
   }
   requireMarkersInside(markers, video.duration);

@@ -75,7 +75,8 @@ describe('HapticVideo', () => {
       `${WATCH}&t=255s`,
     ]);
     expect(container.querySelector('iframe')).toBeNull();
-    expect(container.innerHTML).not.toContain('youtube-nocookie.com/embed');
+    // The link opens youtube.com, so the facade does not promise the privacy-enhanced host.
+    expect(container.innerHTML).not.toContain('youtube-nocookie');
   });
 
   test('hydrated, the facade is a button and nothing loads from YouTube until it is pressed', () => {
@@ -141,20 +142,48 @@ describe('HapticVideo', () => {
     expect(sentMessages(post)).toContainEqual({ event: 'listening', id: 1, channel: 'widget' });
   });
 
-  test('until the player answers, the subscription is repeated; then it stops', () => {
+  test('nothing is posted before the iframe loads: the blank document is not the player', () => {
     vi.useFakeTimers();
     renderPlayer();
     fireEvent.click(screen.getByRole('button', { name: PLAY }));
     const post = vi.spyOn(frame().contentWindow as Window, 'postMessage');
+
+    act(() => vi.advanceTimersByTime(15_000));
+
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  test('after the load, the subscription is repeated until the player answers; then it stops', () => {
+    vi.useFakeTimers();
+    renderPlayer();
+    fireEvent.click(screen.getByRole('button', { name: PLAY }));
+    const post = vi.spyOn(frame().contentWindow as Window, 'postMessage');
+    fireEvent.load(frame());
 
     act(() => vi.advanceTimersByTime(1000));
     const whileWaiting = post.mock.calls.length;
     playerSays({ event: 'onReady', info: null });
     act(() => vi.advanceTimersByTime(5000));
 
-    expect(whileWaiting).toBeGreaterThanOrEqual(2);
+    expect(whileWaiting).toBeGreaterThanOrEqual(3);
     expect(post.mock.calls.length).toBe(whileWaiting);
     expect(screen.getByTestId('haptic-video-player')).toHaveAttribute('data-state', 'connected');
+  });
+
+  test('a player that never answers gets a bounded number of subscriptions per load', () => {
+    vi.useFakeTimers();
+    renderPlayer();
+    fireEvent.click(screen.getByRole('button', { name: PLAY }));
+    const post = vi.spyOn(frame().contentWindow as Window, 'postMessage');
+    fireEvent.load(frame());
+
+    act(() => vi.advanceTimersByTime(60_000));
+    const sent = post.mock.calls.length;
+    act(() => vi.advanceTimersByTime(60_000));
+
+    expect(sent).toBeGreaterThan(1);
+    expect(sent).toBeLessThanOrEqual(21);
+    expect(post.mock.calls.length).toBe(sent);
   });
 
   test('the playback time the player reports highlights the last marker reached', () => {
@@ -186,6 +215,33 @@ describe('HapticVideo', () => {
       { event: 'command', func: 'playVideo', args: [], id: 1, channel: 'widget' },
     ]);
     expect(markerButton(/Un motor empuja/)).toHaveAttribute('aria-current', 'true');
+  });
+
+  test('without an answer, pressing the same marker again reloads the embed anyway', () => {
+    renderPlayer();
+    fireEvent.click(markerButton(/Vibración/));
+    const first = frame();
+
+    fireEvent.click(markerButton(/Vibración/));
+
+    expect(frame()).not.toBe(first);
+    expect(startParam(frame())).toBe('138');
+  });
+
+  test('after a reload, late messages from the previous embed are ignored', () => {
+    renderPlayer();
+    fireEvent.click(screen.getByRole('button', { name: PLAY }));
+    const previous = frame().contentWindow;
+
+    fireEvent.click(markerButton(/El arco/));
+    playerSays(
+      { event: 'infoDelivery', info: { currentTime: 140 } },
+      YOUTUBE_EMBED_ORIGIN,
+      previous,
+    );
+
+    expect(screen.getByTestId('haptic-video-player')).toHaveAttribute('data-state', 'loading');
+    expect(markerButton(/El arco/)).toHaveAttribute('aria-current', 'true');
   });
 
   test('without an answer from the player, a marker reloads the embed at its instant', () => {

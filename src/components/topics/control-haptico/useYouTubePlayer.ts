@@ -10,7 +10,10 @@ import {
 /** No iframe yet (privacy facade); an iframe that has not answered; a player that answers. */
 export type PlayerPhase = 'facade' | 'loading' | 'connected';
 
-/** The subscription is re-sent this often until the player answers, at most LISTEN_ATTEMPTS times. */
+/**
+ * After each load the subscription is re-sent this often until the player answers, at most
+ * LISTEN_ATTEMPTS times (10 s); the official IFrame API keeps asking the same way.
+ */
 const LISTEN_RETRY_MS = 500;
 const LISTEN_ATTEMPTS = 20;
 
@@ -18,6 +21,11 @@ export interface YouTubePlayer {
   phase: PlayerPhase;
   /** The iframe source; undefined behind the facade. */
   src?: string;
+  /**
+   * Changes on every (re)load: as the iframe's key it gives each load a fresh element and window,
+   * so a repeated start still reloads and late messages from the previous document are ignored.
+   */
+  frameKey: number;
   /** The last playback time the player reported, s; undefined until it reports one. */
   currentTime?: number;
   frameRef: RefObject<HTMLIFrameElement | null>;
@@ -25,7 +33,7 @@ export interface YouTubePlayer {
   play(start: number, focus?: boolean): void;
   /** Plays from `time` (s): in place once the player answers, by reloading the embed before. */
   seek(time: number): void;
-  /** The iframe loaded: ask it for its events. */
+  /** The iframe loaded: ask it for its events (before the load, it is a blank page of ours). */
   subscribe(): void;
 }
 
@@ -53,8 +61,12 @@ function usePlayerMessages(
   }, [frameRef, isEmbedded, onMessage]);
 }
 
-/** Re-sends the subscription while the iframe has not answered, a bounded number of times. */
-function useListenRetry(frameRef: RefObject<HTMLIFrameElement | null>, isWaiting: boolean): void {
+/** Re-sends the subscription while a loaded iframe has not answered, a bounded number of times. */
+function useListenRetry(
+  frameRef: RefObject<HTMLIFrameElement | null>,
+  isWaiting: boolean,
+  load: number,
+): void {
   useEffect(() => {
     if (!isWaiting) return undefined;
     let attempts = 0;
@@ -64,7 +76,7 @@ function useListenRetry(frameRef: RefObject<HTMLIFrameElement | null>, isWaiting
       if (attempts >= LISTEN_ATTEMPTS) window.clearInterval(timer);
     }, LISTEN_RETRY_MS);
     return () => window.clearInterval(timer);
-  }, [frameRef, isWaiting]);
+  }, [frameRef, isWaiting, load]);
 }
 
 /**
@@ -75,7 +87,8 @@ export function useYouTubePlayer(videoId: string): YouTubePlayer {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const shouldFocus = useRef(false);
   const [phase, setPhase] = useState<PlayerPhase>('facade');
-  const [start, setStart] = useState(0);
+  const [embed, setEmbed] = useState({ start: 0, load: 0 });
+  const [loaded, setLoaded] = useState<number | undefined>(undefined);
   const [currentTime, setCurrentTime] = useState<number | undefined>(undefined);
 
   const onMessage = useCallback((time?: number) => {
@@ -83,7 +96,7 @@ export function useYouTubePlayer(videoId: string): YouTubePlayer {
     if (time !== undefined) setCurrentTime(time);
   }, []);
   usePlayerMessages(frameRef, phase !== 'facade', onMessage);
-  useListenRetry(frameRef, phase === 'loading');
+  useListenRetry(frameRef, phase === 'loading' && loaded === embed.load, embed.load);
 
   useEffect(() => {
     if (phase === 'facade' || !shouldFocus.current) return;
@@ -93,7 +106,8 @@ export function useYouTubePlayer(videoId: string): YouTubePlayer {
 
   const play = (from: number, focus = false) => {
     shouldFocus.current = focus;
-    setStart(from);
+    setEmbed(({ load }) => ({ start: from, load: load + 1 }));
+    setLoaded(undefined);
     setCurrentTime(undefined);
     setPhase('loading');
   };
@@ -107,11 +121,17 @@ export function useYouTubePlayer(videoId: string): YouTubePlayer {
   return {
     phase,
     src:
-      phase === 'facade' ? undefined : embedUrl(videoId, { start, origin: window.location.origin }),
+      phase === 'facade'
+        ? undefined
+        : embedUrl(videoId, { start: embed.start, origin: window.location.origin }),
+    frameKey: embed.load,
     currentTime,
     frameRef,
     play,
     seek,
-    subscribe: () => postTo(frameRef.current, listeningMessage()),
+    subscribe: () => {
+      setLoaded(embed.load);
+      postTo(frameRef.current, listeningMessage());
+    },
   };
 }
