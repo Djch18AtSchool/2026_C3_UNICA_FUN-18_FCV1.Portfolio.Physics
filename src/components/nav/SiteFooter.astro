@@ -1,25 +1,21 @@
 ---
 /*
  * The page foot, closing the sheet the way the header opens it (a double rule): who made the
- * portfolio, and the two tool icons that mirror the header's, the repository and the theme.
- * "Volver arriba" is the floating BackToTop button, not part of the foot.
- *
- * The floating button owns the bottom-right corner, so the foot never puts anything there: the
- * text and the icons sit on the left, in one row from `sm` up and stacked on a phone, and the
- * padding is the same above and below. The corner stays free at every width, at the end of a
- * long page and on a short one with the foot pinned to the bottom.
+ * portfolio on the left and, on the right, the two tool icons that mirror the header's, the
+ * repository and the theme. The padding is the same above and below. "Volver arriba" is the
+ * floating BackToTop button, which stops above the foot instead of crossing it.
  * Only one <footer> sits under <body>: the sidebar's script watches it.
  */
 import ToolIcon from './ToolIcon';
-import ThemeSwitch from './ThemeSwitch.astro';
+import ThemeToggle from './ThemeToggle';
 import { FOOTER_ICON_BUTTON } from './footerButton';
 import { AUTHOR, COURSE, REPO_URL } from '../../consigna';
 
 const REPO_LABEL = 'Repositorio en GitHub';
 ---
 
-<footer class="mt-16 border-t-[3px] border-double border-border">
-  <div class="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-6 text-sm leading-snug sm:flex-row sm:items-center sm:gap-6 sm:px-6">
+<footer class="mt-4 border-t-[3px] border-double border-border">
+  <div class="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-6 text-sm leading-snug sm:flex-row sm:items-center sm:justify-between sm:px-6">
     <div class="flex flex-col gap-1">
       <p class="font-semibold tracking-tight text-balance text-fg">
         Portafolio de evidencias de Física&nbsp;I
@@ -28,11 +24,8 @@ const REPO_LABEL = 'Repositorio en GitHub';
         {AUTHOR} · {COURSE.university}
       </p>
     </div>
-    <!--
-      From `sm` up a hairline sets the icons apart from the text; on a phone the negative margin
-      lines the first glyph up with the text above.
-    -->
-    <div class="flex items-center gap-1 max-sm:-ml-3 sm:border-l sm:border-border sm:pl-4">
+    <!-- On a phone the negative margin lines the first glyph up with the text above. -->
+    <div class="flex items-center gap-1 max-sm:-ml-3">
       <a
         href={REPO_URL}
         class={`inline-flex ${FOOTER_ICON_BUTTON}`}
@@ -41,7 +34,7 @@ const REPO_LABEL = 'Repositorio en GitHub';
       >
         <ToolIcon name="github" className="size-5" />
       </a>
-      <ThemeSwitch variant="footer" />
+      <ThemeToggle client:load variant="footer" />
     </div>
   </div>
 </footer>

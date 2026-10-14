@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { goToTop } from './backToTop';
+import { BACK_TO_TOP_REVEAL_PX, goToTop, isBackToTopShown } from './backToTop';
 
 const scrollTo = vi.fn();
 
@@ -52,5 +52,25 @@ describe('goToTop', () => {
 
     expect(event.preventDefault).toHaveBeenCalledOnce();
     expect(scrollTo).not.toHaveBeenCalled();
+  });
+});
+
+describe('isBackToTopShown', () => {
+  test('is hidden at the very top of the page', () => {
+    expect(isBackToTopShown(0)).toBe(false);
+  });
+
+  test('stays hidden until the reader has scrolled past the reveal distance', () => {
+    expect(isBackToTopShown(BACK_TO_TOP_REVEAL_PX)).toBe(false);
+    expect(isBackToTopShown(BACK_TO_TOP_REVEAL_PX + 1)).toBe(true);
+  });
+
+  test('is shown far down the page', () => {
+    expect(isBackToTopShown(12_000)).toBe(true);
+  });
+
+  test('is hidden for a negative scroll (rubber-banding past the top) or an invalid one', () => {
+    expect(isBackToTopShown(-40)).toBe(false);
+    expect(isBackToTopShown(Number.NaN)).toBe(false);
   });
 });

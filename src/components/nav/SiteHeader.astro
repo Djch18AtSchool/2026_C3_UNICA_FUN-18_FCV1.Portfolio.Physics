@@ -2,7 +2,7 @@
 import { AUTHOR, REPO_URL } from '../../consigna';
 import GithubIcon from '../ui/GithubIcon.astro';
 import { HEADER_ICON_BUTTON } from './headerButton';
-import ThemeSwitch from './ThemeSwitch.astro';
+import ThemeToggle from './ThemeToggle';
 
 const home = import.meta.env.BASE_URL;
 ---
@@ -24,7 +24,7 @@ const home = import.meta.env.BASE_URL;
       >
         <GithubIcon class="size-[18px]" />
       </a>
-      <ThemeSwitch />
+      <ThemeToggle client:load />
     </div>
   </div>
 </header>

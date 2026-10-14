@@ -61,6 +61,32 @@ test('el pie enlaza al repositorio solo con el icono de GitHub de trazo fino', a
   await expect(icon).toHaveAttribute('stroke-width', FOOTER_ICON_STROKE);
 });
 
+test('desde sm el texto del pie va a la izquierda y los iconos a la derecha, como el encabezado', async ({
+  page,
+}) => {
+  for (const viewport of [DESKTOP, LAPTOP]) {
+    await page.setViewportSize(viewport);
+    await page.goto('./');
+
+    const { text, tools, headerTools, headerText } = await page.evaluate(() => {
+      const rect = (selector: string) => {
+        const node = document.querySelector(selector)!.getBoundingClientRect();
+        return { left: node.left, right: node.right };
+      };
+      return {
+        text: rect('body > footer p'),
+        tools: rect('body > footer div.flex.items-center'),
+        headerText: rect('header a'),
+        headerTools: rect('header div.flex.shrink-0'),
+      };
+    });
+    // The same two margins as the header: text on the left edge, icons on the right edge.
+    expect(Math.abs(text.left - headerText.left)).toBeLessThanOrEqual(ROUNDING_PX);
+    expect(Math.abs(tools.right - headerTools.right)).toBeLessThanOrEqual(MAX_TOOL_GAP_PX);
+    expect(tools.left).toBeGreaterThan(viewport.width / 2);
+  }
+});
+
 test('el pie agrupa el enlace de GitHub y el botón de tema, sin nada más', async ({ page }) => {
   await page.goto('./');
 

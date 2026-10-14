@@ -48,7 +48,7 @@ interface ThemeToggleProps {
 }
 
 export default function ThemeToggle({ variant = 'header' }: ThemeToggleProps) {
-  // The server cannot know the theme and renders light; ThemeSwitch's inline script corrects that
+  // The server cannot know the theme and renders light; BaseLayout's inline script corrects that
   // label before hydration, and the client starts from the same DOM value, so the two agree.
   const theme = useSyncExternalStore(subscribeToTheme, readDocumentTheme, readServerTheme);
   const { button, icon } = VARIANTS[variant];

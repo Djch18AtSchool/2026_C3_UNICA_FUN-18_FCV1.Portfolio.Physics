@@ -10,7 +10,7 @@ import BackToTop from '../components/nav/BackToTop.astro';
 import SiteFooter from '../components/nav/SiteFooter.astro';
 import SiteHeader from '../components/nav/SiteHeader.astro';
 import { COURSE, SITE_URL } from '../consigna';
-import { THEME_STORAGE_KEY } from '../lib/theme';
+import { THEME_STORAGE_KEY, THEME_TOGGLE_LABELS } from '../lib/theme';
 import { canonicalUrl, withBase } from '../lib/url';
 
 interface Props {
@@ -62,11 +62,31 @@ const pageUrl = hasCanonical ? canonicalUrl(Astro.url.pathname, SITE_URL) : unde
       Saltar al contenido
     </a>
     <SiteHeader />
-    <main id="contenido" class="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">
-      <slot />
-    </main>
+    <div class="flex flex-1 flex-col">
+      <!--
+        The bottom padding is the band where the back-to-top button rests at the end of a page:
+        44 px for the button plus clear air above it, so it never touches the last content.
+      -->
+      <main id="contenido" class="mx-auto w-full max-w-6xl flex-1 px-4 pt-10 pb-16 sm:px-6">
+        <slot />
+      </main>
+      <BackToTop />
+    </div>
     <SiteFooter />
-    <BackToTop />
+    <!--
+      The server renders every theme toggle with the light label. This runs once both bars are
+      parsed and fixes all of them from data-theme, so the first paint states the right action
+      (React keeps server attributes it believes already match).
+    -->
+    <script is:inline define:vars={{ labels: THEME_TOGGLE_LABELS }}>
+      var root = document.documentElement;
+      document.querySelectorAll('[data-theme-toggle]').forEach(function (toggle) {
+        toggle.setAttribute(
+          'aria-label',
+          root.dataset.theme === 'dark' ? labels.dark : labels.light,
+        );
+      });
+    </script>
     <script>
       import { syncScrollRegion, syncScrollRegions } from '../lib/scrollRegion';
 

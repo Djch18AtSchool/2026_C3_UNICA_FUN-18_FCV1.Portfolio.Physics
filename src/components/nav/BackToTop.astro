@@ -1,9 +1,16 @@
 ---
 /*
- * A floating "Volver arriba" button, always visible in the bottom-right corner of every page
- * (it lives in the base layout). A link to #top, so without JS the browser still scrolls; with JS
- * goToTop keeps `#top` out of the address bar and the history. Scrolling is instant, so reduced
- * motion needs no special case.
+ * A "Volver arriba" button in the bottom-right corner, only while there is somewhere to go back
+ * to: it is hidden at the top of the page and appears after scrolling past a short distance.
+ *
+ * It never reaches the footer. The sticky anchor is the last child of the box that wraps <main>
+ * (see BaseLayout), and a sticky element cannot leave its parent: it follows the viewport's
+ * bottom edge while the content scrolls and comes to rest where the content ends, above the
+ * footer, at every width and also on a short page.
+ *
+ * A link to #top, so without JS it still scrolls (and is then always shown); with JS goToTop
+ * keeps `#top` out of the address bar and the history. Scrolling is instant, so reduced motion
+ * needs no special case beyond the fade.
  *
  * At rest it is 80 % opaque, so what scrolls under it stays legible (contrast of the icon over
  * its worst case is still above 3:1 in both themes); hover and keyboard focus make it solid.
@@ -11,38 +18,79 @@
  * Layers: above the content and the desktop sticky bar (z-20), below the reading bar (z-40, at
  * the top edge, so they never meet) and the skip link (z-50). The settings drawer is a modal
  * <dialog> in the top layer, which paints over any z-index and makes the page behind it inert.
- * The footer keeps its text and icons to the left, so the button never covers any of them.
  */
 import ToolIcon from './ToolIcon';
 
 const LABEL = 'Volver arriba';
 ---
 
-<a
-  href="#top"
-  aria-label={LABEL}
-  title={LABEL}
-  class="back-to-top fixed z-30 inline-flex size-11 items-center justify-center rounded-base border border-border bg-bg-elevated text-fg-muted no-underline shadow-sm opacity-80 transition-[color,border-color,opacity] hover:border-fg-muted hover:text-fg hover:opacity-100 focus-visible:opacity-100 print:hidden"
->
-  <ToolIcon name="arrow-up" className="size-5" />
-</a>
+<div class="back-to-top-anchor sticky z-30 h-0 print:hidden">
+  <a
+    href="#top"
+    aria-label={LABEL}
+    title={LABEL}
+    data-hidden
+    class="back-to-top absolute bottom-0 inline-flex size-11 items-center justify-center rounded-base border border-border bg-bg-elevated text-fg-muted no-underline shadow-sm opacity-80 transition-[color,border-color,opacity,visibility] hover:border-fg-muted hover:text-fg hover:opacity-100 focus-visible:opacity-100 motion-reduce:transition-none"
+  >
+    <ToolIcon name="arrow-up" className="size-5" />
+  </a>
+</div>
+<!--
+  Without JS nothing would ever reveal the button, so it stays shown. The scoped rule below has a
+  higher specificity than this one, hence the !important.
+-->
+<noscript>
+  <style is:inline>
+    .back-to-top[data-hidden] {
+      visibility: visible !important;
+      opacity: 0.8 !important;
+      pointer-events: auto !important;
+    }
+  </style>
+</noscript>
 
 <script>
-  import { goToTop } from '../../lib/backToTop';
+  import { goToTop, isBackToTopShown } from '../../lib/backToTop';
 
-  document.querySelector<HTMLAnchorElement>('.back-to-top')?.addEventListener('click', goToTop);
+  const button = document.querySelector<HTMLAnchorElement>('.back-to-top');
+  if (button) {
+    button.addEventListener('click', goToTop);
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      button.toggleAttribute('data-hidden', !isBackToTopShown(window.scrollY));
+    };
+    const schedule = () => {
+      if (frame === 0) frame = requestAnimationFrame(update);
+    };
+    window.addEventListener('scroll', schedule, { passive: true });
+    // A page restored from the back-forward cache comes back scrolled.
+    window.addEventListener('pageshow', schedule);
+    update();
+  }
 </script>
 
 <style>
+  /* Hidden at the top: out of sight, out of the tab order and out of reach of the pointer. */
+  .back-to-top[data-hidden] {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
   /* 16 px from the edges on a phone, 24 px from `sm` up, past the notch or home bar if any. */
-  .back-to-top {
-    right: max(1rem, env(safe-area-inset-right));
+  .back-to-top-anchor {
     bottom: max(1rem, env(safe-area-inset-bottom));
   }
+  .back-to-top {
+    right: max(1rem, env(safe-area-inset-right));
+  }
   @media (width >= 40rem) {
+    .back-to-top-anchor {
+      bottom: max(1.5rem, env(safe-area-inset-bottom));
+    }
     .back-to-top {
       right: max(1.5rem, env(safe-area-inset-right));
-      bottom: max(1.5rem, env(safe-area-inset-bottom));
     }
   }
 </style>
