@@ -5,11 +5,8 @@ const PAGES = ['./', './temas/salto-personaje/', './no-existe/'];
 const DESKTOP = { width: 1280, height: 900 };
 const LAPTOP = { width: 1024, height: 768 };
 const PHONE = { width: 390, height: 844 };
-/** Touch target on a phone (Apple HIG 44 pt; WCAG 2.5.5 enhanced). */
-const MIN_TOUCH_PX = 44;
-/** Smallest pointer target on a desktop (the header's icon buttons are 40 px). */
-const MIN_POINTER_PX = 40;
-const FOOTER_ICON_STROKE = '1.6';
+/** Smallest target at any width: the icon buttons are 40 px squares, like the header's. */
+const MIN_TARGET_PX = 40;
 /** Sub-pixel slack for layout rounding. */
 const ROUNDING_PX = 1;
 /** The footer's own breathing room: the content sits no further than this from the document's end. */
@@ -44,7 +41,7 @@ test('cada página tiene un solo pie con la identidad del portafolio', async ({ 
   }
 });
 
-test('el pie enlaza al repositorio solo con el icono de GitHub de trazo fino', async ({ page }) => {
+test('el pie enlaza al repositorio solo con el icono de GitHub', async ({ page }) => {
   await page.goto('./');
 
   const footer = page.getByRole('contentinfo');
@@ -57,8 +54,6 @@ test('el pie enlaza al repositorio solo con el icono de GitHub de trazo fino', a
   await expect(footer).not.toContainText('Repositorio');
   const icon = link.locator('svg');
   await expect(icon).toHaveAttribute('aria-hidden', 'true');
-  await expect(icon).toHaveAttribute('fill', 'none');
-  await expect(icon).toHaveAttribute('stroke-width', FOOTER_ICON_STROKE);
 });
 
 test('desde sm el texto del pie va a la izquierda y los iconos a la derecha, como el encabezado', async ({
@@ -124,11 +119,8 @@ test('el enlace y el botón del pie se alcanzan con el teclado y muestran el foc
   }
 });
 
-for (const { viewport, minPx } of [
-  { viewport: PHONE, minPx: MIN_TOUCH_PX },
-  { viewport: DESKTOP, minPx: MIN_POINTER_PX },
-]) {
-  test(`a ${viewport.width} px los controles del pie son áreas de al menos ${minPx} px`, async ({
+for (const viewport of [PHONE, DESKTOP]) {
+  test(`a ${viewport.width} px los controles del pie son áreas de al menos ${MIN_TARGET_PX} px`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
@@ -136,8 +128,8 @@ for (const { viewport, minPx } of [
 
     for (const role of ['link', 'button'] as const) {
       const box = (await page.getByRole('contentinfo').getByRole(role).boundingBox())!;
-      expect(box.width, role).toBeGreaterThanOrEqual(minPx);
-      expect(box.height, role).toBeGreaterThanOrEqual(minPx);
+      expect(box.width, role).toBeGreaterThanOrEqual(MIN_TARGET_PX);
+      expect(box.height, role).toBeGreaterThanOrEqual(MIN_TARGET_PX);
     }
   });
 }
@@ -202,6 +194,55 @@ for (const viewport of [DESKTOP, LAPTOP, PHONE]) {
       expect(padding.toDocumentEnd).toBeLessThanOrEqual(MAX_BOTTOM_GAP_PX);
       expect(padding.toDocumentEnd).toBeGreaterThanOrEqual(0);
       expect(Math.abs(padding.above - padding.below)).toBeLessThanOrEqual(MAX_PADDING_SKEW_PX);
+    });
+  }
+}
+
+for (const theme of ['light', 'dark']) {
+  for (const viewport of [DESKTOP, PHONE]) {
+    test(`a ${viewport.width} px en tema ${theme === 'light' ? 'claro' : 'oscuro'} los botones del pie se ven idénticos a los del encabezado`, async ({
+      page,
+    }) => {
+      await page.addInitScript((value) => window.localStorage.setItem('theme', value), theme);
+      await page.setViewportSize(viewport);
+      await page.goto('./');
+
+      const looks = await page.evaluate(() => {
+        const look = (node: Element) => {
+          const style = getComputedStyle(node);
+          const glyph = [...node.querySelectorAll('svg')].find(
+            (svg) => getComputedStyle(svg).display !== 'none',
+          )!;
+          const box = glyph.getBoundingClientRect();
+          return {
+            width: style.width,
+            height: style.height,
+            borderWidth: style.borderTopWidth,
+            borderStyle: style.borderTopStyle,
+            borderColor: style.borderTopColor,
+            background: style.backgroundColor,
+            radius: style.borderTopLeftRadius,
+            color: style.color,
+            glyph: [box.width, box.height],
+          };
+        };
+        const pick = (root: string) => ({
+          link: look(document.querySelector(`${root} a[href^="http"]`)!),
+          theme: look(document.querySelector(`${root} button[data-theme-toggle]`)!),
+        });
+        return { header: pick('body > header'), footer: pick('body > footer') };
+      });
+
+      const rem = await page.evaluate(() =>
+        parseFloat(getComputedStyle(document.documentElement).fontSize),
+      );
+      // size-10 is 2.5 rem (42.5 px at this site's 17 px root).
+      expect(looks.header.link.width).toBe(`${2.5 * rem}px`);
+      expect(looks.header.link.borderWidth).toBe('1px');
+      expect(looks.footer.link).toEqual(looks.header.link);
+      expect(looks.footer.theme).toEqual(looks.header.theme);
+      expect(looks.header.theme).toEqual(looks.header.link);
+      expect(looks.footer.link.glyph).toEqual([18, 18]);
     });
   }
 }

@@ -63,8 +63,8 @@ describe('ThemeToggle', () => {
   test('two toggles on the page stay in step: a click on one relabels the other', () => {
     render(
       <>
-        <ThemeToggle variant="header" />
-        <ThemeToggle variant="footer" />
+        <ThemeToggle />
+        <ThemeToggle />
       </>,
     );
     const [header, footer] = screen.getAllByRole('button', { name: TO_DARK });
@@ -89,27 +89,5 @@ describe('ThemeToggle', () => {
     document.documentElement.dataset.theme = 'dark';
 
     await waitFor(() => expect(button).toHaveAccessibleName(TO_LIGHT));
-  });
-
-  test('the footer variant is a borderless 20 px icon button, the header one a bordered square', () => {
-    render(
-      <>
-        <ThemeToggle variant="header" />
-        <ThemeToggle variant="footer" />
-      </>,
-    );
-    const [header, footer] = screen.getAllByRole('button');
-
-    expect(header).toHaveClass('border');
-    expect(footer).not.toHaveClass('border');
-    expect(footer.querySelector('svg')).toHaveClass('size-5');
-    expect(header.querySelector('svg')).toHaveClass('size-[18px]');
-    expect(footer).toHaveAttribute('data-theme-toggle');
-  });
-
-  test('defaults to the header variant', () => {
-    render(<ThemeToggle />);
-
-    expect(screen.getByRole('button').querySelector('svg')).toHaveClass('size-[18px]');
   });
 });

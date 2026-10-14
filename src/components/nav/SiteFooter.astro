@@ -6,9 +6,9 @@
  * floating BackToTop button, which stops above the foot instead of crossing it.
  * Only one <footer> sits under <body>: the sidebar's script watches it.
  */
-import ToolIcon from './ToolIcon';
+import GithubIcon from '../ui/GithubIcon.astro';
 import ThemeToggle from './ThemeToggle';
-import { FOOTER_ICON_BUTTON } from './footerButton';
+import { ICON_BUTTON, ICON_BUTTON_GLYPH } from './iconButton';
 import { AUTHOR, COURSE, REPO_URL } from '../../consigna';
 
 const REPO_LABEL = 'Repositorio en GitHub';
@@ -24,17 +24,16 @@ const REPO_LABEL = 'Repositorio en GitHub';
         {AUTHOR} · {COURSE.university}
       </p>
     </div>
-    <!-- On a phone the negative margin lines the first glyph up with the text above. -->
-    <div class="flex items-center gap-1 max-sm:-ml-3">
+    <div class="flex items-center gap-2">
       <a
         href={REPO_URL}
-        class={`inline-flex ${FOOTER_ICON_BUTTON}`}
+        class={`inline-flex ${ICON_BUTTON}`}
         aria-label={REPO_LABEL}
         title={REPO_LABEL}
       >
-        <ToolIcon name="github" className="size-5" />
+        <GithubIcon class={ICON_BUTTON_GLYPH} />
       </a>
-      <ThemeToggle client:load variant="footer" />
+      <ThemeToggle client:load />
     </div>
   </div>
 </footer>

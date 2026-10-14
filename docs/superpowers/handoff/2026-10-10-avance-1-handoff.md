@@ -81,8 +81,9 @@ tar czf ~/portafolio-fisica-estado-local.tgz -C "$HOME/projects/university/2026/
      fuerza restauradora). Se eligió frente a dos anuncios oficiales de PlayStation (1:26 y 20 s,
      animación y escenas de juego, sin explicación) y el desmontaje de Restore Technique (sin
      narración; queda citado como fuente del mecanismo) porque es oficial, tiene capítulos y en
-     él Sony describe la curva fuerza contra recorrido. Se ve tras una fachada que no carga nada
-     de YouTube hasta que el lector pulsa (`youtube-nocookie.com`).
+     él Sony describe la curva fuerza contra recorrido. Se ve tras una fachada con la miniatura
+     (pedida a `i.ytimg.com`, la única petición previa a YouTube) y el título; el reproductor
+     (`youtube-nocookie.com`) solo se carga cuando el lector pulsa.
    - **Queda para Dylan, opcional:** la rúbrica, en el nivel Bueno, habla de un recurso
      "elaborado por el estudiante"; si quiere certeza, confirmar con el docente que un video de
      terceros con análisis propio cuenta.
@@ -172,8 +173,8 @@ Avance 2 y la Entrega Final.
 - **Tema 4:** curvas de carga escaladas por μ(T)/μ_pico; ventana del C4 marcada como supuesto
   del modelo. **Tema 1:** cuatro gráficas de perfiles; el laboratorio abre con el dron en
   crucero (t = 30 s). **Temas 1 a 4:** `updated` = 2026-10-10.
-- **Tema 5** (`updated` = 2026-10-13): el video es de terceros, incrustado y acreditado ("no es
-  de mi autoría") en el reproductor, la figura y la fuente 8; el análisis es propio. La rampa
+- **Tema 5** (`updated` = 2026-10-13): el video se incrusta, se acredita en una línea bajo el
+  reproductor y se cita completo como fuente 8 (sin descripción desplegable); el análisis es propio. La rampa
   (5.4) es el modo de pendiente de la API (Apple, fuente 2); el firmware la cumple en 10 zonas
   de intensidad entera 0 a 8 (Klein, fuente 6), una escalera que el modelo idealiza. El brazo,
   el motor con tornillo sin fin y el resorte de retorno se citan del desmontaje de Restore
@@ -187,11 +188,12 @@ Avance 2 y la Entrega Final.
   líneas; el espaciado (más amplio antes y después de la franja que dentro) hace de separador.
 - **Pie:** doble línea como el encabezado; a la izquierda "Portafolio de evidencias de Física I" y
   "Dylan Chaves · Universidad CENFOTEC" y, a la derecha (en móvil debajo, a la izquierda), dos
-  iconos sin borde: GitHub (nombre accesible y `title` "Repositorio en GitHub") y el botón de
-  tema (`ThemeToggle` variante `footer`, el mismo componente del encabezado). Ambos botones se
+  botones iguales a los del encabezado (caja con borde de 40 px, icono de 18 px, una sola
+  constante `ICON_BUTTON` en `iconButton.ts`): GitHub (nombre accesible y `title` "Repositorio en
+  GitHub") y el botón de tema (`ThemeToggle`, el mismo componente del encabezado). Ambos botones se
   mantienen sincronizados por `data-theme` (`useSyncExternalStore`), y un solo script en
   `BaseLayout`, tras el pie, corrige la etiqueta accesible de todos los botones de tema antes de
-  hidratar. Áreas de 44 px en móvil y 40 px en escritorio, relleno `py-6` simétrico. Sin fecha de
+  hidratar. Áreas de 40 px, relleno `py-6` simétrico. Sin fecha de
   actualización (queda en la portada), sin escuela, datos de curso ni conteos. Un solo
   `body > footer` (lo observa el script de la barra lateral).
 - **Volver arriba:** botón en la esquina inferior derecha (`BackToTop.astro`, en `BaseLayout`)
@@ -199,7 +201,7 @@ Avance 2 y la Entrega Final.
   (`BACK_TO_TOP_REVEAL_PX`, `isBackToTopShown` en `src/lib/backToTop.ts`); oculto no recibe foco
   ni clics. **Nunca llega al pie:** su ancla es `position: sticky` y último hijo del contenedor
   que envuelve a `<main>`, así que sigue el borde inferior del viewport y se detiene al terminar
-  el contenido, en la franja libre que deja el `pb-16` de `<main>`, sobre el pie. 44 px, `z-30`,
+  el contenido, en la franja libre que deja el `pb-16` de `<main>`, sobre el pie. 44 px, a 1 rem del borde derecho e inferior (y del pie) en todos los anchos, `z-30`,
   en reposo al 80 % de opacidad (sólido con hover o foco; el icono conserva más de 3:1 en ambos
   temas). Es un `<a href="#top">`; sin JS una regla de `<noscript>` lo deja siempre visible y
   funciona tal cual; con JS, `goToTop` cancela el ancla para que no añada `#top` ni historial,
