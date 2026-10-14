@@ -78,19 +78,15 @@ const LABEL = 'Volver arriba';
     pointer-events: none;
   }
 
-  /* 16 px from the edges on a phone, 24 px from `sm` up, past the notch or home bar if any. */
+  /*
+   * The same 1rem from the right and bottom edges at every width, past the notch or home bar if
+   * any. At the end of a page the anchor rests on the wrapper's bottom, and the footer's mt-4
+   * (also 1rem) is the air between the button and the footer's rule.
+   */
   .back-to-top-anchor {
     bottom: max(1rem, env(safe-area-inset-bottom));
   }
   .back-to-top {
     right: max(1rem, env(safe-area-inset-right));
-  }
-  @media (width >= 40rem) {
-    .back-to-top-anchor {
-      bottom: max(1.5rem, env(safe-area-inset-bottom));
-    }
-    .back-to-top {
-      right: max(1.5rem, env(safe-area-inset-right));
-    }
   }
 </style>

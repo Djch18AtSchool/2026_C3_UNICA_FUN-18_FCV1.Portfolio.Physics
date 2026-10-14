@@ -13,9 +13,8 @@ const LAPTOP = { width: 1024, height: 768 };
 const PHONE = { width: 390, height: 844 };
 /** Touch target (Apple HIG 44 pt; WCAG 2.5.5 enhanced). */
 const MIN_TOUCH_PX = 44;
-/** While the content scrolls, the button keeps 16 to 24 px from the viewport edges. */
-const MIN_EDGE_PX = 12;
-const MAX_EDGE_PX = 28;
+/** The button's margin to the right and bottom edges, and to the footer's rule, in rem. */
+const EDGE_REM = 1;
 /** Sub-pixel slack for layout rounding. */
 const ROUNDING_PX = 1;
 /** Scroll step used to walk a whole page looking for the button crossing the footer. */
@@ -41,6 +40,11 @@ const scrollToEnd = (page: Page) =>
 /** How far the page can scroll: a short page, such as the 404, cannot reach the reveal distance. */
 function maxScroll(page: Page): Promise<number> {
   return page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
+}
+
+/** The root font size in px (17 on this site), to turn rem into the pixels the layout uses. */
+function remPx(page: Page): Promise<number> {
+  return page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).fontSize));
 }
 
 /** Distances from the button to the viewport's right and bottom edges, and its size. */
@@ -114,10 +118,8 @@ for (const { viewport, label } of [
     const gaps = await edgeGaps(page);
     expect(gaps.width).toBeGreaterThanOrEqual(MIN_TOUCH_PX);
     expect(gaps.height).toBeGreaterThanOrEqual(MIN_TOUCH_PX);
-    expect(gaps.right).toBeGreaterThanOrEqual(MIN_EDGE_PX);
-    expect(gaps.right).toBeLessThanOrEqual(MAX_EDGE_PX);
-    expect(gaps.bottom).toBeGreaterThanOrEqual(MIN_EDGE_PX);
-    expect(gaps.bottom).toBeLessThanOrEqual(MAX_EDGE_PX);
+    expect(gaps.right).toBeCloseTo(EDGE_REM * (await remPx(page)), 0);
+    expect(gaps.bottom).toBeCloseTo(EDGE_REM * (await remPx(page)), 0);
     expect(gaps.left).toBeGreaterThan(viewport.width / 2);
     expect(gaps.top).toBeGreaterThan(viewport.height / 2);
 
@@ -163,8 +165,8 @@ for (const viewport of [DESKTOP, LAPTOP, PHONE]) {
 /** Clear air between the last content and the button resting at the end of a page. */
 const MIN_CONTENT_CLEARANCE_PX = 12;
 
-for (const viewport of [DESKTOP, PHONE]) {
-  test(`a ${viewport.width} px al final de un tema el botón se detiene entre el contenido y el pie, sin tocar ninguno`, async ({
+for (const viewport of [DESKTOP, LAPTOP, PHONE]) {
+  test(`a ${viewport.width} px al final de un tema el botón se detiene entre el contenido y el pie, a 1 rem del pie y del borde derecho`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
@@ -186,9 +188,10 @@ for (const viewport of [DESKTOP, PHONE]) {
         };
       });
     expect(buttonBottom).toBeLessThanOrEqual(footerTop - ROUNDING_PX);
+    expect(footerTop - buttonBottom).toBeCloseTo(EDGE_REM * (await remPx(page)), 0);
     expect(buttonTop).toBeGreaterThanOrEqual(contentBottom + MIN_CONTENT_CLEARANCE_PX);
-    // Still in the right-hand corner, not pushed aside.
-    expect(viewportWidth - buttonRight).toBeLessThanOrEqual(MAX_EDGE_PX);
+    // Still in the right-hand corner, 1rem from the edge as while it follows the viewport.
+    expect(viewportWidth - buttonRight).toBeCloseTo(EDGE_REM * (await remPx(page)), 0);
   });
 }
 
