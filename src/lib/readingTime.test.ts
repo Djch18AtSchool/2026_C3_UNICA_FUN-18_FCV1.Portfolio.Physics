@@ -41,7 +41,7 @@ describe('readingMinutes', () => {
   test('las leyendas, notas, fuentes y textos de las props que lee el lector suman palabras', () => {
     // Arrange: 100 prose words plus 200 words spread over reader-facing props; 1 figure.
     const figure = `<Figure\n  type="visualizacion"\n  caption="${words(60)}"\n  source={{\n    text: '${words(30)}',\n  }}\n>\n  <Lab client:visible footnote="${words(40)}" />\n</Figure>`;
-    const video = `<Video\n  markers={[\n    { time: 5, title: '${words(5)}', analysis:\n      "${words(25)}" },\n  ]}\n  transcript="${words(20)}"\n/>`;
+    const video = `<Video\n  markers={[\n    { time: 5, title: '${words(5)}', analysis:\n      "${words(45)}" },\n  ]}\n/>`;
     const equation = `<Equation latex="x" symbols={[{ symbol: 'k', meaning: '${words(15)}' }]} />`;
     const callout = `<Callout variant="clase" title="${words(5)}">\n\n${words(100)}\n\n</Callout>`;
     const body = `${callout}\n\n${figure}\n\n${video}\n\n${equation}\n`;

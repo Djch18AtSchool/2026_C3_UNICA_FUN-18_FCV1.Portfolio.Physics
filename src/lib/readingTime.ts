@@ -54,13 +54,13 @@ function tagEnd(text: string, start: number): number {
 
 /**
  * Reader-facing text props (spec §6, reversed ruling): a JSX attribute holding a string that the
- * page shows, quoted or as a template literal (Figure `caption`, a laboratory's `footnote`, HapticVideo's `transcript`, a Step or
+ * page shows, quoted or as a template literal (Figure `caption`, a laboratory's `footnote`, a Step or
  * Callout `title`), and the string values of object keys the components print (Figure
  * `source.text`, HapticVideo marker `title` and `analysis`, Equation symbol `meaning`).
  * Attributes such as `id`, `latex`, `src` or `variant`, and the symbols themselves, are not read.
  */
 const TEXT_ATTRIBUTE =
-  /\b(?:caption|footnote|label|note|title|transcript)=(?:"([^"]*)"|'([^']*)'|\{`([^`]*)`\})/g;
+  /\b(?:caption|footnote|label|note|title)=(?:"([^"]*)"|'([^']*)'|\{`([^`]*)`\})/g;
 const TEXT_KEY =
   /\b(?:analysis|label|meaning|note|text|title)\s*:\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g;
 /** A template interpolation such as `${60 / TIME_LAPSE}` prints one value: one word. */

@@ -4,6 +4,7 @@
  */
 export const YOUTUBE_EMBED_ORIGIN = 'https://www.youtube-nocookie.com';
 const WATCH_URL = 'https://www.youtube.com/watch';
+const THUMBNAIL_ORIGIN = 'https://i.ytimg.com';
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 /** Our player is the only one on the page; the widget protocol only needs a stable id. */
 const PLAYER_ID = 1;
@@ -41,6 +42,14 @@ export function watchUrl(id: string, startSeconds = 0): string {
   const query = new URLSearchParams({ v: requireVideoId(id) });
   if (start > 0) query.set('t', `${start}s`);
   return `${WATCH_URL}?${query.toString()}`;
+}
+
+/** maxresdefault is 1280 × 720 but not every video has it; hqdefault (480 × 360) always exists. */
+export type ThumbnailQuality = 'maxresdefault' | 'hqdefault';
+
+/** The video's still on YouTube's image host, linked (never copied into the repository). */
+export function thumbnailUrl(id: string, quality: ThumbnailQuality = 'maxresdefault'): string {
+  return `${THUMBNAIL_ORIGIN}/vi/${requireVideoId(id)}/${quality}.jpg`;
 }
 
 /**

@@ -5,6 +5,7 @@ import {
   parsePlayerMessage,
   playerCommand,
   requireVideoId,
+  thumbnailUrl,
   watchUrl,
   YOUTUBE_EMBED_ORIGIN,
 } from './youtube';
@@ -37,6 +38,17 @@ describe('watchUrl', () => {
   test('a start of zero or less is the plain link', () => {
     expect(watchUrl(ID, 0)).toBe(`https://www.youtube.com/watch?v=${ID}`);
     expect(watchUrl(ID, -4)).toBe(`https://www.youtube.com/watch?v=${ID}`);
+  });
+});
+
+describe('thumbnailUrl', () => {
+  test('points at the video still on i.ytimg.com, the 1280 px one by default', () => {
+    expect(thumbnailUrl(ID)).toBe(`https://i.ytimg.com/vi/${ID}/maxresdefault.jpg`);
+    expect(thumbnailUrl(ID, 'hqdefault')).toBe(`https://i.ytimg.com/vi/${ID}/hqdefault.jpg`);
+  });
+
+  test('rejects an invalid id', () => {
+    expect(() => thumbnailUrl('../x')).toThrow(RangeError);
   });
 });
 

@@ -11,8 +11,6 @@ export interface EmbeddedVideo {
   published: string;
   /** Length, s. */
   duration: number;
-  /** Spoken language and captions, as the facade states it ("en inglés, con subtítulos…"). */
-  language: string;
 }
 
 /** One analysed instant of the video: when (s), its title and the written analysis. */

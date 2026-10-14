@@ -4,6 +4,11 @@ import type { Page } from '@playwright/test';
 const YOUTUBE_HOSTS =
   /^https:\/\/([a-z0-9-]+\.)*(youtube(-nocookie)?\.com|ytimg\.com|googlevideo\.com)\//;
 const EMBED = /^https:\/\/www\.youtube-nocookie\.com\/embed\//;
+/** The facade's still (i.ytimg.com/vi/<id>/<quality>.jpg). */
+export const THUMBNAIL = /^https:\/\/i\.ytimg\.com\/vi\/[A-Za-z0-9_-]{11}\/[a-z]+\.jpg$/;
+
+/** A 1280 × 720 grey stand-in for the still: wide enough not to read as YouTube's placeholder. */
+const STUB_THUMBNAIL = `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720"><rect width="1280" height="720" fill="#5a6270"/></svg>`;
 
 /**
  * A stand-in for the embedded player: it answers the widget protocol the page speaks (listening,
@@ -37,17 +42,26 @@ const STUB_PLAYER = `<!doctype html>
 </body></html>`;
 
 /**
- * Serves the stub for every embed URL and aborts any other YouTube request. Returns the URLs the
- * page asked YouTube for, in order, so a test can check that nothing loads behind the facade.
+ * Serves the stub for every embed URL and a grey image for the still, and aborts any other YouTube
+ * request. Returns the URLs the page asked YouTube for, in order, so a test can check that only the
+ * still loads before the reader presses play.
  */
 export async function stubYouTube(page: Page): Promise<string[]> {
   const requested: string[] = [];
   await page.route(YOUTUBE_HOSTS, (route) => {
     const url = route.request().url();
     requested.push(url);
-    return EMBED.test(url)
-      ? route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: STUB_PLAYER })
-      : route.abort();
+    if (EMBED.test(url)) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'text/html; charset=utf-8',
+        body: STUB_PLAYER,
+      });
+    }
+    if (THUMBNAIL.test(url)) {
+      return route.fulfill({ status: 200, contentType: 'image/svg+xml', body: STUB_THUMBNAIL });
+    }
+    return route.abort();
   });
   return requested;
 }

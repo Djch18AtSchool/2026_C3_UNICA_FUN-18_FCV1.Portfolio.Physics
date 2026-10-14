@@ -1,11 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
-import { stubYouTube } from './youtubeStub';
+import { stubYouTube, THUMBNAIL } from './youtubeStub';
 
 const PAGE = './temas/control-haptico/';
 const PLAYER = '[data-testid="haptic-video-player"]';
 const WATCH = 'https://www.youtube.com/watch?v=CaPHUZapCTI';
 const EMBED = /^https:\/\/www\.youtube-nocookie\.com\/embed\/CaPHUZapCTI\?/;
+const STILL = 'https://i.ytimg.com/vi/CaPHUZapCTI/maxresdefault.jpg';
 const MARKER_TIMES = ['2:18', '3:18', '4:02', '4:15'];
 const LAB = '[data-testid="trigger-lab"]';
 const LEVER = 'Recorrido del gatillo x';
@@ -71,16 +72,19 @@ test.describe('video', () => {
     await openPlayer(page);
   });
 
-  test('sin pulsar nada, la página no pide nada a YouTube y muestra la fachada', async ({
+  test('sin pulsar nada, la fachada muestra la miniatura y solo esa imagen se pide a YouTube', async ({
     page,
   }) => {
     const player = page.locator(PLAYER);
+    const still = player.getByTestId('haptic-video-facade').locator('img');
 
     await expect(player).toHaveAttribute('data-state', 'facade');
     await expect(player.getByRole('button', { name: /^Reproducir el video aquí/ })).toBeVisible();
     await expect(player.locator('iframe')).toHaveCount(0);
+    await expect.poll(() => still.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1280);
+    await expect(still).toHaveAttribute('src', STILL);
     await page.waitForLoadState('networkidle');
-    expect(requested).toEqual([]);
+    expect(requested).toEqual([STILL]);
   });
 
   test('la fachada carga el reproductor de youtube-nocookie en 0 s, le pasa el foco y se conecta', async ({
@@ -139,14 +143,19 @@ test.describe('video', () => {
     }
   });
 
-  test('el recurso es multimedia y acredita el video de terceros', async ({ page }) => {
+  test('el recurso es multimedia y acredita el video en una línea, sin repetir la leyenda', async ({
+    page,
+  }) => {
     const figure = page.locator('figure[data-type="multimedia"]');
 
     await expect(figure).toHaveCount(1);
     await expect(figure.getByTestId('haptic-video-player')).toBeVisible();
-    await expect(figure.locator('.figure-source')).toContainText('no es de mi autoría');
     await expect(figure.locator('.figure-source a')).toHaveAttribute('href', WATCH);
-    await expect(figure.getByTestId('haptic-video-credit')).toContainText('PlayStation Access');
+    await expect(figure.getByTestId('haptic-video-credit')).toHaveText(
+      'Video: PlayStation Access, 5 de agosto de 2021. Ver en YouTube',
+    );
+    await expect(page.locator('main')).not.toContainText(/terceros|autoría/);
+    await expect(figure.locator('details')).toHaveCount(0);
   });
 });
 
@@ -165,7 +174,8 @@ test.describe('video sin JavaScript', () => {
     await expect(labels).toHaveCount(MARKER_TIMES.length);
     await expect(labels.nth(3)).toHaveAttribute('href', `${WATCH}&t=255s`);
     await expect(player.getByTestId('marker-analysis').first()).toBeVisible();
-    expect(requested).toEqual([]);
+    await page.waitForLoadState('networkidle');
+    expect(requested.every((url) => THUMBNAIL.test(url))).toBe(true);
   });
 });
 

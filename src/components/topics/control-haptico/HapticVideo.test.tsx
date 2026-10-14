@@ -12,19 +12,18 @@ const VIDEO: EmbeddedVideo = {
   channel: 'PlayStation Access',
   published: '2021-08-05',
   duration: 610,
-  language: 'en inglés, con subtítulos automáticos',
 };
 const MARKERS: VideoMarker[] = [
   { time: 138, title: 'Vibración', analysis: 'Un altavoz, no un resorte.' },
   { time: 198, title: 'Un motor empuja', analysis: 'Tercera ley.' },
   { time: 255, title: 'El arco', analysis: 'La tensión crece con el recorrido.' },
 ];
-const TRANSCRIPT = 'Aoki explica cómo funciona el gatillo.';
 const WATCH = `https://www.youtube.com/watch?v=${VIDEO.id}`;
+const STILL = `https://i.ytimg.com/vi/${VIDEO.id}`;
 const PLAY = /^Reproducir el video aquí/;
 
 function renderPlayer() {
-  return render(<HapticVideo video={VIDEO} markers={MARKERS} transcript={TRANSCRIPT} />);
+  return render(<HapticVideo video={VIDEO} markers={MARKERS} />);
 }
 
 function frame(): HTMLIFrameElement {
@@ -61,9 +60,7 @@ describe('HapticVideo', () => {
 
   test('without JS (server render) the facade and every marker link to YouTube, with no embed', () => {
     const container = document.createElement('div');
-    container.innerHTML = renderToString(
-      <HapticVideo video={VIDEO} markers={MARKERS} transcript={TRANSCRIPT} />,
-    );
+    container.innerHTML = renderToString(<HapticVideo video={VIDEO} markers={MARKERS} />);
 
     const facade = container.querySelector('[data-testid="haptic-video-facade"]');
     expect(facade?.tagName).toBe('A');
@@ -75,6 +72,7 @@ describe('HapticVideo', () => {
       `${WATCH}&t=255s`,
     ]);
     expect(container.querySelector('iframe')).toBeNull();
+    expect(facade?.querySelector('img')).toHaveAttribute('src', `${STILL}/maxresdefault.jpg`);
     // The link opens youtube.com, so the facade does not promise the privacy-enhanced host.
     expect(container.innerHTML).not.toContain('youtube-nocookie');
   });
@@ -90,13 +88,33 @@ describe('HapticVideo', () => {
     );
   });
 
-  test('the facade names the video: title, channel, length and language', () => {
+  test('the facade shows only the still, the title and the play control', () => {
     renderPlayer();
     const facade = screen.getByTestId('haptic-video-facade');
+    const still = facade.querySelector('img');
 
+    expect(facade).toHaveAccessibleName(`Reproducir el video aquí: ${VIDEO.title}`);
     expect(within(facade).getByText(VIDEO.title)).toHaveAttribute('lang', 'en');
-    expect(facade).toHaveTextContent('PlayStation Access · 10:10 · en inglés');
-    expect(facade).toHaveTextContent(/youtube-nocookie\.com/);
+    expect(facade).not.toHaveTextContent(/PlayStation Access|10:10|youtube-nocookie/);
+    expect(still).toHaveAttribute('src', `${STILL}/maxresdefault.jpg`);
+    expect(still).toHaveAttribute('alt', '');
+    expect(still).toHaveAttribute('loading', 'lazy');
+    expect(still).toHaveAttribute('referrerpolicy', 'no-referrer');
+    expect(still).toHaveAttribute('width', '1280');
+    expect(still).toHaveAttribute('height', '720');
+  });
+
+  test('the still falls back to hqdefault when the 1280 px one fails or is the placeholder', () => {
+    renderPlayer();
+    const still = () => screen.getByTestId('haptic-video-facade').querySelector('img') as Element;
+
+    fireEvent.load(still());
+    expect(still()).toHaveAttribute('src', `${STILL}/hqdefault.jpg`);
+
+    cleanup();
+    renderPlayer();
+    fireEvent.error(still());
+    expect(still()).toHaveAttribute('src', `${STILL}/hqdefault.jpg`);
   });
 
   test('pressing the facade embeds the video from youtube-nocookie at 0 s and focuses it', () => {
@@ -265,24 +283,17 @@ describe('HapticVideo', () => {
     expect(markerButton(/El arco/)).not.toHaveAttribute('aria-current');
   });
 
-  test('credits the third-party video and links to it on YouTube', () => {
+  test('credits the video in one line, channel and date, and links to it on YouTube', () => {
     renderPlayer();
     const credit = screen.getByTestId('haptic-video-credit');
 
-    expect(credit).toHaveTextContent('Video de terceros; no es de mi autoría');
-    expect(credit).toHaveTextContent('PlayStation Access, 5 de agosto de 2021');
+    expect(credit).toHaveTextContent(
+      /^Video: PlayStation Access, 5 de agosto de 2021\. Ver en YouTube$/,
+    );
     expect(within(credit).getByRole('link', { name: /Ver en YouTube/ })).toHaveAttribute(
       'href',
       WATCH,
     );
-  });
-
-  test('the description of the analysed fragments sits in a details element', () => {
-    renderPlayer();
-
-    const summary = screen.getByText('Descripción de los fragmentos analizados');
-    expect(summary.tagName).toBe('SUMMARY');
-    expect(summary.closest('details')).toHaveTextContent(TRANSCRIPT);
   });
 
   test('every analysis is visible before and after the video loads', () => {
@@ -302,11 +313,11 @@ describe('HapticVideo', () => {
   test('invalid video data fails the render with a clear message', () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    expect(() =>
-      render(<HapticVideo video={{ ...VIDEO, id: 'bad' }} markers={MARKERS} transcript="" />),
-    ).toThrow(/identificador de YouTube/);
-    expect(() =>
-      render(<HapticVideo video={VIDEO} markers={[...MARKERS].reverse()} transcript="" />),
-    ).toThrow(/orden creciente/);
+    expect(() => render(<HapticVideo video={{ ...VIDEO, id: 'bad' }} markers={MARKERS} />)).toThrow(
+      /identificador de YouTube/,
+    );
+    expect(() => render(<HapticVideo video={VIDEO} markers={[...MARKERS].reverse()} />)).toThrow(
+      /orden creciente/,
+    );
   });
 });

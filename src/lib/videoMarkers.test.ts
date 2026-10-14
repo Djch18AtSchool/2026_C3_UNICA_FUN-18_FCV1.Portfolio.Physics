@@ -14,7 +14,6 @@ const VIDEO: EmbeddedVideo = {
   channel: 'PlayStation Access',
   published: '2021-08-05',
   duration: 610,
-  language: 'en inglés, con subtítulos automáticos',
 };
 
 const marker = (time: number): VideoMarker => ({ time, title: 't', analysis: 'a' });

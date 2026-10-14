@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type JSX } from 'react';
+import { useEffect, useId, useState, type JSX, type SyntheticEvent } from 'react';
 import {
   activeMarkerIndex,
   formatTimestamp,
@@ -7,16 +7,14 @@ import {
   type EmbeddedVideo,
   type VideoMarker,
 } from '../../../lib/videoMarkers';
-import { watchUrl } from '../../../lib/youtube';
+import { thumbnailUrl, watchUrl, type ThumbnailQuality } from '../../../lib/youtube';
 import { useYouTubePlayer, type YouTubePlayer } from './useYouTubePlayer';
 
 export interface HapticVideoProps {
-  /** The third-party video, embedded from YouTube. */
+  /** The video, embedded from YouTube. */
   video: EmbeddedVideo;
   /** The analysed instants, in ascending time. */
   markers: VideoMarker[];
-  /** What is seen and heard in the analysed fragments, for readers who cannot play the video. */
-  transcript: string;
 }
 
 const NO_MARKER = -1;
@@ -24,8 +22,12 @@ const MARKER_BASE =
   'inline-flex min-h-9 items-center gap-2 self-start rounded-base border px-3 py-1.5 text-left text-sm font-medium text-fg no-underline motion-safe:transition-colors';
 const MARKER_ACTIVE = 'border-accent bg-accent/10';
 const MARKER_IDLE = 'border-border bg-bg-elevated hover:border-fg-muted';
-const FACADE =
-  'group flex aspect-video w-full flex-col items-center justify-center gap-3 bg-bg p-5 text-center text-fg no-underline sm:p-8';
+const FACADE = 'group relative block aspect-video w-full overflow-hidden bg-black no-underline';
+/** YouTube answers a missing maxresdefault with a 120 × 90 grey placeholder, not always an error. */
+const MISSING_THUMBNAIL_WIDTH = 120;
+/** The declared size of the still (16:9); the box is aspect-video, so nothing shifts on load. */
+const THUMBNAIL_WIDTH = 1280;
+const THUMBNAIL_HEIGHT = 720;
 const IFRAME_ALLOW =
   'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
 
@@ -33,7 +35,7 @@ function PlayIcon(): JSX.Element {
   return (
     <svg
       viewBox="0 0 48 48"
-      className="size-14 shrink-0 text-accent motion-safe:transition-transform motion-safe:group-hover:scale-105"
+      className="size-16 shrink-0 text-accent drop-shadow-lg motion-safe:transition-transform motion-safe:group-hover:scale-105"
       aria-hidden="true"
     >
       <circle cx="24" cy="24" r="23" fill="currentColor" />
@@ -64,24 +66,51 @@ interface FacadeProps {
   onPlay(): void;
 }
 
-/** The privacy facade: names the video and loads nothing from YouTube until it is pressed. */
+/**
+ * The video's still, linked from i.ytimg.com (not copied into the repository): the 1280 px one,
+ * falling back to hqdefault when YouTube has none. Privacy trade-off: this image is the one request
+ * the page makes to YouTube before the reader presses play; the player itself still waits for it.
+ */
+function VideoThumbnail({ id }: { id: string }): JSX.Element {
+  const [quality, setQuality] = useState<ThumbnailQuality>('maxresdefault');
+  const fallBack = () => setQuality('hqdefault');
+  const checkSize = (event: SyntheticEvent<HTMLImageElement>) => {
+    if (event.currentTarget.naturalWidth <= MISSING_THUMBNAIL_WIDTH) fallBack();
+  };
+  return (
+    <img
+      src={thumbnailUrl(id, quality)}
+      alt=""
+      width={THUMBNAIL_WIDTH}
+      height={THUMBNAIL_HEIGHT}
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      onError={fallBack}
+      onLoad={checkSize}
+      className="absolute inset-0 size-full object-cover"
+    />
+  );
+}
+
+/**
+ * The facade: the video's still, its title and a play button. The still is decorative (alt="")
+ * because the control already reads "Reproducir el video aquí" and the title.
+ */
 function VideoFacade({ video, isHydrated, onPlay }: FacadeProps): JSX.Element {
   const action = isHydrated ? 'Reproducir el video aquí' : 'Ver el video en YouTube';
   const body = (
     <>
-      <PlayIcon />
-      <span className="text-base font-semibold">{action}</span>
-      <span lang="en" className="max-w-[34rem] text-sm font-medium">
+      <span className="sr-only">{`${action}:`}</span> <VideoThumbnail id={video.id} />
+      <span
+        lang="en"
+        className="absolute inset-x-0 top-0 bg-linear-to-b from-black/80 to-transparent px-4 pt-3 pb-10 text-left text-sm font-semibold text-white sm:text-base"
+      >
         {video.title}
       </span>
-      <span className="text-xs text-fg-muted">
-        {`${video.channel} · ${formatTimestamp(video.duration)} · ${video.language}`}
+      <span className="absolute inset-0 grid place-items-center">
+        <PlayIcon />
       </span>
-      {isHydrated ? (
-        <span className="text-xs text-fg-muted">
-          Se carga desde youtube-nocookie.com solo al pulsar.
-        </span>
-      ) : null}
     </>
   );
   return isHydrated ? (
@@ -115,7 +144,7 @@ function PlayerFrame({ video, player }: { video: EmbeddedVideo; player: YouTubeP
 function VideoCredit({ video }: { video: EmbeddedVideo }): JSX.Element {
   return (
     <p data-testid="haptic-video-credit" className="m-0 text-sm text-fg-muted">
-      {`Video de terceros; no es de mi autoría: ${video.channel}, ${formatVideoDate(video.published)}. `}
+      {`Video: ${video.channel}, ${formatVideoDate(video.published)}. `}
       <a href={watchUrl(video.id)}>
         Ver en YouTube
         <ExternalIcon />
@@ -209,12 +238,12 @@ function useActiveMarker(markers: VideoMarker[], player: YouTubePlayer) {
 }
 
 /**
- * Tema 5's multimedia resource: a third-party YouTube video behind a privacy facade, its credit,
- * a description of the analysed fragments and the timestamped analysis. Each marker seeks the
+ * Tema 5's multimedia resource: a YouTube video behind a facade (its still, title and play
+ * button), its credit line and the timestamped analysis. Each marker seeks the
  * player (or opens it at that instant) and stays highlighted while playback is past it; without
  * JS every control is a link to YouTube and the written analysis reads the same.
  */
-export default function HapticVideo({ video, markers, transcript }: HapticVideoProps) {
+export default function HapticVideo({ video, markers }: HapticVideoProps) {
   requireEmbeddedVideo(video, markers);
   const playerId = useId();
   const [isHydrated, setIsHydrated] = useState(false);
@@ -240,12 +269,6 @@ export default function HapticVideo({ video, markers, transcript }: HapticVideoP
         )}
       </div>
       <VideoCredit video={video} />
-      <details className="text-sm">
-        <summary className="cursor-pointer text-fg-muted">
-          Descripción de los fragmentos analizados
-        </summary>
-        <p className="mb-0 mt-2">{transcript}</p>
-      </details>
       <MarkerList
         markers={markers}
         videoId={video.id}
