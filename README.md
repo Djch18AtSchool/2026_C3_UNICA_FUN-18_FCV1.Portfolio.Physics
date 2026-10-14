@@ -45,7 +45,7 @@ Los cinco temas del Avance 1 están publicados en el formato de pasos de la vers
 - `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `SettingsDrawer`, `ParamField`, `TransportBar`, `useSimClock`), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), los ajustes de reproducción comunes (`clockSettings`), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
 - `src/components/controls/`: controles interactivos (deslizadores, botones).
 - `src/components/charts/`: gráficas.
-- `src/components/nav/`: navegación: barra lateral con búsqueda (`SidebarSearch`), `TopicTools`, el pie (solo el icono de GitHub) y `BackToTop.astro`, el botón flotante "Volver arriba" de todas las páginas.
+- `src/components/nav/`: navegación: barra lateral con búsqueda (`SidebarSearch`), `TopicTools`, el pie (identidad, icono de GitHub y botón de tema) y `BackToTop.astro`, el botón flotante "Volver arriba" de todas las páginas.
 - `src/components/hooks/`: hooks de React compartidos.
 - `src/components/topics/`: laboratorios y figuras de cada tema (`JumpLab`, `DroneLab`, `HabitatLab`, `TyreLab`, `TriggerLab`).
 - `src/layouts/`: plantillas de página.

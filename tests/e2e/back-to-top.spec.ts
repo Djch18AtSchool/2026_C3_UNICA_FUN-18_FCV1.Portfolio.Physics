@@ -145,28 +145,38 @@ test('"Volver arriba" se alcanza y se activa con el teclado, con foco visible', 
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 });
 
-for (const viewport of [DESKTOP, PHONE]) {
-  test(`a ${viewport.width} px el botón no tapa el pie al final de la página`, async ({ page }) => {
-    await page.setViewportSize(viewport);
-    await page.goto('./temas/salto-personaje/');
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+const LAPTOP = { width: 1024, height: 768 };
 
-    const overlaps = await page.evaluate(() => {
-      const button = document.querySelector('a[href="#top"]')!.getBoundingClientRect();
-      const targets = document.querySelectorAll('body > footer p, body > footer a');
-      return [...targets]
-        .map((node) => node.getBoundingClientRect())
-        .filter(
-          (box) =>
-            box.width > 0 &&
-            box.left < button.right &&
-            box.right > button.left &&
-            box.top < button.bottom &&
-            box.bottom > button.top,
-        ).length;
+for (const viewport of [DESKTOP, LAPTOP, PHONE]) {
+  for (const { name, path } of PAGES) {
+    test(`a ${viewport.width} px el botón no se solapa con el pie al final de ${name}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await page.goto(path);
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+
+      const result = await page.evaluate(() => {
+        const button = document.querySelector('a[href="#top"]')!.getBoundingClientRect();
+        const targets = document.querySelectorAll(
+          'body > footer p, body > footer a, body > footer button',
+        );
+        const overlapping = [...targets]
+          .map((node) => node.getBoundingClientRect())
+          .filter(
+            (box) =>
+              box.width > 0 &&
+              box.left < button.right &&
+              box.right > button.left &&
+              box.top < button.bottom &&
+              box.bottom > button.top,
+          );
+        return { overlaps: overlapping.length, targets: targets.length };
+      });
+      expect(result.targets).toBe(4);
+      expect(result.overlaps).toBe(0);
     });
-    expect(overlaps).toBe(0);
-  });
+  }
 }
 
 test('el botón no se imprime', async ({ page }) => {

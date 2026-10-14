@@ -3,6 +3,7 @@ import { AUTHOR, COURSE, REPO_URL } from '../../src/consigna';
 
 const PAGES = ['./', './temas/salto-personaje/', './no-existe/'];
 const DESKTOP = { width: 1280, height: 900 };
+const LAPTOP = { width: 1024, height: 768 };
 const PHONE = { width: 390, height: 844 };
 /** Touch target on a phone (Apple HIG 44 pt; WCAG 2.5.5 enhanced). */
 const MIN_TOUCH_PX = 44;
@@ -11,6 +12,12 @@ const MIN_POINTER_PX = 40;
 const FOOTER_ICON_STROKE = '1.6';
 /** Sub-pixel slack for layout rounding. */
 const ROUNDING_PX = 1;
+/** The footer's own breathing room: the content sits no further than this from the document's end. */
+const MAX_BOTTOM_GAP_PX = 32;
+/** Top and bottom padding stay within this of each other, so the footer reads as centred. */
+const MAX_PADDING_SKEW_PX = 8;
+const MAX_TOOL_GAP_PX = 16;
+const TOOL_TARGETS = 'body > footer a, body > footer button';
 /** What the footer leaves out: no school, no course data, no topic tally. */
 const OMITTED_TEXTS = ['Escuela', COURSE.code, 'Sección', 'temas publicados', 'Sitio generado'];
 
@@ -54,28 +61,58 @@ test('el pie enlaza al repositorio solo con el icono de GitHub de trazo fino', a
   await expect(icon).toHaveAttribute('stroke-width', FOOTER_ICON_STROKE);
 });
 
-test('el enlace del pie se alcanza con el teclado y muestra el foco', async ({ page }) => {
+test('el pie agrupa el enlace de GitHub y el botón de tema, sin nada más', async ({ page }) => {
   await page.goto('./');
 
-  const link = page.getByRole('contentinfo').getByRole('link');
-  await link.focus();
-  await expect(link).toBeFocused();
-  await expect(link).toHaveCSS('outline-style', 'solid');
+  const footer = page.getByRole('contentinfo');
+  await expect(footer.getByRole('button')).toHaveCount(1);
+  await expect(footer.getByRole('button')).toHaveAccessibleName('Cambiar a tema oscuro');
+  const [link, button] = await Promise.all([
+    footer.getByRole('link').boundingBox(),
+    footer.getByRole('button').boundingBox(),
+  ]);
+  // Same row, same size, side by side: one group of tool icons.
+  expect(Math.abs(link!.y - button!.y)).toBeLessThanOrEqual(ROUNDING_PX);
+  expect(link!.width).toBeCloseTo(button!.width, 0);
+  expect(link!.height).toBeCloseTo(button!.height, 0);
+  expect(Math.abs(button!.x - (link!.x + link!.width))).toBeLessThanOrEqual(MAX_TOOL_GAP_PX);
+  // Both glyphs are drawn at the same size.
+  const [linkIcon, buttonIcon] = await Promise.all([
+    footer.locator('a svg').boundingBox(),
+    footer.locator('button svg:visible').boundingBox(),
+  ]);
+  expect(linkIcon!.width).toBeCloseTo(buttonIcon!.width, 0);
+  expect(linkIcon!.height).toBeCloseTo(buttonIcon!.height, 0);
+});
+
+test('el enlace y el botón del pie se alcanzan con el teclado y muestran el foco', async ({
+  page,
+}) => {
+  await page.goto('./');
+
+  for (const role of ['link', 'button'] as const) {
+    const control = page.getByRole('contentinfo').getByRole(role);
+    await control.focus();
+    await expect(control).toBeFocused();
+    await expect(control).toHaveCSS('outline-style', 'solid');
+  }
 });
 
 for (const { viewport, minPx } of [
   { viewport: PHONE, minPx: MIN_TOUCH_PX },
   { viewport: DESKTOP, minPx: MIN_POINTER_PX },
 ]) {
-  test(`a ${viewport.width} px el enlace del pie es un área de al menos ${minPx} px`, async ({
+  test(`a ${viewport.width} px los controles del pie son áreas de al menos ${minPx} px`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
     await page.goto('./');
 
-    const box = (await page.getByRole('contentinfo').getByRole('link').boundingBox())!;
-    expect(box.width).toBeGreaterThanOrEqual(minPx);
-    expect(box.height).toBeGreaterThanOrEqual(minPx);
+    for (const role of ['link', 'button'] as const) {
+      const box = (await page.getByRole('contentinfo').getByRole(role).boundingBox())!;
+      expect(box.width, role).toBeGreaterThanOrEqual(minPx);
+      expect(box.height, role).toBeGreaterThanOrEqual(minPx);
+    }
   });
 }
 
@@ -102,4 +139,43 @@ for (const viewport of [DESKTOP, PHONE]) {
     const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(scrollWidth).toBeLessThanOrEqual(viewport.width);
   });
+}
+
+/** Space above and below the footer's content (text and controls), inside its border. */
+async function footerPadding(page: Page) {
+  return page.evaluate((selector) => {
+    const footer = document.querySelector('body > footer')!;
+    const box = footer.getBoundingClientRect();
+    const border = parseFloat(getComputedStyle(footer).borderTopWidth);
+    const parts = [...footer.querySelectorAll('p, a, button')].map((node) =>
+      node.getBoundingClientRect(),
+    );
+    const top = Math.min(...parts.map((part) => part.top));
+    const bottom = Math.max(...parts.map((part) => part.bottom));
+    const pageBottom = Math.max(document.documentElement.scrollHeight, window.innerHeight);
+    return {
+      above: top - box.top - border,
+      below: box.bottom - bottom,
+      toDocumentEnd: pageBottom - (bottom + window.scrollY),
+      controls: document.querySelectorAll(selector).length,
+    };
+  }, TOOL_TARGETS);
+}
+
+for (const viewport of [DESKTOP, LAPTOP, PHONE]) {
+  for (const path of PAGES) {
+    test(`a ${viewport.width} px el contenido del pie queda cerca del fin de ${path} y centrado en su caja`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await page.goto(path);
+
+      const padding = await footerPadding(page);
+
+      expect(padding.controls).toBe(2);
+      expect(padding.toDocumentEnd).toBeLessThanOrEqual(MAX_BOTTOM_GAP_PX);
+      expect(padding.toDocumentEnd).toBeGreaterThanOrEqual(0);
+      expect(Math.abs(padding.above - padding.below)).toBeLessThanOrEqual(MAX_PADDING_SKEW_PX);
+    });
+  }
 }
