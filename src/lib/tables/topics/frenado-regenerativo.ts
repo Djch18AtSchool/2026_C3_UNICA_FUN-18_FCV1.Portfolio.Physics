@@ -31,7 +31,8 @@ const VEHICLES: DataTableSpec = {
   caption:
     'Los dos autos del balance: masa de prueba equivalente (ETW) y coeficientes objetivo A, B y C de la carga en carretera, como los publica la EPA y en SI.',
   columns: [
-    { key: 'vehiculo', label: 'Vehículo', align: 'text' },
+    // «Tesla Model 3 / Long Range RWD / 2025» in three lines, not six, on a phone.
+    { key: 'vehiculo', label: 'Vehículo', align: 'text', minWidthCh: 15 },
     { key: 'etw', label: 'Masa de prueba, ETW', unit: 'lb', align: 'num', precision: 0 },
     { key: 'm', label: 'Masa m', unit: 'kg', align: 'num', precision: 2 },
     { key: 'aEpa', label: 'A', unit: 'lbf', align: 'num', precision: 2 },

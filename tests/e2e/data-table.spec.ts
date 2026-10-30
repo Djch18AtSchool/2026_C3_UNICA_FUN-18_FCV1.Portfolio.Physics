@@ -107,3 +107,48 @@ test.describe('DataTable', () => {
     });
   }
 });
+
+test.describe('DataTable en un teléfono, Tabla 6.1', () => {
+  test.use({ viewport: PHONE });
+  const VEHICLES = '#frenado-regenerativo-vehiculo';
+  /** Lines a row header of Tabla 6.1 may take: «Tesla Model 3 / Long Range RWD / 2025». */
+  const MAX_NAME_LINES = 3;
+
+  test('el borde que oculta columnas lleva una sombra; las tapas viajan con el contenido', async ({
+    page,
+  }) => {
+    await page.goto('./temas/frenado-regenerativo/');
+    const frame = page.locator(`${VEHICLES} .table-frame`);
+
+    const { attachment, image, overflows } = await frame.evaluate((element) => ({
+      attachment: getComputedStyle(element).backgroundAttachment,
+      image: getComputedStyle(element).backgroundImage,
+      overflows: element.scrollWidth > element.clientWidth,
+    }));
+
+    expect(overflows).toBe(true);
+    // Two covers ride with the content; the two shadows (and the plain surface) stay put.
+    expect(attachment).toMatch(/^local, local, scroll, scroll/);
+    expect(image.match(/linear-gradient/g)).toHaveLength(2);
+    expect(image.match(/radial-gradient/g)).toHaveLength(2);
+  });
+
+  test('la columna de nombres no se aplasta: cada auto en tres líneas o menos', async ({
+    page,
+  }) => {
+    await page.goto('./temas/frenado-regenerativo/');
+    await page.evaluate(() => document.fonts.ready);
+
+    const lines = await page.locator(`${VEHICLES} tbody th[scope="row"]`).evaluateAll((cells) =>
+      cells.map((cell) => {
+        const range = document.createRange();
+        range.selectNodeContents(cell);
+        const tops = new Set([...range.getClientRects()].map((rect) => Math.round(rect.top)));
+        return tops.size;
+      }),
+    );
+
+    expect(lines.length).toBe(2);
+    for (const count of lines) expect(count).toBeLessThanOrEqual(MAX_NAME_LINES);
+  });
+});

@@ -3,6 +3,11 @@ interface TableColumnBase {
   key: string;
   label: string;
   unit?: string;
+  /**
+   * Narrowest the column may get, in ch: on a phone a table that scrolls anyway would otherwise
+   * squeeze a column of names to a word per line.
+   */
+  minWidthCh?: number;
 }
 
 /** A column of words; the first one names the row and aligns left. */

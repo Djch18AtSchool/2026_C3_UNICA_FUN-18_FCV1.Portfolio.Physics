@@ -6,7 +6,7 @@
  *   <DataTable id="frenado-regenerativo-ciclos" />
  *
  * The frame scrolls inside itself on phones; scrollRegion.ts (BaseLayout) makes it a labelled,
- * focusable region only while it overflows. Numbers use the column's own precision: tables do not
+ * focusable region only while it overflows, and content.css shades the edge that hides columns. Numbers use the column's own precision: tables do not
  * follow the global decimals setting.
  */
 import { tableById } from '../../lib/tables';
@@ -20,6 +20,7 @@ const { columns, rows, source } = spec;
 const [firstColumn] = columns;
 const captionId = `${spec.id}-caption`;
 const cellClass = (align: 'text' | 'num') => (align === 'num' ? 'is-num' : undefined);
+const minWidth = (ch: number | undefined) => (ch === undefined ? undefined : `min-width: ${ch}ch`);
 ---
 
 <figure data-testid="data-table" id={spec.id} class="content-table">
@@ -32,7 +33,7 @@ const cellClass = (align: 'text' | 'num') => (align === 'num' ? 'is-num' : undef
       <thead>
         <tr>
           {columns.map((column) => (
-            <th scope="col" class={cellClass(column.align)}>
+            <th scope="col" class={cellClass(column.align)} style={minWidth(column.minWidthCh)}>
               {columnHeader(column)}
             </th>
           ))}

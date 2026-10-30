@@ -220,11 +220,30 @@
     counter-increment: table;
     margin-block: 2rem;
   }
+  /*
+   * Scroll cue: a soft shadow on each edge that hides columns. The shadows stay with the frame
+   * (scroll); two covers in the surface color ride with the content (local) and hide each shadow
+   * while that edge of the table is in view. Pure background: no layout shift, theme tokens.
+   */
   .table-frame {
+    --table-surface: var(--bg);
+    --table-cue: color-mix(in srgb, var(--fg) 22%, transparent);
+    --table-cue-width: 0.875rem;
+    --table-cover-width: 2.5rem;
     overflow-x: auto;
     scrollbar-width: thin;
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    background:
+      linear-gradient(to right, var(--table-surface) 40%, transparent) left center /
+        var(--table-cover-width) 100% no-repeat local,
+      linear-gradient(to left, var(--table-surface) 40%, transparent) right center /
+        var(--table-cover-width) 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, var(--table-cue), transparent) left center /
+        var(--table-cue-width) 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, var(--table-cue), transparent) right center /
+        var(--table-cue-width) 100% no-repeat scroll,
+      var(--table-surface);
   }
   .content-table table {
     width: 100%;
