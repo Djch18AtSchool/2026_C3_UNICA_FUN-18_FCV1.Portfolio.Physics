@@ -42,9 +42,6 @@ export function maneuverSeries(samples = MANEUVER_SAMPLES): { theta: XY[]; wheel
 }
 
 const halfTurn = maneuverRow(WORKED_SLEW.T / 2);
-const MINUS = '−';
-const signed = (value: number, precision: number) =>
-  formatNumber(value, { precision }).replace('-', MINUS);
 
 /** The middle of the turn, where the body is fastest and the wheel holds the most momentum. */
 export const MANEUVER_PEAK = {
@@ -52,10 +49,10 @@ export const MANEUVER_PEAK = {
   thetaDeg: halfTurn.thetaS,
   wheelRpm: halfTurn.omegaW,
   thetaLabel: `${formatNumber(halfTurn.thetaS, { precision: 0 })}° a los ${halfTurn.t} s`,
-  wheelLabel: `${signed(halfTurn.omegaW, 0)} rpm a los ${halfTurn.t} s`,
+  wheelLabel: `${formatNumber(halfTurn.omegaW, { precision: 0 })} rpm a los ${halfTurn.t} s`,
   /** The same notes on two lines, for a phone-width plot. */
   thetaLines: [`${formatNumber(halfTurn.thetaS, { precision: 0 })}°`, `a los ${halfTurn.t} s`],
-  wheelLines: [`${signed(halfTurn.omegaW, 0)} rpm`, `a los ${halfTurn.t} s`],
+  wheelLines: [`${formatNumber(halfTurn.omegaW, { precision: 0 })} rpm`, `a los ${halfTurn.t} s`],
 } as const;
 
 const SECONDS_PER_DAY = 86_400;

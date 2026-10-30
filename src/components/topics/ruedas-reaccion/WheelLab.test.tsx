@@ -120,7 +120,7 @@ describe('WheelLab', () => {
     expect(preset(/^90° en 60 s/)).toHaveAttribute('aria-pressed', 'true');
     expect(handle()).toHaveAttribute('role', 'slider');
     expect(handle()).toHaveAttribute('aria-valuenow', '90');
-    expect(readout('ω_w máxima de la maniobra')).toBe('-969,54 rpm');
+    expect(readout('ω_w máxima de la maniobra')).toBe('−969,54 rpm');
     expect(readout('Vueltas de la rueda')).toBe('0,0 vueltas');
     expect(readout('Porcentaje de L_max')).toBe('0,0 %');
     expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
@@ -150,7 +150,7 @@ describe('WheelLab', () => {
     dragHandleTo({ x: c.x + 60, y: c.y - 60 });
 
     expect(handle()).toHaveAttribute('aria-valuenow', '45');
-    expect(readout('ω_w máxima de la maniobra')).toBe('-484,77 rpm');
+    expect(readout('ω_w máxima de la maniobra')).toBe('−484,77 rpm');
     expect(preset(/^90° en 60 s/)).toHaveAttribute('aria-pressed', 'false');
   });
 

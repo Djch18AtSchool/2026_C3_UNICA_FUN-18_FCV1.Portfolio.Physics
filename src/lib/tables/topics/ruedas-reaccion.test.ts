@@ -92,10 +92,10 @@ describe('ruedas-reaccion-maniobra', () => {
       t: '30',
       omegaS: '0,0524',
       thetaS: '45',
-      omegaW: '-970',
-      Lw: '-0,00970',
+      omegaW: '−970',
+      Lw: '−0,00970',
     });
-    expect(printed(spec, 1)).toMatchObject({ thetaS: '5', omegaW: '-323' });
+    expect(printed(spec, 1)).toMatchObject({ thetaS: '5', omegaW: '−323' });
     expect(printed(spec, 6)).toMatchObject({ thetaS: '90', omegaW: '0', Lw: '0,00000' });
   });
 });

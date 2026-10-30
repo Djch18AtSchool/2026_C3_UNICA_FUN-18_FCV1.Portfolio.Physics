@@ -39,7 +39,7 @@ describe('asistencia-gravitatoria tables', () => {
     );
     expect(markdown).toContain('| Voyager\u00a02 | Saturno | 1981-08-26 03:24 |');
     expect(markdown).toContain('| Voyager\u00a02 | Neptuno | 1989-08-25 03:56 | 29\u202f240 |');
-    expect(markdown).toMatch(/\| Neptuno \|[^\n]*\| -2,13 \| -2,12 \|/);
+    expect(markdown).toMatch(/\| Neptuno \|[^\n]*\| −2,13 \| −2,12 \|/);
     expect(markdown).toContain('| Voyager\u00a01 | Saturno | 1980-11-12 23:46 |');
   });
 

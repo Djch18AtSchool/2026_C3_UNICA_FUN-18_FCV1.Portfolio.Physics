@@ -24,7 +24,7 @@ describe('maneuver (step 2)', () => {
     };
 
     expect(cell('thetaS')).toBe('45');
-    expect(cell('omegaW')).toBe('-970');
+    expect(cell('omegaW')).toBe('−970');
   });
 
   test('θ_s rises as an S from 0 to 90° and ω_w is a triangle down to −970 rpm at 30 s', () => {

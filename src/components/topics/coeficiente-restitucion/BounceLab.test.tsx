@@ -244,7 +244,7 @@ describe('BounceLab', () => {
 
     await user.click(screen.getByRole('switch', { name: /m₂ → ∞/ }));
 
-    expect(readout('v₁′')).toBe('-2,00 m/s');
+    expect(readout('v₁′')).toBe('−2,00 m/s');
     expect(screen.getByTestId('collision-notes')).toHaveTextContent(/piso/);
   });
 

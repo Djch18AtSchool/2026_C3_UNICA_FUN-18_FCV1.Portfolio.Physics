@@ -17,7 +17,13 @@ describe('formatNumber', () => {
     expect(formatNumber(-Infinity, { unit: 'm' })).toBe('—');
   });
   test('keeps the sign in front and groups millions', () => {
-    expect(formatNumber(-1234567.891)).toBe('-1\u202f234\u202f567,89');
+    expect(formatNumber(-1234567.891)).toBe('\u22121\u202f234\u202f567,89');
+  });
+  test('prints negatives with the true minus sign U+2212, never the ASCII hyphen-minus', () => {
+    const text = formatNumber(-9.81, { unit: 'm/s²' });
+
+    expect(text).toBe('\u22129,81\u202fm/s²');
+    expect(text).not.toContain('-');
   });
   test('supports zero precision', () => {
     expect(formatNumber(1500, { precision: 0 })).toBe('1\u202f500');
@@ -27,9 +33,10 @@ describe('formatNumber', () => {
     expect(formatNumber(-0)).toBe('0,00');
     expect(formatNumber(-0.4, { precision: 0 })).toBe('0');
     expect(formatNumber(-0.001, { unit: 'm' })).toBe('0,00\u202fm');
+    expect(formatNumber(-0.0004, { precision: 3 })).not.toMatch(/^[\u2212-]/);
   });
   test('keeps the minus sign for values that do not round to zero', () => {
-    expect(formatNumber(-0.01)).toBe('-0,01');
-    expect(formatNumber(-0.6, { precision: 0 })).toBe('-1');
+    expect(formatNumber(-0.01)).toBe('\u22120,01');
+    expect(formatNumber(-0.6, { precision: 0 })).toBe('\u22121');
   });
 });

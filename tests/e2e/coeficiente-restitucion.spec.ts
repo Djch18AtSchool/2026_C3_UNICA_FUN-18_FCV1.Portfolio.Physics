@@ -35,7 +35,12 @@ const REBOUND_TOLERANCE_M = 0.03;
 
 /** Spanish-formatted number ("0,743", "1,41 m") → 0.743. */
 function parseSpanish(text: string): number {
-  return Number(text.replace(/[^\d,-]/g, '').replace(',', '.'));
+  return Number(
+    text
+      .replace(/\u2212/g, '-')
+      .replace(/[^\d,-]/g, '')
+      .replace(',', '.'),
+  );
 }
 
 /** The value text of a LabShell readout row. */

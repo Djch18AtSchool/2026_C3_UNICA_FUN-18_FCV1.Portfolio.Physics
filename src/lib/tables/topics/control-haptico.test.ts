@@ -63,8 +63,8 @@ describe('control-haptico tables', () => {
       'Trabajo de la fuerza elástica (mJ)',
     ]);
     expect(rows).toEqual([
-      ['A mitad', '4', '1,6', '3,2', '-3,2'],
-      ['Al fondo', '8', '3,2', '12,8', '-12,8'],
+      ['A mitad', '4', '1,6', '3,2', '−3,2'],
+      ['Al fondo', '8', '3,2', '12,8', '−12,8'],
     ]);
     expect(TABLES[1].caption).toContain('Módulo 2, Tema 03, concepto 03');
     expect(TABLES[1].caption).toContain(

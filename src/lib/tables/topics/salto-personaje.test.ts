@@ -37,7 +37,7 @@ describe('salto-personaje tables', () => {
     expect(header).toEqual(['Constante', 'Juego', 'En el código', 'En SI']);
     expect(rows).toEqual([
       ['Gravity', 'Celeste', '900 px/s²', '112,5 m/s²'],
-      ['JumpSpeed', 'Celeste', '-105 px/s', '13,1 m/s'],
+      ['JumpSpeed', 'Celeste', '−105 px/s', '13,1 m/s'],
       ['MaxRun', 'Celeste', '90 px/s', '11,25 m/s'],
       ['HalfGravThreshold', 'Celeste', '40 px/s', '5 m/s'],
       ['VarJumpTime', 'Celeste', '0,2 s', '0,2 s'],

@@ -106,7 +106,7 @@ describe('RegenLab', () => {
 
     expect(timelineText()).toBe('t = 116,000 s');
     expect(readout(SPEED)).toBe('46,03 km/h');
-    expect(readout(POWER)).toBe('-33,20 kW');
+    expect(readout(POWER)).toBe('−33,20 kW');
     expect(readout(BATTERY)).toBe('0,032 kWh');
     expect(readout(LOSS)).toBe('0,008 kWh');
     expect(readout(FRICTION)).toBe('0,001 kWh');
@@ -411,7 +411,7 @@ describe('RegenLab', () => {
     expect(timelineText()).toBe('t = 116,000 s');
     expect(etaSlider()).toHaveValue('0.8');
     expect(preset(/^Model 3 · ciudad/)).toHaveAttribute('aria-pressed', 'true');
-    expect(readout(POWER)).toBe('-33,20 kW');
+    expect(readout(POWER)).toBe('−33,20 kW');
   });
 
   test('the car rides along the road and stays on it at the end of the cycle', () => {

@@ -11,7 +11,12 @@ const MIN_WIDTH_SHARE = 0.9;
 
 /** Spanish-formatted number ("3,26 m", "−0,5 s") → 3.26. */
 function parseSpanish(text: string): number {
-  return Number(text.replace(/[^\d,-]/g, '').replace(',', '.'));
+  return Number(
+    text
+      .replace(/\u2212/g, '-')
+      .replace(/[^\d,-]/g, '')
+      .replace(',', '.'),
+  );
 }
 
 /** The value text of a LabShell readout row. */
