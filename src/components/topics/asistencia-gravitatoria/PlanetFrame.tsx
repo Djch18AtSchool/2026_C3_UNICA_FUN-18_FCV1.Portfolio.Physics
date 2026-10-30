@@ -9,7 +9,8 @@ import {
   TICK_FONT_FAMILY,
 } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
-import { Arrow, Knob, Label, type Point } from '../../lab/OverlayMarks';
+import { segmentsOf, spotsAround, spotsBeside, textBox, type Box } from '../../lab/labelClearance';
+import { Arrow, Knob, LABEL_SIZE, Label, type Point } from '../../lab/OverlayMarks';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
 import { sampleTrack, type FlybyHyperbola, type FlybyState } from './flybyOrbit';
 import {
@@ -22,6 +23,7 @@ import {
   scaleBar,
   tipLabel,
 } from './flybyScene';
+import { LABEL_BASELINE_DROP, LABEL_GAP, placeLabels } from './flybyLabels';
 import { SIDE_NAMES } from './flybyPresets';
 import { rpText } from './RpField';
 
@@ -51,12 +53,23 @@ const TRACK_SAMPLES = 161;
 const PROBE_RADIUS = 5;
 /** v_rel on the probe: v∞ is drawn ARROW_PX long, and the arrow never grows past this many v∞. */
 const VREL_CAP = 2;
-const LABEL_SIDE = 12;
 /** The knob's label clears its focus ring (11 px) and the knob's halo. */
 const KNOB_LABEL_GAP = 22;
 const CORNER = 12;
 const NOTE_SIZE = 12;
 const VP_ARROW = 36;
+/** The corner texts' baseline below the corner, and the V_p key's gap to its text. */
+const CORNER_BASELINE = 10;
+const VP_TEXT_GAP = 6;
+/** The scale bar's text sits this far above the bar. */
+const BAR_TEXT_LIFT = 6;
+/** The knob's focus ring (11 px) that a label keeps clear of. */
+const KNOB_CLEARANCE = 11;
+/**
+ * Bands at the top (V_p key, r_p readout) and bottom (scale bar, note) of the panel, px: the
+ * drawing is scaled and centred between them, so no arrow or track reaches a corner text.
+ */
+const TEXT_BAND = 30;
 /** The scale bar is at most this share of the side. */
 const SCALE_BAR_SHARE = 0.3;
 const DECIMALS_E = 3;
@@ -68,14 +81,13 @@ const along = (p: Point, d: Point, length: number): Point => ({
   x: p.x + d.x * length,
   y: p.y + d.y * length,
 });
-/** Beside the middle of a segment, LABEL_SIDE px to its left (screen coordinates). */
-function besideMiddle(from: Point, to: Point): Point {
-  const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
-  return {
-    x: (from.x + to.x) / 2 + ((to.y - from.y) / length) * LABEL_SIDE,
-    y: (from.y + to.y) / 2 - ((to.x - from.x) / length) * LABEL_SIDE,
-  };
-}
+const negate = (d: Point): Point => ({ x: -d.x, y: -d.y });
+const squareAround = (p: Point, half: number): Box => ({
+  left: p.x - half,
+  right: p.x + half,
+  top: p.y - half,
+  bottom: p.y + half,
+});
 
 const toPath = (points: Point[]) =>
   points.map((p, k) => `${k === 0 ? 'M' : 'L'}${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ');
@@ -96,8 +108,9 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
   const { hyperbola, planet, rp, unit, tau, probe, showVectors, onRpRequest } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const side = Math.min(width, MAX_SIDE);
-  const half = side / 2;
-  const view = planetView(side, hyperbola.rp, planet.radiusKm);
+  const drawSide = side - 2 * TEXT_BAND;
+  const half = drawSide / 2;
+  const view = planetView(drawSide, hyperbola.rp, planet.radiusKm);
   /** km in the planet frame → px from the planet's centre (y up). */
   const rel = (x: number, y: number): Point => ({ x: view.scale * x, y: -view.scale * y });
 
@@ -111,7 +124,8 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
   const inTailRel = along(trackRel[0], inDir, -ARROW_PX);
   const outTipRel = along(trackRel[trackRel.length - 1], outDir, ARROW_PX);
   const planetBox = [-view.planetPx, view.planetPx].map((d) => ({ x: d, y: d }));
-  const fitted = centreOn([...trackRel, inTailRel, outTipRel, ...planetBox], width, side);
+  const centred = centreOn([...trackRel, inTailRel, outTipRel, ...planetBox], width, drawSide);
+  const fitted = { x: centred.x, y: centred.y + TEXT_BAND };
   /** While the handle is dragged the planet stays put, so the pointer maps to r_p stably. */
   const [heldCentre, setHeldCentre] = useState<Point | null>(null);
   const c = heldCentre ?? fitted;
@@ -136,6 +150,57 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
   );
   const bar = scaleBar(view.scale, planet.radiusKm, side * SCALE_BAR_SHARE);
   const planetColor = `var(${planet.token})`;
+  const rpValue = `r_p = ${formatNumber(rp, { precision: 2, unit })}`;
+  const barText = `${formatNumber(bar.radii, { precision: bar.radii < 1 ? 1 : 0 })} ${unit}`;
+  const cornerY = CORNER + CORNER_BASELINE;
+  const vpText = { x: CORNER + VP_ARROW + VP_TEXT_GAP, y: cornerY };
+  // The v∞ labels keep off every line drawn still and off every text; the moving probe and v_rel
+  // are left out, so a label does not jump while the pass plays.
+  const [outLabel, inLabel] = placeLabels(
+    [
+      {
+        text: 'v∞,out',
+        spots: (size) => [
+          ...spotsBeside(last, outTip, size, LABEL_GAP),
+          ...spotsAround(outTip, outDir, size, LABEL_GAP),
+        ],
+      },
+      {
+        text: 'v∞,in',
+        spots: (size) => [
+          ...spotsBeside(inTail, first, size, LABEL_GAP),
+          ...spotsAround(inTail, negate(inDir), size, LABEL_GAP),
+        ],
+      },
+    ],
+    [
+      ...segmentsOf(trackPx),
+      [c, periapsis],
+      [inTail, first],
+      [last, outTip],
+      [
+        { x: CORNER, y: side - CORNER },
+        { x: CORNER + bar.px, y: side - CORNER },
+      ],
+    ],
+    [
+      { ...textBox(vpText, 'V_p', NOTE_SIZE, 'start'), left: CORNER },
+      textBox({ x: width - CORNER, y: cornerY }, rpValue, NOTE_SIZE, 'end'),
+      textBox({ x: CORNER, y: side - CORNER - BAR_TEXT_LIFT }, barText, NOTE_SIZE, 'start'),
+      ...(view.isPlanetEnlarged
+        ? [textBox({ x: width - CORNER, y: side - CORNER }, 'planeta agrandado', NOTE_SIZE, 'end')]
+        : []),
+      squareAround(c, view.planetPx),
+      squareAround(periapsis, KNOB_CLEARANCE),
+      textBox(
+        { x: knobLabel.at.x, y: knobLabel.at.y + LABEL_BASELINE_DROP },
+        'r_p',
+        LABEL_SIZE,
+        knobLabel.anchor,
+      ),
+    ],
+    { width, height: side },
+  );
 
   const drag = useDrag(({ x, y, phase }: DragPoint) => {
     if (phase === 'start') setHeldCentre(c);
@@ -164,17 +229,17 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
               to={{ x: CORNER + VP_ARROW, y: CORNER + 6 }}
               color={planetColor}
             />
-            <text x={CORNER + VP_ARROW + 6} y={CORNER + 10} fill={TEXT_COLOR}>
+            <text x={vpText.x} y={vpText.y} fill={TEXT_COLOR}>
               V_p
             </text>
             <text
               data-testid="flyby-rp-value"
               x={width - CORNER}
-              y={CORNER + 10}
+              y={cornerY}
               fill={TEXT_COLOR}
               textAnchor="end"
             >
-              {`r_p = ${formatNumber(rp, { precision: 2, unit })}`}
+              {rpValue}
             </text>
             {view.isPlanetEnlarged ? (
               <text x={width - CORNER} y={side - CORNER} fill={TICK_COLOR} textAnchor="end">
@@ -189,8 +254,8 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
               stroke={TEXT_COLOR}
               strokeWidth={LINE_WIDTH}
             />
-            <text x={CORNER} y={side - CORNER - 6} fill={TICK_COLOR}>
-              {`${formatNumber(bar.radii, { precision: bar.radii < 1 ? 1 : 0 })} ${unit}`}
+            <text x={CORNER} y={side - CORNER - BAR_TEXT_LIFT} fill={TICK_COLOR}>
+              {barText}
             </text>
           </g>
           <circle
@@ -219,14 +284,14 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
             <>
               <g data-vector="vinf-in">
                 <Arrow from={inTail} to={first} color={VINF_COLOR} dashed />
-                <Label at={besideMiddle(inTail, first)} dx={0} dy={4} anchor="middle">
-                  v∞,in
+                <Label at={inLabel.at} dx={0} dy={LABEL_BASELINE_DROP} anchor="middle">
+                  {inLabel.text}
                 </Label>
               </g>
               <g data-vector="vinf-out">
                 <Arrow from={last} to={outTip} color={VINF_COLOR} dashed />
-                <Label at={besideMiddle(last, outTip)} dx={0} dy={4} anchor="middle">
-                  v∞,out
+                <Label at={outLabel.at} dx={0} dy={LABEL_BASELINE_DROP} anchor="middle">
+                  {outLabel.text}
                 </Label>
               </g>
               <g data-vector="vrel">
@@ -259,7 +324,7 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
         >
           <Knob at={periapsis} fill={TEXT_COLOR} />
         </g>
-        <Label at={knobLabel.at} dx={0} dy={4} anchor={knobLabel.anchor}>
+        <Label at={knobLabel.at} dx={0} dy={LABEL_BASELINE_DROP} anchor={knobLabel.anchor}>
           r_p
         </Label>
       </svg>

@@ -3,10 +3,12 @@ import { formatNumber } from '../../../lib/format';
 import type { PlanarFlybyResult } from '../../../lib/physics';
 import { TICK_COLOR } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
-import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
+import { segmentsOf, spotsAround, textBox, type Segment } from '../../lab/labelClearance';
+import { Arrow, LABEL_SIZE, Label, type Point } from '../../lab/OverlayMarks';
 import type { FlybyHyperbola } from './flybyOrbit';
 import { signed } from './flybyFormat';
-import { arcPath, tipLabel, triangleLayout } from './flybyScene';
+import { LABEL_BASELINE_DROP, LABEL_GAP, placeLabels } from './flybyLabels';
+import { arcPath, triangleLayout } from './flybyScene';
 import { PROBE_COLOR, VINF_COLOR } from './PlanetFrame';
 
 /** v before the flyby is muted; v after wears the probe's accent. */
@@ -29,32 +31,25 @@ const MAX_SIDE = 380;
 const HEIGHT_SHARE = 0.86;
 const ARC_SHARE = 0.38;
 const MAX_ARC_PX = 40;
-const ARC_LABEL_GAP = 12;
+/** Points along the δ arc that labels keep clear of. */
+const ARC_SAMPLES = 12;
+/** Extra distances (px) tried for δ once the spots next to its arc are taken. */
+const DELTA_GAPS = [0, 8, 16, 24];
 const VP_LABEL_DROP = 16;
 const ORIGIN_RADIUS = 3;
 const DEG = 180 / Math.PI;
 
-/** A label just past `tip`, along the direction from `from`, leaning outward but inside the panel. */
-function TipLabel({
-  from,
-  tip,
-  width,
-  children,
-}: {
-  from: Point;
-  tip: Point;
-  width: number;
-  children: string;
-}): JSX.Element {
-  const length = Math.hypot(tip.x - from.x, tip.y - from.y) || 1;
-  const d = { x: (tip.x - from.x) / length, y: (tip.y - from.y) / length };
-  const { at, anchor } = tipLabel(tip, d, children, width);
-  return (
-    <Label at={at} dx={0} dy={4} anchor={anchor}>
-      {children}
-    </Label>
-  );
+/** Unit vector from `from` to `to` (screen coordinates). */
+function unit(from: Point, to: Point): Point {
+  const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
+  return { x: (to.x - from.x) / length, y: (to.y - from.y) / length };
 }
+
+/** Screen point at `radius` from `c` in the direction `angle` (counter-clockwise, y up). */
+const polar = (c: Point, radius: number, angle: number): Point => ({
+  x: c.x + radius * Math.cos(angle),
+  y: c.y - radius * Math.sin(angle),
+});
 
 /**
  * The flyby seen from the Sun: v⃗ = V⃗_p + v⃗∞ before and after. V⃗_p runs along +x; both v⃗∞
@@ -81,10 +76,46 @@ export default function SunFrame({
   const radius = k * hyperbola.vInf;
   const arcRadius = Math.min(radius * ARC_SHARE, MAX_ARC_PX);
   const middle = (hyperbola.thetaIn + hyperbola.thetaOut) / 2;
-  const arcLabel = {
-    x: planetTip.x + (arcRadius + ARC_LABEL_GAP) * Math.cos(middle),
-    y: planetTip.y - (arcRadius + ARC_LABEL_GAP) * Math.sin(middle),
-  };
+  const arc = Array.from({ length: ARC_SAMPLES + 1 }, (_, k) =>
+    polar(
+      planetTip,
+      arcRadius,
+      hyperbola.thetaIn + ((hyperbola.thetaOut - hyperbola.thetaIn) * k) / ARC_SAMPLES,
+    ),
+  );
+  const arcMiddle = polar(planetTip, arcRadius, middle);
+  const vpLabel = { x: (origin.x + planetTip.x) / 2, y: origin.y + VP_LABEL_DROP };
+  const arrows: Segment[] = [
+    [origin, inTip],
+    [origin, outTip],
+    [planetTip, inTip],
+    [planetTip, outTip],
+    [origin, planetTip],
+  ];
+  // Tip labels look outward from the circle's centre; δ, out from the arc's middle.
+  const [beforeLabel, afterLabel, deltaLabel] = placeLabels(
+    [
+      {
+        text: 'v antes',
+        spots: (size) => spotsAround(inTip, unit(planetTip, inTip), size, LABEL_GAP),
+      },
+      {
+        text: 'v después',
+        spots: (size) => spotsAround(outTip, unit(planetTip, outTip), size, LABEL_GAP),
+      },
+      {
+        text: 'δ',
+        // Out from the arc's middle, then further out: a small δ leaves a narrow wedge.
+        spots: (size) =>
+          DELTA_GAPS.flatMap((gap) =>
+            spotsAround(arcMiddle, unit(planetTip, arcMiddle), size, LABEL_GAP + gap),
+          ),
+      },
+    ],
+    [...arrows, ...segmentsOf(arc)],
+    [textBox(vpLabel, 'V_p', LABEL_SIZE, 'middle')],
+    { width, height },
+  );
   const planetColor = `var(${planetToken})`;
   const kms = (value: number) => formatNumber(value, { precision: decimals, unit: 'km/s' });
   const description = `Triángulo de velocidades en el marco del Sol: V_p ${kms(Vp)}; v∞ ${kms(hyperbola.vInf)} girada δ = ${formatNumber(hyperbola.delta * DEG, { precision: 1, unit: '°' })}; v antes ${kms(result.vIn)}; v después ${kms(result.vOut)}; Δ|v| = ${signed(result.vOut - result.vIn, decimals, 'km/s')}.`;
@@ -115,8 +146,8 @@ export default function SunFrame({
             stroke={TICK_COLOR}
             strokeWidth={1.5}
           />
-          <Label at={arcLabel} dx={0} dy={4} anchor="middle">
-            δ
+          <Label at={deltaLabel.at} dx={0} dy={LABEL_BASELINE_DROP} anchor="middle">
+            {deltaLabel.text}
           </Label>
           <Arrow from={origin} to={inTip} color={V_BEFORE_COLOR} />
           <Arrow from={origin} to={outTip} color={V_AFTER_COLOR} />
@@ -124,20 +155,14 @@ export default function SunFrame({
           <Arrow from={planetTip} to={outTip} color={VINF_COLOR} dashed />
           <Arrow from={origin} to={planetTip} color={planetColor} />
           <circle cx={origin.x} cy={origin.y} r={ORIGIN_RADIUS} fill={VINF_COLOR} />
-          <Label
-            at={{ x: (origin.x + planetTip.x) / 2, y: origin.y + VP_LABEL_DROP }}
-            dx={0}
-            dy={0}
-            anchor="middle"
-          >
+          <Label at={vpLabel} dx={0} dy={0} anchor="middle">
             V_p
           </Label>
-          <TipLabel from={planetTip} tip={inTip} width={width}>
-            v antes
-          </TipLabel>
-          <TipLabel from={planetTip} tip={outTip} width={width}>
-            v después
-          </TipLabel>
+          {[beforeLabel, afterLabel].map((label) => (
+            <Label key={label.text} at={label.at} dx={0} dy={LABEL_BASELINE_DROP} anchor="middle">
+              {label.text}
+            </Label>
+          ))}
         </g>
       </svg>
     </div>
