@@ -122,7 +122,7 @@ Frenar es hacer trabajo negativo: la energía cinética pasa a otra forma, y si 
 
 <Fragment slot="ecuacion">
 
-Con <Equation inline latex="v_f = 0" />, la (6.1) pide <Equation inline latex="W = -\tfrac{1}{2} m v_i^2" />: desde 50 km/h hay que quitar 185,9 kJ. El UDDS quita 1,124 kWh al desacelerar, y el modelo simple los devolvería todos.
+Con <Equation inline latex="v_f = 0" />, la (6.1) pide <Equation inline latex="W = -\tfrac{1}{2} m v_i^2" />: desde 50 km/h hay que quitar 185,9 kJ. En el UDDS se quitan 1,124 kWh al desacelerar, y el modelo simple los devolvería todos.
 
 </Fragment>
 
@@ -170,7 +170,7 @@ Al soltar el acelerador el auto frena solo: aire y rodadura toman parte del ΔK,
 
 <Fragment slot="ecuacion">
 
-Solo con <Equation inline latex="P_\text{rueda} < 0" /> hay que frenar: <Equation inline latex="P_\text{freno} = -P_\text{rueda}" />. En el UDDS, de 1,124 kWh la carga en carretera disipa 0,255 y 0,869 exigen freno (77,3 %); en el HWFET, solo el 45,6 % del ΔK quitado.
+Solo con <Equation inline latex="P_\text{rueda} < 0" /> hay que frenar: <Equation inline latex="P_\text{freno} = -P_\text{rueda}" />. En el UDDS, de 1,124 kWh la carga en carretera absorbe 0,255 y 0,869 exigen freno (77,3 %); en el HWFET, solo el 45,6 % del ΔK quitado.
 
 </Fragment>
 
@@ -193,7 +193,7 @@ Solo con <Equation inline latex="P_\text{rueda} < 0" /> hay que frenar: <Equatio
 
 <Step n={3} title="Qué falta: el motor recupera con límites">
 
-El motor pierde al convertir: Boretti reporta, de rueda a batería, del 70 al 80 % en un Leaf 2012 y del 72 al 87 % en uno 2013 <Cite id="boretti-2016" sources={frontmatter.sources} />; uso η = 0,80. La regeneración se reduce con la batería llena, fría o caliente <Cite id="nissan-leaf-2025-manual" sources={frontmatter.sources} />; en el modelo, eso baja <Equation inline latex="P_\text{máx}" />. Cerca de detenerse, la regeneración se desvanece: f(v) <Cite id="fastsim-2-simdrive" sources={frontmatter.sources} />.
+El motor pierde al convertir: Boretti reporta, de rueda a batería, del 70 al 80 % en un Leaf 2012 y del 72 al 87 % en uno 2013 <Cite id="boretti-2016" sources={frontmatter.sources} />; uso η = 0,80. La regeneración se reduce con la batería llena, fría o caliente <Cite id="nissan-leaf-2025-manual" sources={frontmatter.sources} />; en el modelo, eso baja <Equation inline latex="P_\text{máx}" />. Al detenerse, la regeneración se desvanece: f(v) <Cite id="fastsim-2-simdrive" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-frenado-regeneracion"
@@ -214,7 +214,7 @@ El motor pierde al convertir: Boretti reporta, de rueda a batería, del 70 al 80
 
 <Fragment slot="fenomeno">
 
-Lo que el motor no toma se vuelve calor en las pastillas; de lo que toma, parte se pierde antes de la batería.
+Lo que el motor no toma se vuelve calor en las pastillas; de lo que toma, parte se pierde antes de cargar.
 
 </Fragment>
 
@@ -241,7 +241,7 @@ En el UDDS, con frenadas de hasta 33,2 kW bajo un tope de 239 kW, la (6.3) sin f
 
 <Step n={4} title="El balance del ciclo">
 
-El modelo mejorado suma la (6.3) segundo a segundo. De los 0,869 kWh que frenan las ruedas en el UDDS, 0,645 vuelven a la batería, el 40,4 % de la tracción; 0,161 se pierden al convertir y 0,062 en las pastillas (tabla 6.2).
+El modelo mejorado suma la (6.3) segundo a segundo. De los 0,8686 kWh que frenan las ruedas en el UDDS, 0,6452 vuelven a la batería (40,4 % de la tracción) y se disipan 0,2234: 0,1613 al convertir y 0,0621 en las pastillas (tabla 6.2).
 
 <Equation
   id="ec-frenado-balance"
@@ -318,7 +318,7 @@ Se gana una autonomía que responde al ciclo, al auto y a la batería, y saber d
 
 <Callout variant="clase" title="Módulo 2 · Temas 03 y 04, con una extensión">
 
-La (6.1) es el teorema trabajo–energía del Tema 03 (ejemplo «Distancia de frenado»). En el balance del Tema 04, <Equation inline latex="\Delta E_\text{mec} + \Delta E_\text{interna} = 0" />, la energía interna queda en aire, llantas, motor y pastillas, y una parte sale a la batería. Potencia, rendimiento y fracción recuperada son extensión.
+La (6.1) es el teorema trabajo–energía del Tema 03 (ejemplo «Distancia de frenado»). En el balance del Tema 04, <Equation inline latex="\Delta E_\text{mec} + \Delta E_\text{interna} = 0" />, la energía interna queda en aire, llantas, motor, pastillas y, como energía química, en la batería. Potencia, rendimiento y fracción recuperada son extensión.
 
 </Callout>
 
