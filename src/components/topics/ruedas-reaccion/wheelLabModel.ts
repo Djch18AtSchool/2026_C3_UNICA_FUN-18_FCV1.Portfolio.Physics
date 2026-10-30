@@ -54,7 +54,8 @@ export const SECONDS_PER_DAY = HOURS_PER_DAY * SECONDS_PER_HOUR;
 export const DISTURBANCE_SPAN = DISTURBANCE_DAYS * SECONDS_PER_DAY;
 /**
  * Seconds of disturbance per second of playback at 1×: two hours of orbit a second, so a day
- * plays in 12 s and the three days in 36 s. The maneuver plays in real time.
+ * plays in 12 s at 1× (each dump is then stretched, see disturbanceTimeline.ts). The maneuver
+ * plays in real time.
  */
 export const DAY_LAPSE = 2 * SECONDS_PER_HOUR;
 const PERCENT = 100;
@@ -183,7 +184,13 @@ export function maneuverSeries(settings: WheelSettings): SeriesPoint[] {
  * Corner times (s) of the sawtooth inside the span: the first fill, then every dump start and
  * end. L_w is linear between them, so these points draw it exactly.
  */
-function sawtoothCorners({ tauExt, tauDump, Lmax, dumpAt, dumpTo }: DumpingParams): number[] {
+export function sawtoothCorners({
+  tauExt,
+  tauDump,
+  Lmax,
+  dumpAt,
+  dumpTo,
+}: DumpingParams): number[] {
   const reachHigh = (dumpAt * Lmax) / tauExt;
   const swing = (dumpAt - dumpTo) * Lmax;
   const dumpDuration = swing / (tauDump - tauExt);

@@ -62,7 +62,7 @@ function disturbanceNote(): string {
   const fillTime = (DUMP_THRESHOLD * Lmax) / tauExt;
   const dumpTime = (DUMP_THRESHOLD * Lmax) / (tauDump - tauExt);
   const reached = disturbanceReadings('magnetopar', fillTime);
-  return `El gradiente de gravedad a 500 km, tomado constante en su máximo (${formatNumber(GRAVITY_GRADIENT_6U.torque * 1e7, { precision: 1 })}·10⁻⁷ N·m, una cota superior), llena la rueda mientras la nave sigue quieta: llega al ${percent(reached.share)} de L_max a las ${n(fillTime / SECONDS_PER_HOUR, 1, 'h')}. El magnetopar (${formatNumber(tauDump * 1e5, { precision: 1 })}·10⁻⁵ N·m) la vacía en ${n(dumpTime / SECONDS_PER_MINUTE, 0, 'min')}. La reproducción muestra ${DISTURBANCE_DAYS} días a cámara rápida, un día cada ${n(SECONDS_PER_DAY / DAY_LAPSE, 0, 's')}: la descarga cae en el tercero.`;
+  return `El gradiente de gravedad a 500 km, tomado constante en su máximo (${formatNumber(GRAVITY_GRADIENT_6U.torque * 1e7, { precision: 2 })}·10⁻⁷ N·m, una cota superior), llena la rueda mientras la nave sigue quieta: llega al ${percent(reached.share)} de L_max a las ${n(fillTime / SECONDS_PER_HOUR, 1, 'h')}. El magnetopar (${formatNumber(tauDump * 1e5, { precision: 1 })}·10⁻⁵ N·m) la vacía en ${n(dumpTime / SECONDS_PER_MINUTE, 0, 'min')}. La reproducción muestra ${DISTURBANCE_DAYS} días a cámara rápida, a 1× un día cada ${n(SECONDS_PER_DAY / DAY_LAPSE, 0, 's')}: la descarga cae en el tercero.`;
 }
 
 export const WHEEL_PRESETS: Preset<WheelSettings>[] = [
@@ -81,8 +81,8 @@ export const WHEEL_PRESETS: Preset<WheelSettings>[] = [
     note: fastestNote(),
   },
   {
-    id: 'dia-perturbacion',
-    name: 'Un día de perturbación con descarga',
+    id: 'tres-dias-perturbacion',
+    name: 'Tres días de perturbación con descarga',
     values: { ...DEFAULT_SETTINGS, mode: 'perturbacion' },
     sourceLabel: 'Gradiente de gravedad y magnetopar (cálculo propio)',
     note: disturbanceNote(),

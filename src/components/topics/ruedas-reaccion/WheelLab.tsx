@@ -4,11 +4,15 @@ import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import { useSimClock } from '../../lab/useSimClock';
 import ChoiceField from './ChoiceField';
+import {
+  disturbanceTimeline,
+  firstDumpPlayback,
+  orbitTimeAt,
+  playbackTimeAt,
+} from './disturbanceTimeline';
 import MomentumGauge from './MomentumGauge';
 import { DEFAULT_DISPLAY, wheelLocalSettings, type WheelDisplay } from './wheelLabSettings';
 import {
-  DAY_LAPSE,
-  DISTURBANCE_SPAN,
   disturbanceReadings,
   DUMP_THRESHOLD,
   maneuverFeasibility,
@@ -119,10 +123,13 @@ export default function WheelLab({ footnote }: WheelLabProps): JSX.Element {
   const isManeuver = settings.mode === 'maniobra';
   const feasibility = useMemo(() => maneuverFeasibility(settings), [settings]);
 
-  const clock = useSimClock(isManeuver ? settings.T : DISTURBANCE_SPAN, {
-    timeScale: isManeuver ? 1 : DAY_LAPSE,
-  });
-  const { t } = clock.state;
+  const warp = useMemo(() => disturbanceTimeline(settings.actuator), [settings.actuator]);
+
+  // The disturbance clock runs in playback seconds: DAY_LAPSE on the fills, dumps stretched.
+  const clock = useSimClock(isManeuver ? settings.T : warp.duration);
+  const t = isManeuver ? clock.state.t : orbitTimeAt(warp, clock.state.t);
+  const seekOrbit = (orbitTime: number) =>
+    clock.seek(isManeuver ? orbitTime : playbackTimeAt(warp, orbitTime));
   const maneuver = isManeuver ? maneuverReadings(settings, t) : undefined;
   const disturbance = isManeuver ? undefined : disturbanceReadings(settings.actuator, t);
   const live = maneuver ?? (disturbance as DisturbanceReadings);
@@ -231,8 +238,10 @@ export default function WheelLab({ footnote }: WheelLabProps): JSX.Element {
           settings={settings}
           feasibility={feasibility}
           dumping={disturbance?.dumping ?? false}
+          speed={clock.state.speed}
+          onGoToDump={() => clock.seek(firstDumpPlayback(warp))}
         />
-        {display.showPlot ? <WheelPlot settings={settings} t={t} onSeek={clock.seek} /> : null}
+        {display.showPlot ? <WheelPlot settings={settings} t={t} onSeek={seekOrbit} /> : null}
       </div>
     </LabShell>
   );

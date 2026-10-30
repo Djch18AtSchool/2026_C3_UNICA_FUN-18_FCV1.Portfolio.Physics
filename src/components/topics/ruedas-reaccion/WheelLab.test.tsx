@@ -4,7 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
+import { disturbanceTimeline, MIN_DUMP_PLAYBACK, playbackTimeAt } from './disturbanceTimeline';
 import WheelLab, { DAY_LAPSE } from './WheelLab';
+import type { DumpActuator } from './wheelLabModel';
 
 const FOOTNOTE = 'Rueda partiendo de 0 rpm; un eje.';
 /** The timeline maps [0, duration] onto 0..1000. */
@@ -89,10 +91,14 @@ function dragHandleTo(point: { x: number; y: number }): void {
   fireEvent.pointerUp(handle(), { pointerId: 1, clientX: point.x, clientY: point.y });
 }
 
-function seekHours(hours: number): void {
-  const span = 72;
-  fireEvent.change(timeline(), { target: { value: String((hours / span) * TIMELINE_MAX) } });
+/** Seeks the disturbance clock to an orbit time, through the stretched playback timeline. */
+function seekHours(hours: number, actuator: DumpActuator = 'magnetopar'): void {
+  const warp = disturbanceTimeline(actuator);
+  const u = playbackTimeAt(warp, hours * 3600);
+  fireEvent.change(timeline(), { target: { value: String((u / warp.duration) * TIMELINE_MAX) } });
 }
+
+const scene = () => screen.getByTestId('wheel-scene');
 
 describe('WheelLab', () => {
   let uninstall: () => void;
@@ -148,15 +154,16 @@ describe('WheelLab', () => {
     expect(preset(/^90° en 60 s/)).toHaveAttribute('aria-pressed', 'false');
   });
 
-  test('T = 8 s is below T_min: the warning shows and no readout is NaN', () => {
+  test('T = 8 s is below T_min: the warning fills a live region already in the page, no NaN', () => {
     renderLab();
+    const region = screen.getByRole('status');
+    expect(region).toBeEmptyDOMElement();
 
     typeInto(durationField(), '8');
     fireEvent.change(timeline(), { target: { value: '500' } });
 
-    expect(screen.getByRole('status')).toHaveTextContent(
-      /la rueda no alcanza: se satura o le falta torque/i,
-    );
+    expect(screen.getByRole('status')).toBe(region);
+    expect(region).toHaveTextContent(/la rueda no alcanza: se satura o le falta torque/i);
     expect(lab().textContent).not.toMatch(/NaN|Infinity/);
     expect(readoutNumber('Porcentaje de L_max')).toBeGreaterThan(100);
     expect(screen.getByTestId('momentum-gauge')).toHaveAttribute('data-exceeds', 'true');
@@ -206,22 +213,105 @@ describe('WheelLab', () => {
     await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
 
     await user.click(screen.getByRole('radio', { name: 'Propulsor' }));
-    seekHours(49);
+    seekHours(49, 'propulsor');
 
     expect(readoutNumber('Porcentaje de L_max')).toBeLessThan(1);
-    expect(screen.getByText(/τ = r × F/)).toBeInTheDocument();
+    expect(scene().querySelector('[data-actuator="propulsor"]')).toBeNull();
+    expect(screen.getByText(/supuesto ilustrativo/)).toHaveTextContent(
+      /τ_max de la rueda \(8 mN·m\)/,
+    );
   });
 
-  test('"Un día de perturbación con descarga" switches to the time-lapsed disturbance', async () => {
+  test('"Ir a la descarga" shows the thruster firing: the jet, τ = r × F and the phase', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
+    await user.click(screen.getByRole('radio', { name: 'Propulsor' }));
+
+    await user.click(screen.getByRole('button', { name: 'Ir a la descarga' }));
+
+    expect(scene().querySelector('[data-actuator="propulsor"]')).not.toBeNull();
+    expect(within(scene()).getByText('τ = r × F')).toBeInTheDocument();
+    expect(screen.getByTestId('wheel-phase')).toHaveTextContent(/descargando con el propulsor/i);
+    expect(readoutNumber('Torque del motor sobre la rueda τ')).toBeLessThan(-7.99);
+    expect(readoutNumber('Tiempo en órbita')).toBeCloseTo(48.63, 1);
+  });
+
+  test('under reduced motion the stepped playback still lands on the 5 s thruster dump', async () => {
+    setSettings({ motion: 'reduced' });
+    const frames = installFrameQueue();
+    vi.useFakeTimers();
+    renderLab();
+    fireEvent.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Propulsor' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
+    let sawFiring = false;
+    for (let step = 0; step < 70 && !sawFiring; step++) {
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+      sawFiring = scene().querySelector('[data-actuator="propulsor"]') !== null;
+    }
+
+    expect(sawFiring).toBe(true);
+    expect(screen.getByTestId('wheel-phase')).toHaveTextContent(/descargando con el propulsor/i);
+    expect(frames.request).not.toHaveBeenCalled();
+  });
+
+  test('"Tres días de perturbación con descarga" switches to the time-lapsed disturbance', async () => {
     const user = userEvent.setup();
     renderLab();
 
-    await user.click(preset(/^Un día de perturbación con descarga/));
+    await user.click(preset(/^Tres días de perturbación con descarga/));
 
     expect(screen.getByRole('radio', { name: 'Perturbación y descarga' })).toBeChecked();
     expect(screen.getByRole('radio', { name: 'Magnetopar' })).toBeChecked();
     expect(DAY_LAPSE).toBe(7200);
-    expect(screen.getByText(/2 h de órbita por segundo/)).toBeInTheDocument();
+    expect(MIN_DUMP_PLAYBACK).toBe(2);
+    expect(
+      screen.getByText(/A 1×, 2 h de órbita por segundo \(un día en 12 s\)/),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/2,28·10⁻⁷ N·m/).length).toBeGreaterThan(0);
+    expect(lab().textContent).not.toMatch(/2,3·10⁻⁷|2,29·10⁻⁷/);
+  });
+
+  test('the time-lapse statement follows the speed setting: at 4×, 8 h of orbit per second', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
+
+    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+    await user.selectOptions(
+      within(screen.getByRole('dialog')).getByRole('combobox', { name: 'Velocidad' }),
+      '4',
+    );
+    await user.keyboard('{Escape}');
+
+    expect(
+      screen.getByText(/a 4×, 8 h de órbita por segundo \(un día en 3 s\)/),
+    ).toBeInTheDocument();
+  });
+
+  test('in the disturbance the plot cursor scrubs orbit hours, and 8× plays a day in 1,5 s', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
+    const cursor = within(screen.getByTestId('wheel-plot')).getByRole('slider');
+
+    cursor.focus();
+    fireEvent.keyDown(cursor, { key: 'ArrowRight', shiftKey: true });
+    expect(readout('Tiempo en órbita')).toBe('7,20 h');
+
+    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+    await user.selectOptions(
+      within(screen.getByRole('dialog')).getByRole('combobox', { name: 'Velocidad' }),
+      '8',
+    );
+    await user.keyboard('{Escape}');
+    expect(
+      screen.getByText(/a 8×, 16 h de órbita por segundo \(un día en 1,5 s\)/),
+    ).toBeInTheDocument();
   });
 
   test('the plot cursor scrubs the clock from the keyboard', () => {
