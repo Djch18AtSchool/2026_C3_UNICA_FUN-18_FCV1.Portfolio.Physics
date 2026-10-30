@@ -1,0 +1,335 @@
+---
+/*
+ * Panel A of the prescribed diagram (Tema 8): the angular momentum exchange of steps 1 and 2.
+ * The spacecraft is a box seen from the front and a little above, so circles about the vertical
+ * z axis project to ellipses and their near side is the lower arc. The front face is cut open to
+ * show the wheel on its motor. The wheel turns counterclockwise seen from above (ω_w and L_w up,
+ * +z), the body clockwise (ω_s and L_s down); the motor is accelerating the wheel, so τ on the
+ * wheel turns with ω_w and −τ on the body against it. Styles live in WheelDiagram.astro.
+ */
+import { arrow, mathRuns, onEllipse, spinArc, type MathPart } from './diagramGeometry';
+import { DIAGRAM_FACTS } from './wheelFigures';
+
+const VIEW = { width: 420, height: 768 } as const;
+const AXIS_X = 170;
+const AXIS = { top: 72, bottom: 470 } as const;
+const BODY = { left: 62, right: 278, back: 176, front: 210, bottom: 296 } as const;
+const TOP_CENTRE = { x: AXIS_X, y: (BODY.back + BODY.front) / 2 };
+const WINDOW = { left: 110, right: 230, top: 216, bottom: 292 } as const;
+const WHEEL = { cy: 240, rx: 50, ry: 12, thickness: 10 } as const;
+const HUB = { rx: 9, ry: 2.5 } as const;
+const MOTOR = { top: 262, bottom: 286, rx: 13, ry: 4 } as const;
+/** L_w and L_s: the same length, opposite ways along z (L_s + L_w = 0 from rest). */
+const L_LENGTH = 84;
+const BODY_GAP = 4;
+
+const wheelBottom = WHEEL.cy + WHEEL.thickness;
+const lw = arrow(TOP_CENTRE, { x: AXIS_X, y: TOP_CENTRE.y - L_LENGTH }, 12);
+const lsStart = BODY.bottom + BODY_GAP;
+const ls = arrow({ x: AXIS_X, y: lsStart }, { x: AXIS_X, y: lsStart + L_LENGTH }, 12);
+const omegaW = spinArc({ cx: AXIS_X, cy: WHEEL.cy + 7, rx: 58, ry: 20 }, 160, 20);
+/** ω_s circles the body just under its bottom edge, so its near side runs below the box. */
+const BODY_SPIN = { cx: AXIS_X, cy: BODY.bottom, rx: 142, ry: 30 } as const;
+const omegaS = spinArc(BODY_SPIN, 22, 158);
+const omegaSLabel = onEllipse(BODY_SPIN, 172);
+const motorMark = { cx: AXIS_X, cy: (MOTOR.top + MOTOR.bottom) / 2, r: 21 } as const;
+
+// ---- Detail M: the motor between the wheel (rotor) and the body (stator) ----
+const DETAIL = { x: 12, y: 548, width: 396, height: 208 } as const;
+const DM_X = 120;
+const ROTOR = { cy: 606, rx: 72, ry: 14, thickness: 14 } as const;
+const STATOR = { top: 628, bottom: 656, rx: 24, ry: 6 } as const;
+const FLOOR = { y: 662, left: 34, right: 206 } as const;
+const HATCH_STEP = 12;
+const tauArc = spinArc({ cx: DM_X, cy: ROTOR.cy + 9, rx: 86, ry: 16 }, 160, 20);
+const minusTauArc = spinArc({ cx: DM_X, cy: STATOR.top + 18, rx: 40, ry: 10 }, 20, 160);
+const hatches = Array.from(
+  { length: Math.floor((FLOOR.right - FLOOR.left) / HATCH_STEP) },
+  (_, index) => `M${FLOOR.left + HATCH_STEP / 2 + index * HATCH_STEP},${FLOOR.y + 1} l-7,9`,
+).join(' ');
+
+/** A cylinder about the vertical axis: top ellipse, sides and the near half of the bottom. */
+function cylinder(cx: number, top: number, bottom: number, rx: number, ry: number) {
+  return {
+    side: `M${cx - rx},${top} L${cx - rx},${bottom} A${rx},${ry} 0 0 0 ${cx + rx},${bottom} L${cx + rx},${top} Z`,
+    top: { cx, cy: top, rx, ry },
+  };
+}
+const wheelBody = cylinder(AXIS_X, WHEEL.cy, wheelBottom, WHEEL.rx, WHEEL.ry);
+const motorBody = cylinder(AXIS_X, MOTOR.top, MOTOR.bottom, MOTOR.rx, MOTOR.ry);
+const rotorBody = cylinder(DM_X, ROTOR.cy, ROTOR.cy + ROTOR.thickness, ROTOR.rx, ROTOR.ry);
+const statorBody = cylinder(DM_X, STATOR.top, STATOR.bottom, STATOR.rx, STATOR.ry);
+
+const sub = (symbol: string, subscript: string): MathPart => ({ symbol, sub: subscript });
+const EQ = {
+  lw: [sub('L', 'w'), ' = ', sub('I', 'w'), ' ', sub('ω', 'w')],
+  ls: [sub('L', 's'), ' = ', sub('I', 's'), ' ', sub('ω', 's')],
+  sum: [sub('L', 's'), ' + ', sub('L', 'w'), ' = 0'],
+  conservation: [
+    sub('I', 's'),
+    ' ',
+    sub('ω', 's'),
+    ' + ',
+    sub('I', 'w'),
+    ' ',
+    sub('ω', 'w'),
+    ' = constante',
+  ],
+  angles: [sub('I', 's'), ' Δ', sub('θ', 's'), ' = −', sub('I', 'w'), ' Δ', sub('θ', 'w')],
+  wheelTorque: [
+    { symbol: 'τ' },
+    ' = d',
+    sub('L', 'w'),
+    '/d',
+    { symbol: 't' },
+    ' = ',
+    sub('I', 'w'),
+    ' ',
+    sub('α', 'w'),
+  ],
+  bodyTorque: [
+    '−',
+    { symbol: 'τ' },
+    ' = d',
+    sub('L', 's'),
+    '/d',
+    { symbol: 't' },
+    ' = ',
+    sub('I', 's'),
+    ' ',
+    sub('α', 's'),
+  ],
+  omegaW: [sub('ω', 'w')],
+  omegaS: [sub('ω', 's')],
+  tau: [{ symbol: 'τ' }],
+  minusTau: ['−', { symbol: 'τ' }],
+} satisfies Record<string, MathPart[]>;
+const runs = Object.fromEntries(
+  Object.entries(EQ).map(([key, parts]) => [key, mathRuns(parts)]),
+) as Record<keyof typeof EQ, ReturnType<typeof mathRuns>>;
+---
+
+<svg
+  class="wd-panel"
+  data-panel="A"
+  aria-hidden="true"
+  viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <text class="wd-title" x="16" y="28">
+    A · Intercambio de momento
+  </text>
+  <text class="wd-note" x="16" y="50">
+    Nave en corte, no a escala
+  </text>
+
+  <!-- z axis, dashed; the body hides it except through the cut. -->
+  <line class="wd-axis" x1={AXIS_X} y1={AXIS.top + 10} x2={AXIS_X} y2={AXIS.bottom} />
+  <polygon
+    class="wd-axis-head"
+    points={arrow({ x: AXIS_X, y: AXIS.top + 20 }, { x: AXIS_X, y: AXIS.top }, 10).head}
+  />
+  <text class="wd-label wd-math" x={AXIS_X - 10} y={AXIS.top + 12} text-anchor="end">
+    z
+  </text>
+
+  <!-- Body: top face, front face and the cut that shows the wheel. -->
+  <rect
+    class="wd-body-top"
+    x={BODY.left}
+    y={BODY.back}
+    width={BODY.right - BODY.left}
+    height={BODY.front - BODY.back}
+  />
+  <rect
+    class="wd-body-front"
+    x={BODY.left}
+    y={BODY.front}
+    width={BODY.right - BODY.left}
+    height={BODY.bottom - BODY.front}
+  />
+  <rect
+    class="wd-cut"
+    x={WINDOW.left}
+    y={WINDOW.top}
+    width={WINDOW.right - WINDOW.left}
+    height={WINDOW.bottom - WINDOW.top}
+  />
+  <line class="wd-axis" x1={AXIS_X} y1={WINDOW.top} x2={AXIS_X} y2={WINDOW.bottom} />
+
+  <!-- Motor (stator on the floor of the body) and wheel (rotor) on it. -->
+  <path class="wd-motor" d={motorBody.side} />
+  <ellipse class="wd-motor" {...motorBody.top} />
+  <path class="wd-wheel" d={wheelBody.side} />
+  <ellipse class="wd-wheel" {...wheelBody.top} />
+  <ellipse class="wd-hub" cx={AXIS_X} cy={WHEEL.cy} rx={HUB.rx} ry={HUB.ry} />
+
+  <path class="wd-spin wd-wheel-spin" d={omegaW.d} />
+  <polygon class="wd-wheel-fill" points={omegaW.head} />
+  <text class="wd-eq" x={WINDOW.right + 8} y={WHEEL.cy + 26}>
+    {runs.omegaW.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+
+  <circle class="wd-mark" {...motorMark} />
+  <text class="wd-label wd-mark-label" x={motorMark.cx + motorMark.r + 4} y={motorMark.cy + 8}>
+    M
+  </text>
+
+  <line class="wd-leader" x1={58} y1={WHEEL.cy - 2} x2={WINDOW.left + 8} y2={WHEEL.cy + 2} />
+  <text class="wd-label" x="54" y={WHEEL.cy + 4} text-anchor="end">
+    rueda
+  </text>
+  <text class="wd-label" x={BODY.left} y={BODY.back - 10}>
+    nave
+  </text>
+
+  <!-- L_w leaves the top face; L_s the same length, the other way. -->
+  <line class="wd-axis" x1={AXIS_X} y1={AXIS.top + 10} x2={AXIS_X} y2={TOP_CENTRE.y} />
+  <line class="wd-vector wd-wheel-stroke" x1={lw.x1} y1={lw.y1} x2={lw.x2} y2={lw.y2} />
+  <polygon class="wd-wheel-fill" points={lw.head} />
+  <circle class="wd-pierce" cx={TOP_CENTRE.x} cy={TOP_CENTRE.y} r="3" />
+  <text class="wd-eq" x={AXIS_X + 14} y={TOP_CENTRE.y - L_LENGTH / 2}>
+    {runs.lw.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+
+  <line class="wd-vector wd-body-stroke" x1={ls.x1} y1={ls.y1} x2={ls.x2} y2={ls.y2} />
+  <polygon class="wd-body-fill" points={ls.head} />
+  <text class="wd-eq" x={AXIS_X + 14} y={lsStart + L_LENGTH - 16}>
+    {runs.ls.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+
+  <path class="wd-spin wd-body-spin" d={omegaS.d} />
+  <polygon class="wd-body-fill" points={omegaS.head} />
+  <text class="wd-eq" x={omegaSLabel.x - 6} y={omegaSLabel.y - 18} text-anchor="middle">
+    {runs.omegaS.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+
+  <text class="wd-eq" x={BODY.right + 14} y={BODY.front + 26}>
+    {runs.sum.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+  <text class="wd-note" x={BODY.right + 14} y={BODY.front + 48}>
+    desde el reposo
+  </text>
+
+  <!-- Equation (8.1) and its integral, then the number of wheel turns. -->
+  <text class="wd-eq" x="16" y="436">
+    {runs.conservation.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+  <text class="wd-tag" x="404" y="436" text-anchor="end">
+    (8.1)
+  </text>
+  <text class="wd-eq" x="16" y="472">
+    {runs.angles.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+  <text class="wd-label" x="16" y="508">
+    La rueda da unas <tspan class="wd-strong">{DIAGRAM_FACTS.turns} vueltas</tspan>
+  </text>
+  <text class="wd-label" x="16" y="530">
+    para que la nave gire 90°.
+  </text>
+
+  <!-- ===== Detail M: action and reaction at the motor ===== -->
+  <rect
+    class="wd-detail"
+    x={DETAIL.x}
+    y={DETAIL.y}
+    width={DETAIL.width}
+    height={DETAIL.height}
+    rx="3"
+  />
+  <text class="wd-title" x={DETAIL.x + 12} y={DETAIL.y + 24}>
+    Detalle M · el motor
+  </text>
+
+  <path class="wd-floor-hatch" d={hatches} />
+  <line class="wd-floor" x1={FLOOR.left} y1={FLOOR.y} x2={FLOOR.right} y2={FLOOR.y} />
+  <path class="wd-motor" d={statorBody.side} />
+  <ellipse class="wd-motor" {...statorBody.top} />
+  <path class="wd-wheel" d={rotorBody.side} />
+  <ellipse class="wd-wheel" {...rotorBody.top} />
+  <ellipse class="wd-hub" cx={DM_X} cy={ROTOR.cy} rx={HUB.rx} ry={HUB.ry} />
+  <text class="wd-note" x={FLOOR.left} y={FLOOR.y + 26}>
+    nave
+  </text>
+  <text class="wd-note" x={DM_X} y={ROTOR.cy - 22} text-anchor="middle">
+    rueda
+  </text>
+
+  <path class="wd-spin wd-torque-stroke" d={tauArc.d} />
+  <polygon class="wd-torque-fill" points={tauArc.head} />
+  <text class="wd-eq" x={DM_X + 92} y={ROTOR.cy + 30}>
+    {runs.tau.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+  <path class="wd-spin wd-torque-stroke" d={minusTauArc.d} />
+  <polygon class="wd-torque-fill" points={minusTauArc.head} />
+  <text class="wd-eq" x={DM_X - 52} y={STATOR.top + 20} text-anchor="end">
+    {runs.minusTau.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+
+  <text class="wd-label wd-strong" x="236" y="600">
+    Tercera ley
+  </text>
+  <text class="wd-label" x="236" y="624">
+    <tspan class="wd-math">τ</tspan> sobre la rueda,
+  </text>
+  <text class="wd-label" x="236" y="646">
+    −<tspan class="wd-math">τ</tspan> sobre la nave:
+  </text>
+  <text class="wd-label" x="236" y="668">
+    acción y reacción
+  </text>
+
+  <text class="wd-eq" x={DETAIL.x + 12} y="716">
+    {runs.wheelTorque.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+  <text class="wd-tag" x="396" y="716" text-anchor="end">
+    (8.2)
+  </text>
+  <text class="wd-eq" x={DETAIL.x + 12} y="744">
+    {runs.bodyTorque.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+</svg>

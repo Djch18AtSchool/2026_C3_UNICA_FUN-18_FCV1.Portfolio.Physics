@@ -1,0 +1,444 @@
+---
+/*
+ * Panel B of the prescribed diagram (Tema 8): saturation and dumping, steps 3 and 4.
+ * 1. A small disturbance that never stops fills the wheel: L_w rises to the red L_max, and then
+ *    the motor can no longer take the disturbance and the body drifts.
+ * 2. Dumping with the Earth's field (north up, so B points up beside the equator): a magnetorquer
+ *    dipole m to the right gives τ = m × B out of the page (⊙), perpendicular to both; the motor
+ *    brakes the wheel meanwhile, so L_w falls.
+ * 3. The thruster variant (τ = r × F, into the page ⊗) and the 3–4 wheel pyramid.
+ * Styles live in WheelDiagram.astro.
+ */
+import {
+  arrow,
+  dipoleFieldLine,
+  mathRuns,
+  spinArc,
+  type MathPart,
+  type Point,
+} from './diagramGeometry';
+import { DIAGRAM_FACTS } from './wheelFigures';
+
+const VIEW = { width: 420, height: 868 } as const;
+
+// ---- 1 · Filling up ----
+const METER = { left: 36, right: 68, top: 112, bottom: 300 } as const;
+const LIMIT_REACH = 12;
+const SAT: Point = { x: 338, y: 178 };
+const SAT_BOX = 58;
+const SAT_WHEEL = 16;
+const SPIN = { cx: SAT.x, cy: SAT.y, rx: 46, ry: 46 };
+const tauExt = spinArc(SPIN, 200, 340);
+const drift = spinArc(SPIN, 30, 150);
+const TEXT_X = 88;
+
+// ---- 2 · Dumping against the Earth's field ----
+const EARTH = { cx: -46, cy: 500, r: 100 } as const;
+const FIELD_LINES = [150, 215, 290];
+const FIELD_CLIP = { top: 386, bottom: 580 } as const;
+const fieldLines = FIELD_LINES.map((L) => ({
+  d: dipoleFieldLine({ x: EARTH.cx, y: EARTH.cy }, L, EARTH.r),
+  // At the magnetic equator the field points north: up.
+  head: arrow({ x: EARTH.cx + L, y: EARTH.cy + 6 }, { x: EARTH.cx + L, y: EARTH.cy - 6 }, 10).head,
+}));
+const DUMP_SAT = { x: 322, y: 488 } as const;
+const DUMP_BOX = { width: 64, height: 48 } as const;
+const dipole = arrow(
+  { x: DUMP_SAT.x - 24, y: DUMP_SAT.y + 8 },
+  { x: DUMP_SAT.x + 24, y: DUMP_SAT.y + 8 },
+  9,
+);
+const field = arrow({ x: 382, y: 522 }, { x: 382, y: 446 }, 12);
+const OUT_OF_PAGE = { cx: DUMP_SAT.x, cy: 430, r: 9 } as const;
+const BAR = { left: 290, right: 370, top: 532, height: 12, fill: 0.55 } as const;
+const barDrop = arrow({ x: 352, y: 562 }, { x: 302, y: 562 }, 9);
+
+// ---- 3 · Thrusters and several wheels ----
+const BOX_Y = 696;
+const BOX_HEIGHT = 160;
+const SUN = { cx: 34, cy: 784, r: 11 } as const;
+const SUN_RAYS = 8;
+const RAY = { from: 15, to: 21 } as const;
+const sunRays = Array.from({ length: SUN_RAYS }, (_, index) => {
+  const angle = (2 * Math.PI * index) / SUN_RAYS;
+  return `M${SUN.cx + RAY.from * Math.cos(angle)},${SUN.cy + RAY.from * Math.sin(angle)} L${SUN.cx + RAY.to * Math.cos(angle)},${SUN.cy + RAY.to * Math.sin(angle)}`;
+}).join(' ');
+const pressure = [774, 794].map((y) => arrow({ x: 60, y }, { x: 88, y }, 8));
+const THRUST_BODY = { x: 92, y: 768, width: 40, height: 36 } as const;
+const bodyCentre = {
+  x: THRUST_BODY.x + THRUST_BODY.width / 2,
+  y: THRUST_BODY.y + THRUST_BODY.height / 2,
+};
+const THRUSTER: Point = { x: 176, y: 762 };
+const armR = arrow(bodyCentre, THRUSTER, 9);
+const forceF = arrow(THRUSTER, { x: THRUSTER.x, y: THRUSTER.y + 40 }, 10);
+const PYRAMID: Point = { x: 310, y: 808 };
+const PYRAMID_AXES: Point[] = [
+  { x: -58, y: -34 },
+  { x: 58, y: -34 },
+  { x: -24, y: -60 },
+  { x: 26, y: -58 },
+];
+const pyramid = PYRAMID_AXES.map((offset) => {
+  const tip = { x: PYRAMID.x + offset.x, y: PYRAMID.y + offset.y };
+  return {
+    ...arrow(PYRAMID, tip, 9),
+    disc: { cx: tip.x - offset.x * 0.28, cy: tip.y - offset.y * 0.28 },
+  };
+});
+
+const sub = (symbol: string, subscript: string): MathPart => ({ symbol, sub: subscript });
+const EQ = {
+  limit: [sub('L', 'max'), ' = ', sub('I', 'w'), ' ', sub('ω', 'max')],
+  integral: [sub('L', 'w'), ' = ∫ ', sub('τ', 'ext'), ' d', { symbol: 't' }],
+  lw: [sub('L', 'w')],
+  tauExt: [sub('τ', 'ext')],
+  drift: [sub('ω', 's'), ' ≠ 0'],
+  magnetic: [{ symbol: 'τ' }, ' = ', { symbol: 'm' }, ' × ', { symbol: 'B' }],
+  thruster: [{ symbol: 'τ' }, ' = ', { symbol: 'r' }, ' × ', { symbol: 'F' }],
+  m: [{ symbol: 'm' }],
+  B: [{ symbol: 'B' }],
+  r: [{ symbol: 'r' }],
+  F: [{ symbol: 'F' }],
+} satisfies Record<string, MathPart[]>;
+const runs = Object.fromEntries(
+  Object.entries(EQ).map(([key, parts]) => [key, mathRuns(parts)]),
+) as Record<keyof typeof EQ, ReturnType<typeof mathRuns>>;
+---
+
+<svg
+  class="wd-panel"
+  data-panel="B"
+  aria-hidden="true"
+  viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <clipPath id="wd-field-clip">
+      <rect
+        x="0"
+        y={FIELD_CLIP.top}
+        width={VIEW.width}
+        height={FIELD_CLIP.bottom - FIELD_CLIP.top}
+      />
+    </clipPath>
+  </defs>
+
+  <text class="wd-title" x="16" y="28">
+    B · Saturación y descarga
+  </text>
+  <text class="wd-note" x="16" y="50">
+    No a escala
+  </text>
+
+  <!-- ===== 1 · The disturbance fills the wheel ===== -->
+  <text class="wd-label wd-strong" x="16" y="84">
+    1 · Una perturbación que no para
+  </text>
+
+  <rect
+    class="wd-meter"
+    x={METER.left}
+    y={METER.top}
+    width={METER.right - METER.left}
+    height={METER.bottom - METER.top}
+  />
+  <rect
+    class="wd-meter-fill"
+    x={METER.left}
+    y={METER.top}
+    width={METER.right - METER.left}
+    height={METER.bottom - METER.top}
+  />
+  <line
+    class="wd-limit"
+    x1={METER.left - LIMIT_REACH}
+    y1={METER.top}
+    x2={METER.right + LIMIT_REACH}
+    y2={METER.top}
+  />
+  <text class="wd-note" x={METER.left - 8} y={METER.bottom + 5} text-anchor="end">
+    0
+  </text>
+  <text class="wd-eq" x={(METER.left + METER.right) / 2} y={METER.bottom + 28} text-anchor="middle">
+    {runs.lw.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+
+  <text class="wd-eq" x={TEXT_X} y={METER.top + 6}>
+    {runs.limit.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+  <text class="wd-note" x={TEXT_X} y={METER.top + 30}>
+    {DIAGRAM_FACTS.LmaxLabel} (RW400)
+  </text>
+
+  <text class="wd-eq" x={TEXT_X} y="190">
+    {runs.integral.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+  <text class="wd-note" x={TEXT_X} y="214">
+    <tspan class="wd-math">τ</tspan>
+    <tspan class="wd-math wd-sub" dy="5">
+      ext
+    </tspan>
+    <tspan dy="-5"> ≤ {DIAGRAM_FACTS.disturbanceLabel}</tspan>
+  </text>
+  <text class="wd-note" x={TEXT_X} y="236">
+    (gradiente de gravedad)
+  </text>
+
+  <line class="wd-limit-rule" x1={TEXT_X - 8} y1="252" x2={TEXT_X - 8} y2="318" />
+  <text class="wd-label" x={TEXT_X} y="268">
+    En saturación el motor ya no
+  </text>
+  <text class="wd-label" x={TEXT_X} y="290">
+    puede acelerar la rueda:
+  </text>
+  <text class="wd-label wd-strong" x={TEXT_X} y="312">
+    la nave deriva.
+  </text>
+
+  <!-- The spacecraft with its wheel, the disturbance torque and the drift once saturated. -->
+  <rect
+    class="wd-body-front"
+    x={SAT.x - SAT_BOX / 2}
+    y={SAT.y - SAT_BOX / 2}
+    width={SAT_BOX}
+    height={SAT_BOX}
+    rx="2"
+  />
+  <circle class="wd-wheel" cx={SAT.x} cy={SAT.y} r={SAT_WHEEL} />
+  <circle class="wd-pierce" cx={SAT.x} cy={SAT.y} r="2.5" />
+  <path class="wd-spin wd-torque-stroke" d={tauExt.d} />
+  <polygon class="wd-torque-fill" points={tauExt.head} />
+  <text class="wd-eq" x={SAT.x} y={SAT.y - 58} text-anchor="middle">
+    {runs.tauExt.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+  <path class="wd-spin wd-body-stroke wd-dashed" d={drift.d} />
+  <polygon class="wd-body-fill" points={drift.head} />
+  <text class="wd-eq" x={SAT.x} y={SAT.y + 72} text-anchor="middle">
+    {runs.drift.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+
+  <line class="wd-rule" x1="16" y1="344" x2="404" y2="344" />
+
+  <!-- ===== 2 · Dumping with the Earth's magnetic field ===== -->
+  <text class="wd-label wd-strong" x="16" y="374">
+    2 · Descarga con un torque externo
+  </text>
+
+  <g clip-path="url(#wd-field-clip)">
+    <circle class="wd-earth" cx={EARTH.cx} cy={EARTH.cy} r={EARTH.r} />
+    {fieldLines.map((line) => (
+      <path class="wd-field" d={line.d} />
+    ))}
+    {fieldLines.map((line) => (
+      <polygon class="wd-earth-fill" points={line.head} />
+    ))}
+  </g>
+  <text class="wd-label" x="6" y={EARTH.cy + 6}>
+    Tierra
+  </text>
+
+  <rect
+    class="wd-body-front"
+    x={DUMP_SAT.x - DUMP_BOX.width / 2}
+    y={DUMP_SAT.y - DUMP_BOX.height / 2}
+    width={DUMP_BOX.width}
+    height={DUMP_BOX.height}
+    rx="2"
+  />
+  <line class="wd-vector wd-dipole" x1={dipole.x1} y1={dipole.y1} x2={dipole.x2} y2={dipole.y2} />
+  <polygon class="wd-dipole-fill" points={dipole.head} />
+  <text class="wd-eq" x={DUMP_SAT.x - 24} y={DUMP_SAT.y - 4}>
+    {runs.m.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+
+  <line class="wd-vector wd-earth-stroke" x1={field.x1} y1={field.y1} x2={field.x2} y2={field.y2} />
+  <polygon class="wd-earth-fill" points={field.head} />
+  <text class="wd-eq" x="392" y="462">
+    {runs.B.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+
+  <circle class="wd-torque-ring" {...OUT_OF_PAGE} />
+  <circle class="wd-torque-fill" cx={OUT_OF_PAGE.cx} cy={OUT_OF_PAGE.cy} r="3" />
+  <text class="wd-eq" x={DUMP_SAT.x} y="410" text-anchor="middle">
+    {runs.magnetic.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+
+  <!-- The wheel's momentum falls while the magnetorquer holds the body. -->
+  <rect
+    class="wd-meter"
+    x={BAR.left}
+    y={BAR.top}
+    width={BAR.right - BAR.left}
+    height={BAR.height}
+  />
+  <rect
+    class="wd-meter-fill"
+    x={BAR.left}
+    y={BAR.top}
+    width={(BAR.right - BAR.left) * BAR.fill}
+    height={BAR.height}
+  />
+  <line
+    class="wd-limit"
+    x1={BAR.right}
+    y1={BAR.top - 6}
+    x2={BAR.right}
+    y2={BAR.top + BAR.height + 6}
+  />
+  <text class="wd-eq" x={BAR.left - 8} y={BAR.top + 12} text-anchor="end">
+    {runs.lw.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+  <line
+    class="wd-vector wd-wheel-stroke"
+    x1={barDrop.x1}
+    y1={barDrop.y1}
+    x2={barDrop.x2}
+    y2={barDrop.y2}
+  />
+  <polygon class="wd-wheel-fill" points={barDrop.head} />
+  <text class="wd-note" x={BAR.left - 8} y="568" text-anchor="end">
+    baja
+  </text>
+
+  <text class="wd-label" x="16" y="604">
+    <tspan class="wd-math">τ</tspan> ⊥ <tspan class="wd-math">B</tspan> siempre: la parte de{' '}
+    <tspan class="wd-math">L</tspan>
+    <tspan class="wd-math wd-sub" dy="5">
+      w
+    </tspan>
+  </text>
+  <text class="wd-label" x="16" y="628">
+    paralela a <tspan class="wd-math">B</tspan> espera a que la órbita gire{' '}
+    <tspan class="wd-math">B</tspan>.
+  </text>
+  <text class="wd-note" x="16" y="656">
+    <tspan class="wd-math">m B</tspan> ≈ {DIAGRAM_FACTS.magnetorquerLabel}, unas{' '}
+    {DIAGRAM_FACTS.dumpRatio} veces <tspan class="wd-math">τ</tspan>
+    <tspan class="wd-math wd-sub" dy="5">
+      ext
+    </tspan>
+  </text>
+
+  <line class="wd-rule" x1="16" y1="676" x2="404" y2="676" />
+
+  <!-- ===== 3 · Thrusters, and three or four wheels ===== -->
+  <rect class="wd-detail" x="12" y={BOX_Y} width="196" height={BOX_HEIGHT} rx="3" />
+  <text class="wd-label wd-strong" x="22" y={BOX_Y + 24}>
+    Propulsores
+  </text>
+  <text class="wd-note" x="22" y={BOX_Y + 44}>
+    JWST en L2, K2
+  </text>
+  <circle class="wd-sun" {...SUN} />
+  <path class="wd-sun-rays" d={sunRays} />
+  {pressure.map((push) => (
+    <>
+      <line class="wd-sun-stroke" x1={push.x1} y1={push.y1} x2={push.x2} y2={push.y2} />
+      <polygon class="wd-sun-fill" points={push.head} />
+    </>
+  ))}
+  <rect
+    class="wd-body-front"
+    x={THRUST_BODY.x}
+    y={THRUST_BODY.y}
+    width={THRUST_BODY.width}
+    height={THRUST_BODY.height}
+    rx="2"
+  />
+  <line class="wd-arm" x1={armR.x1} y1={armR.y1} x2={armR.x2} y2={armR.y2} />
+  <polygon class="wd-arm-fill" points={armR.head} />
+  <text
+    class="wd-eq"
+    x={(bodyCentre.x + THRUSTER.x) / 2 + 2}
+    y={(bodyCentre.y + THRUSTER.y) / 2 - 8}
+  >
+    {runs.r.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+  <line class="wd-vector wd-dipole" x1={forceF.x1} y1={forceF.y1} x2={forceF.x2} y2={forceF.y2} />
+  <polygon class="wd-dipole-fill" points={forceF.head} />
+  <text class="wd-eq" x={THRUSTER.x + 10} y={THRUSTER.y + 38}>
+    {runs.F.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+  <circle class="wd-torque-ring" cx={bodyCentre.x} cy={bodyCentre.y} r="9" />
+  <path
+    class="wd-torque-cross"
+    d={`M${bodyCentre.x - 5},${bodyCentre.y - 5} L${bodyCentre.x + 5},${bodyCentre.y + 5} M${bodyCentre.x + 5},${bodyCentre.y - 5} L${bodyCentre.x - 5},${bodyCentre.y + 5}`}
+  />
+  <text class="wd-note" x={SUN.cx - 12} y={SUN.cy + 40}>
+    presión solar
+  </text>
+  <text class="wd-eq" x="110" y={BOX_Y + BOX_HEIGHT - 14} text-anchor="middle">
+    {runs.thruster.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+
+  <rect class="wd-detail" x="212" y={BOX_Y} width="196" height={BOX_HEIGHT} rx="3" />
+  <text class="wd-label wd-strong" x="222" y={BOX_Y + 24}>
+    3 o 4 ruedas
+  </text>
+  <text class="wd-note" x="222" y={BOX_Y + 44}>
+    una por eje, en pirámide
+  </text>
+  {pyramid.map((axis) => (
+    <>
+      <line class="wd-pyramid" x1={axis.x1} y1={axis.y1} x2={axis.x2} y2={axis.y2} />
+      <polygon class="wd-wheel-fill" points={axis.head} />
+      <ellipse class="wd-wheel" cx={axis.disc.cx} cy={axis.disc.cy} rx="9" ry="5" />
+    </>
+  ))}
+  <circle class="wd-pierce" cx={PYRAMID.x} cy={PYRAMID.y} r="3" />
+  <text class="wd-note" x="222" y={BOX_Y + BOX_HEIGHT - 30}>
+    Kepler: 4, basta con 3
+  </text>
+  <text class="wd-note" x="222" y={BOX_Y + BOX_HEIGHT - 10}>
+    K2: 2 y el Sol en equilibrio
+  </text>
+</svg>

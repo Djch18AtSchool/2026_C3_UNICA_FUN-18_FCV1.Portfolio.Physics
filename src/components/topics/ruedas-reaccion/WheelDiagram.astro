@@ -1,0 +1,283 @@
+---
+/*
+ * The prescribed resource of Tema 8: an annotated drawing of the spacecraft and its reaction wheel
+ * in two panels (spec §8, Paso 4; research §7). Panel A: the angular momentum exchange with the
+ * motor's τ and −τ and equations (8.1) and (8.2). Panel B: saturation, dumping with τ = m × B or
+ * τ = r × F, and three or four wheels. The panels sit side by side in a wide column and stack on
+ * a phone. Every color is a theme token, each with one meaning (wheelFigures.ts, WHEEL_COLORS);
+ * every number comes from tested code. The two SVGs are drawing only: the wrapper is the image and
+ * its aria-label describes both panels.
+ *
+ * Every text is at least 16 viewBox units, so on a 360 px phone (panel ≈ 294 px wide for 420
+ * units) nothing renders below 11 px.
+ */
+import WheelPanelA from './WheelPanelA.astro';
+import WheelPanelB from './WheelPanelB.astro';
+import { DIAGRAM_FACTS, WHEEL_COLORS } from './wheelFigures';
+
+const colorVariables = [
+  `--wd-wheel: ${WHEEL_COLORS.wheel}`,
+  `--wd-body: ${WHEEL_COLORS.body}`,
+  `--wd-torque: ${WHEEL_COLORS.torque}`,
+  `--wd-limit: ${WHEEL_COLORS.limit}`,
+  `--wd-earth: ${WHEEL_COLORS.earth}`,
+  `--wd-sun: ${WHEEL_COLORS.sun}`,
+].join('; ');
+
+const description = [
+  'Diagrama en dos paneles del satélite y su rueda de reacción. No está a escala.',
+  `Panel A, intercambio de momento angular: la nave es una caja vista desde el frente y un poco desde arriba, cortada para mostrar la rueda montada sobre su motor, con el eje de giro z vertical. La rueda gira en sentido antihorario visto desde arriba, con ω_w, y su momento angular L_w = I_w ω_w apunta hacia arriba por el eje z. La nave gira en sentido horario, con ω_s, y su momento angular L_s = I_s ω_s apunta hacia abajo, con el mismo largo: L_s + L_w = 0 si todo parte del reposo. Ecuación (8.1): I_s ω_s + I_w ω_w = constante, e I_s Δθ_s = −I_w Δθ_w. La rueda da unas ${DIAGRAM_FACTS.turns} vueltas para que la nave gire 90°. El detalle M muestra el motor: aplica τ a la rueda, en el sentido de su giro, y −τ a la nave, en sentido contrario, como acción y reacción (tercera ley). Ecuación (8.2): τ = dL_w/dt = I_w α_w y −τ = dL_s/dt = I_s α_s.`,
+  `Panel B, saturación y descarga. Primero, un medidor de L_w lleno hasta la marca roja de L_max = I_w ω_max, ${DIAGRAM_FACTS.LmaxLabel} en la RW400. Un torque externo pequeño y constante, τ_ext de hasta ${DIAGRAM_FACTS.disturbanceLabel} por el gradiente de gravedad, entra en la nave y se acumula en la rueda: L_w = ∫ τ_ext dt. En saturación el motor ya no puede acelerar la rueda: la nave deriva, con ω_s distinto de cero.`,
+  `Después, la descarga con un torque externo: junto a la Tierra, sus líneas de campo magnético en azul y el campo B hacia arriba al lado del satélite; el magnetopar del satélite es un dipolo m hacia la derecha, y el torque τ = m × B sale del papel, perpendicular a m y a B. Mientras tanto el motor frena la rueda y L_w baja. Como τ es siempre perpendicular a B, la parte de L_w paralela a B espera a que la órbita gire B. El magnetopar da m B ≈ ${DIAGRAM_FACTS.magnetorquerLabel}, unas ${DIAGRAM_FACTS.dumpRatio} veces τ_ext.`,
+  'Dos recuadros cierran el panel. Propulsores, para JWST en L2 y K2: la presión solar empuja la nave y un propulsor en el extremo de un brazo r aplica una fuerza F, con τ = r × F entrando en el papel. Tres o cuatro ruedas, una por eje en pirámide: Kepler llevaba 4 y bastaba con 3; K2 siguió con 2 y la presión solar en equilibrio.',
+].join(' ');
+---
+
+<div
+  class="wheel-diagram"
+  data-testid="wheel-diagram"
+  role="img"
+  aria-label={description}
+  style={colorVariables}
+>
+  <WheelPanelA />
+  <WheelPanelB />
+</div>
+
+<style>
+  .wheel-diagram {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    align-items: start;
+    gap: 1.5rem;
+    max-width: 62rem;
+    margin-inline: auto;
+  }
+  .wheel-diagram :global(.wd-panel) {
+    display: block;
+    width: 100%;
+    max-width: 30rem;
+    height: auto;
+    margin-inline: auto;
+    overflow: visible;
+  }
+
+  /* ---- Text: labels in --fg on a halo; only marks wear color ---- */
+  .wheel-diagram :global(.wd-title) {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    fill: var(--fg-muted);
+  }
+  .wheel-diagram :global(:is(.wd-label, .wd-eq, .wd-note, .wd-tag)) {
+    paint-order: stroke;
+    stroke: var(--bg-elevated);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+    fill: var(--fg);
+  }
+  .wheel-diagram :global(.wd-label) {
+    font-family: var(--font-sans);
+    font-size: 17px;
+  }
+  .wheel-diagram :global(.wd-note) {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    fill: var(--fg-muted);
+  }
+  .wheel-diagram :global(.wd-eq) {
+    font-family: KaTeX_Main, 'Times New Roman', serif;
+    font-size: 21px;
+  }
+  .wheel-diagram :global(.wd-tag) {
+    font-family: KaTeX_Main, 'Times New Roman', serif;
+    font-size: 18px;
+    fill: var(--fg-muted);
+  }
+  .wheel-diagram :global(.wd-math) {
+    font-family: KaTeX_Main, 'Times New Roman', serif;
+    font-style: italic;
+  }
+  .wheel-diagram :global(.wd-sub) {
+    font-size: 16px;
+  }
+  .wheel-diagram :global(.wd-strong) {
+    font-weight: 600;
+  }
+  .wheel-diagram :global(.wd-mark-label) {
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  /* ---- Structure: the spacecraft and the wheel are neutral ---- */
+  .wheel-diagram :global(.wd-axis) {
+    stroke: var(--fg-muted);
+    stroke-width: 1.25;
+    stroke-dasharray: 14 4 2 4;
+  }
+  .wheel-diagram :global(.wd-axis-head),
+  .wheel-diagram :global(.wd-pierce) {
+    fill: var(--fg);
+  }
+  .wheel-diagram :global(.wd-body-top) {
+    fill: color-mix(in srgb, var(--fg) 5%, var(--bg-elevated));
+    stroke: var(--fg);
+    stroke-width: 1.75;
+  }
+  .wheel-diagram :global(.wd-body-front) {
+    fill: color-mix(in srgb, var(--fg) 11%, var(--bg-elevated));
+    stroke: var(--fg);
+    stroke-width: 1.75;
+  }
+  .wheel-diagram :global(.wd-cut) {
+    fill: color-mix(in srgb, var(--fg) 20%, var(--bg-elevated));
+    stroke: var(--fg);
+    stroke-width: 1;
+    stroke-dasharray: 5 3;
+  }
+  .wheel-diagram :global(.wd-wheel) {
+    fill: var(--bg-elevated);
+    stroke: var(--fg);
+    stroke-width: 1.5;
+  }
+  .wheel-diagram :global(.wd-hub) {
+    fill: var(--fg-muted);
+  }
+  .wheel-diagram :global(.wd-motor) {
+    fill: color-mix(in srgb, var(--fg) 30%, var(--bg-elevated));
+    stroke: var(--fg);
+    stroke-width: 1.25;
+  }
+  .wheel-diagram :global(.wd-mark) {
+    fill: none;
+    stroke: var(--fg-muted);
+    stroke-width: 1;
+    stroke-dasharray: 4 3;
+  }
+  .wheel-diagram :global(.wd-detail) {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 1.25;
+    stroke-dasharray: 6 4;
+  }
+  .wheel-diagram :global(.wd-rule) {
+    stroke: var(--border);
+    stroke-width: 1;
+  }
+  .wheel-diagram :global(.wd-floor) {
+    stroke: var(--fg);
+    stroke-width: 2;
+  }
+  .wheel-diagram :global(.wd-floor-hatch),
+  .wheel-diagram :global(.wd-leader) {
+    fill: none;
+    stroke: var(--fg-muted);
+    stroke-width: 1;
+  }
+  .wheel-diagram :global(.wd-leader) {
+    stroke-dasharray: 2 3;
+  }
+  .wheel-diagram :global(.wd-meter) {
+    fill: var(--bg-elevated);
+    stroke: var(--fg);
+    stroke-width: 1.5;
+  }
+
+  /* ---- Marks with meaning ---- */
+  .wheel-diagram :global(.wd-vector) {
+    stroke-width: 3;
+  }
+  .wheel-diagram :global(.wd-spin) {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .wheel-diagram :global(.wd-dashed) {
+    stroke-dasharray: 6 4;
+  }
+  .wheel-diagram :global(:is(.wd-wheel-spin, .wd-wheel-stroke)) {
+    stroke: var(--wd-wheel);
+  }
+  .wheel-diagram :global(.wd-wheel-fill) {
+    fill: var(--wd-wheel);
+  }
+  .wheel-diagram :global(.wd-meter-fill) {
+    fill: color-mix(in srgb, var(--wd-wheel) 55%, var(--bg-elevated));
+    stroke: var(--wd-wheel);
+    stroke-width: 1.5;
+  }
+  .wheel-diagram :global(.wd-pyramid) {
+    stroke: var(--wd-wheel);
+    stroke-width: 2.5;
+  }
+  .wheel-diagram :global(:is(.wd-body-spin, .wd-body-stroke)) {
+    stroke: var(--wd-body);
+  }
+  .wheel-diagram :global(.wd-body-fill) {
+    fill: var(--wd-body);
+  }
+  .wheel-diagram :global(.wd-torque-stroke) {
+    stroke: var(--wd-torque);
+  }
+  .wheel-diagram :global(.wd-torque-fill) {
+    fill: var(--wd-torque);
+  }
+  .wheel-diagram :global(.wd-torque-ring) {
+    fill: var(--bg-elevated);
+    stroke: var(--wd-torque);
+    stroke-width: 2.5;
+  }
+  .wheel-diagram :global(.wd-torque-cross) {
+    stroke: var(--wd-torque);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+  .wheel-diagram :global(.wd-limit) {
+    stroke: var(--wd-limit);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+  .wheel-diagram :global(.wd-limit-rule) {
+    stroke: var(--wd-limit);
+    stroke-width: 3;
+  }
+  .wheel-diagram :global(.wd-earth) {
+    fill: color-mix(in srgb, var(--wd-earth) 28%, var(--bg-elevated));
+    stroke: var(--wd-earth);
+    stroke-width: 2;
+  }
+  .wheel-diagram :global(.wd-field) {
+    fill: none;
+    stroke: var(--wd-earth);
+    stroke-width: 1.5;
+  }
+  .wheel-diagram :global(.wd-earth-stroke) {
+    stroke: var(--wd-earth);
+  }
+  .wheel-diagram :global(.wd-earth-fill) {
+    fill: var(--wd-earth);
+  }
+  .wheel-diagram :global(.wd-dipole),
+  .wheel-diagram :global(.wd-arm) {
+    stroke: var(--fg);
+  }
+  .wheel-diagram :global(.wd-arm) {
+    stroke-width: 2;
+    stroke-dasharray: 5 3;
+  }
+  .wheel-diagram :global(:is(.wd-dipole-fill, .wd-arm-fill)) {
+    fill: var(--fg);
+  }
+  .wheel-diagram :global(.wd-sun) {
+    fill: var(--wd-sun);
+  }
+  .wheel-diagram :global(:is(.wd-sun-rays, .wd-sun-stroke)) {
+    stroke: var(--wd-sun);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .wheel-diagram :global(.wd-sun-fill) {
+    fill: var(--wd-sun);
+  }
+</style>
