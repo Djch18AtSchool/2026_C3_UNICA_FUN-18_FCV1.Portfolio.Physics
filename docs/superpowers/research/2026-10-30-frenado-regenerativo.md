@@ -181,6 +181,7 @@ La página EPA dice: "files contain tab delimited ASCII columns".
 | C | 0,27155 N·s²/m² |
 
 **Nissan LEAF 2025** (`KWB115`, tracción delantera): ETW 3875 lb; A 25.89 lbf; B 0.34489999999999998 lbf/mph; C 1.9449999999999999E-2 lbf/mph²; UDDS RND_ADJ_FE 174 / 177.1.
+- Prueba del LEAF: test id JNSX10050525, configuración 0, Charge Depleting UDDS, RND_ADJ_FE 174 — EPA Test Car List 2025 (fuente 5).
 
 **Eficiencias y límites medidos o publicados:**
 - Boretti 2016 (resumen; Leaf MY2012 vs MY2013, UDDS):
