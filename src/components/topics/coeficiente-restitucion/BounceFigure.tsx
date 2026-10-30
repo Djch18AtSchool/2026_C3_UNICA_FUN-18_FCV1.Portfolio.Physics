@@ -1,11 +1,20 @@
 import type { JSX } from 'react';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import {
+  boxAround,
+  clearSpot,
+  segmentsOf,
+  textBox,
+  type Box,
+  type Point,
+  type Segment,
+} from '../../lab/labelClearance';
 import { fitCentre, monoTextWidth } from '../../lab/plotScales';
 import SvgPlot, { type OverlayScales } from '../../lab/SvgPlot';
 import { formatNumber } from '../../../lib/format';
 import { bounceSeries, G_EARTH } from '../../../lib/physics';
-import { apexPoints, bounceTrajectory, ITF_DROP } from './bounceFigures';
+import { apexPoints, bounceTrajectory, ITF_DROP, type ApexPoint } from './bounceFigures';
 import CollisionDiagram from './CollisionDiagram';
 import ThresholdPlot from './ThresholdPlot';
 
@@ -26,12 +35,20 @@ const FALLBACK_WIDTH = 720;
 const COMPACT_WIDTH = 480;
 /** Phones get a taller plot so the apex labels, band and T keep apart. */
 const COMPACT_ASPECT = 0.75;
-/** Plot areas narrower than this (phones) print the short apex and band labels. */
+/** Plot areas narrower than this (phones) print the short band label. */
 const SHORT_LABELS_BELOW_PX = 360;
 const WIDE_ASPECT = 1.6;
 const LABEL_SIZE = 12;
 const HALO_WIDTH = 4;
 const APEX_LABEL_RISE = 8;
+/**
+ * A label set beside its apex starts (or ends) this far back over it, px: still above the arc,
+ * which falls away from the apex, and the further back the more room before the T line.
+ */
+const APEX_LABEL_LEADS = [4, 12];
+/** Ascent and descent of a 12 px line, around its baseline (0,8 em and 0,25 em). */
+const LABEL_HEIGHT = 1.05 * LABEL_SIZE;
+const BASELINE_BELOW_CENTRE = 0.275 * LABEL_SIZE;
 const BAND_OPACITY = 0.14;
 const BAND_LABEL_INSET = 6;
 const BAND_LABEL_DROP = 14;
@@ -64,17 +81,107 @@ const BAND_RANGE = `${comma(ITF_DROP.reboundMin, 2)}–${comma(ITF_DROP.reboundM
 const BAND_LABEL = `Rebote ITF: ${BAND_RANGE}`;
 const SHORT_BAND_LABEL = `ITF: ${BAND_RANGE}`;
 
+interface ApexLabel {
+  n: number;
+  text: string;
+  /** Centre of the label's box; the text is drawn centred on it. */
+  at: Point;
+}
+
+interface ApexLayout {
+  labels: ApexLabel[];
+  /** Every label found a clear spot. */
+  isClear: boolean;
+}
+
+/**
+ * Each apex label (in one form: with the unit or without) where it crosses no arc, line or other
+ * label, inside the plot: centred over its apex when that is clear (wide plots), else starting
+ * at the apex or ending at it. Above its apex and past it a label meets only lower flights, so
+ * on a phone the start position is usually clear. A label with no clear spot stays centred.
+ */
+function layApexLabels(
+  apexes: readonly ApexPoint[],
+  form: 'label' | 'shortLabel',
+  scales: OverlayScales,
+  lines: readonly Segment[],
+  texts: readonly Box[],
+): ApexLayout {
+  const [left, right] = scales.x.range;
+  const [bottom, top] = scales.y.range;
+  const area = { left, right, top, bottom };
+  return apexes.reduce<ApexLayout>(
+    ({ labels, isClear }, apex) => {
+      const text = apex[form];
+      const width = monoTextWidth(text, LABEL_SIZE);
+      const ax = scales.x.toPx(apex.t);
+      const cy = scales.y.toPx(apex.h) - APEX_LABEL_RISE - BASELINE_BELOW_CENTRE;
+      const spots = [
+        { x: fitCentre(ax, width, left, right), y: cy },
+        ...APEX_LABEL_LEADS.flatMap((lead) => [
+          { x: ax - lead + width / 2, y: cy },
+          { x: ax + lead - width / 2, y: cy },
+        ]),
+      ];
+      const blocked = [
+        ...texts,
+        ...labels.map((label) =>
+          boxAround(label.at, monoTextWidth(label.text, LABEL_SIZE), LABEL_HEIGHT),
+        ),
+      ];
+      const at = clearSpot(spots, { width, height: LABEL_HEIGHT }, lines, area, blocked);
+      return {
+        labels: [...labels, { n: apex.n, text, at: at ?? spots[0] }],
+        isClear: isClear && at !== undefined,
+      };
+    },
+    { labels: [], isClear: true },
+  );
+}
+
+/**
+ * The apex labels with their unit («h₁ = 1,41 m») when every one finds a clear spot, else all
+ * without it («h₁ = 1,41»; the axis gives the metre): the four always read alike.
+ */
+function placeApexLabels(
+  apexes: readonly ApexPoint[],
+  scales: OverlayScales,
+  lines: readonly Segment[],
+  texts: readonly Box[],
+): ApexLabel[] {
+  const full = layApexLabels(apexes, 'label', scales, lines, texts);
+  return full.isClear
+    ? full.labels
+    : layApexLabels(apexes, 'shortLabel', scales, lines, texts).labels;
+}
+
 /**
  * The rebound band the ITF admits, the apex labels and the time T when the bounces end. The band
  * label ends before the T line, under the band, where only the low late flights pass.
  */
-function ReboteOverlay({ x, y }: OverlayScales): JSX.Element {
+function ReboteOverlay(scales: OverlayScales): JSX.Element {
+  const { x, y } = scales;
   const [left, right] = x.range;
   const [bottom, top] = y.range;
   const bandTop = y.toPx(ITF_DROP.reboundMax);
   const bandBottom = y.toPx(ITF_DROP.reboundMin);
   const tx = x.toPx(TOTAL_TIME);
   const isShort = right - left < SHORT_LABELS_BELOW_PX;
+  const bandLabel = isShort ? SHORT_BAND_LABEL : BAND_LABEL;
+  const bandAt = { x: tx - BAND_LABEL_INSET, y: bandBottom + BAND_LABEL_DROP };
+  const tAt = { x: tx - T_LABEL_INSET, y: top + T_LABEL_DROP };
+  const apexLabels = placeApexLabels(
+    APEXES,
+    scales,
+    [
+      ...segmentsOf(TRAJECTORY.map((p) => ({ x: x.toPx(p.x), y: y.toPx(p.y) }))),
+      [
+        { x: tx, y: top },
+        { x: tx, y: bottom },
+      ],
+    ],
+    [textBox(bandAt, bandLabel, LABEL_SIZE, 'end'), textBox(tAt, T_LABEL, LABEL_SIZE, 'end')],
+  );
   return (
     <g className="pointer-events-none">
       <rect
@@ -86,33 +193,20 @@ function ReboteOverlay({ x, y }: OverlayScales): JSX.Element {
         fill={TENNIS_COLOR}
         fillOpacity={BAND_OPACITY}
       />
-      <text
-        x={tx - BAND_LABEL_INSET}
-        y={bandBottom + BAND_LABEL_DROP}
-        textAnchor="end"
-        {...haloText}
-      >
-        {isShort ? SHORT_BAND_LABEL : BAND_LABEL}
+      <text x={bandAt.x} y={bandAt.y} textAnchor="end" {...haloText}>
+        {bandLabel}
       </text>
       <line x1={tx} x2={tx} y1={top} y2={bottom} stroke={TICK_COLOR} strokeDasharray={T_DASH} />
-      <text x={tx - T_LABEL_INSET} y={top + T_LABEL_DROP} textAnchor="end" {...haloText}>
+      <text x={tAt.x} y={tAt.y} textAnchor="end" {...haloText}>
         {T_LABEL}
       </text>
-      {APEXES.map((apex) => {
-        const label = isShort ? apex.shortLabel : apex.label;
-        return (
-          <g key={apex.n} data-apex={apex.n}>
-            <text
-              x={fitCentre(x.toPx(apex.t), monoTextWidth(label, LABEL_SIZE), left, right)}
-              y={y.toPx(apex.h) - APEX_LABEL_RISE}
-              textAnchor="middle"
-              {...haloText}
-            >
-              {label}
-            </text>
-          </g>
-        );
-      })}
+      {apexLabels.map(({ n, text, at }) => (
+        <g key={n} data-apex={n}>
+          <text x={at.x} y={at.y + BASELINE_BELOW_CENTRE} textAnchor="middle" {...haloText}>
+            {text}
+          </text>
+        </g>
+      ))}
     </g>
   );
 }

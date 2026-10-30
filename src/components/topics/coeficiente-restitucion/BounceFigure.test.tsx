@@ -1,8 +1,20 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import {
+  segmentHitsBox,
+  segmentsOf,
+  textBox,
+  type Box,
+  type Segment,
+} from '../../lab/labelClearance';
 import { monoTextWidth } from '../../lab/plotScales';
 import BounceFigure from './BounceFigure';
+
+/** BounceFigure's apex labels are 12 px. */
+const APEX_LABEL_SIZE = 12;
+/** A label set on the plot's edge may sit there up to float round-off. */
+const EPSILON = 1e-6;
 
 const strokeOf = (container: HTMLElement, id: string) =>
   container.querySelector(`[data-series="${id}"]`)?.getAttribute('stroke');
@@ -239,17 +251,66 @@ describe('BounceFigure', () => {
     });
   });
 
-  test('on a phone the bounce plot shortens its labels and keeps them inside the plot', () => {
+  /** The plot's series path in viewBox pixels, as segments. */
+  function pathSegments(container: HTMLElement, id: string): Segment[] {
+    const d = container.querySelector(`[data-series="${id}"]`)?.getAttribute('d') ?? '';
+    const points = [...d.matchAll(/[ML]([-\d.]+) ([-\d.]+)/g)].map(([, x, y]) => ({
+      x: Number(x),
+      y: Number(y),
+    }));
+    return segmentsOf(points);
+  }
+
+  /** The plot area: the overlay's clip rectangle. */
+  function plotArea(container: HTMLElement): Box {
+    const rect = container.querySelectorAll('svg')[1].querySelector('clipPath rect') as Element;
+    const [x, y, w, h] = ['x', 'y', 'width', 'height'].map((name) =>
+      Number(rect.getAttribute(name)),
+    );
+    return { left: x, top: y, right: x + w, bottom: y + h };
+  }
+
+  function apexBox(label: SVGTextElement): Box {
+    const anchor = (label.getAttribute('text-anchor') ?? 'start') as 'start' | 'middle' | 'end';
+    const at = { x: Number(label.getAttribute('x')), y: Number(label.getAttribute('y')) };
+    return textBox(at, label.textContent ?? '', APEX_LABEL_SIZE, anchor);
+  }
+
+  test.each([
+    [240, ' m'],
+    [254, ' m'],
+    [294, ' m'],
+    [320, ' m'],
+    [720, ' m'],
+  ])(
+    'at %i px (240 is the narrowest plot) the apex labels keep «%s» and clear every arc',
+    (width, unit) => {
+      stubWidth(width);
+      const { container } = render(<BounceFigure variant="rebote" />);
+      const labels = [...container.querySelectorAll<SVGTextElement>('[data-apex] text')];
+      const arcs = pathSegments(container, 'tenis-itf');
+      const area = plotArea(container);
+
+      expect(labels.map((label) => label.textContent)).toEqual(
+        ['h₀ = 2,54', 'h₁ = 1,41', 'h₂ = 0,78', 'h₃ = 0,43'].map((label) => `${label}${unit}`),
+      );
+      for (const label of labels) {
+        const box = apexBox(label);
+        expect(box.left, label.textContent ?? '').toBeGreaterThanOrEqual(area.left - EPSILON);
+        expect(box.right, label.textContent ?? '').toBeLessThanOrEqual(area.right + EPSILON);
+        expect(box.top, label.textContent ?? '').toBeGreaterThanOrEqual(area.top - EPSILON);
+        for (const arc of arcs) {
+          expect(segmentHitsBox(arc, box), `${label.textContent} on an arc`).toBe(false);
+        }
+      }
+    },
+  );
+
+  test('on a phone the band label shortens and the apex labels stay in the plot', () => {
     stubWidth(320);
     const { container } = render(<BounceFigure variant="rebote" />);
     const labels = [...container.querySelectorAll<SVGTextElement>('[data-apex] text')];
 
-    expect(labels.map((label) => label.textContent)).toEqual([
-      'h₀ = 2,54',
-      'h₁ = 1,41',
-      'h₂ = 0,78',
-      'h₃ = 0,43',
-    ]);
     expect(screen.getByText('ITF: 1,35–1,47 m')).toBeInTheDocument();
     for (const label of labels) {
       expect(Number(label.getAttribute('x'))).toBeLessThanOrEqual(320);
