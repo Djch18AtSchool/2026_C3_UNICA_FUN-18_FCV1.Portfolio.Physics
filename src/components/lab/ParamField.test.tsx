@@ -38,6 +38,26 @@ function Controlled({
   );
 }
 
+/** A signed parameter (θ from −90° to 90°), to check how the field writes and reads a minus sign. */
+function SignedControlled({ onChange }: { onChange?: (v: number) => void }) {
+  const [value, setValue] = useState(-30);
+  return (
+    <ParamField
+      id="wheel-theta"
+      label="Ángulo objetivo θ"
+      unit="°"
+      min={-90}
+      max={90}
+      step={0.5}
+      value={value}
+      onChange={(v) => {
+        onChange?.(v);
+        setValue(v);
+      }}
+    />
+  );
+}
+
 const range = () => screen.getByRole<HTMLInputElement>('slider', { name: 'Gravedad g' });
 const field = () => screen.getByRole<HTMLInputElement>('textbox', { name: 'Gravedad g' });
 
@@ -61,6 +81,34 @@ describe('ParamField', () => {
 
     expect(range().value).toBe('9.81');
     expect(field().value).toBe('9,81');
+  });
+
+  test('a negative value shows the true minus sign U+2212, like the readouts', () => {
+    render(<SignedControlled />);
+    const thetaField = screen.getByRole<HTMLInputElement>('textbox', { name: 'Ángulo objetivo θ' });
+
+    expect(thetaField.value).toBe('\u221230');
+
+    fireEvent.change(screen.getByRole('slider', { name: 'Ángulo objetivo θ' }), {
+      target: { value: '-12.5' },
+    });
+    expect(thetaField.value).toBe('\u221212,5');
+  });
+
+  test.each([
+    ['the true minus sign', '\u221245,5'],
+    ['the ASCII hyphen-minus', '-45,5'],
+  ])('a value typed with %s commits as a negative number', async (_name, typed) => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<SignedControlled onChange={onChange} />);
+    const thetaField = screen.getByRole<HTMLInputElement>('textbox', { name: 'Ángulo objetivo θ' });
+
+    await user.clear(thetaField);
+    await user.type(thetaField, `${typed}{Enter}`);
+
+    expect(onChange).toHaveBeenLastCalledWith(-45.5);
+    expect(thetaField.value).toBe('\u221245,5');
   });
 
   test('moving the range updates the number immediately', () => {

@@ -1,5 +1,5 @@
 import { useState, type JSX, type ReactNode } from 'react';
-import { formatNumber } from '../../lib/format';
+import { formatNumber, MINUS_SIGN } from '../../lib/format';
 import { useGlobalSettings } from './useGlobalSettings';
 
 export interface ParamFieldProps {
@@ -16,14 +16,16 @@ export interface ParamFieldProps {
 /** Decimals the number field shows at most, so float noise never reaches the reader. */
 const MAX_FIELD_DECIMALS = 4;
 
-/** The value as typed back in Spanish notation: decimal comma, no grouping. */
+/** The value as typed back in Spanish notation: U+2212 minus, decimal comma, no grouping. */
 function toFieldText(value: number): string {
-  return String(Number(value.toFixed(MAX_FIELD_DECIMALS))).replace('.', ',');
+  return String(Number(value.toFixed(MAX_FIELD_DECIMALS)))
+    .replace('-', MINUS_SIGN)
+    .replace('.', ',');
 }
 
-/** Accepts a decimal comma or point, spaces and U+2212; undefined when it is not a number. */
+/** Accepts a decimal comma or point, spaces, and U+2212 or "-"; undefined when not a number. */
 function parseFieldText(text: string): number | undefined {
-  const normalized = text.replace(/\s/g, '').replace('−', '-').replace(',', '.');
+  const normalized = text.replace(/\s/g, '').replaceAll(MINUS_SIGN, '-').replace(',', '.');
   if (normalized === '') return undefined;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : undefined;
