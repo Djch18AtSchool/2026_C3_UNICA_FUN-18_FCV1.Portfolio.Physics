@@ -57,6 +57,7 @@ import Cite from '../../components/ui/Cite.astro';
 import Callout from '../../components/ui/Callout.astro';
 import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
+import DataTable from '../../components/ui/DataTable.astro';
 import HabitatDiagram from '../../components/topics/gravedad-artificial/HabitatDiagram.astro';
 import HabitatFigure from '../../components/topics/gravedad-artificial/HabitatFigure';
 import HabitatLab, { TIME_LAPSE } from '../../components/topics/gravedad-artificial/HabitatLab';
@@ -148,13 +149,17 @@ Respecto de la nave, que cae entera con <Equation inline latex="\vec g" />, la (
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="a_c/g = ω²r/g frente a r: a giro fijo, una recta que corta la línea de 1 g en r = g/ω². A 2 RPM, ω = 0,2094 rad/s y r = 9,81/0,2094² = 223,6 m, con el piso a 46,8 m/s y una vuelta cada 30 s; a 1 RPM, 894,6 m. Al revés, r = 100 m pide ω = 0,3132 rad/s, es decir, 2,99 RPM. El Toro de Stanford, diseñado en el estudio de verano de la NASA de 1975 y publicado en 1977 como SP-413, es un tubo de 130 m de diámetro doblado en una rueda de unos 1 800 m, con radio mayor R = 830 m, radio del tubo de 65 m y seis rayos. El estudio pide vivir entre 0,9 y 1 g, sin pasar de 1 RPM en las zonas de vivienda, y reporta 0,95 ± 0,05 g a 1 RPM. A 1 RPM, ω = 0,1047 rad/s y a_c = 9,10 m/s² = 0,93 g. Según mi cálculo, entre R y el punto más exterior del tubo, 830 + 65 = 895 m, la gravedad aparente va de 0,93 a 1,00 g, dentro de los 0,95 ± 0,05 g del informe; la pared interior, a 765 m, se queda en 0,86 g."
+  caption="a_c/g = ω²r/g frente a r: a giro fijo, una recta que corta la línea de 1 g en r = g/ω², 223,6 m a 2 RPM y 894,6 m a 1 RPM. El Toro de Stanford de SP-413, a R = 830 m y 1 RPM, queda en 0,93 g; la tabla 3.1 da ω, la rapidez del piso y el período de cada caso, y la tabla 3.2, los datos del toro."
   source={{
     text: 'Rectas calculadas por el autor con la ecuación (3.2); geometría y criterios del Toro de Stanford de NASA SP-413, fuente 1',
   }}
 >
   <HabitatFigure variant="radio" client:visible />
 </Figure>
+
+<DataTable id="gravedad-artificial-habitats" />
+
+<DataTable id="gravedad-artificial-toro" />
 
 </Step>
 
@@ -187,13 +192,15 @@ En la (3.3) ω se cancela: el gradiente depende solo de r, del 0,8 % a 223,6 m a
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Giro que pide 1 g, N = (60/2π)·√(g/r), frente a r, con los límites de confort de los cinco autores que recopila SpinCalc (artificial-gravity.com, desde 2000; última revisión de 2018): Hill y Schnitzer (1962), Gilruth (1969), Gordon y Gervais (1969), Stone (1973) y Cramer (1985). No coinciden: el giro máximo va de 3 a 6 RPM y el radio mínimo, cuando lo dan, de 4 a 12 m (bandas); la velocidad tangencial mínima, de 6 a 10 m/s. Cada punto lleva su gradiente h/r con h = 1,80 m; la centrífuga de 10 m, a 9,46 RPM, supera el giro máximo de los cinco. Coriolis en el Toro de Stanford, según SP-413: quien salta 0,55 m cae unos 5,3 cm a un lado."
+  caption="Giro que pide 1 g, N = (60/2π)·√(g/r), frente a r, con los límites de confort de los cinco autores de la tabla 3.3 como bandas: giro máximo de 3 a 6 RPM y radio mínimo, cuando lo dan, de 4 a 12 m. Cada punto lleva su gradiente h/r con h = 1,80 m; la centrífuga de 10 m, a 9,46 RPM, supera el giro máximo de los cinco."
   source={{
     text: 'Curva calculada por el autor con las ecuaciones (3.2) y (3.3); límites de confort de SpinCalc, fuente 2',
   }}
 >
   <HabitatFigure variant="confort" client:visible />
 </Figure>
+
+<DataTable id="gravedad-artificial-confort" />
 
 </Step>
 
