@@ -6,9 +6,137 @@ shortTitle: 'Coeficiente de restitución'
 concept: 'Colisiones elásticas e inelásticas, conservación del momento lineal y coeficiente de restitución.'
 resourceType: simulacion
 useCase:
-  product: 'Borrador'
-  industry: 'Borrador'
+  product: 'Box2D v3'
+  industry: 'Motores de física para videojuegos'
 sources:
+  - id: box2d-v311
+    title: 'Box2D v3.1.1 (tag v3.1.1, commit 8c66146)'
+    authors: 'Erin Catto'
+    year: 2025
+    publisher: 'Repositorio erincatto/box2d en GitHub, licencia MIT; src/contact_solver.c, L150-L153 y L383-L470'
+    url: 'https://github.com/erincatto/box2d/blob/v3.1.1/src/contact_solver.c#L383-L470'
+    accessed: '2026-10-30'
+  - id: box2d-v320
+    title: 'Box2D v3.2.0 (tag v3.2.0, commit 178495b)'
+    authors: 'Erin Catto'
+    year: 2026
+    publisher: 'Repositorio erincatto/box2d en GitHub, licencia MIT; src/contact_solver.c L571-L689, src/types.c L13-L22, src/contact.h L162-L165, src/solver.c L1050-L1061, include/box2d/box2d.h L145-L146 y docs/simulation.md L345-L359 y L776-L804'
+    url: 'https://github.com/erincatto/box2d/tree/v3.2.0'
+    accessed: '2026-10-30'
+  - id: unity-bouncethreshold
+    title: 'Physics.bounceThreshold. Unity Scripting API, Unity 6.6'
+    authors: 'Unity Technologies'
+    year: 2026
+    url: 'https://docs.unity.com/en-us/engine/current/script-reference/unityengine/physics/bouncethreshold'
+    accessed: '2026-10-30'
+  - id: unity-material
+    title: 'Physics Material component reference. Unity 6.6 User Manual'
+    authors: 'Unity Technologies'
+    year: 2026
+    url: 'https://docs.unity.com/en-us/engine/current/manual/physics-section/physics-overview/collision-section/collider-surfaces/class-physics-material'
+    accessed: '2026-10-30'
+  - id: unity-2d-bouncethreshold
+    title: 'Physics2D.bounceThreshold. Unity Scripting API, Unity 6.6'
+    authors: 'Unity Technologies'
+    year: 2026
+    url: 'https://docs.unity.com/en-us/engine/current/script-reference/unityengine/physics2d/bouncethreshold'
+    accessed: '2026-10-30'
+  - id: unity-2d-bouncecombine
+    title: 'PhysicsMaterial2D.bounceCombine. Unity Scripting API, Unity 6.6'
+    authors: 'Unity Technologies'
+    year: 2026
+    url: 'https://docs.unity.com/en-us/engine/current/script-reference/unityengine/physicsmaterial2d/bouncecombine'
+    accessed: '2026-10-30'
+  - id: physx
+    title: 'NVIDIA PhysX SDK (commit b97365c)'
+    authors: 'NVIDIA'
+    publisher: 'Repositorio NVIDIA-Omniverse/PhysX en GitHub; physx/include/PxSceneDesc.h, PxTolerancesScale.h y PxMaterial.h'
+    url: 'https://github.com/NVIDIA-Omniverse/PhysX/tree/b97365c6ddb32fda8469bc788ec18024862b0368'
+    accessed: '2026-10-30'
+  - id: bullet
+    title: 'Bullet Physics 3.25 (tag 3.25, commit 2c204c4)'
+    authors: 'Erwin Coumans y colaboradores'
+    publisher: 'Repositorio bulletphysics/bullet3 en GitHub, licencia zlib'
+    url: 'https://github.com/bulletphysics/bullet3/tree/3.25'
+    accessed: '2026-10-30'
+  - id: jolt
+    title: 'Jolt Physics v5.6.0 (tag v5.6.0, commit e77f175)'
+    authors: 'Jorrit Rouwe'
+    publisher: 'Repositorio jrouwe/JoltPhysics en GitHub, licencia MIT'
+    url: 'https://github.com/jrouwe/JoltPhysics/tree/v5.6.0'
+    accessed: '2026-10-30'
+  - id: godot
+    title: 'Godot Engine 4.7.2-stable (tag 4.7.2-stable, commit ed1daf0)'
+    authors: 'Godot contributors'
+    publisher: 'Repositorio godotengine/godot en GitHub, licencia MIT'
+    url: 'https://github.com/godotengine/godot/tree/4.7.2-stable'
+    accessed: '2026-10-30'
+  - id: catto-gdc2013
+    title: 'Continuous Collision (diapositivas)'
+    authors: 'Erin Catto'
+    year: 2013
+    publisher: 'Game Developers Conference 2013'
+    url: 'https://box2d.org/files/ErinCatto_ContinuousCollision_GDC2013.pdf'
+    accessed: '2026-10-30'
+  - id: catto-gdc2014
+    title: 'Understanding Constraints (diapositivas)'
+    authors: 'Erin Catto'
+    year: 2014
+    publisher: 'Game Developers Conference 2014'
+    url: 'https://box2d.org/files/ErinCatto_UnderstandingConstraints_GDC2014.pdf'
+    accessed: '2026-10-30'
+  - id: catto-solver2d
+    title: 'Solver2D'
+    authors: 'Erin Catto'
+    year: 2024
+    publisher: 'Blog de box2d.org, 5 de febrero de 2024'
+    url: 'https://box2d.org/posts/2024/02/solver2d/'
+    accessed: '2026-10-30'
+  - id: itf-rules-2026
+    title: 'ITF Rules of Tennis 2026, Appendix I «The Ball»'
+    authors: 'International Tennis Federation'
+    year: 2025
+    url: 'https://www.itftennis.com/media/7221/2026-rules-of-tennis-english.pdf'
+    accessed: '2026-10-30'
+  - id: itf-tests
+    title: 'Ball Approval Tests'
+    authors: 'ITF Technical Centre'
+    year: 2019
+    url: 'https://m.itftennis.com/media/2100/balls-ball-approval-tests.pdf'
+    accessed: '2026-10-30'
+  - id: fiba-2026-eq
+    title: 'Official Basketball Rules 2026: Basketball Equipment, v1.0'
+    authors: 'FIBA'
+    year: 2026
+    url: 'https://assets.fiba.basketball/image/upload/documents-corporate-fiba-official-rules-2026-equipment-v1-0.pdf'
+    accessed: '2026-10-30'
+  - id: fifa-balls-2018
+    title: 'FIFA Quality Programme for Footballs, Testing Manual'
+    authors: 'FIFA'
+    year: 2018
+    url: 'https://digitalhub.fifa.com/m/4e93a32cd03542cf/original/testing-manual-fifa-quality-programme-for-footballs-2018.pdf'
+    accessed: '2026-10-30'
+  - id: cross-1999-bounce
+    title: 'The bounce of a ball'
+    authors: 'Rod Cross'
+    year: 1999
+    publisher: 'American Journal of Physics 67(3), 222-227'
+    url: 'https://www.physics.usyd.edu.au/~cross/PUBLICATIONS/5.%20BallBounce.pdf'
+    accessed: '2026-10-30'
+  - id: cross-1999-tennis
+    title: 'Dynamic properties of tennis balls'
+    authors: 'Rod Cross'
+    year: 1999
+    publisher: 'Sports Engineering 2, 23-33'
+    url: 'https://www.physics.usyd.edu.au/~cross/PUBLICATIONS/7.%20BallsDynamicTests.PDF'
+    accessed: '2026-10-30'
+  - id: cross-2002-superball
+    title: 'Measurements of the horizontal coefficient of restitution for a superball and a tennis ball'
+    authors: 'Rod Cross'
+    year: 2002
+    publisher: 'American Journal of Physics 70(5), 482-489'
+    url: 'https://www.physics.usyd.edu.au/~cross/PUBLICATIONS/20.%20HorizCOR.PDF'
+    accessed: '2026-10-30'
   - id: serway-jewett-2018
     title: 'Física para ciencias e ingeniería, Vol. 1, 10.ª edición'
     authors: 'Raymond A. Serway y John W. Jewett Jr.'
@@ -16,125 +144,295 @@ sources:
     publisher: 'Cengage Learning'
     url: 'https://cengagelatam.editorialdc.com/libros/fisica-para-ciencias-e-ingenieria-vol-1/'
     accessed: '2026-10-08'
-related: ['salto-personaje', 'control-haptico']
+related: ['salto-personaje', 'control-haptico', 'asistencia-gravitatoria']
 classRefs:
-  - module: 'Módulo 1'
-    topic: 'Borrador'
-    note: 'Borrador'
+  - module: 'Módulo 3'
+    topic: 'Tema 02 · Colisiones y explosiones · Concepto 01 · Tipos de colisión'
+    note: 'Elástica si K se conserva; con e = 1 elástica y con e = 0 los cuerpos comparten velocidad.'
+  - module: 'Módulo 3'
+    topic: 'Tema 02 · Colisiones y explosiones · Concepto 02 · Colisiones en una dimensión'
+    note: 'Momento más restitución: la (7.2) y el ejemplo de 2 kg a +3 m/s contra 1 kg en reposo de la figura 7.2.'
+  - module: 'Módulo 3'
+    topic: 'Tema 02 · Colisiones y explosiones · Concepto 03 · Colisión completamente inelástica'
+    note: 'Kᵢ − K_f = ½ μ (v₁ᵢ − v₂ᵢ)²: la pérdida de la (7.2) con e = 0.'
+  - module: 'Módulo 3'
+    topic: 'Tema 02 · Colisiones y explosiones · Concepto 04 · Colisiones en dos dimensiones'
+    note: 'El momento por componentes; el laboratorio se queda en una dimensión.'
+  - module: 'Módulo 3'
+    topic: 'Tema 02 · Colisiones y explosiones · Concepto 05 · Impulso normal en discos lisos'
+    note: 'j = (1+e)(v_A − v_B)·n̂/(1/m_A + 1/m_B) sobre la normal: el impulso que Box2D aplica en la (7.3).'
 updated: 2026-10-30
 ---
 
 import Step from '../../components/ui/Step.astro';
 import Why from '../../components/ui/Why.astro';
 import UseCase from '../../components/ui/UseCase.astro';
+import Equation from '../../components/ui/Equation.astro';
 import Figure from '../../components/ui/Figure.astro';
-import Connections from '../../components/ui/Connections.astro';
+import DataTable from '../../components/ui/DataTable.astro';
 import Cite from '../../components/ui/Cite.astro';
+import Callout from '../../components/ui/Callout.astro';
+import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
+import BounceFigure from '../../components/topics/coeficiente-restitucion/BounceFigure';
+import BounceLab from '../../components/topics/coeficiente-restitucion/BounceLab';
+import { DEFAULT_SPEEDS } from '../../components/lab/clockSettings';
+import { formatNumber } from '../../lib/format';
 
-Borrador <Cite id="serway-jewett-2018" sources={frontmatter.sources} />
+Un solo número, e, decide cuánto sube una pelota tras chocar. Los motores de juego usan la misma ecuación, con pasos de tiempo, umbrales y reglas que la física no tiene.
 
-<Step n={1} title="Paso 1">
+<Step n={1} title="Un rebote contra el piso">
 
-Borrador
+Con +y hacia arriba, e compara la velocidad vertical después del contacto con la de antes <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. Como en vuelo <Equation inline latex="v = \sqrt{2 g h}" />, basta medir alturas: así ensayan la ITF, la FIBA y la FIFA (tabla 7.2).
 
-<Why>
-
-<Fragment slot="fenomeno">
-
-Borrador
-
-</Fragment>
-
-<Fragment slot="ecuacion">
-
-Borrador
-
-</Fragment>
-
-</Why>
-
-</Step>
-
-<Step n={2} title="Paso 2">
-
-Borrador
+<Equation
+  id="ec-restitucion-piso"
+  latex="e = -\frac{v_y'}{v_y} = \sqrt{\frac{h'}{h}}, \qquad h_n = e^{2n}\,h_0"
+  symbols={[
+    {
+      symbol: 'v_y',
+      meaning: 'velocidad vertical justo antes del contacto (negativa: baja)',
+      unit: 'm/s',
+    },
+    { symbol: "v_y'", meaning: 'velocidad vertical justo después del contacto', unit: 'm/s' },
+    { symbol: "h,\\ h'", meaning: 'altura de caída y altura de rebote', unit: 'm' },
+    { symbol: 'h_n', meaning: 'altura que alcanza tras el rebote n, desde h₀', unit: 'm' },
+  ]}
+/>
 
 <Why>
 
 <Fragment slot="fenomeno">
 
-Borrador
+Una pelota de tenis soltada desde 2,54 m debe subir entre 1,35 y 1,47 m <Cite id="itf-tests" sources={frontmatter.sources} /> <Cite id="itf-rules-2026" sources={frontmatter.sources} />: se deforma y no devuelve toda la energía.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Borrador
+Entre botes vale la (2.1) del Tema 2: <Equation inline latex="h = v^2/(2g)" />, así que <Equation inline latex="h'/h = (v'/v)^2 = e^2" /> y cada bote multiplica la altura por e².
 
 </Fragment>
 
 </Why>
 
-</Step>
-
-<Step n={3} title="Paso 3">
-
-Borrador
-
-<Why>
-
-<Fragment slot="fenomeno">
-
-Borrador
-
-</Fragment>
-
-<Fragment slot="ecuacion">
-
-Borrador
-
-</Fragment>
-
-</Why>
-
-</Step>
-
-<Figure type="simulacion" caption="Borrador" source={{ text: 'Borrador' }}>
-  <p>Borrador</p>
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Altura de una pelota de tenis ITF soltada desde 2,54 m con e = 0,745, el centro del rango de la norma. La franja es el rebote que admite la ITF; la línea discontinua marca T, cuando termina la serie de botes."
+  source={{
+    text: 'Curva que calculé con las ecuaciones (7.1) y (7.3); ensayo y franja de la ITF (Ball Approval Tests, 2019, y Rules of Tennis 2026)',
+  }}
+>
+  <BounceFigure variant="rebote" client:visible />
 </Figure>
+
+</Step>
+
+<Step n={2} title="Choque entre dos cuerpos">
+
+Si el impulso externo es despreciable, dos cuerpos que chocan conservan el momento lineal, y e da la segunda ecuación <Cite id="serway-jewett-2018" sources={frontmatter.sources} />.
+
+<Equation
+  id="ec-restitucion-choque"
+  latex="\begin{gathered} m_1 v_1 + m_2 v_2 = m_1 v_1' + m_2 v_2', \qquad v_2' - v_1' = -e\,(v_2 - v_1) \\ v_1' = \frac{(m_1 - e\,m_2)\,v_1 + (1+e)\,m_2 v_2}{m_1 + m_2}, \qquad v_2' = \frac{(m_2 - e\,m_1)\,v_2 + (1+e)\,m_1 v_1}{m_1 + m_2} \\ \Delta K = -\tfrac12\,\mu\,(1 - e^2)\,v_\text{rel}^2 \end{gathered}"
+  symbols={[
+    { symbol: 'm_1,\\ m_2', meaning: 'masas de los dos cuerpos', unit: 'kg' },
+    {
+      symbol: "v_i,\\ v_i'",
+      meaning: 'velocidades con signo sobre el eje, antes y después del choque',
+      unit: 'm/s',
+    },
+    { symbol: '\\mu', meaning: 'masa reducida, m₁m₂/(m₁ + m₂)', unit: 'kg' },
+    {
+      symbol: 'v_\\text{rel}',
+      meaning: 'velocidad relativa antes del choque, v₂ − v₁',
+      unit: 'm/s',
+    },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+El choque reparte el momento y solo pierde energía del movimiento relativo; la del centro de masa no cambia.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+La energía relativa es <Equation inline latex="\tfrac12\mu v_\text{rel}^2" /> y pierde la fracción <Equation inline latex="1 - e^2" />. Con <Equation inline latex="m_2 \to \infty" /> y <Equation inline latex="v_2 = 0" />, <Equation inline latex="v_1' = -e\,v_1" />: el piso del Paso 1.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="diagrama"
+  showBadge={false}
+  caption="El ejemplo de clase, 2 kg a +3 m/s contra 1 kg en reposo, antes y después con e = 0, 0,75 y 1. La flecha de momento mide 6 kg·m/s en las cuatro filas; la barra de K guarda los 6 J del centro de masa y el tramo discontinuo es la energía perdida."
+  source={{
+    text: 'Diagrama que calculé con la ecuación (7.2); masas y velocidades del ejemplo «Choque elástico de masas distintas» del Módulo 3',
+  }}
+>
+  <BounceFigure variant="choque" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={3} title="Por qué rebota mal">
+
+Con <Equation inline latex="e < 1" /> hay infinitos botes en un tiempo finito T, y un motor con paso Δt no resuelve los más cortos que Δt. Box2D aplica el impulso de restitución tras el solver, salvo bajo un umbral <Cite id="box2d-v311" sources={frontmatter.sources} />.
+
+<Equation
+  id="ec-restitucion-motor"
+  latex="\begin{gathered} T = t_0\,\frac{1+e}{1-e}, \qquad t_0 = \sqrt{\frac{2h_0}{g}} \\ j = -m_\text{ef}\,\bigl(v_n + e_\text{ef}\,v_n^-\bigr), \qquad e_\text{ef} = \begin{cases} e & \text{si } |v_n^-| > v_\text{th} \\ 0 & \text{si } |v_n^-| \le v_\text{th} \end{cases} \\ N = \left\lfloor \frac{\ln(v_0/v_\text{th})}{\ln(1/e)} \right\rfloor + 1 \end{gathered}"
+  symbols={[
+    { symbol: 'T', meaning: 'tiempo total de botes, desde que se suelta', unit: 's' },
+    {
+      symbol: 'm_\\text{ef}',
+      meaning: 'masa efectiva del contacto, 1/(1/m₁ + 1/m₂) sin rotación',
+      unit: 'kg',
+    },
+    {
+      symbol: 'v_n^-',
+      meaning: 'velocidad normal de aproximación, guardada antes del solver',
+      unit: 'm/s',
+    },
+    {
+      symbol: 'v_n',
+      meaning: 'velocidad normal actual, con el impulso de no penetración ya aplicado',
+      unit: 'm/s',
+    },
+    { symbol: 'v_\\text{th}', meaning: 'umbral de restitución del motor', unit: 'm/s' },
+    {
+      symbol: 'N',
+      meaning: 'rebotes antes de que el impacto, eⁿv₀ con v₀ = √(2gh₀), baje del umbral',
+    },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Sin umbral, la pelota temblaría en micro-rebotes y nunca se dormiría <Cite id="box2d-v320" sources={frontmatter.sources} />; con él, se para en seco: con los 2 m/s de Unity <Cite id="unity-bouncethreshold" sources={frontmatter.sources} />, una pelota de <Equation inline latex="e = 0{,}9" /> soltada desde 1 m sube 18,5 cm y luego queda pegada (cálculo propio).
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+El impulso deja la velocidad normal en <Equation inline latex="-e\,v_n^-" />, la (7.1). Los impactos bajan como <Equation inline latex="e^n v_0" />, y el umbral corta la serie en N botes: 8 con Unity y 15 con Box2D.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Altura de cada rebote, en escala logarítmica, de una pelota de e = 0,9 soltada desde 1 m. La serie ideal sigue bajando; cada motor la corta en su rebote N, y la flecha final indica que la pelota queda en el piso. Las líneas punteadas son las alturas que equivalen a cada umbral, v_th²/2g."
+  source={{
+    text: 'Gráfica que calculé con la ecuación (7.3); umbrales de Box2D v3.2.0 y de Unity 6.6 (tabla 7.1)',
+  }}
+>
+  <BounceFigure variant="umbral" client:visible />
+</Figure>
+
+<DataTable id="coeficiente-restitucion-motores" />
+
+</Step>
+
+<Step n={4} title="Un rebote que se siente bien">
+
+Box2D v3.2 acota el impulso de restitución con el de compresión: «Poisson kinetic restitution guarantees no energy gain» <Cite id="box2d-v320" sources={frontmatter.sources} />. Y e no es constante: en pelotas de tenis baja de ≈ 0,76 a 4 m/s a ≈ 0,64 a 17 m/s (lectura aproximada de Cross) <Cite id="cross-1999-tennis" sources={frontmatter.sources} />.
+
+<Equation
+  id="ec-restitucion-poisson"
+  latex="J_r \le e\,J_c, \qquad e(v) = e_0 - k\,|v|"
+  symbols={[
+    {
+      symbol: 'J_c,\\ J_r',
+      meaning: 'impulso de compresión y de restitución en el contacto',
+      unit: 'N·s',
+    },
+    {
+      symbol: 'e_0,\\ k',
+      meaning:
+        '0,79 y 0,009 s/m: ajuste lineal ilustrativo, cálculo propio, a esas dos lecturas de Cross',
+    },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+La expansión devuelve como mucho la fracción e del impulso de la compresión, también con varios contactos: ningún contacto gana energía.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Contra un piso fijo, <Equation inline latex="J_c = m|v^-|" /> y <Equation inline latex="J_r = e\,m|v^-|" />: la (7.4) vuelve a la (7.1). Con e(v), un impacto lento rebota más y los botes pequeños se alargan, al revés que con el umbral.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="simulacion"
+  caption="Laboratorio del rebote: la misma pelota con física ideal, de eventos exactos según las ecuaciones (7.1) y (7.3), y en un motor de juego con paso Δt, umbral, regla de combinación y Baumgarte. Mueve e o arrastra h₀ y compara el e medido; los preajustes cargan pelotas reales y rebotes que se sienten mal, y el modo «Choque de dos cuerpos» aplica la (7.2)."
+  source={{ text: 'Simulación del autor sobre src/lib/physics/collision.ts' }}
+>
+  <BounceLab
+    client:visible
+    footnote={`A 1× la reproducción va en tiempo real; en el engranaje, Velocidad ${formatNumber(Math.min(...DEFAULT_SPEEDS), { precision: 2 })}× es cámara lenta. Con g = 9,81 m/s². Lo que el modelo deja fuera: el giro y la fricción del contacto (la superbola de Cross tiene un e horizontal de 0,76), el arrastre del aire, por el que √(h′/h) subestima un poco el e de una pelota ligera, los contactos múltiples que Box2D resuelve de forma aproximada y el movimiento en 2D: todo es vertical. e(v) es un ajuste ilustrativo.`}
+  />
+</Figure>
+
+<DataTable id="coeficiente-restitucion-pelotas" />
+
+</Step>
 
 <UseCase>
 
 <Fragment slot="caso">
 
-Borrador
+Box2D, de Erin Catto (MIT), resuelve cada contacto con impulsos <Cite id="box2d-v311" sources={frontmatter.sources} />. En `src/contact_solver.c` de v3.1.1, tras el solver aplica `impulse = -cp->normalMass * ( vn + restitution * cp->relativeVelocity );` si la aproximación supera `restitutionThreshold`, que en v3.2.0 vale `1.0f * lengthUnits`: 1 m/s según mi cálculo <Cite id="box2d-v320" sources={frontmatter.sources} />. Cada forma lleva un número, `restitution`, y el par usa el mayor.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Borrador
+Es la (7.3): `normalMass` es <Equation inline latex="m_\text{ef}" />, `vn` es <Equation inline latex="v_n" /> y `cp->relativeVelocity`, <Equation inline latex="v_n^-" />. De una vez desde <Equation inline latex="v_n^-" />, suma <Equation inline latex="j = -(1+e)\,m_\text{ef}\,v_n^-" />, el impulso normal de clase.
 
 </Fragment>
 
 <Fragment slot="justificacion">
 
-Borrador
+Una animación guionizada solo sirve para la altura animada; una tabla precalculada no alcanza a barrer altura, masa y par de materiales, ni resuelve una pila de cuerpos. Un número por forma vale en cualquier caso y conserva el momento.
 
 </Fragment>
 
 <Fragment slot="balance">
 
-Borrador
+Se gana coherencia con un parámetro que el diseñador entiende. Cuestan el umbral, que para en seco, y la mezcla: e es del par, no del material, y cada motor la combina distinto (tabla 7.1); con `max`, una superbola rebota sobre cualquier piso <Cite id="box2d-v320" sources={frontmatter.sources} />. También cuestan la dependencia de Δt, el túnel sin detección continua <Cite id="catto-gdc2013" sources={frontmatter.sources} /> y una pasada extra del solver.
 
 </Fragment>
 
 </UseCase>
 
+<Callout variant="clase" title="Módulo 3 · Tema 02, conceptos 01 a 05">
+
+La (7.2) es la del concepto 02, y su ejemplo «Choque elástico de masas distintas» (2 kg a +3 m/s contra 1 kg en reposo: 1 y 4 m/s) es la fila e = 1 de la figura 7.2; la fila e = 0 es la captura del concepto 03. El impulso de la (7.3) es el del concepto 05. El piso, la serie de alturas y el umbral son extensiones.
+
+</Callout>
+
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-Borrador
+Con el Tema 2: entre botes la pelota hace el lanzamiento vertical de la (2.1), integrado con el mismo Euler semi-implícito. Con el Tema 5: un choque es un resorte breve que no devuelve toda su energía. Con el Tema 9: visto desde el planeta, un sobrevuelo es un choque elástico.
 
 </Connections>
 

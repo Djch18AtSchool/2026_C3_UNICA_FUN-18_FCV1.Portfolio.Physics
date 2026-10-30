@@ -204,7 +204,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       ball: 'neutra',
     },
     sourceLabel: 'Physics.bounceThreshold de Unity (por defecto, 2)',
-    note: `Tomo de Unity solo el umbral de 2 m/s y la mezcla promedio, los valores por defecto de Unity 3D. El paso es el del laboratorio, 1/60 s con 4 subpasos, el paso fino de Box2D, y le doy al suelo el mismo e = ${comma(UNITY_E, 1)} que a la pelota: con el suelo en 0, el valor por defecto de Unity, el promedio daría ${comma(combineRestitution(UNITY_E, UNITY_DEFAULT_FLOOR, 'average'), 3)} y la pelota rebotaría la mitad. Tras unos pocos botes, uno de unos 18 cm termina en una parada en seco.`,
+    note: `Tomo de Unity solo el umbral de 2 m/s y la mezcla promedio, los valores por defecto de Unity 3D. El paso es el del laboratorio, 1/60 s con 4 subpasos, el paso fino de Box2D, y le doy al suelo el mismo e = ${comma(UNITY_E, 1)} que a la pelota: con el suelo en 0, el valor por defecto de Unity, el promedio daría ${comma(combineRestitution(UNITY_E, UNITY_DEFAULT_FLOOR, 'average'), 3)}: e quedaría a la mitad y la altura del rebote, a la cuarta parte. Tras unos pocos botes, uno de unos 18 cm termina en una parada en seco.`,
   },
   {
     id: 'mezcla',

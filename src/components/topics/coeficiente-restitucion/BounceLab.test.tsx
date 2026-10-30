@@ -314,6 +314,11 @@ describe('BounceLab', () => {
     expect(note).toHaveTextContent(
       /con el suelo en 0, el valor por defecto de Unity, el promedio daría 0,450/,
     );
+    // e halves, so the rebound height (e² h₀) falls to a quarter, not to a half (ruling R27).
+    expect(note).toHaveTextContent(
+      /e quedaría a la mitad y la altura del rebote, a la cuarta parte/,
+    );
+    expect(note).not.toHaveTextContent(/rebotaría la mitad/);
   });
 
   test('with e(v) on, a preset with e > 1 no longer claims the ball gains energy', async () => {
