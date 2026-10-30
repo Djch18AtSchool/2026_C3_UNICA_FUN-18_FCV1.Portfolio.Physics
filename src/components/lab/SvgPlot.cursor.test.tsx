@@ -2,7 +2,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../lib/settingsStore';
-import type { Scale } from './plotScales';
+import { TICK_FONT_SIZE } from '../charts/chartTheme';
+import { monoTextWidth, type Scale } from './plotScales';
 import SvgPlot from './SvgPlot';
 import { mockIdentityCtm, PROPS } from './svgPlotTestKit';
 
@@ -174,6 +175,46 @@ describe('SvgPlot cursor', () => {
 
     expect(screen.getByText('x = 5 m')).toBeInTheDocument();
     expect(screen.getByRole('slider')).toHaveAttribute('aria-valuetext', 'x = 5 m');
+  });
+
+  test.each([
+    ['right of the handle', 2, 'start'],
+    ['flipped left of the handle', 9, 'end'],
+  ])(
+    'the label sits on a surface plate that covers the series under it, %s',
+    (_where, x, anchor) => {
+      const { container } = render(
+        <SvgPlot {...PROPS} cursor={{ x, onChange: () => {}, label: () => 't = 0,00 s' }} />,
+      );
+      const label = screen.getByText('t = 0,00 s');
+      const plate = container.querySelector('[data-cursor-plate]') as SVGRectElement;
+      const box = {
+        left: Number(plate.getAttribute('x')),
+        width: Number(plate.getAttribute('width')),
+        top: Number(plate.getAttribute('y')),
+        height: Number(plate.getAttribute('height')),
+      };
+      const textX = Number(label.getAttribute('x'));
+      const textWidth = monoTextWidth('t = 0,00 s', TICK_FONT_SIZE);
+      const [textLeft, textRight] =
+        anchor === 'start' ? [textX, textX + textWidth] : [textX - textWidth, textX];
+      const textY = Number(label.getAttribute('y'));
+
+      expect(label).toHaveAttribute('text-anchor', anchor);
+      expect(plate).toHaveAttribute('fill', 'var(--bg-elevated)');
+      // Drawn first, so the text paints over it; it spans the text with a little margin.
+      expect(plate.compareDocumentPosition(label) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(box.left).toBeLessThan(textLeft);
+      expect(box.left + box.width).toBeGreaterThan(textRight);
+      expect(box.top).toBeLessThan(textY - TICK_FONT_SIZE / 2);
+      expect(box.top + box.height).toBeGreaterThan(textY + TICK_FONT_SIZE / 2);
+    },
+  );
+
+  test('a cursor without a label draws no plate', () => {
+    const { container } = render(<SvgPlot {...PROPS} cursor={{ x: 5, onChange: () => {} }} />);
+
+    expect(container.querySelector('[data-cursor-plate]')).toBeNull();
   });
 
   test('draws a read-only cursor line without a slider when there is no onChange', () => {

@@ -41,6 +41,12 @@ const LABEL_GAP = 14;
 /** Past this fraction of the plot width, or when it would overrun the plot, the label flips left. */
 const LABEL_FLIP_FRACTION = 0.7;
 const HALO_WIDTH = 4;
+/**
+ * Margin of the surface plate under the label. A halo outlines the glyphs only: a series line
+ * along the top of the plot (an h₀ or ±L_max) still showed through the spaces of «t = 0,00 s».
+ */
+const PLATE_PAD = 3;
+const PLATE_RADIUS = 2;
 
 export function clamp(value: number, { min, max }: Domain): number {
   return Math.min(max, Math.max(min, value));
@@ -157,22 +163,36 @@ export default function SvgPlotCursor({
     />
   );
 
+  const labelX = isLabelLeft ? cx - LABEL_GAP : cx + LABEL_GAP;
+  const labelWidth = labelText === undefined ? 0 : monoTextWidth(labelText, fontSize);
   const label = labelText ? (
-    <text
-      x={isLabelLeft ? cx - LABEL_GAP : cx + LABEL_GAP}
-      y={area.top}
-      dy="0.35em"
-      textAnchor={isLabelLeft ? 'end' : 'start'}
-      fill={TEXT_COLOR}
-      fontFamily={TICK_FONT_FAMILY}
-      fontSize={fontSize}
-      stroke={SURFACE_COLOR}
-      strokeWidth={HALO_WIDTH}
-      paintOrder="stroke"
-      className="pointer-events-none"
-    >
-      {labelText}
-    </text>
+    <>
+      <rect
+        data-cursor-plate=""
+        x={(isLabelLeft ? labelX - labelWidth : labelX) - PLATE_PAD}
+        y={area.top - fontSize / 2 - PLATE_PAD}
+        width={labelWidth + 2 * PLATE_PAD}
+        height={fontSize + 2 * PLATE_PAD}
+        rx={PLATE_RADIUS}
+        fill={SURFACE_COLOR}
+        className="pointer-events-none"
+      />
+      <text
+        x={labelX}
+        y={area.top}
+        dy="0.35em"
+        textAnchor={isLabelLeft ? 'end' : 'start'}
+        fill={TEXT_COLOR}
+        fontFamily={TICK_FONT_FAMILY}
+        fontSize={fontSize}
+        stroke={SURFACE_COLOR}
+        strokeWidth={HALO_WIDTH}
+        paintOrder="stroke"
+        className="pointer-events-none"
+      >
+        {labelText}
+      </text>
+    </>
   ) : null;
 
   if (!onChange) {
