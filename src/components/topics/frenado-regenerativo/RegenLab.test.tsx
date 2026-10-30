@@ -115,6 +115,14 @@ describe('RegenLab', () => {
     expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
   });
 
+  test('the hint ties "no friction without f(v)" to the default 239 kW cap, not to any P_máx', () => {
+    const { container } = renderLab();
+
+    expect((container.textContent ?? '').replace(/\s+/g, ' ')).toContain(
+      'f(v) apaga la regeneración cerca de detenerse; sin él, con el tope de 239 kW, la fricción no haría falta en estos ciclos.',
+    );
+  });
+
   test('the regime and the car line are HTML above the drawing, so they wrap on a phone', () => {
     renderLab();
 

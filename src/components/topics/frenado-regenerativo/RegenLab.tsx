@@ -10,6 +10,7 @@ import EnergyBars from './EnergyBars';
 import { regenLocalSettings } from './regenLabSettings';
 import RegenEnergyPlot from './RegenEnergyPlot';
 import {
+  DEFAULT_P_MAX_KW,
   ETA_RANGE,
   INITIAL_REGEN_STATE,
   P_MAX_RANGE,
@@ -163,8 +164,8 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
       />
       <p className="m-0 text-sm text-fg-muted">
         η es el rendimiento de la rueda a la batería: Boretti midió del 70 al 80 % en un Leaf 2012 y
-        del 72 al 87 % en uno 2013. f(v) apaga la regeneración cerca de detenerse; sin él, la
-        fricción no haría falta en estos ciclos. Arrastra el cursor de la gráfica de energía, o
+        del 72 al 87 % en uno 2013. f(v) apaga la regeneración cerca de detenerse; sin él, con el
+        tope de {DEFAULT_P_MAX_KW} kW, la fricción no haría falta en estos ciclos. Arrastra el cursor de la gráfica de energía, o
         enfócalo y muévelo con las flechas (1 % del ciclo; con Mayús, 10 %). El ciclo y f(v) se
         eligen en los ajustes del engranaje.
       </p>

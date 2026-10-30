@@ -25,7 +25,8 @@ export interface RegenLabState {
 export const ETA_RANGE = { min: 0, max: 1, step: 0.01 } as const;
 export const P_MAX_RANGE = { min: 0, max: 250, step: 1 } as const;
 
-const DEFAULT_P_MAX_KW = DEFAULT_REGEN.pMax / W_PER_KW;
+/** The site's P_máx in kW (239, the FASTSim motor's), also named in the lab's hint. */
+export const DEFAULT_P_MAX_KW = DEFAULT_REGEN.pMax / W_PER_KW;
 /** "Batería fría o llena": the charging limit drops (LEAF 2025 manual); 10 kW is a scenario (research §8, 7). */
 const COLD_P_MAX_KW = 10;
 
