@@ -4,3 +4,4 @@ docs/
 pnpm-lock.yaml
 src/data/drone-route.json
 src/data/drive-cycles.json
+src/data/voyager-speed.json
