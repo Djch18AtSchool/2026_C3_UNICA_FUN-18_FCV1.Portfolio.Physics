@@ -202,8 +202,9 @@ test.describe('página', () => {
   });
 
   test('las gráficas B y A van en los pasos 2 y 3, con su fuente', async ({ page }) => {
-    const load = page.locator('section.step#paso-2 figure');
-    const temperature = page.locator('section.step#paso-3 figure');
+    // Content figures only: each step's data table is a <figure> too.
+    const load = page.locator('section.step#paso-2 figure[data-testid="figure"]');
+    const temperature = page.locator('section.step#paso-3 figure[data-testid="figure"]');
 
     await expect(load.getByTestId('tyre-figure-carga')).toBeAttached();
     await expect(load.locator('.figure-source')).toContainText('Milliken');
@@ -211,6 +212,18 @@ test.describe('página', () => {
     await expect(temperature.getByTestId('tyre-figure-temperatura')).toBeAttached();
     await expect(temperature.locator('.figure-source')).toContainText('Autosport');
     await expect(temperature.locator('.figure-source')).toContainText('ilustrativ');
+  });
+
+  test('los datos de las leyendas viven en cuatro tablas, junto a su figura', async ({ page }) => {
+    const table = (step: number) =>
+      page.locator(`section.step#paso-${step} [data-testid="data-table"]`);
+
+    await expect(page.getByTestId('data-table')).toHaveCount(4);
+    await expect(table(2)).toContainText(/11\s943/);
+    await expect(table(2)).toContainText('artefacto del modelo');
+    await expect(table(3)).toContainText('1,75');
+    await expect(table(4).first()).toContainText('LS_EXPY');
+    await expect(table(4).last()).toContainText('supongo °C');
   });
 
   test('la página cumple la estructura del tema', async ({ page }) => {
