@@ -156,7 +156,7 @@ test.describe('móvil, regiones desplazables', () => {
       expect(names.length, 'regiones desplazables a 375 px').toBeGreaterThan(0);
       expect(new Set(names).size).toBe(names.length);
       for (const label of names)
-        expect(label).toMatch(/^(Ecuación \(\d+\.\d+\)|Figura \d+\.\d+) desplazable$/);
+        expect(label).toMatch(/^(Ecuación \(\d+\.\d+\)|Figura \d+\.\d+|Tabla \d+\.\d+) desplazable$/);
 
       const { violations } = await new AxeBuilder({ page })
         .withRules(['landmark-unique'])
