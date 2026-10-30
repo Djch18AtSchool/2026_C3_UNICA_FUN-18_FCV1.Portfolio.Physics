@@ -47,6 +47,8 @@ const HALO_WIDTH = 4;
  */
 const PLATE_PAD = 3;
 const PLATE_RADIUS = 2;
+/** The plate reaches back to the knob's edge (7 px and its 1 px ring), so no series peeks between. */
+const PLATE_KNOB_GAP = KNOB_RADIUS + 1;
 
 export function clamp(value: number, { min, max }: Domain): number {
   return Math.min(max, Math.max(min, value));
@@ -169,9 +171,9 @@ export default function SvgPlotCursor({
     <>
       <rect
         data-cursor-plate=""
-        x={(isLabelLeft ? labelX - labelWidth : labelX) - PLATE_PAD}
+        x={isLabelLeft ? labelX - labelWidth - PLATE_PAD : cx + PLATE_KNOB_GAP}
         y={area.top - fontSize / 2 - PLATE_PAD}
-        width={labelWidth + 2 * PLATE_PAD}
+        width={labelWidth + PLATE_PAD + LABEL_GAP - PLATE_KNOB_GAP}
         height={fontSize + 2 * PLATE_PAD}
         rx={PLATE_RADIUS}
         fill={SURFACE_COLOR}
