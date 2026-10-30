@@ -11,7 +11,7 @@ import {
   rpmForGravity,
   solveHabitat,
 } from '../../physics';
-import { COMFORT } from '../../../components/topics/gravedad-artificial/habitatFigures';
+import { COMFORT } from '../../data/comfortCriteria';
 import { HABITAT_PRESETS, type HabitatSettings } from '../../data/habitatPresets';
 import type { DataTableSpec } from '../types';
 

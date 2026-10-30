@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { COMFORT } from '../../../components/topics/gravedad-artificial/habitatFigures';
+import { COMFORT } from '../../data/comfortCriteria';
 import { tableById } from '../index';
 import { tableMarkdown } from '../markdown';
 import { HABITAT_PRESETS } from '../../data/habitatPresets';

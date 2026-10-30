@@ -15,12 +15,8 @@ export interface FigurePoint extends XY {
   labelAt?: XY;
 }
 
-/**
- * Comfort limits SpinCalc collects from its five authors (v1 use case): the maximum spin goes
- * from 3 to 6 rpm, the minimum radius, when given, from 4 to 12 m, and the minimum tangential
- * speed from 6 to 10 m/s.
- */
-export const COMFORT = { rpmMax: [3, 6], rMin: [4, 12], vMin: [6, 10] } as const;
+/** SpinCalc's comfort bands, from the data layer (src/lib/data/comfortCriteria.ts). */
+export { COMFORT } from '../../../lib/data/comfortCriteria';
 
 const SPIN_SAMPLES = 80;
 
