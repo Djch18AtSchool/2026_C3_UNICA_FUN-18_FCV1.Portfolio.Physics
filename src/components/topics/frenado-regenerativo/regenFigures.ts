@@ -47,7 +47,7 @@ export const KINETIC_COLOR = 'var(--chart-1)';
  * model kept apart. Task 6D passes it verbatim to the chart's `<Figure source={…}>`.
  */
 export const ENERGY_BALANCE_SOURCE = {
-  text: 'Ciclo UDDS y coeficientes de carga: EPA (datos reales); reparto regenerativo/fricción: cálculo propio con el modelo y los parámetros de FASTSim',
+  text: 'Gráfica del autor con las ecuaciones (6.2) a (6.4); ciclo UDDS y coeficientes de carga: EPA (datos reales); reparto regenerativo/fricción: cálculo propio con el modelo y los parámetros de FASTSim',
   url: 'https://www.epa.gov/vehicle-and-fuel-emissions-testing/dynamometer-drive-schedules',
 } as const;
 

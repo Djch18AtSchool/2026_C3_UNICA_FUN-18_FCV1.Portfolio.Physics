@@ -22,7 +22,7 @@ import { signed } from './flybyFormat';
 
 /** The chart's source line (spec §9); the page's Figure cites it verbatim. Never «medida». */
 export const VOYAGER_CHART_SOURCE =
-  'Datos: NASA/JPL Horizons, consultados el 30 de octubre de 2026; trayectoria de diseño reconstruida hasta el 29 de agosto de 1989 y ajuste de 2022 a datos de seguimiento después';
+  'Gráfica del autor; datos: NASA/JPL Horizons, consultados el 30 de octubre de 2026; trayectoria de diseño reconstruida hasta el 29 de agosto de 1989 y ajuste de 2022 a datos de seguimiento después';
 
 export type EncounterKey = 'J' | 'S' | 'U' | 'N';
 export const ENCOUNTER_KEYS: readonly EncounterKey[] = ['J', 'S', 'U', 'N'];

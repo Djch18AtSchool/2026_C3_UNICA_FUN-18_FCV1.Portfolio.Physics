@@ -223,9 +223,9 @@ describe('cycleDistance', () => {
 });
 
 describe('ENERGY_BALANCE_SOURCE', () => {
-  test('separates real data (EPA) from the model (own calculation with FASTSim)', () => {
+  test("signs the chart as the author's and separates real data (EPA) from the model (FASTSim)", () => {
     expect(ENERGY_BALANCE_SOURCE.text).toBe(
-      'Ciclo UDDS y coeficientes de carga: EPA (datos reales); reparto regenerativo/fricción: cálculo propio con el modelo y los parámetros de FASTSim',
+      'Gráfica del autor con las ecuaciones (6.2) a (6.4); ciclo UDDS y coeficientes de carga: EPA (datos reales); reparto regenerativo/fricción: cálculo propio con el modelo y los parámetros de FASTSim',
     );
     expect(ENERGY_BALANCE_SOURCE.url).toMatch(/^https:\/\/www\.epa\.gov\//);
   });

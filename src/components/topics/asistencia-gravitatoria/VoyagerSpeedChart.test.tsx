@@ -69,7 +69,7 @@ describe('VoyagerSpeedChart', () => {
     const footnote = screen.getByTestId('chart-footnote');
     expect(footnote).toHaveTextContent(/120 días antes y 120 días después \(vis-viva\)/);
     expect(footnote).not.toHaveTextContent('Horizons');
-    expect(VOYAGER_CHART_SOURCE).toMatch(/^Datos: NASA\/JPL Horizons/);
+    expect(VOYAGER_CHART_SOURCE).toMatch(/^Gráfica del autor; datos: NASA\/JPL Horizons/);
   });
 
   test('the date cursor moves with the keyboard and the readout follows it', () => {

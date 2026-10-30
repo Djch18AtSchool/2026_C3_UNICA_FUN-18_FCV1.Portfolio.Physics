@@ -18,9 +18,9 @@ const NNBSP = '\u202f';
 const MINUS = '−';
 
 describe('VOYAGER_CHART_SOURCE', () => {
-  test('cites Horizons, the query date and the design segment, never a measured trajectory', () => {
+  test("signs the chart as the author's, cites Horizons, the query date and the design segment, never a measured trajectory", () => {
     expect(VOYAGER_CHART_SOURCE).toBe(
-      'Datos: NASA/JPL Horizons, consultados el 30 de octubre de 2026; trayectoria de diseño reconstruida hasta el 29 de agosto de 1989 y ajuste de 2022 a datos de seguimiento después',
+      'Gráfica del autor; datos: NASA/JPL Horizons, consultados el 30 de octubre de 2026; trayectoria de diseño reconstruida hasta el 29 de agosto de 1989 y ajuste de 2022 a datos de seguimiento después',
     );
     expect(VOYAGER.retrieved).toBe('2026-10-30');
     expect(VOYAGER_CHART_SOURCE).not.toMatch(/medid/i);
