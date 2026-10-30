@@ -175,6 +175,18 @@ describe('LabShell', () => {
     expect(screen.getByTestId('jump-lab')).toHaveAttribute('data-playing', 'false');
   });
 
+  test('the transport reads the run in its auto unit unless the lab fixes timeUnit', () => {
+    const clock = fakeClock({ duration: 1369, t: 116 });
+    const { unmount } = renderShell({ clock });
+    const timeline = () => screen.getByRole('slider', { name: 'Línea de tiempo' });
+
+    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 1,93\u202Fmin');
+    unmount();
+
+    renderShell({ clock, timeUnit: 's' });
+    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 116,000\u202Fs');
+  });
+
   test('lays out header, canvas, transport, readouts, params and footnote in that order', () => {
     renderShell({ clock: fakeClock(), footnote: 'Modelo sin rozamiento del aire.' });
     const sequence = [

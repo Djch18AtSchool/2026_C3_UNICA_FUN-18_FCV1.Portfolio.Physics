@@ -282,7 +282,7 @@ La (6.4) divide entre la tracción, no entre el frenado, que se reparte sin rest
 >
   <RegenLab
     client:visible
-    footnote={`La reproducción va ${TIME_LAPSE} veces más rápida que el ciclo real: los ${formatNumber(DRIVE_CYCLES.udds.samples[DRIVE_CYCLES.udds.samples.length - 1].t, { precision: 0, unit: 's' })} del UDDS duran ${formatNumber(DRIVE_CYCLES.udds.samples[DRIVE_CYCLES.udds.samples.length - 1].t / TIME_LAPSE, { precision: 1, unit: 's' })} a 1×; la lectura t marca el tiempo real. Lo que el modelo deja fuera: pendiente, viento, temperatura y estado de carga de la batería (salvo a través de P_máx) y la inercia de las ruedas aparte de la ETW; η es constante, y los 10 kW son un escenario, no una medición.`}
+    footnote={`La reproducción va ${TIME_LAPSE} veces más rápida que el ciclo real: los ${formatNumber(DRIVE_CYCLES.udds.samples[DRIVE_CYCLES.udds.samples.length - 1].t, { precision: 0, unit: 's' })} del UDDS duran ${formatNumber(DRIVE_CYCLES.udds.samples[DRIVE_CYCLES.udds.samples.length - 1].t / TIME_LAPSE, { precision: 1, unit: 's' })} a 1×; la lectura t va en segundos reales. Lo que el modelo deja fuera: pendiente, viento, temperatura y estado de carga de la batería (salvo a través de P_máx) y la inercia de las ruedas aparte de la ETW; η es constante, y los 10 kW son un escenario, no una medición.`}
   />
 </Figure>
 

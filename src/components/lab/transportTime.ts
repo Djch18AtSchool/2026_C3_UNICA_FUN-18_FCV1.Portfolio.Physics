@@ -1,64 +1,84 @@
 /**
  * The transport's "t = …" text. The clock always counts seconds; the display picks one unit for
- * the whole run from its duration, so the readout never switches units mid-playback.
+ * the whole run (from its duration, or the one a lab fixes), so the readout never switches units
+ * mid-playback.
  */
 import { formatNumber } from '../../lib/format';
+
+/** A fixed display unit, or 'auto' to choose it from the run's duration. */
+export type TransportTimeUnitChoice = 's' | 'min' | 'h' | 'd' | 'auto';
 
 export interface TransportTimeUnit {
   symbol: string;
   /** Seconds in one of this unit. */
   seconds: number;
-  /** Decimals shown in this unit. */
+  /** Decimals shown in this unit for this run. */
   precision: number;
 }
 
-const SECONDS_PER_MINUTE = 60;
-const SECONDS_PER_HOUR = 3600;
-const SECONDS_PER_DAY = 86_400;
-/** A run switches to the next unit when it lasts at least this many of the larger one. */
+/** The timeline maps t ∈ [0, duration] onto 0..TIMELINE_STEPS integer positions. */
+export const TIMELINE_STEPS = 1000;
+
+const SECONDS_PER_UNIT = { s: 1, min: 60, h: 3600, d: 86_400 } as const;
+type UnitSymbol = keyof typeof SECONDS_PER_UNIT;
+/** 'auto' moves to the next unit once the run lasts at least this many of the larger one. */
 const UNIT_SWITCH_COUNT = 2;
-/**
- * Seconds keep the three decimals the short labs always showed. The larger units show two: the
- * timeline moves in thousandths of the run, so a third decimal would be noise.
- */
+/** Larger units first: the first one the run reaches UNIT_SWITCH_COUNT of. */
+const AUTO_ORDER: readonly UnitSymbol[] = ['d', 'h', 'min'];
+/** Seconds keep the three decimals the labs always showed. */
 const SECONDS_PRECISION = 3;
-const SCALED_PRECISION = 2;
+/** Larger units of a run whose duration is not a positive finite number. */
+const FALLBACK_PRECISION = 2;
+/** Float slack so a step of exactly 0,1 or 0,01 of the unit is not pushed to one more decimal. */
+const LOG_EPSILON = 1e-9;
 
-const SECONDS: TransportTimeUnit = { symbol: 's', seconds: 1, precision: SECONDS_PRECISION };
+function autoSymbol(duration: number): UnitSymbol {
+  if (!Number.isFinite(duration)) return 's';
+  return (
+    AUTO_ORDER.find((symbol) => duration >= UNIT_SWITCH_COUNT * SECONDS_PER_UNIT[symbol]) ?? 's'
+  );
+}
 
-/** Each unit with the duration (s) from which a run reads in it, largest first. */
-const SCALED_UNITS: readonly (TransportTimeUnit & { from: number })[] = [
-  {
-    symbol: 'd',
-    seconds: SECONDS_PER_DAY,
-    precision: SCALED_PRECISION,
-    from: UNIT_SWITCH_COUNT * SECONDS_PER_DAY,
-  },
-  {
-    symbol: 'h',
-    seconds: SECONDS_PER_HOUR,
-    precision: SCALED_PRECISION,
-    from: UNIT_SWITCH_COUNT * SECONDS_PER_HOUR,
-  },
-  {
-    symbol: 'min',
-    seconds: SECONDS_PER_MINUTE,
-    precision: SCALED_PRECISION,
-    from: UNIT_SWITCH_COUNT * SECONDS_PER_MINUTE,
-  },
-];
+/**
+ * The fewest decimals at which one timeline step (duration / TIMELINE_STEPS) changes the last
+ * digit, so consecutive positions never read the same, and no decimal finer than a step.
+ */
+function stepPrecision(duration: number, unitSeconds: number): number {
+  const step = duration / TIMELINE_STEPS / unitSeconds;
+  if (!Number.isFinite(step) || step <= 0) return FALLBACK_PRECISION;
+  return Math.max(0, Math.ceil(-Math.log10(step) - LOG_EPSILON));
+}
 
-/** Seconds below 120 s, minutes below 2 h, hours below 2 d, days beyond; seconds when undefined. */
-export function transportTimeUnit(duration: number): TransportTimeUnit {
-  if (!Number.isFinite(duration)) return SECONDS;
-  const scaled = SCALED_UNITS.find((unit) => duration >= unit.from);
-  if (!scaled) return SECONDS;
-  const { symbol, seconds, precision } = scaled;
+/**
+ * The display unit of a run: 'auto' reads seconds below 120 s, minutes below 2 h, hours below 2 d
+ * and days beyond (seconds when the duration is not finite). Seconds show three decimals; the
+ * larger units, as many as one timeline step needs.
+ */
+export function transportTimeUnit(
+  duration: number,
+  choice: TransportTimeUnitChoice = 'auto',
+): TransportTimeUnit {
+  const symbol = choice === 'auto' ? autoSymbol(duration) : choice;
+  const seconds = SECONDS_PER_UNIT[symbol];
+  const precision = symbol === 's' ? SECONDS_PRECISION : stepPrecision(duration, seconds);
   return { symbol, seconds, precision };
 }
 
-/** "t = 1,234 s", "t = 22,82 min", "t = 39,99 h", "t = 1,67 d": t (s) in the unit of its run. */
-export function transportTimeText(t: number, duration: number): string {
-  const { symbol, seconds, precision } = transportTimeUnit(duration);
-  return `t = ${formatNumber(t / seconds, { precision, unit: symbol })}`;
+/** A time (s) of a run of `duration` (s) in that run's unit: "2,688 d", "1,93 min". */
+export function transportTimeValue(
+  seconds: number,
+  duration: number,
+  choice: TransportTimeUnitChoice = 'auto',
+): string {
+  const unit = transportTimeUnit(duration, choice);
+  return formatNumber(seconds / unit.seconds, { precision: unit.precision, unit: unit.symbol });
+}
+
+/** "t = 1,234 s", "t = 22,82 min", "t = 39,99 h", "t = 1,670 d": t (s) in the unit of its run. */
+export function transportTimeText(
+  t: number,
+  duration: number,
+  choice: TransportTimeUnitChoice = 'auto',
+): string {
+  return `t = ${transportTimeValue(t, duration, choice)}`;
 }

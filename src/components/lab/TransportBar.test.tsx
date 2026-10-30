@@ -118,7 +118,14 @@ describe('TransportBar', () => {
   test('a run of a week reads in days', () => {
     render(<TransportBar clock={fakeClock({ duration: 604_800, t: 144_288 })} />);
 
-    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 1,67\u202Fd');
+    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 1,670\u202Fd');
+  });
+
+  test('a lab that fixes timeUnit "s" reads a 22-minute run in seconds', () => {
+    render(<TransportBar clock={fakeClock({ duration: 1369, t: 116 })} timeUnit="s" />);
+
+    expect(screen.getByText('t = 116,000\u202Fs', EXACT_TEXT)).toBeInTheDocument();
+    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 116,000\u202Fs');
   });
 
   test('the range still seeks in seconds when the display is in days', () => {

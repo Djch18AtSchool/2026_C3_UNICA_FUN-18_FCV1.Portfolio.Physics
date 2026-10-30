@@ -5,6 +5,7 @@ import Readout from '../controls/Readout';
 import { ICON_BUTTON } from './iconButton';
 import SettingsDrawer, { type SettingOption } from './SettingsDrawer';
 import TransportBar from './TransportBar';
+import type { TransportTimeUnitChoice } from './transportTime';
 import { useGlobalSettings } from './useGlobalSettings';
 import { useSettledText } from './useSettledText';
 import type { SimClock } from './useSimClock';
@@ -22,6 +23,11 @@ export interface LabReadout {
 export interface LabShellProps {
   title: string;
   clock?: SimClock;
+  /**
+   * Unit of the transport's t readout. 'auto' (default) picks it from the run's duration; a lab
+   * whose plots, readouts and text speak in seconds fixes 's'.
+   */
+  timeUnit?: TransportTimeUnitChoice;
   readouts: LabReadout[];
   params: ReactNode;
   localSettings: SettingOption[];
@@ -72,6 +78,7 @@ function GearIcon() {
 export default function LabShell({
   title,
   clock,
+  timeUnit,
   readouts,
   params,
   localSettings,
@@ -121,7 +128,7 @@ export default function LabShell({
         <div data-lab-canvas="" className="-mx-3 sm:mx-0">
           {children}
         </div>
-        {clock ? <TransportBar clock={clock} /> : null}
+        {clock ? <TransportBar clock={clock} timeUnit={timeUnit} /> : null}
         {readouts.length > 0 ? (
           <div className="grid gap-x-8 gap-y-2 sm:grid-cols-2">
             {readouts.map((readout) => (
