@@ -136,7 +136,7 @@ export const BALL_STANDARDS: readonly BallStandard[] = [
       id: 'baloncesto-fiba',
       name: 'Baloncesto (FIBA)',
       standard:
-        'FIBA Basketball Equipment 2026, cláusula 2.4: caída de 1 800 mm y rebote de 1 035-1 085 mm, medidos a la base de la pelota',
+        'FIBA Basketball Equipment 2026, cláusula 2.4: caída desde aproximadamente 1 800 mm y rebote de 1 035-1 085 mm, medidos a la base de la pelota',
       sources: [FIBA_EQUIPMENT],
     },
     1.8,

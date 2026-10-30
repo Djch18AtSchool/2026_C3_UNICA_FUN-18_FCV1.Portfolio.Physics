@@ -144,6 +144,10 @@ export function combineRestitution(eA: number, eB: number, rule: CombineRule): n
       return eA * eB;
     case 'sumClamped':
       return Math.min(eA + eB, 1);
+    default: {
+      const unknown: never = rule;
+      throw new RangeError(`rule must be a known combine rule, got ${String(unknown)}`);
+    }
   }
 }
 
@@ -156,6 +160,57 @@ export function restitutionAtSpeed(v: number, e0: number, k: number): number {
   requireFinite('e0', e0);
   requireFinite('k', k);
   return Math.min(Math.max(e0 - k * Math.abs(v), 0), 1);
+}
+
+/**
+ * Restitution as a function of the approach speed |v⁻| (m/s) of each impact, e.g.
+ * `(v) => restitutionAtSpeed(v, 0.79, 0.009)`; it replaces the constant e where it is given.
+ */
+export type SpeedRestitution = (approachSpeed: number) => number;
+
+/** e_eff of one impact: 0 at or below the (strict) threshold, else e(|v⁻|) or the constant e. */
+function effectiveRestitution(
+  speed: number,
+  threshold: number,
+  e: number,
+  restitutionAt: SpeedRestitution | undefined,
+): number {
+  if (speed <= threshold) return 0;
+  if (!restitutionAt) return e;
+  const value = restitutionAt(speed);
+  requireCoefficient('restitutionAt(v)', value);
+  return value;
+}
+
+/** Normal impulses (N·s) of one impact against a fixed floor and the velocity after it. */
+export interface PoissonImpact {
+  /** J_c = m|v⁻|: the impulse that stops the approach. */
+  compressionImpulse: number;
+  /** J_r = e J_c, the largest restitution impulse Poisson's law allows. */
+  restitutionImpulse: number;
+  /** v⁺ = v⁻ + (J_c + J_r)/m (m/s). */
+  v: number;
+}
+
+/**
+ * Poisson's restitution on a fixed floor (research §5, Paso 4): the collision splits into
+ * compression (J_c) and restitution (J_r), capped at J_r ≤ e J_c. Box2D v3.2.0 uses it as a cap
+ * in `src/contact_solver.c` L658-L659, "Poisson kinetic restitution guarantees no energy gain":
+ * `allowance = restitution * ( compressionImpulse + approachImpulse ) - cp->restitutionImpulse`.
+ * For one frictionless contact it reproduces Newton's v⁺ = e|v⁻|; a separating ball (v⁻ ≥ 0)
+ * gets no impulse.
+ */
+export function poissonFloorImpact(m: number, vApproach: number, e: number): PoissonImpact {
+  requirePositive('m', m);
+  requireFinite('vApproach', vApproach);
+  requireCoefficient('e', e);
+  const compressionImpulse = m * Math.max(-vApproach, 0);
+  const restitutionImpulse = e * compressionImpulse;
+  return {
+    compressionImpulse,
+    restitutionImpulse,
+    v: vApproach + (compressionImpulse + restitutionImpulse) / m,
+  };
 }
 
 /** State of the engine ball: time (s), height (m), velocity (m/s, + up) and contact record. */
@@ -171,32 +226,47 @@ export interface BallState {
   resting: boolean;
 }
 
-/** Engine settings: gravity, the pair's e, restitution threshold (m/s), Baumgarte β, substeps. */
+/**
+ * Engine settings: gravity, the pair's e, restitution threshold (m/s), Baumgarte β, substeps and,
+ * optionally, a speed-dependent e(v) that replaces `e` on each impact (still subject to the
+ * threshold).
+ */
 export interface EngineParams {
   g: number;
   e: number;
   threshold: number;
   baumgarte: number;
   substeps: number;
+  restitutionAt?: SpeedRestitution;
 }
 
-/** Contact response of one substep: the floor pushes, never pulls. */
+/**
+ * Contact response of one substep; the floor pushes, never pulls. An armed impact (e_eff > 0,
+ * that is restitution > 0 and |v⁻| above the threshold, as Box2D's `armed` test in
+ * `contact_solver.c` L629-L630) takes v = e_eff|v⁻| + β(−y)/h: the bias stays in the velocity,
+ * unrelaxed, which is the energy gain of research §6 (b). Every other contact (below the threshold,
+ * or already separating) is relaxed as Box2D v3 does after integrating positions (`solver.c`
+ * L1151-L1153, `useBias = false`; Catto, Solver2D: "This serves to remove the extra energy"): the
+ * bias moves the position by β(−y) and leaves the velocity at max(v⁻, 0), so the ball can settle.
+ * Without Baumgarte the position is projected to y = 0.
+ */
 function resolveContact(state: BallState, p: EngineParams, h: number): BallState {
   const approach = state.v;
-  const isImpact = approach < 0;
-  const eEff = isImpact && Math.abs(approach) > p.threshold ? p.e : 0;
-  const restitutionTarget = isImpact ? eEff * -approach : 0;
-  const bias = (p.baumgarte * -state.y) / h;
-  // As in Box2D's clamped accumulated impulse (≥ 0), a separating ball keeps its faster velocity.
-  const v = Math.max(approach, restitutionTarget + bias);
-  const isNewImpact = isImpact && !state.resting;
+  const isApproaching = approach < 0;
+  const eEff = isApproaching
+    ? effectiveRestitution(-approach, p.threshold, p.e, p.restitutionAt)
+    : 0;
+  const push = p.baumgarte * -state.y;
+  const isArmed = eEff > 0;
+  const v = isArmed ? eEff * -approach + push / h : Math.max(approach, 0);
+  const y = p.baumgarte === 0 ? 0 : isArmed ? state.y : state.y + push;
   return {
     ...state,
     v,
-    y: p.baumgarte > 0 ? state.y : 0,
-    bounces: state.bounces + (isImpact && eEff > 0 ? 1 : 0),
-    lastImpactSpeed: isNewImpact ? -approach : state.lastImpactSpeed,
-    resting: eEff === 0 && Math.abs(v) < REST_SPEED,
+    y,
+    bounces: state.bounces + (isArmed ? 1 : 0),
+    lastImpactSpeed: isApproaching && !state.resting ? -approach : state.lastImpactSpeed,
+    resting: !isArmed && Math.abs(v) < REST_SPEED,
   };
 }
 
@@ -210,12 +280,16 @@ function substep(state: BallState, p: EngineParams, h: number): BallState {
 /**
  * One engine frame of length dt split into `substeps` (research §5, Paso 3; §7). Each substep is
  * semi-implicit Euler and detects contact by penetration (y < 0). On contact the target velocity
- * is v = e_eff·(−v⁻), with e_eff = 0 if |v⁻| ≤ threshold: Box2D v3.1.1's
+ * is v = e_eff·(−v⁻), with e_eff = 0 if |v⁻| ≤ threshold (and e_eff = e(|v⁻|) when
+ * `restitutionAt` is given): Box2D v3.1.1's
  * `impulse = -cp->normalMass * ( vn + restitution * cp->relativeVelocity )` against a fixed
- * floor. Baumgarte adds β·(−y)/h to v; with β > 0 the position is not projected, so the
- * penetration keeps driving the bias (and adds energy); with β = 0 it is clamped to y = 0.
- * Unlike Box2D v3, there is no relax pass and the step's gravity stays in v⁻, so the scheme
- * shows the energy gains the research lists in §6 (b) and (b′).
+ * floor. Baumgarte adds β·(−y)/h to the velocity of an armed impact; with β > 0 the position is
+ * not projected, so the penetration drives the bias (and adds energy at low fps); with β = 0 it
+ * is clamped to y = 0. Contacts without restitution are relaxed (see resolveContact), so with
+ * β > 0 the ball rests at the Baumgarte steady penetration g h²(1−β)/β below the floor.
+ * The step's gravity stays in v⁻ (research §6 b′), and the substep after a projected contact
+ * subtracts g·h before the ball moves, so at 1/60 with one substep each rebound loses about
+ * g·h of speed and the ball stops a few bounces sooner than the ideal one.
  */
 export function engineStep(state: BallState, p: EngineParams, dt: number): BallState {
   requireFinite('t', state.t);
@@ -233,17 +307,27 @@ export function engineStep(state: BallState, p: EngineParams, dt: number): BallS
   return next;
 }
 
+/**
+ * Hard stop on the ideal ball's event loop: an e(v) whose flights never shrink, or a time far
+ * beyond any lab timeline (with e = 1 from 1 m, about 250 h), throws instead of hanging.
+ */
+const MAX_IMPACT_EVENTS = 1_000_000;
+
 /** Ball at rest on the floor. */
 function atRest(bounces: number): { y: number; v: number; bounces: number } {
   return { y: 0, v: 0, bounces };
 }
 
 /**
- * The exact ideal ball at time t, dropped from rest at h₀ (research §5, Pasos 1 and 3): free
- * fall to t₀ = √(2h₀/g), then flights of 2 e_eff vₙ/g between exact impact events. With a
- * threshold, an impact at or below it sticks (`bounces` stops at bouncesAboveThreshold); without
- * one and e < 1, the ball comes to rest at T = t₀(1+e)/(1−e) after infinitely many bounces,
- * reported as `bounces: Infinity`.
+ * The exact ideal ball at time t, dropped from rest at h₀ (research §5, Pasos 1, 3 and 4): free
+ * fall to t₀ = √(2h₀/g), then flights of 2 e_eff vₙ/g between exact impact events, where e_eff is
+ * 0 at or below the threshold and otherwise `restitutionAt(vₙ)` or the constant e.
+ * A threshold of 0 and no threshold are the same. `bounces` counts rebounds and, at rest, reports:
+ * - with a threshold > 0, the finite count before the impact that stuck (bouncesAboveThreshold
+ *   for constant e);
+ * - with no threshold, Infinity once the ball rests, because infinitely many bounces fit before
+ *   T = t₀(1+e)/(1−e) (rebounds below 1e-9 m/s count as rest);
+ * - 0 when e_eff of the first impact is 0.
  */
 export function idealBallAt(
   t: number,
@@ -251,33 +335,33 @@ export function idealBallAt(
   e: number,
   g: number,
   threshold?: number,
+  restitutionAt?: SpeedRestitution,
 ): { y: number; v: number; bounces: number } {
   requireNonNegative('t', t);
   requirePositive('h0', h0);
   requireCoefficient('e', e);
   requirePositive('g', g);
-  if (threshold !== undefined) requireNonNegative('threshold', threshold);
+  const vth = threshold ?? 0;
+  requireNonNegative('threshold', vth);
   const t0 = Math.sqrt((2 * h0) / g);
   if (t <= t0) return { y: h0 - (g * t * t) / 2, v: -g * t, bounces: 0 };
-  if (e === 0) return atRest(0);
-  if (threshold === undefined && e < 1 && t >= bounceSeries(h0, e, g, 1).totalTime) {
-    return atRest(Infinity);
+  if (!restitutionAt && vth === 0 && e > 0 && e < 1) {
+    if (t >= bounceSeries(h0, e, g, 1).totalTime) return atRest(Infinity);
   }
 
   let impactTime = t0;
   let impactSpeed = g * t0;
-  let bounces = 0;
-  for (;;) {
-    const sticks = threshold !== undefined && impactSpeed <= threshold;
-    const up = sticks ? 0 : e * impactSpeed;
-    if (up < MIN_REBOUND_SPEED) return atRest(bounces);
-    bounces += 1;
+  for (let bounces = 0; bounces < MAX_IMPACT_EVENTS; bounces += 1) {
+    const up = effectiveRestitution(impactSpeed, vth, e, restitutionAt) * impactSpeed;
+    if (up === 0) return atRest(bounces);
+    if (up < MIN_REBOUND_SPEED) return atRest(vth === 0 ? Infinity : bounces);
     const flight = (2 * up) / g;
     if (t <= impactTime + flight) {
       const tau = t - impactTime;
-      return { y: up * tau - (g * tau * tau) / 2, v: up - g * tau, bounces };
+      return { y: up * tau - (g * tau * tau) / 2, v: up - g * tau, bounces: bounces + 1 };
     }
     impactTime += flight;
     impactSpeed = up;
   }
+  throw new RangeError(`idealBallAt passed ${MAX_IMPACT_EVENTS} impacts before t = ${t}`);
 }

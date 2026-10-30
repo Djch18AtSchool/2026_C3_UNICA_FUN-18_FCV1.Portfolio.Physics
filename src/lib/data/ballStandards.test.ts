@@ -116,6 +116,7 @@ describe('BALL_STANDARDS', () => {
     const fiba = byId('baloncesto-fiba');
 
     expect(fiba.sources[0].title).toMatch(/2026/);
+    expect(fiba.standard).toContain('aproximadamente 1 800 mm');
     expect(JSON.stringify(fiba)).not.toMatch(/\b1[\s.,]?(200|400)\b/);
   });
 

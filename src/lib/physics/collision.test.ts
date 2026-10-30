@@ -6,9 +6,11 @@ import {
   combineRestitution,
   engineStep,
   idealBallAt,
+  poissonFloorImpact,
   restitutionAtSpeed,
   restitutionFromHeights,
   type BallState,
+  type CombineRule,
   type EngineParams,
 } from './collision';
 import { G_EARTH } from './constants';
@@ -300,6 +302,10 @@ describe('combineRestitution', () => {
   });
 });
 
+test('combineRestitution rejects an unknown rule', () => {
+  expect(() => combineRestitution(0.5, 0.5, 'harmonic' as CombineRule)).toThrow(RangeError);
+});
+
 describe('restitutionAtSpeed', () => {
   test('the illustrative fit e(v) = 0,79 − 0,009 |v| gives 0,754 at 4 m/s and 0,637 at 17 m/s', () => {
     expect(restitutionAtSpeed(4, 0.79, 0.009)).toBeCloseTo(0.754, 12);
@@ -562,5 +568,175 @@ describe('idealBallAt', () => {
     expect(() => idealBallAt(1, 0, 0.5, G)).toThrow(RangeError);
     expect(() => idealBallAt(1, 1, -0.5, G)).toThrow(RangeError);
     expect(() => idealBallAt(1, 1, 0.5, G, -1)).toThrow(RangeError);
+  });
+});
+
+/** The illustrative tennis fit of research §5, Paso 4: e(v) = 0,79 − 0,009 |v|. */
+const TENNIS_E_OF_V = (speed: number) => restitutionAtSpeed(speed, 0.79, 0.009);
+/** ITF drop height (m) and its impact speed √(2 g h₀) = 7,06 m/s. */
+const ITF_DROP = 2.54;
+const V0_ITF = Math.sqrt(2 * G * ITF_DROP);
+
+describe('speed-dependent restitution e(v)', () => {
+  test('ideal ball: e(v) keeps more low-speed bounces than the constant e(v₀) of the drop', () => {
+    const eAtDrop = TENNIS_E_OF_V(V0_ITF);
+
+    const withEofV = idealBallAt(200, ITF_DROP, 0, G, 1, TENNIS_E_OF_V);
+    const constant = idealBallAt(200, ITF_DROP, eAtDrop, G, 1);
+
+    expect(constant.bounces).toBe(bouncesAboveThreshold(V0_ITF, eAtDrop, 1));
+    expect(constant.bounces).toBe(7);
+    expect(withEofV.bounces).toBe(8);
+    expect(withEofV).toMatchObject({ y: 0, v: 0 });
+  });
+
+  test('ideal ball: each rebound keeps a larger share of its speed as the ball slows', () => {
+    const apexes: number[] = [];
+    let impact = Math.sqrt((2 * ITF_DROP) / G);
+    let speed = V0_ITF;
+    for (let n = 0; n < 4; n += 1) {
+      const up = TENNIS_E_OF_V(speed) * speed;
+      apexes.push(idealBallAt(impact + up / G, ITF_DROP, 0, G, 1, TENNIS_E_OF_V).y);
+      impact += (2 * up) / G;
+      speed = up;
+    }
+    const heights = [ITF_DROP, ...apexes];
+    const ratios = apexes.map((h, n) => h / heights[n]);
+
+    expect(apexes[0]).toBeCloseTo(TENNIS_E_OF_V(V0_ITF) ** 2 * ITF_DROP, 9);
+    for (let n = 1; n < ratios.length; n += 1) expect(ratios[n]).toBeGreaterThan(ratios[n - 1]);
+  });
+
+  test('engine: the first apex matches e(v⁻)² at the measured impact speed (Δt = 1/240, 4 substeps)', () => {
+    const p = engine({ e: 0, threshold: 1, substeps: 4, restitutionAt: TENNIS_E_OF_V });
+
+    const { apexes, states } = run(ITF_DROP, p, 1 / 240, (_, a) => a.length >= 1);
+    const firstImpact = states.find((s) => s.bounces === 1)?.lastImpactSpeed ?? Number.NaN;
+    const expected = (TENNIS_E_OF_V(firstImpact) * firstImpact) ** 2 / (2 * G);
+
+    expect(Math.abs(apexes[0] - expected) / expected).toBeLessThan(0.02);
+    expect(TENNIS_E_OF_V(firstImpact)).toBeCloseTo(0.726, 2);
+  });
+
+  test('engine: e(v) is still subject to the threshold', () => {
+    const state: BallState = { ...dropState(0.001), v: -0.5 };
+
+    const next = engineStep(state, engine({ threshold: 1, restitutionAt: () => 0.9 }), 1 / 60);
+
+    expect(next).toMatchObject({ v: 0, bounces: 0, resting: true });
+  });
+
+  test('rejects an e(v) that returns a negative or non-finite value', () => {
+    const state: BallState = { ...dropState(0.01), v: -4 };
+
+    expect(() => engineStep(state, engine({ restitutionAt: () => -0.1 }), 0.01)).toThrow(
+      RangeError,
+    );
+    expect(() => idealBallAt(5, 1, 0, G, 0, () => Number.NaN)).toThrow(RangeError);
+  });
+});
+
+describe('Baumgarte settling', () => {
+  test('pocos fps + Baumgarte (e = 0,75, Δt = 1/30, β = 0,2): gains on the first apex, then rests', () => {
+    const p = engine({ e: 0.75, threshold: 1, baumgarte: 0.2 });
+
+    const { apexes, final } = run(1, p, 1 / 30, (s, a) => a.length >= 1 && s.resting);
+
+    expect(apexes[0]).toBeGreaterThan(0.75 ** 2);
+    expect(final.resting).toBe(true);
+    expect(final.t).toBeLessThan(5);
+  });
+
+  test('stays at rest once settled, at the steady penetration g h²(1 − β)/β', () => {
+    const p = engine({ e: 0.75, threshold: 1, baumgarte: 0.2 });
+    const h = 1 / 30;
+    let state = run(1, p, h, (s) => s.resting).final;
+
+    for (let i = 0; i < 300; i += 1) {
+      state = engineStep(state, p, h);
+      expect(state.resting).toBe(true);
+    }
+    expect(state.v).toBe(0);
+    expect(state.y).toBeCloseTo((-G * h * h * 0.8) / 0.2, 6);
+    expect(state.lastImpactSpeed).toBeGreaterThan(0.1);
+  });
+
+  test("the reviewer's case (e = 0,75, v_th = 1, β = 0,2, Δt = 1/60, 4 substeps) rests", () => {
+    const p = engine({ e: 0.75, threshold: 1, baumgarte: 0.2, substeps: 4 });
+
+    const { final } = run(1, p, 1 / 60, (s) => s.resting);
+
+    expect(final.resting).toBe(true);
+    expect(final.t).toBeLessThan(5);
+  });
+
+  test('a relaxed contact moves the penetrated ball up by β·penetration without adding velocity', () => {
+    const state: BallState = { ...dropState(-0.05), v: 0 };
+    const h = 0.01;
+
+    const next = engineStep(state, engine({ threshold: 1, baumgarte: 0.2 }), h);
+
+    const penetrated = -0.05 - G * h * h;
+    expect(next.v).toBe(0);
+    expect(next.y).toBeCloseTo(penetrated * 0.8, 12);
+    expect(next.resting).toBe(true);
+  });
+});
+
+describe('poissonFloorImpact', () => {
+  test('one contact on a fixed floor reproduces Newton: v⁺ = e|v⁻|', () => {
+    const impact = poissonFloorImpact(0.058, -7.06, 0.745);
+
+    expect(impact.compressionImpulse).toBeCloseTo(0.058 * 7.06, 12);
+    expect(impact.restitutionImpulse).toBeCloseTo(0.745 * impact.compressionImpulse, 12);
+    expect(impact.v).toBeCloseTo(0.745 * 7.06, 12);
+    expect(impact.v).toBeCloseTo(collide1D(0.058, -7.06, Infinity, 0, 0.745).v1, 12);
+  });
+
+  test.each([0, 0.5, 1])('never gains kinetic energy for e = %s', (e) => {
+    const impact = poissonFloorImpact(2, -3, e);
+
+    expect(0.5 * 2 * impact.v ** 2).toBeLessThanOrEqual(0.5 * 2 * 3 ** 2 + 1e-12);
+  });
+
+  test('a separating ball gets no impulse', () => {
+    expect(poissonFloorImpact(1, 2, 0.8)).toEqual({
+      compressionImpulse: 0,
+      restitutionImpulse: 0,
+      v: 2,
+    });
+  });
+
+  test('rejects a mass that is not positive or a negative e', () => {
+    expect(() => poissonFloorImpact(0, -1, 0.5)).toThrow(RangeError);
+    expect(() => poissonFloorImpact(1, -1, -0.5)).toThrow(RangeError);
+    expect(() => poissonFloorImpact(1, Number.NaN, 0.5)).toThrow(RangeError);
+  });
+});
+
+describe('idealBallAt threshold 0', () => {
+  test('a threshold of 0 is the same as no threshold, before and after T', () => {
+    const T = bounceSeries(1, 0.75, G, 1).totalTime;
+
+    for (const t of [0.2, 1, 2.5, T * 0.999, T, T + 1]) {
+      expect(idealBallAt(t, 1, 0.75, G, 0)).toEqual(idealBallAt(t, 1, 0.75, G));
+    }
+    expect(idealBallAt(T + 1, 1, 0.75, G, 0).bounces).toBe(Infinity);
+  });
+
+  test('with e(v) and no threshold the Zeno rest still reports Infinity', () => {
+    expect(idealBallAt(200, 1, 0, G, 0, TENNIS_E_OF_V)).toEqual({ y: 0, v: 0, bounces: Infinity });
+  });
+
+  test('a threshold below the 1e-9 m/s rest cut keeps a finite bounce count', () => {
+    const atRest = idealBallAt(10, 1, 0.5, G, 1e-12);
+
+    expect(atRest).toMatchObject({ y: 0, v: 0 });
+    expect(Number.isFinite(atRest.bounces)).toBe(true);
+    expect(atRest.bounces).toBeGreaterThan(30);
+  });
+
+  test('throws instead of looping without end when flights never shrink', () => {
+    expect(() => idealBallAt(1e7, 1, 1, G)).toThrow(RangeError);
   });
 });
