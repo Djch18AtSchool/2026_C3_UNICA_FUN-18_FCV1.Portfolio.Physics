@@ -3,6 +3,8 @@ const NARROW_NBSP = ' ';
 export const MINUS_SIGN = '\u2212';
 const NOT_A_NUMBER = '—';
 const DEFAULT_PRECISION = 2;
+/** Degree, minute and second of arc: written against the number, "97,5°" (SI Brochure §5.4.3). */
+const ATTACHED_UNITS: ReadonlySet<string> = new Set(['°', '′', '″']);
 
 export interface FormatNumberOptions {
   precision?: number;
@@ -10,8 +12,8 @@ export interface FormatNumberOptions {
 }
 
 /**
- * Spanish-style number: U+2212 minus, decimal comma, U+202F thousands, optional unit. Locale
- * independent.
+ * Spanish-style number: U+2212 minus, decimal comma, U+202F thousands, optional unit after a
+ * U+202F (none before °, ′ and ″). Locale independent.
  */
 export function formatNumber(value: number, options: FormatNumberOptions = {}): string {
   if (!Number.isFinite(value)) return NOT_A_NUMBER;
@@ -23,5 +25,6 @@ export function formatNumber(value: number, options: FormatNumberOptions = {}): 
   const grouped = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, NARROW_NBSP);
   const digits = fractionPart === undefined ? grouped : `${grouped},${fractionPart}`;
   const text = `${sign}${digits}`;
-  return unit ? `${text}${NARROW_NBSP}${unit}` : text;
+  if (!unit) return text;
+  return ATTACHED_UNITS.has(unit) ? `${text}${unit}` : `${text}${NARROW_NBSP}${unit}`;
 }

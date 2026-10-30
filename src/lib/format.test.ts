@@ -11,6 +11,15 @@ describe('formatNumber', () => {
   test('formats a value with a unit', () => {
     expect(formatNumber(9.81, { precision: 2, unit: 'm/s²' })).toBe('9,81\u202fm/s²');
   });
+  test('attaches the degree, minute and second of arc to the number (SI Brochure §5.4.3)', () => {
+    expect(formatNumber(97.5, { precision: 1, unit: '°' })).toBe('97,5°');
+    expect(formatNumber(-12, { precision: 0, unit: '′' })).toBe('−12′');
+    expect(formatNumber(30, { precision: 0, unit: '″' })).toBe('30″');
+  });
+  test('keeps the space before every other unit that starts with a degree sign', () => {
+    expect(formatNumber(120, { precision: 0, unit: '°C' })).toBe('120 °C');
+    expect(formatNumber(3, { precision: 1, unit: '°/s' })).toBe('3,0 °/s');
+  });
   test('returns an em dash for non-finite values', () => {
     expect(formatNumber(NaN)).toBe('—');
     expect(formatNumber(Infinity)).toBe('—');

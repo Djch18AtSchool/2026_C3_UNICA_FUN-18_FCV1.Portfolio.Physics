@@ -33,8 +33,9 @@ function readout(label: string): string {
   const row = screen.getByText(label, { selector: 'span' }).parentElement as HTMLElement;
   return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
+/** The readout's leading number: a unit may follow after a space or, for °, attached (R39). */
 const readoutNumber = (label: string) =>
-  Number(readout(label).split(' ')[0].replace(',', '.').replace('−', '-'));
+  Number((/^[−\d,]+/.exec(readout(label))?.[0] ?? 'NaN').replace(',', '.').replace('−', '-'));
 
 const handle = () => screen.getByTestId('target-handle');
 const lab = () => screen.getByTestId('wheel-lab');
@@ -137,7 +138,7 @@ describe('WheelLab', () => {
     fireEvent.keyDown(handle(), { key: 'ArrowDown', shiftKey: true });
 
     expect(handle()).toHaveAttribute('aria-valuenow', '81');
-    expect(handle().getAttribute('aria-valuetext')?.replace(/\s/g, ' ')).toBe('θ objetivo = 81 °');
+    expect(handle().getAttribute('aria-valuetext')?.replace(/\s/g, ' ')).toBe('θ objetivo = 81°');
     expect(thetaField()).toHaveValue('81');
     expect(readout('ω_w máxima de la maniobra')).not.toBe(before);
     expect(readoutNumber('ω_w máxima de la maniobra')).toBeCloseTo((-969.54 * 81) / 90, 1);
@@ -214,7 +215,7 @@ describe('WheelLab', () => {
     const fullMomentum = readoutNumber('Momento angular de la rueda L_w');
     expect(full).toBeGreaterThan(79);
     expect(full).toBeLessThan(80);
-    expect(readout('Ángulo de la nave θ_s')).toBe('0,00 °');
+    expect(readout('Ángulo de la nave θ_s')).toBe('0,00°');
 
     seekHours(49);
     expect(readoutNumber('Porcentaje de L_máx')).toBeLessThan(full);
@@ -373,7 +374,7 @@ describe('WheelLab', () => {
 
     expect(lab()).toHaveAttribute('data-playing', 'false');
     expect(timelineText()).toBe('t = 5,000 s');
-    expect(readout('Ángulo de la nave θ_s')).toBe('90,00 °');
+    expect(readout('Ángulo de la nave θ_s')).toBe('90,00°');
     expect(readout('Velocidad de la rueda ω_w')).toBe('0,00 rpm');
   });
 

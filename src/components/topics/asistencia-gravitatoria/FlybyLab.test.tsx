@@ -36,8 +36,9 @@ function readout(label: string): string {
 }
 
 /** A readout as a number (decimal comma, either minus sign). */
+/** The readout's leading number: a unit may follow after a space or, for °, attached (R39). */
 const readoutValue = (label: string) =>
-  Number(readout(label).split(' ')[0].replace(',', '.').replace('−', '-'));
+  Number((/^[−\d,]+/.exec(readout(label))?.[0] ?? 'NaN').replace(',', '.').replace('−', '-'));
 
 const DELTA_V = 'Ganancia de rapidez Δ|v|';
 const TURN = 'Ángulo de giro δ';
@@ -136,7 +137,7 @@ describe('FlybyLab', () => {
     renderLab();
 
     expect(readout('Excentricidad e')).toBe('1,330');
-    expect(readout(TURN)).toBe('97,5 °');
+    expect(readout(TURN)).toBe('97,5°');
     expect(readout('|v| antes, marco del Sol')).toBe('9,59 km/s');
     expect(readout('|v| después, marco del Sol')).toBe('19,53 km/s');
     expect(readout(DELTA_V)).toBe('9,94 km/s');
@@ -214,7 +215,7 @@ describe('FlybyLab', () => {
     expect(rpField()).toHaveValue('1');
     expect(handle()).toHaveAttribute('aria-valuenow', '1');
     expect(warning()).toHaveTextContent(/no puede bajar de 1 R_J/);
-    expect(readout(TURN)).toBe('151,1 °');
+    expect(readout(TURN)).toBe('151,1°');
   });
 
   test('dragging the periapsis handle into the planet clamps at 1 R_J; readouts stay numbers', () => {
@@ -386,7 +387,7 @@ describe('FlybyLab', () => {
 
     expect(rpField()).toHaveValue('10,09');
     expect(screen.getByRole('radio', { name: 'detrás' })).toBeChecked();
-    expect(readout(TURN)).toBe('97,5 °');
+    expect(readout(TURN)).toBe('97,5°');
   });
 
   test('both frames are described for screen readers', () => {
