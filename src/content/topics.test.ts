@@ -5,6 +5,7 @@ import { describe, expect, test } from 'vitest';
 import { TOPICS, topicBySlug } from '../consigna';
 import { DATA_TABLE_TAG } from '../lib/tables/markdown';
 import { tableById } from '../lib/tables';
+import { readingStats } from '../lib/readingTime';
 import { topicSchema } from './topicSchema';
 
 const TOPICS_DIR = join(process.cwd(), 'src', 'content', 'topics');
@@ -308,5 +309,17 @@ describe('topicSchema rules', () => {
     expect(result.error?.issues).toEqual([
       expect.objectContaining({ code: 'unrecognized_keys', keys: ['status'] }),
     ]);
+  });
+});
+
+describe('presupuesto de prosa', () => {
+  /** Decisión vigente (traspaso del Avance 2): la prosa de cada tema no pasa de 650 palabras. */
+  const MAX_PROSE_WORDS = 650;
+
+  test('la prosa de cada tema no supera las 650 palabras según el contador del sitio', () => {
+    for (const fileName of fileNames) {
+      const { content } = matter(readFileSync(join(TOPICS_DIR, fileName), 'utf8'));
+      expect(readingStats(content).proseWords, fileName).toBeLessThanOrEqual(MAX_PROSE_WORDS);
+    }
   });
 });
