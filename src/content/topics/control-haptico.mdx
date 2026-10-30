@@ -62,7 +62,7 @@ sources:
     publisher: 'YouTube, 5 de agosto de 2021'
     url: 'https://www.youtube.com/watch?v=CaPHUZapCTI'
     accessed: '2026-10-13'
-related: ['llantas-f1', 'gravedad-artificial']
+related: ['llantas-f1', 'gravedad-artificial', 'coeficiente-restitucion']
 classRefs:
   - module: 'Módulo 2'
     topic: 'Tema 02 · Fricción y resortes · Concepto 04 · Fuerza elástica y ley de Hooke'
@@ -73,7 +73,7 @@ classRefs:
   - module: 'Módulo 2'
     topic: 'Tema 04 · Energía mecánica · Concepto 03 · Energía potencial elástica'
     note: 'Uₑₗ = kx²/2: los 12,8 mJ que guardaría un resorte ideal de 400 N/m comprimido 8 mm.'
-updated: 2026-10-13
+updated: 2026-10-30
 ---
 
 import Step from '../../components/ui/Step.astro';
@@ -81,6 +81,7 @@ import Why from '../../components/ui/Why.astro';
 import UseCase from '../../components/ui/UseCase.astro';
 import Equation from '../../components/ui/Equation.astro';
 import Figure from '../../components/ui/Figure.astro';
+import DataTable from '../../components/ui/DataTable.astro';
 import Cite from '../../components/ui/Cite.astro';
 import Callout from '../../components/ui/Callout.astro';
 import Connections from '../../components/ui/Connections.astro';
@@ -130,13 +131,15 @@ Con <Equation inline latex="dF/dx = 0" />, la (5.1) no se invierte: de F no se d
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Fuerza sobre el dedo a lo largo del recorrido supuesto de 8 mm. La vibración fija de la ecuación (5.1) tiene la misma amplitud, 1,6 N, a 2 mm y a 8 mm: su lectura no distingue las dos posiciones. Además oscila alrededor de cero, así que en promedio no empuja el gatillo de vuelta. El resorte de 400 N/m de la ecuación (5.2) da 0,8 N a 2 mm y 3,2 N a 8 mm: a un cuarto del recorrido, un cuarto de la fuerza. F₀ = 1,6 N es un supuesto del modelo, igual a la fuerza del resorte a 4 mm para poder compararlas."
+  caption="Fuerza sobre el dedo a lo largo del recorrido supuesto de 8 mm: la vibración fija de la ecuación (5.1) frente al resorte de 400 N/m de la ecuación (5.2). La vibración tiene la misma amplitud en todo el recorrido y oscila alrededor de cero, así que su lectura no distingue posiciones y en promedio no empuja el gatillo de vuelta; el resorte, a un cuarto del recorrido, da un cuarto de la fuerza (tabla 5.1)."
   source={{
     text: 'Gráfica del autor con las ecuaciones (5.1) y (5.2); recorrido de 8 mm, k y F₀ ilustrativos',
   }}
 >
   <HapticFigure variant="vibracion" client:visible />
 </Figure>
+
+<DataTable id="control-haptico-vibracion" />
 
 </Step>
 
@@ -178,13 +181,15 @@ El signo menos apunta hacia <Equation inline latex="x = 0" />. U es el trabajo d
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Fuerza del resorte ideal de 400 N/m, el módulo de la ecuación (5.2), sobre un recorrido de 8 mm, supuesto mío porque no encontré la cifra publicada. Al fondo, F = 400 · 0,008 = 3,2 N; a mitad, 1,6 N. El área sombreada es la energía guardada, el trabajo que hace el dedo contra la fuerza elástica: U = ½ · 400 · 0,008² = 0,0128 J = 12,8 mJ; el de la propia fuerza elástica vale −12,8 mJ (Módulo 2, Tema 03, concepto 03). Es la sensación que imitan los gatillos: en Astro's Playroom, en la zona Cooling Springs, el salto se carga con el gatillo, y Kirk McKeand cuenta que ahí probó por primera vez “the adaptive triggers, which suddenly go tight to mimic a taut spring” («los gatillos adaptativos, que de pronto se endurecen para imitar un resorte tenso»)."
+  caption="Fuerza del resorte ideal de 400 N/m, el módulo de la ecuación (5.2), sobre un recorrido de 8 mm, supuesto mío porque no encontré la cifra publicada; el área sombreada es la energía guardada, el trabajo que hace el dedo contra la fuerza elástica (tabla 5.2). Es la sensación que imitan los gatillos: en Astro's Playroom, en la zona Cooling Springs, el salto se carga con el gatillo, y Kirk McKeand cuenta que ahí probó por primera vez “the adaptive triggers, which suddenly go tight to mimic a taut spring” («los gatillos adaptativos, que de pronto se endurecen para imitar un resorte tenso»)."
   source={{
     text: 'Gráfica del autor con la ecuación (5.2); resorte ideal según Serway y Jewett (2018), fuente 5; k y recorrido ilustrativos. Cita de McKeand (2020), TheGamer, fuente 3',
   }}
 >
   <HapticFigure variant="hooke" client:visible />
 </Figure>
+
+<DataTable id="control-haptico-energia" />
 
 </Step>
 
@@ -216,7 +221,7 @@ Para sostener el gatillo en x, el dedo lo empuja con <Equation inline latex="k\,
 <Figure
   type="diagrama"
   showBadge={false}
-  caption="Par de tercera ley entre el dedo y el gatillo, ecuación (5.3), no a escala: el dedo empuja el gatillo hacia abajo y el gatillo empuja el dedo hacia arriba, con el mismo módulo. Cada fuerza se dibuja sobre el cuerpo en que actúa; por eso no se anulan. Con k = 400 N/m, x₀ = 0 y el gatillo quieto a 8 mm, cada una vale 3,2 N. En el DualSense, quien empuja el gatillo es un brazo interno que un motor mueve con un tornillo sin fin y un engranaje; un potenciómetro mide su posición."
+  caption="Par de tercera ley entre el dedo y el gatillo, ecuación (5.3), no a escala: el dedo empuja el gatillo hacia abajo y el gatillo empuja el dedo hacia arriba con el mismo módulo, 3,2 N con k = 400 N/m, x₀ = 0 y el gatillo quieto a 8 mm; cada fuerza se dibuja sobre el cuerpo en que actúa, por eso no se anulan. En el DualSense, quien empuja el gatillo es un brazo interno que un motor mueve con un tornillo sin fin y un engranaje; un potenciómetro mide su posición."
   source={{
     text: 'Diagrama del autor; tercera ley de Newton según Serway y Jewett (2018), fuente 5. Mecanismo visto en el desmontaje de Restore Technique (2020), fuente 7, de 0:41 a 1:46; Apple llama a la posición de ese brazo armPosition, fuente 2',
   }}
@@ -308,7 +313,7 @@ Para <Equation inline latex="x \ge x_0" />, la (5.4) es la (5.2) corrida a x₀;
 <Figure
   type="simulacion"
   showBadge={false}
-  caption={`Laboratorio del gatillo con las ecuaciones (5.2) y (5.4): arrastra la palanca, o muévela con las flechas, y la curva marca F en el x actual; al soltarla vuelve al reposo con un oscilador amortiguado, mostrado ${SLOW_MOTION} veces más lento. Con k = 400 N/m y x₀ = 0, el fondo da 3,2 N y 12,8 mJ; con x₀ = 3 mm, 2,0 N y 5,0 mJ de trabajo del dedo. Duplicar k duplica fuerza y energía; acercar x₀ al fondo recorta la rampa, y el área cae con el cuadrado del tramo que queda.`}
+  caption={`Laboratorio del gatillo con las ecuaciones (5.2) y (5.4): arrastra la palanca, o muévela con las flechas, y la curva marca F en el x actual; al soltarla vuelve al reposo con un oscilador amortiguado, mostrado ${SLOW_MOTION} veces más lento. La tabla 5.3 da la fuerza y el trabajo del dedo al fondo con x₀ = 0 y con x₀ = 3 mm. Duplicar k duplica fuerza y energía; acercar x₀ al fondo recorta la rampa, y el área cae con el cuadrado del tramo que queda.`}
   source={{
     text: 'Simulación del autor sobre src/lib/physics/spring.ts; recorrido del gatillo supuesto de 8 mm; k y x₀ ilustrativos. Modos del gatillo según Apple, fuente 2: resistencia desde una posición con una sola intensidad, que da un escalón; resistencia de arma entre dos posiciones; vibración; y pendiente, que sube de una intensidad inicial a una final entre dos posiciones, la base de la ecuación (5.4). Posiciones e intensidades van de 0 a 1, sin milímetros ni newtons. Según la ingeniería inversa de Klein, fuente 6, el firmware recibe la resistencia por zonas: 10 zonas del recorrido, cada una con una intensidad entera de 0 a 8, y la pendiente se redondea a esa escalera. Lo que el modelo no da, según McMullen, de Guerrilla, en el PlayStation Blog (2021), fuente 4: en Horizon Forbidden West, “the pop of the adaptive trigger as you reach maximum draw with a bow” («el chasquido del gatillo adaptativo al llegar a la tensión máxima del arco»), un evento al final del recorrido, no una tensión que crece; un resorte ideal no hace pop.',
   }}
@@ -318,6 +323,8 @@ Para <Equation inline latex="x \ge x_0" />, la (5.4) es la (5.2) corrida a x₀;
     footnote={`Recorrido supuesto de 8 mm; k y x₀ son ilustrativos: no hay una relación publicada entre las intensidades de la API y los newtons, ni entre sus posiciones y los milímetros. Al soltar, la palanca sigue m ẍ = −k x − c ẋ con el k del laboratorio, una masa supuesta de 20 g y c = 2√(k m), el amortiguamiento crítico, o 0,3 de él, hasta un tope en el reposo que la detiene sin rebote; la animación va ${SLOW_MOTION} veces más lenta que el retorno calculado, que dura centésimas de segundo. En el control, el resorte de retorno del gatillo, de constante desconocida (se ve en el desmontaje de Restore Technique, fuente 7, a los 2:16), suma su fuerza a la del actuador y es el que devuelve el gatillo a x = 0; aquí lo representan el k virtual y el tope, y la F de las lecturas es solo la del perfil, no toda la fuerza que siente el dedo. Lo que deja fuera: la escalera del firmware (10 zonas de intensidad entera en lugar de la recta continua), la histéresis (al soltar, un mecanismo real no devuelve la misma fuerza que al apretar), la dinámica del actuador, con su inercia y su tiempo de respuesta, su saturación, que con un k alto aplanaría la recta antes del fondo, su latencia respecto de la imagen y la batería que gasta sostener la fuerza aunque el gatillo no se mueva.`}
   />
 </Figure>
+
+<DataTable id="control-haptico-gatillo" />
 
 </Step>
 
@@ -357,7 +364,7 @@ En el ejemplo del concepto 04, <Equation inline latex="k = 150\ \text{N/m}" /> y
 
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-Con el Tema 4: como el μ constante, el resorte ideal idealiza un contacto, y el gatillo se aparta por histéresis y saturación. Con el Tema 3: allí sentimos como peso la normal del piso y no <Equation inline latex="m g" />; aquí el dedo siente la fuerza de contacto del gatillo y no distingue si la ejerce un motor o un resorte.
+Con el Tema 4: como el μ constante, el resorte ideal idealiza un contacto, y el gatillo se aparta por histéresis y saturación. Con el Tema 3: allí sentimos como peso la normal del piso y no <Equation inline latex="m g" />; aquí el dedo siente la fuerza de contacto del gatillo y no distingue si la ejerce un motor o un resorte. Con el Tema 7: en un choque veo un resorte breve; lo que no devuelve es la energía que <Equation inline latex="e < 1" /> se lleva.
 
 </Connections>
 

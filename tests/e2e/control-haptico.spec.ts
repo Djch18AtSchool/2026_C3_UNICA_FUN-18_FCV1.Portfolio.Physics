@@ -373,6 +373,17 @@ test.describe('página', () => {
     await expect(thirdLaw.getByTestId('third-law-diagram')).toBeVisible();
   });
 
+  test('los datos de las leyendas viven en tres tablas, junto a su figura', async ({ page }) => {
+    const table = (step: number) =>
+      page.locator(`section.step#paso-${step} [data-testid="data-table"]`);
+
+    await expect(page.getByTestId('data-table')).toHaveCount(3);
+    await expect(table(1)).toContainText('supuesto del modelo');
+    await expect(table(2)).toContainText('12,8');
+    await expect(table(4)).toContainText('Resorte tardío');
+    await expect(table(4)).toContainText('5,0');
+  });
+
   test('la página cumple la estructura del tema', async ({ page }) => {
     await expect(page.locator('[data-testid="use-case"] [data-part]')).toHaveCount(4);
     expect(await page.locator('[data-testid="sources"] li').count()).toBeGreaterThanOrEqual(5);
