@@ -66,6 +66,16 @@ describe('ruedas-reaccion-ruedas', () => {
     expect(printed(spec, 1)).toMatchObject({ tauMax: '8', rpmMax: '5\u202F000' });
   });
 
+  test('right-aligns every numeric column, the datasheet-written ones too', () => {
+    expect(spec.columns.filter((column) => column.align === 'num').map(({ key }) => key)).toEqual([
+      'Lmax',
+      'tauMax',
+      'rpmMax',
+      'mass',
+      'inertia',
+    ]);
+  });
+
   test('prints L_max and the mass with the precision each datasheet prints, no more', () => {
     expect(printed(spec, 0)).toMatchObject({ Lmax: '4,0', mass: '2,5\u202Fkg' });
     expect(printed(spec, 1)).toMatchObject({ Lmax: '0,050', mass: '375\u202Fg' });

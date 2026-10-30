@@ -73,8 +73,9 @@ const PELOTAS: DataTableSpec = {
     { key: 'pelota', label: 'Pelota', align: 'text' },
     { key: 'ensayo', label: 'Norma o medida', align: 'text' },
     { key: 'caida', label: 'Caída', unit: 'cm', align: 'num', precision: 0 },
-    { key: 'rebote', label: 'Rebote admitido', unit: 'cm', align: 'text' },
-    { key: 'e', label: 'e calculado', align: 'text' },
+    // Ranges written by centimetres and restitutionCell: right-aligned and unbroken as every number.
+    { key: 'rebote', label: 'Rebote admitido', unit: 'cm', align: 'num', precision: 1 },
+    { key: 'e', label: 'e calculado', align: 'num', precision: 3 },
   ],
   rows: BALL_STANDARDS.map(ballRow),
   source: {

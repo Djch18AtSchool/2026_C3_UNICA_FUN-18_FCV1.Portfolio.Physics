@@ -138,11 +138,13 @@ const ruedas: DataTableSpec = {
     'Dos ruedas de reacción reales según sus hojas de datos: una grande y la de CubeSat del ejemplo. Solo la VRW-D-4 imprime la inercia del rotor; la de la RW400 la calculo como L_máx/ω_máx.',
   columns: [
     { key: 'rueda', label: 'Rueda', align: 'text' },
-    { key: 'Lmax', label: 'L_máx', unit: 'N·m·s', align: 'text' },
+    // L_máx, mass and I_w are written per datasheet (PRINTED, formatScientific): `precision`
+    // names the finest of them; the cells are strings, right-aligned as every number.
+    { key: 'Lmax', label: 'L_máx', unit: 'N·m·s', align: 'num', precision: 3 },
     { key: 'tauMax', label: 'τ_máx', unit: 'mN·m', align: 'num', precision: 0 },
     { key: 'rpmMax', label: 'ω_máx', unit: 'rpm', align: 'num', precision: 0 },
-    { key: 'mass', label: 'Masa', align: 'text' },
-    { key: 'inertia', label: 'I_w', unit: 'kg·m²', align: 'text' },
+    { key: 'mass', label: 'Masa', align: 'num', precision: 1 },
+    { key: 'inertia', label: 'I_w', unit: 'kg·m²', align: 'num', precision: 2 },
     { key: 'origin', label: 'Origen de I_w', align: 'text' },
   ],
   rows: [wheelRow(VRW_D_4), wheelRow(RW400)],

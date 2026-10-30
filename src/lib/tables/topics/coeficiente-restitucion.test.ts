@@ -32,8 +32,8 @@ describe('coeficiente-restitucion tables', () => {
         ['pelota', 'text', undefined],
         ['ensayo', 'text', undefined],
         ['caida', 'num', 'cm'],
-        ['rebote', 'text', 'cm'],
-        ['e', 'text', undefined],
+        ['rebote', 'num', 'cm'],
+        ['e', 'num', undefined],
       ]);
     });
 
