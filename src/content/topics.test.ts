@@ -149,6 +149,17 @@ describe('topic files', () => {
     }
   });
 
+  test('toda etiqueta <DataTable> de un tema usa la forma <DataTable id="…" />', () => {
+    for (const { fileName, file } of files) {
+      const written = file.content.split('<DataTable').length - 1;
+      const accepted = [...file.content.matchAll(DATA_TABLE_TAG)].length;
+      expect(
+        accepted,
+        `${fileName}: escribe cada tabla exactamente como <DataTable id="slug-nombre" /> (comillas dobles, sin más propiedades); el tiempo de lectura y "Copiar Markdown" solo reconocen esa forma`,
+      ).toBe(written);
+    }
+  });
+
   test('cada <DataTable id="…" /> de un tema existe en el registro de tablas', () => {
     for (const { fileName, file } of files) {
       for (const [, id] of file.content.matchAll(DATA_TABLE_TAG)) {

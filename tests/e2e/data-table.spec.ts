@@ -76,10 +76,13 @@ test.describe('DataTable', () => {
       );
       expect(overflowX).toBe('auto');
       if (overflows) {
-        // Wide enough to scroll: a labelled, keyboard-reachable region named after the caption.
+        // Wide enough to scroll: a keyboard-reachable region with a short numbered name.
         await expect(frame).toHaveAttribute('tabindex', '0');
         await expect(frame).toHaveAttribute('role', 'region');
-        await expect(frame).toHaveAttribute('aria-label', /\S/);
+        await expect(frame).toHaveAttribute(
+          'aria-label',
+          new RegExp(`^Tabla ${topic?.number}\\.\\d+ desplazable$`),
+        );
       } else {
         await expect(frame).not.toHaveAttribute('tabindex', /.*/);
       }

@@ -11,7 +11,9 @@ const GFM_ALIGNMENT = { text: ':--', num: '--:' } as const;
 /** A cell as printed: numbers with the column's precision (comma decimals), text as written. */
 export function formatCell(column: TableColumn, value: TableCell): string {
   if (typeof value === 'string') return value;
-  return formatNumber(value, { precision: column.precision });
+  return formatNumber(value, {
+    precision: column.align === 'num' ? column.precision : undefined,
+  });
 }
 
 /** The column header: "Energía (kWh)" when the column has a unit. */

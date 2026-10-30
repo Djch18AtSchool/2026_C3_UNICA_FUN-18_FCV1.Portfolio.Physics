@@ -42,7 +42,8 @@ describe('ALL_TABLES', () => {
     for (const table of ALL_TABLES) {
       expect(table.caption.trim(), `${table.id}: caption`).not.toBe('');
       expect(table.source.text.trim(), `${table.id}: fuente`).not.toBe('');
-      for (const column of table.columns.filter(({ align }) => align === 'num')) {
+      for (const column of table.columns) {
+        if (column.align !== 'num') continue;
         expect(column.precision, `${table.id}.${column.key}: precision`).toBeTypeOf('number');
       }
       for (const row of table.rows) {

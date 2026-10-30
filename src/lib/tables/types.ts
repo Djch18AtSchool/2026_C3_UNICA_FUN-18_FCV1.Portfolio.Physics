@@ -1,13 +1,23 @@
-/** One column of a data table; `key` names the cell in every row. */
-export interface TableColumn {
+interface TableColumnBase {
+  /** Names the column's cell in every row. */
   key: string;
   label: string;
   unit?: string;
-  /** 'text' columns align left (the first one names the row); 'num' columns right, tabular. */
-  align: 'text' | 'num';
-  /** Decimals printed for the column's numbers. Required for 'num' columns (tables ignore the global decimals setting). */
-  precision?: number;
 }
+
+/** A column of words; the first one names the row and aligns left. */
+export interface TextColumn extends TableColumnBase {
+  align: 'text';
+}
+
+/** A column of numbers, right-aligned and tabular. Its precision is mandatory (tables ignore the global decimals setting). */
+export interface NumericColumn extends TableColumnBase {
+  align: 'num';
+  /** Decimals printed for the column's numbers. */
+  precision: number;
+}
+
+export type TableColumn = TextColumn | NumericColumn;
 
 export type TableCell = string | number;
 
