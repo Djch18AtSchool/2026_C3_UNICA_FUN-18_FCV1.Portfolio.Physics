@@ -67,6 +67,9 @@ describe('control-haptico tables', () => {
       ['Al fondo', '8', '3,2', '12,8', '-12,8'],
     ]);
     expect(TABLES[1].caption).toContain('Módulo 2, Tema 03, concepto 03');
+    expect(TABLES[1].caption).toContain(
+      'F = 400 · 0,008 = 3,2 N y U = ½ · 400 · 0,008² = 0,0128 J = 12,8 mJ',
+    );
     expect(TABLES[1].source.text).toContain('Serway y Jewett (2018), fuente 5');
   });
 

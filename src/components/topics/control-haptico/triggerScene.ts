@@ -6,15 +6,28 @@
 import {
   criticalDamping,
   dampedSpringStep,
-  elasticEnergy,
   isAtRest,
-  piecewiseResistance,
   type OscillatorParams,
   type OscillatorState,
 } from '../../../lib/physics';
 import { requirePositive } from '../../../lib/physics/validate';
 import { TRIGGER_TRAVEL_MM } from '../../../lib/data/triggerModel';
-import type { Preset } from '../../../lib/presets';
+import {
+  TRIGGER_PRESETS,
+  type Damping,
+  type TriggerPresetValues,
+} from '../../../lib/data/triggerPresets';
+
+// The presets, the example spring and its readings live in the data layer, shared with the
+// topic's tables; the lab keeps importing them from here.
+export {
+  TRIGGER_PRESETS,
+  triggerReadings,
+  type Damping,
+  type SpringSettings,
+  type TriggerPresetValues,
+  type TriggerReadings,
+} from '../../../lib/data/triggerPresets';
 
 /** Assumed mass of the lever for the release, 20 g: an illustrative value, not a measured one. */
 export const TRIGGER_MASS_KG = 0.02;
@@ -38,14 +51,11 @@ const MAX_FRAME_S = 0.05;
 /** Float slack when counting whole steps in a frame. */
 const STEP_EPSILON = 1e-9;
 const MM_PER_M = 1000;
-const MILLIJOULES_PER_JOULE = 1000;
 
 /** Keyboard grains on the lever: 0,1 mm, and 1 mm with Shift or the Page keys. */
 const KEY_STEP_MM = 0.1;
 const BIG_KEY_STEP_MM = 1;
 const GRID_DECIMALS = 1;
-
-export type Damping = 'critica' | 'subamortiguada';
 
 /** Share of the critical damping c = 2√(k m) each setting applies. */
 const DAMPING_RATIOS: Record<Damping, number> = { critica: 1, subamortiguada: 0.3 };
@@ -58,43 +68,6 @@ export const DAMPING_OPTIONS: { value: Damping; label: string }[] = [
 export function dampingRatio(damping: Damping): number {
   return DAMPING_RATIOS[damping];
 }
-
-/** What a trigger preset sets: the virtual spring and the damping of the release. */
-export interface TriggerPresetValues {
-  k: number;
-  x0Mm: number;
-  damping: Damping;
-}
-
-/**
- * The text's worked examples: the ideal spring (k = 400 N/m from x₀ = 0), the late-engaging
- * spring of step 4 (x₀ = 3 mm) and the same spring released with 0,3 of the critical damping.
- * k and x₀ are illustrative: no published mapping turns the API's 0–1 intensities and positions
- * into N/m and mm, so no preset claims to be the DualSense's own values.
- */
-export const TRIGGER_PRESETS: Preset<TriggerPresetValues>[] = [
-  {
-    id: 'ideal',
-    name: 'Resorte ideal',
-    values: { k: 400, x0Mm: 0, damping: 'critica' },
-    sourceLabel: 'k = 400 N/m · x₀ = 0',
-    note: 'Al fondo, 3,2 N y 12,8 mJ: la ecuación (5.2) desde el reposo.',
-  },
-  {
-    id: 'tardio',
-    name: 'Resorte tardío',
-    values: { k: 400, x0Mm: 3, damping: 'critica' },
-    sourceLabel: 'k = 400 N/m · x₀ = 3 mm',
-    note: 'El ejemplo del paso 4, con valores ilustrativos: la resistencia empieza a 3 mm y al fondo da 2,0 N y 5,0 mJ de trabajo del dedo.',
-  },
-  {
-    id: 'subamortiguado',
-    name: 'Subamortiguado',
-    values: { k: 400, x0Mm: 0, damping: 'subamortiguada' },
-    sourceLabel: 'c = 0,3 del valor crítico',
-    note: 'Con menos amortiguación la palanca vuelve antes y choca con el tope del reposo, que la detiene sin rebote.',
-  },
-];
 
 /** The id of the preset whose values the lab matches exactly, if any. */
 export function triggerPresetIdFor({ k, x0Mm, damping }: TriggerPresetValues): string | undefined {
@@ -202,32 +175,4 @@ export function advanceRelease(
     }
   }
   return { state, elapsed, carry: Math.max(budget, 0), isDone: false };
-}
-
-/** The virtual spring's settings: stiffness k (N/m) and the start of the resistance x₀ (mm). */
-export interface SpringSettings {
-  k: number;
-  x0Mm: number;
-}
-
-export interface TriggerReadings {
-  /** Resistance of the trigger profile, equation (5.4), N. */
-  force: number;
-  /** k·x, the magnitude of the ideal spring's force −k x, N. */
-  hooke: number;
-  /** Elastic energy ½ k x² of the ideal spring at x, mJ. */
-  energy: number;
-  /** Work of the finger against the profile from 0 to x: the area ½ k (x − x₀)² for x ≥ x₀, mJ. */
-  work: number;
-}
-
-export function triggerReadings({ k, x0Mm }: SpringSettings, xMm: number): TriggerReadings {
-  const x = toMetres(xMm);
-  const x0 = toMetres(x0Mm);
-  return {
-    force: piecewiseResistance(x, x0, k),
-    hooke: k * x,
-    energy: elasticEnergy(k, x) * MILLIJOULES_PER_JOULE,
-    work: elasticEnergy(k, Math.max(x - x0, 0)) * MILLIJOULES_PER_JOULE,
-  };
 }

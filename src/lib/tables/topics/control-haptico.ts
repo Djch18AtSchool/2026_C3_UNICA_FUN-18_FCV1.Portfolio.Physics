@@ -1,15 +1,16 @@
 /**
- * Tables of Tema 5. Every number comes from code at module load: the laboratory's worked examples
- * (TRIGGER_PRESETS, k = 400 N/m from rest and from x₀ = 3 mm) read through triggerReadings, which
- * applies the kernel's Hooke force, elastic energy and piecewise resistance over the assumed
- * travel of src/lib/data/triggerModel.ts.
+ * Tables of Tema 5. Every number comes from code at module load: the worked examples of
+ * src/lib/data/triggerPresets.ts (the example spring, F₀ and the laboratory's presets, k = 400 N/m
+ * from rest and from x₀ = 3 mm), read through triggerReadings, which takes the kernel's Hooke force,
+ * elastic energy and piecewise resistance over the assumed travel of src/lib/data/triggerModel.ts.
  */
+import { TRIGGER_TRAVEL_MM } from '../../data/triggerModel';
 import {
+  EXAMPLE_SPRING,
   TRIGGER_PRESETS,
   triggerReadings,
-  type SpringSettings,
-} from '../../../components/topics/control-haptico/triggerScene';
-import { TRIGGER_TRAVEL_MM } from '../../data/triggerModel';
+  VIBRATION_AMPLITUDE_N,
+} from '../../data/triggerPresets';
 import { formatNumber } from '../../format';
 import type { DataTableSpec } from '../types';
 
@@ -21,13 +22,14 @@ function preset(id: string) {
 
 const IDEAL = preset('ideal');
 const LATE = preset('tardio');
-const IDEAL_SPRING: SpringSettings = { k: IDEAL.values.k, x0Mm: 0 };
+const IDEAL_SPRING = EXAMPLE_SPRING;
+const MM_PER_M = 1000;
+const MILLIJOULES_PER_JOULE = 1000;
 
 /** A quarter of the travel, half of it and the bottom: the positions the figures read. */
 const QUARTER_MM = TRIGGER_TRAVEL_MM / 4;
 const MID_MM = TRIGGER_TRAVEL_MM / 2;
-/** The fixed vibration's amplitude matches the spring at mid travel, so the two compare. */
-const VIBRATION_N = triggerReadings(IDEAL_SPRING, MID_MM).hooke;
+const VIBRATION_N = VIBRATION_AMPLITUDE_N;
 
 const newtons = (value: number) => formatNumber(value, { precision: 1 });
 const SPRING_LABEL = `${IDEAL_SPRING.k} N/m`;
@@ -68,9 +70,17 @@ function energyRow(point: string, x: number) {
   return { point, x, force: hooke, energy, springWork: -energy };
 }
 
+/** The worked substitution at the bottom, in SI: F = k x and U = ½ k x² with x = 0,008 m. */
+const BOTTOM_M = TRIGGER_TRAVEL_MM / MM_PER_M;
+const BOTTOM = triggerReadings(IDEAL_SPRING, TRIGGER_TRAVEL_MM);
+const BOTTOM_SUBSTITUTION = [
+  `F = ${IDEAL_SPRING.k} · ${formatNumber(BOTTOM_M, { precision: 3 })} = ${newtons(BOTTOM.hooke)} N`,
+  `U = ½ · ${IDEAL_SPRING.k} · ${formatNumber(BOTTOM_M, { precision: 3 })}² = ${formatNumber(BOTTOM.energy / MILLIJOULES_PER_JOULE, { precision: 4 })} J = ${formatNumber(BOTTOM.energy, { precision: 1 })} mJ`,
+].join(' y ');
+
 const ENERGY: DataTableSpec = {
   id: 'control-haptico-energia',
-  caption: `Resorte ideal de ${SPRING_LABEL} a mitad del recorrido y al fondo; el trabajo de la propia fuerza elástica vale −U (Módulo 2, Tema 03, concepto 03)`,
+  caption: `Resorte ideal de ${SPRING_LABEL} a mitad del recorrido y al fondo, donde ${BOTTOM_SUBSTITUTION}; el trabajo de la propia fuerza elástica vale −U (Módulo 2, Tema 03, concepto 03)`,
   columns: [
     { key: 'point', label: 'Punto del recorrido', align: 'text' },
     { key: 'x', label: 'Desplazamiento x', unit: 'mm', align: 'num', precision: 0 },

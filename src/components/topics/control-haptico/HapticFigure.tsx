@@ -11,7 +11,12 @@ import {
   usePlotAspect,
   VIBRATION_COLOR,
 } from './hapticPlots';
-import { triggerReadings } from './triggerScene';
+import {
+  EXAMPLE_K,
+  EXAMPLE_SPRING,
+  triggerReadings,
+  VIBRATION_AMPLITUDE_N,
+} from '../../../lib/data/triggerPresets';
 import ThirdLawDiagram from './ThirdLawDiagram';
 
 export type HapticFigureVariant = 'vibracion' | 'hooke' | 'tercera-ley';
@@ -23,18 +28,17 @@ export interface HapticFigureProps {
 /** Wide figures keep the plotter's 1,6; phones get a squarer plot so the lines keep height. */
 const WIDE_ASPECT = 1.6;
 const COMPACT_ASPECT = 0.8;
-/** The worked example: k = 400 N/m over the assumed 8 mm travel. */
-const K_EXAMPLE = 400;
+/** The worked example (EXAMPLE_SPRING, k = 400 N/m) over the assumed 8 mm travel. */
 const BOTTOM_MM = 8;
 const MID_MM = 4;
 const EARLY_MM = 2;
 /** The fixed vibration, as a force, matches the spring at mid travel: k · 4 mm = 1,6 N. */
-const VIBRATION_N = (K_EXAMPLE * MID_MM) / 1000;
+const VIBRATION_N = VIBRATION_AMPLITUDE_N;
 const AREA_OPACITY = 0.15;
 const AREA_LABEL_DROP = 4;
 
 const newtons = (value: number) => formatNumber(value, { precision: 1, unit: 'N' });
-const springAt = (xMm: number) => triggerReadings({ k: K_EXAMPLE, x0Mm: 0 }, xMm);
+const springAt = (xMm: number) => triggerReadings(EXAMPLE_SPRING, xMm);
 
 function VibrationPlot(): JSX.Element {
   const { ref, aspectRatio } = usePlotAspect(WIDE_ASPECT, COMPACT_ASPECT);
@@ -88,7 +92,7 @@ function VibrationPlot(): JSX.Element {
             ],
             color: VIBRATION_COLOR,
           },
-          hookeSeries(K_EXAMPLE, `Resorte de ${K_EXAMPLE} N/m, F = k x`),
+          hookeSeries(EXAMPLE_K, `Resorte de ${EXAMPLE_K} N/m, F = k x`),
         ]}
         overlay={(scales) => <PlotPoints points={points} scales={scales} />}
         ariaLabel="La vibración fija da 1,6 N a 2 mm y a 8 mm: su fuerza no dice dónde está el gatillo. El resorte de 400 N/m da 0,8 N a 2 mm y 3,2 N a 8 mm."
@@ -142,7 +146,7 @@ function HookePlot(): JSX.Element {
         title="Fuerza del resorte ideal frente a su deformación, con la energía como área"
         {...FORCE_AXES}
         series={[
-          { ...hookeSeries(K_EXAMPLE, `Resorte de ${K_EXAMPLE} N/m, F = k x`), dashed: false },
+          { ...hookeSeries(EXAMPLE_K, `Resorte de ${EXAMPLE_K} N/m, F = k x`), dashed: false },
         ]}
         overlay={(scales) => (
           <>
