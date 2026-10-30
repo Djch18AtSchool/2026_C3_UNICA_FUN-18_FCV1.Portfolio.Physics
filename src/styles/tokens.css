@@ -18,6 +18,19 @@
  * each theme; dark --diag sits above the chart lightness band on purpose (it is only
  * ever a swatch beside its label, and a darker amber would merge with --sim for
  * protan readers).
+ *
+ * Real-world colors (--sun, --jupiter, --saturn, --uranus, --neptune, --tennis,
+ * --basketball) name a body or an object, so they are assigned by what it is, never by
+ * series order (like --chart-1 for the Earth, --chart-2 for Mars). They are marks too and
+ * pass the same ≥ 3:1 against --bg and --bg-elevated. References: Sun amber-yellow;
+ * Jupiter ochre/tan cloud bands; Saturn pale gold/sand; Uranus pale cyan (methane);
+ * Neptune deep azure, kept ΔE ≥ 15 (CIE76) from --chart-1, the Earth blue; ITF tennis
+ * ball "optic yellow" (yellow-green); FIBA basketball "a single shade of orange", kept
+ * ΔE ≥ 15 from --chart-2, the Mars orange (browner and darker in light, yellower in dark).
+ * Trade-off: sand, pale cyan and optic yellow are light by nature and fail 3:1 on the
+ * light paper at their natural lightness, so the light theme darkens them (and the Sun
+ * and Jupiter) until they pass while keeping the hue family recognisable; the dark theme
+ * keeps the natural light tones. Measured with CIE76 ΔE in tokens.test.ts.
  */
 
 :root {
@@ -40,6 +53,13 @@
   --chart-4: #a951c3;
   --chart-5: #868f00;
   --chart-6: #0196b0;
+  --sun: #b07a00;
+  --jupiter: #a8743a;
+  --saturn: #9a8340;
+  --uranus: #188ea0;
+  --neptune: #1f3fa8;
+  --tennis: #718800;
+  --basketball: #b8560a;
   --radius: 3px;
 }
 
@@ -63,5 +83,12 @@
   --chart-4: #a74fc1;
   --chart-5: #808800;
   --chart-6: #20a2bd;
+  --sun: #f2b01e;
+  --jupiter: #c8925a;
+  --saturn: #d9c27a;
+  --uranus: #7fd6e0;
+  --neptune: #5f78ea;
+  --tennis: #c3d92a;
+  --basketball: #ff8c1a;
   --radius: 3px;
 }

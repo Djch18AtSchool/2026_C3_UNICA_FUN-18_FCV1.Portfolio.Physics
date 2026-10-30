@@ -25,6 +25,13 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
   --color-chart-6: var(--chart-6);
+  --color-sun: var(--sun);
+  --color-jupiter: var(--jupiter);
+  --color-saturn: var(--saturn);
+  --color-uranus: var(--uranus);
+  --color-neptune: var(--neptune);
+  --color-tennis: var(--tennis);
+  --color-basketball: var(--basketball);
   --radius-base: var(--radius);
 }
 
