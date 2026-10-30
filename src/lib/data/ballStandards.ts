@@ -124,7 +124,7 @@ export const BALL_STANDARDS: readonly BallStandard[] = [
       id: 'tenis-itf',
       name: 'Tenis (ITF, tipo 2)',
       standard:
-        'ITF Rules of Tennis 2026, Appendix I: rebote de 135-147 cm; caída de 254 cm (100 in) sobre granito, ITF Technical Centre',
+        'ITF Rules of Tennis 2026, Appendix I: rebote de 135–147 cm; caída de 254 cm (100 in) sobre granito, ITF Technical Centre',
       sources: [ITF_RULES, ITF_TESTS],
     },
     2.54,
@@ -136,7 +136,7 @@ export const BALL_STANDARDS: readonly BallStandard[] = [
       id: 'baloncesto-fiba',
       name: 'Baloncesto (FIBA)',
       standard:
-        'FIBA Basketball Equipment 2026, cláusula 2.4: caída desde aproximadamente 1 800 mm y rebote de 1 035-1 085 mm, medidos a la base de la pelota',
+        'FIBA Basketball Equipment 2026, cláusula 2.4: caída desde aproximadamente 1 800 mm y rebote de 1 035–1 085 mm, medidos a la base de la pelota',
       sources: [FIBA_EQUIPMENT],
     },
     1.8,
@@ -148,7 +148,7 @@ export const BALL_STANDARDS: readonly BallStandard[] = [
       id: 'futbol-fifa-pro',
       name: 'Fútbol (FIFA Quality PRO)',
       standard:
-        'FIFA Testing Manual 2018, Test 03: caída de 2,00 m sobre metal y rebote de 135-155 cm a 20 °C, talla 5',
+        'FIFA Testing Manual 2018, Test 03: caída de 2,00 m sobre metal y rebote de 135–155 cm a 20 °C, talla 5',
       sources: [FIFA_BALLS],
     },
     2,

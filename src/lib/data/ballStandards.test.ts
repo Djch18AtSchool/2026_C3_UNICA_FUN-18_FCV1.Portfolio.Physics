@@ -112,6 +112,13 @@ describe('BALL_STANDARDS', () => {
     }
   });
 
+  test('the standard lines write their rebound ranges with an en dash, never a hyphen', () => {
+    expect(byId('tenis-itf').standard).toContain('rebote de 135–147 cm');
+    expect(byId('baloncesto-fiba').standard).toContain('rebote de 1 035–1 085 mm');
+    expect(byId('futbol-fifa-pro').standard).toContain('rebote de 135–155 cm');
+    for (const ball of BALL_STANDARDS) expect(ball.standard).not.toMatch(/\d-\d/);
+  });
+
   test('cites the 2026 FIBA edition, not the older 1 200–1 400 mm figure', () => {
     const fiba = byId('baloncesto-fiba');
 
