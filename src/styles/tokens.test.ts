@@ -14,6 +14,8 @@ const BODY_TOKENS = [
   'basketball',
 ] as const;
 const MIN_DELTA_E = 15;
+const MIN_BASKETBALL_DELTA_E = 18;
+const MIN_PLANET_DELTA_E = 20;
 const LIGHT = ':root';
 const DARK = ':root[data-theme="dark"]';
 const COLOR_TOKENS = [
@@ -98,6 +100,13 @@ function token(selector: string, name: string): string {
   return value;
 }
 
+describe('deltaE', () => {
+  test('is 0 for identical colors and 100 for white vs black', () => {
+    expect(deltaE('#2a78d6', '#2a78d6')).toBe(0);
+    expect(deltaE('#ffffff', '#000000')).toBeCloseTo(100, 1);
+  });
+});
+
 describe('tokens.css', () => {
   test('declares only the light and the dark blocks', () => {
     expect([...blocks.keys()]).toEqual([LIGHT, DARK]);
@@ -149,6 +158,16 @@ describe('tokens.css', () => {
     test('--basketball stays distinct from the Mars orange (--chart-2)', () => {
       expect(
         deltaE(token(selector, 'basketball'), token(selector, 'chart-2')),
+      ).toBeGreaterThanOrEqual(MIN_BASKETBALL_DELTA_E);
+    });
+    test('--jupiter stays distinct from --saturn (side-by-side markers)', () => {
+      expect(deltaE(token(selector, 'jupiter'), token(selector, 'saturn'))).toBeGreaterThanOrEqual(
+        MIN_PLANET_DELTA_E,
+      );
+    });
+    test('--jupiter stays distinct from --basketball', () => {
+      expect(
+        deltaE(token(selector, 'jupiter'), token(selector, 'basketball')),
       ).toBeGreaterThanOrEqual(MIN_DELTA_E);
     });
     test('accent-fg on accent reaches 4.5:1 (AA)', () => {

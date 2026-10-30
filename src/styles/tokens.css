@@ -23,10 +23,10 @@
  * --basketball) name a body or an object, so they are assigned by what it is, never by
  * series order (like --chart-1 for the Earth, --chart-2 for Mars). They are marks too and
  * pass the same ≥ 3:1 against --bg and --bg-elevated. References: Sun amber-yellow;
- * Jupiter ochre/tan cloud bands; Saturn pale gold/sand; Uranus pale cyan (methane);
+ * Jupiter reddish-brown ochre (cloud bands, Great Red Spot), kept ΔE ≥ 20 from Saturn; Saturn pale gold/sand; Uranus pale cyan (methane);
  * Neptune deep azure, kept ΔE ≥ 15 (CIE76) from --chart-1, the Earth blue; ITF tennis
  * ball "optic yellow" (yellow-green); FIBA basketball "a single shade of orange", kept
- * ΔE ≥ 15 from --chart-2, the Mars orange (browner and darker in light, yellower in dark).
+ * ΔE ≥ 15 from --chart-2, the Mars orange (a saturated pure orange in both themes).
  * Trade-off: sand, pale cyan and optic yellow are light by nature and fail 3:1 on the
  * light paper at their natural lightness, so the light theme darkens them (and the Sun
  * and Jupiter) until they pass while keeping the hue family recognisable; the dark theme
@@ -54,12 +54,12 @@
   --chart-5: #868f00;
   --chart-6: #0196b0;
   --sun: #b07a00;
-  --jupiter: #a8743a;
+  --jupiter: #a0522d;
   --saturn: #9a8340;
   --uranus: #188ea0;
   --neptune: #1f3fa8;
   --tennis: #718800;
-  --basketball: #b8560a;
+  --basketball: #d97200;
   --radius: 3px;
 }
 
@@ -84,7 +84,7 @@
   --chart-5: #808800;
   --chart-6: #20a2bd;
   --sun: #f2b01e;
-  --jupiter: #c8925a;
+  --jupiter: #c8754a;
   --saturn: #d9c27a;
   --uranus: #7fd6e0;
   --neptune: #5f78ea;
