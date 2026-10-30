@@ -12,6 +12,7 @@ import TopicTools from './TopicTools';
 import { REPO_URL, SITE_URL, type ResourceType } from '../../consigna';
 import { markdownSource, readingMinutes } from '../../lib/readingTime';
 import { embedScriptText } from '../../lib/scriptText';
+import { expandTables, tableMarkdown } from '../../lib/tables/markdown';
 import { canonicalUrl, topicUrl } from '../../lib/url';
 
 interface Props {
@@ -73,5 +74,5 @@ const FACT = 'inline-flex items-center gap-1.5';
   is:inline
   type="text/plain"
   id={MARKDOWN_ELEMENT_ID}
-  set:html={embedScriptText(markdownSource(body))}
+  set:html={embedScriptText(expandTables(markdownSource(body), tableMarkdown))}
 />

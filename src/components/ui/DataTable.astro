@@ -1,0 +1,60 @@
+---
+/*
+ * A numbered data table ("Tabla N.k", from the CSS counters of .topic-body) read from the table
+ * registry, the single source for the page, the reading time and "Copiar Markdown". In MDX:
+ *
+ *   <DataTable id="frenado-regenerativo-ciclos" />
+ *
+ * The frame scrolls inside itself on phones; scrollRegion.ts (BaseLayout) makes it a labelled,
+ * focusable region only while it overflows. Numbers use the column's own precision: tables do not
+ * follow the global decimals setting.
+ */
+import { tableById } from '../../lib/tables';
+import { columnHeader, formatCell } from '../../lib/tables/markdown';
+
+interface Props {
+  id: string;
+}
+const spec = tableById(Astro.props.id);
+const { columns, rows, source } = spec;
+const [firstColumn] = columns;
+const captionId = `${spec.id}-caption`;
+const cellClass = (align: 'text' | 'num') => (align === 'num' ? 'is-num' : undefined);
+---
+
+<figure data-testid="data-table" id={spec.id} class="content-table">
+  <div class="table-frame" data-scroll-label={spec.caption}>
+    <table aria-labelledby={captionId}>
+      <thead>
+        <tr>
+          {columns.map((column) => (
+            <th scope="col" class={cellClass(column.align)}>
+              {columnHeader(column)}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr>
+            {columns.map((column) =>
+              column === firstColumn && column.align === 'text' ? (
+                <th scope="row">{formatCell(column, row[column.key])}</th>
+              ) : (
+                <td class={cellClass(column.align)}>{formatCell(column, row[column.key])}</td>
+              ),
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <figcaption>
+    <span id={captionId} class="figure-caption">
+      {spec.caption}
+    </span>
+    <p class="figure-source">
+      Fuente: {source.url ? <a href={source.url}>{source.text}</a> : source.text}
+    </p>
+  </figcaption>
+</figure>

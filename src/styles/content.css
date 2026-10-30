@@ -6,7 +6,7 @@
 
 @layer components {
   .topic-body {
-    counter-reset: figure equation;
+    counter-reset: figure equation table;
   }
 
   /* ---- Prose flow ---- */
@@ -212,6 +212,57 @@
     margin-top: 0.25rem;
     font-size: 0.875rem;
     color: var(--fg-muted);
+  }
+
+  /* ---- Data table: the figure's frame without grid paper, hairline rules, no zebra ---- */
+
+  .content-table {
+    counter-increment: table;
+    margin-block: 2rem;
+  }
+  .table-frame {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .content-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+  .content-table :is(th, td) {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: baseline;
+  }
+  .content-table tbody tr + tr > * {
+    border-top: 1px solid var(--border);
+  }
+  .content-table thead th {
+    border-bottom: 1px solid var(--fg-muted);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .content-table tbody th[scope='row'] {
+    font-weight: 500;
+  }
+  .content-table .is-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .content-table > figcaption {
+    max-width: 70ch;
+    margin-top: 0.75rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+  .content-table > figcaption::before {
+    content: 'Tabla ' counter(topic) '.' counter(table) ' · ';
+    font-family: var(--font-mono);
+    font-weight: 500;
   }
 
   /* ---- Cite and Sources ---- */

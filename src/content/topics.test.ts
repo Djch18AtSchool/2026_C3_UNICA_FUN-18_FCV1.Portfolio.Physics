@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import matter from 'gray-matter';
 import { describe, expect, test } from 'vitest';
 import { TOPICS, topicBySlug } from '../consigna';
+import { DATA_TABLE_TAG } from '../lib/tables/markdown';
+import { tableById } from '../lib/tables';
 import { topicSchema } from './topicSchema';
 
 const TOPICS_DIR = join(process.cwd(), 'src', 'content', 'topics');
@@ -144,6 +146,14 @@ describe('topic files', () => {
   test('solo la figura del recurso prescrito lleva la insignia, con el tipo del frontmatter', () => {
     for (const { fileName, file } of files) {
       expect(badgedFigureTypes(file.content), fileName).toEqual([file.data.resourceType]);
+    }
+  });
+
+  test('cada <DataTable id="…" /> de un tema existe en el registro de tablas', () => {
+    for (const { fileName, file } of files) {
+      for (const [, id] of file.content.matchAll(DATA_TABLE_TAG)) {
+        expect(() => tableById(id), `${fileName} -> ${id}`).not.toThrow();
+      }
     }
   });
 });

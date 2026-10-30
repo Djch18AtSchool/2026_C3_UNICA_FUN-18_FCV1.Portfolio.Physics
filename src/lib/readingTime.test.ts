@@ -1,5 +1,21 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { markdownSource, readingMinutes, readingStats } from './readingTime';
+
+vi.mock('./tables', () => ({
+  tableById: (id: string) => {
+    if (id !== 't-x') throw new Error(`DataTable: no existe la tabla "${id}"`);
+    return {
+      id,
+      caption: 'Balance del ciclo',
+      source: { text: 'Cálculo propio' },
+      columns: [
+        { key: 'ciclo', label: 'Ciclo', align: 'text' },
+        { key: 'e', label: 'Energía', unit: 'kWh', align: 'num', precision: 3 },
+      ],
+      rows: [{ ciclo: 'UDDS', e: 0.6953 }],
+    };
+  },
+}));
 
 const IMPORTS = `import Figure from '../../components/ui/Figure.astro';
 import UseCase from '../../components/ui/UseCase.astro';
@@ -163,5 +179,28 @@ describe('markdownSource', () => {
     const body = `${IMPORTS}\nUn ejemplo:\n\n${fence}\n\n~~~\nimport os\n~~~`;
 
     expect(markdownSource(body)).toBe(`Un ejemplo:\n\n${fence}\n\n~~~\nimport os\n~~~`);
+  });
+});
+
+describe('readingStats with a DataTable', () => {
+  test('counts the caption, column labels and text cells as prop words, never the numbers', () => {
+    // Arrange
+    const body = `${words(10)}\n\n<DataTable id="t-x" />\n`;
+
+    // Act
+    const stats = readingStats(body);
+
+    // Assert: "Balance del ciclo Ciclo Energía UDDS" = 6 words
+    expect(stats.proseWords).toBe(10);
+    expect(stats.propWords).toBe(6);
+    expect(stats.figures).toBe(0);
+  });
+
+  test('a table adds no figure time', () => {
+    expect(readingMinutes('<DataTable id="t-x" />')).toBe(1);
+  });
+
+  test('an unknown table id fails the build instead of being skipped', () => {
+    expect(() => readingStats('<DataTable id="nope" />')).toThrow(/no existe la tabla "nope"/);
   });
 });

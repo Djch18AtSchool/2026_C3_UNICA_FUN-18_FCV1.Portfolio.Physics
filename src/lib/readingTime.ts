@@ -2,6 +2,9 @@
  * Reading time and the copyable source of a topic, both from its raw MDX body (`entry.body`).
  * The body has no frontmatter, but a leading one is stripped anyway so a full file also works.
  */
+import { tableById } from './tables';
+import { DATA_TABLE_TAG, tableReadingText } from './tables/markdown';
+
 const WORDS_PER_MINUTE = 200;
 /** Each figure or laboratory (all sit in a <Figure>) adds half a minute (spec §6). */
 const MINUTES_PER_FIGURE = 0.5;
@@ -69,8 +72,13 @@ const INTERPOLATED_VALUE = '0';
 /** A word is a whitespace-separated fragment with at least one letter or digit ("→" is not). */
 const WORD = /[\p{L}\p{N}]/u;
 
+/** A `<DataTable id="…" />` is read through its registry table; any other tag by its props. */
+const DATA_TABLE_ONLY = new RegExp(`^${DATA_TABLE_TAG.source}$`);
+
 /** The reader-facing strings inside one JSX tag, joined by spaces. */
 function tagText(tag: string): string {
+  const table = DATA_TABLE_ONLY.exec(tag);
+  if (table) return tableReadingText(tableById(table[1]));
   const attributes = [...tag.matchAll(TEXT_ATTRIBUTE)].map(
     ([, double, single, template]) =>
       double ?? single ?? template.replace(INTERPOLATION, INTERPOLATED_VALUE),
