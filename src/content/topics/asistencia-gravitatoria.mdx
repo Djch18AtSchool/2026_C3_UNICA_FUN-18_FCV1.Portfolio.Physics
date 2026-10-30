@@ -256,7 +256,7 @@ En Júpiter, <Equation inline latex="|\Delta\vec v| = 11{,}45\ \mathrm{km/s}" />
 
 <Step n={4} title="Lo que muestran los datos">
 
-Los saltos de la gráfica coinciden con las cónicas empalmadas de la tabla 9.2 salvo en Júpiter, que sigue tirando después del encuentro; el modelo mejorado suma todas las atracciones.
+Los saltos de la gráfica coinciden con las cónicas empalmadas de la tabla 9.2 salvo en Júpiter; el modelo mejorado suma todas las atracciones.
 
 <Equation
   id="ec-asistencia-n-cuerpos"
@@ -275,7 +275,7 @@ Los saltos de la gráfica coinciden con las cónicas empalmadas de la tabla 9.2 
 
 <Fragment slot="fenomeno">
 
-Todos los cuerpos tiran a la vez.
+Todos los cuerpos tiran a la vez: las cónicas apagan a Júpiter, que sigue tirando.
 
 </Fragment>
 
@@ -317,19 +317,19 @@ Tras Neptuno le quedan <Equation inline latex="\sqrt{2\varepsilon} = 14{,}86\ \m
 
 <Fragment slot="caso">
 
-En el memorando técnico 312-130 de JPL (23 de agosto de 1961, firmado «Minovich»), M. A. Minovitch calculó trayectorias por cónicas empalmadas <Cite id="minovitch-1961" sources={frontmatter.sources} />. Flandro aplicó el método en 1966 a la oportunidad de 1978 hacia los cuatro gigantes <Cite id="flandro-1966" sources={frontmatter.sources} />, y las Voyager despegaron en 1977 para aprovecharla <Cite id="nasa-planetary-voyage" sources={frontmatter.sources} />. Hoy JPL Horizons publica la trayectoria de la V2 <Cite id="horizons" sources={frontmatter.sources} /> <Cite id="horizons-api" sources={frontmatter.sources} />; la navegación usa programas cerrados como MONTE <Cite id="monte" sources={frontmatter.sources} />.
+En el memorando 312-130 de JPL (23 de agosto de 1961, firmado «Minovich»), M. A. Minovitch calculó trayectorias por cónicas empalmadas <Cite id="minovitch-1961" sources={frontmatter.sources} />. Flandro aplicó el método en 1966 a la oportunidad de 1978 hacia los cuatro gigantes <Cite id="flandro-1966" sources={frontmatter.sources} />, y las Voyager despegaron en 1977 para aprovecharla <Cite id="nasa-planetary-voyage" sources={frontmatter.sources} />. Hoy JPL Horizons publica la trayectoria de la V2 <Cite id="horizons" sources={frontmatter.sources} /> <Cite id="horizons-api" sources={frontmatter.sources} />; la navegación usa programas cerrados como MONTE <Cite id="monte" sources={frontmatter.sources} />.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-El memorando define la esfera de influencia, <Equation inline latex="\rho^* = (m/M)^{2/5}\, c" /> (c, distancia al Sol) <Cite id="minovitch-1961" sources={frontmatter.sources} />: dentro solo actúa el planeta, la (9.2); fuera, solo el Sol, la (9.1), y la (9.3) los empalma. Diseñar es elegir <Equation inline latex="r_p" /> para que δ dirija la sonda al planeta siguiente.
+El memorando define la esfera de influencia, <Equation inline latex="\rho^* = (m_p/M_\odot)^{2/5}\, c" /> (<Equation inline latex="m_p" /> y <Equation inline latex="M_\odot" />, masas del planeta y del Sol; c, su distancia) <Cite id="minovitch-1961" sources={frontmatter.sources} />: dentro solo actúa el planeta, la (9.2); fuera, el Sol, la (9.1), y la (9.3) los empalma. Diseñar es elegir <Equation inline latex="r_p" /> para que δ apunte al planeta siguiente.
 
 </Fragment>
 
 <Fragment slot="justificacion">
 
-Las alternativas no físicas, una animación guionizada o una regla «cada planeta suma tanto», no responden qué pasa si la sonda llega una hora tarde o 1 000 km más cerca, ni explican que Neptuno restara 2,1 km/s; la (9.2) da δ para cualquier <Equation inline latex="r_p" /> y <Equation inline latex="v_\infty" />. La trayectoria de Horizons no es un guion: sale del modelo, cónicas empalmadas hasta 1989 y un ajuste de 2022 a datos de seguimiento <Cite id="horizons" sources={frontmatter.sources} />.
+Las alternativas no físicas, una animación guionizada o una regla «cada planeta suma tanto», no responden qué pasa si la sonda llega una hora tarde o 1 000 km más cerca, ni explican que Neptuno restara 2,1 km/s; la (9.2) da δ para cualquier <Equation inline latex="r_p" /> y <Equation inline latex="v_\infty" />. La trayectoria de Horizons no es un guion: sale del modelo, cónicas empalmadas hasta 1989 y ajuste de 2022 a datos de seguimiento <Cite id="horizons" sources={frontmatter.sources} />.
 
 </Fragment>
 
@@ -343,7 +343,7 @@ Se gana una gira de cuatro planetas pagada por ellos. Cuesta integrar n cuerpos,
 
 <Callout variant="clase" title="Módulo 4 · Temas 01, 03 y 04; Módulo 3 · Tema 02; y una extensión">
 
-La (9.1) es la gravitación del Tema 01 y la energía potencial del Tema 03; la (9.4), la superposición del Tema 01. El Tema 03 da la Voyager 1 como ejemplo de trayectoria hiperbólica, <Equation inline latex="E > 0" />; la ligada del paso 1 es una elipse de Kepler (Tema 04). Desde el planeta, el sobrevuelo es un choque elástico (Módulo 3) con coeficiente de restitución 1. Vis-viva, el cambio de marco y la hipérbola son extensión.
+La (9.1) es la gravitación del Tema 01 y la energía potencial del Tema 03; la (9.4), su superposición. El Tema 03 da la Voyager 1 como ejemplo de trayectoria hiperbólica, <Equation inline latex="E > 0" />; la ligada del paso 1 es una elipse de Kepler (Tema 04). Desde el planeta, el sobrevuelo es un choque elástico (Módulo 3) con coeficiente de restitución 1. Vis-viva, el cambio de marco y la hipérbola son extensión.
 
 </Callout>
 
