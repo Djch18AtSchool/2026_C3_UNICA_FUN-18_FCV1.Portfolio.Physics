@@ -6,9 +6,135 @@ shortTitle: 'Ruedas de reacción'
 concept: 'Conservación del momento angular y torque.'
 resourceType: diagrama
 useCase:
-  product: 'Borrador'
-  industry: 'Borrador'
+  product: '42, el simulador de naves de NASA Goddard'
+  industry: 'Control de actitud de naves espaciales'
 sources:
+  - id: stoneking-42
+    title: '42: A General-Purpose Spacecraft Simulation (NASA GSC-16720-1), commit df4fbdf5'
+    authors: 'Eric Stoneking (NASA Goddard Space Flight Center)'
+    year: 2026
+    publisher: 'Repositorio ericstoneking/42 en GitHub, NASA Open Source Agreement 1.3; commit del 21 de octubre de 2026'
+    url: 'https://github.com/ericstoneking/42/tree/df4fbdf5bf75557a06b9dd3aeb8693b98392e334'
+    accessed: '2026-10-30'
+  - id: stoneking-42-dynamics
+    title: '42, Source/42dynamics.c: OneBodyEOM, L2445–L2495, y ecuación de la rueda, L3325–L3329'
+    authors: 'Eric Stoneking (NASA Goddard Space Flight Center)'
+    year: 2026
+    publisher: 'Repositorio ericstoneking/42 en GitHub, commit df4fbdf5'
+    url: 'https://github.com/ericstoneking/42/blob/df4fbdf5bf75557a06b9dd3aeb8693b98392e334/Source/42dynamics.c#L2445-L2495'
+    accessed: '2026-10-30'
+  - id: stoneking-42-actuators
+    title: '42, Source/42actuators.c: rueda con saturación, L52–L72, y magnetopar, L76–L86'
+    authors: 'Eric Stoneking (NASA Goddard Space Flight Center)'
+    year: 2026
+    publisher: 'Repositorio ericstoneking/42 en GitHub, commit df4fbdf5'
+    url: 'https://github.com/ericstoneking/42/blob/df4fbdf5bf75557a06b9dd3aeb8693b98392e334/Source/42actuators.c#L52-L86'
+    accessed: '2026-10-30'
+  - id: stoneking-42-fsw
+    title: '42, Source/42fsw.c: ThreeAxisFSW, control y gestión del momento, L1374–L1428'
+    authors: 'Eric Stoneking (NASA Goddard Space Flight Center)'
+    year: 2026
+    publisher: 'Repositorio ericstoneking/42 en GitHub, commit df4fbdf5'
+    url: 'https://github.com/ericstoneking/42/blob/df4fbdf5bf75557a06b9dd3aeb8693b98392e334/Source/42fsw.c#L1374-L1428'
+    accessed: '2026-10-30'
+  - id: aac-rw400
+    title: 'RW400, hoja de datos'
+    authors: 'AAC Clyde Space'
+    year: 2021
+    publisher: 'AAC Clyde Space (fecha de publicación: 15 de noviembre de 2021)'
+    url: 'https://www.aac-clyde.space/wp-content/uploads/2021/11/RW400.pdf'
+    accessed: '2026-10-30'
+  - id: vectronic-vrw-d-4
+    title: 'Reaction Wheel VRW-D-4, hoja de datos DS11'
+    authors: 'VECTRONIC Aerospace'
+    year: 2022
+    publisher: 'VECTRONIC Aerospace GmbH'
+    url: 'https://www.vectronic-aerospace.com/wp-content/uploads/2022/06/VAS-VRW-D-4-DS11.pdf'
+    accessed: '2026-10-30'
+  - id: cubesat-cds-14-1
+    title: 'CubeSat Design Specification, Rev. 14.1'
+    authors: 'The CubeSat Program, Cal Poly SLO'
+    year: 2022
+    publisher: 'California Polytechnic State University (Tabla 1 y dibujo del 6U, p. 33)'
+    url: 'https://www.nasa.gov/wp-content/uploads/2018/01/cubesatdesignspecificationrev14_12022-02-09.pdf'
+    accessed: '2026-10-30'
+  - id: nasa-sp-8024
+    title: 'Spacecraft Gravitational Torques (NASA SP-8024)'
+    authors: 'NASA'
+    year: 1969
+    publisher: 'NASA Space Vehicle Design Criteria (Guidance and Control), NTRS 19700014113'
+    url: 'https://ntrs.nasa.gov/citations/19700014113'
+    accessed: '2026-10-30'
+  - id: gomspace-gst600
+    title: 'NanoTorque GST-600 Mk2, hoja de datos DS 1062432 2.0'
+    authors: 'GomSpace'
+    year: 2025
+    publisher: 'GomSpace A/S'
+    url: 'https://gomspace.com/wp-content/uploads/2025/09/gs-ds-NanoTorqueGST600mk2-1062432-2-EXT.pdf'
+    accessed: '2026-10-30'
+  - id: noaa-wmm
+    title: 'World Magnetic Model (WMM2025)'
+    authors: 'NOAA National Centers for Environmental Information'
+    year: 2025
+    publisher: 'NOAA NCEI'
+    url: 'https://www.ncei.noaa.gov/products/world-magnetic-model'
+    accessed: '2026-10-30'
+  - id: kepler-2012-07-20
+    title: 'Kepler Mission Manager Update 07.20.12'
+    authors: 'Roger Hunter (NASA Ames)'
+    year: 2012
+    publisher: 'NASA; copia del 23 de julio de 2012 en Internet Archive'
+    url: 'https://web.archive.org/web/20120723172623/http://www.nasa.gov:80/mission_pages/kepler/news/keplerm-20122007.html'
+    accessed: '2026-10-30'
+  - id: kepler-2013-05-15
+    title: 'Kepler Mission Manager Update, May 15, 2013'
+    authors: 'The Kepler Team'
+    year: 2013
+    publisher: 'NASA; copia del 28 de febrero de 2014 en Internet Archive'
+    url: 'https://web.archive.org/web/20140228202745/http://www.nasa.gov:80/mission_pages/kepler/news/keplerm-20130515.html'
+    accessed: '2026-10-30'
+  - id: howell-2014-k2
+    title: 'The K2 Mission: Characterization and Early Results'
+    authors: 'Steve B. Howell, Charlie Sobeck, Michael Haas et al.'
+    year: 2014
+    publisher: 'Publications of the Astronomical Society of the Pacific 126, DOI 10.1086/676406'
+    url: 'https://arxiv.org/abs/1402.5163'
+    accessed: '2026-10-30'
+  - id: nasa-hubble-pointing
+    title: 'Hubble: Pointing Control'
+    authors: 'NASA Science'
+    year: 2025
+    publisher: 'NASA (actualizada el 21 de enero de 2025)'
+    url: 'https://science.nasa.gov/mission/hubble/observatory/design/pointing-control'
+    accessed: '2026-10-30'
+  - id: dougherty-1988
+    title: 'Space Telescope Pointing Control'
+    authors: 'Hugh Dougherty (Lockheed Missiles and Space Co.)'
+    year: 1988
+    publisher: 'NASA Technical Reports Server, NTRS 19900004138'
+    url: 'https://ntrs.nasa.gov/citations/19900004138'
+    accessed: '2026-10-30'
+  - id: gardner-2023-jwst
+    title: 'The James Webb Space Telescope Mission'
+    authors: 'Jonathan P. Gardner, John C. Mather et al.'
+    year: 2023
+    publisher: 'Publications of the Astronomical Society of the Pacific 135, DOI 10.1088/1538-3873/acd1b5'
+    url: 'https://arxiv.org/abs/2304.04869'
+    accessed: '2026-10-30'
+  - id: stsci-jwst-momentum
+    title: 'JWST Momentum Management'
+    authors: 'Space Telescope Science Institute'
+    year: 2022
+    publisher: 'JWST User Documentation (JDox), actualizada el 22 de julio de 2022'
+    url: 'https://jwst-docs.stsci.edu/jwst-observatory-hardware/jwst-attitude-control-subsystem/jwst-momentum-management'
+    accessed: '2026-10-30'
+  - id: nasa-webb-flap
+    title: 'Webb’s Aft Momentum Flap Deployed'
+    authors: 'NASA Webb Mission Team (Goddard)'
+    year: 2021
+    publisher: 'Blog de Webb, NASA, 30 de diciembre de 2021'
+    url: 'https://science.nasa.gov/blogs/webb/2021/12/30/webbs-aft-momentum-flap-deployed'
+    accessed: '2026-10-30'
   - id: serway-jewett-2018
     title: 'Física para ciencias e ingeniería, Vol. 1, 10.ª edición'
     authors: 'Raymond A. Serway y John W. Jewett Jr.'
@@ -16,125 +142,303 @@ sources:
     publisher: 'Cengage Learning'
     url: 'https://cengagelatam.editorialdc.com/libros/fisica-para-ciencias-e-ingenieria-vol-1/'
     accessed: '2026-10-08'
-related: ['gravedad-artificial', 'control-haptico']
+related: ['gravedad-artificial', 'asistencia-gravitatoria', 'control-haptico']
 classRefs:
-  - module: 'Módulo 1'
-    topic: 'Borrador'
-    note: 'Borrador'
+  - module: 'Módulo 3'
+    topic: 'Tema 03 · Torque y equilibrio · Conceptos 02 a 04 · Momento de inercia, torque y dinámica rotacional de eje fijo'
+    note: 'I = Σ m r², τ = r × F y Σ τ_ext,z = I α con I constante: la ecuación (8.2) de la rueda y de la nave.'
+  - module: 'Módulo 3'
+    topic: 'Tema 04 · Momento angular · Conceptos 01 a 04 · Momento angular, torque y conservación'
+    note: 'L_z = I ω, Σ τ_ext = dL/dt y L constante sin torque externo, como en «Acercar dos masas al eje»: las ecuaciones (8.1) y (8.3).'
 updated: 2026-10-30
 ---
 
 import Step from '../../components/ui/Step.astro';
 import Why from '../../components/ui/Why.astro';
 import UseCase from '../../components/ui/UseCase.astro';
+import Equation from '../../components/ui/Equation.astro';
 import Figure from '../../components/ui/Figure.astro';
-import Connections from '../../components/ui/Connections.astro';
+import DataTable from '../../components/ui/DataTable.astro';
 import Cite from '../../components/ui/Cite.astro';
+import Callout from '../../components/ui/Callout.astro';
+import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
+import WheelDiagram from '../../components/topics/ruedas-reaccion/WheelDiagram.astro';
+import WheelFigure from '../../components/topics/ruedas-reaccion/WheelFigure';
+import WheelLab, { DAY_LAPSE } from '../../components/topics/ruedas-reaccion/WheelLab';
+import {
+  SECONDS_PER_DAY,
+  SECONDS_PER_HOUR,
+} from '../../components/topics/ruedas-reaccion/wheelLabModel';
+import { MIN_DUMP_PLAYBACK } from '../../components/topics/ruedas-reaccion/disturbanceTimeline';
 
-Borrador <Cite id="serway-jewett-2018" sources={frontmatter.sources} />
+Para girar en órbita, sin nada contra qué empujarse, la nave hace girar una rueda al revés. Los torques externos la llenan, y otro actuador debe vaciarla.
 
-<Step n={1} title="Paso 1">
+<Step n={1} title="Sistema aislado">
 
-Borrador
+Sistema: nave y rueda, con un eje z común. Sin torque externo, su momento angular total no cambia <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. Ejemplo: un CubeSat 6U de 12 kg como caja <Cite id="cubesat-cds-14-1" sources={frontmatter.sources} />, <Equation inline latex="I_s = 0{,}1852\ \mathrm{kg\,m^2}" />, con la rueda RW400 <Cite id="aac-rw400" sources={frontmatter.sources} />, <Equation inline latex="I_w = 9{,}55 \cdot 10^{-5}\ \mathrm{kg\,m^2}" /> (cálculo propio).
 
-<Why>
-
-<Fragment slot="fenomeno">
-
-Borrador
-
-</Fragment>
-
-<Fragment slot="ecuacion">
-
-Borrador
-
-</Fragment>
-
-</Why>
-
-</Step>
-
-<Step n={2} title="Paso 2">
-
-Borrador
-
-<Why>
-
-<Fragment slot="fenomeno">
-
-Borrador
-
-</Fragment>
-
-<Fragment slot="ecuacion">
-
-Borrador
-
-</Fragment>
-
-</Why>
-
-</Step>
-
-<Step n={3} title="Paso 3">
-
-Borrador
+<Equation
+  id="ec-ruedas-conservacion"
+  latex="I_s\,\omega_s + I_w\,\omega_w = \text{constante}, \qquad I_s\,\Delta\theta_s = -\,I_w\,\Delta\theta_w"
+  symbols={[
+    {
+      symbol: 'I_s,\\ I_w',
+      meaning:
+        'momentos de inercia de la nave sin la rueda y del rotor de la rueda, respecto del eje z',
+      unit: 'kg·m²',
+    },
+    {
+      symbol: '\\omega_s,\\ \\omega_w',
+      meaning:
+        'velocidades angulares respecto de las estrellas; los programas usan la de la rueda respecto de la nave, que aquí casi no difiere',
+      unit: 'rad/s',
+    },
+    {
+      symbol: '\\Delta\\theta_s,\\ \\Delta\\theta_w',
+      meaning: 'ángulos girados desde el reposo',
+      unit: 'rad',
+    },
+  ]}
+/>
 
 <Why>
 
 <Fragment slot="fenomeno">
 
-Borrador
+Si la rueda gira en un sentido, la nave gira en el otro <Cite id="nasa-hubble-pointing" sources={frontmatter.sources} />; según VECTRONIC, sus aceleraciones guardan la razón de sus inercias <Cite id="vectronic-vrw-d-4" sources={frontmatter.sources} />.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Borrador
+Desde el reposo la constante es 0; integrar da la segunda igualdad. Con <Equation inline latex="I_s/I_w \approx 1940" />, 90° de la nave piden unas 485 vueltas de la rueda, dure lo que dure el giro.
 
 </Fragment>
 
 </Why>
 
-</Step>
-
-<Figure type="diagrama" caption="Borrador" source={{ text: 'Borrador' }}>
-  <p>Borrador</p>
+<Figure
+  type="diagrama"
+  showBadge={false}
+  caption="Nave y rueda vistas desde arriba, partiendo del reposo, con la ecuación (8.1). La rueda gira en sentido antihorario y la nave en sentido horario; sus momentos angulares, sobre el eje z, tienen el mismo largo y sentidos opuestos, y suman cero."
+  source={{
+    text: 'Diagrama del autor con la ecuación (8.1); inercias de la tabla 8.1 (cálculo propio)',
+  }}
+>
+  <WheelFigure variant="intercambio" />
 </Figure>
+
+<DataTable id="ruedas-reaccion-ruedas" />
+
+</Step>
+
+<Step n={2} title="El torque del motor">
+
+El motor, entre rueda y nave, aplica <Equation inline latex="\tau" /> a la rueda y <Equation inline latex="-\tau" /> a la nave: tercera ley. En un giro de reposo a reposo, empuja la mitad de T en cada sentido.
+
+<Equation
+  id="ec-ruedas-torque"
+  latex="\tau = I_w\,\alpha_w = -\,I_s\,\alpha_s, \qquad |\tau| = \frac{4\,I_s\,\theta}{T^2}"
+  symbols={[
+    {
+      symbol: '\\tau',
+      meaning: 'torque del motor sobre la rueda; sobre la nave actúa −τ',
+      unit: 'N·m',
+    },
+    {
+      symbol: '\\alpha_w,\\ \\alpha_s',
+      meaning: 'aceleraciones angulares de rueda y nave',
+      unit: 'rad/s²',
+    },
+    {
+      symbol: '\\theta,\\ T',
+      meaning: 'ángulo y duración del giro de reposo a reposo',
+      unit: 'rad, s',
+    },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+La nave acelera mientras la rueda gira cada vez más rápido al revés; luego el motor frena la rueda y ambas se detienen.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Cada mitad recorre <Equation inline latex="\theta/2 = \tfrac{1}{2}\,\alpha_s\,(T/2)^2" /> con <Equation inline latex="|\alpha_s| = |\tau|/I_s" />; de ahí la (8.2). Para 90° en 60 s, <Equation inline latex="|\tau| = 0{,}32\ \mathrm{mN\,m}" /> (4 % del máximo) y la rueda llega a 970 rpm; el más rápido dura unos 12 s.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Giro de 90° en 60 s del 6U con la RW400, ecuación (8.2). El ángulo de la nave sube en forma de S; la rueda gira al revés, llega a −970 rpm a los 30 s y vuelve a 0 rpm al final."
+  source={{
+    text: 'Curvas calculadas por el autor con las ecuaciones (8.1) y (8.2) y los datos de la tabla 8.1',
+  }}
+>
+  <WheelFigure variant="maniobra" client:visible />
+</Figure>
+
+<DataTable id="ruedas-reaccion-maniobra" />
+
+</Step>
+
+<Step n={3} title="Por qué no basta: la rueda se llena">
+
+En órbita sí hay torques externos, como el gradiente de gravedad o el arrastre <Cite id="dougherty-1988" sources={frontmatter.sources} />; con la nave quieta, la rueda acumula su integral.
+
+<Equation
+  id="ec-ruedas-saturacion"
+  latex="L_w(t) = L_w(0) + \int_0^t \tau_\text{ext}\,dt, \qquad |L_w| \le L_\text{max} = I_w\,\omega_\text{max}"
+  symbols={[
+    {
+      symbol: '\\tau_\\text{ext}',
+      meaning: 'torque externo sobre la nave, que la rueda absorbe mientras la nave sigue quieta',
+      unit: 'N·m',
+    },
+    {
+      symbol: 'L_\\text{max}',
+      meaning: 'capacidad de la rueda a su velocidad máxima',
+      unit: 'N·m·s',
+    },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+En su tope el motor ya no puede acelerar la rueda y la nave deriva: según Dougherty, la saturación causaría «a loss of vehicle control» <Cite id="dougherty-1988" sources={frontmatter.sources} />.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Vacía y con <Equation inline latex="\tau_\text{ext}" /> constante, la rueda se llena en <Equation inline latex="t = L_\text{max}/\tau_\text{ext}" />. A 500 km, el gradiente de gravedad sobre el 6U no pasa de <Equation inline latex="2{,}28 \cdot 10^{-7}\ \mathrm{N\,m}" /> <Cite id="nasa-sp-8024" sources={frontmatter.sources} />: <Equation inline latex="t = 2{,}19 \cdot 10^{5}\ \mathrm{s}" />, unos 2,5 días en el peor caso.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Momento angular de la rueda desde vacía bajo el gradiente de gravedad máximo, constante, ecuación (8.3): una rampa que toca L_max en unos 2,5 días, el peor caso. Desde ahí la rueda ya no absorbe nada y la nave deriva; la línea discontinua marca el 19 % que usa el giro de 90° en 60 s."
+  source={{
+    text: 'Recta calculada por el autor con la ecuación (8.3); torque de gradiente de gravedad de NASA SP-8024, fuente 8, y L_max de la RW400, tabla 8.1',
+  }}
+>
+  <WheelFigure variant="saturacion" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={4} title="Descargar con un torque externo">
+
+Solo un torque externo cambia el momento total; un magnetopar o un propulsor lo aplica mientras el motor frena la rueda. Tres ejes piden al menos tres ruedas: Kepler llevaba cuatro <Cite id="kepler-2012-07-20" sources={frontmatter.sources} />; el Webb, seis <Cite id="gardner-2023-jwst" sources={frontmatter.sources} />.
+
+<Equation
+  id="ec-ruedas-descarga"
+  latex="\vec\tau = \vec m \times \vec B, \qquad \vec\tau = \vec r \times \vec F"
+  symbols={[
+    { symbol: '\\vec m', meaning: 'momento dipolar del magnetopar', unit: 'A·m²' },
+    { symbol: '\\vec B', meaning: 'campo magnético terrestre', unit: 'T' },
+    {
+      symbol: '\\vec r,\\ \\vec F',
+      meaning: 'posición del propulsor respecto del centro de masa y su empuje',
+      unit: 'm, N',
+    },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+El campo terrestre gira un dipolo, como a una brújula: un torque de fuera. El Hubble descarga así, sin propelente <Cite id="nasa-hubble-pointing" sources={frontmatter.sources} />; el Webb, con propulsores cada unas seis semanas <Cite id="stsci-jwst-momentum" sources={frontmatter.sources} />.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Como <Equation inline latex="\vec m \times \vec B \perp \vec B" />, la parte de <Equation inline latex="L_w" /> paralela a <Equation inline latex="\vec B" /> espera a que la órbita gire el campo. Un magnetopar de 6U <Cite id="gomspace-gst600" sources={frontmatter.sources} /> da unos <Equation inline latex="1{,}2 \cdot 10^{-5}\ \mathrm{N\,m}" /> <Cite id="noaa-wmm" sources={frontmatter.sources} /> (cálculo propio), 50 veces la perturbación: vacía la rueda en cerca de una hora.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="diagrama"
+  caption="El satélite y su rueda, con las ecuaciones (8.1) a (8.4). El panel A muestra el intercambio: L_w y L_s iguales y opuestos, y el motor con τ sobre la rueda y −τ sobre la nave. El panel B muestra la rueda llena hasta L_max, la nave que deriva y las dos descargas: τ = m × B con el campo terrestre y τ = r × F con un propulsor."
+  source={{
+    text: 'Diagrama del autor con las ecuaciones (8.1) a (8.4); CubeSat 6U con la RW400 (tabla 8.1), gradiente de gravedad de NASA SP-8024 (fuente 8) y magnetopar de GomSpace (fuente 9)',
+  }}
+>
+  <WheelDiagram />
+</Figure>
+
+<Figure
+  type="simulacion"
+  showBadge={false}
+  caption="Laboratorio de la rueda con las ecuaciones (8.1) a (8.4): arrastra la perilla del dial para fijar el ángulo objetivo, o muévela con las flechas, y elige T; si T es menor que T_min, el laboratorio avisa que la rueda no alcanza. En «Perturbación y descarga» la nave sigue quieta mientras el gradiente de gravedad llena la rueda hasta el 80 % de L_max, un umbral que elegí yo, y un magnetopar o un propulsor la vacía."
+  source={{ text: 'Simulación del autor sobre src/lib/physics/rotation.ts' }}
+>
+  <WheelLab
+    client:visible
+    footnote={`La maniobra corre en tiempo real. La perturbación va a cámara rápida: a 1×, ${DAY_LAPSE / SECONDS_PER_HOUR} h de órbita por segundo, un día en ${SECONDS_PER_DAY / DAY_LAPSE} s; cada descarga, que dura minutos con el magnetopar y segundos con el propulsor, se estira a ${MIN_DUMP_PLAYBACK} s de pantalla. Lo que deja fuera: resuelve un solo eje; la rueda parte de 0 rpm y no tiene fricción, aunque las ruedas reales evitan pasar por 0 rpm; el gradiente de gravedad es constante en su máximo, una cota; el magnetopar tiene m perpendicular a B, su mejor caso, y el torque del propulsor es un supuesto mío: el τ_max de la rueda.`}
+  />
+</Figure>
+
+<DataTable id="ruedas-reaccion-misiones" />
+
+</Step>
 
 <UseCase>
 
 <Fragment slot="caso">
 
-Borrador
+42, de Eric Stoneking (NASA Goddard), simula el control de actitud de naves (commit `df4fbdf5`, licencia NASA Open Source Agreement 1.3) <Cite id="stoneking-42" sources={frontmatter.sources} />. Kepler perdió dos de sus cuatro ruedas, en 2012 y 2013 <Cite id="kepler-2012-07-20" sources={frontmatter.sources} /> <Cite id="kepler-2013-05-15" sources={frontmatter.sources} />, y siguió como K2 con dos ruedas, propulsores y la presión solar equilibrada (tabla 8.3) <Cite id="howell-2014-k2" sources={frontmatter.sources} />.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Borrador
+42 escribe H donde yo escribo L. La rueda cumple `W->Hdot = W->Trq` y la nave, `WhlTorq[i]-=S->Whl[j].Trq*S->Whl[j].A[i]` <Cite id="stoneking-42-dynamics" sources={frontmatter.sources} />: la (8.2). Con `if (W->Trq > 0.0 && W->H >= W->Hmax) W->Trq = 0.0;` la rueda llena deja de absorber, la (8.3), y el magnetopar da <Equation inline latex="\vec\tau = \vec m \times \vec B" /> <Cite id="stoneking-42-actuators" sources={frontmatter.sources} />. El software de vuelo pide `AC->MTB[i].Mcmd = C->Kunl*HxB[i]`, un dipolo proporcional a <Equation inline latex="\vec H \times \vec B" />: la (8.4) <Cite id="stoneking-42-fsw" sources={frontmatter.sources} />.
 
 </Fragment>
 
 <Fragment slot="justificacion">
 
-Borrador
+La alternativa no física es un guion: «girar 90° durante 60 s» en lazo abierto. No ve la inercia real, que el Hubble corrige con realimentación <Cite id="dougherty-1988" sources={frontmatter.sources} />, ni el torque que se acumula, ni el tope: seguiría pidiendo giros que la rueda saturada ya no da. 42 sí los integra.
 
 </Fragment>
 
 <Fragment slot="balance">
 
-Borrador
+Se gana apuntar con precisión sin propelente en cada giro, y prever cuándo descargar. Cuestan sensores, lazos de control con ganancias que ajustar y un segundo actuador: K2 descargaba con propulsores cada 2 días, con combustible para 2 a 3 años <Cite id="howell-2014-k2" sources={frontmatter.sources} />, y el Webb ahorra con una aleta que equilibra la presión solar <Cite id="nasa-webb-flap" sources={frontmatter.sources} />.
 
 </Fragment>
 
 </UseCase>
 
+<Callout variant="clase" title="Módulo 3 · Temas 03 y 04, y una extensión">
+
+La (8.2) es la <Equation inline latex="\sum \tau_{\text{ext},z} = I\alpha" /> del Tema 03 (conceptos 02 a 04); la (8.1) y la (8.3), la conservación y el <Equation inline latex="\Delta \vec L = \int \sum \vec\tau_\text{ext}\,dt" /> del Tema 04 (conceptos 03 y 04). Intercambiar L entre dos cuerpos es extensión.
+
+</Callout>
+
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-Borrador
+<Equation inline latex="\tau" /> y <Equation inline latex="-\tau" /> forman un par de tercera ley,
+como el dedo y el gatillo del Tema 5. Girar el hábitat del Tema 3 sin propelente exigiría girar otra
+masa al revés. En el Tema 9 la sonda intercambia momento con Júpiter.
 
 </Connections>
 
