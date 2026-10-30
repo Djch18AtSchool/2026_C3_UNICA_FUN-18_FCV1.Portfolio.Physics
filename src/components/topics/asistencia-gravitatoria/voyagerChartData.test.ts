@@ -163,7 +163,7 @@ describe('readouts', () => {
     const detail = encounterDetail('J');
     const text = detailReadout(detail, detail.peak.x);
 
-    expect(text).toMatch(/^MA \+ 0,35\u202fd: 26,87\u202fkm\/s/);
+    expect(text).toMatch(/^MA \+0,35\u202fd: 26,87\u202fkm\/s/);
     expect(text).toContain('escapa del Sol');
   });
 });

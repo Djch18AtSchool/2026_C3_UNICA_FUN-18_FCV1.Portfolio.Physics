@@ -2,7 +2,6 @@ import { describe, expect, test } from 'vitest';
 import { monoTextWidth } from '../../lab/plotScales';
 import {
   formatDate,
-  formatSigned,
   formatTime,
   jdFromIso,
   MIN_LABEL_GAP,
@@ -35,15 +34,6 @@ describe('Julian dates', () => {
 
   test('rejects a date it cannot read', () => {
     expect(() => jdFromIso('ayer')).toThrow(RangeError);
-  });
-});
-
-describe('formatSigned', () => {
-  test('gains carry a plus sign and losses a true minus, with comma decimals and the unit', () => {
-    expect(formatSigned(10.231, 1, 'km/s')).toBe('+10,2\u202fkm/s');
-    expect(formatSigned(-2.121, 1, 'km/s')).toBe('−2,1\u202fkm/s');
-    expect(formatSigned(0.04, 1)).toBe('0,0');
-    expect(formatSigned(-0.04, 1)).toBe('0,0');
   });
 });
 

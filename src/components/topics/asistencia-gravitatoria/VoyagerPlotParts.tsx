@@ -23,6 +23,8 @@ import type { AxisTick } from './dateAxis';
 import type { PlacedLabel } from './labelLayout';
 import type { ChartPoint } from './voyagerChartData';
 
+/** The Sun's color (spec §4.3): the escape speed and the hyperbolic zone. */
+export const SUN_COLOR = 'var(--sun)';
 export const FONT_SIZE = TICK_FONT_SIZE;
 const TITLE_SIZE = TICK_FONT_SIZE + 1;
 export const LINE_HEIGHT = 14;

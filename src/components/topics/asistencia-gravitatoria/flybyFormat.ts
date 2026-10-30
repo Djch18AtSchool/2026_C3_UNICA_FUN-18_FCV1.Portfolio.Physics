@@ -1,7 +1,8 @@
 /** Text helpers of the flyby laboratory: signed values, durations and the time-lapse factor. */
 import { formatNumber } from '../../../lib/format';
 
-const MINUS = '−';
+/** U+2212, the true minus sign of every signed text in the topic. */
+export const MINUS = '−';
 const SECONDS_PER_HOUR = 3600;
 const HOURS_PER_DAY = 24;
 /** Up to this many hours a duration reads in hours; beyond, in days. */

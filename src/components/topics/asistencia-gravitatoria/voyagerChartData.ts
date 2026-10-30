@@ -11,12 +11,14 @@ import {
   encounterJump,
   escapeSpeedSeries,
   sunOnlySeries,
+  type Encounter,
   type SeriesPoint,
 } from '../../../lib/data/voyager';
 import { formatNumber } from '../../../lib/format';
 import { specificEnergy, visVivaSpeed } from '../../../lib/physics';
 import type { Domain } from '../../lab/plotScales';
-import { formatDate, formatSigned, formatTime, jdFromIso } from './dateAxis';
+import { formatDate, formatTime, jdFromIso } from './dateAxis';
+import { signed } from './flybyFormat';
 
 /** The chart's source line (spec §9); the page's Figure cites it verbatim. Never «medida». */
 export const VOYAGER_CHART_SOURCE =
@@ -47,11 +49,14 @@ const JUMP_WINDOW_DAYS = 120;
 /** Days before Jupiter at which the summary quotes V2's speed, out of the planet's pull. */
 const BEFORE_JUPITER_DAYS = 30;
 const SPEED_PRECISION = 2;
+/** Decimals of a day in the hourly view's offsets (0,01 d ≈ 15 min). */
+const OFFSET_PRECISION = 2;
 const JUMP_PRECISION = 1;
 const DISTANCE_PRECISION = 2;
-const MINUS = '−';
 
-const speedText = (v: number) => formatNumber(v, { precision: SPEED_PRECISION, unit: 'km/s' });
+/** '18,62 km/s': every speed the chart and the step figures print. */
+export const speedText = (v: number) =>
+  formatNumber(v, { precision: SPEED_PRECISION, unit: 'km/s' });
 const distanceText = (r: number) => formatNumber(r, { precision: DISTANCE_PRECISION, unit: 'UA' });
 
 const speedOf = (series: readonly SeriesPoint[]): ChartPoint[] =>
@@ -126,7 +131,8 @@ export interface EncounterMarker {
   label: string;
 }
 
-function v2Encounter(planet: PlanetId) {
+/** The Voyager 2 encounter with a planet, from the dataset. */
+export function v2Encounter(planet: PlanetId): Encounter {
   const encounter = VOYAGER.encounters.find((e) => e.probe === 'V2' && e.planet === planet);
   if (!encounter) throw new Error(`Faltan los datos del encuentro de la V2 con ${planet}`);
   return encounter;
@@ -144,7 +150,7 @@ export const ENCOUNTER_MARKERS: readonly EncounterMarker[] = ENCOUNTER_KEYS.map(
     caJd,
     caUtc,
     jump,
-    label: formatSigned(jump, JUMP_PRECISION, 'km/s'),
+    label: signed(jump, JUMP_PRECISION, 'km/s'),
   };
 });
 
@@ -264,11 +270,9 @@ export function missionReadout(jd: number): string {
   return [`${formatDate(jd)}.`, v2Text, ...v1Text, ...sunOnlyText].join(' ');
 }
 
-/** 'MA + 0,35 d', 'MA − 2,00 d': time from closest approach. */
+/** 'MA +0,35 d', 'MA −2,00 d': time from closest approach, to the quarter hour. */
 export function formatOffset(days: number): string {
-  const magnitude = formatNumber(Math.abs(days), { precision: SPEED_PRECISION, unit: 'd' });
-  const isPositive = days >= 0 || Number(Math.abs(days).toFixed(SPEED_PRECISION)) === 0;
-  return `MA ${isPositive ? '+' : MINUS} ${magnitude}`;
+  return `MA ${signed(days, OFFSET_PRECISION, 'd')}`;
 }
 
 /** What the cursor reads in an encounter's hourly window. */

@@ -1,11 +1,11 @@
 /**
  * Time axis of the Voyager chart: Julian dates (the dataset's x) to calendar dates and back,
- * year ticks for the mission view, day ticks around a closest approach, and signed numbers.
+ * year ticks for the mission view and signed day ticks around a closest approach.
  * Dates are UT; the series are in TDB, about 50 s apart in 1979, far below a day's tick. Pure.
  */
-import { formatNumber } from '../../../lib/format';
 import type { Domain } from '../../lab/plotScales';
 import { monoTextWidth } from '../../lab/plotScales';
+import { signed } from './flybyFormat';
 
 /** Julian date of 1970-01-01 00:00 UT, the zero of JavaScript time. */
 const JD_UNIX_EPOCH = 2440587.5;
@@ -16,7 +16,6 @@ const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', '
 const LABEL_STEPS = [1, 2, 5] as const;
 /** Smallest clear space (px) between two tick labels: half a character of the 12 px mono font. */
 export const MIN_LABEL_GAP = 3;
-const MINUS = '−';
 
 /** A tick at x (a Julian date); unlabelled ticks are minor. */
 export interface AxisTick {
@@ -48,13 +47,6 @@ export function formatTime(jd: number): string {
   const date = dateOf(jd);
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
-}
-
-/** '+10,2 km/s', '−2,1 km/s', '0,0': a sign on every non-zero value, as a jump is read. */
-export function formatSigned(value: number, precision: number, unit?: string): string {
-  const magnitude = formatNumber(Math.abs(value), { precision, unit });
-  if (Number(Math.abs(value).toFixed(precision)) === 0) return magnitude;
-  return `${value > 0 ? '+' : MINUS}${magnitude}`;
 }
 
 /**
@@ -89,8 +81,8 @@ export function offsetDayTicks(
 ): AxisTick[] {
   const first = Math.ceil(domain.min - centre);
   const last = Math.floor(domain.max - centre);
-  const step = labelStep(pxPerDay, monoTextWidth(`${MINUS}0`, fontSize));
+  const step = labelStep(pxPerDay, monoTextWidth(signed(-9, 0), fontSize));
   return Array.from({ length: last - first + 1 }, (_, i) => first + i).map((day) =>
-    day % step === 0 ? { x: centre + day, label: formatSigned(day, 0) } : { x: centre + day },
+    day % step === 0 ? { x: centre + day, label: signed(day, 0) } : { x: centre + day },
   );
 }

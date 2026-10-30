@@ -14,7 +14,6 @@ import { useSettledText } from '../../lab/useSettledText';
 import { formatDate, jdFromIso } from './dateAxis';
 import {
   ENCOUNTER_MARKERS,
-  VOYAGER_CHART_SOURCE,
   detailReadout,
   encounterDetail,
   formatOffset,
@@ -42,10 +41,14 @@ type View = 'mision' | EncounterKey;
 const FALLBACK_WIDTH = 720;
 /** Where the mission cursor starts: after Jupiter, V2 already escaping, the counterfactual drawn. */
 const MISSION_CURSOR_START = jdFromIso('1980-01-01');
+/** The hourly view's cursor starts before closest approach, clear of its guide and the peak label. */
+const DETAIL_CURSOR_OFFSET_DAYS = -2;
 /** As LabShell: the reading is announced once the cursor has rested this long. */
 const ANNOUNCE_DELAY_MS = 750;
 const TITLE = 'Rapidez de las Voyager respecto al Sol, 1977–1990';
-const FOOTNOTE = `${VOYAGER_CHART_SOURCE}. Cada salto Δ|v| es la diferencia de rapidez que daría solo el Sol a la distancia del encuentro con la energía de la sonda 120 días antes y 120 días después (vis-viva).`;
+/** The source line goes in the page's Figure (VOYAGER_CHART_SOURCE); the footnote says how Δ|v| is measured. */
+const FOOTNOTE =
+  'Cada salto Δ|v| es la diferencia de rapidez que daría solo el Sol a la distancia del encuentro con la energía de la sonda 120 días antes y 120 días después (vis-viva).';
 
 const BUTTON_BASE =
   'inline-flex min-h-11 items-center gap-2 rounded-base border px-3 py-1.5 text-sm font-medium transition-colors';
@@ -53,7 +56,9 @@ const BUTTON_ACTIVE = 'border-accent bg-accent/10';
 const BUTTON_IDLE = 'border-border bg-bg-elevated hover:border-fg-muted';
 
 const startOf = (view: View) =>
-  view === 'mision' ? MISSION_CURSOR_START : encounterDetail(view).marker.caJd;
+  view === 'mision'
+    ? MISSION_CURSOR_START
+    : encounterDetail(view).marker.caJd + DETAIL_CURSOR_OFFSET_DAYS;
 
 function ViewToggle({ view, onSelect }: { view: View; onSelect: (view: View) => void }) {
   const options = [

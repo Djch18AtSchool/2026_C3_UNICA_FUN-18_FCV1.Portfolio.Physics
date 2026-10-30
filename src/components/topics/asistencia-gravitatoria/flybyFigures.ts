@@ -5,12 +5,7 @@
  * Sun's frame (Jupiter and Neptune) and Jupiter's recoil. Pure.
  */
 import { AU_KM, GM_SUN, PLANETS, type PlanetId } from '../../../lib/data/planets';
-import {
-  SUN_ONLY_ORBIT,
-  VOYAGER,
-  VOYAGER_MASS_KG,
-  type Encounter,
-} from '../../../lib/data/voyager';
+import { SUN_ONLY_ORBIT, VOYAGER, VOYAGER_MASS_KG } from '../../../lib/data/voyager';
 import { formatNumber } from '../../../lib/format';
 import {
   deltaVMagnitude,
@@ -18,10 +13,11 @@ import {
   hyperbolicEccentricity,
   recoilSpeed,
   specificEnergy,
-  turnAngle,
   visVivaSpeed,
 } from '../../../lib/physics';
-import { MISSION, valueAt, type ChartPoint } from './voyagerChartData';
+import { MINUS } from './flybyFormat';
+import { flybyHyperbola, sampleTrack } from './flybyOrbit';
+import { MISSION, v2Encounter, valueAt, type ChartPoint } from './voyagerChartData';
 
 const DEG = Math.PI / 180;
 const M_PER_KM = 1000;
@@ -42,13 +38,6 @@ const PATH_SAMPLES = 121;
 /** Length of the v∞ arrows in Paso 2, in planet radii. */
 const ARROW_RADII = 18;
 const SUPERSCRIPTS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
-const MINUS = '−';
-
-function v2Encounter(planet: PlanetId): Encounter {
-  const encounter = VOYAGER.encounters.find((e) => e.probe === 'V2' && e.planet === planet);
-  if (!encounter) throw new Error(`Faltan los datos del encuentro de la V2 con ${planet}`);
-  return encounter;
-}
 
 const linspace = (from: number, to: number, count: number) =>
   Array.from({ length: count }, (_, i) => from + ((to - from) * i) / (count - 1));
@@ -137,35 +126,39 @@ export interface HyperbolaFigure {
   outArrow: Arrow;
 }
 
-/** Paso 2: V2 at Jupiter in the planet's frame, a hyperbola with e = 1 + r_p v∞²/GM. */
+/**
+ * Paso 2: V2 at Jupiter in the planet's frame, a hyperbola with e = 1 + r_p v∞²/GM. The shape is
+ * the laboratory's (flybyHyperbola, sampleTrack); only the orientation differs: Paso 2 is about
+ * the shape and the turn, so the figure puts periapsis on +x, symmetric about the x axis, by
+ * passing in front with v⃗∞,in at acos(1/e) (the lab orients it by the real θ_in from V⃗_p).
+ */
 export function hyperbolaFigure(): HyperbolaFigure {
-  const encounter = v2Encounter('jupiter');
+  const { vInf, rpKm } = v2Encounter('jupiter');
   const { gm, radiusKm } = PLANETS.jupiter;
-  const { vInf, rpKm } = encounter;
   const e = hyperbolicEccentricity(vInf, rpKm, gm);
-  const delta = turnAngle(vInf, rpKm, gm);
-  const rp = rpKm / radiusKm;
-  const semiAxis = gm / (vInf * vInf) / radiusKm;
-  const semiLatus = rp * (1 + e);
-  const fMax = Math.acos((semiLatus / PATH_EXTENT_RADII - 1) / e);
-  const path = linspace(-fMax, fMax, PATH_SAMPLES).map((f) => {
-    const r = semiLatus / (1 + e * Math.cos(f));
-    return { x: r * Math.cos(f), y: r * Math.sin(f) };
+  const orbit = flybyHyperbola({
+    vInf,
+    rp: rpKm,
+    GM: gm,
+    thetaIn: Math.acos(1 / e),
+    side: 'front',
   });
-  // The asymptotes of r = p/(1 + e cos f) point at f = ±acos(−1/e).
-  const along = Math.sqrt(1 - 1 / (e * e));
-  const inDir = { x: 1 / e, y: along };
-  const outDir = { x: -1 / e, y: along };
+  const toRadii = (p: { x: number; y: number }) => ({ x: p.x / radiusKm, y: p.y / radiusKm });
+  const path = sampleTrack(orbit, PATH_EXTENT_RADII * radiusKm, PATH_SAMPLES).map(toRadii);
+  const direction = (angle: number) => ({ x: Math.cos(angle), y: Math.sin(angle) });
+  const inDir = direction(orbit.thetaIn);
+  const outDir = direction(orbit.thetaOut);
+  const rp = rpKm / radiusKm;
   const start = path[0];
   const end = path[path.length - 1];
   return {
     vInf,
     rpKm,
     rpRadii: rp,
-    e,
-    deltaDeg: delta / DEG,
+    e: orbit.e,
+    deltaDeg: orbit.delta / DEG,
     path,
-    center: { x: rp + semiAxis, y: 0 },
+    center: { x: rp + orbit.a / radiusKm, y: 0 },
     inDir,
     outDir,
     inArrow: {

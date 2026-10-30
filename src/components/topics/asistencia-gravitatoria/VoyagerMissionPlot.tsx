@@ -21,6 +21,7 @@ import {
   LINE_HEIGHT,
   Regions,
   SeriesPath,
+  SUN_COLOR,
   THIN_LINE_WIDTH,
   XAxis,
   YAxis,
@@ -29,7 +30,6 @@ import {
   type LineSpec,
 } from './VoyagerPlotParts';
 
-const SUN = 'var(--sun)';
 const SPEED_DOMAIN = { min: 0, max: 42 };
 const SPEED_TICKS = [0, 10, 20, 30, 40];
 /** V2 ends 1989 at 31,1 UA. */
@@ -52,13 +52,13 @@ export const MISSION_LINES: Readonly<Record<string, LineSpec>> = {
   escape: {
     id: 'escape',
     label: 'Rapidez de escape del Sol en la posición de la V2, √(2GM☉/r)',
-    color: SUN,
+    color: SUN_COLOR,
     dash: DASH_PATTERN,
   },
   zone: {
     id: 'hiperbolica',
     label: 'Zona hiperbólica, por encima del escape (ε\u00a0>\u00a00)',
-    color: SUN,
+    color: SUN_COLOR,
     isArea: true,
   },
   sunOnly: {
@@ -136,7 +136,7 @@ function SpeedPanel({ geometry, clipId }: { geometry: MissionGeometry; clipId: s
       <ClipArea id={clipId} area={area} />
       <Grid area={area} xTicks={ticks} yTicks={SPEED_TICKS} scales={scales} />
       <g clipPath={`url(#${clipId})`}>
-        <Regions id="hiperbolica" regions={MISSION.hyperbolic} color={SUN} scales={scales} />
+        <Regions id="hiperbolica" regions={MISSION.hyperbolic} color={SUN_COLOR} scales={scales} />
         <SeriesPath spec={MISSION_LINES.sunOnly} points={speed.sunOnly} scales={scales} />
         <SeriesPath spec={MISSION_LINES.v1} points={speed.v1} scales={scales} />
         <SeriesPath spec={MISSION_LINES.escape} points={speed.escape} scales={scales} />

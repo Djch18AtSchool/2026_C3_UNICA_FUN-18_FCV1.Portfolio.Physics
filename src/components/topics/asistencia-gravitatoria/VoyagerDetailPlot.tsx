@@ -9,9 +9,8 @@ import { DASH_PATTERN, SURFACE_COLOR, TEXT_COLOR, TICK_COLOR } from '../../chart
 import { Arrow } from '../../lab/OverlayMarks';
 import { fitCentre, linearScale, monoTextWidth, niceTicks, type Scale } from '../../lab/plotScales';
 import type { PlotArea } from '../../lab/SvgPlotCursor';
-import { formatNumber } from '../../../lib/format';
 import { formatTime, offsetDayTicks, type AxisTick } from './dateAxis';
-import { detailSummary, type EncounterDetail } from './voyagerChartData';
+import { detailSummary, speedText, type EncounterDetail } from './voyagerChartData';
 import {
   AXIS_BOTTOM,
   ClipArea,
@@ -21,6 +20,7 @@ import {
   Note,
   Regions,
   SeriesPath,
+  SUN_COLOR,
   THIN_LINE_WIDTH,
   XAxis,
   YAxis,
@@ -29,7 +29,6 @@ import {
   type Scales,
 } from './VoyagerPlotParts';
 
-const SUN = 'var(--sun)';
 /** Room above the plot for the cursor knob and its date. */
 const TOP_PAD = 24;
 const PLOT_HEIGHT = { compact: 230, wide: 300 };
@@ -47,22 +46,19 @@ const NOTE_DROP = 4;
 /** The jump arrow runs this far inside the right edge, its label a little further in. */
 const JUMP_ARROW_INSET = 8;
 const JUMP_LABEL_INSET = 14;
-const SPEED_PRECISION = 2;
-
-const speedText = (v: number) => formatNumber(v, { precision: SPEED_PRECISION, unit: 'km/s' });
 
 export const DETAIL_LINES: Readonly<Record<string, LineSpec>> = {
   v2: { id: 'v2', label: 'Voyager 2, cada hora', color: TEXT_COLOR },
   escape: {
     id: 'escape',
     label: 'Rapidez de escape del Sol, √(2GM☉/r)',
-    color: SUN,
+    color: SUN_COLOR,
     dash: DASH_PATTERN,
   },
   zone: {
     id: 'hiperbolica',
     label: 'Zona hiperbólica, por encima del escape (ε\u00a0>\u00a00)',
-    color: SUN,
+    color: SUN_COLOR,
     isArea: true,
   },
   levels: {
@@ -199,7 +195,7 @@ const VoyagerDetailPlot = memo(function VoyagerDetailPlot({
         <ClipArea id={clipId} area={area} />
         <Grid area={area} xTicks={ticks} yTicks={yTicks} scales={scales} />
         <g clipPath={`url(#${clipId})`}>
-          <Regions id="hiperbolica" regions={detail.hyperbolic} color={SUN} scales={scales} />
+          <Regions id="hiperbolica" regions={detail.hyperbolic} color={SUN_COLOR} scales={scales} />
           <SeriesPath spec={DETAIL_LINES.escape} points={detail.escape} scales={scales} />
           <SeriesPath spec={DETAIL_LINES.v2} points={detail.speed} scales={scales} />
           <Annotations detail={detail} geometry={geometry} />

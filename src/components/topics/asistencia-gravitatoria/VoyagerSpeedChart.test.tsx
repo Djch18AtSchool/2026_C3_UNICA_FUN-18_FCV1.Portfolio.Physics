@@ -57,7 +57,7 @@ describe('VoyagerSpeedChart', () => {
     expect(screen.getByText('r (UA)')).toBeInTheDocument();
   });
 
-  test('a legend names every line, and the source cites Horizons and the design trajectory', () => {
+  test('a legend names every line; the footnote explains Δ|v| and leaves the source to the Figure', () => {
     render(<VoyagerSpeedChart />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
@@ -66,7 +66,10 @@ describe('VoyagerSpeedChart', () => {
     expect(legend).toHaveTextContent('Rapidez de escape');
     expect(legend).toHaveTextContent('Zona hiperbólica');
     expect(legend).toHaveTextContent('Solo el Sol');
-    expect(screen.getByTestId('chart-footnote')).toHaveTextContent(VOYAGER_CHART_SOURCE);
+    const footnote = screen.getByTestId('chart-footnote');
+    expect(footnote).toHaveTextContent(/120 días antes y 120 días después \(vis-viva\)/);
+    expect(footnote).not.toHaveTextContent('Horizons');
+    expect(VOYAGER_CHART_SOURCE).toMatch(/^Datos: NASA\/JPL Horizons/);
   });
 
   test('the date cursor moves with the keyboard and the readout follows it', () => {
@@ -120,7 +123,7 @@ describe('VoyagerSpeedChart', () => {
     expect(screen.getByRole('img', { name: /pico de 26,87/ })).toHaveAccessibleName(/salto neto/);
     expect(screen.getByRole('slider', { name: 'Fecha' })).toHaveAttribute(
       'aria-valuetext',
-      `MA + 0,00${NNBSP}d`,
+      `MA \u22122,00${NNBSP}d`,
     );
 
     fireEvent.click(within(toggle).getByRole('button', { name: 'Misión completa' }));
