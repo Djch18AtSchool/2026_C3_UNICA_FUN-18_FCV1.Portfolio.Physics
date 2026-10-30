@@ -4,7 +4,7 @@
  * src/lib/data at module load; nothing is typed here.
  */
 import type { Source } from '../../../content/topicSchema';
-import { BALL_STANDARDS, type BallStandard } from '../../data/ballStandards';
+import { BALL_STANDARDS, ballStandardById, type BallStandard } from '../../data/ballStandards';
 import { ENGINE_RESTITUTION, type EngineRestitutionRow } from '../../data/engineRestitution';
 import { formatNumber } from '../../format';
 import type { DataTableSpec, TableCell } from '../types';
@@ -59,6 +59,12 @@ function sourceList(sources: readonly Source[]): string {
   return [...new Set(credits)].join('; ');
 }
 
+/**
+ * Which e are ours: the drop-test ranges (√(h′/h)) and the baseball's v₂/v₁ from Cross's Table I;
+ * the superball's 0,86 and the plasticine's 0 are printed by Cross himself (research §3.4, §4).
+ */
+const OWN_CALCULATION = `Los rangos de e de las normas y el ${restitutionCell(ballStandardById('beisbol'))} del béisbol son cálculo propio, con e = √(h′/h) y e = v₂/v₁; el ${restitutionCell(ballStandardById('superbola'))} de la superbola y el ${restitutionCell(ballStandardById('plastilina'))} de la plastilina son de Cross.`;
+
 const PELOTAS: DataTableSpec = {
   id: 'coeficiente-restitucion-pelotas',
   caption:
@@ -72,7 +78,7 @@ const PELOTAS: DataTableSpec = {
   ],
   rows: BALL_STANDARDS.map(ballRow),
   source: {
-    text: `${sourceList(BALL_STANDARDS.flatMap((ball) => ball.sources))}. Los valores de e son cálculo propio.`,
+    text: `${sourceList(BALL_STANDARDS.flatMap((ball) => ball.sources))}. ${OWN_CALCULATION}`,
   },
 };
 
@@ -105,6 +111,18 @@ function engineRow(row: EngineRestitutionRow): Record<string, TableCell> {
   };
 }
 
+function thresholdOf(engine: string): string {
+  const row = ENGINE_RESTITUTION.find((candidate) => candidate.engine === engine);
+  if (row?.threshold == null) throw new Error(`tablas: falta el umbral de ${engine}`);
+  return formatNumber(row.threshold, { precision: 1 });
+}
+
+/**
+ * Box2D's and PhysX's defaults are written as products in their code (research §3.1, §4); the
+ * m/s values in the table are our own multiplication.
+ */
+const DERIVED_THRESHOLDS = `El ${thresholdOf('Box2D v3')} m/s de Box2D (1.0f × lengthUnits, que vale 1) y el ${thresholdOf('PhysX')} m/s de PhysX (0,2 × PxTolerancesScale::speed, que vale 10) son cálculo propio a partir de su código.`;
+
 const MOTORES: DataTableSpec = {
   id: 'coeficiente-restitucion-motores',
   caption:
@@ -117,7 +135,7 @@ const MOTORES: DataTableSpec = {
   ],
   rows: ENGINE_RESTITUTION.map(engineRow),
   source: {
-    text: `${sourceList(ENGINE_RESTITUTION.flatMap((row) => [row.source, row.combineSource]))}. Código fijado por tag o commit; Unity no escribe la unidad de su umbral, que es m/s por el de PhysX.`,
+    text: `${sourceList(ENGINE_RESTITUTION.flatMap((row) => [row.source, row.combineSource]))}. Código fijado por tag o commit. ${DERIVED_THRESHOLDS} Unity no escribe la unidad de su umbral, que es m/s por el de PhysX.`,
   },
 };
 

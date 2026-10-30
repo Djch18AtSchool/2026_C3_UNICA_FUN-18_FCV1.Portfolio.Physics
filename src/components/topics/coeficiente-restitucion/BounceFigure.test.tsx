@@ -139,6 +139,23 @@ describe('BounceFigure', () => {
       }
     });
 
+    test.each(['antes', 'e-0', 'e-0,75', 'e-1'])(
+      'wide layout, %s: the velocity arrow of m₂ ends at least 16 px before the momentum arrow',
+      (row) => {
+        const { container } = render(<BounceFigure variant="choque" />);
+        const group = container.querySelector(`[data-row="${row}"]`) as SVGGElement;
+        const tip = Number(
+          group.querySelector('[data-velocity="2"] line')?.getAttribute('x2') ?? 0,
+        );
+        const start = Number(group.querySelector('[data-momentum]')?.getAttribute('data-start'));
+        const ball = group.querySelector('[data-body="2"] circle') as SVGCircleElement;
+        const ballRight = Number(ball.getAttribute('cx')) + Number(ball.getAttribute('r'));
+
+        expect(screen.getByRole('img', { name: /choque/i })).toHaveAttribute('data-layout', 'wide');
+        expect(start - Math.max(tip, ballRight)).toBeGreaterThanOrEqual(16);
+      },
+    );
+
     test('paints with theme tokens only', () => {
       const { container } = render(<BounceFigure variant="choque" />);
 
@@ -187,6 +204,20 @@ describe('BounceFigure', () => {
       expect(
         screen.getByRole('img', { name: /escala logarítmica.*18,5 cm.*4,2 cm/ }),
       ).toBeInTheDocument();
+    });
+
+    test('every mark and legend key is drawn at full opacity', () => {
+      const { container } = render(<BounceFigure variant="umbral" />);
+      const faded = [
+        ...container.querySelectorAll('[opacity], [stroke-opacity], [fill-opacity]'),
+      ].filter((element) =>
+        ['opacity', 'stroke-opacity', 'fill-opacity'].some((name) => {
+          const value = element.getAttribute(name);
+          return value !== null && Number(value) < 1;
+        }),
+      );
+
+      expect(faded).toEqual([]);
     });
 
     test('paints with theme tokens only', () => {

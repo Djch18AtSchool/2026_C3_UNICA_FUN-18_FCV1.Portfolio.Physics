@@ -58,7 +58,10 @@ describe('coeficiente-restitucion tables', () => {
       for (const ball of BALL_STANDARDS) {
         for (const source of ball.sources) expect(table.source.text).toContain(source.authors);
       }
-      expect(table.source.text).toContain('cálculo propio');
+      expect(table.source.text).toContain(
+        'Los rangos de e de las normas y el 0,49 del béisbol son cálculo propio, con e = √(h′/h) y e = v₂/v₁; el 0,86 de la superbola y el 0 de la plastilina son de Cross.',
+      );
+      expect(table.source.text).not.toContain('Los valores de e son cálculo propio');
     });
 
     test('exports as a Markdown table with the drop height in whole centimetres', () => {
@@ -121,6 +124,9 @@ describe('coeficiente-restitucion tables', () => {
       expect(sources[0]).toBe('Box2D v3.2.0 (tag v3.2.0, commit 178495b)');
       expect(sources[1]).toBe(
         'Physics.bounceThreshold. Unity Scripting API, Unity 6.6; Physics Material component reference. Unity 6.6 User Manual',
+      );
+      expect(table.source.text).toContain(
+        'El 1,0 m/s de Box2D (1.0f × lengthUnits, que vale 1) y el 2,0 m/s de PhysX (0,2 × PxTolerancesScale::speed, que vale 10) son cálculo propio a partir de su código.',
       );
       expect(table.source.text).toContain('Erin Catto');
       expect(table.source.text).toContain('Unity Technologies');

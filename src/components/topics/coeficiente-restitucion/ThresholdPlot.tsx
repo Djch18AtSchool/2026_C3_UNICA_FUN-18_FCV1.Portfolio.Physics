@@ -41,11 +41,12 @@ const CASE_COLORS: Record<ThresholdFigureCase['id'], string> = {
   unity: CHART_COLORS[3],
 };
 /**
- * The engine series lie on the ideal one until they stop: Box2D's runs wide and translucent under
- * Unity's narrow line, so both show where they overlap.
+ * The engine series lie on the ideal one until they stop: Box2D's runs wide under Unity's narrow
+ * line, both at full opacity (marks keep 3:1 against the surface), so both show where they overlap.
  */
 const CASE_WIDTHS: Record<ThresholdFigureCase['id'], number> = { box2d: 7, unity: LINE_WIDTH };
-const CASE_OPACITY: Record<ThresholdFigureCase['id'], number> = { box2d: 0.45, unity: 1 };
+/** A surface-colored edge around Unity's line separates its purple from Box2D's teal under it. */
+const CASING_WIDTH = 2;
 
 /** hₙ from 1 mm to 2 m, in centimetres, labelled at every decade. */
 const Y_DOMAIN: Domain = { min: 0.1, max: 200 };
@@ -148,7 +149,6 @@ interface LegendItem {
   label: string;
   color: string;
   width: number;
-  opacity: number;
   dashed: boolean;
 }
 
@@ -170,7 +170,6 @@ function Legend({ items }: { items: readonly LegendItem[] }) {
               y2={LEGEND_KEY_HEIGHT / 2}
               stroke={item.color}
               strokeWidth={item.width}
-              strokeOpacity={item.opacity}
               strokeDasharray={item.dashed ? DASH_PATTERN : undefined}
             />
           </svg>
@@ -189,7 +188,6 @@ const LEGEND_ITEMS: readonly LegendItem[] = [
     label: IDEAL_LEGEND,
     color: IDEAL_COLOR,
     width: LINE_WIDTH,
-    opacity: 1,
     dashed: true,
   },
   ...THRESHOLD_CASES.map((item) => ({
@@ -197,7 +195,6 @@ const LEGEND_ITEMS: readonly LegendItem[] = [
     label: item.legend,
     color: CASE_COLORS[item.id],
     width: CASE_WIDTHS[item.id],
-    opacity: CASE_OPACITY[item.id],
     dashed: false,
   })),
 ];
@@ -342,17 +339,28 @@ export default function ThresholdPlot(): JSX.Element {
               ))}
             </g>
             {THRESHOLD_CASES.map((item) => (
-              <path
-                key={item.id}
-                data-series={item.id}
-                d={linePath(item.points, x, y)}
-                fill="none"
-                stroke={CASE_COLORS[item.id]}
-                strokeWidth={CASE_WIDTHS[item.id]}
-                strokeOpacity={CASE_OPACITY[item.id]}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <g key={item.id}>
+                {item.id === 'unity' ? (
+                  <path
+                    data-casing={item.id}
+                    d={linePath(item.points, x, y)}
+                    fill="none"
+                    stroke={SURFACE_COLOR}
+                    strokeWidth={CASE_WIDTHS[item.id] + CASING_WIDTH}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                ) : null}
+                <path
+                  data-series={item.id}
+                  d={linePath(item.points, x, y)}
+                  fill="none"
+                  stroke={CASE_COLORS[item.id]}
+                  strokeWidth={CASE_WIDTHS[item.id]}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </g>
             ))}
             {THRESHOLD_CASES.map((item) => (
               <StopMark key={item.id} item={item} x={x} y={y} area={area} />

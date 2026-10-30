@@ -40,8 +40,8 @@ interface Layout {
 const WIDE: Layout = {
   width: 360,
   rowHeight: 66,
-  momentum: { x: 222, dy: 0 },
-  kinetic: { x: 286, dy: 0 },
+  momentum: { x: 216, dy: 0 },
+  kinetic: { x: 288, dy: 0 },
   hasColumnHeaders: true,
   keyX: 62,
 };
@@ -65,12 +65,18 @@ const KEY_GAP = 18;
 const LABEL_X = 2;
 const LABEL_SIZE = 12;
 const SMALL_SIZE = 11;
+/** The mass labels sit side by side over the balls of the first row. */
+const MASS_SIZE = 10;
 /** Ball radii scale as ∛m (same density): 12 px for 2 kg, 12/∛2 for 1 kg. */
-const BALL_1 = { x: 80, r: 12 } as const;
-const BALL_2 = { x: 160, r: 12 / Math.cbrt(2) } as const;
+const BALL_1 = { id: 1, x: 78, r: 12 } as const;
+const BALL_2 = { id: 2, x: 146, r: 12 / Math.cbrt(2) } as const;
 const BALL_STROKE = 1.5;
 /** Pixels per m/s of a velocity arrow, per kg·m/s of the momentum arrow and per J of the bar. */
-const PX_PER_SPEED = 12;
+/**
+ * 11 px per m/s keeps m₂'s fastest arrow (4 m/s, tip at 199,5) 16,5 px clear of the momentum
+ * arrow in the wide layout, so the two never read as one chained vector.
+ */
+const PX_PER_SPEED = 11;
 const PX_PER_MOMENTUM = 8;
 const PX_PER_JOULE = 7;
 const BAR_HEIGHT = 12;
@@ -104,7 +110,7 @@ function Balls({
   return (
     <g>
       {balls.map((ball) => (
-        <g key={ball.mass}>
+        <g key={ball.id} data-body={ball.id}>
           <circle
             cx={ball.x}
             cy={middle}
@@ -114,11 +120,13 @@ function Balls({
             strokeWidth={BALL_STROKE}
           />
           {ball.v > 0 ? (
-            <Arrow
-              from={{ x: ball.x + ball.r, y: middle }}
-              to={{ x: ball.x + ball.r + ball.v * PX_PER_SPEED, y: middle }}
-              color={TEXT_COLOR}
-            />
+            <g data-velocity={ball.id}>
+              <Arrow
+                from={{ x: ball.x + ball.r, y: middle }}
+                to={{ x: ball.x + ball.r + ball.v * PX_PER_SPEED, y: middle }}
+                color={TEXT_COLOR}
+              />
+            </g>
           ) : null}
           <text
             x={ball.x}
@@ -134,7 +142,7 @@ function Balls({
               x={ball.x}
               y={middle - ball.r - MASS_LABEL_GAP}
               textAnchor="middle"
-              fontSize={SMALL_SIZE}
+              fontSize={MASS_SIZE}
               {...textStyle}
             >
               {ball.mass}
@@ -168,7 +176,7 @@ function MomentumArrow({
       x + segments.slice(0, index).reduce((sum, segment) => sum + segment.p, 0) * PX_PER_MOMENTUM,
   );
   return (
-    <g data-momentum="" data-length={length}>
+    <g data-momentum="" data-start={x} data-length={length}>
       {segments.map((segment, index) => {
         const from = { x: starts[index], y };
         const to = { x: starts[index] + segment.p * PX_PER_MOMENTUM, y };
