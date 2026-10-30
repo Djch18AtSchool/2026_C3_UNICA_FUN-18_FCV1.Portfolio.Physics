@@ -92,14 +92,28 @@ export function maneuverRow(t: number): ManeuverRow {
 const GRAMS_PER_KG = 1000;
 const MILLI = 1000;
 
+/**
+ * How each datasheet prints L_max and the mass (research §4.1): VRW-D-4 "4,0 N·m·s" and
+ * "2,5 kg"; RW400 "±0,050" and "375 g". The table repeats that precision and invents no digits.
+ */
+const PRINTED: Readonly<
+  Partial<Record<WheelSourceId, { LmaxDecimals: number; massIn: 'kg' | 'g'; massDecimals: number }>>
+> = {
+  W1: { LmaxDecimals: 1, massIn: 'kg', massDecimals: 1 },
+  W2: { LmaxDecimals: 3, massIn: 'g', massDecimals: 0 },
+};
+
 function wheelRow(wheel: ReactionWheel) {
   const isPrinted = wheel.inertiaPrinted !== null;
+  const printed = PRINTED[wheel.sourceId];
+  if (!printed) throw new Error(`tablas: falta la precisión impresa de ${wheel.name}`);
+  const mass = printed.massIn === 'g' ? wheel.mass * GRAMS_PER_KG : wheel.mass;
   return {
     rueda: wheel.name,
-    Lmax: wheel.Lmax,
+    Lmax: formatNumber(wheel.Lmax, { precision: printed.LmaxDecimals }),
     tauMax: wheel.tauMax * MILLI,
     rpmMax: wheel.rpmMax,
-    mass: wheel.mass * GRAMS_PER_KG,
+    mass: formatNumber(mass, { precision: printed.massDecimals, unit: printed.massIn }),
     inertia: formatScientific(wheel.inertiaPrinted ?? wheel.inertiaDerived),
     origin: isPrinted ? 'impresa en la hoja' : 'cálculo propio: L_max/ω_max',
   };
@@ -124,10 +138,10 @@ const ruedas: DataTableSpec = {
     'Dos ruedas de reacción reales según sus hojas de datos: una grande y la de CubeSat del ejemplo. Solo la VRW-D-4 imprime la inercia del rotor; la de la RW400 la calculo como L_max/ω_max.',
   columns: [
     { key: 'rueda', label: 'Rueda', align: 'text' },
-    { key: 'Lmax', label: 'L_max', unit: 'N·m·s', align: 'num', precision: 3 },
+    { key: 'Lmax', label: 'L_max', unit: 'N·m·s', align: 'text' },
     { key: 'tauMax', label: 'τ_max', unit: 'mN·m', align: 'num', precision: 0 },
     { key: 'rpmMax', label: 'ω_max', unit: 'rpm', align: 'num', precision: 0 },
-    { key: 'mass', label: 'Masa', unit: 'g', align: 'num', precision: 0 },
+    { key: 'mass', label: 'Masa', align: 'text' },
     { key: 'inertia', label: 'I_w', unit: 'kg·m²', align: 'text' },
     { key: 'origin', label: 'Origen de I_w', align: 'text' },
   ],
@@ -157,6 +171,12 @@ const maniobra: DataTableSpec = {
   source: { text: slewSource },
 };
 
+const missionRows = MISSIONS.map((fact) => ({
+  mission: fact.mission,
+  fact: fact.fact,
+  sources: citations(fact.sourceIds),
+}));
+
 const misiones: DataTableSpec = {
   id: 'ruedas-reaccion-misiones',
   caption:
@@ -166,14 +186,9 @@ const misiones: DataTableSpec = {
     { key: 'fact', label: 'Dato', align: 'text' },
     { key: 'sources', label: 'Fuente', align: 'text' },
   ],
-  rows: MISSIONS.map((fact) => ({
-    mission: fact.mission,
-    fact: fact.fact,
-    sources: citations(fact.sourceIds),
-  })),
-  source: {
-    text: 'Actualizaciones de la misión Kepler (NASA, 2012 y 2013), Howell et al. (2014), NASA y Dougherty (1988) para Hubble, Hasha (2016), Gardner et al. (2023), STScI y NASA para JWST; detalle en las fuentes del tema.',
-  },
+  rows: missionRows,
+  // Every author and year the rows cite, once each, in the rows' order.
+  source: { text: `${citations(MISSIONS.flatMap((fact) => fact.sourceIds))}.` },
 };
 
 export const TABLES: readonly DataTableSpec[] = [ruedas, maniobra, misiones];

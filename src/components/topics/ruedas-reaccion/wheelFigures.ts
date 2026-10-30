@@ -16,7 +16,7 @@ type XY = { x: number; y: number };
 
 /**
  * One meaning per color across the topic: the wheel and its ω_w and L_w, the body and its ω_s and
- * L_s, every torque (τ and −τ of the motor, τ_ext, τ = m × B), the L_max limit in the palette's red,
+ * L_s, every torque (τ and −τ of the motor, τ_ext, τ = m × B), the L_max limit in the house warning tone (--chart-2, orange),
  * the Earth and its field lines in chart 1 (as in Tema 2) and the Sun in its own token.
  */
 export const WHEEL_COLORS = {
@@ -53,6 +53,9 @@ export const MANEUVER_PEAK = {
   wheelRpm: halfTurn.omegaW,
   thetaLabel: `${formatNumber(halfTurn.thetaS, { precision: 0 })}° a los ${halfTurn.t} s`,
   wheelLabel: `${signed(halfTurn.omegaW, 0)} rpm a los ${halfTurn.t} s`,
+  /** The same notes on two lines, for a phone-width plot. */
+  thetaLines: [`${formatNumber(halfTurn.thetaS, { precision: 0 })}°`, `a los ${halfTurn.t} s`],
+  wheelLines: [`${signed(halfTurn.omegaW, 0)} rpm`, `a los ${halfTurn.t} s`],
 } as const;
 
 const SECONDS_PER_DAY = 86_400;

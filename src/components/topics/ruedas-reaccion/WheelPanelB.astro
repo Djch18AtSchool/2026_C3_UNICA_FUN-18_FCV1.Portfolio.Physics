@@ -1,7 +1,7 @@
 ---
 /*
  * Panel B of the prescribed diagram (Tema 8): saturation and dumping, steps 3 and 4.
- * 1. A small disturbance that never stops fills the wheel: L_w rises to the red L_max, and then
+ * 1. A small disturbance that never stops fills the wheel: L_w rises to L_max (warning tone), then
  *    the motor can no longer take the disturbance and the body drifts.
  * 2. Dumping with the Earth's field (north up, so B points up beside the equator): a magnetorquer
  *    dipole m to the right gives τ = m × B out of the page (⊙), perpendicular to both; the motor
@@ -19,18 +19,20 @@ import {
 } from './diagramGeometry';
 import { DIAGRAM_FACTS } from './wheelFigures';
 
-const VIEW = { width: 420, height: 868 } as const;
+const VIEW = { width: 420, height: 900 } as const;
 
 // ---- 1 · Filling up ----
 const METER = { left: 36, right: 68, top: 112, bottom: 300 } as const;
 const LIMIT_REACH = 12;
-const SAT: Point = { x: 338, y: 178 };
+const SAT: Point = { x: 352, y: 178 };
 const SAT_BOX = 58;
 const SAT_WHEEL = 16;
 const SPIN = { cx: SAT.x, cy: SAT.y, rx: 46, ry: 46 };
 const tauExt = spinArc(SPIN, 200, 340);
 const drift = spinArc(SPIN, 30, 150);
 const TEXT_X = 88;
+/** Equation tags sit just right of their equation, clear of the spacecraft's τ_ext arc. */
+const TAG_8_3_X = 248;
 
 // ---- 2 · Dumping against the Earth's field ----
 const EARTH = { cx: -46, cy: 500, r: 100 } as const;
@@ -54,25 +56,25 @@ const BAR = { left: 290, right: 370, top: 532, height: 12, fill: 0.55 } as const
 const barDrop = arrow({ x: 352, y: 562 }, { x: 302, y: 562 }, 9);
 
 // ---- 3 · Thrusters and several wheels ----
-const BOX_Y = 696;
-const BOX_HEIGHT = 160;
-const SUN = { cx: 34, cy: 784, r: 11 } as const;
+const BOX_Y = 718;
+const BOX_HEIGHT = 170;
+const SUN = { cx: 34, cy: BOX_Y + 90, r: 11 } as const;
 const SUN_RAYS = 8;
 const RAY = { from: 15, to: 21 } as const;
 const sunRays = Array.from({ length: SUN_RAYS }, (_, index) => {
   const angle = (2 * Math.PI * index) / SUN_RAYS;
   return `M${SUN.cx + RAY.from * Math.cos(angle)},${SUN.cy + RAY.from * Math.sin(angle)} L${SUN.cx + RAY.to * Math.cos(angle)},${SUN.cy + RAY.to * Math.sin(angle)}`;
 }).join(' ');
-const pressure = [774, 794].map((y) => arrow({ x: 60, y }, { x: 88, y }, 8));
-const THRUST_BODY = { x: 92, y: 768, width: 40, height: 36 } as const;
+const pressure = [SUN.cy - 10, SUN.cy + 10].map((y) => arrow({ x: 60, y }, { x: 88, y }, 8));
+const THRUST_BODY = { x: 92, y: BOX_Y + 74, width: 40, height: 36 } as const;
 const bodyCentre = {
   x: THRUST_BODY.x + THRUST_BODY.width / 2,
   y: THRUST_BODY.y + THRUST_BODY.height / 2,
 };
-const THRUSTER: Point = { x: 176, y: 762 };
+const THRUSTER: Point = { x: 176, y: BOX_Y + 68 };
 const armR = arrow(bodyCentre, THRUSTER, 9);
 const forceF = arrow(THRUSTER, { x: THRUSTER.x, y: THRUSTER.y + 40 }, 10);
-const PYRAMID: Point = { x: 310, y: 808 };
+const PYRAMID: Point = { x: 310, y: BOX_Y + 122 };
 const PYRAMID_AXES: Point[] = [
   { x: -58, y: -34 },
   { x: 58, y: -34 },
@@ -91,6 +93,7 @@ const sub = (symbol: string, subscript: string): MathPart => ({ symbol, sub: sub
 const EQ = {
   limit: [sub('L', 'max'), ' = ', sub('I', 'w'), ' ', sub('ω', 'max')],
   integral: [sub('L', 'w'), ' = ∫ ', sub('τ', 'ext'), ' d', { symbol: 't' }],
+  bound: [sub('τ', 'ext'), ` ≤ ${DIAGRAM_FACTS.disturbanceLabel}`],
   lw: [sub('L', 'w')],
   tauExt: [sub('τ', 'ext')],
   drift: [sub('ω', 's'), ' ≠ 0'],
@@ -186,14 +189,17 @@ const runs = Object.fromEntries(
       </tspan>
     ))}
   </text>
-  <text class="wd-note" x={TEXT_X} y="214">
-    <tspan class="wd-math">τ</tspan>
-    <tspan class="wd-math wd-sub" dy="5">
-      ext
-    </tspan>
-    <tspan dy="-5"> ≤ {DIAGRAM_FACTS.disturbanceLabel}</tspan>
+  <text class="wd-tag" x={TAG_8_3_X} y="190">
+    (8.3)
   </text>
-  <text class="wd-note" x={TEXT_X} y="236">
+  <text class="wd-eq" x={TEXT_X} y="218">
+    {runs.bound.map((run) => (
+      <tspan class={run.className} dy={run.dy}>
+        {run.text}
+      </tspan>
+    ))}
+  </text>
+  <text class="wd-note" x={TEXT_X} y="240">
     (gradiente de gravedad)
   </text>
 
@@ -288,12 +294,15 @@ const runs = Object.fromEntries(
 
   <circle class="wd-torque-ring" {...OUT_OF_PAGE} />
   <circle class="wd-torque-fill" cx={OUT_OF_PAGE.cx} cy={OUT_OF_PAGE.cy} r="3" />
-  <text class="wd-eq" x={DUMP_SAT.x} y="410" text-anchor="middle">
+  <text class="wd-eq" x="352" y="410" text-anchor="end">
     {runs.magnetic.map((run) => (
       <tspan class={run.className} dy={run.dy}>
         {run.text}
       </tspan>
     ))}
+  </text>
+  <text class="wd-tag" x="404" y="410" text-anchor="end">
+    (8.4)
   </text>
 
   <!-- The wheel's momentum falls while the magnetorquer holds the body. -->
@@ -338,25 +347,21 @@ const runs = Object.fromEntries(
   </text>
 
   <text class="wd-label" x="16" y="604">
-    <tspan class="wd-math">τ</tspan> ⊥ <tspan class="wd-math">B</tspan> siempre: la parte de{' '}
-    <tspan class="wd-math">L</tspan>
-    <tspan class="wd-math wd-sub" dy="5">
-      w
-    </tspan>
+    <tspan class="wd-math">τ</tspan> ⊥ <tspan class="wd-math">B</tspan> siempre: el momento de la
+    rueda
   </text>
-  <text class="wd-label" x="16" y="628">
-    paralela a <tspan class="wd-math">B</tspan> espera a que la órbita gire{' '}
-    <tspan class="wd-math">B</tspan>.
+  <text class="wd-label" x="16" y="626">
+    paralelo a <tspan class="wd-math">B</tspan> espera a que la órbita
   </text>
-  <text class="wd-note" x="16" y="656">
+  <text class="wd-label" x="16" y="648">
+    gire <tspan class="wd-math">B</tspan>.
+  </text>
+  <text class="wd-note" x="16" y="678">
     <tspan class="wd-math">m B</tspan> ≈ {DIAGRAM_FACTS.magnetorquerLabel}, unas{' '}
-    {DIAGRAM_FACTS.dumpRatio} veces <tspan class="wd-math">τ</tspan>
-    <tspan class="wd-math wd-sub" dy="5">
-      ext
-    </tspan>
+    {DIAGRAM_FACTS.dumpRatio} veces la perturbación
   </text>
 
-  <line class="wd-rule" x1="16" y1="676" x2="404" y2="676" />
+  <line class="wd-rule" x1="16" y1="698" x2="404" y2="698" />
 
   <!-- ===== 3 · Thrusters, and three or four wheels ===== -->
   <rect class="wd-detail" x="12" y={BOX_Y} width="196" height={BOX_HEIGHT} rx="3" />
@@ -412,12 +417,15 @@ const runs = Object.fromEntries(
   <text class="wd-note" x={SUN.cx - 12} y={SUN.cy + 40}>
     presión solar
   </text>
-  <text class="wd-eq" x="110" y={BOX_Y + BOX_HEIGHT - 14} text-anchor="middle">
+  <text class="wd-eq" x="22" y={BOX_Y + BOX_HEIGHT - 14}>
     {runs.thruster.map((run) => (
       <tspan class={run.className} dy={run.dy}>
         {run.text}
       </tspan>
     ))}
+  </text>
+  <text class="wd-tag" x="200" y={BOX_Y + BOX_HEIGHT - 14} text-anchor="end">
+    (8.4)
   </text>
 
   <rect class="wd-detail" x="212" y={BOX_Y} width="196" height={BOX_HEIGHT} rx="3" />

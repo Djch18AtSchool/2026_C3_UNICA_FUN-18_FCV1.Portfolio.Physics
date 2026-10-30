@@ -62,9 +62,13 @@ describe('ruedas-reaccion-ruedas', () => {
       'VECTRONIC Aerospace VRW-D-4',
       'AAC Clyde Space RW400 (50 mN·m·s)',
     ]);
-    expect(printed(spec, 0)).toMatchObject({ Lmax: '4,000', tauMax: '50', rpmMax: '6\u202F000' });
-    expect(printed(spec, 1)).toMatchObject({ Lmax: '0,050', tauMax: '8', rpmMax: '5\u202F000' });
-    expect(printed(spec, 1).mass).toBe('375');
+    expect(printed(spec, 0)).toMatchObject({ tauMax: '50', rpmMax: '6\u202F000' });
+    expect(printed(spec, 1)).toMatchObject({ tauMax: '8', rpmMax: '5\u202F000' });
+  });
+
+  test('prints L_max and the mass with the precision each datasheet prints, no more', () => {
+    expect(printed(spec, 0)).toMatchObject({ Lmax: '4,0', mass: '2,5\u202Fkg' });
+    expect(printed(spec, 1)).toMatchObject({ Lmax: '0,050', mass: '375\u202Fg' });
   });
 
   test('prints the inertia the sheet gives, and marks the derived one as cálculo propio', () => {
@@ -110,6 +114,15 @@ describe('ruedas-reaccion-misiones', () => {
     expect(spec.rows.at(-1)?.sources).toBe(
       'NASA Webb Mission Team, 2021; Bely, Illingworth et al., 2025',
     );
+  });
+
+  test('the source line cites every author and year the rows cite, each once', () => {
+    const cited = new Set(spec.rows.flatMap((row) => String(row.sources).split('; ')));
+
+    for (const citation of cited) expect(spec.source.text).toContain(citation);
+    expect(spec.source.text).toContain('Bely, Illingworth et al., 2025');
+    expect(spec.source.text).toContain('NASA Science, 2025');
+    expect(spec.source.text.split('Roger Hunter (NASA Ames), 2012')).toHaveLength(2);
   });
 
   test('never states a Hubble wheel capacity in N·m·s', () => {

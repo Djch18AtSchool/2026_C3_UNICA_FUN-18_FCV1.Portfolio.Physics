@@ -27,9 +27,9 @@ const colorVariables = [
 const description = [
   'Diagrama en dos paneles del satélite y su rueda de reacción. No está a escala.',
   `Panel A, intercambio de momento angular: la nave es una caja vista desde el frente y un poco desde arriba, cortada para mostrar la rueda montada sobre su motor, con el eje de giro z vertical. La rueda gira en sentido antihorario visto desde arriba, con ω_w, y su momento angular L_w = I_w ω_w apunta hacia arriba por el eje z. La nave gira en sentido horario, con ω_s, y su momento angular L_s = I_s ω_s apunta hacia abajo, con el mismo largo: L_s + L_w = 0 si todo parte del reposo. Ecuación (8.1): I_s ω_s + I_w ω_w = constante, e I_s Δθ_s = −I_w Δθ_w. La rueda da unas ${DIAGRAM_FACTS.turns} vueltas para que la nave gire 90°. El detalle M muestra el motor: aplica τ a la rueda, en el sentido de su giro, y −τ a la nave, en sentido contrario, como acción y reacción (tercera ley). Ecuación (8.2): τ = dL_w/dt = I_w α_w y −τ = dL_s/dt = I_s α_s.`,
-  `Panel B, saturación y descarga. Primero, un medidor de L_w lleno hasta la marca roja de L_max = I_w ω_max, ${DIAGRAM_FACTS.LmaxLabel} en la RW400. Un torque externo pequeño y constante, τ_ext de hasta ${DIAGRAM_FACTS.disturbanceLabel} por el gradiente de gravedad, entra en la nave y se acumula en la rueda: L_w = ∫ τ_ext dt. En saturación el motor ya no puede acelerar la rueda: la nave deriva, con ω_s distinto de cero.`,
-  `Después, la descarga con un torque externo: junto a la Tierra, sus líneas de campo magnético en azul y el campo B hacia arriba al lado del satélite; el magnetopar del satélite es un dipolo m hacia la derecha, y el torque τ = m × B sale del papel, perpendicular a m y a B. Mientras tanto el motor frena la rueda y L_w baja. Como τ es siempre perpendicular a B, la parte de L_w paralela a B espera a que la órbita gire B. El magnetopar da m B ≈ ${DIAGRAM_FACTS.magnetorquerLabel}, unas ${DIAGRAM_FACTS.dumpRatio} veces τ_ext.`,
-  'Dos recuadros cierran el panel. Propulsores, para JWST en L2 y K2: la presión solar empuja la nave y un propulsor en el extremo de un brazo r aplica una fuerza F, con τ = r × F entrando en el papel. Tres o cuatro ruedas, una por eje en pirámide: Kepler llevaba 4 y bastaba con 3; K2 siguió con 2 y la presión solar en equilibrio.',
+  `Panel B, saturación y descarga. Primero, un medidor de L_w lleno hasta la marca de L_max = I_w ω_max, en el tono naranja de advertencia, ${DIAGRAM_FACTS.LmaxLabel} en la RW400. Un torque externo pequeño y constante, τ_ext de hasta ${DIAGRAM_FACTS.disturbanceLabel} por el gradiente de gravedad, entra en la nave y se acumula en la rueda: L_w = ∫ τ_ext dt, ecuación (8.3). En saturación el motor ya no puede acelerar la rueda: la nave deriva, con ω_s distinto de cero.`,
+  `Después, la descarga con un torque externo: junto a la Tierra, sus líneas de campo magnético en azul y el campo B hacia arriba al lado del satélite; el magnetopar del satélite es un dipolo m hacia la derecha, y el torque τ = m × B, ecuación (8.4), sale del papel, perpendicular a m y a B. Mientras tanto el motor frena la rueda y L_w baja. Como τ es siempre perpendicular a B, el momento de la rueda paralelo a B espera a que la órbita gire B. El magnetopar da m B ≈ ${DIAGRAM_FACTS.magnetorquerLabel}, unas ${DIAGRAM_FACTS.dumpRatio} veces la perturbación.`,
+  'Dos recuadros cierran el panel. Propulsores, para JWST en L2 y K2: la presión solar empuja la nave y un propulsor en el extremo de un brazo r aplica una fuerza F, con τ = r × F, también (8.4), entrando en el papel. Tres o cuatro ruedas, una por eje en pirámide: Kepler llevaba 4 y bastaba con 3; K2 siguió con 2 y la presión solar en equilibrio.',
 ].join(' ');
 ---
 
@@ -88,7 +88,7 @@ const description = [
   }
   .wheel-diagram :global(.wd-eq) {
     font-family: KaTeX_Main, 'Times New Roman', serif;
-    font-size: 21px;
+    font-size: 23px;
   }
   .wheel-diagram :global(.wd-tag) {
     font-family: KaTeX_Main, 'Times New Roman', serif;
@@ -99,8 +99,10 @@ const description = [
     font-family: KaTeX_Main, 'Times New Roman', serif;
     font-style: italic;
   }
+  /* Subscripts at the house ratio, 0,72 of the symbol (HabitatDiagram), and still 11 px on a phone.
+     Only equations (.wd-eq) carry subscripts. */
   .wheel-diagram :global(.wd-sub) {
-    font-size: 16px;
+    font-size: 16.5px;
   }
   .wheel-diagram :global(.wd-strong) {
     font-weight: 600;

@@ -110,12 +110,17 @@ export interface MathRun {
   dy?: number;
 }
 
-const SUB_DY = 5;
+/** How far a subscript drops below the baseline (viewBox units). */
+export const SUB_DY = 5;
 
 /**
  * The <tspan> runs of an equation: symbols italic (unless `upright`), subscripts lowered by
- * SUB_DY and the next run raised back. Classes: `wd-math` (italic), `wd-sub` (subscript).
+ * SUB_DY and the next run raised back. A one-letter subscript naming a body (s, w) stays italic;
+ * a descriptive word (ext, max) is upright, as textbooks set it. Classes: `wd-math` (italic),
+ * `wd-sub` (subscript).
  */
+const subClass = (sub: string) => (sub.length > 1 ? 'wd-sub' : 'wd-math wd-sub');
+
 export function mathRuns(parts: readonly MathPart[]): MathRun[] {
   let pending = 0;
   return parts.flatMap((part) => {
@@ -128,7 +133,7 @@ export function mathRuns(parts: readonly MathPart[]): MathRun[] {
     pending = part.sub ? -SUB_DY : 0;
     const symbol: MathRun = { text: part.symbol, className: symbolClass, dy };
     return part.sub
-      ? [symbol, { text: part.sub, className: 'wd-math wd-sub', dy: SUB_DY }]
+      ? [symbol, { text: part.sub, className: subClass(part.sub), dy: SUB_DY }]
       : [symbol];
   });
 }

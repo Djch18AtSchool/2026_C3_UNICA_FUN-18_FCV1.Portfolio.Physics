@@ -48,6 +48,8 @@ describe('maneuver (step 2)', () => {
     expect(Math.round(MANEUVER_PEAK.wheelRpm)).toBe(-970);
     expect(MANEUVER_PEAK.wheelLabel).toBe('−970 rpm a los 30 s');
     expect(MANEUVER_PEAK.thetaLabel).toBe('45° a los 30 s');
+    expect(MANEUVER_PEAK.thetaLines).toEqual(['45°', 'a los 30 s']);
+    expect(MANEUVER_PEAK.wheelLines).toEqual(['−970 rpm', 'a los 30 s']);
   });
 });
 
@@ -94,7 +96,7 @@ describe('diagram facts', () => {
     expect(DIAGRAM_FACTS.dumpRatio).toBe(50);
   });
 
-  test('the wheel, the body and the torques wear distinct tokens; the limit wears the warning red', () => {
+  test('the wheel, the body and the torques wear distinct tokens; the limit wears the warning tone', () => {
     const values = Object.values(WHEEL_COLORS);
     expect(new Set(values).size).toBe(values.length);
     expect(WHEEL_COLORS.limit).toBe('var(--chart-2)');

@@ -30,6 +30,21 @@ function stubWidth(width: number): void {
   );
 }
 
+/** Width of one character of the 12 px mono note font (as the plotter estimates it). */
+const NOTE_CHAR = 7.3;
+/** SvgPlot's compact margins below 480 px. */
+const COMPACT = { right: 14, bottom: 50 } as const;
+
+/** Horizontal extent of a note's text from its anchor and its longest line. */
+function noteExtent(text: SVGTextElement) {
+  const x = Number(text.getAttribute('x'));
+  const lines = [...text.querySelectorAll('tspan')].map((tspan) => tspan.textContent ?? '');
+  const width = Math.max(...lines.map((line) => line.trim().length)) * NOTE_CHAR;
+  const anchor = text.getAttribute('text-anchor');
+  const left = anchor === 'end' ? x - width : anchor === 'middle' ? x - width / 2 : x;
+  return { left, right: left + width, lines };
+}
+
 const viewBoxOf = (svg: Element | null) =>
   (svg?.getAttribute('viewBox') ?? '').split(' ').map(Number);
 
@@ -79,7 +94,7 @@ describe('WheelFigure', () => {
     );
   });
 
-  test('saturation: L_w ramps to the red L_max line, with the turn peak for contrast', () => {
+  test('saturation: L_w ramps to the L_max line in the warning tone, with the turn peak for contrast', () => {
     const { container } = render(<WheelFigure variant="saturacion" />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
@@ -111,5 +126,37 @@ describe('WheelFigure', () => {
     const [, , width, height] = viewBoxOf(screen.getByRole('img', { name: /ángulo de la nave/i }));
 
     expect(height).toBeLessThan(width);
+  });
+
+  test('on a phone the turn notes split in two lines and stay inside the plot', () => {
+    stubWidth(320);
+    const { container } = render(<WheelFigure variant="maniobra" />);
+
+    for (const id of ['theta-pico', 'omega-pico']) {
+      const text = container.querySelector(`[data-note="${id}"] text`) as SVGTextElement;
+      const svg = text.closest('svg') as SVGSVGElement;
+      const [, , width, height] = viewBoxOf(svg);
+      const { left, right, lines } = noteExtent(text);
+      const lastBaseline = Number(text.getAttribute('y')) + (lines.length - 1) * 15;
+
+      expect(lines, id).toHaveLength(2);
+      expect(left, id).toBeGreaterThanOrEqual(0);
+      expect(right, id).toBeLessThanOrEqual(width - COMPACT.right);
+      expect(lastBaseline, id).toBeLessThan(height - COMPACT.bottom);
+    }
+  });
+
+  test('saturation: the band says "saturada" and "la nave deriva" sits inside the band', () => {
+    stubWidth(320);
+    const { container } = render(<WheelFigure variant="saturacion" />);
+    const band = container.querySelector('[data-band="saturada"]') as SVGRectElement;
+    const text = container.querySelector('[data-note="deriva"] text') as SVGTextElement;
+    const bandLeft = Number(band.getAttribute('x'));
+    const bandRight = bandLeft + Number(band.getAttribute('width'));
+    const { left, right } = noteExtent(text);
+
+    expect(text).toHaveTextContent('la nave deriva');
+    expect(left).toBeGreaterThanOrEqual(bandLeft);
+    expect(right).toBeLessThanOrEqual(bandRight);
   });
 });

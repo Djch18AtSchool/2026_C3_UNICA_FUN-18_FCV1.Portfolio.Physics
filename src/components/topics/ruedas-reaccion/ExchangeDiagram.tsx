@@ -1,10 +1,7 @@
 import type { JSX } from 'react';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
+import { arrow, mathRuns, spinArc, type MathPart, type Point } from './diagramGeometry';
 import { DIAGRAM_FACTS, WHEEL_COLORS } from './wheelFigures';
-
-type Point = { x: number; y: number };
-/** A run of math: an italic symbol with an optional subscript, or plain text between symbols. */
-type MathPart = string | { symbol: string; sub?: string };
 
 const VIEW = { width: 360, height: 300 } as const;
 const DIVIDER_X = 190;
@@ -19,21 +16,19 @@ const AXIS_X = 236;
 const ORIGIN_Y = 150;
 const L_LENGTH = 70;
 const AXIS_REACH = 100;
-const HEAD = 10;
 const VECTOR_WIDTH = 3;
 const TITLE_Y = 24;
 const BOTTOM_Y = 278;
 const TEXT_SIZE = 14;
 const MATH_SIZE = 16;
-const SUB_DY = 4;
-const SUB_SIZE = '0.75em';
+/** Subscripts at the house ratio of the symbol (HabitatDiagram: 0,72). */
+const SUB_SIZE = '0.72em';
 const MATH_FONT = "KaTeX_Main, 'Times New Roman', serif";
-const DEG = Math.PI / 180;
 
 const textStyle = { fontFamily: TICK_FONT_FAMILY, fontSize: TEXT_SIZE, fill: TEXT_COLOR } as const;
 const halo = { stroke: SURFACE_COLOR, strokeWidth: 4, paintOrder: 'stroke' } as const;
 
-/** Text with italic symbols and their subscripts, as the equations print them. */
+/** An equation from `mathRuns`: its `wd-math` runs italic, its `wd-sub` runs smaller. */
 function MathText({
   x,
   y,
@@ -45,31 +40,6 @@ function MathText({
   parts: readonly MathPart[];
   anchor?: 'start' | 'middle' | 'end';
 }): JSX.Element {
-  let pending = 0;
-  const spans = parts.flatMap((part, index) => {
-    const dy = pending;
-    if (typeof part === 'string') {
-      pending = 0;
-      return [
-        <tspan key={index} dy={dy || undefined}>
-          {part}
-        </tspan>,
-      ];
-    }
-    pending = part.sub ? -SUB_DY : 0;
-    return [
-      <tspan key={index} dy={dy || undefined} fontStyle="italic">
-        {part.symbol}
-      </tspan>,
-      ...(part.sub
-        ? [
-            <tspan key={`${index}-sub`} dy={SUB_DY} fontSize={SUB_SIZE} fontStyle="italic">
-              {part.sub}
-            </tspan>,
-          ]
-        : []),
-    ];
-  });
   return (
     <text
       x={x}
@@ -80,25 +50,21 @@ function MathText({
       fill={TEXT_COLOR}
       {...halo}
     >
-      {spans}
+      {mathRuns(parts).map((run, index) => (
+        <tspan
+          key={index}
+          dy={run.dy}
+          fontStyle={run.className.includes('wd-math') ? 'italic' : undefined}
+          fontSize={run.className.includes('wd-sub') ? SUB_SIZE : undefined}
+        >
+          {run.text}
+        </tspan>
+      ))}
     </text>
   );
 }
 
-/** Corners of an arrowhead with its tip at `tip`, pointing along the unit vector `u`. */
-function headPoints(tip: Point, u: Point): string {
-  const base = { x: tip.x - u.x * HEAD, y: tip.y - u.y * HEAD };
-  const half = HEAD * 0.45;
-  return [
-    [tip.x, tip.y],
-    [base.x - u.y * half, base.y + u.x * half],
-    [base.x + u.y * half, base.y - u.x * half],
-  ]
-    .map(([px, py]) => `${px.toFixed(1)},${py.toFixed(1)}`)
-    .join(' ');
-}
-
-/** A straight vector whose shaft stops at the base of its head. */
+/** A straight vector (diagramGeometry's `arrow`) in one color. */
 function Vector({
   name,
   from,
@@ -110,25 +76,24 @@ function Vector({
   to: Point;
   color: string;
 }) {
-  const length = Math.hypot(to.x - from.x, to.y - from.y);
-  const u = { x: (to.x - from.x) / length, y: (to.y - from.y) / length };
+  const vector = arrow(from, to);
   return (
     <g data-vector={name} stroke={color} fill={color}>
       <line
-        x1={from.x}
-        y1={from.y}
-        x2={to.x - u.x * HEAD}
-        y2={to.y - u.y * HEAD}
+        x1={vector.x1}
+        y1={vector.y1}
+        x2={vector.x2}
+        y2={vector.y2}
         strokeWidth={VECTOR_WIDTH}
       />
-      <polygon points={headPoints(to, u)} strokeWidth={1} />
+      <polygon points={vector.head} strokeWidth={1} />
     </g>
   );
 }
 
 /**
- * A circular arc around `centre` from `from` to `to` degrees (SVG angles, y down) with a head at
- * its end. Increasing angles turn clockwise on screen.
+ * A circular arc around `centre` from `from` to `to` degrees (diagramGeometry's `spinArc`):
+ * growing angles turn clockwise on screen.
  */
 function SpinArc({
   name,
@@ -145,22 +110,11 @@ function SpinArc({
   to: number;
   color: string;
 }) {
-  const at = (degrees: number) => ({
-    x: centre.x + radius * Math.cos(degrees * DEG),
-    y: centre.y + radius * Math.sin(degrees * DEG),
-  });
-  const isClockwise = to > from;
-  const start = at(from);
-  const end = at(to);
-  const sweep = Math.abs(to - from);
-  const direction = isClockwise ? 1 : -1;
-  const tangent = { x: -Math.sin(to * DEG) * direction, y: Math.cos(to * DEG) * direction };
-  const tip = { x: end.x + tangent.x * HEAD * 0.6, y: end.y + tangent.y * HEAD * 0.6 };
-  const d = `M${start.x.toFixed(1)} ${start.y.toFixed(1)} A${radius} ${radius} 0 ${sweep > 180 ? 1 : 0} ${isClockwise ? 1 : 0} ${end.x.toFixed(1)} ${end.y.toFixed(1)}`;
+  const arc = spinArc({ cx: centre.x, cy: centre.y, rx: radius, ry: radius }, from, to);
   return (
-    <g data-spin={name} data-sense={isClockwise ? 'horario' : 'antihorario'}>
-      <path d={d} fill="none" stroke={color} strokeWidth={VECTOR_WIDTH} strokeLinecap="round" />
-      <polygon points={headPoints(tip, tangent)} fill={color} />
+    <g data-spin={name} data-sense={arc.sense}>
+      <path d={arc.d} fill="none" stroke={color} strokeWidth={VECTOR_WIDTH} strokeLinecap="round" />
+      <polygon points={arc.head} fill={color} />
     </g>
   );
 }

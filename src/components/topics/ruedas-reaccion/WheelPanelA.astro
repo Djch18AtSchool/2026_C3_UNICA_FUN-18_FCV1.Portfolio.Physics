@@ -12,7 +12,8 @@ import { DIAGRAM_FACTS } from './wheelFigures';
 
 const VIEW = { width: 420, height: 768 } as const;
 const AXIS_X = 170;
-const AXIS = { top: 72, bottom: 470 } as const;
+/** The axis ends above the equations so it crosses no label. */
+const AXIS = { top: 72, bottom: 404 } as const;
 const BODY = { left: 62, right: 278, back: 176, front: 210, bottom: 296 } as const;
 const TOP_CENTRE = { x: AXIS_X, y: (BODY.back + BODY.front) / 2 };
 const WINDOW = { left: 110, right: 230, top: 216, bottom: 292 } as const;

@@ -24,7 +24,8 @@ type Scales = { x: Scale; y: Scale };
 
 const TURN_SECONDS = 60;
 const THETA_DOMAIN = { min: 0, max: 100 } as const;
-const WHEEL_RPM_DOMAIN = { min: -1100, max: 100 } as const;
+/** Room under the −970 rpm vertex for its two-line note on a phone. */
+const WHEEL_RPM_DOMAIN = { min: -1400, max: 100 } as const;
 const SATURATION_DAYS = 3.5;
 /** Headroom above L_max for the saturation note. */
 const SATURATION_TOP = 0.065;
@@ -48,30 +49,68 @@ const haloText = {
   paintOrder: 'stroke',
 } as const;
 
+/** Plot areas narrower than this (phones) set the notes on two lines. */
+const SPLIT_BELOW_PX = 400;
+/** Width of one character of the 12 px mono note font, to keep notes inside the plot. */
+const CHAR_WIDTH = 7.3;
+const textWidth = (lines: readonly string[]) =>
+  Math.max(...lines.map((line) => line.length)) * CHAR_WIDTH;
+
+function NoteText({
+  x,
+  y,
+  lines,
+  anchor,
+}: {
+  x: number;
+  y: number;
+  lines: readonly string[];
+  anchor: 'start' | 'middle' | 'end';
+}) {
+  return (
+    <text x={x} y={y} textAnchor={anchor} {...haloText}>
+      {lines.map((line, index) => (
+        // A trailing space keeps the words apart in the text's content (and its accessible text).
+        <tspan key={line} x={x} dy={index === 0 ? 0 : NOTE_LINE}>
+          {index < lines.length - 1 ? `${line} ` : line}
+        </tspan>
+      ))}
+    </text>
+  );
+}
+
 /**
- * A marked point and its note, below and to the right of it (`below`) or above and to its left,
- * one line per entry of `lines`.
+ * A marked point and its note: below and to the right of it (`below`) or above and to its left
+ * (`above`). On a narrow plot the note takes `compactLines`; either way it is pushed back inside
+ * the plot's width.
  */
 function PointNote({
   id,
   at,
   lines,
+  compactLines = lines,
   scales,
   placement,
 }: {
   id: string;
   at: { x: number; y: number };
   lines: readonly string[];
+  compactLines?: readonly string[];
   scales: Scales;
   placement: 'below' | 'above';
 }) {
+  const [left, right] = scales.x.range;
+  const shown = right - left < SPLIT_BELOW_PX ? compactLines : lines;
+  const width = textWidth(shown);
   const cx = scales.x.toPx(at.x);
   const cy = scales.y.toPx(at.y);
   const isBelow = placement === 'below';
-  const x = isBelow ? cx + NOTE_GAP : cx - NOTE_GAP;
+  const x = isBelow
+    ? Math.min(cx + NOTE_GAP, right - width)
+    : Math.max(cx - NOTE_GAP, left + width);
   const firstY = isBelow
     ? cy + NOTE_GAP + NOTE_SIZE
-    : cy - NOTE_GAP - (lines.length - 1) * NOTE_LINE;
+    : cy - NOTE_GAP - (shown.length - 1) * NOTE_LINE;
   return (
     <g data-note={id} className="pointer-events-none">
       <circle
@@ -82,14 +121,42 @@ function PointNote({
         stroke={SURFACE_COLOR}
         strokeWidth={2}
       />
-      <text x={x} y={firstY} textAnchor={isBelow ? 'start' : 'end'} {...haloText}>
-        {lines.map((line, index) => (
-          // A trailing space keeps the words apart in the text's content (and its accessible text).
-          <tspan key={line} x={x} dy={index === 0 ? 0 : NOTE_LINE}>
-            {index < lines.length - 1 ? `${line} ` : line}
-          </tspan>
-        ))}
-      </text>
+      <NoteText x={x} y={firstY} lines={shown} anchor={isBelow ? 'start' : 'end'} />
+    </g>
+  );
+}
+
+const BAND_PADDING = 8;
+
+/** A note centred in the x band [from, to] at height y, on two lines when one does not fit. */
+function BandNote({
+  id,
+  from,
+  to,
+  y,
+  lines,
+  compactLines,
+  scales,
+}: {
+  id: string;
+  from: number;
+  to: number;
+  y: number;
+  lines: readonly string[];
+  compactLines: readonly string[];
+  scales: Scales;
+}) {
+  const bandLeft = scales.x.toPx(from);
+  const bandRight = scales.x.toPx(to);
+  const fits = textWidth(lines) + 2 * BAND_PADDING <= bandRight - bandLeft;
+  return (
+    <g data-note={id} className="pointer-events-none">
+      <NoteText
+        x={(bandLeft + bandRight) / 2}
+        y={scales.y.toPx(y)}
+        lines={fits ? lines : compactLines}
+        anchor="middle"
+      />
     </g>
   );
 }
@@ -120,6 +187,7 @@ function ManeuverPlots(): JSX.Element {
             id="theta-pico"
             at={{ x: MANEUVER_PEAK.t, y: MANEUVER_PEAK.thetaDeg }}
             lines={[MANEUVER_PEAK.thetaLabel]}
+            compactLines={MANEUVER_PEAK.thetaLines}
             scales={scales}
             placement="below"
           />
@@ -141,6 +209,7 @@ function ManeuverPlots(): JSX.Element {
             id="omega-pico"
             at={{ x: MANEUVER_PEAK.t, y: MANEUVER_PEAK.wheelRpm }}
             lines={[MANEUVER_PEAK.wheelLabel]}
+            compactLines={MANEUVER_PEAK.wheelLines}
             scales={scales}
             placement="below"
           />
@@ -193,18 +262,28 @@ function SaturationPlot(): JSX.Element {
           {
             from: SATURATION.days,
             to: SATURATION_DAYS,
-            label: 'saturada: la nave deriva',
-            labelAt: 'bottom',
+            label: 'saturada',
           },
         ]}
         overlay={(scales) => (
-          <PointNote
-            id="saturacion"
-            at={{ x: SATURATION.days, y: RW400.Lmax }}
-            lines={[`≈ ${SATURATION.daysLabel}`, 'en el peor caso']}
-            scales={scales}
-            placement="above"
-          />
+          <>
+            <BandNote
+              id="deriva"
+              from={SATURATION.days}
+              to={SATURATION_DAYS}
+              y={(RW400.Lmax + SATURATION.maneuverPeak) / 2}
+              lines={['la nave deriva']}
+              compactLines={['la nave', 'deriva']}
+              scales={scales}
+            />
+            <PointNote
+              id="saturacion"
+              at={{ x: SATURATION.days, y: RW400.Lmax }}
+              lines={[`≈ ${SATURATION.daysLabel}`, 'en el peor caso']}
+              scales={scales}
+              placement="above"
+            />
+          </>
         )}
         ariaLabel={`L_w crece en línea recta desde la rueda vacía: con el torque máximo del gradiente de gravedad a 500 km, ${SATURATION.torqueLabel}, constante, la rueda se satura en ${SATURATION.secondsLabel}, unos ${SATURATION.daysLabel} en el peor caso, y desde ahí la nave deriva. Un giro de 90° en 60 s solo usa el ${SATURATION.maneuverShareLabel} de L_max.`}
       />
