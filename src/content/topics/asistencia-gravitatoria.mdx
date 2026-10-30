@@ -111,7 +111,7 @@ import VoyagerSpeedChart, {
 } from '../../components/topics/asistencia-gravitatoria/VoyagerSpeedChart';
 import FlybyLab, { FLYBY_LAPSE } from '../../components/topics/asistencia-gravitatoria/FlybyLab';
 
-Al pasar junto a Júpiter, la Voyager 2 ganó 10,2 km/s respecto al Sol sin gastar combustible: esa energía la cedió Júpiter. En el marco del planeta sale tan rápido como entró; en el del Sol, no.
+Al pasar junto a Júpiter, la Voyager 2 ganó 10,2 km/s respecto al Sol, según los datos de Horizons, sin gastar combustible: esa energía la cedió Júpiter. En el marco del planeta sale tan rápido como entró; en el del Sol, no.
 
 <Step n={1} title="Solo el Sol">
 
@@ -142,7 +142,7 @@ Al alejarse, la sonda sube la cuesta del Sol y se frena.
 
 <Fragment slot="ecuacion">
 
-Antes de Júpiter, <Equation inline latex="\varepsilon < 0" />: órbita ligada, con <Equation inline latex="a = 3{,}64\ \mathrm{UA}" />; en el afelio, a 6,29 UA, bajaría a 6,21 km/s y volvería.
+Antes de Júpiter, <Equation inline latex="\varepsilon < 0" />: órbita ligada, con <Equation inline latex="a = 3{,}64\ \mathrm{UA}" /> <Cite id="astro-par" sources={frontmatter.sources} />; en el afelio, a 6,29 UA, bajaría a 6,21 km/s y volvería.
 
 </Fragment>
 
@@ -163,7 +163,7 @@ Antes de Júpiter, <Equation inline latex="\varepsilon < 0" />: órbita ligada, 
 
 <Step n={2} title="Por qué no basta: el marco del planeta">
 
-Pero en Júpiter ε salta de −121,7 a +25,9 km²/s² (figura 9.1): imposible con solo el campo conservativo del Sol. En el marco del planeta, casi inercial en el encuentro, la energía sí se conserva: la sonda describe una hipérbola y sale con la misma rapidez <Equation inline latex="v_\infty" />, girada un ángulo δ.
+En Júpiter ε salta de −121,7 a +25,9 km²/s² (figura 9.1): imposible con solo el campo conservativo del Sol. En el marco del planeta, casi inercial en el encuentro, la energía sí se conserva: la sonda describe una hipérbola y sale con la misma rapidez <Equation inline latex="v_\infty" />, girada un ángulo δ.
 
 <Equation
   id="ec-asistencia-hiperbola"
@@ -295,7 +295,7 @@ Sin la suma, la (9.4) es la (9.1), y cerca de Júpiter, la (9.2). El último té
   <VoyagerSpeedChart client:visible />
 </Figure>
 
-Tras Neptuno le quedan <Equation inline latex="\sqrt{2\varepsilon} = 14{,}86\ \mathrm{km/s}" /> lejos del Sol: 3,13 UA/año, la cifra que publica la NSSDCA <Cite id="nssdca-v2" sources={frontmatter.sources} />.
+Tras Neptuno le quedan <Equation inline latex="\sqrt{2\varepsilon} = 14{,}86\ \mathrm{km/s}" /> lejos del Sol: 3,13 UA/año, la cifra de la NSSDCA <Cite id="nssdca-v2" sources={frontmatter.sources} />.
 
 <DataTable id="asistencia-gravitatoria-encuentros" />
 
@@ -335,7 +335,7 @@ Las alternativas no físicas, una animación guionizada o una regla «cada plane
 
 <Fragment slot="balance">
 
-Se gana una gira de cuatro planetas pagada por ellos. Cuesta integrar n cuerpos, afinar la llegada (<Equation inline latex="r_p" /> fija δ y el destino siguiente), esperar una alineación poco frecuente, que se repite «about every 175 years» <Cite id="nasa-planetary-voyage" sources={frontmatter.sources} />, y corregir el rumbo: el ajuste de 2022 estima 24 maniobras de la V2 <Cite id="horizons" sources={frontmatter.sources} />.
+Se gana una gira de cuatro planetas pagada por ellos. Cuesta integrar n cuerpos, afinar la llegada (<Equation inline latex="r_p" /> fija δ y el destino siguiente), esperar una alineación que se repite «about every 175 years» <Cite id="nasa-planetary-voyage" sources={frontmatter.sources} />, y corregir el rumbo: el ajuste de 2022 estima 24 maniobras de la V2 <Cite id="horizons" sources={frontmatter.sources} />.
 
 </Fragment>
 
