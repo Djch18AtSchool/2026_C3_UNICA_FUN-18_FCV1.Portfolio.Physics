@@ -189,7 +189,7 @@ export default function SvgPlotCursor({
       <g
         role="slider"
         tabIndex={0}
-        aria-label={xLabel}
+        aria-label={cursor.ariaLabel || xLabel}
         aria-valuemin={x.domain.min}
         aria-valuemax={x.domain.max}
         aria-valuenow={value}

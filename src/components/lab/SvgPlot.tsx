@@ -37,6 +37,11 @@ export interface PlotCursor {
   x: number;
   onChange?: (x: number) => void;
   label?: (x: number) => string;
+  /**
+   * Accessible name of the draggable cursor; the x axis label when omitted or empty. Lets a lab
+   * name it apart from the transport's "Línea de tiempo".
+   */
+  ariaLabel?: string;
 }
 export interface PlotMarker {
   x: number;

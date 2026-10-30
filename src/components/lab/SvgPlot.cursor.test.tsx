@@ -25,6 +25,21 @@ describe('SvgPlot cursor', () => {
     expect(slider).toHaveAttribute('tabindex', '0');
   });
 
+  test('an ariaLabel names the slider instead of the x axis', () => {
+    render(
+      <SvgPlot {...PROPS} cursor={{ x: 5, onChange: () => {}, ariaLabel: 'Instante del ciclo' }} />,
+    );
+
+    expect(screen.getByRole('slider', { name: 'Instante del ciclo' })).toBeInTheDocument();
+    expect(screen.queryByRole('slider', { name: 'x' })).toBeNull();
+  });
+
+  test('an empty ariaLabel falls back to the x axis, so the slider is never unnamed', () => {
+    render(<SvgPlot {...PROPS} cursor={{ x: 5, onChange: () => {}, ariaLabel: '' }} />);
+
+    expect(screen.getByRole('slider', { name: 'x' })).toBeInTheDocument();
+  });
+
   test('ArrowRight calls onChange with a greater value', () => {
     const onChange = vi.fn();
     render(<SvgPlot {...PROPS} cursor={{ x: 5, onChange }} />);
