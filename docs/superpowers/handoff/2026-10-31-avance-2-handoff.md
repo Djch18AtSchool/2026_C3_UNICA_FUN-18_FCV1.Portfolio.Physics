@@ -37,12 +37,12 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
     la barra de reproducción, suites e2e compartidas que recorren los nueve temas), la revisión
     final de toda la rama, con su ronda de correcciones (R35 a R37), y la pasada visual final en
     360 px y 1280 px, con la suya (R38 a R40).
-- **Puerta final en `avance-2` (`e90ae61`, último commit de código, tras la pasada visual y
-  R40; después solo cambia este traspaso):** `pnpm run check` sin errores ni avisos; 1 923
-  pruebas unitarias en 157 archivos, cobertura 98,72 % de sentencias, 93,85 % de ramas, 99,06 %
-  de funciones y 99,25 % de líneas; 11 páginas construidas (portada, 404 y los nueve temas); e2e
-  478 pasan y 0 fallan (`--workers=2`) en `ff75427`, y tras R40 (solo tablas) vuelven a pasar
-  las de tablas, Temas 2 y 4 y herramientas del tema (54).
+- **Puerta final en `avance-2` (`4526a4e`, último commit de contenido, tras la pasada visual,
+  R40 y R41; después solo cambia este traspaso):** `pnpm run check` sin errores ni avisos;
+  1 923 pruebas unitarias en 157 archivos, cobertura 98,72 % de sentencias, 93,85 % de ramas,
+  99,06 % de funciones y 99,25 % de líneas; 11 páginas construidas (portada, 404 y los nueve
+  temas); e2e 478 pasan y 0 fallan (`--workers=2`). Lighthouse en móvil, Temas 7 y 9:
+  accesibilidad, buenas prácticas y SEO en 100.
 - **Sitio:** https://djch18atschool.github.io/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics/
 - **Repositorio:** https://github.com/Djch18AtSchool/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics
 - **Entrega:** Avance 2 (Temas 6 a 9; los Temas 1 a 5 se vuelven a evaluar), sábado
@@ -350,6 +350,9 @@ si fue un error.
   Como los números se miran y no se leen, la lectura del Tema 2 baja de 8 a 7 min; costo:
   cinco columnas que vuelven a texto si Dylan prefiere el formato del archivo a la izquierda.
 
+- **R41 — miles en las ecuaciones:** en el Tema 8, «I_s/I_w ≈ 1940» pasó a «1 940» (`1\,940`),
+  como la figura 8.1 y la convención KaTeX del resto del sitio («3 114», «721 375»); una
+  búsqueda en los nueve temas no encontró otro caso. Costo si no gusta: un token.
 ## Menores diferidos (opcionales, sin efecto en la entrega)
 
 Lo que la tarea compartida y la revisión final no recogieron queda como está. Los del Avance 1
