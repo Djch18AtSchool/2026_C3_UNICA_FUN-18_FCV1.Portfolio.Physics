@@ -6,9 +6,58 @@ shortTitle: 'Frenado regenerativo'
 concept: 'Trabajo, energía cinética y transformación de energía; cuánta de la energía del frenado se recupera y cuánta se disipa.'
 resourceType: visualizacion
 useCase:
-  product: 'Borrador'
-  industry: 'Borrador'
+  product: 'FASTSim'
+  industry: 'Simulación del consumo de vehículos eléctricos'
 sources:
+  - id: epa-drive-schedules
+    title: 'Dynamometer Drive Schedules (UDDS, HWFET y US06)'
+    authors: 'U.S. Environmental Protection Agency'
+    year: 2026
+    publisher: 'U.S. EPA (página actualizada el 22 de junio de 2026)'
+    url: 'https://www.epa.gov/vehicle-and-fuel-emissions-testing/dynamometer-drive-schedules'
+    accessed: '2026-10-30'
+  - id: epa-test-car-list-2025
+    title: 'Data on Cars used for Testing Fuel Economy: 2025 Test Car List Data'
+    authors: 'U.S. Environmental Protection Agency'
+    year: 2026
+    publisher: 'U.S. EPA (archivo 25-testcar-2026-01-21.xlsx)'
+    url: 'https://www.epa.gov/compliance-and-fuel-economy-data/data-cars-used-testing-fuel-economy'
+    accessed: '2026-10-30'
+  - id: fastsim-v3
+    title: 'FASTSim v3.1.0: Future Automotive Systems Technology Simulator (código, README y archivo del Tesla Model 3 RWD 2022)'
+    authors: 'National Laboratory of the Rockies (NLR, antes NREL)'
+    year: 2026
+    publisher: 'Repositorio NatLabRockies/fastsim en GitHub, licencia Apache-2.0'
+    url: 'https://github.com/NatLabRockies/fastsim/tree/v3.1.0'
+    accessed: '2026-10-30'
+  - id: fastsim-2-simdrive
+    title: 'FASTSim 2, python/fastsim/simdrive.py (rama fastsim-2)'
+    authors: 'National Laboratory of the Rockies (NLR, antes NREL)'
+    year: 2026
+    publisher: 'Repositorio NatLabRockies/fastsim en GitHub, licencia Apache-2.0'
+    url: 'https://github.com/NatLabRockies/fastsim/blob/fastsim-2/python/fastsim/simdrive.py'
+    accessed: '2026-10-30'
+  - id: cfr-40-1066-210
+    title: '40 CFR § 1066.210 Dynamometers'
+    authors: 'U.S. Environmental Protection Agency'
+    year: 2026
+    publisher: 'eCFR, Office of the Federal Register (versión del 1 de septiembre de 2026)'
+    url: 'https://www.ecfr.gov/current/title-40/part-1066/section-1066.210'
+    accessed: '2026-10-30'
+  - id: boretti-2016
+    title: 'Comparison of Regenerative Braking Efficiencies of MY2012 and MY2013 Nissan Leaf (resumen)'
+    authors: 'Alberto Boretti'
+    year: 2016
+    publisher: 'International Journal of Engineering and Technology Innovation 6(3), p. 214'
+    url: 'https://researchrepository.wvu.edu/faculty_publications/2509'
+    accessed: '2026-10-30'
+  - id: nissan-leaf-2025-manual
+    title: 'Nissan LEAF 2025 Owner’s Manual: Regenerative brake system'
+    authors: 'Nissan'
+    year: 2025
+    publisher: 'Nissan (sitio de Malta)'
+    url: 'https://www.nissan.com.mt/ownership/owners-manuals/manuals.html/iom/leaf/0ze2/e0/2025/regenerative-brake-system-1.shtml'
+    accessed: '2026-10-30'
   - id: serway-jewett-2018
     title: 'Física para ciencias e ingeniería, Vol. 1, 10.ª edición'
     authors: 'Raymond A. Serway y John W. Jewett Jr.'
@@ -16,125 +65,265 @@ sources:
     publisher: 'Cengage Learning'
     url: 'https://cengagelatam.editorialdc.com/libros/fisica-para-ciencias-e-ingenieria-vol-1/'
     accessed: '2026-10-08'
-related: ['llantas-f1', 'dron-reparto']
+related: ['llantas-f1', 'dron-reparto', 'coeficiente-restitucion']
 classRefs:
-  - module: 'Módulo 1'
-    topic: 'Borrador'
-    note: 'Borrador'
+  - module: 'Módulo 2'
+    topic: 'Tema 03 · Trabajo y cinética · Concepto 05 · Teorema trabajo–energía'
+    note: 'W_neto = ΔK y su ejemplo «Distancia de frenado»: es la (6.1).'
+  - module: 'Módulo 2'
+    topic: 'Tema 04 · Energía mecánica · Concepto 05 · Trabajo no conservativo y balance de energía'
+    note: 'Lo que la fricción quita se vuelve energía interna. Extensión: potencia, rendimiento y batería no se vieron.'
 updated: 2026-10-30
 ---
 
 import Step from '../../components/ui/Step.astro';
 import Why from '../../components/ui/Why.astro';
 import UseCase from '../../components/ui/UseCase.astro';
+import Equation from '../../components/ui/Equation.astro';
 import Figure from '../../components/ui/Figure.astro';
-import Connections from '../../components/ui/Connections.astro';
+import DataTable from '../../components/ui/DataTable.astro';
 import Cite from '../../components/ui/Cite.astro';
+import Callout from '../../components/ui/Callout.astro';
+import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
+import { formatNumber } from '../../lib/format';
+import RegenFigure from '../../components/topics/frenado-regenerativo/RegenFigure';
+import EnergyBalanceChart from '../../components/topics/frenado-regenerativo/EnergyBalanceChart';
+import { ENERGY_BALANCE_SOURCE } from '../../components/topics/frenado-regenerativo/regenFigures';
+import RegenLab, { TIME_LAPSE } from '../../components/topics/frenado-regenerativo/RegenLab';
 
-Borrador <Cite id="serway-jewett-2018" sources={frontmatter.sources} />
+Para detenerse, un auto debe perder su energía cinética. Un eléctrico devuelve parte a la batería, y calculo cuánta.
 
-<Step n={1} title="Paso 1">
+<Step n={1} title="Frenar es quitar energía cinética">
 
-Borrador
+Por el teorema trabajo–energía, el trabajo neto sobre el auto es su cambio de energía cinética <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. Uso un Tesla Model 3 de la EPA (tabla 6.1) en el ciclo urbano UDDS: 1369 s de velocidad en 11,99 km <Cite id="epa-drive-schedules" sources={frontmatter.sources} />.
 
-<Why>
-
-<Fragment slot="fenomeno">
-
-Borrador
-
-</Fragment>
-
-<Fragment slot="ecuacion">
-
-Borrador
-
-</Fragment>
-
-</Why>
-
-</Step>
-
-<Step n={2} title="Paso 2">
-
-Borrador
+<Equation
+  id="ec-frenado-trabajo"
+  latex="W_\text{neto} = \Delta K = \tfrac{1}{2}\,m\,v_f^2 - \tfrac{1}{2}\,m\,v_i^2"
+  symbols={[
+    {
+      symbol: 'm',
+      meaning: 'masa de prueba equivalente (ETW) del auto, 1927,77 kg',
+      unit: 'kg',
+    },
+    { symbol: 'v_i,\\ v_f', meaning: 'rapidez al empezar y al terminar el tramo', unit: 'm/s' },
+  ]}
+/>
 
 <Why>
 
 <Fragment slot="fenomeno">
 
-Borrador
+Frenar es hacer trabajo negativo: la energía cinética pasa a otra forma, y si la toma el motor puede volver a la batería.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Borrador
+Con <Equation inline latex="v_f = 0" />, la (6.1) pide <Equation inline latex="W = -\tfrac{1}{2} m v_i^2" />: desde 50 km/h, 185,9 kJ. En todo el UDDS se quitan 1,124 kWh al desacelerar, y el modelo simple los devolvería todos.
 
 </Fragment>
 
 </Why>
 
-</Step>
-
-<Step n={3} title="Paso 3">
-
-Borrador
-
-<Why>
-
-<Fragment slot="fenomeno">
-
-Borrador
-
-</Fragment>
-
-<Fragment slot="ecuacion">
-
-Borrador
-
-</Fragment>
-
-</Why>
-
-</Step>
-
-<Figure type="visualizacion" caption="Borrador" source={{ text: 'Borrador' }}>
-  <p>Borrador</p>
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Energía cinética del Model 3 en los primeros 200 s del UDDS. Cada tramo en tinta es una desaceleración en la que K baja; la mayor, desde 52 km/h, quita 202 kJ en 12 s."
+  source={{
+    text: 'Curva calculada por el autor con la ecuación (6.1); ciclo UDDS de la EPA (fuente 1) y masa del Test Car List 2025 (fuente 2)',
+  }}
+>
+  <RegenFigure variant="energia-cinetica" client:visible />
 </Figure>
+
+</Step>
+
+<Step n={2} title="Por qué no basta: el aire y la rodadura también frenan">
+
+Al desacelerar, la carga en carretera también hace trabajo negativo. La EPA publica sus coeficientes A, B y C por auto <Cite id="epa-test-car-list-2025" sources={frontmatter.sources} />.
+
+<Equation
+  id="ec-frenado-carga"
+  latex="F_\text{RL} = A + B\,v + C\,v^2, \qquad P_\text{rueda} = m\,v\,\frac{dv}{dt} + F_\text{RL}\,v"
+  symbols={[
+    { symbol: 'A', meaning: 'término constante, sobre todo rodadura', unit: 'N' },
+    { symbol: 'B', meaning: 'término proporcional a la rapidez', unit: 'N·s/m' },
+    { symbol: 'C', meaning: 'término del aire', unit: 'N·s²/m²' },
+    {
+      symbol: 'P_\\text{rueda}',
+      meaning: 'potencia que piden las ruedas: positiva al traccionar, negativa al frenar',
+      unit: 'W',
+    },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Al soltar el acelerador el auto frena solo: aire y rodadura toman parte del ΔK, que nunca llega al motor.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Solo con <Equation inline latex="P_\text{rueda} < 0" /> hay que frenar, con <Equation inline latex="P_\text{freno} = -P_\text{rueda}" />. En el UDDS, de 1,124 kWh la carga en carretera disipa 0,255 y 0,869 exigen freno (77,3 %); en el HWFET, solo el 45,6 %.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Fuerza de carga en carretera del Model 3 y sus tres términos, con los coeficientes objetivo de la EPA. Desde 21,0 m/s el término del aire, Cv², supera al constante, A."
+  source={{
+    text: 'Curvas calculadas por el autor con la ecuación (6.2); coeficientes objetivo del Test Car List 2025 de la EPA (fuente 2)',
+  }}
+>
+  <RegenFigure variant="carga-carretera" client:visible />
+</Figure>
+
+<DataTable id="frenado-regenerativo-vehiculo" />
+
+</Step>
+
+<Step n={3} title="Qué falta: el motor recupera con límites">
+
+El motor pierde al convertir: Boretti midió, de rueda a batería, del 70 al 80 % en un Leaf 2012 y del 72 al 87 % en uno 2013 <Cite id="boretti-2016" sources={frontmatter.sources} />; uso η = 0,80. Su tope de potencia baja con la batería llena, fría o caliente <Cite id="nissan-leaf-2025-manual" sources={frontmatter.sources} />. Cerca de detenerse, su frenado se desvanece: f(v) <Cite id="fastsim-2-simdrive" sources={frontmatter.sources} />.
+
+<Equation
+  id="ec-frenado-regeneracion"
+  latex="\begin{gathered} P_\text{regen} = \min\big(f(v)\,P_\text{freno},\ P_\text{máx}\big) \\ E_\text{batería} = \sum \eta\,P_\text{regen}\,\Delta t, \qquad E_\text{fricción} = \sum \big(P_\text{freno} - P_\text{regen}\big)\,\Delta t \end{gathered}"
+  symbols={[
+    {
+      symbol: 'f(v)',
+      meaning:
+        'fracción regenerable según la rapidez, de FASTSim 2: casi 0 al detenerse, 0,98 en marcha',
+    },
+    { symbol: 'P_\\text{máx}', meaning: 'tope de potencia de la regeneración', unit: 'W' },
+    { symbol: '\\eta', meaning: 'rendimiento de la rueda a la batería' },
+    { symbol: '\\Delta t', meaning: 'paso del ciclo EPA, 1 s', unit: 's' },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Lo que el motor no toma, las pastillas lo vuelven calor; de lo que toma, una parte se pierde antes de la batería.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Sin f(v), con un tope de 239 kW y frenadas de hasta 33,2 kW, la (6.3) no dejaría nada a la fricción en el UDDS: volvería a la batería el 43,5 % de la tracción.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Potencia en la mayor frenada del UDDS. El borde superior es P_freno; debajo se apilan lo que llega a la batería, las pérdidas de conversión y el calor de fricción, que aparece al final, cuando f(v) apaga la regeneración. La línea discontinua es lo que recibiría la batería sin f(v)."
+  source={{
+    text: 'Potencias calculadas por el autor con la ecuación (6.3); η de Boretti (fuente 6), tope de 239 kW del motor del Model 3 en FASTSim (fuente 3) y f(v) de FASTSim 2 (fuente 4)',
+  }}
+>
+  <RegenFigure variant="frenada" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={4} title="El balance del ciclo">
+
+El modelo mejorado suma la (6.3) segundo a segundo, como FASTSim. En el UDDS vuelven a la batería 0,645 kWh, el 40,4 % de la tracción, y se disipan 0,223 kWh (tabla 6.2).
+
+<Equation
+  id="ec-frenado-balance"
+  latex="\begin{gathered} E_\text{tracción} = \sum \max\big(0,\ P_\text{rueda}\big)\,\Delta t, \qquad E_\text{disipada} = \sum (1 - \eta)\,P_\text{regen}\,\Delta t + E_\text{fricción} \\ \text{fracción recuperada} = \frac{E_\text{batería}}{E_\text{tracción}} \end{gathered}"
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+La fracción depende de cómo se frena: en carretera frena sobre todo el aire y vuelve el 12,5 %; con manejo agresivo, el 30,7 %.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+La (6.4) divide entre la tracción, no entre el frenado: otro denominador daría otro porcentaje. El frenado se reparte sin resto entre batería, pérdidas y fricción.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  caption="Arriba, la velocidad del UDDS; abajo, las seis energías acumuladas del modelo, con un cursor común que se arrastra o se mueve con las flechas. Las lecturas dan el balance hasta el cursor; lo disipado es la suma de las pérdidas de conversión y el calor de fricción."
+  source={ENERGY_BALANCE_SOURCE}
+>
+  <EnergyBalanceChart client:visible />
+</Figure>
+
+<DataTable id="frenado-regenerativo-ciclos" />
+
+<Figure
+  type="simulacion"
+  showBadge={false}
+  caption="Laboratorio del balance con las ecuaciones (6.2) a (6.4): el auto recorre el ciclo y el flujo de potencia une batería, motor, ruedas y frenos, con grosor proporcional a |P|. Cambia η y P_máx o elige un preajuste: con la batería fría o llena, a 10 kW, solo llegan 0,448 kWh en el UDDS."
+  source={{ text: 'Simulación del autor sobre src/lib/physics/energy.ts' }}
+>
+  <RegenLab
+    client:visible
+    footnote={`La reproducción va ${TIME_LAPSE} veces más rápida que el ciclo real: los 1369 s del UDDS duran ${formatNumber(1369 / TIME_LAPSE, { precision: 1 })} s a 1×; la lectura t va en segundos reales. Lo que el modelo deja fuera: pendiente, viento, temperatura y estado de carga de la batería (salvo a través de P_máx) y la inercia de las ruedas aparte de la ETW; η es constante, y los 10 kW son un escenario, no una medición.`}
+  />
+</Figure>
+
+</Step>
 
 <UseCase>
 
 <Fragment slot="caso">
 
-Borrador
+FASTSim, el simulador abierto del NLR (antes NREL), estima el consumo de un vehículo en un ciclo de velocidad <Cite id="fastsim-v3" sources={frontmatter.sources} />. Su versión 3.1.0 suma en cada paso las potencias de aceleración, rodadura y aire; al frenar, el motor recupera con límite y rendimiento, y la fricción absorbe el resto.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Borrador
+Su potencia de aceleración, <Equation inline latex="\tfrac{m}{2\Delta t}\,(v^2 - v_\text{prev}^2)" />, es el <Equation inline latex="\Delta K/\Delta t" /> de la (6.2) con la rapidez media del intervalo, como en mi modelo; el reparto es la (6.3).
 
 </Fragment>
 
 <Fragment slot="justificacion">
 
-Borrador
+La alternativa no física es una constante, «recupera X %»: con el mismo auto, X va del 12,5 al 40,4 % de la tracción según el ciclo, y una tabla por ciclo no responde a otro auto ni a otro tope. Por eso el dinamómetro de la EPA calcula su fuerza al instante, con A, B, C y una masa efectiva <Cite id="cfr-40-1066-210" sources={frontmatter.sources} />, en vez de reproducir una grabada.
 
 </Fragment>
 
 <Fragment slot="balance">
 
-Borrador
+Se gana una autonomía que responde al ciclo, al auto y a la batería, y saber dónde se pierde cada kWh. Cuesta conocer A, B, C, η y los topes; f(v) usa valores por defecto de FASTSim 2, y el reparto es modelado, no medido. Sin datos, no ve el frío ni la carga de la batería.
 
 </Fragment>
 
 </UseCase>
 
+<Callout variant="clase" title="Módulo 2 · Temas 03 y 04 y una extensión">
+
+La (6.1) es el teorema trabajo–energía del Tema 03; su ejemplo «Distancia de frenado» es esta cuenta con una caja. El balance del Tema 04, <Equation inline latex="\Delta E_\text{mec} + \Delta E_\text{interna} = 0" />, aquí tiene dos salidas: calor en las pastillas y carga en la batería. Potencia, rendimiento y fracción recuperada son extensión.
+
+</Callout>
+
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-Borrador
+El Tema 1 sigue un perfil de velocidad como este ciclo, y cada frenada del dron quita <Equation inline latex="\tfrac{1}{2} m v^2" />. En el Tema 4, el agarre limita la desaceleración, regenerativa o de fricción. En el Tema 7, lo que un choque con <Equation inline latex="e < 1" /> no devuelve también se vuelve energía interna.
 
 </Connections>
 
