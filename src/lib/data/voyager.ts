@@ -1,7 +1,17 @@
 import { z } from 'astro/zod';
-import { escapeSpeed, specificEnergy, visVivaSpeed } from '../physics';
+import {
+  escapeSpeed,
+  keplerPropagate,
+  orbitFromState,
+  planarFlyby,
+  specificEnergy,
+  visVivaSpeed,
+  type Cartesian3,
+  type OrbitElements,
+  type PassSide,
+} from '../physics';
 import { requirePositive } from '../physics/validate';
-import { AU_KM, GM_SUN, PLANET_IDS, type PlanetId } from './planets';
+import { AU_KM, GM_SUN, PLANETS, PLANET_IDS, type PlanetId } from './planets';
 import rawDataset from '../../data/voyager-speed.json';
 
 /**
@@ -13,6 +23,17 @@ import rawDataset from '../../data/voyager-speed.json';
  */
 
 const MAX_ANGLE_DEG = 180;
+const DEG = Math.PI / 180;
+const SECONDS_PER_DAY = 86400;
+/** Largest |planar v_out − conicAfter| (km/s) for the planar turn to count as reproducing the data. */
+const PLANAR_TOLERANCE_KMS = 0.05;
+const PASS_SIDES: readonly PassSide[] = ['behind', 'front'];
+
+/**
+ * Mass of each Voyager, kg: NASA's Voyager 2 page («1,592 pounds (721.9 kilograms)») and NSSDCA
+ * (721.9 kg for both); research §3, CONFIRMADO.
+ */
+export const VOYAGER_MASS_KG = 721.9;
 /** Days on each side of closest approach where ε is taken (research §5, «Δ|v| vis-viva»). */
 const JUMP_WINDOW_DAYS = 120;
 
@@ -47,6 +68,11 @@ const encounterSchema = z.object({
   VpKms: z.number().positive(),
   /** Angle between V⃗_p and the incoming asymptote v⃗∞,in, degrees. */
   thetaInDeg: angleSchema,
+  /**
+   * Angle between V⃗_p and the outgoing asymptote v⃗∞,out, degrees. With θ_in it rebuilds both
+   * conics by the law of cosines even when the turn leaves the plane of V⃗_p and v⃗∞,in.
+   */
+  thetaOutDeg: angleSchema,
   /** Turn angle δ = 2 asin(1/(1 + r_p v∞²/GM_p)), degrees. */
   deltaDeg: angleSchema,
   /** Patched-conic heliocentric speed before and after, |V⃗_p + v⃗∞|, km/s. */
@@ -69,6 +95,12 @@ const datasetSchema = z.object({
   columns: z.tuple([z.literal('jdTdbMinusOffset'), z.literal('speedKmS'), z.literal('distanceAu')]),
   series: z.object({ v1: seriesSchema, v2: seriesSchema }),
   encounters: z.array(encounterSchema).min(1),
+  /** V2 heliocentric state on 1979-01-01 00:00 TDB (km, km/s, ecliptic J2000). */
+  sunOnlyState: z.object({
+    jd: z.number(),
+    r: z.tuple([z.number(), z.number(), z.number()]),
+    v: z.tuple([z.number(), z.number(), z.number()]),
+  }),
 });
 
 /** One sample: full Julian date (TDB), heliocentric speed (km/s) and distance to the Sun (AU). */
@@ -78,7 +110,21 @@ export interface SeriesPoint {
   r: number;
 }
 
-export type Encounter = z.infer<typeof encounterSchema>;
+export type Encounter = z.infer<typeof encounterSchema> & {
+  /**
+   * The side for which the planar model (θ_in, δ, side) lands within 0,05 km/s of conicAfter, or
+   * null when no side does because the real turn leaves the plane («giro fuera del plano»).
+   */
+  planarSide: PassSide | null;
+  planarTurnReproduces: boolean;
+};
+
+/** A heliocentric state vector: full JD (TDB), r⃗ (km) and v⃗ (km/s). */
+export interface StateVector {
+  jd: number;
+  r: Cartesian3;
+  v: Cartesian3;
+}
 
 type RawDataset = z.infer<typeof datasetSchema>;
 
@@ -92,6 +138,18 @@ export interface VoyagerDataset {
   gmSun: number;
   series: { v1: SeriesPoint[]; v2: SeriesPoint[] };
   encounters: Encounter[];
+  /** Where the «solo el Sol» counterfactual starts: V2 on 1979-01-01, before Jupiter. */
+  sunOnlyState: StateVector;
+}
+
+/** Which side, if any, lets the planar turn reproduce the 3D patched conic of an encounter. */
+function planarSideOf(e: z.infer<typeof encounterSchema>): PassSide | null {
+  const { gm } = PLANETS[e.planet];
+  const reproduces = (side: PassSide) =>
+    Math.abs(
+      planarFlyby(e.VpKms, e.vInf, e.thetaInDeg * DEG, e.rpKm, gm, side).vOut - e.conicAfter,
+    ) < PLANAR_TOLERANCE_KMS;
+  return PASS_SIDES.find(reproduces) ?? null;
 }
 
 /** Validates the JSON and expands each [jd − offset, |v|, r] triple into a SeriesPoint. */
@@ -105,11 +163,40 @@ export function parseVoyagerDataset(raw: unknown): VoyagerDataset {
     sourceNotes: data.sourceNotes,
     gmSun: data.gmSun,
     series: { v1: expand(data.series.v1), v2: expand(data.series.v2) },
-    encounters: data.encounters,
+    encounters: data.encounters.map((e) => {
+      const planarSide = planarSideOf(e);
+      return { ...e, planarSide, planarTurnReproduces: planarSide !== null };
+    }),
+    sunOnlyState: data.sunOnlyState,
   };
 }
 
 export const VOYAGER: VoyagerDataset = parseVoyagerDataset(rawDataset);
+
+/** The Sun-only orbit V2 was on before Jupiter (research §5: a = 3,64 AU, e = 0,727). */
+export const SUN_ONLY_ORBIT: OrbitElements = orbitFromState(
+  VOYAGER.sunOnlyState.r,
+  VOYAGER.sunOnlyState.v,
+  GM_SUN,
+);
+
+/**
+ * The «solo el Sol, sin Júpiter» counterfactual: V2's 1979-01-01 state propagated by Kepler with
+ * the Sun alone, at each Julian date (TDB, not before the state). Same units as the data series.
+ */
+export function sunOnlySeries(jds: readonly number[]): SeriesPoint[] {
+  const { jd: start, r, v } = VOYAGER.sunOnlyState;
+  const times = jds.map((jd) => {
+    if (!(jd >= start))
+      throw new RangeError(`JD ${jd} is before the counterfactual state ${start}`);
+    return (jd - start) * SECONDS_PER_DAY;
+  });
+  return keplerPropagate(r, v, GM_SUN, times).map((sample, k) => ({
+    jd: jds[k],
+    speed: sample.speed,
+    r: sample.r / AU_KM,
+  }));
+}
 
 /** Linear interpolation of `value` at `jd`; throws when jd falls outside the series. */
 function interpolate(

@@ -46,6 +46,9 @@ const DETAIL_HALF_WIDTH_D = 5;
 /** Minute-step window around the hourly closest approach, in UT (research §4: CA ±2–3 h). */
 const MINUTE_BEFORE_H = 2;
 const MINUTE_AFTER_H = 3;
+/** Epoch of the «solo el Sol» counterfactual state (research §5 and §8: V2 before Jupiter). */
+const SUN_ONLY_EPOCH = '1979-01-01';
+const SUN_ONLY_STOP = '1979-01-02';
 /** Largest accepted |v_helio − (v_planet-centred + V_planet)| (research §4 found < 2 × 10⁻⁵). */
 const FRAME_RESIDUAL_KMS = 1e-3;
 
@@ -336,6 +339,7 @@ async function analyseEncounter(plan: EncounterPlan): Promise<EncounterResult> {
       vInfOut: round(vInfOf(pc.rows[pc.rows.length - 1], body.gm), 4),
       VpKms: round(norm(Vp), 4),
       thetaInDeg: round(angleDeg(Vp, uIn), 2),
+      thetaOutDeg: round(angleDeg(Vp, uOut), 2),
       deltaDeg: round(turnAngle(vInf, rpKm, body.gm) * RAD_TO_DEG, 2),
       conicBefore: round(norm(add(Vp, scale(uIn, vInf))), 4),
       conicAfter: round(norm(add(Vp, scale(uOut, vInf))), 4),
@@ -364,13 +368,25 @@ async function main(): Promise<void> {
   const v1 = PROBES.V1;
   const v2Base = await vectors('v2-helio-5d', v2.command, SUN_CENTER, v2.start, v2.stop, '5 d');
   const v1Base = await vectors('v1-helio-5d', v1.command, SUN_CENTER, v1.start, v1.stop, '5 d');
+  const state = await vectors(
+    `v2-state-${SUN_ONLY_EPOCH}`,
+    v2.command,
+    SUN_CENTER,
+    SUN_ONLY_EPOCH,
+    SUN_ONLY_STOP,
+    '1 d',
+  );
+  const [epoch] = state.rows;
+  if (!epoch?.calendar.includes('1979-Jan-01 00:00')) {
+    throw new Error(`${state.id}: unexpected first row ${epoch?.calendar}`);
+  }
 
   const results: EncounterResult[] = [];
   for (const plan of ENCOUNTERS) results.push(await analyseEncounter(plan));
 
   const detailsOf = (probe: Probe) =>
     results.filter((_, k) => ENCOUNTERS[k].probe === probe).map((result) => result.helioRows);
-  const responses = [v2Base, v1Base, ...results.flatMap((result) => result.responses)];
+  const responses = [v2Base, v1Base, state, ...results.flatMap((result) => result.responses)];
 
   const dataset = {
     retrieved: new Date().toISOString().slice(0, 10),
@@ -391,6 +407,8 @@ async function main(): Promise<void> {
       v1: compactSeries(v1Base.rows, detailsOf('V1')),
     },
     encounters: results.map((result) => result.encounter),
+    /** V2 heliocentric state (km, km/s, ecliptic J2000) that the Sun-only counterfactual starts from. */
+    sunOnlyState: { jd: epoch.jd, r: epoch.r, v: epoch.v },
   };
 
   const json = `${JSON.stringify(dataset)}\n`;

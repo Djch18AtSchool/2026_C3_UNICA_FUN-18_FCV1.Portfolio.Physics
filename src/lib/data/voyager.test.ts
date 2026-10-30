@@ -1,14 +1,17 @@
 import { statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
-import { escapeSpeed, specificEnergy } from '../physics';
-import { AU_KM, GM_SUN } from './planets';
+import { escapeSpeed, planarFlyby, specificEnergy } from '../physics';
+import { AU_KM, GM_SUN, PLANETS } from './planets';
 import raw from '../../data/voyager-speed.json';
 import {
+  SUN_ONLY_ORBIT,
   VOYAGER,
+  VOYAGER_MASS_KG,
   encounterJump,
   escapeSpeedSeries,
   parseVoyagerDataset,
+  sunOnlySeries,
   type Encounter,
   type SeriesPoint,
 } from './voyager';
@@ -46,7 +49,7 @@ describe('voyager-speed.json', () => {
     const { requests } = VOYAGER.query;
 
     expect(VOYAGER.query.endpoint).toBe('https://ssd.jpl.nasa.gov/api/horizons.api');
-    expect(requests.length).toBe(26);
+    expect(requests.length).toBe(27);
     requests.forEach((request) => {
       expect(request.url.startsWith(`${VOYAGER.query.endpoint}?`)).toBe(true);
       expect(request.url).toContain("EPHEM_TYPE='VECTORS'");
@@ -292,6 +295,121 @@ describe('VOYAGER.encounters (osculating hyperbola at closest approach, research
     expect(jupiter.vInf).toBeCloseTo(7.616, 2);
     expect(jupiter.conicBefore).toBeCloseTo(9.59, 1);
     expect(jupiter.conicAfter).toBeCloseTo(19.5, 1);
+  });
+});
+
+describe('out-of-plane turns: what the planar model can and cannot rebuild', () => {
+  const DEG = Math.PI / 180;
+  const lawOfCosines = (Vp: number, vInf: number, thetaDeg: number) =>
+    Math.sqrt(Vp * Vp + vInf * vInf + 2 * Vp * vInf * Math.cos(thetaDeg * DEG));
+
+  test('V_p, v∞ and the asymptote angles θ_in, θ_out rebuild both conics for all six', () => {
+    VOYAGER.encounters.forEach((e) => {
+      expect(lawOfCosines(e.VpKms, e.vInf, e.thetaInDeg)).toBeCloseTo(e.conicBefore, 2);
+      expect(lawOfCosines(e.VpKms, e.vInf, e.thetaOutDeg)).toBeCloseTo(e.conicAfter, 2);
+    });
+  });
+
+  test('the (θ_in, δ, side) planar turn reproduces all but V2 Neptune and V1 Saturn', () => {
+    expect(VOYAGER.encounters.map((e) => [e.probe, e.planet, e.planarSide])).toEqual([
+      ['V2', 'jupiter', 'behind'],
+      ['V2', 'saturn', 'behind'],
+      ['V2', 'uranus', 'behind'],
+      ['V2', 'neptune', null],
+      ['V1', 'jupiter', 'behind'],
+      ['V1', 'saturn', null],
+    ]);
+    VOYAGER.encounters.forEach((e) => {
+      expect(e.planarTurnReproduces).toBe(e.planarSide !== null);
+    });
+  });
+
+  test('where it reproduces, the planar turn lands within 0,05 km/s of the 3D conic', () => {
+    VOYAGER.encounters
+      .filter((e) => e.planarSide !== null)
+      .forEach((e) => {
+        const { gm } = PLANETS[e.planet];
+        const f = planarFlyby(e.VpKms, e.vInf, e.thetaInDeg * DEG, e.rpKm, gm, e.planarSide!);
+        expect(Math.abs(f.vOut - e.conicAfter)).toBeLessThan(JUMP_TOLERANCE);
+        expect(f.vIn).toBeCloseTo(e.conicBefore, 2);
+      });
+  });
+
+  test('V2 at Neptune turns out of the plane: θ_out is not θ_in ± δ', () => {
+    const neptune = encounter('V2', 'neptune');
+
+    expect(Math.abs(neptune.thetaOutDeg - (neptune.thetaInDeg - neptune.deltaDeg))).toBeGreaterThan(
+      5,
+    );
+    expect(Math.abs(neptune.thetaOutDeg - (neptune.thetaInDeg + neptune.deltaDeg))).toBeGreaterThan(
+      5,
+    );
+  });
+});
+
+describe('the «solo el Sol» counterfactual from V2’s state on 1979-01-01 (research §5, §8)', () => {
+  const AU_YEAR_S = 365.25 * 86400;
+
+  test('records the Horizons request and the state at 1979-01-01 00:00 TDB', () => {
+    const request = VOYAGER.query.requests.find((r) => r.id === 'v2-state-1979-01-01');
+
+    expect(request).toBeDefined();
+    expect(decodeURI(request!.url)).toContain("START_TIME='1979-01-01'");
+    expect(VOYAGER.sunOnlyState.jd).toBe(2443874.5);
+    expect(VOYAGER.sunOnlyState.r).toHaveLength(3);
+    expect(VOYAGER.sunOnlyState.v).toHaveLength(3);
+  });
+
+  test('bound orbit: a = 3,64 AU, e = 0,727, perihelion 0,997 AU, aphelion 6,29 AU, 6,96 yr', () => {
+    expect(SUN_ONLY_ORBIT.energy).toBeCloseTo(-121.6, 0);
+    expect(SUN_ONLY_ORBIT.a / AU_KM).toBeCloseTo(3.64, 2);
+    expect(SUN_ONLY_ORBIT.e).toBeCloseTo(0.727, 3);
+    expect(SUN_ONLY_ORBIT.perihelion / AU_KM).toBeCloseTo(0.997, 2);
+    expect(SUN_ONLY_ORBIT.aphelion / AU_KM).toBeCloseTo(6.29, 2);
+    expect(SUN_ONLY_ORBIT.period / AU_YEAR_S).toBeCloseTo(6.96, 2);
+  });
+
+  test('its speed would bottom out at 6,21 km/s at aphelion and come back', () => {
+    const start = VOYAGER.sunOnlyState.jd;
+    const jds = Array.from({ length: 1000 }, (_, k) => start + k * 3);
+    const series = sunOnlySeries(jds);
+    const slowest = series.reduce((min, p) => (p.speed < min.speed ? p : min));
+
+    expect(slowest.speed).toBeCloseTo(6.21, 2);
+    expect(slowest.r).toBeCloseTo(6.29, 1);
+    const afterwards = series.filter((p) => p.jd > slowest.jd);
+    expect(Math.max(...afterwards.map((p) => p.speed))).toBeGreaterThan(slowest.speed + 5);
+  });
+
+  test('starts on the data and follows it in the following weeks, before Jupiter pulls', () => {
+    const { jd, r, v } = VOYAGER.sunOnlyState;
+    const [first] = sunOnlySeries([jd]);
+    const following = v2.filter((p) => p.jd > jd && p.jd < jd + 30);
+    const propagated = sunOnlySeries(following.map((p) => p.jd));
+
+    expect(first.speed).toBeCloseTo(Math.hypot(...v), 9);
+    expect(first.r).toBeCloseTo(Math.hypot(...r) / AU_KM, 9);
+    expect(following.length).toBe(6);
+    following.forEach((p, k) => {
+      expect(Math.abs(propagated[k].speed - p.speed)).toBeLessThan(0.01);
+      expect(Math.abs(propagated[k].r - p.r)).toBeLessThan(0.001);
+    });
+  });
+
+  test('conserves the solar energy along the whole counterfactual', () => {
+    const series = sunOnlySeries([2443874.5, 2444500.5, 2445500.5, 2446000.5]);
+
+    series.forEach((p) => expect(energy(p)).toBeCloseTo(SUN_ONLY_ORBIT.energy, 2));
+  });
+
+  test('rejects a date before the state', () => {
+    expect(() => sunOnlySeries([VOYAGER.sunOnlyState.jd - 1])).toThrow(RangeError);
+  });
+});
+
+describe('VOYAGER_MASS_KG and Jupiter’s recoil', () => {
+  test('721,9 kg (NASA, NSSDCA)', () => {
+    expect(VOYAGER_MASS_KG).toBe(721.9);
   });
 });
 

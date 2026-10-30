@@ -2,12 +2,18 @@ import { describe, expect, test } from 'vitest';
 import {
   deltaVMagnitude,
   escapeSpeed,
+  gravityForce,
   hyperbolicEccentricity,
+  keplerPropagate,
+  orbitFromState,
   planarFlyby,
+  potentialEnergy,
+  recoilSpeed,
   specificEnergy,
   sphereOfInfluence,
   turnAngle,
   visVivaSpeed,
+  type Cartesian3,
 } from './gravitation';
 
 const DEG = Math.PI / 180;
@@ -232,5 +238,121 @@ describe('sphereOfInfluence', () => {
     expect(() => sphereOfInfluence(0, 1, 2)).toThrow(RangeError);
     expect(() => sphereOfInfluence(1, 0, 2)).toThrow(RangeError);
     expect(() => sphereOfInfluence(1, 1, 0)).toThrow(RangeError);
+  });
+});
+
+describe('force, potential energy and recoil', () => {
+  test('F = GMm/r² and U = −GMm/r in kernel units (kg·km/s² = kN, kg·km²/s² = MJ)', () => {
+    // A 721,9 kg probe at 1 AU from the Sun: F ≈ 4,28 N, U ≈ −640 GJ.
+    expect(gravityForce(GM_SUN, 721.9, AU) * 1000).toBeCloseTo(4.28, 2);
+    expect(potentialEnergy(GM_SUN, 721.9, AU) / 1000).toBeCloseTo(-640.4, 1);
+    expect(potentialEnergy(2e5, 2, 1000)).toBe(-400);
+    expect(gravityForce(2e5, 2, 1000)).toBe(0.4);
+  });
+
+  test('U is the work against F: dU/dr = F', () => {
+    const r = 5 * AU;
+    const h = 1e4;
+    const slope = (potentialEnergy(GM_SUN, 1, r + h) - potentialEnergy(GM_SUN, 1, r - h)) / (2 * h);
+
+    expect(slope / gravityForce(GM_SUN, 1, r)).toBeCloseTo(1, 8);
+  });
+
+  test('m Δv = −M ΔV: Jupiter recoils 4,4 × 10⁻²¹ m/s for V2’s 11,45 km/s (research §5)', () => {
+    const recoil = recoilSpeed(721.9, 18.9819e26, 11.45);
+
+    expect(recoil).toBeLessThan(0);
+    // 4,35 × 10⁻²¹ m/s, which research §5 rounds to 4,4 × 10⁻²¹.
+    expect((-recoil * 1000) / 1e-21).toBeCloseTo(4.35, 2);
+    expect(recoilSpeed(2, 4, 3)).toBe(-1.5);
+  });
+
+  test('rejects non-positive masses and distances', () => {
+    expect(() => gravityForce(GM_SUN, 0, AU)).toThrow(RangeError);
+    expect(() => potentialEnergy(GM_SUN, 1, 0)).toThrow(RangeError);
+    expect(() => recoilSpeed(1, 0, 1)).toThrow(RangeError);
+    expect(() => recoilSpeed(1, 1, Number.NaN)).toThrow(RangeError);
+  });
+});
+
+describe('orbitFromState and keplerPropagate (Sun-only conic from a state vector)', () => {
+  /** An ellipse with q = 1 AU and e = 0,727 starting at perihelion, in the ecliptic. */
+  const ECC = 0.727;
+  const Q = AU;
+  const R0: Cartesian3 = [Q, 0, 0];
+  const V0: Cartesian3 = [0, Math.sqrt((GM_SUN * (1 + ECC)) / Q), 0];
+  const elements = orbitFromState(R0, V0, GM_SUN);
+
+  test('recovers a = q/(1 − e), e, perihelion, aphelion and period 2π√(a³/GM)', () => {
+    const a = Q / (1 - ECC);
+
+    expect(elements.e).toBeCloseTo(ECC, 12);
+    expect(elements.a / a).toBeCloseTo(1, 12);
+    expect(elements.perihelion / Q).toBeCloseTo(1, 12);
+    expect(elements.aphelion / (a * (1 + ECC))).toBeCloseTo(1, 12);
+    expect(elements.period / (2 * Math.PI * Math.sqrt(a ** 3 / GM_SUN))).toBeCloseTo(1, 12);
+    expect(elements.energy).toBeCloseTo(-GM_SUN / (2 * a), 9);
+  });
+
+  test('is independent of where on the orbit and in which plane the state is taken', () => {
+    const [later] = keplerPropagate(R0, V0, GM_SUN, [elements.period / 3]);
+    const tilt = (u: Cartesian3): Cartesian3 => [u[0], u[1] * 0.6, u[1] * 0.8];
+    const tilted = orbitFromState(tilt(later.rVec), tilt(later.vVec), GM_SUN);
+
+    expect(tilted.e).toBeCloseTo(ECC, 9);
+    expect(tilted.a / elements.a).toBeCloseTo(1, 9);
+  });
+
+  test('an unbound state has no aphelion nor period: Infinity, not NaN', () => {
+    const escape: Cartesian3 = [0, escapeSpeed(Q, GM_SUN) * 1.1, 0];
+    const hyperbola = orbitFromState(R0, escape, GM_SUN);
+
+    expect(hyperbola.e).toBeGreaterThan(1);
+    expect(hyperbola.aphelion).toBe(Infinity);
+    expect(hyperbola.period).toBe(Infinity);
+    expect(() => keplerPropagate(R0, escape, GM_SUN, [0])).toThrow(/bound/);
+  });
+
+  test('reaches aphelion after half a period and returns to the start after one', () => {
+    const [start, half, full] = keplerPropagate(R0, V0, GM_SUN, [
+      0,
+      elements.period / 2,
+      elements.period,
+    ]);
+
+    expect(start.r / Q).toBeCloseTo(1, 12);
+    expect(half.r / elements.aphelion).toBeCloseTo(1, 9);
+    expect(full.r / Q).toBeCloseTo(1, 9);
+    expect(half.speed).toBeCloseTo(visVivaSpeed(elements.aphelion, GM_SUN, elements.energy), 6);
+  });
+
+  test('conserves energy and angular momentum along the propagated orbit', () => {
+    const times = Array.from({ length: 50 }, (_, k) => (k * elements.period) / 37);
+    const h0 = Q * V0[1];
+
+    keplerPropagate(R0, V0, GM_SUN, times).forEach((sample, k) => {
+      const { rVec, vVec } = sample;
+      const h = rVec[0] * vVec[1] - rVec[1] * vVec[0];
+      expect(sample.t).toBe(times[k]);
+      expect(Math.hypot(...rVec)).toBeCloseTo(sample.r, 3);
+      expect(Math.hypot(...vVec)).toBeCloseTo(sample.speed, 9);
+      expect(specificEnergy(sample.speed, sample.r, GM_SUN) / elements.energy).toBeCloseTo(1, 9);
+      expect(h / h0).toBeCloseTo(1, 9);
+    });
+  });
+
+  test('a circular orbit stays at constant r and speed', () => {
+    const v = Math.sqrt(GM_SUN / Q);
+    const samples = keplerPropagate([Q, 0, 0], [0, v, 0], GM_SUN, [0, 1e6, 1e7]);
+
+    samples.forEach((sample) => {
+      expect(sample.r / Q).toBeCloseTo(1, 9);
+      expect(sample.speed / v).toBeCloseTo(1, 9);
+    });
+  });
+
+  test('rejects a state at the origin and a non-finite time', () => {
+    expect(() => orbitFromState([0, 0, 0], V0, GM_SUN)).toThrow(RangeError);
+    expect(() => keplerPropagate(R0, V0, GM_SUN, [Number.NaN])).toThrow(RangeError);
   });
 });
