@@ -106,7 +106,11 @@ describe('gravedad-artificial tables', () => {
     expect(STANFORD_TORUS.R + STANFORD_TORUS.tubeRadius).toBe(presetRadius('limite-sp413'));
   });
 
-  test('toro: the SP-413 facts, Coriolis included', () => {
+  test('toro: R = 830 m and a 65 m tube, at 1 RPM', () => {
+    expect(STANFORD_TORUS).toEqual({ R: 830, tubeRadius: 65, rpm: 1 });
+  });
+
+  test('toro: the SP-413 facts; Coriolis stays in the caption of figure 3.3, after step 3', () => {
     const rows = markdownRows(tableMarkdown(TABLES[1])).slice(2);
     const text = rows.map((row) => row.join(' ')).join(' ');
 
@@ -117,8 +121,7 @@ describe('gravedad-artificial tables', () => {
     expect(text).toContain('seis');
     expect(text).toContain('entre 0,9 y 1 g');
     expect(text).toContain('0,95 ± 0,05 g a 1 RPM');
-    expect(text).toContain('0,55 m');
-    expect(text).toContain('5,3 cm');
+    expect(text).not.toContain('Coriolis');
     expect(TABLES[1].caption).toContain('1975');
     expect(TABLES[1].caption).toContain('1977');
   });

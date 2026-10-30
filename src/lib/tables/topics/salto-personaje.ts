@@ -4,14 +4,16 @@
  * (docs/superpowers/research/2026-10-08-sources.md, sections 1 and 3). The simulator presets in
  * src/lib/data/jumpPresets.ts round the same conversions.
  */
+import { JUMP_SCALES } from '../../data/jumpPresets';
 import { formatNumber } from '../../format';
 import type { DataTableSpec } from '../types';
 
-/** Celeste: 8 px = 1 m, the width of Madeline's hitbox. */
-const CELESTE_PX_PER_M = 8;
-/** Super Mario Bros.: 16 px = 1 m, the side of a block, at 60 frames per second. */
-const SMB_PX_PER_M = 16;
-const SMB_FRAMES_PER_S = 60;
+/** Celeste: 8 px = 1 m (Madeline's hitbox); Super Mario Bros.: 16 px = 1 m (a block), 60 frames/s. */
+const {
+  celestePxPerM: CELESTE_PX_PER_M,
+  smbPxPerM: SMB_PX_PER_M,
+  smbFramesPerS: SMB_FRAMES_PER_S,
+} = JUMP_SCALES;
 
 type CodeUnit = 'px/s' | 'px/s²' | 's' | 'px/cuadro' | 'px/cuadro²';
 

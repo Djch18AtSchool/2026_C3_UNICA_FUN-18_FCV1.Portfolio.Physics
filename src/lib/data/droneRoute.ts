@@ -45,8 +45,8 @@ const CM_PER_M = 100;
  * WPNAV_ACCELERATION 250 cm/s², called WP_SPD and WP_ACC in the current documentation.
  * Source: docs/superpowers/research/2026-10-08-sources.md, section 5.
  */
-const ARDUPILOT_WP_SPEED_CM_S = 1000;
-const ARDUPILOT_WP_ACCEL_CM_S2 = 250;
+export const ARDUPILOT_WP_SPEED_CM_S = 1000;
+export const ARDUPILOT_WP_ACCEL_CM_S2 = 250;
 const SAMPLE_PERIOD_S = 0.1;
 const DELIVERY_DWELL_S = 20;
 /** Removes binary noise such as 0.30000000000000004 from grid times. */

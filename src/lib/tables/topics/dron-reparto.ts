@@ -3,13 +3,17 @@
  * trapezoidal profile of the kinematics kernel; the autopilot defaults are copied from their
  * sources (docs/superpowers/research/2026-10-08-sources.md, sections 5 and 6).
  */
-import { DRONE_ROUTE, routeDuration } from '../../data/droneRoute';
+import {
+  ARDUPILOT_WP_ACCEL_CM_S2,
+  ARDUPILOT_WP_SPEED_CM_S,
+  DRONE_ROUTE,
+  routeDuration,
+} from '../../data/droneRoute';
 import { formatNumber } from '../../format';
 import { angle, magnitude, sub, trapezoidalProfile, vec } from '../../physics';
 import type { DataTableSpec } from '../types';
 
 const DEGREES_PER_RADIAN = 180 / Math.PI;
-const CM_PER_M = 100;
 const NO_VALUE = '—';
 
 /** ArduPilot Copter 4.6.3, AC_WPNav.cpp: AP_GROUPINFO("JERK", …, 1.0f), in m/s³ (source 2). */
@@ -46,7 +50,7 @@ const sum = (values: readonly number[]): number =>
   values.reduce((total, value) => total + value, 0);
 
 const totalRow = {
-  tramo: 'Ruta completa',
+  tramo: 'Suma de los tramos',
   x: NO_VALUE,
   y: NO_VALUE,
   d: sum(legRows.map((row) => row.d)),
@@ -88,37 +92,47 @@ const TRAMOS: DataTableSpec = {
   },
 };
 
+/** A copied value at the precision its source prints it (tables never pad digits). */
+const printed = (value: number, decimals = 0): string =>
+  formatNumber(value, { precision: decimals });
+
 const LIMITES: DataTableSpec = {
   id: 'dron-reparto-limites',
   caption:
-    'Límites de trayectoria por defecto de los dos autopilotos, en SI. La sobreaceleración (jerk) es el ritmo de cambio de la aceleración horizontal; ArduPilot 4.6.3 guarda rapidez y aceleración en centímetros, y su lista actual de parámetros les cambia el nombre.',
+    'Límites de trayectoria por defecto de los dos autopilotos, en SI. En misión, ArduPilot vuela con WP_SPD como rapidez horizontal máxima y PX4 con su rapidez de crucero, por debajo de su máxima general; la sobreaceleración (jerk) es el ritmo de cambio de la aceleración horizontal, y ArduPilot 4.6.3 guarda rapidez y aceleración en centímetros.',
+  // Each cell is pre-formatted at its source's precision (2,5 and 3 share a column), so the
+  // columns' precision is never applied.
   columns: [
     { key: 'autopiloto', label: 'Autopiloto', align: 'text' },
-    { key: 'vMax', label: 'Rapidez horizontal máx.', unit: 'm/s', align: 'num', precision: 0 },
+    { key: 'mission', label: 'Rapidez en misión', unit: 'm/s', align: 'num', precision: 0 },
     {
-      key: 'cruise',
-      label: 'Rapidez de crucero en misión',
+      key: 'vMax',
+      label: 'Rapidez horizontal máx. general',
       unit: 'm/s',
       align: 'num',
       precision: 0,
     },
-    { key: 'aMax', label: 'Aceleración horizontal', unit: 'm/s²', align: 'num', precision: 1 },
+    { key: 'aMax', label: 'Aceleración horizontal', unit: 'm/s²', align: 'num', precision: 0 },
     { key: 'jerk', label: 'Sobreaceleración, jerk', unit: 'm/s³', align: 'num', precision: 0 },
     { key: 'parametros', label: 'Parámetros', align: 'text' },
   ],
   rows: [
     {
       autopiloto: 'ArduPilot Copter 4.6.3',
-      vMax,
-      cruise: NO_VALUE,
-      aMax,
-      jerk: ARDUPILOT_JERK_M_S3,
-      parametros: `WPNAV_SPEED = ${number(vMax * CM_PER_M, 0, 'cm/s')}, WPNAV_ACCEL = ${number(aMax * CM_PER_M, 0, 'cm/s²')} y un jerk de ${number(ARDUPILOT_JERK_M_S3, 0, 'm/s³')}; en la lista actual, WP_SPD, WP_ACC y WP_JERK`,
+      mission: printed(vMax),
+      vMax: NO_VALUE,
+      aMax: printed(aMax, 1),
+      jerk: printed(ARDUPILOT_JERK_M_S3),
+      parametros: `WPNAV_SPEED = ${number(ARDUPILOT_WP_SPEED_CM_S, 0, 'cm/s')}, rapidez máxima en misión; WPNAV_ACCEL = ${number(ARDUPILOT_WP_ACCEL_CM_S2, 0, 'cm/s²')}; en la lista actual, WP_SPD, WP_ACC y WP_JERK`,
     },
     {
       autopiloto: 'PX4',
-      ...PX4_DEFAULTS,
-      parametros: 'MPC_XY_VEL_MAX, MPC_XY_CRUISE, MPC_ACC_HOR y MPC_JERK_AUTO',
+      mission: printed(PX4_DEFAULTS.cruise),
+      vMax: printed(PX4_DEFAULTS.vMax),
+      aMax: printed(PX4_DEFAULTS.aMax),
+      jerk: printed(PX4_DEFAULTS.jerk),
+      parametros:
+        'MPC_XY_CRUISE, rapidez de crucero en misión; MPC_XY_VEL_MAX, MPC_ACC_HOR y MPC_JERK_AUTO',
     },
   ],
   source: {

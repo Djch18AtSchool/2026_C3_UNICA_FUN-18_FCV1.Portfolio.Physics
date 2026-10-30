@@ -16,6 +16,9 @@ export interface JumpSettings {
  *   SMB, 16 px = 1 m, 60 frames/s:  4 · 60 / 16 = 15 m/s; 0,125 · 60² / 16 = 28,125 ≈ 28,1 m/s²;
  *   0,4375 / 0,125 = 3,5.
  */
+/** The scales those conversions assume: Celeste 8 px = 1 m; SMB 16 px = 1 m at 60 frames/s. */
+export const JUMP_SCALES = { celestePxPerM: 8, smbPxPerM: 16, smbFramesPerS: 60 } as const;
+
 /** Celeste's Player.cs at 8 px = 1 m; also the simulator's starting point (see JUMP_DEFAULTS). */
 export const CELESTE_JUMP: JumpSettings = { v0: 13.1, g: 112.5, vx: 11.25, fallMultiplier: 1 };
 

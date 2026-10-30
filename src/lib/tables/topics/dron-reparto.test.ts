@@ -47,7 +47,7 @@ describe('dron-reparto tables', () => {
       ['A → B', '900', '800', '670,8', '63,4', '1,12', '2,24', '630,8', '71,1', '20'],
       ['B → C', '300', '1 100', '670,8', '153,4', '-2,24', '1,12', '630,8', '71,1', '20'],
       ['C → Depósito', '0', '0', '1 140,2', '-105,3', '-0,66', '-2,41', '1 100,2', '118,0', '0'],
-      ['Ruta completa', '—', '—', '3 114,3', '—', '—', '—', '—', '327,4', '60'],
+      ['Suma de los tramos', '—', '—', '3 114,3', '—', '—', '—', '—', '327,4', '60'],
     ]);
   });
 
@@ -61,29 +61,30 @@ describe('dron-reparto tables', () => {
     expect(caption).toContain('387,4 s');
   });
 
-  test('limites: ArduPilot 4.6.3 and PX4 defaults in SI, with the centimetre values and the names', () => {
+  test('limites: ArduPilot 4.6.3 and PX4 defaults at their source precision, with the names', () => {
     const [header, , arduPilot, px4] = markdownRows(tableMarkdown(TABLES[1]));
 
     expect(header).toEqual([
       'Autopiloto',
-      'Rapidez horizontal máx. (m/s)',
-      'Rapidez de crucero en misión (m/s)',
+      'Rapidez en misión (m/s)',
+      'Rapidez horizontal máx. general (m/s)',
       'Aceleración horizontal (m/s²)',
       'Sobreaceleración, jerk (m/s³)',
       'Parámetros',
     ]);
     expect(arduPilot.slice(0, 5)).toEqual(['ArduPilot Copter 4.6.3', '10', '—', '2,5', '1']);
-    expect(arduPilot[5]).toContain('WPNAV_SPEED = 1 000 cm/s');
+    expect(arduPilot[5]).toContain('WPNAV_SPEED = 1 000 cm/s, rapidez máxima en misión');
     expect(arduPilot[5]).toContain('WPNAV_ACCEL = 250 cm/s²');
     expect(arduPilot[5]).toContain('WP_SPD, WP_ACC y WP_JERK');
-    expect(px4.slice(0, 5)).toEqual(['PX4', '12', '5', '3,0', '4']);
-    expect(px4[5]).toBe('MPC_XY_VEL_MAX, MPC_XY_CRUISE, MPC_ACC_HOR y MPC_JERK_AUTO');
+    expect(px4.slice(0, 5)).toEqual(['PX4', '5', '12', '3', '4']);
+    expect(px4[5]).toContain('MPC_XY_CRUISE, rapidez de crucero en misión');
   });
 
   test('limites: caption explains the jerk and the source names the four documents', () => {
     const [, limits] = TABLES;
 
     expect(limits.caption).toContain('el ritmo de cambio de la aceleración horizontal');
+    expect(limits.caption).toContain('ArduPilot vuela con WP_SPD como rapidez horizontal máxima');
     expect(limits.source.text).toContain('fuentes 1, 2 y 3');
     expect(limits.source.text).toContain('fuente 5');
   });

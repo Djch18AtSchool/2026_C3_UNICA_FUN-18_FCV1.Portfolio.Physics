@@ -11,16 +11,34 @@ import {
   rpmForGravity,
   solveHabitat,
 } from '../../physics';
+import { COMFORT } from '../../../components/topics/gravedad-artificial/habitatFigures';
+import { HABITAT_PRESETS, type HabitatSettings } from '../../data/habitatPresets';
 import type { DataTableSpec } from '../types';
 
 const PERCENT = 100;
 const NO_VALUE = '—';
 
-/** NASA SP-413: "R = 830 m, and r = 65 m" (major radius and tube radius of the Stanford torus). */
-export const STANFORD_TORUS = { R: 830, tubeRadius: 65, rpm: 1 } as const;
+/** The (r, rpm) pair a lab preset loads: the single source of the habitats it names. */
+function presetValues(id: string): HabitatSettings {
+  const preset = HABITAT_PRESETS.find((candidate) => candidate.id === id);
+  if (!preset) throw new Error(`tablas: falta el preajuste de hábitat ${id}`);
+  return preset.values;
+}
+
+const TORUS = presetValues('toro-stanford');
+const SP413_LIMIT = presetValues('limite-sp413');
+/**
+ * NASA SP-413: R = 830 m and r = 65 m; the outermost point of the tube, R + r = 895 m, is the
+ * preset of the SP-413 limit, so the tube radius is the difference of the two presets.
+ */
+export const STANFORD_TORUS = {
+  R: TORUS.r,
+  tubeRadius: SP413_LIMIT.r - TORUS.r,
+  rpm: TORUS.rpm,
+} as const;
 
 const ONE_G_RADIUS_M = 100;
-const CENTRIFUGE_RADIUS_M = 10;
+const CENTRIFUGE_RADIUS_M = presetValues('centrifuga-pequena').r;
 
 /** A habitat row: the (r, RPM) pair it is built on and its name. */
 const HABITATS: readonly { name: string; r: number; rpm: number }[] = [
@@ -40,8 +58,8 @@ const HABITATS: readonly { name: string; r: number; rpm: number }[] = [
   { name: '1 g a 1 RPM', r: radiusForGravity(G_EARTH, 1), rpm: 1 },
   {
     name: 'Límite de SP-413: punto más exterior del tubo',
-    r: STANFORD_TORUS.R + STANFORD_TORUS.tubeRadius,
-    rpm: STANFORD_TORUS.rpm,
+    r: SP413_LIMIT.r,
+    rpm: SP413_LIMIT.rpm,
   },
 ];
 
@@ -67,7 +85,7 @@ const habitatRows = HABITATS.map(({ name, r, rpm }) => {
 const gRatioText = (r: number): string =>
   formatNumber(solveHabitat({ r, rpm: STANFORD_TORUS.rpm }).gRatio, { precision: 2 });
 const torusFrom = gRatioText(STANFORD_TORUS.R);
-const torusTo = gRatioText(STANFORD_TORUS.R + STANFORD_TORUS.tubeRadius);
+const torusTo = gRatioText(SP413_LIMIT.r);
 const innerWall = gRatioText(STANFORD_TORUS.R - STANFORD_TORUS.tubeRadius);
 
 const HABITATS_TABLE: DataTableSpec = {
@@ -75,7 +93,8 @@ const HABITATS_TABLE: DataTableSpec = {
   caption: `Hábitats de los pasos 2 a 4 con g = ${formatNumber(G_EARTH, { precision: 2, unit: 'm/s²' })} y h = ${formatNumber(PERSON_HEIGHT, { precision: 2, unit: 'm' })}, ordenados por radio. Según mi cálculo, del radio mayor del Toro de Stanford al punto más exterior del tubo la gravedad aparente va de ${torusFrom} a ${torusTo} g, dentro de los 0,95 ± 0,05 g del informe; la pared interior se queda en ${innerWall} g.`,
   columns: [
     { key: 'habitat', label: 'Hábitat', align: 'text' },
-    { key: 'r', label: 'Radio r', unit: 'm', align: 'text' },
+    // Pre-formatted cells: whole metres as given, a computed radius to 0,1 m.
+    { key: 'r', label: 'Radio r', unit: 'm', align: 'num', precision: 1 },
     { key: 'rpm', label: 'Giro N', unit: 'RPM', align: 'num', precision: 2 },
     { key: 'omega', label: 'ω', unit: 'rad/s', align: 'num', precision: 4 },
     { key: 'v', label: 'Rapidez del piso v', unit: 'm/s', align: 'num', precision: 1 },
@@ -108,7 +127,6 @@ const TORO_TABLE: DataTableSpec = {
     { dato: 'Gravedad para vivir', valor: 'entre 0,9 y 1 g' },
     { dato: 'Giro en las zonas de vivienda', valor: `no más de ${STANFORD_TORUS.rpm} RPM` },
     { dato: 'Gravedad que reporta', valor: `0,95 ± 0,05 g a ${STANFORD_TORUS.rpm} RPM` },
-    { dato: 'Coriolis', valor: 'quien salta 0,55 m cae unos 5,3 cm a un lado' },
   ],
   source: { text: 'NASA SP-413, fuente 1', url: 'https://ntrs.nasa.gov/citations/19770014162' },
 };
@@ -130,10 +148,10 @@ export const COMFORT_CRITERIA: readonly ComfortCriterion[] = [
   { author: 'Cramer (1985)', rMin: null, rpmMax: 3, vMin: 7 },
 ];
 
-/** "de 3 a 6": the spread of the values the authors give. */
-function spread(key: 'rMin' | 'rpmMax' | 'vMin'): string {
-  const given = COMFORT_CRITERIA.flatMap((criterion) => criterion[key] ?? []);
-  return `de ${Math.min(...given)} a ${Math.max(...given)}`;
+/** "de 3 a 6": the spread the figure draws as a band (COMFORT), which the rows reproduce. */
+function spread(key: keyof typeof COMFORT): string {
+  const [low, high] = COMFORT[key];
+  return `de ${low} a ${high}`;
 }
 
 const CONFORT_TABLE: DataTableSpec = {
