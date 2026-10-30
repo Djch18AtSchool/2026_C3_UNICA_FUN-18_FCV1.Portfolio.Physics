@@ -338,7 +338,7 @@ export default function BounceLab({ footnote }: BounceLabProps): JSX.Element {
               ball={settings.ball}
               ideal={ideal}
               engine={{ y: engine.y, isResting: engine.resting }}
-              engineSubtitle={`Δt = 1/${settings.rate} s × ${settings.substeps}`}
+              engineSubtitle={`Δt\u00a0=\u00a01/${settings.rate}\u00a0s ×\u00a0${settings.substeps}`}
               decimals={decimals}
               onH0Change={(h0) => edit({ h0 })}
               onH0DragPhase={onH0DragPhase}

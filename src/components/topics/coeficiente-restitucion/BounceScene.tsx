@@ -9,6 +9,7 @@ import {
 } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import { Knob, Label, type Point } from '../../lab/OverlayMarks';
+import { wrapLabel } from '../../lab/SvgPlotMarks';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
 import { BOUNCE_LIMITS, type BallKind } from './bouncePresets';
 import { h0KeyTarget, snapH0, viewY } from './bounceScene';
@@ -38,6 +39,9 @@ const TITLE_GAP = 25;
 const SUBTITLE_GAP = 41;
 const STATUS_GAP = 56;
 const STATUS_LINE = 14;
+/** Room kept between a column's subtitle and the next column. */
+const SUBTITLE_PAD = 8;
+const IDEAL_SUBTITLE = 'eventos exactos';
 const TITLE_SIZE = 13;
 const NOTE_SIZE = 11;
 const SHADOW_OPACITY = 0.18;
@@ -65,7 +69,10 @@ export interface BounceSceneProps {
   ball: BallKind;
   ideal: SceneBall;
   engine: SceneBall;
-  /** Under "Motor de juego": its step and substeps. */
+  /**
+   * Under "Motor de juego": its step and substeps. On a narrow canvas it wraps at its spaces to
+   * fit its column; no-break spaces keep a group («Δt = 1/60 s») on one line.
+   */
   engineSubtitle: string;
   decimals: number;
   onH0Change(h0: number): void;
@@ -84,13 +91,22 @@ interface Geometry {
   fromPx(px: number): number;
 }
 
-function geometry(width: number, top: number): Geometry {
+/** Half the drawing width between the ruler and the right edge: one ball's column. */
+const columnWidth = (width: number) => (width - MARGIN.left - MARGIN.right) / 2;
+
+/** A subtitle's lines: whole when it fits its column, else wrapped at its (breaking) spaces. */
+export function subtitleLines(text: string, width: number): string[] {
+  return wrapLabel(text, columnWidth(width) - SUBTITLE_PAD, NOTE_SIZE) ?? text.split(' ');
+}
+
+/** `extraLines` subtitle lines past the first grow the canvas below the floor. */
+function geometry(width: number, top: number, extraLines: number): Geometry {
   const isCompact = width < COMPACT_WIDTH;
-  const height = isCompact ? HEIGHT.compact : HEIGHT.wide;
+  const height = (isCompact ? HEIGHT.compact : HEIGHT.wide) + extraLines * STATUS_LINE;
   const radius = isCompact ? BALL_RADIUS.compact : BALL_RADIUS.wide;
-  const floorY = height - MARGIN.bottom;
+  const floorY = height - MARGIN.bottom - extraLines * STATUS_LINE;
   const areaTop = 2 * radius + TOP_ROOM;
-  const columnWidth = (width - MARGIN.left - MARGIN.right) / 2;
+  const column = columnWidth(width);
   const span = floorY - areaTop;
   return {
     width,
@@ -98,7 +114,7 @@ function geometry(width: number, top: number): Geometry {
     radius,
     floorY,
     areaTop,
-    columns: [MARGIN.left + columnWidth / 2, MARGIN.left + 1.5 * columnWidth],
+    columns: [MARGIN.left + column / 2, MARGIN.left + 1.5 * column],
     toPx: (y) => floorY - (y / top) * span,
     fromPx: (px) => ((floorY - px) / span) * top,
   };
@@ -259,7 +275,9 @@ function H0Handle({
 export default function BounceScene(props: BounceSceneProps): JSX.Element {
   const { h0, top, ball, ideal, engine, engineSubtitle, decimals } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
-  const geo = geometry(width, top);
+  const subtitles = [IDEAL_SUBTITLE, engineSubtitle].map((text) => subtitleLines(text, width));
+  const extraLines = Math.max(...subtitles.map((lines) => lines.length)) - 1;
+  const geo = geometry(width, top, extraLines);
   const { floorY, columns } = geo;
   const right = width - MARGIN.right;
   const divider = (columns[0] + columns[1]) / 2;
@@ -267,10 +285,11 @@ export default function BounceScene(props: BounceSceneProps): JSX.Element {
     { length: Math.ceil((right - MARGIN.left) / HATCH_GAP) },
     (_, i) => MARGIN.left + i * HATCH_GAP,
   );
-  const titles: [string, string, number, SceneBall][] = [
-    ['Física ideal', 'eventos exactos', columns[0], ideal],
-    ['Motor de juego', engineSubtitle, columns[1], engine],
+  const titles: [string, string[], number, SceneBall][] = [
+    ['Física ideal', subtitles[0], columns[0], ideal],
+    ['Motor de juego', subtitles[1], columns[1], engine],
   ];
+  const statusTop = floorY + STATUS_GAP + extraLines * STATUS_LINE;
 
   return (
     <div ref={wrapperRef} className="w-full px-3 sm:px-0">
@@ -359,6 +378,7 @@ export default function BounceScene(props: BounceSceneProps): JSX.Element {
                 {title}
               </text>
               <text
+                data-subtitle=""
                 x={x}
                 y={floorY + SUBTITLE_GAP}
                 textAnchor="middle"
@@ -366,14 +386,18 @@ export default function BounceScene(props: BounceSceneProps): JSX.Element {
                 fontSize={NOTE_SIZE}
                 fill={TICK_COLOR}
               >
-                {subtitle}
+                {subtitle.map((line, index) => (
+                  <tspan key={line} x={x} dy={index === 0 ? 0 : STATUS_LINE}>
+                    {line}
+                  </tspan>
+                ))}
               </text>
               {ballStatus(state, top, decimals).map((line, index) => (
                 <text
                   key={line}
                   data-status=""
                   x={x}
-                  y={floorY + STATUS_GAP + index * STATUS_LINE}
+                  y={statusTop + index * STATUS_LINE}
                   textAnchor="middle"
                   fontFamily={TICK_FONT_FAMILY}
                   fontSize={NOTE_SIZE}
