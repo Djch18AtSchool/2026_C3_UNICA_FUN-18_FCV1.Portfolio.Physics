@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { monoTextWidth } from '../../lab/plotScales';
 import FlybyFigure from './FlybyFigure';
@@ -146,6 +146,11 @@ describe('FlybyFigure', () => {
     expect(screen.getByRole('list', { name: 'Leyenda' })).toHaveTextContent(
       'v⃗∞ al entrar y al salir: 7,62 km/s',
     );
+    // The v∞ arrows are keyed by an arrow, not by the trajectory's plain line.
+    const keys = within(screen.getByRole('list', { name: 'Leyenda' }))
+      .getAllByRole('listitem')
+      .map((item) => (item.querySelector('polygon') ? 'flecha' : 'línea'));
+    expect(keys).toEqual(['línea', 'flecha', 'línea']);
     expect(screen.getByRole('img', { name: /721\u202f375\u202fkm/ })).toBeInTheDocument();
   });
 

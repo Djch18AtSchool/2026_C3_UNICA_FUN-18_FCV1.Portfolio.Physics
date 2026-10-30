@@ -20,6 +20,8 @@ export interface PlotSeries {
   points: { x: number; y: number }[];
   color?: string;
   dashed?: boolean;
+  /** The legend key: a line (default) or, for marks drawn as vectors in the overlay, an arrow. */
+  legendKey?: 'line' | 'arrow';
 }
 export interface PlotBand {
   from: number;
@@ -122,6 +124,9 @@ const TITLE_SIZE = TICK_FONT_SIZE + 2;
 const NOTE_SIZE = TICK_FONT_SIZE;
 const PATH_DECIMALS = 2;
 const LEGEND_KEY_WIDTH = 18;
+const LEGEND_KEY_HEIGHT = 8;
+/** An arrow key's head: its length along the key and its half-width. */
+const LEGEND_HEAD = { length: 6, half: 3.5 } as const;
 
 type Point = { x: number; y: number };
 
@@ -241,23 +246,45 @@ function seriesPath(points: Point[], x: Scale, y: Scale): string {
     .join(' ');
 }
 
+/** A legend swatch drawn like the series: a line (dashed if it is) or an arrow ending in a head. */
+function LegendKey({ series, color }: { series: PlotSeries; color: string }) {
+  const isArrow = series.legendKey === 'arrow';
+  const mid = LEGEND_KEY_HEIGHT / 2;
+  const tip = LEGEND_KEY_WIDTH - 1;
+  const base = tip - LEGEND_HEAD.length;
+  return (
+    <svg
+      aria-hidden="true"
+      width={LEGEND_KEY_WIDTH}
+      height={LEGEND_KEY_HEIGHT}
+      className="shrink-0"
+    >
+      <line
+        x1="1"
+        x2={isArrow ? base : tip}
+        y1={mid}
+        y2={mid}
+        stroke={color}
+        strokeWidth={LINE_WIDTH}
+        strokeLinecap={isArrow ? 'butt' : 'round'}
+        strokeDasharray={series.dashed ? DASH_PATTERN : undefined}
+      />
+      {isArrow ? (
+        <polygon
+          points={`${tip},${mid} ${base},${mid - LEGEND_HEAD.half} ${base},${mid + LEGEND_HEAD.half}`}
+          fill={color}
+        />
+      ) : null}
+    </svg>
+  );
+}
+
 function Legend({ series }: { series: PlotSeries[] }) {
   return (
     <ul aria-label="Leyenda" className="mb-2 flex list-none flex-wrap gap-x-4 gap-y-1 p-0 text-sm">
       {series.map((s, index) => (
         <li key={s.id} className="flex items-center gap-2 text-fg">
-          <svg aria-hidden="true" width={LEGEND_KEY_WIDTH} height="8" className="shrink-0">
-            <line
-              x1="1"
-              x2={LEGEND_KEY_WIDTH - 1}
-              y1="4"
-              y2="4"
-              stroke={seriesColor(s, index)}
-              strokeWidth={LINE_WIDTH}
-              strokeLinecap="round"
-              strokeDasharray={s.dashed ? DASH_PATTERN : undefined}
-            />
-          </svg>
+          <LegendKey series={s} color={seriesColor(s, index)} />
           {s.label}
         </li>
       ))}

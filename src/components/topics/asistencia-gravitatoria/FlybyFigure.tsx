@@ -350,6 +350,7 @@ function HyperbolaPlot(): JSX.Element {
           label: `Flechas v⃗∞ al entrar y al salir: ${speedText(figure.vInf)} las dos`,
           points: [],
           color: TEXT_COLOR,
+          legendKey: 'arrow',
         },
         {
           id: 'asintotas',

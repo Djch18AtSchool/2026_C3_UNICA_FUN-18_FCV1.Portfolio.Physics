@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../lib/settingsStore';
 import type { Scale } from './plotScales';
@@ -92,6 +92,30 @@ describe('SvgPlot', () => {
     );
 
     expect(screen.getByRole('list', { name: 'Leyenda' })).toHaveTextContent('Tierra');
+  });
+
+  test('a series drawn as arrows gets an arrow key in the legend; lines keep a plain line', () => {
+    render(
+      <SvgPlot
+        {...PROPS}
+        series={[
+          ...PROPS.series,
+          { id: 'flechas', label: 'Flechas', points: [], legendKey: 'arrow' },
+        ]}
+      />,
+    );
+    const items = within(screen.getByRole('list', { name: 'Leyenda' })).getAllByRole('listitem');
+
+    expect(items[0].querySelector('polygon')).toBeNull();
+    expect(items[0].querySelector('line')).toBeInTheDocument();
+    const head = items[1].querySelector('polygon');
+    const shaft = items[1].querySelector('line');
+    expect(head).toBeInTheDocument();
+    // The head ends the shaft, pointing right.
+    const headTip = Math.max(
+      ...(head?.getAttribute('points') ?? '').split(' ').map((p) => Number(p.split(',')[0])),
+    );
+    expect(headTip).toBeGreaterThan(Number(shaft?.getAttribute('x2')));
   });
 
   test('leaves a single series without a legend', () => {
