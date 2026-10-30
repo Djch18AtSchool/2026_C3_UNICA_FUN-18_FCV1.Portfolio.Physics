@@ -20,7 +20,10 @@ const kWh = (j: number) => j / J_PER_KWH;
 const UDDS = DRIVE_CYCLES.udds.samples;
 const HWFET = DRIVE_CYCLES.hwfet.samples;
 const US06 = DRIVE_CYCLES.us06.samples;
+/** The simple model of Paso 3, kept as the contrast: the same η and P_máx without f(v). */
+const NO_FADE = { ...DEFAULT_REGEN, lowSpeedFade: false };
 const UDDS_TOTALS = cycleBalance(UDDS, MODEL3_LR_RWD_2025, DEFAULT_REGEN).totals;
+const UDDS_SIMPLE = cycleBalance(UDDS, MODEL3_LR_RWD_2025, NO_FADE).totals;
 const RELATIVE_CLOSURE = 1e-6;
 
 /** A 1 Hz cycle from a list of speeds in m/s. */
@@ -33,6 +36,7 @@ const ALL_TOTAL_KEYS: (keyof BalanceTotals)[] = [
   'brake',
   'battery',
   'friction',
+  'conversionLoss',
   'recoveredShare',
   'peakBrakePower',
   'peakDecelG',
@@ -101,8 +105,8 @@ describe('lowSpeedFade', () => {
 });
 
 describe('DEFAULT_REGEN', () => {
-  test('is the site model: η 0,80, P_máx 239 kW and no low-speed fade', () => {
-    expect(DEFAULT_REGEN).toEqual({ eta: 0.8, pMax: 239_000, lowSpeedFade: false });
+  test('is the site model: η 0,80, P_máx 239 kW and the low-speed fade on (ruling R19)', () => {
+    expect(DEFAULT_REGEN).toEqual({ eta: 0.8, pMax: 239_000, lowSpeedFade: true });
   });
 });
 
@@ -115,9 +119,24 @@ describe('cycleBalance on the UDDS with the Model 3 LR RWD 2025 (research §7)',
     expect(kWh(UDDS_TOTALS.roadLoad)).toBeCloseTo(0.729, 2);
   });
 
-  test('stores 0,695 kWh, 43,5 % of the traction, with η 0,80 and P_máx 239 kW', () => {
-    expect(kWh(UDDS_TOTALS.battery)).toBeCloseTo(0.695, 2);
-    expect(UDDS_TOTALS.recoveredShare).toBeCloseTo(0.435, 2);
+  test('the simple model (no fade) stores 0,695 kWh, 43,5 % of the traction, with no friction', () => {
+    expect(kWh(UDDS_SIMPLE.battery)).toBeCloseTo(0.695, 2);
+    expect(UDDS_SIMPLE.recoveredShare).toBeCloseTo(0.435, 2);
+    expect(UDDS_SIMPLE.friction).toBe(0);
+  });
+
+  test('the default model stores 0,645 kWh (40,4 %) and dissipates 0,062 kWh of friction heat', () => {
+    expect(kWh(UDDS_TOTALS.battery)).toBeCloseTo(0.645, 2);
+    expect(UDDS_TOTALS.recoveredShare * 100).toBeCloseTo(40.4, 1);
+    expect(kWh(UDDS_TOTALS.friction)).toBeCloseTo(0.062, 2);
+  });
+
+  test('the default model loses 0,161 kWh converting: (1 − η) of the 0,807 kWh the motor takes', () => {
+    expect(kWh(UDDS_TOTALS.conversionLoss)).toBeCloseTo(0.161, 2);
+    expect(UDDS_TOTALS.conversionLoss).toBeCloseTo(
+      (1 - DEFAULT_REGEN.eta) * (UDDS_TOTALS.battery / DEFAULT_REGEN.eta),
+      6,
+    );
   });
 
   test('peaks at 33,2 kW of braking power and 0,150 g of deceleration', () => {
@@ -125,27 +144,38 @@ describe('cycleBalance on the UDDS with the Model 3 LR RWD 2025 (research §7)',
     expect(UDDS_TOTALS.peakDecelG).toBeCloseTo(0.15, 2);
   });
 
-  test('drops to 0,487 kWh with a cold or full battery (P_máx 10 kW)', () => {
+  test('drops to 0,448 kWh with a cold or full battery (P_máx 10 kW)', () => {
     const { totals } = cycleBalance(UDDS, MODEL3_LR_RWD_2025, { ...DEFAULT_REGEN, pMax: 10_000 });
+
+    expect(kWh(totals.battery)).toBeCloseTo(0.448, 2);
+  });
+
+  test('the simple model with P_máx 10 kW stores 0,487 kWh (research §7)', () => {
+    const { totals } = cycleBalance(UDDS, MODEL3_LR_RWD_2025, { ...NO_FADE, pMax: 10_000 });
 
     expect(kWh(totals.battery)).toBeCloseTo(0.487, 2);
   });
 
   test('with the low-speed fade recovers 0,807 kWh at the wheels and leaves 0,062 kWh to friction', () => {
-    const { totals } = cycleBalance(UDDS, MODEL3_LR_RWD_2025, {
-      ...DEFAULT_REGEN,
-      lowSpeedFade: true,
-    });
+    const totals = UDDS_TOTALS;
 
     expect(kWh(totals.battery / DEFAULT_REGEN.eta)).toBeCloseTo(0.807, 2);
     expect(kWh(totals.friction)).toBeCloseTo(0.062, 2);
-    expect(totals.battery).toBeLessThan(UDDS_TOTALS.battery);
+    expect(totals.battery).toBeLessThan(UDDS_SIMPLE.battery);
   });
 });
 
-describe('cycleBalance across cycles with DEFAULT_REGEN (η·brake / traction)', () => {
-  test('HWFET returns 12,8 % of the traction: in highway driving the air does most of the braking', () => {
-    const { totals } = cycleBalance(HWFET, MODEL3_LR_RWD_2025, DEFAULT_REGEN);
+describe('cycleBalance across cycles', () => {
+  test('the default model returns 12,5 % of the traction in HWFET and 30,7 % in US06', () => {
+    const hwfet = cycleBalance(HWFET, MODEL3_LR_RWD_2025, DEFAULT_REGEN).totals;
+    const us06 = cycleBalance(US06, MODEL3_LR_RWD_2025, DEFAULT_REGEN).totals;
+
+    expect(hwfet.recoveredShare * 100).toBeCloseTo(12.5, 1);
+    expect(us06.recoveredShare * 100).toBeCloseTo(30.7, 1);
+  });
+
+  test('HWFET (simple model) returns 12,8 % of the traction: in highway driving the air does most of the braking', () => {
+    const { totals } = cycleBalance(HWFET, MODEL3_LR_RWD_2025, NO_FADE);
 
     expect(totals.recoveredShare * 100).toBeCloseTo(12.8, 1);
     expect(kWh(totals.traction)).toBeCloseTo(1.775, 2);
@@ -154,8 +184,8 @@ describe('cycleBalance across cycles with DEFAULT_REGEN (η·brake / traction)',
     expect(totals.peakBrakePower / 1000).toBeCloseTo(47.1, 0);
   });
 
-  test('US06 returns 32,1 % and reaches 0,314 g', () => {
-    const { totals } = cycleBalance(US06, MODEL3_LR_RWD_2025, DEFAULT_REGEN);
+  test('US06 (simple model) returns 32,1 % and reaches 0,314 g', () => {
+    const { totals } = cycleBalance(US06, MODEL3_LR_RWD_2025, NO_FADE);
 
     expect(totals.recoveredShare * 100).toBeCloseTo(32.1, 1);
     expect(kWh(totals.traction)).toBeCloseTo(2.432, 2);
@@ -165,8 +195,8 @@ describe('cycleBalance across cycles with DEFAULT_REGEN (η·brake / traction)',
     expect(totals.peakDecelG).toBeCloseTo(0.314, 2);
   });
 
-  test('US06 with P_máx 30 kW stores 0,632 kWh: the limit matters in aggressive driving', () => {
-    const { totals } = cycleBalance(US06, MODEL3_LR_RWD_2025, { ...DEFAULT_REGEN, pMax: 30_000 });
+  test('US06 (simple model) with P_máx 30 kW stores 0,632 kWh: the limit matters in aggressive driving', () => {
+    const { totals } = cycleBalance(US06, MODEL3_LR_RWD_2025, { ...NO_FADE, pMax: 30_000 });
 
     expect(kWh(totals.battery)).toBeCloseTo(0.632, 2);
   });
@@ -205,6 +235,20 @@ describe('cycleBalance closes the energy books', () => {
     expect(totals.battery / DEFAULT_REGEN.eta + totals.friction).toBeCloseTo(totals.brake, 6);
   });
 
+  test.each([
+    ['the default model', DEFAULT_REGEN],
+    ['P_máx 10 kW', { ...DEFAULT_REGEN, pMax: 10_000 }],
+    ['η = 0', { ...DEFAULT_REGEN, eta: 0 }],
+    ['the simple model', NO_FADE],
+  ])('with %s, brake = battery + conversion loss + friction, at every step', (_, regen) => {
+    const { steps, totals } = cycleBalance(UDDS, MODEL3_LR_RWD_2025, regen);
+
+    expect(totals.battery + totals.conversionLoss + totals.friction).toBeCloseTo(totals.brake, 6);
+    steps.forEach((step) =>
+      expect(step.eBattery + step.eConversionLoss + step.eFriction).toBeCloseTo(step.eBrake, 6),
+    );
+  });
+
   test('the last step carries the totals and every cumulative series never decreases', () => {
     const { steps, totals } = cycleBalance(UDDS, MODEL3_LR_RWD_2025, DEFAULT_REGEN);
     const last = steps[steps.length - 1];
@@ -215,6 +259,7 @@ describe('cycleBalance closes the energy books', () => {
       'eBrake',
       'eBattery',
       'eFriction',
+      'eConversionLoss',
     ] as const;
 
     expect([
@@ -224,6 +269,7 @@ describe('cycleBalance closes the energy books', () => {
       last.eBrake,
       last.eBattery,
       last.eFriction,
+      last.eConversionLoss,
     ]).toEqual([
       totals.traction,
       totals.roadLoad,
@@ -231,6 +277,7 @@ describe('cycleBalance closes the energy books', () => {
       totals.brake,
       totals.battery,
       totals.friction,
+      totals.conversionLoss,
     ]);
     steps.slice(1).forEach((step, i) => {
       series.forEach((key) => expect(step[key]).toBeGreaterThanOrEqual(steps[i][key]));
@@ -256,6 +303,7 @@ describe('cycleBalance steps', () => {
       eBrake: 0,
       eBattery: 0,
       eFriction: 0,
+      eConversionLoss: 0,
     });
     steps.forEach((step, i) => expect([step.t, step.v]).toEqual([UDDS[i].t, UDDS[i].v]));
   });

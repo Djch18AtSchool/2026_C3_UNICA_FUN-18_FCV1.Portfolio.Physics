@@ -64,6 +64,8 @@ export interface BalanceStep {
   eBrake: number;
   eBattery: number;
   eFriction: number;
+  /** (1 − η)·P_regen accumulated: what the motor takes from the wheels but loses before the battery. */
+  eConversionLoss: number;
 }
 
 /**
@@ -79,6 +81,8 @@ export interface BalanceTotals {
   brake: number;
   battery: number;
   friction: number;
+  /** brake − friction − battery = Σ (1 − η)·P_regen·Δt; with friction, what the braking dissipates. */
+  conversionLoss: number;
   recoveredShare: number;
   peakBrakePower: number;
   peakDecelG: number;
@@ -87,13 +91,15 @@ export interface BalanceTotals {
 /** P_máx of the FASTSim 3.1.0 Tesla Model 3 RWD motor (research §5). */
 const FASTSIM_MOTOR_PMAX_W = 239_000;
 /**
- * The site's model: η constant 0,80 (Boretti's 0,70–0,87 for the LEAF, research §5), P_máx
- * 239 kW and no low-speed fade.
+ * The site's improved model (spec §6, ruling R19): η constant 0,80 (Boretti measured 70–80 % on
+ * the 2012 Leaf and 72–87 % on the 2013 one, research §5), P_máx 239 kW and FASTSim's low-speed
+ * fade f(v) on. Without the fade friction is never needed in these cycles and the balance could
+ * not show what is dissipated; pass `lowSpeedFade: false` for that simple-model contrast.
  */
 export const DEFAULT_REGEN: RegenParams = {
   eta: 0.8,
   pMax: FASTSIM_MOTOR_PMAX_W,
-  lowSpeedFade: false,
+  lowSpeedFade: true,
 };
 
 /** FASTSim 2 (simdrive.py): max_regen 0,98, regen_a 500, regen_b 0,99 (research §5). */
@@ -214,6 +220,7 @@ const startStep = ({ t, v }: CycleSample): BalanceStep => ({
   eBrake: 0,
   eBattery: 0,
   eFriction: 0,
+  eConversionLoss: 0,
 });
 
 /** The step at the end of an interval: its powers and the previous step's energies plus its own. */
@@ -238,6 +245,7 @@ function nextStep(
     eBrake: previous.eBrake + pBrake * dt,
     eBattery: previous.eBattery + eta * pRegen * dt,
     eFriction: previous.eFriction + pFriction * dt,
+    eConversionLoss: previous.eConversionLoss + (1 - eta) * pRegen * dt,
   };
 }
 
@@ -245,7 +253,8 @@ function nextStep(
  * Second-by-second energy balance of a car driving a cycle (research §6 Paso 4). Returns one
  * step per sample (steps[0] is the start, with nothing accumulated) and the totals:
  * E_tracción = Σ max(0, P) Δt, E_freno = Σ P_freno Δt, E_batería = Σ η P_regen Δt,
- * E_fricción = Σ (P_freno − P_regen) Δt and the recovered share E_batería / E_tracción (0 when
+ * E_fricción = Σ (P_freno − P_regen) Δt, the conversion loss Σ (1 − η) P_regen Δt (so
+ * E_freno = E_batería + pérdidas + E_fricción) and the recovered share E_batería / E_tracción (0 when
  * nothing is spent on traction). Flat road, no auxiliaries; on a cycle that starts and ends at
  * rest, traction − brake = road load.
  */
@@ -277,6 +286,7 @@ export function cycleBalance(
       brake: last.eBrake,
       battery: last.eBattery,
       friction: last.eFriction,
+      conversionLoss: last.eConversionLoss,
       recoveredShare: last.eTraction > 0 ? last.eBattery / last.eTraction : 0,
       peakBrakePower,
       peakDecelG: peakDecel / G_EARTH,
