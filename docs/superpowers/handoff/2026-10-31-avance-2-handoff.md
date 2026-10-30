@@ -349,10 +349,10 @@ si fue un error.
   lee, y la coherencia del sitio pesa más; la prueba del registro lo exige ahora en toda tabla.
   Como los números se miran y no se leen, la lectura del Tema 2 baja de 8 a 7 min; costo:
   cinco columnas que vuelven a texto si Dylan prefiere el formato del archivo a la izquierda.
-
 - **R41 — miles en las ecuaciones:** en el Tema 8, «I_s/I_w ≈ 1940» pasó a «1 940» (`1\,940`),
   como la figura 8.1 y la convención KaTeX del resto del sitio («3 114», «721 375»); una
   búsqueda en los nueve temas no encontró otro caso. Costo si no gusta: un token.
+
 ## Menores diferidos (opcionales, sin efecto en la entrega)
 
 Lo que la tarea compartida y la revisión final no recogieron queda como está. Los del Avance 1
