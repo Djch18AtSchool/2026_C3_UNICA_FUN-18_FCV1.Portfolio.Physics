@@ -234,24 +234,27 @@ tema. Referencia de forma: `src/content/topics/gravedad-artificial.mdx` y
 - **Paso 4 · El balance del ciclo.** (6.4) las sumas segundo a segundo y la fracción recuperada
   `E_batería / E_tracción`.
   - **Recurso prescrito (insignia):** arriba v(t) del UDDS; abajo, las energías acumuladas
-    (tracción, carga en carretera, frenado en ruedas, batería, fricción), con el marcador
+    (tracción, carga en carretera, frenado en ruedas, batería, pérdidas de conversión (1 − η) y
+    calor de fricción: lo disipado es la suma de las dos últimas), con el marcador
     sincronizado. Línea de fuente: "Ciclo UDDS y coeficientes de carga: EPA (datos reales);
     reparto regenerativo/fricción: cálculo propio con el modelo y los parámetros de FASTSim".
   - **Tablas:** el vehículo (masa, A, B, C en EPA y en SI); el balance UDDS / HWFET / US06
     (tracción, frenado, ΔK, batería, fracción; potencia de frenado máxima, desaceleración
     máxima). Siempre con el denominador explícito (pitfall 5). Las cifras del sitio son las que
-    calcula su propio modelo con los valores por defecto (η constante 0,80, P_máx 239 kW, sin
-    f(v)): 43,5 % en UDDS, 12,8 % en HWFET y 32,1 % en US06 de la tracción vuelve a la batería. La
+    calcula su propio modelo mejorado, el de FASTSim (η constante 0,80, P_máx 239 kW y el
+    desvanecimiento f(v) a baja velocidad activo): 40,4 % en UDDS, 12,5 % en HWFET y 30,7 % en
+    US06 de la tracción vuelve a la batería (sin f(v) la fricción sería nula y el modelo no mostraría
+    cuánto se disipa; ese caso, 43,5 %, solo sirve de contraste en el paso 3). La
     cadena completa de FASTSim de la investigación (43,9 %, 13,6 %, 34,5 %) se menciona solo como
     contraste.
   - **Laboratorio (sin insignia):** reproduce un ciclo con el auto en movimiento y el flujo de
     potencia en vivo (batería ↔ motor ↔ ruedas ↔ frenos, grosor proporcional), barras
     acumuladas y la gráfica de energía con cursor arrastrable. Parámetros: η, P_máx; ajustes:
     ciclo (UDDS, HWFET, US06), f(v) sí/no, velocidad, repetir. Preajustes: Model 3 en ciudad,
-    en carretera, agresivo; batería fría o llena (P_máx 10 kW: 0,487 kWh); Nissan LEAF 2025
+    en carretera, agresivo; batería fría o llena (P_máx 10 kW: 0,448 kWh); Nissan LEAF 2025
     (`KWB115`: ETW 3875 lb, A = 25,89 lbf, B = 0,3449 lbf/mph, C = 0,019 45 lbf/mph²). Lecturas: v, P en ruedas, E_batería, E_fricción, % de la
     tracción recuperado. La reproducción va acelerada (`TIME_LAPSE`, indicado en la página).
-- **Caso de uso:** justificación frente a la constante "recupera X %" (12,8 % a 43,5 % según el
+- **Caso de uso:** justificación frente a la constante "recupera X %" (12,5 % a 40,4 % según el
   ciclo) y frente a una tabla de autonomía; balance: se gana una autonomía que responde al ciclo,
   al auto y a la batería; cuesta conocer A, B, C, η y los límites, y el modelo no ve frío ni SOC
   salvo que se los den. Coherencia con los MPGe de la EPA solo como indicio (NO CONFIRMADO).
