@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
-import { formatNumber } from '../../lib/format';
 import { ICON_BUTTON } from './iconButton';
+import { transportTimeText } from './transportTime';
 import type { SimClock } from './useSimClock';
 
 export interface TransportBarProps {
@@ -11,7 +11,6 @@ export interface TransportBarProps {
 
 /** The timeline maps t ∈ [0, duration] onto 0..RANGE_MAX integer positions. */
 const RANGE_MAX = 1000;
-const TIME_PRECISION = 3;
 
 function PlayIcon() {
   return (
@@ -47,17 +46,16 @@ function ResetIcon() {
   );
 }
 
-function formatTime(t: number): string {
-  return `t = ${formatNumber(t, { precision: TIME_PRECISION, unit: 's' })}`;
-}
-
-/** Play/Pause, Reiniciar and a timeline scrubber with a t readout; nothing when duration is 0. */
+/**
+ * Play/Pause, Reiniciar and a timeline scrubber with a t readout in the run's unit (s, min, h or d;
+ * the clock and the range stay in seconds); nothing when duration is 0.
+ */
 export default function TransportBar({ clock }: TransportBarProps): JSX.Element | null {
   const { t, duration, playing } = clock.state;
   if (duration === 0) return null;
 
   const position = Math.round((t / duration) * RANGE_MAX);
-  const timeText = formatTime(t);
+  const timeText = transportTimeText(t, duration);
 
   return (
     <div

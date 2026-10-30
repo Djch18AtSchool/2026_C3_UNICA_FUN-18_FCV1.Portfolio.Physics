@@ -94,6 +94,42 @@ describe('TransportBar', () => {
     expect(screen.getByText('t = 1,234\u202Fs', EXACT_TEXT)).toBeInTheDocument();
   });
 
+  test('a run of less than 120 s keeps seconds in the readout and in aria-valuetext', () => {
+    render(<TransportBar clock={fakeClock({ duration: 119.9, t: 60 })} />);
+
+    expect(screen.getByText('t = 60,000\u202Fs', EXACT_TEXT)).toBeInTheDocument();
+    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 60,000\u202Fs');
+  });
+
+  test('a 22-minute run reads in minutes, in the readout and in aria-valuetext', () => {
+    render(<TransportBar clock={fakeClock({ duration: 1369, t: 116 })} />);
+
+    expect(screen.getByText('t = 1,93\u202Fmin', EXACT_TEXT)).toBeInTheDocument();
+    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 1,93\u202Fmin');
+  });
+
+  test('a flyby pass of 40 h reads in hours, not as 143 969,559 s', () => {
+    render(<TransportBar clock={fakeClock({ duration: 144_000, t: 143_969.559 })} />);
+
+    expect(screen.getByText('t = 39,99\u202Fh', EXACT_TEXT)).toBeInTheDocument();
+    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 39,99\u202Fh');
+  });
+
+  test('a run of a week reads in days', () => {
+    render(<TransportBar clock={fakeClock({ duration: 604_800, t: 144_288 })} />);
+
+    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 1,67\u202Fd');
+  });
+
+  test('the range still seeks in seconds when the display is in days', () => {
+    const clock = fakeClock({ duration: 604_800, t: 0 });
+    render(<TransportBar clock={clock} />);
+
+    fireEvent.change(timeline(), { target: { value: '250' } });
+
+    expect(clock.seek).toHaveBeenCalledWith(151_200);
+  });
+
   test('"Reiniciar" resets the clock', () => {
     const clock = fakeClock({ t: 3 });
     render(<TransportBar clock={clock} />);

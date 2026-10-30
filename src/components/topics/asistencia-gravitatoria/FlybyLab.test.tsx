@@ -101,6 +101,20 @@ describe('FlybyLab', () => {
     resetSettingsForTests();
   });
 
+  test('the transport reads each pass in its own unit: days at Jupiter, hours at Neptune', async () => {
+    const user = userEvent.setup();
+    renderLab();
+
+    // V2 at Jupiter (r_p = 10,09 R_J): the drawn pass lasts about 232 000 s, 2,69 d.
+    expect(plain(timeline().getAttribute('aria-valuetext'))).toBe('t = 0,00 d');
+    fireEvent.change(timeline(), { target: { value: '1000' } });
+    expect(plain(timeline().getAttribute('aria-valuetext'))).toBe('t = 2,69 d');
+
+    // V2 at Neptune (r_p = 1,18 R_N): about 17 300 s, a pass of hours.
+    await user.click(screen.getByRole('button', { name: /^V2 · Neptuno/ }));
+    expect(plain(timeline().getAttribute('aria-valuetext'))).toMatch(/^t = \d+,\d{2} h$/);
+  });
+
   test('opens on V2 at Jupiter: e = 1,330, δ = 97,5° and Δ|v| ≈ +9,9 km/s', () => {
     renderLab();
 

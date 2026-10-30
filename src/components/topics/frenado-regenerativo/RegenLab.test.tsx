@@ -104,7 +104,7 @@ describe('RegenLab', () => {
   test('opens on the Model 3 in the UDDS at its hardest braking, t = 116 s, with f(v) on', () => {
     renderLab();
 
-    expect(timelineText()).toBe('t = 116,000 s');
+    expect(timelineText()).toBe('t = 1,93 min');
     expect(readout(SPEED)).toBe('46,03 km/h');
     expect(readout(POWER)).toBe('−33,20 kW');
     expect(readout(BATTERY)).toBe('0,032 kWh');
@@ -146,14 +146,14 @@ describe('RegenLab', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
     frames.flush(1000);
     frames.flush(1050);
-    // One 50 ms frame at 20× is one second of the cycle.
-    expect(timelineText()).toBe('t = 117,000 s');
+    // One 50 ms frame at 20× is one second of the cycle: 116 s → 117 s, read in minutes.
+    expect(timelineText()).toBe('t = 1,95 min');
 
     fireEvent.change(timeline(), { target: { value: '999' } });
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
     for (const now of [2000, 2050, 2100, 2150]) frames.flush(now);
 
-    expect(timelineText()).toBe('t = 1 369,000 s');
+    expect(timelineText()).toBe('t = 22,82 min');
     expect(lab()).toHaveAttribute('data-playing', 'false');
     expect(frames.pending).toBe(0);
     expect(readout(BATTERY)).toBe('0,645 kWh');
@@ -181,9 +181,9 @@ describe('RegenLab', () => {
     renderLab();
 
     await user.click(preset(/^Model 3 · carretera \(HWFET\)/));
-    expect(timelineText()).toBe('t = 0,000 s');
+    expect(timelineText()).toBe('t = 0,00 min');
     seekToEnd();
-    expect(timelineText()).toBe('t = 765,000 s');
+    expect(timelineText()).toBe('t = 12,75 min');
     expect(readout(RECOVERED)).toBe('12,5 %');
 
     await user.click(preset(/^Model 3 · agresivo \(US06\)/));
@@ -242,16 +242,16 @@ describe('RegenLab', () => {
     cursor.focus();
 
     fireEvent.keyDown(cursor, { key: 'Home' });
-    expect(timelineText()).toBe('t = 0,000 s');
+    expect(timelineText()).toBe('t = 0,00 min');
     expect(readout(BATTERY)).toBe('0,000 kWh');
     expect(readout(RECOVERED)).toBe('0,0 %');
 
     fireEvent.keyDown(cursor, { key: 'ArrowRight' });
-    expect(timelineText()).toBe('t = 13,690 s');
+    expect(timelineText()).toBe('t = 0,23 min');
 
     fireEvent.keyDown(cursor, { key: 'End' });
     expect(readout(BATTERY)).not.toBe(before);
-    expect(timelineText()).toBe('t = 1 369,000 s');
+    expect(timelineText()).toBe('t = 22,82 min');
   });
 
   test('dragging the energy cursor seeks and pauses playback', () => {
@@ -268,7 +268,7 @@ describe('RegenLab', () => {
     fireEvent.pointerUp(cursor, { pointerId: 1, clientX: x + 120, clientY: 0 });
 
     expect(lab()).toHaveAttribute('data-playing', 'false');
-    expect(timelineText()).not.toBe('t = 116,000 s');
+    expect(timelineText()).not.toBe('t = 1,93 min');
   });
 
   test('with motion "reduced" playback advances in discrete steps, with no frame loop', () => {
@@ -280,8 +280,8 @@ describe('RegenLab', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
     act(() => vi.advanceTimersByTime(250));
 
-    // One step is 1/60 of the cycle: 1369/60 = 22,817 s.
-    expect(timelineText()).toBe('t = 138,817 s');
+    // One step is 1/60 of the cycle: 116 s + 1369/60 s = 138,817 s, read as 2,31 min.
+    expect(timelineText()).toBe('t = 2,31 min');
     expect(frames.request).not.toHaveBeenCalled();
   });
 
@@ -324,7 +324,7 @@ describe('RegenLab', () => {
     );
     await user.keyboard('{Escape}');
 
-    expect(timelineText()).toBe('t = 0,000 s');
+    expect(timelineText()).toBe('t = 0,00 min');
     expect(screen.getByTestId('regen-scene')).toHaveTextContent(/16,51\skm/);
     expect(preset(/^Model 3 · carretera/)).toHaveAttribute('aria-pressed', 'true');
   });
@@ -408,7 +408,7 @@ describe('RegenLab', () => {
 
     await user.click(screen.getByRole('button', { name: 'Restablecer' }));
 
-    expect(timelineText()).toBe('t = 116,000 s');
+    expect(timelineText()).toBe('t = 1,93 min');
     expect(etaSlider()).toHaveValue('0.8');
     expect(preset(/^Model 3 · ciudad/)).toHaveAttribute('aria-pressed', 'true');
     expect(readout(POWER)).toBe('−33,20 kW');
