@@ -2,13 +2,15 @@ import { describe, expect, test } from 'vitest';
 import { DRIVE_CYCLES } from '../../../lib/data/driveCycles';
 import { MODEL3_LR_RWD_2025 } from '../../../lib/data/evModels';
 import { cycleBalance, DEFAULT_REGEN } from '../../../lib/physics/energy';
+import { ENERGY_SERIES } from './regenScene';
 import {
   brakingEvents,
   brakingWindow,
   cycleDistance,
   ENERGY_BALANCE_SOURCE,
   energyBalanceSeries,
-  FADE_REGEN,
+  energyColor,
+  NO_FADE_REGEN,
   J_PER_KWH,
   KINETIC_WINDOW_S,
   kineticEnergyFigure,
@@ -20,7 +22,7 @@ import {
 const UDDS = DRIVE_CYCLES.udds.samples;
 const CAR = MODEL3_LR_RWD_2025;
 const SITE = cycleBalance(UDDS, CAR, DEFAULT_REGEN);
-const FADED = cycleBalance(UDDS, CAR, FADE_REGEN);
+const NO_FADE = cycleBalance(UDDS, CAR, NO_FADE_REGEN);
 
 /** Area under a piecewise-constant series drawn as (t0, p), (t1, p) pairs: Σ p·Δt. */
 function stepArea(points: { x: number; y: number }[]): number {
@@ -115,45 +117,61 @@ describe('brakingEvents', () => {
   });
 });
 
-describe('brakingWindow', () => {
-  const event = largestBrakingEvent(FADED.steps);
-  const window = brakingWindow(FADED.steps, event, FADE_REGEN.eta);
+describe('NO_FADE_REGEN', () => {
+  test('is the site model with the fade off, the contrast of step 3', () => {
+    expect(NO_FADE_REGEN).toEqual({ ...DEFAULT_REGEN, lowSpeedFade: false });
+    expect(DEFAULT_REGEN.lowSpeedFade).toBe(true);
+  });
+});
 
-  test('the f(v) model picks the same stop, since brake power does not depend on regen', () => {
-    expect(event).toEqual(largestBrakingEvent(SITE.steps));
+describe('brakingWindow', () => {
+  const event = largestBrakingEvent(SITE.steps);
+  const stop = brakingWindow(SITE.steps, event, DEFAULT_REGEN.eta);
+  const contrast = brakingWindow(NO_FADE.steps, event, NO_FADE_REGEN.eta);
+
+  test('the no-fade model picks the same stop, since brake power does not depend on regen', () => {
+    expect(largestBrakingEvent(NO_FADE.steps)).toEqual(event);
   });
 
   test('the series cover the stop with 5 s on each side, as steps of one second', () => {
-    expect(window.brake[0].x).toBe(376);
-    expect(window.brake.at(-1)?.x).toBe(402);
+    expect(stop.brake[0].x).toBe(376);
+    expect(stop.brake.at(-1)?.x).toBe(402);
     // Two points per one-second interval.
-    expect(window.brake).toHaveLength(2 * (402 - 376));
-    expect(window.battery).toHaveLength(window.brake.length);
-    expect(window.regen).toHaveLength(window.brake.length);
+    expect(stop.brake).toHaveLength(2 * (402 - 376));
+    expect(stop.battery).toHaveLength(stop.brake.length);
+    expect(stop.regen).toHaveLength(stop.brake.length);
   });
 
   test('battery + conversion losses + friction = the brake energy of the stop', () => {
-    const { brake, battery, losses, friction } = window.energies;
+    const { brake, battery, losses, friction } = stop.energies;
+    const [first, last] = [SITE.steps[event.start], SITE.steps[event.end]];
 
     expect(battery + losses + friction).toBeCloseTo(brake, 6);
     expect(brake).toBeCloseTo(event.energy, 6);
     expect(friction).toBeGreaterThan(0);
-    expect(battery).toBeCloseTo(FADE_REGEN.eta * (brake - friction), 6);
+    expect(losses).toBeCloseTo(last.eConversionLoss - first.eConversionLoss, 6);
+    expect(battery).toBeCloseTo(DEFAULT_REGEN.eta * (brake - friction), 6);
+  });
+
+  test('without the fade nothing goes to friction and the battery gets η of the braking', () => {
+    expect(contrast.energies.friction).toBeCloseTo(0, 9);
+    expect(contrast.energies.battery).toBeCloseTo(NO_FADE_REGEN.eta * contrast.energies.brake, 6);
+    expect(contrast.energies.battery).toBeGreaterThan(stop.energies.battery);
   });
 
   test('the drawn areas (kW × s) equal those energies (kJ)', () => {
-    expect(stepArea(window.brake)).toBeCloseTo(window.energies.brake / 1000, 6);
-    expect(stepArea(window.regen)).toBeCloseTo(
-      (window.energies.brake - window.energies.friction) / 1000,
+    expect(stepArea(stop.brake)).toBeCloseTo(stop.energies.brake / 1000, 6);
+    expect(stepArea(stop.regen)).toBeCloseTo(
+      (stop.energies.brake - stop.energies.friction) / 1000,
       6,
     );
-    expect(stepArea(window.battery)).toBeCloseTo(window.energies.battery / 1000, 6);
+    expect(stepArea(stop.battery)).toBeCloseTo(stop.energies.battery / 1000, 6);
   });
 
   test('the stack never inverts: battery ≤ regenerated ≤ brake at every instant', () => {
-    window.brake.forEach((point, i) => {
-      expect(window.battery[i].y).toBeLessThanOrEqual(window.regen[i].y + 1e-12);
-      expect(window.regen[i].y).toBeLessThanOrEqual(point.y + 1e-12);
+    stop.brake.forEach((point, i) => {
+      expect(stop.battery[i].y).toBeLessThanOrEqual(stop.regen[i].y + 1e-12);
+      expect(stop.regen[i].y).toBeLessThanOrEqual(point.y + 1e-12);
     });
   });
 });
@@ -161,32 +179,39 @@ describe('brakingWindow', () => {
 describe('energyBalanceSeries', () => {
   const series = energyBalanceSeries(SITE.steps);
 
-  test('one point per second for v (km/h) and for each of the five cumulative energies (kWh)', () => {
+  test('one point per second for v (km/h) and for each of the six cumulative energies (kWh)', () => {
     expect(series.speed).toHaveLength(UDDS.length);
-    expect(series.energies.map((s) => s.id)).toEqual([
-      'traccion',
-      'carga',
-      'frenado',
-      'bateria',
-      'friccion',
+    expect(series.energies.map((s) => s.key)).toEqual(ENERGY_SERIES.map((s) => s.key));
+    expect(series.energies.map((s) => s.key)).toEqual([
+      'eTraction',
+      'eRoadLoad',
+      'eBrake',
+      'eBattery',
+      'eConversionLoss',
+      'eFriction',
     ]);
     for (const energy of series.energies) expect(energy.points).toHaveLength(UDDS.length);
     expect(series.speed[100].y).toBeCloseTo(UDDS[100].v * 3.6, 9);
   });
 
-  test('the series end at the cycle totals: battery 0,695 kWh of 1,597 kWh of traction', () => {
-    const end = (id: string) => series.energies.find((s) => s.id === id)?.points.at(-1)?.y;
+  test('the series end at the cycle totals of the site model', () => {
+    const end = (key: string) => series.energies.find((s) => s.key === key)?.points.at(-1)?.y;
 
-    expect(end('traccion')).toBeCloseTo(SITE.totals.traction / J_PER_KWH, 9);
-    expect(end('bateria')).toBeCloseTo(0.695, 3);
-    expect(end('traccion')).toBeCloseTo(1.597, 3);
+    expect(end('eTraction')).toBeCloseTo(SITE.totals.traction / J_PER_KWH, 9);
+    expect(end('eBattery')).toBeCloseTo(SITE.totals.battery / J_PER_KWH, 9);
+    expect(end('eConversionLoss')).toBeCloseTo(SITE.totals.conversionLoss / J_PER_KWH, 9);
+    expect(end('eFriction')).toBeCloseTo(SITE.totals.friction / J_PER_KWH, 9);
+    expect(end('eBattery')).toBeCloseTo(0.645, 3);
   });
 
-  test('battery is green (--chart-3) and friction heat orange-red (--chart-2)', () => {
-    const color = (id: string) => series.energies.find((s) => s.id === id)?.color;
+  test('battery green, conversion loss cyan, friction orange-red, brake not a neutral', () => {
+    const color = (key: string) => series.energies.find((s) => s.key === key)?.color;
 
-    expect(color('bateria')).toBe('var(--chart-3)');
-    expect(color('friccion')).toBe('var(--chart-2)');
+    expect(color('eBattery')).toBe('var(--chart-3)');
+    expect(color('eConversionLoss')).toBe('var(--chart-6)');
+    expect(color('eFriction')).toBe('var(--chart-2)');
+    expect(color('eBrake')).not.toBe(color('eConversionLoss'));
+    expect(energyColor('eBrake')).toBe(color('eBrake'));
     for (const energy of series.energies) expect(energy.color).toMatch(/^var\(--[a-z0-9-]+\)$/);
   });
 });

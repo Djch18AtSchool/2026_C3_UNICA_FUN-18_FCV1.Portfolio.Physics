@@ -2,18 +2,19 @@ import type { JSX } from 'react';
 import { DRIVE_CYCLES } from '../../../lib/data/driveCycles';
 import { MODEL3_LR_RWD_2025 } from '../../../lib/data/evModels';
 import { formatNumber } from '../../../lib/format';
-import { cycleBalance } from '../../../lib/physics/energy';
+import { cycleBalance, DEFAULT_REGEN } from '../../../lib/physics/energy';
+import { regenModelText } from '../../../lib/physics/regenModelText';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import { PlotPoints, type PlotPoint } from '../../lab/PlotPoints';
 import type { Scale } from '../../lab/plotScales';
 import SvgPlot from '../../lab/SvgPlot';
 import {
   brakingWindow,
-  ENERGY_COLORS,
-  FADE_REGEN,
+  energyColor,
   KINETIC_COLOR,
   kineticEnergyFigure,
   largestBrakingEvent,
+  NO_FADE_REGEN,
   ROAD_LOAD_MAX_SPEED,
   roadLoadCrossover,
   roadLoadTerms,
@@ -121,7 +122,7 @@ function RoadLoadFigure(): JSX.Element {
             id: 'total',
             label: 'F_RL = A + Bv + Cv²',
             points: terms.total,
-            color: ENERGY_COLORS.roadLoad,
+            color: STATE_COLOR,
           },
           {
             id: 'rodadura',
@@ -134,7 +135,7 @@ function RoadLoadFigure(): JSX.Element {
             id: 'lineal',
             label: `Bv, B = ${formatNumber(B, { precision: 4, unit: 'N·s/m' })}`,
             points: terms.linear,
-            color: 'var(--chart-6)',
+            color: 'var(--fg-muted)',
             dashed: true,
           },
           {
@@ -159,25 +160,39 @@ function bandPath(upper: Point[], lower: Point[], { x, y }: { x: Scale; y: Scale
   return `M${[...forward, ...back].join(' L')} Z`;
 }
 
-/** Figure of step 3: the UDDS stop with the most brake energy, split by where it ends up. */
+/**
+ * Figure of step 3: the UDDS stop with the most brake energy under the site's model (f(v) on).
+ * The stack's outer edge is P_freno; under it, the battery, the conversion loss and the friction
+ * heat; the dashed green line is what the battery would get without f(v), the contrast.
+ */
 function BrakingFigure(): JSX.Element {
   const { ref, aspectRatio } = usePlotAspect();
-  const { steps } = cycleBalance(UDDS, CAR, FADE_REGEN);
+  const { steps } = cycleBalance(UDDS, CAR, DEFAULT_REGEN);
   const event = largestBrakingEvent(steps);
-  const stop = brakingWindow(steps, event, FADE_REGEN.eta);
+  const stop = brakingWindow(steps, event, DEFAULT_REGEN.eta);
+  const noFade = brakingWindow(
+    cycleBalance(UDDS, CAR, NO_FADE_REGEN).steps,
+    event,
+    NO_FADE_REGEN.eta,
+  );
   const zero = stop.brake.map((p) => ({ x: p.x, y: 0 }));
   const { brake, battery, losses, friction } = stop.energies;
   const [tStart, tEnd] = [steps[event.start].t, steps[event.end].t];
   const areas = [
-    { id: 'bateria', upper: stop.battery, lower: zero, color: ENERGY_COLORS.battery },
-    { id: 'perdidas', upper: stop.regen, lower: stop.battery, color: ENERGY_COLORS.losses },
-    { id: 'friccion', upper: stop.brake, lower: stop.regen, color: ENERGY_COLORS.friction },
+    { id: 'bateria', upper: stop.battery, lower: zero, color: energyColor('eBattery') },
+    {
+      id: 'perdidas',
+      upper: stop.regen,
+      lower: stop.battery,
+      color: energyColor('eConversionLoss'),
+    },
+    { id: 'friccion', upper: stop.brake, lower: stop.regen, color: energyColor('eFriction') },
   ];
   return (
     <div ref={ref} data-testid="regen-figure-frenada">
       <SvgPlot
         aspectRatio={aspectRatio}
-        title={`Potencia en la mayor frenada del UDDS (de ${tStart} a ${tEnd} s), con f(v)`}
+        title={`Potencia de frenado en la mayor frenada del UDDS (de ${tStart} a ${tEnd} s), modelo del sitio: ${regenModelText(DEFAULT_REGEN)}`}
         xLabel="Tiempo t"
         xUnit="s"
         yLabel="Potencia P"
@@ -186,21 +201,34 @@ function BrakingFigure(): JSX.Element {
         series={[
           {
             id: 'friccion',
-            label: 'Fricción (calor): P_freno − P_regen',
+            label: 'Calor de fricción: P_freno − P_regen',
             points: stop.brake,
-            color: ENERGY_COLORS.friction,
+            color: energyColor('eFriction'),
           },
           {
             id: 'perdidas',
             label: 'Pérdidas de conversión: (1 − η) P_regen',
             points: stop.regen,
-            color: ENERGY_COLORS.losses,
+            color: energyColor('eConversionLoss'),
           },
           {
             id: 'bateria',
             label: 'A la batería: η P_regen',
             points: stop.battery,
-            color: ENERGY_COLORS.battery,
+            color: energyColor('eBattery'),
+          },
+          {
+            id: 'sin-fv',
+            label: 'A la batería sin f(v), contraste',
+            points: noFade.battery,
+            color: energyColor('eBattery'),
+            dashed: true,
+          },
+          {
+            id: 'freno',
+            label: 'Borde superior: P_freno, frenado en las ruedas',
+            points: stop.brake,
+            color: energyColor('eBrake'),
           },
         ]}
         overlay={(scales) => (
@@ -215,7 +243,7 @@ function BrakingFigure(): JSX.Element {
             ))}
           </g>
         )}
-        ariaLabel={`Frenada de ${tStart} a ${tEnd} s del UDDS, desde ${formatNumber(toKmh(steps[event.start].v), { precision: 0, unit: 'km/h' })}: ${kj(brake)} de frenado en ruedas; ${kj(battery)} llegan a la batería, ${kj(losses)} se pierden en la conversión y ${kj(friction)} los disipa la fricción al final, cuando f(v) apaga la regeneración a baja velocidad.`}
+        ariaLabel={`Frenada de ${tStart} a ${tEnd} s del UDDS, desde ${formatNumber(toKmh(steps[event.start].v), { precision: 0, unit: 'km/h' })}: ${kj(brake)} de frenado en las ruedas; ${kj(battery)} llegan a la batería, ${kj(losses)} se pierden en la conversión y ${kj(friction)} los disipa la fricción, sobre todo al final, cuando f(v) apaga la regeneración a baja velocidad. Sin f(v) la batería recibiría ${kj(noFade.energies.battery)} y no habría fricción.`}
       />
     </div>
   );

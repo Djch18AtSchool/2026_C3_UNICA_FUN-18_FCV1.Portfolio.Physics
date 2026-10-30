@@ -5,8 +5,8 @@
  */
 import { DRIVE_CYCLES, type CycleId } from '../../data/driveCycles';
 import { LEAF_2025, MODEL3_LR_RWD_2025, type EvModel } from '../../data/evModels';
-import { formatNumber } from '../../format';
 import { cycleBalance, DEFAULT_REGEN } from '../../physics/energy';
+import { regenModelText } from '../../physics/regenModelText';
 import type { DataTableSpec } from '../types';
 
 const J_PER_KWH = 3_600_000;
@@ -56,23 +56,31 @@ function cycleRow(id: CycleId) {
     deltaK: totals.kineticRemoved / J_PER_KWH,
     frenado: totals.brake / J_PER_KWH,
     bateria: totals.battery / J_PER_KWH,
+    perdidas: totals.conversionLoss / J_PER_KWH,
+    friccion: totals.friction / J_PER_KWH,
     fraccion: totals.recoveredShare * PERCENT,
     potencia: totals.peakBrakePower / W_PER_KW,
     desaceleracion: totals.peakDecelG,
   };
 }
 
-const MODEL_TEXT = `η = ${formatNumber(DEFAULT_REGEN.eta, { precision: 2 })}, P_máx = ${formatNumber(DEFAULT_REGEN.pMax / W_PER_KW, { precision: 0, unit: 'kW' })}, sin f(v)`;
-
 const CYCLES: DataTableSpec = {
   id: 'frenado-regenerativo-ciclos',
-  caption: `Balance de energía del ${MODEL3_LR_RWD_2025.name} en tres ciclos de la EPA con el modelo del sitio (${MODEL_TEXT}); la fracción recuperada es la energía devuelta a la batería dividida entre la energía de tracción en ruedas, no entre la de frenado`,
+  caption: `Balance de energía del ${MODEL3_LR_RWD_2025.name} en tres ciclos de la EPA con el modelo del sitio (${regenModelText(DEFAULT_REGEN)}). El frenado en las ruedas se reparte en batería, pérdidas de conversión (1 − η) y calor de fricción; la fracción recuperada es la energía devuelta a la batería dividida entre la energía de tracción en las ruedas, no entre la de frenado`,
   columns: [
     { key: 'ciclo', label: 'Ciclo', align: 'text' },
-    { key: 'traccion', label: 'Tracción en ruedas', unit: 'kWh', align: 'num', precision: 3 },
-    { key: 'deltaK', label: 'ΔK quitado al frenar', unit: 'kWh', align: 'num', precision: 3 },
-    { key: 'frenado', label: 'Frenado en ruedas', unit: 'kWh', align: 'num', precision: 3 },
-    { key: 'bateria', label: 'Devuelta a la batería', unit: 'kWh', align: 'num', precision: 3 },
+    { key: 'traccion', label: 'Tracción en las ruedas', unit: 'kWh', align: 'num', precision: 3 },
+    { key: 'deltaK', label: 'ΔK quitado al desacelerar', unit: 'kWh', align: 'num', precision: 3 },
+    { key: 'frenado', label: 'Frenado en las ruedas', unit: 'kWh', align: 'num', precision: 3 },
+    { key: 'bateria', label: 'A la batería', unit: 'kWh', align: 'num', precision: 3 },
+    {
+      key: 'perdidas',
+      label: 'Pérdidas de conversión (1 − η)',
+      unit: 'kWh',
+      align: 'num',
+      precision: 3,
+    },
+    { key: 'friccion', label: 'Calor de fricción', unit: 'kWh', align: 'num', precision: 3 },
     { key: 'fraccion', label: 'Batería / tracción', unit: '%', align: 'num', precision: 1 },
     {
       key: 'potencia',

@@ -1,4 +1,6 @@
 import { describe, expect, test } from 'vitest';
+import { DEFAULT_REGEN } from '../../physics/energy';
+import { regenModelText } from '../../physics/regenModelText';
 import { tableById } from '../index';
 import { tableMarkdown } from '../markdown';
 import { TABLES } from './frenado-regenerativo';
@@ -15,6 +17,31 @@ function markdownRows(markdown: string): string[][] {
         .map((cell) => cell.replace(/\s+/g, ' ')),
     );
 }
+
+const HWFET_ROW = [
+  'HWFET',
+  '1,775',
+  '0,624',
+  '0,285',
+  '0,221',
+  '0,055',
+  '0,008',
+  '12,5',
+  '47,1',
+  '0,150',
+];
+const US06_ROW = [
+  'US06',
+  '2,431',
+  '1,452',
+  '0,976',
+  '0,748',
+  '0,187',
+  '0,041',
+  '30,7',
+  '70,8',
+  '0,314',
+];
 
 describe('frenado-regenerativo tables', () => {
   test('both tables are in the registry under the topic slug', () => {
@@ -54,16 +81,15 @@ describe('frenado-regenerativo tables', () => {
     expect(leaf.slice(4)).toEqual(['115,16', '0,3449', '3,4319', '0,01945', '0,43293']);
   });
 
-  test('ciclos: the share of traction back in the battery is 43,5 / 12,8 / 32,1 %', () => {
+  test('ciclos: the share of traction back in the battery is 40,4 / 12,5 / 30,7 %', () => {
     const rows = markdownRows(tableMarkdown(TABLES[1]));
-    const header = rows[0];
-    const share = header.indexOf('Batería / tracción (%)');
+    const share = rows[0].indexOf('Batería / tracción (%)');
     const byCycle = Object.fromEntries(rows.slice(2).map((row) => [row[0], row]));
 
     expect(share).toBeGreaterThan(0);
-    expect(byCycle.UDDS[share]).toBe('43,5');
-    expect(byCycle.HWFET[share]).toBe('12,8');
-    expect(byCycle.US06[share]).toBe('32,1');
+    expect(byCycle.UDDS[share]).toBe('40,4');
+    expect(byCycle.HWFET[share]).toBe('12,5');
+    expect(byCycle.US06[share]).toBe('30,7');
   });
 
   test('ciclos: energies in kWh with three decimals, peak power in kW and peak deceleration in g', () => {
@@ -71,26 +97,44 @@ describe('frenado-regenerativo tables', () => {
 
     expect(rows[0]).toEqual([
       'Ciclo',
-      'Tracción en ruedas (kWh)',
-      'ΔK quitado al frenar (kWh)',
-      'Frenado en ruedas (kWh)',
-      'Devuelta a la batería (kWh)',
+      'Tracción en las ruedas (kWh)',
+      'ΔK quitado al desacelerar (kWh)',
+      'Frenado en las ruedas (kWh)',
+      'A la batería (kWh)',
+      'Pérdidas de conversión (1 − η) (kWh)',
+      'Calor de fricción (kWh)',
       'Batería / tracción (%)',
       'Potencia de frenado máx. (kW)',
       'Desaceleración máx. (g)',
     ]);
-    expect(rows[2]).toEqual(['UDDS', '1,597', '1,124', '0,869', '0,695', '43,5', '33,2', '0,150']);
-    expect(rows[3]).toEqual(['HWFET', '1,775', '0,624', '0,285', '0,228', '12,8', '47,1', '0,150']);
-    expect(rows[4]).toEqual(['US06', '2,431', '1,452', '0,976', '0,781', '32,1', '70,8', '0,314']);
+    expect(rows[2]).toEqual([
+      'UDDS',
+      '1,597',
+      '1,124',
+      '0,869',
+      '0,645',
+      '0,161',
+      '0,062',
+      '40,4',
+      '33,2',
+      '0,150',
+    ]);
+    expect(rows[3]).toEqual(HWFET_ROW);
+    expect(rows[4]).toEqual(US06_ROW);
   });
 
-  test('the cycle table states the model and the denominator, and cites EPA and FASTSim', () => {
+  test('ciclos: brake at the wheels = battery + conversion loss + friction in every row', () => {
+    for (const row of TABLES[1].rows) {
+      const { frenado, bateria, perdidas, friccion } = row as Record<string, number>;
+      expect(bateria + perdidas + friccion, String(row.ciclo)).toBeCloseTo(frenado, 9);
+    }
+  });
+
+  test('the cycle table derives the model from DEFAULT_REGEN and states the denominator', () => {
     const cycles = TABLES[1];
 
-    expect(cycles.caption).toContain('η = 0,80');
-    expect(cycles.caption).toMatch(/P_máx = 239\skW/);
-    expect(cycles.caption).toContain('sin f(v)');
-    expect(cycles.caption).toContain('dividida entre la energía de tracción en ruedas');
+    expect(cycles.caption).toContain(regenModelText(DEFAULT_REGEN));
+    expect(cycles.caption).toContain('dividida entre la energía de tracción en las ruedas');
     expect(cycles.source.text).toContain('EPA (datos reales)');
     expect(cycles.source.text).toContain('FASTSim');
     expect(TABLES[0].source.text).toContain('3R124-782214');

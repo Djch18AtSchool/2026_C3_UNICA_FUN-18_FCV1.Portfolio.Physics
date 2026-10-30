@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import { DEFAULT_REGEN } from '../../../lib/physics/energy';
+import { regenModelText } from '../../../lib/physics/regenModelText';
 import RegenFigure from './RegenFigure';
 
 const strokeOf = (container: HTMLElement, id: string) =>
@@ -56,20 +58,28 @@ describe('RegenFigure', () => {
     ]) {
       expect(legend).toHaveTextContent(name);
     }
-    expect(strokeOf(container, 'total')).toBe('var(--chart-4)');
+    expect(strokeOf(container, 'total')).toBe('var(--fg)');
+    expect(strokeOf(container, 'lineal')).not.toBe('var(--chart-6)');
     expect(screen.getByText('Velocidad v (m/s)')).toBeInTheDocument();
     expect(screen.getByText('Cv² = A a 21,0 m/s')).toBeInTheDocument();
   });
 
-  test('frenada: the largest UDDS stop split into battery, conversion losses and friction', () => {
+  test('frenada: the largest UDDS stop with the site model, P_freno as the outer edge', () => {
     const { container } = render(<RegenFigure variant="frenada" />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
-    expect(legend).toHaveTextContent('Fricción (calor): P_freno − P_regen');
+    const title = container.querySelector('figcaption')?.textContent?.replace(/\s+/g, ' ');
+    expect(title).toContain(regenModelText(DEFAULT_REGEN).replace(/\s+/g, ' '));
+    expect(legend).toHaveTextContent('Calor de fricción: P_freno − P_regen');
     expect(legend).toHaveTextContent('Pérdidas de conversión: (1 − η) P_regen');
     expect(legend).toHaveTextContent('A la batería: η P_regen');
+    expect(legend).toHaveTextContent('Borde superior: P_freno, frenado en las ruedas');
+    expect(legend).toHaveTextContent('A la batería sin f(v), contraste');
     expect(strokeOf(container, 'bateria')).toBe('var(--chart-3)');
+    expect(strokeOf(container, 'perdidas')).toBe('var(--chart-6)');
     expect(strokeOf(container, 'friccion')).toBe('var(--chart-2)');
+    expect(strokeOf(container, 'freno')).toBe('var(--chart-4)');
+    expect(container.querySelector('[data-series="sin-fv"]')).toHaveAttribute('stroke-dasharray');
     expect(container.querySelectorAll('[data-area]')).toHaveLength(3);
     expect(screen.getByText('Potencia P (kW)')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /224\skJ/ })).toBeInTheDocument();

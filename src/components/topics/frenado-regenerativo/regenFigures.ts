@@ -11,28 +11,32 @@ import {
   type RegenParams,
   type RoadLoad,
 } from '../../../lib/physics/energy';
+import {
+  ENERGY_SERIES,
+  J_PER_KWH,
+  KMH_PER_MS,
+  W_PER_KW,
+  type EnergyKey,
+  type EnergySeriesSpec,
+} from './regenScene';
 
 export type Point = { x: number; y: number };
 
-export const J_PER_KWH = 3_600_000;
+export { J_PER_KWH };
 const J_PER_KJ = 1000;
-const W_PER_KW = 1000;
-const KMH_PER_MS = 3.6;
+
+const SERIES_BY_KEY = new Map(ENERGY_SERIES.map((series) => [series.key, series]));
 
 /**
- * Energy colors by meaning, never by series order (spec §4.3): energy back in the battery green,
- * friction heat orange-red; traction blue and road load purple, hues that do not compete with
- * those two; the brake energy at the wheels, which splits into battery, losses and friction, a
- * neutral ink (dashed in the balance chart); conversion losses the same neutral.
+ * The color of an energy, shared with the laboratory's ENERGY_SERIES (spec §4.3): battery green,
+ * conversion loss cyan, friction heat orange-red, braking at the wheels purple, traction blue and
+ * road load a muted neutral.
  */
-export const ENERGY_COLORS = {
-  traction: 'var(--chart-1)',
-  roadLoad: 'var(--chart-4)',
-  brake: 'var(--fg-muted)',
-  losses: 'var(--fg-muted)',
-  battery: 'var(--chart-3)',
-  friction: 'var(--chart-2)',
-} as const;
+export function energyColor(key: EnergyKey): string {
+  const series = SERIES_BY_KEY.get(key);
+  if (!series) throw new RangeError(`no energy series for ${key}`);
+  return series.color;
+}
 
 /** The car's state (v, K) is drawn in ink; the falling stretches of K too, over a blue K(t). */
 export const STATE_COLOR = 'var(--fg)';
@@ -48,11 +52,10 @@ export const ENERGY_BALANCE_SOURCE = {
 } as const;
 
 /**
- * Step 3's model: the site's η and P_máx with FASTSim 2's low-speed fade f(v). With the default
- * model (no fade, P_máx 239 kW against a 33 kW peak) nothing reaches the friction brakes in the
- * UDDS; the fade is the limit that shows where friction finishes a stop.
+ * The contrast of step 3 only: the site's η and P_máx without FASTSim 2's low-speed fade. Then
+ * nothing reaches the friction brakes in these cycles (P_máx 239 kW against a 33 kW UDDS peak).
  */
-export const FADE_REGEN: RegenParams = { ...DEFAULT_REGEN, lowSpeedFade: true };
+export const NO_FADE_REGEN: RegenParams = { ...DEFAULT_REGEN, lowSpeedFade: false };
 
 /* ── Step 1: kinetic energy ─────────────────────────────────────────────────────────────── */
 
@@ -230,60 +233,18 @@ export function brakingWindow(
 
 /* ── Step 4: the balance of the cycle ───────────────────────────────────────────────────── */
 
-export interface EnergySeries {
-  id: 'traccion' | 'carga' | 'frenado' | 'bateria' | 'friccion';
-  label: string;
-  color: string;
-  dashed?: boolean;
-  key: 'eTraction' | 'eRoadLoad' | 'eBrake' | 'eBattery' | 'eFriction';
-  points: Point[];
-}
+export type EnergySeries = EnergySeriesSpec & { points: Point[] };
 
-/** The five cumulative energies of the prescribed chart, in legend order. */
-const ENERGY_DEFINITIONS: readonly Omit<EnergySeries, 'points'>[] = [
-  {
-    id: 'traccion',
-    label: 'Tracción en ruedas',
-    color: ENERGY_COLORS.traction,
-    key: 'eTraction',
-  },
-  {
-    id: 'carga',
-    label: 'Carga en carretera',
-    color: ENERGY_COLORS.roadLoad,
-    key: 'eRoadLoad',
-  },
-  {
-    id: 'frenado',
-    label: 'Frenado en ruedas',
-    color: ENERGY_COLORS.brake,
-    dashed: true,
-    key: 'eBrake',
-  },
-  {
-    id: 'bateria',
-    label: 'Devuelta a la batería',
-    color: ENERGY_COLORS.battery,
-    key: 'eBattery',
-  },
-  {
-    id: 'friccion',
-    label: 'Calor de fricción',
-    color: ENERGY_COLORS.friction,
-    key: 'eFriction',
-  },
-];
-
-/** v(t) in km/h and the five cumulative energies in kWh, one point per step. */
+/** v(t) in km/h and the lab's six cumulative energies in kWh, one point per step (not thinned). */
 export function energyBalanceSeries(steps: readonly BalanceStep[]): {
   speed: Point[];
   energies: EnergySeries[];
 } {
   return {
     speed: steps.map(({ t, v }) => ({ x: t, y: v * KMH_PER_MS })),
-    energies: ENERGY_DEFINITIONS.map((definition) => ({
-      ...definition,
-      points: steps.map((step) => ({ x: step.t, y: step[definition.key] / J_PER_KWH })),
+    energies: ENERGY_SERIES.map((spec) => ({
+      ...spec,
+      points: steps.map((step) => ({ x: step.t, y: step[spec.key] / J_PER_KWH })),
     })),
   };
 }

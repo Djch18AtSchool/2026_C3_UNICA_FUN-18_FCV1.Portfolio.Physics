@@ -3,18 +3,19 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../../lib/settingsStore';
 import EnergyBalanceChart from './EnergyBalanceChart';
-
-const ENERGY_NAMES = [
-  'Tracción en ruedas',
-  'Carga en carretera',
-  'Frenado en ruedas',
-  'Devuelta a la batería',
-  'Calor de fricción',
-];
+import { ENERGY_SERIES } from './regenScene';
 
 const readout = () => screen.getByTestId('energy-balance-readout');
 const readoutValue = (label: string) =>
   within(readout()).getByText(label).nextElementSibling?.textContent?.replace(/\s+/g, ' ');
+/** "0,161 kWh" → 0.161 */
+const readoutNumber = (label: string) =>
+  Number(readoutValue(label)?.split(' ')[0].replace(',', '.'));
+/** The lab's label, with its no-break spaces as the DOM text matcher normalises them. */
+const LOSS_LABEL = (ENERGY_SERIES.find((s) => s.key === 'eConversionLoss')?.label ?? '').replace(
+  /\s+/g,
+  ' ',
+);
 
 describe('EnergyBalanceChart', () => {
   afterEach(() => {
@@ -33,40 +34,55 @@ describe('EnergyBalanceChart', () => {
     expect(screen.getAllByText('Tiempo t (s)')).toHaveLength(2);
   });
 
-  test('names the five energies in a visible legend', () => {
-    render(<EnergyBalanceChart cycle="udds" />);
+  test('names the six energies of the lab in a visible legend, the losses apart from braking', () => {
+    const { container } = render(<EnergyBalanceChart cycle="udds" />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const stroke = (key: string) =>
+      container.querySelector(`[data-series="${key}"]`)?.getAttribute('stroke');
 
     expect(
       within(legend)
         .getAllByRole('listitem')
         .map((item) => item.textContent),
-    ).toEqual(ENERGY_NAMES);
+    ).toEqual(ENERGY_SERIES.map((s) => s.label));
+    expect(stroke('eConversionLoss')).toBe('var(--chart-6)');
+    expect(stroke('eConversionLoss')).not.toBe(stroke('eBrake'));
   });
 
-  test('starts at the end of the cycle, with the totals and the share of traction', () => {
+  test('starts at the end of the cycle, with the totals, the dissipated sum and the share', () => {
     render(<EnergyBalanceChart />);
 
     expect(readoutValue('Tiempo t')).toBe('1 369 s');
-    expect(readoutValue('Tracción en ruedas')).toBe('1,597 kWh');
-    expect(readoutValue('Devuelta a la batería')).toBe('0,695 kWh');
-    expect(readoutValue('Batería / tracción')).toBe('43,5 %');
+    expect(readoutValue('Tracción en las ruedas')).toBe('1,597 kWh');
+    expect(readoutValue('A la batería')).toBe('0,645 kWh');
+    expect(readoutValue(LOSS_LABEL)).toBe('0,161 kWh');
+    expect(readoutValue('Calor de fricción')).toBe('0,062 kWh');
+    expect(readoutNumber('Disipado: pérdidas + fricción')).toBeCloseTo(
+      readoutNumber(LOSS_LABEL) + readoutNumber('Calor de fricción'),
+      2,
+    );
+    expect(readoutValue('Batería / tracción')).toBe('40,4 %');
   });
 
-  test('the arrow keys move both cursors together and update the readout', () => {
-    render(<EnergyBalanceChart />);
-    const [speedSlider, energySlider] = screen.getAllByRole('slider');
+  test('one slider on the energy plot moves the cursor of both plots and the readout', () => {
+    const { container } = render(<EnergyBalanceChart />);
+    const sliders = screen.getAllByRole('slider');
+    const cursorX = (testId: string) =>
+      screen.getByTestId(testId).querySelector('[data-cursor] line')?.getAttribute('x1');
 
-    fireEvent.keyDown(energySlider, { key: 'Home' });
+    expect(sliders).toHaveLength(1);
+    expect(container.querySelectorAll('[data-cursor]')).toHaveLength(2);
+    fireEvent.keyDown(sliders[0], { key: 'Home' });
     expect(readoutValue('Tiempo t')).toBe('0 s');
     expect(readoutValue('Batería / tracción')).toBe('0,0 %');
+    const atStart = cursorX('energy-balance-speed');
 
-    fireEvent.keyDown(speedSlider, { key: 'ArrowRight', shiftKey: true });
+    fireEvent.keyDown(sliders[0], { key: 'ArrowRight', shiftKey: true });
 
     expect(readoutValue('Tiempo t')).toBe('137 s');
-    expect(speedSlider).toHaveAttribute('aria-valuenow', '137');
-    expect(energySlider).toHaveAttribute('aria-valuenow', '137');
-    expect(readoutValue('Tracción en ruedas')).not.toBe('0,000 kWh');
+    expect(sliders[0]).toHaveAttribute('aria-valuenow', '137');
+    expect(cursorX('energy-balance-speed')).not.toBe(atStart);
+    expect(readoutValue('Tracción en las ruedas')).not.toBe('0,000 kWh');
   });
 
   test('announces the settled readout once the cursor stops', () => {
@@ -75,12 +91,13 @@ describe('EnergyBalanceChart', () => {
     const status = screen.getByRole('status');
     expect(status).toBeEmptyDOMElement();
 
-    fireEvent.keyDown(screen.getAllByRole('slider')[1], { key: 'Home' });
+    fireEvent.keyDown(screen.getByRole('slider'), { key: 'Home' });
     act(() => {
       vi.advanceTimersByTime(1000);
     });
 
     expect(status).toHaveTextContent('t = 0 s');
+    expect(status).toHaveTextContent('disipado: pérdidas + fricción 0,000 kWh');
     expect(status).toHaveTextContent('batería / tracción 0,0 %');
   });
 });
