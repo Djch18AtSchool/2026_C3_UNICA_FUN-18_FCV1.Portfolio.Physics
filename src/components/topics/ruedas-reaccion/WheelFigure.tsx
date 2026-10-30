@@ -244,13 +244,13 @@ function SaturationPlot(): JSX.Element {
           },
           {
             id: 'limite',
-            label: `L_max = ${DIAGRAM_FACTS.LmaxLabel}`,
+            label: `L_máx = ${DIAGRAM_FACTS.LmaxLabel}`,
             points: flat(RW400.Lmax),
             color: WHEEL_COLORS.limit,
           },
           {
             id: 'pico-giro',
-            label: `Pico de un giro de 90° en 60 s: ${SATURATION.maneuverShareLabel} de L_max`,
+            label: `Pico de un giro de 90° en 60 s: ${SATURATION.maneuverShareLabel} de L_máx`,
             points: flat(SATURATION.maneuverPeak),
             color: TICK_COLOR,
             dashed: true,
@@ -285,7 +285,7 @@ function SaturationPlot(): JSX.Element {
             />
           </>
         )}
-        ariaLabel={`L_w crece en línea recta desde la rueda vacía: con el torque máximo del gradiente de gravedad a 500 km, ${SATURATION.torqueLabel}, constante, la rueda se satura en ${SATURATION.secondsLabel}, unos ${SATURATION.daysLabel} en el peor caso, y desde ahí la nave deriva. Un giro de 90° en 60 s solo usa el ${SATURATION.maneuverShareLabel} de L_max.`}
+        ariaLabel={`L_w crece en línea recta desde la rueda vacía: con el torque máximo del gradiente de gravedad a 500 km, ${SATURATION.torqueLabel}, constante, la rueda se satura en ${SATURATION.secondsLabel}, unos ${SATURATION.daysLabel} en el peor caso, y desde ahí la nave deriva. Un giro de 90° en 60 s solo usa el ${SATURATION.maneuverShareLabel} de L_máx.`}
       />
     </div>
   );

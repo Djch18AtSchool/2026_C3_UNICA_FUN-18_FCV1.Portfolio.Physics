@@ -115,7 +115,7 @@ function wheelRow(wheel: ReactionWheel) {
     rpmMax: wheel.rpmMax,
     mass: formatNumber(mass, { precision: printed.massDecimals, unit: printed.massIn }),
     inertia: formatScientific(wheel.inertiaPrinted ?? wheel.inertiaDerived),
-    origin: isPrinted ? 'impresa en la hoja' : 'cálculo propio: L_max/ω_max',
+    origin: isPrinted ? 'impresa en la hoja' : 'cálculo propio: L_máx/ω_máx',
   };
 }
 
@@ -135,12 +135,12 @@ const citations = (ids: readonly WheelSourceId[]): string =>
 const ruedas: DataTableSpec = {
   id: 'ruedas-reaccion-ruedas',
   caption:
-    'Dos ruedas de reacción reales según sus hojas de datos: una grande y la de CubeSat del ejemplo. Solo la VRW-D-4 imprime la inercia del rotor; la de la RW400 la calculo como L_max/ω_max.',
+    'Dos ruedas de reacción reales según sus hojas de datos: una grande y la de CubeSat del ejemplo. Solo la VRW-D-4 imprime la inercia del rotor; la de la RW400 la calculo como L_máx/ω_máx.',
   columns: [
     { key: 'rueda', label: 'Rueda', align: 'text' },
-    { key: 'Lmax', label: 'L_max', unit: 'N·m·s', align: 'text' },
-    { key: 'tauMax', label: 'τ_max', unit: 'mN·m', align: 'num', precision: 0 },
-    { key: 'rpmMax', label: 'ω_max', unit: 'rpm', align: 'num', precision: 0 },
+    { key: 'Lmax', label: 'L_máx', unit: 'N·m·s', align: 'text' },
+    { key: 'tauMax', label: 'τ_máx', unit: 'mN·m', align: 'num', precision: 0 },
+    { key: 'rpmMax', label: 'ω_máx', unit: 'rpm', align: 'num', precision: 0 },
     { key: 'mass', label: 'Masa', align: 'text' },
     { key: 'inertia', label: 'I_w', unit: 'kg·m²', align: 'text' },
     { key: 'origin', label: 'Origen de I_w', align: 'text' },

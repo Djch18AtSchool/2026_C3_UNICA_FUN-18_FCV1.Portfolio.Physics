@@ -343,7 +343,7 @@ En órbita actúan torques externos, como el gradiente de gravedad o el arrastre
 
 <Equation
   id="ec-ruedas-saturacion"
-  latex="L_w(t) = L_w(0) + \int_0^t \tau_\text{ext}\,dt, \qquad |L_w| \le L_\text{max} = I_w\,\omega_\text{max}"
+  latex="L_w(t) = L_w(0) + \int_0^t \tau_\text{ext}\,dt, \qquad |L_w| \le L_\text{máx} = I_w\,\omega_\text{máx}"
   symbols={[
     {
       symbol: '\\tau_\\text{ext}',
@@ -351,7 +351,7 @@ En órbita actúan torques externos, como el gradiente de gravedad o el arrastre
       unit: 'N·m',
     },
     {
-      symbol: 'L_\\text{max}',
+      symbol: 'L_\\text{máx}',
       meaning: 'capacidad de la rueda a su velocidad máxima',
       unit: 'N·m·s',
     },
@@ -368,7 +368,7 @@ En su tope, el torque externo ya no va a la rueda sino a la nave, que deriva: se
 
 <Fragment slot="ecuacion">
 
-Vacía, con <Equation inline latex="\tau_\text{ext}" /> constante, se llena en <Equation inline latex="t = L_\text{max}/\tau_\text{ext}" />. A 500 km, el gradiente de gravedad sobre el 6U no pasa de <Equation inline latex="2{,}28 \cdot 10^{-7}\ \mathrm{N{\cdot}m}" /> (cálculo propio con la fórmula de SP-8024 <Cite id="nasa-sp-8024" sources={frontmatter.sources} />): <Equation inline latex="t = 2{,}19 \cdot 10^{5}\ \mathrm{s}" />, unos 2,5 días en el peor caso.
+Vacía, con <Equation inline latex="\tau_\text{ext}" /> constante, se llena en <Equation inline latex="t = L_\text{máx}/\tau_\text{ext}" />. A 500 km, el gradiente de gravedad sobre el 6U no pasa de <Equation inline latex="2{,}28 \cdot 10^{-7}\ \mathrm{N{\cdot}m}" /> (cálculo propio con la fórmula de SP-8024 <Cite id="nasa-sp-8024" sources={frontmatter.sources} />): <Equation inline latex="t = 2{,}19 \cdot 10^{5}\ \mathrm{s}" />, unos 2,5 días en el peor caso.
 
 </Fragment>
 
@@ -377,9 +377,9 @@ Vacía, con <Equation inline latex="\tau_\text{ext}" /> constante, se llena en <
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Momento angular de la rueda desde vacía bajo el gradiente de gravedad máximo, constante, ecuación (8.3): una rampa que toca L_max en unos 2,5 días, el peor caso. Desde ahí la rueda ya no absorbe en ese sentido y la nave deriva; la línea discontinua marca el 19 % que usa el giro de 90° en 60 s."
+  caption="Momento angular de la rueda desde vacía bajo el gradiente de gravedad máximo, constante, ecuación (8.3): una rampa que toca L_máx en unos 2,5 días, el peor caso. Desde ahí la rueda ya no absorbe en ese sentido y la nave deriva; la línea discontinua marca el 19 % que usa el giro de 90° en 60 s."
   source={{
-    text: 'Recta calculada por el autor con la ecuación (8.3); torque de gradiente de gravedad (cálculo propio con la fórmula de NASA SP-8024, fuente 8) y L_max de la RW400, tabla 8.1',
+    text: 'Recta calculada por el autor con la ecuación (8.3); torque de gradiente de gravedad (cálculo propio con la fórmula de NASA SP-8024, fuente 8) y L_máx de la RW400, tabla 8.1',
   }}
 >
   <WheelFigure variant="saturacion" client:visible />
@@ -423,7 +423,7 @@ Como <Equation inline latex="\vec m \times \vec B \perp \vec B" />, la parte de 
 
 <Figure
   type="diagrama"
-  caption="El satélite y su rueda, con las ecuaciones (8.1) a (8.4). El panel A muestra el intercambio: L_w y L_s iguales y opuestos, y el motor con τ sobre la rueda y −τ sobre la nave. El panel B muestra la rueda llena hasta L_max, la nave que deriva y las dos descargas: τ = m × B con el campo terrestre y τ = r × F con un propulsor."
+  caption="El satélite y su rueda, con las ecuaciones (8.1) a (8.4). El panel A muestra el intercambio: L_w y L_s iguales y opuestos, y el motor con τ sobre la rueda y −τ sobre la nave. El panel B muestra la rueda llena hasta L_máx, la nave que deriva y las dos descargas: τ = m × B con el campo terrestre y τ = r × F con un propulsor."
   source={{
     text: 'Diagrama del autor con las ecuaciones (8.1) a (8.4); CubeSat 6U con la RW400 (tabla 8.1), gradiente de gravedad (cálculo propio con la fórmula de NASA SP-8024, fuente 8) y magnetopar de GomSpace (fuente 9)',
   }}
@@ -434,12 +434,12 @@ Como <Equation inline latex="\vec m \times \vec B \perp \vec B" />, la parte de 
 <Figure
   type="simulacion"
   showBadge={false}
-  caption="Laboratorio de la rueda con las ecuaciones (8.1) a (8.4): arrastra la perilla del dial para fijar el ángulo objetivo, o muévela con las flechas, y elige T; si T es menor que T_min, el laboratorio avisa que la rueda no alcanza. En «Perturbación y descarga» la nave sigue quieta mientras el gradiente de gravedad llena la rueda hasta el 80 % de L_max, un umbral que elegí yo, y un magnetopar o un propulsor la vacía."
+  caption="Laboratorio de la rueda con las ecuaciones (8.1) a (8.4): arrastra la perilla del dial para fijar el ángulo objetivo, o muévela con las flechas, y elige T; si T es menor que T_mín, el laboratorio avisa que la rueda no alcanza. En «Perturbación y descarga» la nave sigue quieta mientras el gradiente de gravedad llena la rueda hasta el 80 % de L_máx, un umbral que elegí yo, y un magnetopar o un propulsor la vacía."
   source={{ text: 'Simulación del autor sobre src/lib/physics/rotation.ts' }}
 >
   <WheelLab
     client:visible
-    footnote={`La maniobra corre en tiempo real. La perturbación va a cámara rápida: a 1×, ${DAY_LAPSE / SECONDS_PER_HOUR} h de órbita por segundo, un día en ${SECONDS_PER_DAY / DAY_LAPSE} s; cada descarga, que dura minutos con el magnetopar y segundos con el propulsor, se estira a ${MIN_DUMP_PLAYBACK} s de pantalla. Lo que deja fuera: resuelve un solo eje; la rueda parte de 0 rpm y no tiene fricción, aunque las ruedas reales evitan pasar por 0 rpm; el gradiente de gravedad es constante en su máximo, una cota; el magnetopar tiene m perpendicular a B, su mejor caso, y el torque del propulsor es un supuesto mío: el τ_max de la rueda.`}
+    footnote={`La maniobra corre en tiempo real. La perturbación va a cámara rápida: a 1×, ${DAY_LAPSE / SECONDS_PER_HOUR} h de órbita por segundo, un día en ${SECONDS_PER_DAY / DAY_LAPSE} s; cada descarga, que dura minutos con el magnetopar y segundos con el propulsor, se estira a ${MIN_DUMP_PLAYBACK} s de pantalla. Lo que deja fuera: resuelve un solo eje; la rueda parte de 0 rpm y no tiene fricción, aunque las ruedas reales evitan pasar por 0 rpm; el gradiente de gravedad es constante en su máximo, una cota; el magnetopar tiene m perpendicular a B, su mejor caso, y el torque del propulsor es un supuesto mío: el τ_máx de la rueda.`}
   />
 </Figure>
 

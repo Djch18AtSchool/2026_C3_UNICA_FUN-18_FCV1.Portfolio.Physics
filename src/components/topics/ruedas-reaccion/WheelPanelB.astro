@@ -91,7 +91,7 @@ const pyramid = PYRAMID_AXES.map((offset) => {
 
 const sub = (symbol: string, subscript: string): MathPart => ({ symbol, sub: subscript });
 const EQ = {
-  limit: [sub('L', 'max'), ' = ', sub('I', 'w'), ' ', sub('ω', 'max')],
+  limit: [sub('L', 'máx'), ' = ', sub('I', 'w'), ' ', sub('ω', 'máx')],
   integral: [sub('L', 'w'), ' = ∫ ', sub('τ', 'ext'), ' d', { symbol: 't' }],
   bound: [sub('τ', 'ext'), ` ≤ ${DIAGRAM_FACTS.disturbanceLabel}`],
   lw: [sub('L', 'w')],

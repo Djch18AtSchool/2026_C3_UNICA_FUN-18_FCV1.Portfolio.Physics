@@ -78,6 +78,16 @@ describe('ruedas-reaccion-ruedas', () => {
     expect(printed(spec, 0).origin).not.toMatch(/cálculo propio/);
   });
 
+  test('labels the limits with accented subscripts: L_máx, τ_máx, ω_máx', () => {
+    expect(spec.columns.map((column) => column.label).slice(1, 4)).toEqual([
+      'L_máx',
+      'τ_máx',
+      'ω_máx',
+    ]);
+    expect(printed(spec, 1).origin).toBe('cálculo propio: L_máx/ω_máx');
+    expect(JSON.stringify(spec)).not.toMatch(/_(max|min)\b/);
+  });
+
   test('the source line groups the RW400 top speed as the table does: 5 000 rpm', () => {
     expect(spec.source.text).toContain('las 5\u202F000\u202Frpm de la hoja');
     expect(spec.source.text).not.toMatch(/5000/);

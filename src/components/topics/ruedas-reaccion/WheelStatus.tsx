@@ -51,7 +51,7 @@ function superscript(exponent: number): string {
 /** T below T_min: the brief's warning, then what the turn asks of the wheel and the shortest T. */
 function maneuverWarning(settings: WheelSettings, feasibility: Feasibility): string {
   const { torqueShare, momentumShare, tMin } = feasibility;
-  return `La rueda no alcanza: se satura o le falta torque. En ${n(settings.T, 1, 's')} el giro de ${n(settings.thetaDeg, 0, '°')} pide τ = ${n(torqueShare * SPACECRAFT.tauMax * MILLI, 2, 'mN·m')} (${n(torqueShare * PERCENT, 0, '%')} de τ_max) y |L_w| = ${n(momentumShare * SPACECRAFT.Lmax, 4, 'N·m·s')} (${n(momentumShare * PERCENT, 0, '%')} de L_max). El giro más corto que permite la rueda dura T_min = ${n(tMin, 1, 's')}; aquí se dibuja el giro ideal, que la rueda no puede dar.`;
+  return `La rueda no alcanza: se satura o le falta torque. En ${n(settings.T, 1, 's')} el giro de ${n(settings.thetaDeg, 0, '°')} pide τ = ${n(torqueShare * SPACECRAFT.tauMax * MILLI, 2, 'mN·m')} (${n(torqueShare * PERCENT, 0, '%')} de τ_máx) y |L_w| = ${n(momentumShare * SPACECRAFT.Lmax, 4, 'N·m·s')} (${n(momentumShare * PERCENT, 0, '%')} de L_máx). El giro más corto que permite la rueda dura T_mín = ${n(tMin, 1, 's')}; aquí se dibuja el giro ideal, que la rueda no puede dar.`;
 }
 
 /**
@@ -73,7 +73,7 @@ function WarningRegion({ text }: { text: string | undefined }): JSX.Element {
 function ManeuverLimits({ feasibility }: { feasibility: Feasibility }): JSX.Element {
   return (
     <p className="m-0 text-sm text-fg-muted">
-      {`Giro más corto para este ángulo: T_min = ${n(feasibility.byTorque, 1, 's')} por torque (τ_max = ${n(SPACECRAFT.tauMax * MILLI, 0, 'mN·m')}) y ${n(feasibility.byMomentum, 1, 's')} por momento (L_max). La maniobra corre en tiempo real.`}
+      {`Giro más corto para este ángulo: T_mín = ${n(feasibility.byTorque, 1, 's')} por torque (τ_máx = ${n(SPACECRAFT.tauMax * MILLI, 0, 'mN·m')}) y ${n(feasibility.byMomentum, 1, 's')} por momento (L_máx). La maniobra corre en tiempo real.`}
     </p>
   );
 }
@@ -99,7 +99,7 @@ function actuatorLaw(isMagnetic: boolean): string {
   }
   const { tauExt, tauDump, Lmax, dumpAt } = dumpingParams('propulsor');
   const seconds = (dumpAt * Lmax) / (tauDump - tauExt);
-  return `Propulsor: τ = r × F. Su torque es un supuesto ilustrativo, no un dato de una fuente: lo acoto con el τ_max de la rueda (${n(tauDump * MILLI, 0, 'mN·m')}), porque la rueda debe frenarse igual de rápido mientras la nave sigue quieta. Con esa cota la descarga dura unos ${n(seconds, 0, 's')}, lo más rápido posible.`;
+  return `Propulsor: τ = r × F. Su torque es un supuesto ilustrativo, no un dato de una fuente: lo acoto con el τ_máx de la rueda (${n(tauDump * MILLI, 0, 'mN·m')}), porque la rueda debe frenarse igual de rápido mientras la nave sigue quieta. Con esa cota la descarga dura unos ${n(seconds, 0, 's')}, lo más rápido posible.`;
 }
 
 /** What the disturbance mode is doing now, the dump actuator's law, the time-lapse and a jump to the dump. */

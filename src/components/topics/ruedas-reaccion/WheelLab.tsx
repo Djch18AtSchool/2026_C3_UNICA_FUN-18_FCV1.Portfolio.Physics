@@ -84,7 +84,7 @@ function readoutsFor(
     },
     {
       id: 'share',
-      label: 'Porcentaje de L_max',
+      label: 'Porcentaje de L_máx',
       value: live.share * PERCENT,
       unit: '%',
       precision: PRECISION.percent,

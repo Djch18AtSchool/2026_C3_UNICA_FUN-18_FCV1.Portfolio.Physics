@@ -105,7 +105,7 @@ describe('WheelFigure', () => {
     expect(container.querySelector('[data-series="momento-rueda"]')?.getAttribute('stroke')).toBe(
       'var(--chart-4)',
     );
-    expect(legend).toHaveTextContent('L_max = 0,050 N·m·s');
+    expect(legend).toHaveTextContent('L_máx = 0,050 N·m·s');
     expect(legend).toHaveTextContent('19 %');
     expect(container.querySelector('[data-note="saturacion"]')).toHaveTextContent(
       '≈ 2,5 días en el peor caso',

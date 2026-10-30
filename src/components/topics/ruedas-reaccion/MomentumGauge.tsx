@@ -29,9 +29,9 @@ export default function MomentumGauge({ Lw, Lmax, threshold }: MomentumGaugeProp
   return (
     <div data-testid="momentum-gauge" data-exceeds={exceeds} className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-3 text-sm">
-        <span id={labelId}>Momento de la rueda |L_w| / L_max</span>
+        <span id={labelId}>Momento de la rueda |L_w| / L_máx</span>
         <span className="font-mono tabular-nums">
-          {exceeds ? `${percentText}: excede L_max` : percentText}
+          {exceeds ? `${percentText}: excede L_máx` : percentText}
         </span>
       </div>
       <div
@@ -40,7 +40,7 @@ export default function MomentumGauge({ Lw, Lmax, threshold }: MomentumGaugeProp
         aria-valuemin={0}
         aria-valuemax={PERCENT}
         aria-valuenow={Math.min(percent, PERCENT)}
-        aria-valuetext={`${percentText} de L_max${exceeds ? ', excede el límite' : ''}`}
+        aria-valuetext={`${percentText} de L_máx${exceeds ? ', excede el límite' : ''}`}
         className="relative h-3 rounded-base border border-border bg-bg"
       >
         <div
@@ -63,10 +63,10 @@ export default function MomentumGauge({ Lw, Lmax, threshold }: MomentumGaugeProp
         />
       </div>
       <p className="m-0 text-xs text-fg-muted">
-        {`En rojo, L_max = ${lmaxText} (RW400).`}
+        {`En rojo, L_máx = ${lmaxText} (RW400).`}
         {threshold === undefined
           ? null
-          : ` Punteado: umbral de descarga (elección de diseño), al ${formatNumber(threshold * PERCENT, { precision: 0, unit: '%' })} de L_max.`}
+          : ` Punteado: umbral de descarga (elección de diseño), al ${formatNumber(threshold * PERCENT, { precision: 0, unit: '%' })} de L_máx.`}
       </p>
     </div>
   );

@@ -122,7 +122,7 @@ describe('WheelLab', () => {
     expect(handle()).toHaveAttribute('aria-valuenow', '90');
     expect(readout('ω_w máxima de la maniobra')).toBe('−969,54 rpm');
     expect(readout('Vueltas de la rueda')).toBe('0,0 vueltas');
-    expect(readout('Porcentaje de L_max')).toBe('0,0 %');
+    expect(readout('Porcentaje de L_máx')).toBe('0,0 %');
     expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
     expect(screen.queryByText(/la rueda no alcanza/i)).toBeNull();
   });
@@ -174,8 +174,19 @@ describe('WheelLab', () => {
     expect(screen.getByRole('status')).toBe(region);
     expect(region).toHaveTextContent(/la rueda no alcanza: se satura o le falta torque/i);
     expect(lab().textContent).not.toMatch(/NaN|Infinity/);
-    expect(readoutNumber('Porcentaje de L_max')).toBeGreaterThan(100);
+    expect(readoutNumber('Porcentaje de L_máx')).toBeGreaterThan(100);
     expect(screen.getByTestId('momentum-gauge')).toHaveAttribute('data-exceeds', 'true');
+  });
+
+  test('writes the limits with accented subscripts, as the other topics do: L_máx, τ_máx, T_mín', () => {
+    renderLab();
+    typeInto(durationField(), '8');
+
+    const text = lab().textContent ?? '';
+    expect(text).toContain('L_máx');
+    expect(text).toContain('τ_máx');
+    expect(text).toContain('T_mín');
+    expect(text).not.toMatch(/_(max|min)\b/);
   });
 
   test('"El giro más rápido" sits just above T_min: no warning, about 96 % of L_max at T/2', async () => {
@@ -187,7 +198,7 @@ describe('WheelLab', () => {
 
     expect(durationField()).toHaveValue('12,1');
     expect(screen.queryByText(/la rueda no alcanza/i)).toBeNull();
-    expect(readoutNumber('Porcentaje de L_max')).toBeCloseTo(96.2, 0);
+    expect(readoutNumber('Porcentaje de L_máx')).toBeCloseTo(96.2, 0);
   });
 
   test('the disturbance fills the wheel to the 80 % threshold, then the magnetorquer dumps it', async () => {
@@ -199,14 +210,14 @@ describe('WheelLab', () => {
     expect(screen.queryByTestId('target-handle')).toBeNull();
 
     seekHours(48.5);
-    const full = readoutNumber('Porcentaje de L_max');
+    const full = readoutNumber('Porcentaje de L_máx');
     const fullMomentum = readoutNumber('Momento angular de la rueda L_w');
     expect(full).toBeGreaterThan(79);
     expect(full).toBeLessThan(80);
     expect(readout('Ángulo de la nave θ_s')).toBe('0,00 °');
 
     seekHours(49);
-    expect(readoutNumber('Porcentaje de L_max')).toBeLessThan(full);
+    expect(readoutNumber('Porcentaje de L_máx')).toBeLessThan(full);
     expect(readoutNumber('Momento angular de la rueda L_w')).toBeLessThan(fullMomentum);
     expect(screen.getByTestId('wheel-phase')).toHaveTextContent(/descargando/i);
     expect(readoutNumber('Torque del motor sobre la rueda τ')).toBeLessThan(0);
@@ -224,10 +235,10 @@ describe('WheelLab', () => {
     await user.click(screen.getByRole('radio', { name: 'Propulsor' }));
     seekHours(49, 'propulsor');
 
-    expect(readoutNumber('Porcentaje de L_max')).toBeLessThan(1);
+    expect(readoutNumber('Porcentaje de L_máx')).toBeLessThan(1);
     expect(scene().querySelector('[data-actuator="propulsor"]')).toBeNull();
     expect(screen.getByText(/supuesto ilustrativo/)).toHaveTextContent(
-      /τ_max de la rueda \(8 mN·m\)/,
+      /τ_máx de la rueda \(8 mN·m\)/,
     );
   });
 

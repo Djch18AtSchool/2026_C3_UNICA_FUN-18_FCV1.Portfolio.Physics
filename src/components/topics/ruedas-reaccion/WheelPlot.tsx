@@ -41,7 +41,7 @@ function maneuverPlot(settings: WheelSettings) {
     { id: 'lw', label: 'L_w de la rueda', points, color: TEXT_COLOR },
     {
       id: 'lmax',
-      label: '±L_max',
+      label: '±L_máx',
       points: [...level(PERCENT, settings.T), GAP, ...level(-PERCENT, settings.T)],
       color: LIMIT_COLOR,
       dashed: true,
@@ -66,7 +66,7 @@ function disturbancePlot(settings: WheelSettings) {
       points: disturbanceSeries(settings.actuator),
       color: TEXT_COLOR,
     },
-    { id: 'lmax', label: 'L_max', points: level(PERCENT, end), color: LIMIT_COLOR, dashed: true },
+    { id: 'lmax', label: 'L_máx', points: level(PERCENT, end), color: LIMIT_COLOR, dashed: true },
     {
       id: 'umbral',
       label: 'Umbral de descarga, 80 %',
@@ -98,14 +98,14 @@ export default function WheelPlot({ settings, t, onSeek }: WheelPlotProps): JSX.
   const cursorText = (x: number) =>
     `t = ${formatNumber(x, { precision: CURSOR_PRECISION, unit: plot.xUnit })}`;
   const ariaLabel = isManeuver
-    ? `L_w respecto de L_max durante el giro: un triángulo que sube y vuelve a 0 en ${formatNumber(settings.T, { precision: 1, unit: 's' })}, con ±L_max en rojo.`
-    : 'L_w respecto de L_max durante tres días: rampas del gradiente de gravedad hasta el umbral del 80 % y caídas de la descarga, con L_max en rojo.';
+    ? `L_w respecto de L_máx durante el giro: un triángulo que sube y vuelve a 0 en ${formatNumber(settings.T, { precision: 1, unit: 's' })}, con ±L_máx en rojo.`
+    : 'L_w respecto de L_máx durante tres días: rampas del gradiente de gravedad hasta el umbral del 80 % y caídas de la descarga, con L_máx en rojo.';
   return (
     <SvgPlot
       title="Momento de la rueda frente al tiempo"
       xLabel="t"
       xUnit={plot.xUnit}
-      yLabel="L_w / L_max"
+      yLabel="L_w / L_máx"
       yUnit="%"
       series={plot.series}
       xDomain={plot.xDomain}
