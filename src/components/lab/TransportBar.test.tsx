@@ -121,11 +121,11 @@ describe('TransportBar', () => {
     expect(timeline()).toHaveAttribute('aria-valuetext', 't = 1,670\u202Fd');
   });
 
-  test('a lab that fixes timeUnit "s" reads a 22-minute run in seconds', () => {
+  test('a lab that fixes timeUnit "s" reads a 22-minute run in whole seconds', () => {
     render(<TransportBar clock={fakeClock({ duration: 1369, t: 116 })} timeUnit="s" />);
 
-    expect(screen.getByText('t = 116,000\u202Fs', EXACT_TEXT)).toBeInTheDocument();
-    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 116,000\u202Fs');
+    expect(screen.getByText('t = 116\u202Fs', EXACT_TEXT)).toBeInTheDocument();
+    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 116\u202Fs');
   });
 
   test('the range still seeks in seconds when the display is in days', () => {

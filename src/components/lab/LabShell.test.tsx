@@ -184,7 +184,7 @@ describe('LabShell', () => {
     unmount();
 
     renderShell({ clock, timeUnit: 's' });
-    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 116,000\u202Fs');
+    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 116\u202Fs');
   });
 
   test('lays out header, canvas, transport, readouts, params and footnote in that order', () => {

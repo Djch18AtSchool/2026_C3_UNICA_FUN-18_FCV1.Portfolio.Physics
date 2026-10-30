@@ -88,7 +88,7 @@ describe('DroneLab', () => {
     await screen.findByTestId('drone-lab', {}, { timeout: LAB_READY_TIMEOUT_MS });
 
     expect(readout('Duración de la ruta')).toBe(DECLARED_DURATION);
-    expect(valueText(timeline())).toBe('t = 30,000 s');
+    expect(valueText(timeline())).toBe('t = 30,0 s');
     expect(screen.getByText(/crucero \(a = 0\)/)).toBeInTheDocument();
     expect(readout('Rapidez |v|')).toBe('10,00 m/s');
     expect(modifiedNote()).toBeNull();
@@ -102,7 +102,7 @@ describe('DroneLab', () => {
     // The timeline runs 0–1000 over the route's 387,43 s: 168 is t ≈ 65,09 s.
     fireEvent.change(timeline(), { target: { value: '168' } });
 
-    expect(valueText(timeline())).toMatch(/^t = 65,\d{3} s$/);
+    expect(valueText(timeline())).toMatch(/^t = 65,\d s$/);
     expect(screen.getByText(/frenando \(a opuesta a v\)/)).toBeInTheDocument();
     expect(readout('Aceleración |a|')).toBe('2,50 m/s²');
   });
@@ -208,7 +208,7 @@ describe('DroneLab', () => {
     dragTo('drone-marker', knobCentre('stop-B'));
 
     expect(screen.getByTestId('drone-lab')).toHaveAttribute('data-playing', 'false');
-    expect(valueText(timeline())).not.toBe('t = 30,000 s');
+    expect(valueText(timeline())).not.toBe('t = 30,0 s');
   });
 
   test('a finger on a stop or on the drone does not pan the page', async () => {

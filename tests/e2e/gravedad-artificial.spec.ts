@@ -50,7 +50,7 @@ test.describe('laboratorio', () => {
     await expect(lab).toHaveAttribute('data-playing', 'false');
     await expect(lab.getByRole('button', { name: 'Reproducir' })).toBeVisible();
     // One revolution at 1 rpm is 60 s of real time.
-    await expect(timeline).toHaveAttribute('aria-valuetext', /^t = 60,000\s?s$/);
+    await expect(timeline).toHaveAttribute('aria-valuetext', /^t = 60,00\s?s$/);
     await page.waitForTimeout(STILL_AT_END_MS);
     await expect(timeline).toHaveValue('1000');
     await expect(lab).toHaveAttribute('data-playing', 'false');

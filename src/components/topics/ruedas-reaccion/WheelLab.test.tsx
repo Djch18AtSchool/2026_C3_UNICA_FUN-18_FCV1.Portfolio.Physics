@@ -160,7 +160,7 @@ describe('WheelLab', () => {
 
     fireEvent.change(timeline(), { target: { value: '1000' } });
 
-    expect(timelineText()).toBe('t = 150,000 s');
+    expect(timelineText()).toBe('t = 150,0 s');
   });
 
   test('T = 8 s is below T_min: the warning fills a live region already in the page, no NaN', () => {
@@ -341,7 +341,7 @@ describe('WheelLab', () => {
     cursor.focus();
     fireEvent.keyDown(cursor, { key: 'ArrowRight', shiftKey: true });
 
-    expect(timelineText()).toBe('t = 6,000 s');
+    expect(timelineText()).toBe('t = 6,00 s');
     expect(readoutNumber('Ángulo de la nave θ_s')).toBeCloseTo(1.8, 6);
   });
 
@@ -356,7 +356,7 @@ describe('WheelLab', () => {
       vi.advanceTimersByTime(250);
     });
 
-    expect(timelineText()).toBe('t = 1,000 s');
+    expect(timelineText()).toBe('t = 1,00 s');
     expect(frames.request).not.toHaveBeenCalled();
   });
 

@@ -25,7 +25,7 @@ type UnitSymbol = keyof typeof SECONDS_PER_UNIT;
 const UNIT_SWITCH_COUNT = 2;
 /** Larger units first: the first one the run reaches UNIT_SWITCH_COUNT of. */
 const AUTO_ORDER: readonly UnitSymbol[] = ['d', 'h', 'min'];
-/** Seconds keep the three decimals the labs always showed. */
+/** Auto seconds (runs under 120 s) keep the three decimals the labs always showed. */
 const SECONDS_PRECISION = 3;
 /** Larger units of a run whose duration is not a positive finite number. */
 const FALLBACK_PRECISION = 2;
@@ -42,17 +42,19 @@ function autoSymbol(duration: number): UnitSymbol {
 /**
  * The fewest decimals at which one timeline step (duration / TIMELINE_STEPS) changes the last
  * digit, so consecutive positions never read the same, and no decimal finer than a step.
+ * `fallback` when the duration is not a positive finite number.
  */
-function stepPrecision(duration: number, unitSeconds: number): number {
+function stepPrecision(duration: number, unitSeconds: number, fallback: number): number {
   const step = duration / TIMELINE_STEPS / unitSeconds;
-  if (!Number.isFinite(step) || step <= 0) return FALLBACK_PRECISION;
+  if (!Number.isFinite(step) || step <= 0) return fallback;
   return Math.max(0, Math.ceil(-Math.log10(step) - LOG_EPSILON));
 }
 
 /**
  * The display unit of a run: 'auto' reads seconds below 120 s, minutes below 2 h, hours below 2 d
- * and days beyond (seconds when the duration is not finite). Seconds show three decimals; the
- * larger units, as many as one timeline step needs.
+ * and days beyond (seconds when the duration is not finite). Auto seconds show three decimals;
+ * any other unit, seconds fixed by a lab included, as many as one timeline step needs (a 1 369 s
+ * UDDS in fixed seconds reads whole seconds, not a false "1 369,000 s").
  */
 export function transportTimeUnit(
   duration: number,
@@ -60,7 +62,10 @@ export function transportTimeUnit(
 ): TransportTimeUnit {
   const symbol = choice === 'auto' ? autoSymbol(duration) : choice;
   const seconds = SECONDS_PER_UNIT[symbol];
-  const precision = symbol === 's' ? SECONDS_PRECISION : stepPrecision(duration, seconds);
+  const precision =
+    choice === 'auto' && symbol === 's'
+      ? SECONDS_PRECISION
+      : stepPrecision(duration, seconds, symbol === 's' ? SECONDS_PRECISION : FALLBACK_PRECISION);
   return { symbol, seconds, precision };
 }
 

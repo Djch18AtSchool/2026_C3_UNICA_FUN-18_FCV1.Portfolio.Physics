@@ -234,7 +234,7 @@ describe('HabitatLab', () => {
     frames.flush(1000);
     frames.flush(1050);
 
-    expect(timelineText()).toBe('t = 2,400 s');
+    expect(timelineText()).toBe('t = 2,40 s');
     frames.restore();
   });
 
@@ -246,7 +246,7 @@ describe('HabitatLab', () => {
       target: { value: '1000' },
     });
 
-    expect(timelineText()).toBe('t = 120,000 s');
+    expect(timelineText()).toBe('t = 120,0 s');
   });
 
   test('at 1× the same frame advances only 6 · 0,05 s', async () => {
@@ -258,7 +258,7 @@ describe('HabitatLab', () => {
     frames.flush(1000);
     frames.flush(1050);
 
-    expect(timelineText()).toBe('t = 0,300 s');
+    expect(timelineText()).toBe('t = 0,30 s');
     frames.restore();
   });
 

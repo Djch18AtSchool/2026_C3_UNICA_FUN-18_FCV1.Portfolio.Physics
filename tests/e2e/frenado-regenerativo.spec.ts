@@ -132,7 +132,7 @@ test.describe('laboratorio', () => {
     await expect(lab).toHaveAttribute('data-playing', 'false');
     await expect(lab.getByRole('button', { name: 'Reproducir', exact: true })).toBeVisible();
     // The UDDS lasts 1369 s; the thousands are grouped with a narrow no-break space.
-    await expect(timeline).toHaveAttribute('aria-valuetext', /^t = 1\s?369(,0+)?\s?s$/);
+    await expect(timeline).toHaveAttribute('aria-valuetext', /^t = 1\s?369\s?s$/);
     await page.waitForTimeout(STILL_AT_END_MS);
     await expect(timeline).toHaveValue('1000');
     await expect(lab).toHaveAttribute('data-playing', 'false');
