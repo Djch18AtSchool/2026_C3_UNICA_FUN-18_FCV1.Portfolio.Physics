@@ -7,9 +7,13 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
 
 ## Estado
 
-- **Publicado:** `main` = `1069de1` (el Avance 1, entregado el 17 de octubre). Es lo que hoy
-  sirve GitHub Pages. La etiqueta `avance-1` nunca se creó (pendiente 5).
-- **En curso:** rama `avance-2`, sobre `main`, todavía **sin integrar a `main`**. Reúne:
+- **Publicado:** `origin/main` = `1069de1` (el Avance 1, entregado el 17 de octubre). Es lo
+  que hoy sirve GitHub Pages. La rama local `main` está desactualizada en `fa33c68`, 53 commits
+  **detrás** de `origin/main` (no adelante): antes de usarla, `git fetch` y
+  `git switch main && git merge --ff-only origin/main`. La etiqueta `avance-1` nunca se creó
+  (pendiente 5).
+- **En curso:** rama `avance-2`, todavía **sin integrar a `main`**. `origin/main` es ancestro
+  de `avance-2`, así que `git push origin avance-2:main` es un avance rápido. Reúne:
   - **Temas 6 a 9**, con el formato del Avance 1 (cuatro `Step` con ecuación numerada y `Why`,
     `UseCase`, `Callout` de clase, `Connections`, `Sources`), su recurso prescrito con insignia
     y un laboratorio por tema:
@@ -123,7 +127,7 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
    `git push origin refs/tags/avance-2` (la etiqueta y la rama comparten nombre; con
    `refs/tags/` el push no es ambiguo).
 5. **Etiqueta `avance-1`, que nunca se creó.** Lo entregado el 17 de octubre es `1069de1`
-   (hoy `main`). Decidir si se etiqueta:
+   (hoy `origin/main`). Decidir si se etiqueta:
    ```
    git tag -a avance-1 1069de1 -m "Avance 1: Temas 1 a 5 (entregado el 17 de octubre de 2026)"
    git push origin refs/tags/avance-1
@@ -213,7 +217,8 @@ si fue un error.
   disjuntos; costo: un conflicto de rebase.
 - **R6:** se corrigió la cercanía de color Júpiter–Saturno (claro) y baloncesto–`--chart-2`;
   comparten figuras y Dylan revisa los colores; costo: una ronda corta extra.
-- **R7:** el núcleo del Tema 7 expone e(v) y deja que una bola con Baumgarte se detenga; el
+- **R7:** el núcleo del Tema 7 expone e(v) y deja que una bola con β > 0 pueda quedar en reposo (relajando los contactos sin
+  restitución, al estilo de Box2D; se descartó el *slop*); el
   paso 4 lo pide y sin reposo las lecturas del laboratorio no sirven; costo: una ronda más de
   núcleo.
 - **R8:** con worktrees en paralelo, Playwright corre con `--workers=2`; la carga de la máquina
@@ -234,8 +239,10 @@ si fue un error.
 - **R15:** figuras y laboratorio de cada tema se hicieron en paralelo en worktrees hermanos;
   archivos disjuntos y fecha cercana; costo: ayudantes duplicados, señalados para la revisión
   final.
-- **R16:** el preajuste del Tema 8 se llama "Perturbación y descarga (3 días)"; la descarga llega
-  a las 48,6 h y un nombre no puede contradecir sus números; costo: una cadena.
+- **R16:** el preajuste del Tema 8 «Un día de perturbación con descarga» pasó a llamarse «Tres
+  días de perturbación con descarga» («Perturbación y descarga» es el modo del laboratorio, no
+  el preajuste); el umbral de descarga llega a las 48,6 h y un nombre no puede contradecir sus
+  números; costo: una cadena.
 - **R17:** el sitio usa 2,28·10⁻⁷ N·m y 2,19·10⁵ s del código en tablas, laboratorio y texto
   del Tema 8; manda lo calculado por código con pruebas; costo: una última cifra distinta de la
   nota de investigación.
