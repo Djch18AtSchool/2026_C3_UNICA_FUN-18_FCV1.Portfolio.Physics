@@ -140,6 +140,8 @@ describe('VOYAGER.series', () => {
   test('V2 leaves at v∞ = √(2ε) ≈ 14,86 km/s = 3,13 AU/yr (NSSDCA: about 3.13 AU/year)', () => {
     const vInf = Math.sqrt(2 * energy(v2[v2.length - 1]));
 
+    // The topic quotes ε ≈ 110 km²/s² after Neptune (R13: every Tema 9 number comes from code).
+    expect(energy(v2[v2.length - 1])).toBeCloseTo(110, 0);
     expect(vInf).toBeCloseTo(14.86, 1);
     expect(Math.abs((vInf * SECONDS_PER_JULIAN_YEAR) / AU_KM - 3.13)).toBeLessThan(0.01);
   });

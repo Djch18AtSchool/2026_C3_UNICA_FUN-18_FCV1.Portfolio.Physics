@@ -131,7 +131,7 @@ export default function FlybyLab({ footnote }: FlybyLabProps): JSX.Element {
     },
     {
       id: 'dv',
-      label: 'Cambio de velocidad |Δv⃗|',
+      label: 'Cambio de velocidad |Δv|',
       value: deltaVMagnitude(encounter.vInf, hyperbola.delta),
       unit: 'km/s',
     },

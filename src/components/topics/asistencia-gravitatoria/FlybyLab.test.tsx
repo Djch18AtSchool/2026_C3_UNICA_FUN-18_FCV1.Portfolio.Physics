@@ -10,6 +10,9 @@ const FOOTNOTE = 'Modelo plano de cónicas empalmadas.';
 /** useSimClock under reduced motion: one step of duration/60 every 250 ms. */
 const REDUCED_STEP_MS = 250;
 const REDUCED_STEPS = 60;
+/** The combining vector arrow: Plex has no glyph for it and Windows draws a box (auditoría §5.1). */
+const COMBINING_ARROW = '\u20D7';
+const NAME_ATTRIBUTES = ['aria-label', 'aria-description', 'title'];
 
 /** Identity CTM on every svg: client pixels are viewBox units, so DOM coordinates are pointer ones. */
 function mockIdentityCtm(): void {
@@ -45,7 +48,7 @@ const TURN = 'Ángulo de giro δ';
 const ALL_READOUTS = [
   'Excentricidad e',
   TURN,
-  'Cambio de velocidad |Δv⃗|',
+  'Cambio de velocidad |Δv|',
   '|v| antes, marco del Sol',
   '|v| después, marco del Sol',
   DELTA_V,
@@ -100,6 +103,16 @@ describe('FlybyLab', () => {
     vi.unstubAllGlobals();
     localStorage.clear();
     resetSettingsForTests();
+  });
+
+  test('no rendered text or accessible name carries the combining arrow U+20D7', () => {
+    const { container } = renderLab();
+    const names = [...container.querySelectorAll('[aria-label], [aria-description], [title]')]
+      .flatMap((el) => NAME_ATTRIBUTES.map((attribute) => el.getAttribute(attribute) ?? ''))
+      .join(' ');
+
+    expect(container.textContent).not.toContain(COMBINING_ARROW);
+    expect(names).not.toContain(COMBINING_ARROW);
   });
 
   test('the transport reads each pass in its own unit: days at Jupiter, hours at Neptune', async () => {

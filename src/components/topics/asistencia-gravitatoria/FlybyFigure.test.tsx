@@ -69,6 +69,9 @@ function pathPoints(d: string): { x: number; y: number }[] {
 }
 
 const PHONE_WIDTHS = [260, 300, 360];
+/** The combining vector arrow: Plex has no glyph for it and Windows draws a box (auditoría §5.1). */
+const COMBINING_ARROW = '\u20D7';
+const NAME_ATTRIBUTES = ['aria-label', 'aria-description', 'title'];
 
 /** Every straight piece of an SVG path "M x y L x y … M x y L …" (M starts a new piece). */
 function pathSegments(d: string): Segment[] {
@@ -144,7 +147,7 @@ describe('FlybyFigure', () => {
     expect(screen.getByText(`rₚ = 10,09 R_J`)).toBeInTheDocument();
     expect(screen.getAllByText('v∞')).toHaveLength(2);
     expect(screen.getByRole('list', { name: 'Leyenda' })).toHaveTextContent(
-      'v⃗∞ al entrar y al salir: 7,62 km/s',
+      'v∞ al entrar y al salir: 7,62 km/s',
     );
     // The v∞ arrows are keyed by an arrow, not by the trajectory's plain line.
     const keys = within(screen.getByRole('list', { name: 'Leyenda' }))
@@ -167,6 +170,19 @@ describe('FlybyFigure', () => {
     );
     expect(screen.getByText(/4,4·10⁻²¹\sm\/s/)).toBeInTheDocument();
   });
+
+  test.each(['vis-viva', 'hiperbola', 'triangulo'] as const)(
+    '%s: no rendered text or accessible name carries the combining arrow U+20D7',
+    (variant) => {
+      const { container } = render(<FlybyFigure variant={variant} />);
+      const names = [...container.querySelectorAll('[aria-label], [aria-description], [title]')]
+        .flatMap((el) => NAME_ATTRIBUTES.map((attribute) => el.getAttribute(attribute) ?? ''))
+        .join(' ');
+
+      expect(container.textContent).not.toContain(COMBINING_ARROW);
+      expect(names).not.toContain(COMBINING_ARROW);
+    },
+  );
 
   test.each(PHONE_WIDTHS)('triangulo at %i px: every label stays inside its plot', (width) => {
     stubWidths(width);

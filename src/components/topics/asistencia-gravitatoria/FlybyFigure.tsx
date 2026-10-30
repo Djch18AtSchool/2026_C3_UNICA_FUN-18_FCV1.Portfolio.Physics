@@ -347,14 +347,14 @@ function HyperbolaPlot(): JSX.Element {
         },
         {
           id: 'vinf',
-          label: `Flechas v⃗∞ al entrar y al salir: ${speedText(figure.vInf)} las dos`,
+          label: `Flechas v∞ al entrar y al salir: ${speedText(figure.vInf)} las dos`,
           points: [],
           color: TEXT_COLOR,
           legendKey: 'arrow',
         },
         {
           id: 'asintotas',
-          label: 'Asíntotas: direcciones de v⃗∞ al entrar y al salir',
+          label: 'Asíntotas: direcciones de v∞ al entrar y al salir',
           points: asymptotes,
           color: TICK_COLOR,
           dashed: true,
@@ -373,10 +373,10 @@ function HyperbolaPlot(): JSX.Element {
 }
 
 function triangleDescription(t: VelocityTriangle, name: string): string {
-  const base = `Triángulo de velocidades de la Voyager 2 en ${name}: V_p = ${speedText(t.Vp)} y v∞ = ${speedText(t.vInf)}; v⃗∞ forma ${degrees(t.thetaInDeg)} con V⃗_p antes y ${degrees(t.thetaOutDeg)} después, así que |v⃗| = |V⃗_p + v⃗∞| pasa de ${speedText(t.vIn)} a ${speedText(t.vOut)}: ${signed(t.jump, SPEED_PRECISION, 'km/s')}.`;
+  const base = `Triángulo de velocidades de la Voyager 2 en ${name}: V_p = ${speedText(t.Vp)} y v∞ = ${speedText(t.vInf)}; v∞ forma ${degrees(t.thetaInDeg)} con V_p antes y ${degrees(t.thetaOutDeg)} después, así que |v| = |V_p + v∞| pasa de ${speedText(t.vIn)} a ${speedText(t.vOut)}: ${signed(t.jump, SPEED_PRECISION, 'km/s')}.`;
   return t.isPlanar
     ? base
-    : `${base} Es un giro fuera del plano: el dibujo conserva los ángulos de v⃗∞ con V⃗_p, no el giro δ = ${degrees(t.deltaDeg)}.`;
+    : `${base} Es un giro fuera del plano: el dibujo conserva los ángulos de v∞ con V_p, no el giro δ = ${degrees(t.deltaDeg)}.`;
 }
 
 const TRIANGLE_PLANETS: readonly PlanetId[] = ['jupiter', 'neptune'];
@@ -418,7 +418,7 @@ function TrianglePlot({
     const px = (p: Point) => ({ x: x.toPx(p.x), y: y.toPx(p.y) });
     const origin = px({ x: 0, y: 0 });
     const vpTip = px({ x: t.Vp, y: 0 });
-    /** A tip's |v⃗| above it, kept inside the plot. */
+    /** A tip's |v| above it, kept inside the plot. */
     const tipLabel = (tip: Point, value: number) => {
       const text = speedNumber(value);
       const at = {
@@ -454,16 +454,16 @@ function TrianglePlot({
       yLabel="v_y"
       yUnit="km/s"
       series={[
-        { id: `vp-${t.planet}`, label: `V⃗_p de ${name}`, points: [], color },
+        { id: `vp-${t.planet}`, label: `V_p de ${name}`, points: [], color },
         {
           id: `vinf-${t.planet}`,
-          label: 'v⃗∞ antes (discontinua) y después',
+          label: 'v∞ antes (discontinua) y después',
           points: [],
           color: TICK_COLOR,
         },
         {
           id: `v-${t.planet}`,
-          label: 'v⃗ respecto al Sol, antes (discontinua) y después',
+          label: 'v = V_p + v∞ respecto al Sol, antes (discontinua) y después',
           points: [],
           color: TEXT_COLOR,
         },
@@ -477,15 +477,15 @@ function TrianglePlot({
   );
 }
 
-/** The note under a triangle: |v⃗| before and after, then the recoil or the out-of-plane turn. */
+/** The note under a triangle: |v| before and after, then the recoil or the out-of-plane turn. */
 function triangleNote(t: VelocityTriangle): string {
-  const speeds = `|v⃗| respecto al Sol: ${speedText(t.vIn)} antes y ${speedText(t.vOut)} después.`;
+  const speeds = `|v| respecto al Sol: ${speedText(t.vIn)} antes y ${speedText(t.vOut)} después.`;
   if (!t.isPlanar) {
-    return `${speeds} Giro fuera del plano: el dibujo conserva los ángulos de v⃗∞ con V⃗_p (${degrees(t.thetaInDeg)} y ${degrees(t.thetaOutDeg)}), no el giro δ = ${degrees(t.deltaDeg)}.`;
+    return `${speeds} Giro fuera del plano: el dibujo conserva los ángulos de v∞ con V_p (${degrees(t.thetaInDeg)} y ${degrees(t.thetaOutDeg)}), no el giro δ = ${degrees(t.deltaDeg)}.`;
   }
   if (t.planet === 'jupiter') {
     const recoil = `${formatScientific(jupiterRecoil(), 1)}\u202fm/s`;
-    return `${speeds} El momento se conserva (m Δv⃗ = −M ΔV⃗): Júpiter retrocede ${recoil}.`;
+    return `${speeds} El momento se conserva (m Δv = −M ΔV_p): Júpiter retrocede ${recoil}.`;
   }
   return speeds;
 }
