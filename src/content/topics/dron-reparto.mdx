@@ -50,7 +50,7 @@ sources:
     publisher: 'Cengage Learning'
     url: 'https://cengagelatam.editorialdc.com/libros/fisica-para-ciencias-e-ingenieria-vol-1/'
     accessed: '2026-10-08'
-related: ['salto-personaje', 'gravedad-artificial']
+related: ['salto-personaje', 'gravedad-artificial', 'frenado-regenerativo']
 classRefs:
   - module: 'Módulo 1'
     topic: 'Tema 1.1 · Desplazamiento, Velocidad y Aceleración'
@@ -58,7 +58,7 @@ classRefs:
   - module: 'Módulo 1'
     topic: 'Tema 1.3 · Movimiento en Dos y Tres Dimensiones'
     note: 'Cada tramo se descompone en sus componentes rectangulares en x y en y con el rumbo del tramo; |v| es su módulo.'
-updated: 2026-10-10
+updated: 2026-10-30
 ---
 
 import Step from '../../components/ui/Step.astro';
@@ -292,7 +292,7 @@ La (1.2) es la definición del Tema 1.1: <Equation inline latex="\vec v = d\vec 
 
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-Cada fase es un MRU o un MRUA, como el salto del Tema 2, con la aceleración fijada por el controlador y no por diseño. Con el Tema 3 comparte vectores y componentes: allí la aceleración cambia de dirección a rapidez constante; aquí, de magnitud.
+Cada fase es un MRU o un MRUA, como el salto del Tema 2, con la aceleración fijada por el controlador y no por diseño. Con el Tema 3 comparte vectores y componentes: allí la aceleración cambia de dirección a rapidez constante; aquí, de magnitud. En el Tema 6, un ciclo de conducción es un perfil de velocidad como el del dron, y cada frenada quita <Equation inline latex="\tfrac{1}{2} m v^2" />.
 
 </Connections>
 
