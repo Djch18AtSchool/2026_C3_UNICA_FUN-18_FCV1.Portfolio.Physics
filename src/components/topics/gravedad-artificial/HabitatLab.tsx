@@ -128,6 +128,7 @@ export default function HabitatLab({ footnote }: HabitatLabProps): JSX.Element {
     <LabShell
       title="Laboratorio del hábitat"
       clock={clock}
+      timeUnit="s"
       readouts={readouts}
       params={params}
       localSettings={habitatLocalSettings({ display, onDisplayChange: setDisplay, clock })}

@@ -207,6 +207,7 @@ export default function WheelLab({ footnote }: WheelLabProps): JSX.Element {
     <LabShell
       title="Laboratorio de la rueda de reacción"
       clock={clock}
+      timeUnit="s"
       readouts={readoutsFor(t, live, maneuver)}
       params={params}
       localSettings={wheelLocalSettings({ display, onDisplayChange: setDisplay, clock })}

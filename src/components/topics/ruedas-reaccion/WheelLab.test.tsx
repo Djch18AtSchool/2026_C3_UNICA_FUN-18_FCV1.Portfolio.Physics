@@ -154,6 +154,15 @@ describe('WheelLab', () => {
     expect(preset(/^90° en 60 s/)).toHaveAttribute('aria-pressed', 'false');
   });
 
+  test('a maneuver of T = 150 s keeps the transport in seconds, like the plot cursor', () => {
+    renderLab();
+    typeInto(durationField(), '150');
+
+    fireEvent.change(timeline(), { target: { value: '1000' } });
+
+    expect(timelineText()).toBe('t = 150,000 s');
+  });
+
   test('T = 8 s is below T_min: the warning fills a live region already in the page, no NaN', () => {
     renderLab();
     const region = screen.getByRole('status');

@@ -183,6 +183,7 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
     <LabShell
       title="Laboratorio del frenado regenerativo"
       clock={clock}
+      timeUnit="s"
       readouts={readouts}
       params={params}
       localSettings={localSettings}

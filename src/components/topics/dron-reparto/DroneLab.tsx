@@ -202,6 +202,7 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
       <LabShell
         title="Laboratorio del dron"
         clock={clock}
+        timeUnit="s"
         readouts={readouts}
         params={params}
         localSettings={droneLocalSettings({ display, onDisplayChange: setDisplay, clock })}

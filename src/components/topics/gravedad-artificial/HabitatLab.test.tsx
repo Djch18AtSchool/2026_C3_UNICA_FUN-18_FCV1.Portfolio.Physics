@@ -238,6 +238,17 @@ describe('HabitatLab', () => {
     frames.restore();
   });
 
+  test('a slow spin of 0,5 RPM (T = 120 s) keeps the t readout in seconds, as the page states', () => {
+    renderLab();
+    fireEvent.change(rpmSlider(), { target: { value: '0.5' } });
+
+    fireEvent.change(screen.getByRole('slider', { name: 'Línea de tiempo' }), {
+      target: { value: '1000' },
+    });
+
+    expect(timelineText()).toBe('t = 120,000 s');
+  });
+
   test('at 1× the same frame advances only 6 · 0,05 s', async () => {
     const frames = installFrameQueue();
     const user = userEvent.setup();
