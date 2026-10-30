@@ -229,7 +229,7 @@ tema. Referencia de forma: `src/content/topics/gravedad-artificial.mdx` y
   Figura sin insignia: F_RL(v) con sus tres términos, coeficientes reales de la EPA.
 - **Paso 3 · Qué falta: el motor recupera con límites.** (6.3)
   `P_regen = min(f(v) P_freno, P_máx)`, `E_batería = Σ η P_regen Δt`, `E_fricción = Σ (P_freno − P_regen) Δt`.
-  η de 0,70 a 0,87 (Boretti, LEAF); el límite de carga baja con frío y SOC alto. Figura sin
+  η del 70 al 80 % en un Leaf 2012 y del 72 al 87 % en uno 2013 (Boretti); el límite de carga baja con frío y SOC alto. Figura sin
   insignia: potencia en una frenada del UDDS, con el área regenerada y la de fricción.
 - **Paso 4 · El balance del ciclo.** (6.4) las sumas segundo a segundo y la fracción recuperada
   `E_batería / E_tracción`.
@@ -252,7 +252,7 @@ tema. Referencia de forma: `src/content/topics/gravedad-artificial.mdx` y
     acumuladas y la gráfica de energía con cursor arrastrable. Parámetros: η, P_máx; ajustes:
     ciclo (UDDS, HWFET, US06), f(v) sí/no, velocidad, repetir. Preajustes: Model 3 en ciudad,
     en carretera, agresivo; batería fría o llena (P_máx 10 kW: 0,448 kWh); Nissan LEAF 2025
-    (`KWB115`: ETW 3875 lb, A = 25,89 lbf, B = 0,3449 lbf/mph, C = 0,019 45 lbf/mph²). Lecturas: v, P en ruedas, E_batería, E_fricción, % de la
+    (`KWB115`: ETW 3875 lb, A = 25,89 lbf, B = 0,3449 lbf/mph, C = 0,019 45 lbf/mph²). Lecturas: v, P en ruedas, E_batería, pérdidas de conversión, E_fricción, % de la
     tracción recuperado. La reproducción va acelerada (`TIME_LAPSE`, indicado en la página).
 - **Caso de uso:** justificación frente a la constante "recupera X %" (12,5 % a 40,4 % según el
   ciclo) y frente a una tabla de autonomía; balance: se gana una autonomía que responde al ciclo,
