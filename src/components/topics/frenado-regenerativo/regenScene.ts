@@ -39,6 +39,8 @@ export interface BalanceAt {
   eBrake: number;
   eBattery: number;
   eFriction: number;
+  /** Σ (1 − η)·P_regen·Δt so far: taken by the motor, lost before the battery. */
+  eConversionLoss: number;
   /** E_batería / E_tracción so far; 0 while nothing has gone into traction. */
   recoveredShare: number;
 }
@@ -105,6 +107,7 @@ export function balanceAt(
     eBrake: energy('eBrake'),
     eBattery,
     eFriction: energy('eFriction'),
+    eConversionLoss: energy('eConversionLoss'),
     recoveredShare: eTraction > 0 ? eBattery / eTraction : 0,
   };
 }
@@ -190,7 +193,8 @@ export const PHASE_TEXT: Readonly<Record<DrivePhase, string>> = {
   coasting: 'Sin potencia en las ruedas',
 };
 
-export type EnergyKey = 'eTraction' | 'eRoadLoad' | 'eBrake' | 'eBattery' | 'eFriction';
+export type EnergyKey =
+  'eTraction' | 'eRoadLoad' | 'eBrake' | 'eBattery' | 'eConversionLoss' | 'eFriction';
 
 export interface EnergySeriesSpec {
   key: EnergyKey;
@@ -199,16 +203,27 @@ export interface EnergySeriesSpec {
   dashed?: boolean;
 }
 
+/** The three parts the braking at the wheels splits into: E_freno = batería + pérdidas + fricción. */
+export const BRAKE_PARTS: readonly EnergyKey[] = ['eBattery', 'eConversionLoss', 'eFriction'];
+
 /**
- * The five cumulative energies of the balance (spec §4.3): the battery green and the friction heat
- * orange-red; traction blue, road load muted and dashed, the braking at the wheels purple.
+ * The six cumulative energies of the balance (spec §4.3 and §6, Paso 4): the battery green, the
+ * friction heat orange-red and the conversion loss (1 − η) cyan, the only slot that stays clear of
+ * both and of every other energy here in both themes, also for deuteranopes (CIE76 ΔE ≥ 16);
+ * traction blue, road load muted and dashed, the braking at the wheels purple. What braking
+ * dissipates is the conversion loss plus the friction heat.
  */
 export const ENERGY_SERIES: readonly EnergySeriesSpec[] = [
   { key: 'eTraction', label: 'Tracción en las ruedas', color: 'var(--chart-1)' },
   { key: 'eRoadLoad', label: 'Carga en carretera', color: 'var(--fg-muted)', dashed: true },
   { key: 'eBrake', label: 'Frenado en las ruedas', color: 'var(--chart-4)' },
   { key: 'eBattery', label: 'A la batería', color: 'var(--chart-3)' },
-  { key: 'eFriction', label: 'Calor en los frenos', color: 'var(--chart-2)' },
+  {
+    key: 'eConversionLoss',
+    label: 'Pérdidas de conversión (1\u00a0−\u00a0η)',
+    color: 'var(--chart-6)',
+  },
+  { key: 'eFriction', label: 'Calor de fricción', color: 'var(--chart-2)' },
 ];
 
 /** Colors of the power-flow links, the same as the energies they feed. */

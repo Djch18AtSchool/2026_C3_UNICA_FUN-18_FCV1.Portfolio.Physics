@@ -22,13 +22,13 @@ describe('regen presets', () => {
     for (const preset of REGEN_PRESETS) expect(presetIdFor(preset.values)).toBe(preset.id);
   });
 
-  test('the lab opens on the site model: Model 3, UDDS, η 0,80, 239 kW, no fade', () => {
+  test('the lab opens on the site model: Model 3, UDDS, η 0,80, 239 kW, f(v) on', () => {
     expect(INITIAL_REGEN_STATE).toEqual({
       vehicle: 'model3',
       cycle: 'udds',
       eta: 0.8,
       pMaxKw: 239,
-      lowSpeedFade: false,
+      lowSpeedFade: true,
     });
     expect(regenParams(INITIAL_REGEN_STATE)).toEqual(DEFAULT_REGEN);
     expect(VEHICLES.leaf.name).toBe('Nissan LEAF 2025');
@@ -36,7 +36,7 @@ describe('regen presets', () => {
 
   test('a moved parameter matches no preset', () => {
     expect(presetIdFor({ ...INITIAL_REGEN_STATE, eta: 0.79 })).toBeUndefined();
-    expect(presetIdFor({ ...INITIAL_REGEN_STATE, lowSpeedFade: true })).toBeUndefined();
+    expect(presetIdFor({ ...INITIAL_REGEN_STATE, lowSpeedFade: false })).toBeUndefined();
   });
 });
 

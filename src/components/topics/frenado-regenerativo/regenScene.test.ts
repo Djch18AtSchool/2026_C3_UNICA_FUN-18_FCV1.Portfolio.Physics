@@ -4,6 +4,7 @@ import { MODEL3_LR_RWD_2025 } from '../../../lib/data/evModels';
 import { cycleBalance, DEFAULT_REGEN, type BalanceStep } from '../../../lib/physics/energy';
 import {
   balanceAt,
+  BRAKE_PARTS,
   cumulativeDistance,
   drivePhase,
   ENERGY_SERIES,
@@ -43,6 +44,7 @@ function instant(overrides: Partial<BalanceAt>): BalanceAt {
     eBrake: 0,
     eBattery: 0,
     eFriction: 0,
+    eConversionLoss: 0,
     recoveredShare: 0,
     ...overrides,
   };
@@ -226,18 +228,29 @@ describe('drivePhase', () => {
 });
 
 describe('energy series', () => {
-  test('ENERGY_SERIES colors the battery green and the friction heat orange-red by token', () => {
+  test('ENERGY_SERIES colors the battery green, the friction heat orange-red and the loss cyan', () => {
     const byKey = Object.fromEntries(ENERGY_SERIES.map((s) => [s.key, s.color]));
 
     expect(byKey.eBattery).toBe('var(--chart-3)');
     expect(byKey.eFriction).toBe('var(--chart-2)');
+    expect(byKey.eConversionLoss).toBe('var(--chart-6)');
+    expect(new Set(Object.values(byKey)).size).toBe(ENERGY_SERIES.length);
     expect(ENERGY_SERIES.map((s) => s.key)).toEqual([
       'eTraction',
       'eRoadLoad',
       'eBrake',
       'eBattery',
+      'eConversionLoss',
       'eFriction',
     ]);
+  });
+
+  test('the brake parts add up to the braking at the wheels at any instant', () => {
+    for (const t of [0, 115.5, 116, 700.25, 1369]) {
+      const at = balanceAt(uddsSteps, uddsDistance, t);
+      const parts = BRAKE_PARTS.reduce((sum, key) => sum + at[key], 0);
+      expect(parts).toBeCloseTo(at.eBrake, 6);
+    }
   });
 
   test('energySeries thins a cycle to at most maxPoints + 1 points in kWh, keeping both ends', () => {

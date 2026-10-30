@@ -67,8 +67,8 @@ export interface RegenLabProps {
  * Tema 6's laboratory on the v2 shell: an EPA cycle played 20 times faster with the car on the
  * road, the live power flow battery ↔ motor ↔ wheels → friction brakes, the cumulative energies
  * as bars and as a plot whose cursor seeks the clock; η and P_máx as parameters, the cycle and
- * f(v) as local settings, five presets and the readouts v, P, E_batería, E_fricción and the share
- * of the traction energy recovered.
+ * f(v) (on by default, ruling R19) as local settings, five presets and the readouts v, P,
+ * E_batería, the conversion loss, E_fricción and the share of the traction energy recovered.
  */
 export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
   const [state, setState] = useState<RegenLabState>(INITIAL_REGEN_STATE);
@@ -108,8 +108,15 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
       precision: ENERGY_PRECISION,
     },
     {
+      id: 'loss',
+      label: 'Pérdidas de conversión E_conversión',
+      value: at.eConversionLoss / J_PER_KWH,
+      unit: 'kWh',
+      precision: ENERGY_PRECISION,
+    },
+    {
       id: 'friction',
-      label: 'Calor en los frenos E_fricción',
+      label: 'Calor de fricción E_fricción',
       value: at.eFriction / J_PER_KWH,
       unit: 'kWh',
       precision: ENERGY_PRECISION,
@@ -155,9 +162,11 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
         onSelect={(preset) => update(preset.values)}
       />
       <p className="m-0 text-sm text-fg-muted">
-        η es el rendimiento de la rueda a la batería: Boretti midió de 0,70 a 0,87 en un LEAF.
-        Arrastra el cursor de la gráfica de energía, o enfócalo y muévelo con las flechas (1 % del
-        ciclo; con Mayús, 10 %). El ciclo y f(v) se eligen en los ajustes del engranaje.
+        η es el rendimiento de la rueda a la batería: Boretti midió del 70 al 80 % en un Leaf 2012 y
+        del 72 al 87 % en uno 2013. f(v) apaga la regeneración cerca de detenerse; sin él, la
+        fricción no haría falta en estos ciclos. Arrastra el cursor de la gráfica de energía, o
+        enfócalo y muévelo con las flechas (1 % del ciclo; con Mayús, 10 %). El ciclo y f(v) se
+        eligen en los ajustes del engranaje.
       </p>
     </>
   );

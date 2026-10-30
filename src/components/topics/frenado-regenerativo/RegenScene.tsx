@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
-import { LINE_WIDTH, TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
+import { LINE_WIDTH, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import PowerFlow, { NODE_RADIUS } from './PowerFlow';
 import {
@@ -29,10 +29,8 @@ export interface RegenSceneProps {
 /** viewBox width before the container is measured (SSR, jsdom): the article column. */
 const FALLBACK_WIDTH = 720;
 const SIDE_PAD = 16;
-const TITLE_Y = 16;
-const PHASE_Y = 36;
-const SWATCH = 10;
-const ROAD_Y = 76;
+/** The road's top edge: room above it for the car, about 22 px tall. */
+const ROAD_Y = 30;
 /** Baseline of "no a escala", level with the km labels under the road. */
 const SCALE_NOTE_DROP = 26;
 /** From the road's top edge to the row of nodes: road, km labels and the flow labels above the nodes. */
@@ -40,9 +38,10 @@ const FLOW_DROP = 84;
 /** Under the node row: the node names. */
 const FLOW_BOTTOM = 40;
 const NOTE_SIZE = 12;
-const PHASE_SIZE = 14;
 const KEY_WIDTH = 26;
 const KEY_HEIGHT = 12;
+/** Keeps "(1 − η)" on one line. */
+const NBSP = '\u00a0';
 
 const PHASE_COLORS: Readonly<Record<DrivePhase, string>> = {
   stopped: TICK_COLOR,
@@ -98,7 +97,7 @@ function LegendKey({ color }: { color: string }): JSX.Element {
 const LEGEND: readonly { color: string; text: string }[] = [
   { color: FLOW_COLORS.traction, text: 'Tracción: de la batería a las ruedas' },
   { color: FLOW_COLORS.regen, text: 'Regeneración: de las ruedas a la batería' },
-  { color: FLOW_COLORS.friction, text: 'Calor en los frenos de fricción' },
+  { color: FLOW_COLORS.friction, text: 'Calor de fricción en los frenos' },
 ];
 
 /**
@@ -117,19 +116,23 @@ export default function RegenScene(props: RegenSceneProps): JSX.Element {
   const height = flowY + NODE_RADIUS + FLOW_BOTTOM;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div data-testid="regen-scene" className="flex flex-col gap-3">
+      {/* HTML, not SVG text: the car's name and the longest regime wrap instead of clipping on a phone. */}
+      <div className="flex flex-col gap-1">
+        <p className="m-0 text-xs text-fg-muted">{`${vehicleName} · ${cycleName}`}</p>
+        <p className="m-0 flex items-center gap-2 text-sm font-semibold">
+          <span
+            aria-hidden="true"
+            className="size-2.5 shrink-0 rounded-[2px]"
+            style={{ background: PHASE_COLORS[phase] }}
+          />
+          {PHASE_TEXT[phase]}
+        </p>
+      </div>
       <div ref={wrapperRef} className="w-full">
-        <svg
-          data-testid="regen-scene"
-          viewBox={`0 0 ${width} ${height}`}
-          width="100%"
-          className="block h-auto"
-        >
+        <svg viewBox={`0 0 ${width} ${height}`} width="100%" className="block h-auto">
           <g role="img" aria-label={describeScene(props, flows)}>
-            <text x={x0} y={TITLE_Y} fontSize={NOTE_SIZE} fill={TICK_COLOR}>
-              {`${vehicleName} · ${cycleName}`}
-            </text>
-            {/* Between the km labels under the road: the title line has no room left on a phone. */}
+            {/* Between the km labels under the road. */}
             <text
               x={width / 2}
               y={ROAD_Y + SCALE_NOTE_DROP}
@@ -139,23 +142,6 @@ export default function RegenScene(props: RegenSceneProps): JSX.Element {
               fill={TICK_COLOR}
             >
               no a escala
-            </text>
-            <rect
-              x={x0}
-              y={PHASE_Y - SWATCH}
-              width={SWATCH}
-              height={SWATCH}
-              rx={2}
-              fill={PHASE_COLORS[phase]}
-            />
-            <text
-              x={x0 + SWATCH + 8}
-              y={PHASE_Y}
-              fontSize={PHASE_SIZE}
-              fontWeight={600}
-              fill={TEXT_COLOR}
-            >
-              {PHASE_TEXT[phase]}
             </text>
             <RoadStrip
               distance={at.distance}
@@ -182,9 +168,11 @@ export default function RegenScene(props: RegenSceneProps): JSX.Element {
         ))}
       </ul>
       <p className="m-0 text-sm text-fg-muted">
-        El grosor es proporcional a |P|: 20 kW = 5 px. El aro verde en las ruedas indica que frena
-        el motor y el naranja, que frenan las pastillas. Al traccionar, el modelo solo calcula la
-        potencia en las ruedas: la batería entrega al menos eso (≥).
+        El grosor es proporcional a |P|: 20 kW = 5 px. Al regenerar, la diferencia de grosor entre
+        el enlace del motor y el de la batería son las pérdidas de conversión (1{NBSP}−{NBSP}η). El
+        aro verde en las ruedas indica que frena el motor y el naranja, que frenan las pastillas. Al
+        traccionar, el modelo solo calcula la potencia en las ruedas: la batería entrega al menos
+        eso (≥).
       </p>
     </div>
   );

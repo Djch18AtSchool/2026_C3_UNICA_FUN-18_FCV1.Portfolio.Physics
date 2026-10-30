@@ -31,7 +31,8 @@ function readout(label: string): string {
 }
 
 const BATTERY = 'Energía a la batería E_batería';
-const FRICTION = 'Calor en los frenos E_fricción';
+const FRICTION = 'Calor de fricción E_fricción';
+const LOSS = 'Pérdidas de conversión E_conversión';
 const RECOVERED = 'Recuperado, % de la tracción';
 const POWER = 'Potencia en las ruedas P';
 const SPEED = 'Velocidad v';
@@ -100,17 +101,27 @@ describe('RegenLab', () => {
     expect(TIME_LAPSE).toBe(20);
   });
 
-  test('opens on the Model 3 in the UDDS at its hardest braking, t = 116 s', () => {
+  test('opens on the Model 3 in the UDDS at its hardest braking, t = 116 s, with f(v) on', () => {
     renderLab();
 
     expect(timelineText()).toBe('t = 116,000 s');
     expect(readout(SPEED)).toBe('46,03 km/h');
     expect(readout(POWER)).toBe('-33,20 kW');
     expect(readout(BATTERY)).toBe('0,032 kWh');
-    expect(readout(RECOVERED)).toBe('23,3 %');
+    expect(readout(LOSS)).toBe('0,008 kWh');
+    expect(readout(FRICTION)).toBe('0,001 kWh');
+    expect(readout(RECOVERED)).toBe('22,8 %');
     expect(preset(/^Model 3 · ciudad \(UDDS\)/)).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
-    expect(screen.getByText('Frenando con el motor')).toBeInTheDocument();
+  });
+
+  test('the regime and the car line are HTML above the drawing, so they wrap on a phone', () => {
+    renderLab();
+
+    const phase = screen.getByText('Frenando con el motor y con fricción');
+    expect(phase.closest('svg')).toBeNull();
+    const title = screen.getByText('Tesla Model 3 Long Range RWD 2025 · UDDS');
+    expect(title.closest('svg')).toBeNull();
   });
 
   test('the power flow runs wheels → motor → battery with widths proportional to |P|', () => {
@@ -118,12 +129,14 @@ describe('RegenLab', () => {
 
     expect(flow('motor-wheels')).toHaveAttribute('data-kind', 'regen');
     expect(flow('battery-motor')).toHaveAttribute('data-kind', 'regen');
-    expect(flow('wheels-brakes')).toHaveAttribute('data-kind', 'idle');
+    // f(v) = 0,98 at road speed: 2 % of the 33,20 kW, 0,66 kW, goes to the friction brakes.
+    expect(flow('wheels-brakes')).toHaveAttribute('data-kind', 'friction');
+    expect(flow('wheels-brakes')).toHaveTextContent(/0,7\skW/);
     const width = (id: string) => Number(flow(id).getAttribute('data-width'));
-    // 33,20 kW at the wheels and 0,80 of it, 26,56 kW, into the battery, at 4 kW per pixel.
-    expect(width('motor-wheels')).toBeCloseTo(8.3, 1);
-    expect(width('battery-motor')).toBeCloseTo(6.64, 2);
-    expect(flow('battery-motor')).toHaveTextContent(/26,6\skW/);
+    // 32,54 kW into the motor and 0,80 of it, 26,03 kW, into the battery, at 4 kW per pixel.
+    expect(width('motor-wheels')).toBeCloseTo(8.13, 2);
+    expect(width('battery-motor')).toBeCloseTo(6.51, 2);
+    expect(flow('battery-motor')).toHaveTextContent(/26,0\skW/);
   });
 
   test('play advances t and stops at the end of the cycle without repeating', () => {
@@ -143,11 +156,13 @@ describe('RegenLab', () => {
     expect(timelineText()).toBe('t = 1 369,000 s');
     expect(lab()).toHaveAttribute('data-playing', 'false');
     expect(frames.pending).toBe(0);
-    expect(readout(BATTERY)).toBe('0,695 kWh');
-    expect(readout(RECOVERED)).toBe('43,5 %');
+    expect(readout(BATTERY)).toBe('0,645 kWh');
+    expect(readout(LOSS)).toBe('0,161 kWh');
+    expect(readout(FRICTION)).toBe('0,062 kWh');
+    expect(readout(RECOVERED)).toBe('40,4 %');
   });
 
-  test('"Batería fría o llena" caps P_máx at 10 kW: 0,487 kWh reach the battery over the UDDS', async () => {
+  test('"Batería fría o llena" caps P_máx at 10 kW: 0,448 kWh reach the battery over the UDDS', async () => {
     const user = userEvent.setup();
     renderLab();
 
@@ -156,12 +171,12 @@ describe('RegenLab', () => {
 
     expect(pMaxField()).toHaveValue('10');
     expect(preset(/^Batería fría o llena/)).toHaveAttribute('aria-pressed', 'true');
-    expect(readout(BATTERY)).toBe('0,487 kWh');
-    expect(readout(FRICTION)).toBe('0,260 kWh');
-    expect(readout(RECOVERED)).toBe('30,5 %');
+    expect(readout(BATTERY)).toBe('0,448 kWh');
+    expect(readout(FRICTION)).toBe('0,308 kWh');
+    expect(readout(RECOVERED)).toBe('28,1 %');
   });
 
-  test('the highway and aggressive presets recover 12,8 % and 32,1 % of the traction', async () => {
+  test('the highway and aggressive presets recover 12,5 % and 30,7 % of the traction', async () => {
     const user = userEvent.setup();
     renderLab();
 
@@ -169,21 +184,22 @@ describe('RegenLab', () => {
     expect(timelineText()).toBe('t = 0,000 s');
     seekToEnd();
     expect(timelineText()).toBe('t = 765,000 s');
-    expect(readout(RECOVERED)).toBe('12,8 %');
+    expect(readout(RECOVERED)).toBe('12,5 %');
 
     await user.click(preset(/^Model 3 · agresivo \(US06\)/));
     seekToEnd();
-    expect(readout(RECOVERED)).toBe('32,1 %');
+    expect(readout(RECOVERED)).toBe('30,7 %');
   });
 
-  test('the Nissan LEAF preset swaps the car: 0,599 kWh back in the UDDS', async () => {
+  test('the Nissan LEAF preset swaps the car: 0,555 kWh, 34,6 %, back in the UDDS', async () => {
     const user = userEvent.setup();
     renderLab();
 
     await user.click(preset(/^Nissan LEAF 2025 · ciudad/));
     seekToEnd();
 
-    expect(readout(BATTERY)).toBe('0,599 kWh');
+    expect(readout(BATTERY)).toBe('0,555 kWh');
+    expect(readout(RECOVERED)).toBe('34,6 %');
     expect(screen.getByTestId('regen-scene')).toHaveTextContent('Nissan LEAF 2025');
   });
 
@@ -195,6 +211,8 @@ describe('RegenLab', () => {
 
     expect(readout(RECOVERED)).toBe('0,0 %');
     expect(readout(BATTERY)).toBe('0,000 kWh');
+    // All the motor takes, 0,806 kWh, is lost converting.
+    expect(readout(LOSS)).toBe('0,806 kWh');
     expect(lab().textContent).not.toMatch(/NaN|Infinity/);
     expect(screen.getByRole('note')).toHaveTextContent(/η = 0/);
     expect(preset(/^Model 3 · ciudad/)).toHaveAttribute('aria-pressed', 'false');
@@ -211,6 +229,7 @@ describe('RegenLab', () => {
     expect(flow('motor-wheels')).toHaveAttribute('data-kind', 'idle');
     seekToEnd();
     expect(readout(FRICTION)).toBe('0,869 kWh');
+    expect(readout(LOSS)).toBe('0,000 kWh');
     expect(readout(RECOVERED)).toBe('0,0 %');
     expect(screen.getByRole('note')).toHaveTextContent(/P_máx = 0/);
     expect(lab().textContent).not.toMatch(/NaN|Infinity/);
@@ -280,7 +299,7 @@ describe('RegenLab', () => {
     );
     expect(
       within(dialog).getByRole('switch', { name: 'Desvanecimiento a baja velocidad f(v)' }),
-    ).not.toBeChecked();
+    ).toBeChecked();
     expect(within(dialog).getByRole('switch', { name: 'Repetir' })).not.toBeChecked();
     expect(
       within(within(dialog).getByRole('combobox', { name: 'Velocidad' })).getByRole('option', {
@@ -310,7 +329,7 @@ describe('RegenLab', () => {
     expect(preset(/^Model 3 · carretera/)).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('the low-speed fade leaves 0,062 kWh to friction at the end of the UDDS', async () => {
+  test('turning f(v) off shows the simple model: 0,695 kWh and no friction at all in the UDDS', async () => {
     const user = userEvent.setup();
     renderLab();
     await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
@@ -323,8 +342,10 @@ describe('RegenLab', () => {
     await user.keyboard('{Escape}');
     seekToEnd();
 
-    expect(readout(BATTERY)).toBe('0,645 kWh');
-    expect(readout(FRICTION)).toBe('0,062 kWh');
+    expect(readout(BATTERY)).toBe('0,695 kWh');
+    expect(readout(FRICTION)).toBe('0,000 kWh');
+    expect(readout(RECOVERED)).toBe('43,5 %');
+    expect(preset(/^Model 3 · ciudad/)).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('the cumulative bars follow t and name each energy', () => {
@@ -336,7 +357,8 @@ describe('RegenLab', () => {
       'Carga en carretera',
       'Frenado en las ruedas',
       'A la batería',
-      'Calor en los frenos',
+      'Pérdidas de conversión (1 − η)',
+      'Calor de fricción',
     ]) {
       expect(within(bars).getByText(name)).toBeInTheDocument();
     }
@@ -344,7 +366,27 @@ describe('RegenLab', () => {
     expect(battery()).toHaveTextContent(/0,032\skWh/);
 
     seekToEnd();
-    expect(battery()).toHaveTextContent(/0,695\skWh/);
+    expect(battery()).toHaveTextContent(/0,645\skWh/);
+  });
+
+  test('the braking bar is split into battery, conversion loss and friction, which fill it', () => {
+    renderLab();
+    seekToEnd();
+    const brake = screen
+      .getByRole('list', { name: 'Energías acumuladas hasta t' })
+      .querySelector('[data-energy="eBrake"]') as HTMLElement;
+
+    const parts = [...brake.querySelectorAll<HTMLElement>('[data-part]')];
+    expect(parts.map((part) => part.dataset.part)).toEqual([
+      'eBattery',
+      'eConversionLoss',
+      'eFriction',
+    ]);
+    const widths = parts.map((part) => parseFloat(part.style.width));
+    // 0,869 kWh on a 0–2 kWh scale: 43,4 % of the bar, split 0,645 + 0,161 + 0,062.
+    expect(widths.reduce((a, b) => a + b, 0)).toBeCloseTo(43.43, 1);
+    expect(widths[0]).toBeCloseTo(32.26, 1);
+    expect(screen.getByText(/lo disipado/)).toBeInTheDocument();
   });
 
   test('moving a parameter pauses playback', () => {

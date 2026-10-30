@@ -29,7 +29,7 @@ const DEFAULT_P_MAX_KW = DEFAULT_REGEN.pMax / W_PER_KW;
 /** "Batería fría o llena": the charging limit drops (LEAF 2025 manual); 10 kW is a scenario (research §8, 7). */
 const COLD_P_MAX_KW = 10;
 
-/** The site's model: η 0,80, P_máx 239 kW, no fade (spec §6, Paso 4). */
+/** The site's model: η 0,80, P_máx 239 kW, f(v) on (spec §6, Paso 4; ruling R19). */
 const SITE_MODEL = {
   eta: DEFAULT_REGEN.eta,
   pMaxKw: DEFAULT_P_MAX_KW,
@@ -44,7 +44,7 @@ export const REGEN_PRESETS: Preset<RegenLabState>[] = [
     name: 'Model 3 · ciudad (UDDS)',
     values: { vehicle: 'model3', cycle: 'udds', ...SITE_MODEL },
     sourceLabel: MODEL3_SOURCE,
-    note: 'Modelo del sitio: η = 0,80 constante y P_máx = 239 kW (el motor de FASTSim). En el UDDS la potencia de frenado no pasa de 33,2 kW, así que el límite no actúa.',
+    note: 'Modelo del sitio: η = 0,80 constante, P_máx = 239 kW (el motor de FASTSim) y f(v) activo. En el UDDS la potencia de frenado no pasa de 33,2 kW, así que el límite no actúa.',
   },
   {
     id: 'model3-hwfet',
