@@ -1,0 +1,384 @@
+// @vitest-environment jsdom
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
+import { installDialogPolyfill } from '../../../test-dialog';
+import BounceLab from './BounceLab';
+
+const FOOTNOTE = 'Desprecio el arrastre del aire.';
+/** Tests that sweep presets or the timeline render the lab dozens of times; room under load. */
+const HEAVY_TEST_TIMEOUT_MS = 20_000;
+
+/** Identity CTM on every svg: client pixels are viewBox units, so DOM coordinates are pointer ones. */
+function mockIdentityCtm(): void {
+  for (const svg of document.querySelectorAll('svg')) {
+    Object.defineProperty(svg, 'getScreenCTM', {
+      configurable: true,
+      value: () => ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }) }),
+    });
+  }
+}
+
+function renderLab() {
+  const view = render(<BounceLab footnote={FOOTNOTE} />);
+  mockIdentityCtm();
+  return view;
+}
+
+/** The value text of a LabShell readout row, normalised to plain spaces. */
+function readout(label: string): string {
+  const row = screen.getByText(label, { selector: 'span' }).parentElement as HTMLElement;
+  return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
+}
+
+const numberOf = (text: string) => Number(text.replace(/\s.*$/, '').replace(',', '.'));
+const timeline = () => screen.getByRole('slider', { name: 'Línea de tiempo' });
+const presetSelect = () => screen.getByRole('combobox', { name: 'Preajuste' }) as HTMLSelectElement;
+const eRange = () => screen.getByRole('slider', { name: /^Coeficiente de restitución e/ });
+const gear = () => screen.getByRole('button', { name: 'Ajustes del simulador' });
+const ball = (which: 'ideal' | 'engine') => screen.getByTestId(`ball-${which}`);
+const seekEnd = () => fireEvent.change(timeline(), { target: { value: '1000' } });
+
+async function choosePreset(id: string) {
+  await userEvent.setup().selectOptions(presetSelect(), id);
+}
+
+/** Opens the drawer and returns the dialog. */
+async function openDrawer(user: ReturnType<typeof userEvent.setup>): Promise<HTMLElement> {
+  await user.click(gear());
+  return screen.getByRole('dialog');
+}
+
+describe('BounceLab', () => {
+  let uninstall: () => void;
+  beforeEach(() => {
+    uninstall = installDialogPolyfill();
+  });
+  afterEach(() => {
+    cleanup();
+    uninstall();
+    localStorage.clear();
+    resetSettingsForTests();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  test('opens on the ITF tennis ball with both balls, the engine defaults and the footnote', () => {
+    renderLab();
+
+    expect(presetSelect().value).toBe('tenis-itf');
+    const scene = within(screen.getByTestId('bounce-scene'));
+    expect(scene.getByText('Física ideal')).toBeInTheDocument();
+    expect(scene.getByText('Motor de juego')).toBeInTheDocument();
+    expect(screen.getByTestId('engine-config')).toHaveTextContent(/Δt = 1\/60 s × 4/);
+    expect(screen.getByRole('textbox', { name: /^Coeficiente de restitución e/ })).toHaveValue(
+      '0,745',
+    );
+    expect(ball('ideal')).toHaveAttribute('data-ball', 'tenis');
+    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
+  });
+
+  test('the presets come in two groups: realistic bounces and ones that feel wrong', () => {
+    renderLab();
+    const groups = presetSelect().querySelectorAll('optgroup');
+
+    expect([...groups].map((group) => group.label)).toEqual([
+      'Rebotes realistas',
+      'Rebotes que se sienten mal',
+    ]);
+    expect(groups[0].querySelectorAll('option')).toHaveLength(8);
+    expect(groups[1].querySelectorAll('option')).toHaveLength(6);
+  });
+
+  test('moving e changes the engine ball’s next apex and the measured e', () => {
+    renderLab();
+    const apexBefore = numberOf(readout('Primer rebote h₁ (motor)'));
+    const measuredBefore = numberOf(readout('e medido √(h₁/h₀) (motor)'));
+
+    fireEvent.change(eRange(), { target: { value: '0.5' } });
+
+    const apexAfter = numberOf(readout('Primer rebote h₁ (motor)'));
+    const measuredAfter = numberOf(readout('e medido √(h₁/h₀) (motor)'));
+    expect(apexAfter).toBeLessThan(apexBefore);
+    // h₁ ≈ e² h₀ = 0,25 · 2,54 m, a little less from the step's gravity.
+    expect(apexAfter).toBeGreaterThan(0.6);
+    expect(apexAfter).toBeLessThan(0.64);
+    expect(measuredAfter).not.toBe(measuredBefore);
+    expect(measuredAfter).toBeGreaterThan(0.48);
+    expect(measuredAfter).toBeLessThanOrEqual(0.5);
+    expect(presetSelect().value).toBe('');
+  });
+
+  test('"Umbral alto (Unity)" ends with 8 bounces and a resting ball after an 18,5 cm one', async () => {
+    renderLab();
+    await choosePreset('umbral-unity');
+
+    seekEnd();
+
+    expect(readout('Rebotes del motor')).toBe('8');
+    expect(ball('engine')).toHaveAttribute('data-resting', 'true');
+    const summary = screen.getByTestId('bounce-summary');
+    expect(summary).toHaveTextContent(/8 rebotes/);
+    expect(summary).toHaveTextContent(/18,5 cm/);
+    expect(summary).toHaveTextContent(/8,58 s/);
+  });
+
+  test(
+    '"e = 1,1" gains energy and the ball stays inside the canvas, clamped and explained',
+    async () => {
+      renderLab();
+      await choosePreset('e-mayor-que-uno');
+      const scene = screen.getByTestId('bounce-scene');
+      const height = Number(scene.getAttribute('viewBox')?.split(' ')[3]);
+      let sawClamp = false;
+
+      for (let position = 0; position <= 1000; position += 50) {
+        fireEvent.change(timeline(), { target: { value: String(position) } });
+        for (const which of ['ideal', 'engine'] as const) {
+          const circle = ball(which).querySelector('circle') as SVGCircleElement;
+          const cy = Number(circle.getAttribute('cy'));
+          const r = Number(circle.getAttribute('r'));
+          expect(cy - r).toBeGreaterThanOrEqual(0);
+          expect(cy + r).toBeLessThanOrEqual(height);
+          if (ball(which).getAttribute('data-clamped') === 'above') {
+            sawClamp = true;
+            expect(screen.getByTestId('scene-notes')).toHaveTextContent(/sale del cuadro/);
+          }
+        }
+      }
+
+      expect(sawClamp).toBe(true);
+      expect(numberOf(readout('E/E₀ ideal'))).toBeGreaterThan(1);
+      expect(screen.getByTestId('scene-notes')).toHaveTextContent(/gana energía/);
+      expect(screen.getByTestId('bounce-summary')).toHaveTextContent('∞');
+    },
+    HEAVY_TEST_TIMEOUT_MS,
+  );
+
+  test(
+    'readouts never show NaN or a dash for any preset',
+    async () => {
+      renderLab();
+      const ids = [...presetSelect().querySelectorAll('option')]
+        .map((option) => option.value)
+        .filter(Boolean);
+
+      for (const id of ids) {
+        fireEvent.change(presetSelect(), { target: { value: id } });
+        for (const position of ['0', '1000']) {
+          fireEvent.change(timeline(), { target: { value: position } });
+          for (const row of document.querySelectorAll('[data-readout]')) {
+            expect(row.textContent, id).not.toMatch(/NaN|—/);
+          }
+        }
+      }
+    },
+    HEAVY_TEST_TIMEOUT_MS,
+  );
+
+  test('the h₀ handle takes the arrow keys and changes the first rebound', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const handle = screen.getByTestId('h0-handle');
+    const apexBefore = readout('Primer rebote h₁ (motor)');
+    expect(handle).toHaveAttribute('role', 'slider');
+
+    handle.focus();
+    await user.keyboard('{ArrowUp}');
+
+    expect(handle).toHaveAttribute('aria-valuenow', '2.59');
+    expect(handle.getAttribute('aria-valuetext')?.replace(/\s/g, ' ')).toBe('h₀ = 2,59 m');
+    expect(readout('Primer rebote h₁ (motor)')).not.toBe(apexBefore);
+    await user.keyboard('{End}');
+    expect(handle).toHaveAttribute('aria-valuenow', '3');
+  });
+
+  test('dragging the h₀ handle down lowers the drop height', () => {
+    renderLab();
+    const handle = screen.getByTestId('h0-handle');
+    const knob = handle.querySelector('[data-knob]') as SVGCircleElement;
+    const start = { x: Number(knob.getAttribute('cx')), y: Number(knob.getAttribute('cy')) };
+
+    fireEvent.pointerDown(handle, { pointerId: 1, clientX: start.x, clientY: start.y });
+    fireEvent.pointerMove(handle, { pointerId: 1, clientX: start.x, clientY: start.y + 60 });
+    fireEvent.pointerUp(handle, { pointerId: 1, clientX: start.x, clientY: start.y + 60 });
+
+    expect(Number(handle.getAttribute('aria-valuenow'))).toBeLessThan(2.54);
+    expect(screen.getByRole('textbox', { name: /^Altura de suelta/ })).not.toHaveValue('2,54');
+  });
+
+  test('collision mode conserves p to the displayed decimals for e = 0, 0,5 and 1', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
+    const eField = screen.getByRole('textbox', { name: /^Coeficiente de restitución e/ });
+
+    for (const e of ['0', '0,5', '1']) {
+      await user.clear(eField);
+      await user.type(eField, `${e}{Enter}`);
+      expect(readout('p antes'), e).toBe(readout('p después'));
+    }
+    // e = 1: no kinetic energy lost; ΔK/K_rel = 1 − e² = 0.
+    expect(readout('ΔK perdida')).toBe('0,00 J');
+    expect(readout('ΔK/K_rel')).toBe(readout('1 − e²'));
+  });
+
+  test('collision mode: e = 0 leaves both bodies with the centre-of-mass velocity', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
+    const eField = screen.getByRole('textbox', { name: /^Coeficiente de restitución e/ });
+
+    await user.clear(eField);
+    await user.type(eField, '0{Enter}');
+
+    expect(readout('v₁′')).toBe(readout('v₂′'));
+    expect(readout('ΔK/K_rel')).toBe('1,00');
+  });
+
+  test('collision mode with a fixed body 2 is the floor: v₁′ = −e v₁', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
+
+    await user.click(screen.getByRole('switch', { name: /m₂ → ∞/ }));
+
+    expect(readout('v₁′')).toBe('-2,00 m/s');
+    expect(screen.getByTestId('collision-notes')).toHaveTextContent(/piso/);
+  });
+
+  test('with reduced motion playback steps without requestAnimationFrame', () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] });
+    const request = vi.fn(() => 1);
+    vi.stubGlobal('requestAnimationFrame', request);
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    setSettings({ motion: 'reduced' });
+    renderLab();
+    const before = timeline().getAttribute('aria-valuetext');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
+    act(() => vi.advanceTimersByTime(500));
+
+    expect(request).not.toHaveBeenCalled();
+    expect(timeline().getAttribute('aria-valuetext')).not.toBe(before);
+  });
+
+  test('the drawer opens from the keyboard, changes Δt and returns focus on Escape', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    gear().focus();
+
+    await user.keyboard('{Enter}');
+    const dialog = screen.getByRole('dialog');
+    await user.selectOptions(
+      within(dialog).getByRole('combobox', { name: 'Paso del motor Δt' }),
+      '30',
+    );
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(gear()).toHaveFocus();
+    expect(screen.getByTestId('engine-config')).toHaveTextContent(/Δt = 1\/30 s × 4/);
+  });
+
+  test('the drawer changes the mixing rule, and its Modo select reaches the collision mode', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const dialog = await openDrawer(user);
+
+    await user.selectOptions(
+      within(dialog).getByRole('combobox', { name: 'Regla de combinación' }),
+      'average',
+    );
+    expect(screen.getByTestId('bounce-summary')).toHaveTextContent(
+      /promedio\(0,745; 0,000\) = 0,372/,
+    );
+    expect(screen.getByTestId('preset-note')).toHaveTextContent(/Partí de «Tenis ITF/);
+
+    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Modo' }), 'collision');
+
+    expect(screen.getByTestId('collision-scene')).toBeInTheDocument();
+    expect(within(dialog).queryByRole('combobox', { name: 'Paso del motor Δt' })).toBeNull();
+  });
+
+  test('a threshold of 0 explains that the engine ball never rests', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const dialog = await openDrawer(user);
+
+    fireEvent.change(within(dialog).getByRole('slider', { name: /Umbral de restitución/ }), {
+      target: { value: '0' },
+    });
+
+    expect(screen.getByTestId('scene-notes')).toHaveTextContent(/nunca queda en reposo/);
+  });
+
+  test('e(v) replaces the e control with the illustrative fit', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const dialog = await openDrawer(user);
+
+    await user.click(within(dialog).getByRole('switch', { name: /e\(v\)/ }));
+
+    expect(screen.queryByRole('slider', { name: /^Coeficiente de restitución e/ })).toBeNull();
+    expect(screen.getByTestId('speed-fit')).toHaveTextContent(/ajuste ilustrativo/);
+    expect(screen.getByTestId('bounce-summary')).toHaveTextContent(/e\(v\)/);
+  });
+
+  test('"Pocos fps con Baumgarte" marks the gain and draws the sunk ball on the floor', async () => {
+    renderLab();
+    await choosePreset('pocos-fps');
+
+    seekEnd();
+
+    expect(screen.getByTestId('energy-plot').querySelector('[data-gain]')).not.toBeNull();
+    expect(ball('engine')).toHaveAttribute('data-clamped', 'below');
+    expect(screen.getByTestId('scene-notes')).toHaveTextContent(/penetración/);
+    expect(numberOf(readout('e medido √(h₁/h₀) (motor)'))).toBeGreaterThan(0.75);
+  });
+
+  test('"Choque de reglas de combinación" shows the pair e the engine uses', async () => {
+    renderLab();
+    await choosePreset('mezcla');
+
+    expect(screen.getByTestId('bounce-summary')).toHaveTextContent(/suma recortada/);
+    expect(screen.getByText(/0,675/)).toBeInTheDocument();
+  });
+
+  test('keyboard shortcuts: Space plays, R rewinds, the period steps one engine frame', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    screen.getByTestId('h0-handle').focus();
+
+    await user.keyboard('.');
+    expect(timeline().getAttribute('aria-valuetext')?.replace(/\s/g, ' ')).toBe('t = 0,017 s');
+    await user.keyboard(' ');
+    expect(screen.getByTestId('bounce-lab')).toHaveAttribute('data-playing', 'true');
+    await user.keyboard('r');
+    expect(screen.getByTestId('bounce-lab')).toHaveAttribute('data-playing', 'false');
+    expect(timeline().getAttribute('aria-valuetext')?.replace(/\s/g, ' ')).toBe('t = 0,000 s');
+  });
+
+  test('slow motion is stated on the page', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const dialog = await openDrawer(user);
+
+    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Velocidad' }), '0.25');
+
+    expect(screen.getByTestId('scene-notes')).toHaveTextContent(/cámara lenta/);
+  });
+
+  test('"Restablecer" goes back to the tennis ball and the bounce mode', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    await choosePreset('plastilina');
+    await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
+
+    await user.click(screen.getByRole('button', { name: 'Restablecer' }));
+
+    expect(presetSelect().value).toBe('tenis-itf');
+    expect(screen.getByTestId('bounce-scene')).toBeInTheDocument();
+  });
+});
