@@ -1,47 +1,27 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { waitForIsland } from './helpers';
+import { hydrateAllIslands, waitForIsland } from './helpers';
+import { TOPIC_PAGES } from './topicPages';
 
+const TOPICS_SCANNED = TOPIC_PAGES.map(({ number, path }) => ({ name: `el tema ${number}`, path }));
 const PAGES = [
   { name: 'la portada', path: './' },
-  { name: 'el tema 1', path: './temas/dron-reparto/' },
-  { name: 'el tema 2', path: './temas/salto-personaje/' },
-  { name: 'el tema 3', path: './temas/gravedad-artificial/' },
-  { name: 'el tema 4', path: './temas/llantas-f1/' },
-  { name: 'el tema 5', path: './temas/control-haptico/' },
+  ...TOPICS_SCANNED,
   { name: 'la página 404', path: './no-existe/' },
-] as const;
+];
 const THEMES = ['light', 'dark'] as const;
 /** Wide equations only overflow (and need a keyboard stop) on phones, so scan both widths. */
 const VIEWPORTS = [
   { name: 'escritorio', size: { width: 1280, height: 800 } },
   { name: 'móvil', size: { width: 375, height: 812 } },
 ] as const;
-/** Each v2 laboratory, by the LabShell test id its page renders. */
-const LABS = [
-  { name: 'el laboratorio del tema 1', path: './temas/dron-reparto/', testId: 'drone-lab' },
-  { name: 'el laboratorio del tema 2', path: './temas/salto-personaje/', testId: 'jump-lab' },
-  {
-    name: 'el laboratorio del tema 3',
-    path: './temas/gravedad-artificial/',
-    testId: 'habitat-lab',
-  },
-  { name: 'el laboratorio del tema 4', path: './temas/llantas-f1/', testId: 'tyre-lab' },
-  { name: 'el laboratorio del tema 5', path: './temas/control-haptico/', testId: 'trigger-lab' },
-] as const;
+/** Each laboratory, by the LabShell test id its page renders. */
+const LABS = TOPIC_PAGES.map(({ number, path, labTestId }) => ({
+  name: `el laboratorio del tema ${number}`,
+  path,
+  testId: labTestId,
+}));
 const BLOCKING_IMPACTS = ['serious', 'critical'];
-const SCROLL_STEP_PX = 600;
-
-/** Islands hydrate with client:visible: walk the page so every one renders before the scan. */
-async function hydrateAllIslands(page: Page): Promise<void> {
-  const height = await page.evaluate(() => document.documentElement.scrollHeight);
-  for (let y = 0; y <= height; y += SCROLL_STEP_PX) {
-    await page.mouse.wheel(0, SCROLL_STEP_PX);
-  }
-  await page.waitForLoadState('networkidle');
-  await expect(page.locator('astro-island[ssr]')).toHaveCount(0);
-  await page.evaluate(() => window.scrollTo(0, 0));
-}
 
 async function expectNoBlockingViolations(page: Page): Promise<void> {
   const { violations } = await new AxeBuilder({ page }).analyze();
@@ -141,7 +121,7 @@ for (const viewport of VIEWPORTS) {
 test.describe('móvil, regiones desplazables', () => {
   test.use({ viewport: VIEWPORTS[1].size });
 
-  for (const { name, path } of PAGES.slice(1, 4)) {
+  for (const { name, path } of TOPICS_SCANNED) {
     test(`en ${name} cada región desplazable tiene un nombre único (landmark-unique)`, async ({
       page,
     }) => {
@@ -156,7 +136,9 @@ test.describe('móvil, regiones desplazables', () => {
       expect(names.length, 'regiones desplazables a 375 px').toBeGreaterThan(0);
       expect(new Set(names).size).toBe(names.length);
       for (const label of names)
-        expect(label).toMatch(/^(Ecuación \(\d+\.\d+\)|Figura \d+\.\d+|Tabla \d+\.\d+) desplazable$/);
+        expect(label).toMatch(
+          /^(Ecuación \(\d+\.\d+\)|Figura \d+\.\d+|Tabla \d+\.\d+) desplazable$/,
+        );
 
       const { violations } = await new AxeBuilder({ page })
         .withRules(['landmark-unique'])

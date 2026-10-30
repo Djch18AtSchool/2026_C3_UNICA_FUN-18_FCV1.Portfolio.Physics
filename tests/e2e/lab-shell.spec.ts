@@ -1,16 +1,11 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
+import { TOPIC_PAGES } from './topicPages';
 
 const DESKTOP = { width: 1280, height: 800 };
 const JUMP_PAGE = './temas/salto-personaje/';
 const JUMP_LAB = 'jump-lab';
-const LABS = [
-  { path: './temas/dron-reparto/', testId: 'drone-lab' },
-  { path: JUMP_PAGE, testId: JUMP_LAB },
-  { path: './temas/gravedad-artificial/', testId: 'habitat-lab' },
-  { path: './temas/llantas-f1/', testId: 'tyre-lab' },
-  { path: './temas/control-haptico/', testId: 'trigger-lab' },
-] as const;
+const LABS = TOPIC_PAGES.map(({ path, labTestId }) => ({ path, testId: labTestId }));
 const SETTINGS_TITLE = /^Ajustes: /;
 const WHEEL_PX = 400;
 /** LabShell's READOUT_ANNOUNCE_DELAY_MS: readouts are spoken once still for this long. */

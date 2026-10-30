@@ -1,21 +1,20 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { waitForIsland } from './helpers';
-import { TOPICS } from '../../src/consigna';
+import { hydrateAllIslands, waitForIsland } from './helpers';
+import { TOPICS, topicsByPhase } from '../../src/consigna';
+import { TOPIC_PAGES } from './topicPages';
 
 /** Topics of the Avance 1, the phase open on a topic of it. */
-const PHASE_1_TOPIC_COUNT = 5;
+const PHASE_1_TOPIC_COUNT = topicsByPhase(1, TOPICS).length;
 const PHONE = { width: 375, height: 812 };
 /** WCAG 2.2 target size (minimum): a drag handle answers anywhere in a 24 × 24 px square. */
 const MIN_TARGET_PX = 24;
 /** Sub-pixel slack for layout rounding. */
 const ROUNDING_PX = 1;
-const LABS = [
-  { name: 'tema 1', path: './temas/dron-reparto/', testId: 'drone-lab' },
-  { name: 'tema 2', path: './temas/salto-personaje/', testId: 'jump-lab' },
-  { name: 'tema 3', path: './temas/gravedad-artificial/', testId: 'habitat-lab' },
-  { name: 'tema 4', path: './temas/llantas-f1/', testId: 'tyre-lab' },
-  { name: 'tema 5', path: './temas/control-haptico/', testId: 'trigger-lab' },
-] as const;
+const LABS = TOPIC_PAGES.map(({ number, path, labTestId }) => ({
+  name: `tema ${number}`,
+  path,
+  testId: labTestId,
+}));
 
 async function expectNoHorizontalOverflow(page: Page): Promise<void> {
   const { scrollWidth, innerWidth } = await page.evaluate(() => ({
@@ -32,11 +31,15 @@ test('la portada no desborda en horizontal a 375 px', async ({ page }) => {
   await expectNoHorizontalOverflow(page);
 });
 
-test('el tema 2 no desborda en horizontal a 375 px', async ({ page }) => {
-  await page.goto('./temas/salto-personaje/');
-  await page.getByRole('slider').first().scrollIntoViewIfNeeded();
-  await expectNoHorizontalOverflow(page);
-});
+for (const { number, path } of TOPIC_PAGES) {
+  test(`el tema ${number} no desborda en horizontal a 375 px con todas sus islas`, async ({
+    page,
+  }) => {
+    await page.goto(path);
+    await hydrateAllIslands(page);
+    await expectNoHorizontalOverflow(page);
+  });
+}
 
 test('el cajón de temas se abre en móvil y lista los temas', async ({ page }) => {
   await page.goto('./temas/salto-personaje/');

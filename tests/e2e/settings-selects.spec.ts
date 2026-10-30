@@ -1,18 +1,19 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
+import { TOPIC_PAGES } from './topicPages';
 
+/** Short selects every lab shows on the same row as its label (the global tab's). */
+const INLINE_IN_EVERY_LAB = ['Movimiento'];
+/** Labs with more short selects of their own, by slug. */
+const INLINE_BY_SLUG: Readonly<Record<string, readonly string[]>> = {
+  'salto-personaje': ['Integrador', 'Velocidad', 'Movimiento'],
+};
 /** `inline`: short selects the lab must show, each one on the same row as its label. */
-const LABS = [
-  { path: './temas/dron-reparto/', testId: 'drone-lab', inline: ['Movimiento'] },
-  {
-    path: './temas/salto-personaje/',
-    testId: 'jump-lab',
-    inline: ['Integrador', 'Velocidad', 'Movimiento'],
-  },
-  { path: './temas/gravedad-artificial/', testId: 'habitat-lab', inline: ['Movimiento'] },
-  { path: './temas/llantas-f1/', testId: 'tyre-lab', inline: ['Movimiento'] },
-  { path: './temas/control-haptico/', testId: 'trigger-lab', inline: ['Movimiento'] },
-] as const;
+const LABS = TOPIC_PAGES.map(({ slug, path, labTestId }) => ({
+  path,
+  testId: labTestId,
+  inline: INLINE_BY_SLUG[slug] ?? INLINE_IN_EVERY_LAB,
+}));
 const VIEWPORTS = [
   { name: '1280', size: { width: 1280, height: 800 } },
   { name: '390', size: { width: 390, height: 844 } },
@@ -119,7 +120,7 @@ for (const viewport of VIEWPORTS) {
               expect(metrics.textWidth, `${where} recorta el texto`).toBeLessThanOrEqual(
                 metrics.textRoom + SUBPIXEL_PX,
               );
-              if ((lab.inline as readonly string[]).includes(metrics.label)) {
+              if (lab.inline.includes(metrics.label)) {
                 inlineChecked.push(metrics.label);
                 expect(
                   Math.abs(metrics.centerY - metrics.labelCenterY),
