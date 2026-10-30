@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { REPO_URL, TOPICS } from '../../src/consigna';
+import { REPO_URL, TOPICS, topicsByPhase } from '../../src/consigna';
 
 test('la portada lista los temas con sus títulos exactos agrupados por avance', async ({
   page,
@@ -16,21 +16,25 @@ test('la portada lista los temas con sus títulos exactos agrupados por avance',
     'Avance 2',
     'Entrega Final',
   ]);
-  await expect(groups.nth(0).getByTestId('topic-card')).toHaveCount(TOPICS.length);
+  await expect(groups.nth(0).getByTestId('topic-card')).toHaveCount(
+    topicsByPhase(1, TOPICS).length,
+  );
+  await expect(groups.nth(1).getByTestId('topic-card')).toHaveCount(
+    topicsByPhase(2, TOPICS).length,
+  );
 
   await expect(page.locator('main')).not.toContainText('de 13 temas publicados');
   await expect(page.locator('main')).not.toContainText('Temas 1 a 5');
   await expect(page.locator('main')).not.toContainText('Publicado');
 });
 
-test('las fases futuras de la portada solo muestran su encabezado y la insignia', async ({
-  page,
-}) => {
+test('la fase futura de la portada solo muestra su encabezado y la insignia', async ({ page }) => {
   await page.goto('./');
   const groups = page.getByTestId('phase-group');
 
   await expect(groups.nth(0).getByTestId('upcoming-phase')).toHaveCount(0);
-  for (const n of [1, 2]) {
+  await expect(groups.nth(1).getByTestId('upcoming-phase')).toHaveCount(0);
+  for (const n of [2]) {
     const group = groups.nth(n);
     await expect(group.getByTestId('topic-card')).toHaveCount(0);
     await expect(group.getByRole('listitem')).toHaveCount(0);
@@ -139,12 +143,12 @@ for (const { width, isStacked } of [
   { width: 390, isStacked: true },
   { width: 1280, isStacked: false },
 ]) {
-  test(`a ${width} px las fases futuras de la portada se maquetan igual`, async ({ page }) => {
+  test(`a ${width} px la fase futura de la portada se maqueta igual`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('./');
     const groups = page.getByTestId('phase-group');
 
-    for (const n of [1, 2]) {
+    for (const n of [2]) {
       const heading = await groups.nth(n).getByRole('heading', { level: 2 }).boundingBox();
       const badge = await groups.nth(n).getByTestId('upcoming-phase').boundingBox();
       if (!heading || !badge) throw new Error('missing heading or badge');
@@ -234,7 +238,7 @@ test('la página 404 muestra la navegación', async ({ page }) => {
   const nav = page.locator('nav[aria-label="Temas"]');
   await expect(nav).toBeVisible();
   await expect(nav.getByTestId('topic-link')).toHaveCount(TOPICS.length);
-  await expect(nav.locator('[data-phase-future]')).toHaveCount(2);
+  await expect(nav.locator('[data-phase-future]')).toHaveCount(1);
   await expect(page.locator('main')).not.toContainText('trece');
   await expect(page.locator('main')).toContainText('ver los temas por avance');
 });

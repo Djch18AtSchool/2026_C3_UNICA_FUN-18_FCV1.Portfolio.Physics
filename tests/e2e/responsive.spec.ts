@@ -1,8 +1,10 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
+import { TOPICS } from '../../src/consigna';
 
+/** Topics of the Avance 1, the phase open on a topic of it. */
+const PHASE_1_TOPIC_COUNT = 5;
 const PHONE = { width: 375, height: 812 };
-const TOPIC_COUNT = 5;
 /** WCAG 2.2 target size (minimum): a drag handle answers anywhere in a 24 × 24 px square. */
 const MIN_TARGET_PX = 24;
 /** Sub-pixel slack for layout rounding. */
@@ -47,10 +49,13 @@ test('el cajón de temas se abre en móvil y lista los temas', async ({ page }) 
 
   await drawer.click();
 
-  await expect(links).toHaveCount(TOPIC_COUNT);
-  for (const link of await links.all()) await expect(link).toBeVisible();
+  await expect(links).toHaveCount(TOPICS.length);
+  // Only the open phase (the topic's own, Avance 1) shows its rows.
+  for (const link of (await links.all()).slice(0, PHASE_1_TOPIC_COUNT)) {
+    await expect(link).toBeVisible();
+  }
   await expect(nav.locator('[data-outline-current]')).toBeVisible();
-  for (const phase of [2, 3]) {
+  for (const phase of [3]) {
     const future = nav.locator(`[data-phase-future="${phase}"]`);
     await expect(future.getByRole('button')).toBeDisabled();
     await expect(future).toContainText('se publica con su consigna');

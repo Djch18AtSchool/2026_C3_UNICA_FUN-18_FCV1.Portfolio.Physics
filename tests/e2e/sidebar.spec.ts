@@ -6,8 +6,7 @@ const DESKTOP = { width: 1280, height: 800 };
 const TALL = { width: 1280, height: 2000 };
 const PHASE_1_TOPIC = './temas/dron-reparto/';
 const NOT_FOUND_PAGE = './no-existe/';
-const TOPICS_MIN = 5;
-const FUTURE_PHASES = [2, 3] as const;
+const FUTURE_PHASES = [3] as const;
 const FUTURE_NOTE = 'se publica con su consigna';
 
 test.use({ viewport: DESKTOP });
@@ -45,14 +44,15 @@ test('en un tema del Avance 1, el Avance 1 está desplegado y las fases futuras 
 
   await expect(phase(page, 1)).toHaveAttribute('open', '');
   await expect(phase(page, 1).locator('> summary')).toHaveText('Avance 1');
-  await expect(page.locator('nav[aria-label="Temas"] details[data-phase]')).toHaveCount(1);
+  await expect(phase(page, 2).locator('> summary')).toHaveText('Avance 2');
+  await expect(page.locator('nav[aria-label="Temas"] details[data-phase]')).toHaveCount(2);
   await expectFuturePhasesDisabled(page);
 });
 
 test('los encabezados de fase van en mayúsculas pequeñas', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
   const summary = phase(page, 1).locator('> summary');
-  const header = futurePhase(page, 2).getByRole('button');
+  const header = futurePhase(page, 3).getByRole('button');
 
   await expect(summary).toHaveCSS('text-transform', 'uppercase');
   await expect(summary).toHaveCSS('font-size', '12px');
@@ -66,7 +66,7 @@ test('los encabezados de fase van en mayúsculas pequeñas', async ({ page }) =>
 
 test('el encabezado de una fase futura no responde al clic ni recibe el foco', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
-  const future = futurePhase(page, 2);
+  const future = futurePhase(page, 3);
   const header = future.getByRole('button');
   const before = {
     html: await future.innerHTML(),
@@ -83,7 +83,6 @@ test('el encabezado de una fase futura no responde al clic ni recibe el foco', a
   for (let i = 0; i < 4; i++) {
     await page.keyboard.press('Tab');
     await expect(header).not.toBeFocused();
-    await expect(futurePhase(page, 3).getByRole('button')).not.toBeFocused();
   }
 });
 
@@ -108,8 +107,10 @@ test('los temas son filas planas con número de dos cifras', async ({ page }) =>
   await page.goto(PHASE_1_TOPIC);
   const links = page.locator('nav[aria-label="Temas"]').getByTestId('topic-link');
 
-  await expect(links).toHaveCount(TOPICS_MIN);
-  await expect(links.locator('.font-mono')).toHaveText(['01', '02', '03', '04', '05']);
+  await expect(links).toHaveCount(TOPICS.length);
+  await expect(links.locator('.font-mono')).toHaveText(
+    TOPICS.map((topic) => String(topic.number).padStart(2, '0')),
+  );
   await expect(page.locator('#sidenav-lista details:not([data-phase])')).toHaveCount(0);
 });
 
@@ -127,7 +128,7 @@ test('un avance plegado sigue plegado al recargar', async ({ page }) => {
 });
 
 test('un valor guardado de una fase futura no la abre', async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.setItem('portafolio.nav.avance-2', 'open'));
+  await page.addInitScript(() => window.localStorage.setItem('portafolio.nav.avance-3', 'open'));
   await page.goto(PHASE_1_TOPIC);
 
   await expectFuturePhasesDisabled(page);
@@ -156,17 +157,18 @@ test('en la página 404 el avance en curso está abierto, sin fila actual', asyn
   await page.goto(NOT_FOUND_PAGE);
   const nav = page.locator('nav[aria-label="Temas"]');
 
-  await expect(phase(page, 1)).toHaveAttribute('open', '');
+  await expect(phase(page, 2)).toHaveAttribute('open', '');
+  await expect(phase(page, 1)).not.toHaveAttribute('open');
   await expectFuturePhasesDisabled(page);
   await expect(nav.locator('[aria-current="page"]')).toHaveCount(0);
   await expect(nav.locator('[data-outline-current]')).toHaveCount(0);
 });
 
-test('en la página 404 se respeta el Avance 1 plegado', async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.setItem('portafolio.nav.avance-1', 'closed'));
+test('en la página 404 se respeta el Avance 2 plegado', async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem('portafolio.nav.avance-2', 'closed'));
   await page.goto(NOT_FOUND_PAGE);
 
-  await expect(phase(page, 1)).not.toHaveAttribute('open');
+  await expect(phase(page, 2)).not.toHaveAttribute('open');
 });
 
 test('con el almacenamiento bloqueado la página carga y el avance actual está abierto', async ({
@@ -199,7 +201,7 @@ test('el tema actual lista siempre sus h2 y cada ancla existe', async ({ page })
   const topicHrefs = await page
     .locator('nav[aria-label="Temas"] [data-testid="topic-link"]')
     .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
-  expect(topicHrefs.length).toBeGreaterThanOrEqual(TOPICS_MIN);
+  expect(topicHrefs).toHaveLength(TOPICS.length);
 
   for (const href of topicHrefs) {
     await page.goto(href);

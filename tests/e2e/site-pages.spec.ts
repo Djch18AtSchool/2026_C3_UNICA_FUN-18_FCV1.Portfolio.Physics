@@ -4,27 +4,19 @@ import { expect, test } from '@playwright/test';
 import { TOPICS } from '../../src/consigna';
 
 /**
- * Topics of the Avance 2 and the Entrega Final do not exist on the site until their consigna
+ * Topics of the Entrega Final (10 to 13) do not exist on the site until their consigna
  * arrives: no page, no link, no name. These are the names and slugs they had while the site
- * listed them by name only, and nothing built may carry them now. This is a guard to update
- * when those consignas arrive: a retired name or slug may legitimately come back with them.
+ * listed them by name only, and nothing built may carry them now. The Avance 2 consigna arrived
+ * on 2026-10-30, so its topics (6 to 9) left this list. Update the guard when the final
+ * delivery's consigna arrives: a retired name or slug may legitimately come back with it.
  */
 const RETIRED_SLUGS = [
-  'frenado-regenerativo',
-  'coeficiente-restitucion',
-  'ruedas-reaccion',
-  'asistencia-gravitatoria',
   'spring-animations',
   'sintesis-sonido',
   'resonancia-tacoma',
   'enfriamiento-datacenter',
 ] as const;
 const RETIRED_NAMES = [
-  'Frenado regenerativo',
-  'coeficiente de restitución',
-  'Ruedas de reacción',
-  'Asistencia gravitatoria',
-  'Voyager',
   'Spring animations',
   'Síntesis de sonido',
   'Tacoma',
@@ -32,7 +24,7 @@ const RETIRED_NAMES = [
 ] as const;
 const DIST_DIR = join(process.cwd(), 'dist');
 const TEXT_FILE = /\.(html|js|mjs|css|json|txt|xml|svg)$/;
-const FUTURE_PHASE_LABELS = ['Avance 2', 'Entrega Final'];
+const FUTURE_PHASE_LABELS = ['Entrega Final'];
 /** The pages that are not a topic: the cover and the 404. */
 const NON_TOPIC_PAGES = ['404.html', 'index.html'];
 
@@ -78,9 +70,7 @@ for (const slug of RETIRED_SLUGS) {
   });
 }
 
-test('la portada conserva el Avance 2 y la Entrega Final, solo con su insignia', async ({
-  page,
-}) => {
+test('la portada conserva la Entrega Final, solo con su insignia', async ({ page }) => {
   await page.goto('./');
 
   for (const label of FUTURE_PHASE_LABELS) {
@@ -94,7 +84,18 @@ test('la portada conserva el Avance 2 y la Entrega Final, solo con su insignia',
   }
 });
 
-test('la barra lateral conserva las dos fases futuras, deshabilitadas', async ({ page }) => {
+test('la portada muestra el Avance 2 con sus cuatro temas', async ({ page }) => {
+  await page.goto('./');
+  const group = page.getByTestId('phase-group').filter({
+    has: page.getByRole('heading', { level: 2, name: 'Avance 2' }),
+  });
+
+  await expect(group).toHaveCount(1);
+  await expect(group.getByTestId('upcoming-phase')).toHaveCount(0);
+  await expect(group.getByRole('listitem')).toHaveCount(4);
+});
+
+test('la barra lateral conserva la fase futura, deshabilitada', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(`./temas/${TOPICS[0].slug}/`);
   const nav = page.locator('nav[aria-label="Temas"]');

@@ -9,7 +9,7 @@ export interface ConsignaTopic {
 }
 
 /**
- * The topics whose consigna has arrived, by number. A later delivery's topics join this list, and
+ * The topics whose consigna has arrived, by number. The final delivery's topics join this list, and
  * get their page, only when the professor publishes its consigna.
  */
 export const TOPICS: readonly ConsignaTopic[] = Object.freeze(
@@ -43,6 +43,31 @@ export const TOPICS: readonly ConsignaTopic[] = Object.freeze(
       slug: 'control-haptico',
       phase: 1,
       title: 'El resorte virtual detrás de un control háptico',
+    },
+    {
+      number: 6,
+      slug: 'frenado-regenerativo',
+      phase: 2,
+      title: 'Frenado regenerativo en un vehículo eléctrico',
+    },
+    {
+      number: 7,
+      slug: 'coeficiente-restitucion',
+      phase: 2,
+      title:
+        'El coeficiente de restitución en un motor de videojuego: por qué la pelota rebota mal',
+    },
+    {
+      number: 8,
+      slug: 'ruedas-reaccion',
+      phase: 2,
+      title: 'Ruedas de reacción: cómo un satélite se gira sin empujarse contra nada',
+    },
+    {
+      number: 9,
+      slug: 'asistencia-gravitatoria',
+      phase: 2,
+      title: 'Asistencia gravitatoria: cómo la Voyager ganó velocidad sin gastar combustible',
     },
   ].map((topic) => Object.freeze(topic) as ConsignaTopic),
 );

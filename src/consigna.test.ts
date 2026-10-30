@@ -2,8 +2,8 @@ import { describe, expect, test } from 'vitest';
 import { COURSE, PHASE_LABELS, PHASES, TOPICS, topicByNumber, topicsByPhase } from './consigna';
 
 describe('consigna', () => {
-  test('lista solo los temas con consigna publicada: los del Avance 1, numerados 1..5', () => {
-    expect(TOPICS.map((t) => t.number)).toEqual([1, 2, 3, 4, 5]);
+  test('lista solo los temas con consigna publicada: Avance 1 y Avance 2, numerados 1..9', () => {
+    expect(TOPICS.map((t) => t.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
   });
   test('los slugs son únicos y en kebab-case', () => {
     const slugs = TOPICS.map((t) => t.slug);
@@ -21,9 +21,21 @@ describe('consigna', () => {
     );
     expect(topicByNumber(5)?.title).toBe('El resorte virtual detrás de un control háptico');
   });
-  test('el Avance 2 y la Entrega Final aún no tienen temas', () => {
+  test('los títulos del Avance 2 son idénticos a la consigna', () => {
+    expect(topicByNumber(6)?.title).toBe('Frenado regenerativo en un vehículo eléctrico');
+    expect(topicByNumber(7)?.title).toBe(
+      'El coeficiente de restitución en un motor de videojuego: por qué la pelota rebota mal',
+    );
+    expect(topicByNumber(8)?.title).toBe(
+      'Ruedas de reacción: cómo un satélite se gira sin empujarse contra nada',
+    );
+    expect(topicByNumber(9)?.title).toBe(
+      'Asistencia gravitatoria: cómo la Voyager ganó velocidad sin gastar combustible',
+    );
+  });
+  test('el Avance 1 y el Avance 2 tienen sus temas; la Entrega Final aún no', () => {
     expect(topicsByPhase(1, TOPICS).map((t) => t.number)).toEqual([1, 2, 3, 4, 5]);
-    expect(topicsByPhase(2, TOPICS)).toEqual([]);
+    expect(topicsByPhase(2, TOPICS).map((t) => t.number)).toEqual([6, 7, 8, 9]);
     expect(topicsByPhase(3, TOPICS)).toEqual([]);
   });
   test('PHASES lista cada fase con etiqueta, en orden', () => {
