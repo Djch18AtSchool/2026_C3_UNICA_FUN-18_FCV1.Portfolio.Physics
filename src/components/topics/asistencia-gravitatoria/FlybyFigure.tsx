@@ -13,7 +13,7 @@ import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
 import { fitCentre, monoTextWidth, type Domain, type Scale } from '../../lab/plotScales';
 import SvgPlot from '../../lab/SvgPlot';
 import { signed } from './flybyFormat';
-import { clearSpot, segmentsOf, type Box, type Segment } from './labelClearance';
+import { clearSpot, segmentsOf, type Box, type Segment } from '../../lab/labelClearance';
 import { speedText } from './voyagerChartData';
 import { SUN_COLOR } from './VoyagerPlotParts';
 import {

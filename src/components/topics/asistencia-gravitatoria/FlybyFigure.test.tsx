@@ -3,7 +3,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { monoTextWidth } from '../../lab/plotScales';
 import FlybyFigure from './FlybyFigure';
-import { segmentHitsBox, type Segment } from './labelClearance';
+import { segmentHitsBox, type Segment } from '../../lab/labelClearance';
 
 /** OverlayMarks' Label: 13 px mono text; its box runs about 10 px above the baseline and 3 below. */
 const LABEL_SIZE = 13;

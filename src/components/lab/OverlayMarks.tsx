@@ -19,7 +19,8 @@ export const ARROW_HEAD = 9;
 /** Float slack, so an arrow built to exactly ARROW_HEAD (e.g. 8,999999999999998) keeps its head. */
 const LENGTH_EPSILON = 1e-6;
 const LABEL_GAP = 10;
-const LABEL_SIZE = 13;
+/** Font size of a Label, px: layouts that place labels size their boxes with it. */
+export const LABEL_SIZE = 13;
 const HALO_WIDTH = 4;
 
 /** Three corners of an arrowhead whose tip is `to`, pointing along from → to. */
