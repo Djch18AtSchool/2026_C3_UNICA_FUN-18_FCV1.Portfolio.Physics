@@ -4,8 +4,9 @@ import type { Encounter } from '../../../lib/data/voyager';
 import { formatNumber } from '../../../lib/format';
 import type { PlanarFlybyResult } from '../../../lib/physics';
 import { LINE_WIDTH } from '../../charts/chartTheme';
+import { transportTimeValue } from '../../lab/transportTime';
 import FlybyComparison from './FlybyComparison';
-import { durationText, lapseFactorText, signed } from './flybyFormat';
+import { lapseFactorText, signed } from './flybyFormat';
 import type { FlybyDisplay } from './flybyLabSettings';
 import type { FlybyHyperbola, FlybyState } from './flybyOrbit';
 import type { RpWarning } from './flybyScene';
@@ -163,7 +164,7 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
         </li>
       </ul>
       <p data-testid="flyby-lapse" className="m-0 text-sm text-fg-muted">
-        {`Cámara rápida: el paso dibujado dura ${durationText(props.passSeconds)} y a 1× se ve en ${props.playbackSeconds} s, unas ${lapseFactorText(props.passSeconds, props.playbackSeconds)} veces más rápido.`}
+        {`Cámara rápida: el paso dibujado dura ${transportTimeValue(props.passSeconds, props.passSeconds)} y a 1× se ve en ${props.playbackSeconds} s, unas ${lapseFactorText(props.passSeconds, props.playbackSeconds)} veces más rápido.`}
       </p>
       <p
         role="status"

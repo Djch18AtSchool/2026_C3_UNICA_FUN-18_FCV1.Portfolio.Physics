@@ -105,14 +105,31 @@ describe('FlybyLab', () => {
     const user = userEvent.setup();
     renderLab();
 
-    // V2 at Jupiter (r_p = 10,09 R_J): the drawn pass lasts about 232 000 s, 2,69 d.
-    expect(plain(timeline().getAttribute('aria-valuetext'))).toBe('t = 0,00 d');
+    // V2 at Jupiter (r_p = 10,09 R_J): the drawn pass lasts about 232 209 s, 2,688 d.
+    expect(plain(timeline().getAttribute('aria-valuetext'))).toBe('t = 0,000 d');
     fireEvent.change(timeline(), { target: { value: '1000' } });
-    expect(plain(timeline().getAttribute('aria-valuetext'))).toBe('t = 2,69 d');
+    expect(plain(timeline().getAttribute('aria-valuetext'))).toBe('t = 2,688 d');
 
-    // V2 at Neptune (r_p = 1,18 R_N): about 17 300 s, a pass of hours.
+    // V2 at Neptune (r_p = 1,18 R_N): about 17 340 s, a pass of hours.
     await user.click(screen.getByRole('button', { name: /^V2 · Neptuno/ }));
-    expect(plain(timeline().getAttribute('aria-valuetext'))).toMatch(/^t = \d+,\d{2} h$/);
+    expect(plain(timeline().getAttribute('aria-valuetext'))).toMatch(/^t = \d+,\d{3} h$/);
+  });
+
+  test('the time-lapse note states the pass in the unit and decimals the transport ends on', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const note = () => plain(screen.getByTestId('flyby-lapse').textContent);
+    const endReading = () => {
+      fireEvent.change(timeline(), { target: { value: '1000' } });
+      return plain(timeline().getAttribute('aria-valuetext')).replace('t = ', '');
+    };
+
+    expect(note()).toContain(`el paso dibujado dura ${endReading()} y`);
+    expect(note()).toContain('dura 2,688 d y');
+
+    await user.click(screen.getByRole('button', { name: /^V2 · Neptuno/ }));
+    expect(note()).toContain(`el paso dibujado dura ${endReading()} y`);
+    expect(note()).toMatch(/dura \d+,\d{3} h y/);
   });
 
   test('opens on V2 at Jupiter: e = 1,330, δ = 97,5° and Δ|v| ≈ +9,9 km/s', () => {
