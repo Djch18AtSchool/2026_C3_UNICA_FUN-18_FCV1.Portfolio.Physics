@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
-import { PHASE_LABELS, TOPICS } from '../../src/consigna';
+import { PHASE_LABELS, TOPICS, type Phase } from '../../src/consigna';
+import { NAV_CLOSED, NAV_OPEN, phaseKey } from '../../src/lib/navState';
 import { waitForIsland } from './helpers';
 
 const DESKTOP = { width: 1280, height: 800 };
@@ -114,15 +115,27 @@ test('los temas son filas planas con número de dos cifras', async ({ page }) =>
   await expect(page.locator('#sidenav-lista details:not([data-phase])')).toHaveCount(0);
 });
 
+/**
+ * The phase's stored state. The page saves it on the <details> `toggle` event, which the browser
+ * fires in a later task than the click: wait for the write before reloading, or under load the
+ * reload can start before it and the test reads the previous state.
+ */
+function storedPhase(page: Page, n: number): Promise<string | null> {
+  return page.evaluate((key) => window.localStorage.getItem(key), phaseKey(n as Phase));
+}
+
 test('un avance plegado sigue plegado al recargar', async ({ page }) => {
   await page.goto(PHASE_1_TOPIC);
 
   await phase(page, 1).locator('> summary').click();
   await expect(phase(page, 1)).not.toHaveAttribute('open');
+  await expect.poll(() => storedPhase(page, 1)).toBe(NAV_CLOSED);
   await page.reload();
 
   await expect(phase(page, 1)).not.toHaveAttribute('open');
   await phase(page, 1).locator('> summary').click();
+  await expect(phase(page, 1)).toHaveAttribute('open', '');
+  await expect.poll(() => storedPhase(page, 1)).toBe(NAV_OPEN);
   await page.reload();
   await expect(phase(page, 1)).toHaveAttribute('open', '');
 });
