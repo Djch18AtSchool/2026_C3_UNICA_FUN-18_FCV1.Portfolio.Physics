@@ -319,6 +319,9 @@ describe('BounceLab', () => {
       /e quedaría a la mitad y la altura del rebote, a la cuarta parte/,
     );
     expect(note).not.toHaveTextContent(/rebotaría la mitad/);
+    // The stop is the kernel's: 8 rebounds, the last 18,5 cm, as on the page; one colon only.
+    expect(note).toHaveTextContent(/daría 0,450; e quedaría/);
+    expect(note).toHaveTextContent(/el último de 18,5 cm/);
   });
 
   test('with e(v) on, a preset with e > 1 no longer claims the ball gains energy', async () => {
@@ -367,6 +370,16 @@ describe('BounceLab', () => {
     });
 
     expect(screen.getByTestId('scene-notes')).toHaveTextContent(/nunca queda en reposo/);
+    expect(screen.getByTestId('scene-notes')).toHaveTextContent(/microrrebotes/);
+  });
+
+  test('the e(v) preset credits Fig. 8 to «Dynamic properties of tennis balls» (ruling R31)', async () => {
+    renderLab();
+    await choosePreset('realista-mejorado');
+    const note = screen.getByTestId('preset-note');
+
+    expect(note).toHaveTextContent(/Cross \(1999\), «Dynamic properties of tennis balls», Fig\. 8/);
+    expect(note).not.toHaveTextContent(/The bounce of a ball/);
   });
 
   test('e(v) replaces the e control with the illustrative fit', async () => {

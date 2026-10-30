@@ -1,7 +1,12 @@
 import { ballStandardById, type BallStandard } from '../../../lib/data/ballStandards';
 import { ENGINE_RESTITUTION } from '../../../lib/data/engineRestitution';
 import { formatNumber } from '../../../lib/format';
-import { combineRestitution, type CombineRule } from '../../../lib/physics';
+import {
+  bouncesAboveThreshold,
+  combineRestitution,
+  G_EARTH,
+  type CombineRule,
+} from '../../../lib/physics';
 import type { Preset } from '../../../lib/presets';
 
 /**
@@ -136,6 +141,16 @@ const mixNote = `${mixOver(MIX_FLOOR)}. Sobre un ${mixOver(0)}`;
 /** Unity's default floor bounciness (0), and the pair it gives under "promedio" for e = 0,9. */
 const UNITY_E = 0.9;
 const UNITY_DEFAULT_FLOOR = 0;
+/** Unity 3D's Physics.bounceThreshold default, 2 (m/s, as in PhysX). */
+const UNITY_THRESHOLD = 2;
+const CM_PER_M = 100;
+/** Where Unity's threshold stops the 1 m drop: N rebounds, the last e^{2N}·h₀ (cálculo propio). */
+const UNITY_STOP = bouncesAboveThreshold(
+  Math.sqrt(2 * G_EARTH * DEFAULT_DROP),
+  UNITY_E,
+  UNITY_THRESHOLD,
+);
+const UNITY_LAST_APEX_CM = UNITY_E ** (2 * UNITY_STOP) * DEFAULT_DROP * CM_PER_M;
 
 export const BOUNCE_PRESETS: readonly BouncePreset[] = [
   ballPreset('tenis-itf', 'Tenis ITF (tipo 2)', TENNIS, centreOf(TENNIS), 'tenis'),
@@ -163,7 +178,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       speedDependent: true,
       ball: 'tenis',
     },
-    sourceLabel: 'Cross (1999), «The bounce of a ball», Fig. 8',
+    sourceLabel: 'Cross (1999), «Dynamic properties of tennis balls», Fig. 8',
     note: 'e(v) = 0,79 − 0,009·|v|: ajuste lineal ilustrativo (cálculo propio) a la medida de Cross, que baja de ≈ 0,76 a ≈ 0,64 entre 4 y 17 m/s. A baja velocidad e sube, así que la serie de botes pequeños se alarga en vez de cortarse.',
   },
   {
@@ -198,13 +213,13 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       ...ENGINE_DEFAULTS,
       e: UNITY_E,
       h0: DEFAULT_DROP,
-      threshold: 2,
+      threshold: UNITY_THRESHOLD,
       floorE: UNITY_E,
       combine: 'average',
       ball: 'neutra',
     },
     sourceLabel: 'Physics.bounceThreshold de Unity (por defecto, 2)',
-    note: `Tomo de Unity solo el umbral de 2 m/s y la mezcla promedio, los valores por defecto de Unity 3D. El paso es el del laboratorio, 1/60 s con 4 subpasos, el paso fino de Box2D, y le doy al suelo el mismo e = ${comma(UNITY_E, 1)} que a la pelota: con el suelo en 0, el valor por defecto de Unity, el promedio daría ${comma(combineRestitution(UNITY_E, UNITY_DEFAULT_FLOOR, 'average'), 3)}: e quedaría a la mitad y la altura del rebote, a la cuarta parte. Tras unos pocos botes, uno de unos 18 cm termina en una parada en seco.`,
+    note: `Tomo de Unity solo el umbral de 2 m/s y la mezcla promedio, los valores por defecto de Unity 3D. El paso es el del laboratorio, 1/60 s con 4 subpasos, el paso fino de Box2D, y le doy al suelo el mismo e = ${comma(UNITY_E, 1)} que a la pelota: con el suelo en 0, el valor por defecto de Unity, el promedio daría ${comma(combineRestitution(UNITY_E, UNITY_DEFAULT_FLOOR, 'average'), 3)}; e quedaría a la mitad y la altura del rebote, a la cuarta parte. Tras ${UNITY_STOP} botes, el último de ${comma(UNITY_LAST_APEX_CM, 1)} cm, la pelota se para en seco.`,
   },
   {
     id: 'mezcla',

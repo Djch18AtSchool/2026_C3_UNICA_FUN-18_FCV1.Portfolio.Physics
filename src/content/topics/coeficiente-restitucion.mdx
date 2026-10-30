@@ -20,7 +20,7 @@ sources:
     title: 'Box2D v3.2.0 (tag v3.2.0, commit 178495b)'
     authors: 'Erin Catto'
     year: 2026
-    publisher: 'Repositorio erincatto/box2d en GitHub, licencia MIT; src/contact_solver.c L571-L689, src/types.c L13-L22, src/contact.h L162-L165, src/solver.c L1050-L1061, include/box2d/box2d.h L145-L146 y docs/simulation.md L345-L359 y L776-L804'
+    publisher: 'Repositorio erincatto/box2d en GitHub, licencia MIT; src/contact_solver.c L571-L689, src/types.c L13-L22, src/contact.h L162-L165, src/solver.c L1050-L1061, src/core.c L36, include/box2d/box2d.h L145-L146 y docs/simulation.md L345-L359 y L776-L804'
     url: 'https://github.com/erincatto/box2d/tree/v3.2.0'
     accessed: '2026-10-30'
   - id: unity-bouncethreshold
@@ -160,7 +160,7 @@ classRefs:
     note: 'El momento por componentes; el laboratorio se queda en una dimensión.'
   - module: 'Módulo 3'
     topic: 'Tema 02 · Colisiones y explosiones · Concepto 05 · Impulso normal en discos lisos'
-    note: 'j = (1+e)(v_A − v_B)·n̂/(1/m_A + 1/m_B) sobre la normal: el impulso que Box2D aplica en la (7.3).'
+    note: 'j = (1+e)(v_A − v_B)·n̂/(1/m_A + 1/m_B) sobre la normal: sumado al impulso del solver, el de la (7.3) da este.'
 updated: 2026-10-30
 ---
 
@@ -183,7 +183,7 @@ Un solo número, e, decide cuánto sube una pelota tras chocar. Los motores de j
 
 <Step n={1} title="Un rebote contra el piso">
 
-Con +y hacia arriba, e compara la velocidad vertical después del contacto con la de antes <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. Como en vuelo <Equation inline latex="v = \sqrt{2 g h}" />, basta medir alturas: así ensayan la ITF, la FIBA y la FIFA (tabla 7.2).
+e compara la velocidad vertical después del contacto con la de antes <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. Como en vuelo <Equation inline latex="v = \sqrt{2 g h}" />, basta medir alturas: así ensayan la ITF, la FIBA y la FIFA (tabla 7.2).
 
 <Equation
   id="ec-restitucion-piso"
@@ -204,13 +204,13 @@ Con +y hacia arriba, e compara la velocidad vertical después del contacto con l
 
 <Fragment slot="fenomeno">
 
-Una pelota de tenis soltada desde 2,54 m debe subir entre 1,35 y 1,47 m <Cite id="itf-tests" sources={frontmatter.sources} /> <Cite id="itf-rules-2026" sources={frontmatter.sources} />: se deforma y no devuelve toda la energía.
+Una pelota de tenis de tipo 2 soltada desde 2,54 m debe subir entre 1,35 y 1,47 m <Cite id="itf-tests" sources={frontmatter.sources} /> <Cite id="itf-rules-2026" sources={frontmatter.sources} />: se deforma y no devuelve toda la energía.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Entre botes vale la (2.1) del Tema 2: <Equation inline latex="h = v^2/(2g)" />, así que <Equation inline latex="h'/h = (v'/v)^2 = e^2" /> y cada bote multiplica la altura por e².
+Entre botes vale la (2.1) del Tema 2: <Equation inline latex="h = v^2/(2g)" />, así que <Equation inline latex="h'/h = (v'/v)^2 = e^2" />.
 
 </Fragment>
 
@@ -283,11 +283,11 @@ La energía relativa es <Equation inline latex="\tfrac12\mu v_\text{rel}^2" /> y
 
 <Step n={3} title="Por qué rebota mal">
 
-Con <Equation inline latex="e < 1" /> hay infinitos botes en un tiempo finito T, y un motor con paso Δt no resuelve los más cortos que Δt. Box2D aplica el impulso de restitución tras el solver, salvo bajo un umbral <Cite id="box2d-v311" sources={frontmatter.sources} />.
+Con <Equation inline latex="e < 1" /> hay infinitos botes en un tiempo finito T, y un motor con paso Δt no resuelve los más cortos que Δt. Box2D aplica el impulso de restitución tras el solver, salvo si la aproximación no supera un umbral <Cite id="box2d-v311" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-restitucion-motor"
-  latex="\begin{gathered} T = t_0\,\frac{1+e}{1-e}, \qquad t_0 = \sqrt{\frac{2h_0}{g}} \\ j = -m_\text{ef}\,\bigl(v_n + e_\text{ef}\,v_n^-\bigr), \qquad e_\text{ef} = \begin{cases} e & \text{si } |v_n^-| > v_\text{th} \\ 0 & \text{si } |v_n^-| \le v_\text{th} \end{cases} \\ N = \left\lfloor \frac{\ln(v_0/v_\text{th})}{\ln(1/e)} \right\rfloor + 1 \end{gathered}"
+  latex="\begin{gathered} T = t_0\,\frac{1+e}{1-e}, \qquad t_0 = \sqrt{\frac{2h_0}{g}} \\ j = -m_\text{ef}\,\bigl(v_n + e_\text{ef}\,v_n^-\bigr), \qquad e_\text{ef} = \begin{cases} e & \text{si } -v_n^- > v_\text{th} \\ 0 & \text{si } -v_n^- \le v_\text{th} \end{cases} \\ N = \left\lfloor \frac{\ln(v_0/v_\text{th})}{\ln(1/e)} \right\rfloor + 1 \end{gathered}"
   symbols={[
     { symbol: 'T', meaning: 'tiempo total de botes, desde que se suelta', unit: 's' },
     {
@@ -317,13 +317,13 @@ Con <Equation inline latex="e < 1" /> hay infinitos botes en un tiempo finito T,
 
 <Fragment slot="fenomeno">
 
-Sin umbral, la pelota temblaría en micro-rebotes y nunca se dormiría <Cite id="box2d-v320" sources={frontmatter.sources} />; con él, se para en seco: con los 2 m/s de Unity <Cite id="unity-bouncethreshold" sources={frontmatter.sources} />, una pelota de <Equation inline latex="e = 0{,}9" /> soltada desde 1 m sube 18,5 cm y luego queda pegada (cálculo propio).
+Sin umbral, la pelota temblaría en microrrebotes y nunca se “dormiría” <Cite id="box2d-v320" sources={frontmatter.sources} />; con él, se para en seco: con el umbral de Unity (tabla 7.1) <Cite id="unity-bouncethreshold" sources={frontmatter.sources} />, una pelota de <Equation inline latex="e = 0{,}9" /> soltada desde 1 m queda pegada tras 8 botes, el último de 18,5 cm (cálculo propio).
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-El impulso deja la velocidad normal en <Equation inline latex="-e\,v_n^-" />, la (7.1). Los impactos bajan como <Equation inline latex="e^n v_0" />, y el umbral corta la serie en N botes: 8 con Unity y 15 con Box2D.
+El impulso deja la velocidad normal en <Equation inline latex="-e\,v_n^-" />, la (7.1). Los impactos bajan como <Equation inline latex="e^n v_0" />, y el umbral corta la serie en N botes; con Box2D, 15.
 
 </Fragment>
 
@@ -332,7 +332,7 @@ El impulso deja la velocidad normal en <Equation inline latex="-e\,v_n^-" />, la
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Altura de cada rebote, en escala logarítmica, de una pelota de e = 0,9 soltada desde 1 m. La serie ideal sigue bajando; cada motor la corta en su rebote N, y la flecha final indica que la pelota queda en el piso. Las líneas punteadas son las alturas que equivalen a cada umbral, v_th²/2g."
+  caption="Altura de cada rebote, en escala logarítmica, de una pelota de e = 0,9 soltada desde 1 m. La serie ideal sigue bajando; cada motor la corta en su rebote N, y la flecha final indica que la pelota queda en el piso. Las líneas punteadas son las alturas v²/(2g) de cada umbral."
   source={{
     text: 'Gráfica que calculé con la ecuación (7.3); umbrales de Box2D v3.2.0 y de Unity 6.6 (tabla 7.1)',
   }}
@@ -346,7 +346,7 @@ El impulso deja la velocidad normal en <Equation inline latex="-e\,v_n^-" />, la
 
 <Step n={4} title="Un rebote que se siente bien">
 
-Box2D v3.2 acota el impulso de restitución con el de compresión: «Poisson kinetic restitution guarantees no energy gain» <Cite id="box2d-v320" sources={frontmatter.sources} />. Y e no es constante: en pelotas de tenis baja de ≈ 0,76 a 4 m/s a ≈ 0,64 a 17 m/s (lectura aproximada de Cross) <Cite id="cross-1999-tennis" sources={frontmatter.sources} />.
+Box2D v3.2 acota el impulso de restitución con el de compresión: «Poisson kinetic restitution guarantees no energy gain» <Cite id="box2d-v320" sources={frontmatter.sources} />. Y e no es constante: en pelotas de tenis baja de ≈ 0,76 a unos 4 m/s a ≈ 0,64 a unos 17 m/s (lectura aproximada) <Cite id="cross-1999-tennis" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-restitucion-poisson"
@@ -369,13 +369,13 @@ Box2D v3.2 acota el impulso de restitución con el de compresión: «Poisson kin
 
 <Fragment slot="fenomeno">
 
-La expansión devuelve como mucho la fracción e del impulso de la compresión, también con varios contactos: ningún contacto gana energía.
+La expansión devuelve como mucho la fracción e del impulso de compresión, aun con varios contactos.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Contra un piso fijo, <Equation inline latex="J_c = m|v^-|" /> y <Equation inline latex="J_r = e\,m|v^-|" />: la (7.4) vuelve a la (7.1). Con e(v), un impacto lento rebota más y los botes pequeños se alargan, al revés que con el umbral.
+Contra un piso fijo, <Equation inline latex="J_c = m|v^-|" /> y <Equation inline latex="J_r = e\,m|v^-|" />: la (7.4) vuelve a la (7.1). Con e(v), los botes lentos rebotan más: lo contrario del umbral.
 
 </Fragment>
 
@@ -388,7 +388,7 @@ Contra un piso fijo, <Equation inline latex="J_c = m|v^-|" /> y <Equation inline
 >
   <BounceLab
     client:visible
-    footnote={`A 1× la reproducción va en tiempo real; en el engranaje, Velocidad ${formatNumber(Math.min(...DEFAULT_SPEEDS), { precision: 2 })}× es cámara lenta. Con g = 9,81 m/s². Lo que el modelo deja fuera: el giro y la fricción del contacto (la superbola de Cross tiene un e horizontal de 0,76), el arrastre del aire, por el que √(h′/h) subestima un poco el e de una pelota ligera, los contactos múltiples que Box2D resuelve de forma aproximada y el movimiento en 2D: todo es vertical. e(v) es un ajuste ilustrativo.`}
+    footnote={`A 1× la reproducción va en tiempo real; en el engranaje, Velocidad ${formatNumber(Math.min(...DEFAULT_SPEEDS), { precision: 2 })}× es cámara lenta. Con g = 9,81 m/s². Lo que el modelo deja fuera: el giro y la fricción del contacto (la superbola de Cross tiene un e horizontal de 0,76); el arrastre del aire, por el que √(h′/h) subestima un poco el e de una pelota ligera; los contactos múltiples, que Box2D resuelve de forma aproximada, y el movimiento en 2D, porque todo es vertical. e(v) es un ajuste ilustrativo.`}
   />
 </Figure>
 
@@ -400,25 +400,25 @@ Contra un piso fijo, <Equation inline latex="J_c = m|v^-|" /> y <Equation inline
 
 <Fragment slot="caso">
 
-Box2D, de Erin Catto (MIT), resuelve cada contacto con impulsos <Cite id="box2d-v311" sources={frontmatter.sources} />. En `src/contact_solver.c` de v3.1.1, tras el solver aplica `impulse = -cp->normalMass * ( vn + restitution * cp->relativeVelocity );` si la aproximación supera `restitutionThreshold`, que en v3.2.0 vale `1.0f * lengthUnits`: 1 m/s según mi cálculo <Cite id="box2d-v320" sources={frontmatter.sources} />. Cada forma lleva un número, `restitution`, y el par usa el mayor.
+Box2D, de Erin Catto (licencia MIT), resuelve cada contacto con impulsos <Cite id="box2d-v311" sources={frontmatter.sources} />. En `src/contact_solver.c` de v3.1.1, tras el solver aplica `impulse = -cp->normalMass * ( vn + restitution * cp->relativeVelocity );` si la aproximación supera `restitutionThreshold`, que en v3.2.0 vale `1.0f * lengthUnits`: 1 m/s según mi cálculo <Cite id="box2d-v320" sources={frontmatter.sources} />. Cada forma lleva un número, `restitution`.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Es la (7.3): `normalMass` es <Equation inline latex="m_\text{ef}" />, `vn` es <Equation inline latex="v_n" /> y `cp->relativeVelocity`, <Equation inline latex="v_n^-" />. De una vez desde <Equation inline latex="v_n^-" />, suma <Equation inline latex="j = -(1+e)\,m_\text{ef}\,v_n^-" />, el impulso normal de clase.
+Es la (7.3): `normalMass` es <Equation inline latex="m_\text{ef}" />, `vn` es <Equation inline latex="v_n" /> y `cp->relativeVelocity`, <Equation inline latex="v_n^-" />. Sumado al impulso que anula la aproximación, el total es <Equation inline latex="j = -(1+e)\,m_\text{ef}\,v_n^-" />, el del concepto 05.
 
 </Fragment>
 
 <Fragment slot="justificacion">
 
-Una animación guionizada solo sirve para la altura animada; una tabla precalculada no alcanza a barrer altura, masa y par de materiales, ni resuelve una pila de cuerpos. Un número por forma vale en cualquier caso y conserva el momento.
+Una animación guionizada solo vale para la altura con que se animó; una tabla precalculada no alcanza a barrer altura, masa y par de materiales, ni resuelve una pila de cuerpos. Un número por forma vale siempre y conserva el momento.
 
 </Fragment>
 
 <Fragment slot="balance">
 
-Se gana coherencia con un parámetro que el diseñador entiende. Cuestan el umbral, que para en seco, y la mezcla: e es del par, no del material, y cada motor la combina distinto (tabla 7.1); con `max`, una superbola rebota sobre cualquier piso <Cite id="box2d-v320" sources={frontmatter.sources} />. También cuestan la dependencia de Δt, el túnel sin detección continua <Cite id="catto-gdc2013" sources={frontmatter.sources} /> y una pasada extra del solver.
+Se gana coherencia con un parámetro que el diseñador entiende. Cuestan el umbral, que para en seco, y la mezcla: e es del par, no del material, y cada motor la combina distinto (tabla 7.1). También cuestan la dependencia de Δt, el efecto túnel sin detección continua de colisiones <Cite id="catto-gdc2013" sources={frontmatter.sources} /> y una pasada extra del solver.
 
 </Fragment>
 
@@ -426,13 +426,13 @@ Se gana coherencia con un parámetro que el diseñador entiende. Cuestan el umbr
 
 <Callout variant="clase" title="Módulo 3 · Tema 02, conceptos 01 a 05">
 
-La (7.2) es la del concepto 02, y su ejemplo «Choque elástico de masas distintas» (2 kg a +3 m/s contra 1 kg en reposo: 1 y 4 m/s) es la fila e = 1 de la figura 7.2; la fila e = 0 es la captura del concepto 03. El impulso de la (7.3) es el del concepto 05. El piso, la serie de alturas y el umbral son extensiones.
+El ejemplo «Choque elástico de masas distintas» del concepto 02 (2 kg a +3 m/s contra 1 kg en reposo: 1 y 4 m/s) es la fila e = 1 de la figura 7.2, y la fila e = 0 es la captura del concepto 03. Sumado al impulso del solver, el de la (7.3) da el del concepto 05. En clase no se aplica el choque a cuerpos que se alejan ni sin aproximación normal (conceptos 02 y 05); el umbral mueve ese límite de 0 a <Equation inline latex="v_\text{th}" />. El piso y la serie de alturas son extensiones.
 
 </Callout>
 
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-Con el Tema 2: entre botes la pelota hace el lanzamiento vertical de la (2.1), integrado con el mismo Euler semi-implícito. Con el Tema 5: un choque es un resorte breve que no devuelve toda su energía. Con el Tema 9: visto desde el planeta, un sobrevuelo es un choque elástico.
+Con el Tema 2: entre botes, la pelota sigue la (2.1), integrada con el mismo Euler semi-implícito. Con el Tema 5: un choque es un resorte breve que no devuelve toda su energía. Con el Tema 9: visto desde el planeta, un sobrevuelo es un choque elástico.
 
 </Connections>
 

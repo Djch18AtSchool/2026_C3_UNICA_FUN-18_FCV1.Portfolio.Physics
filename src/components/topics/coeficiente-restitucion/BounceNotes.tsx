@@ -47,7 +47,7 @@ export function sceneNotes({
       ? `El motor tiene la pelota ${n(sunk * CM_PER_M, 1, 'cm')} bajo el piso, una penetración que Baumgarte corrige de a poco y nunca del todo; la dibujo sobre el piso.`
       : '',
     settings.threshold === 0
-      ? 'Umbral 0: el motor arma la restitución en cada contacto, por pequeño que sea, y la pelota nunca queda en reposo (micro-rebotes que le impiden «dormir»).'
+      ? 'Umbral 0: el motor arma la restitución en cada contacto, por pequeño que sea, y la pelota nunca queda en reposo (microrrebotes que le impiden «dormir»).'
       : '',
     speed < 1 ? `Reproducción a ${n(speed, 2)}× (cámara lenta).` : '',
     speed > 1 ? `Reproducción a ${n(speed, 1)}×, más rápida que la real.` : '',

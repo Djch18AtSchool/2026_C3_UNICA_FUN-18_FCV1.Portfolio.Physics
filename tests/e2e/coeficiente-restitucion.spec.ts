@@ -16,6 +16,13 @@ const BLOCKING_IMPACTS = ['serious', 'critical'];
 const SCROLL_STEP_PX = 600;
 /** The lab must fill the reading column (spec §6): at least this share of the article width. */
 const MIN_WIDTH_SHARE = 0.9;
+/** Timeline position (of 1000) to start from, so the drop ends within a moment. */
+const NEAR_END = '995';
+/** Longest the last 0,5 % of playback may take to reach the end. */
+const PLAYBACK_TIMEOUT_MS = 3000;
+const STILL_AT_END_MS = 500;
+/** The FIBA preset's e, the centre of 0,758–0,776. */
+const FIBA_E = 0.767;
 
 const E_SLIDER = 'Coeficiente de restitución e';
 const MEASURED_E = 'e medido √(h₁/h₀) (motor)';
@@ -163,11 +170,46 @@ test.describe('laboratorio', () => {
   test('carga un preajuste realista: el balón FIBA con e = 0,767', async ({ page }) => {
     await page.getByRole('combobox', { name: 'Preajuste' }).selectOption('baloncesto-fiba');
 
-    await expect(page.getByRole('slider', { name: E_SLIDER, exact: true })).toHaveValue('0.767');
+    await expect(page.getByRole('slider', { name: E_SLIDER, exact: true })).toHaveValue(
+      String(FIBA_E),
+    );
     await expect(page.getByTestId('preset-note')).toContainText('FIBA');
     await expect
-      .poll(() => readoutValue(page, MEASURED_E))
-      .toBeGreaterThan(0.767 - MEASURED_TOLERANCE);
+      .poll(async () => Math.abs((await readoutValue(page, MEASURED_E)) - FIBA_E))
+      .toBeLessThan(MEASURED_TOLERANCE);
+  });
+
+  test('reproducir termina al final, vuelve a "Reproducir" y no repite', async ({ page }) => {
+    const lab = page.locator(LAB);
+    const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
+    await setRange(timeline, NEAR_END);
+
+    await lab.getByRole('button', { name: 'Reproducir' }).click();
+    await expect(timeline).toHaveValue('1000', { timeout: PLAYBACK_TIMEOUT_MS });
+
+    await expect(lab).toHaveAttribute('data-playing', 'false');
+    await expect(lab.getByRole('button', { name: 'Reproducir' })).toBeVisible();
+    // Still at the end a moment later: the clock did not wrap around (a wait is the point here).
+    await page.waitForTimeout(STILL_AT_END_MS);
+    await expect(timeline).toHaveValue('1000');
+    await expect(lab).toHaveAttribute('data-playing', 'false');
+  });
+
+  test('el engranaje abre el panel con el teclado, Escape lo cierra y el foco vuelve', async ({
+    page,
+  }) => {
+    const gear = page.locator(LAB).getByRole('button', { name: 'Ajustes del simulador' });
+    const dialog = page.getByRole('dialog', { name: /^Ajustes: Laboratorio del rebote/ });
+
+    await gear.focus();
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('switch', { name: 'Repetir' })).not.toBeChecked();
+    await expect(dialog.getByRole('combobox', { name: 'Velocidad' })).toContainText('0,25×');
+    await page.keyboard.press('Escape');
+
+    await expect(dialog).toBeHidden();
+    await expect(gear).toBeFocused();
   });
 
   test('la nota del laboratorio dice la velocidad de reproducción y lo que el modelo deja fuera', async ({
