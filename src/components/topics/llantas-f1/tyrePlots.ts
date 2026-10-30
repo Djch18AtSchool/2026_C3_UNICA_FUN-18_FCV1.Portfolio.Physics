@@ -1,22 +1,31 @@
 /**
  * Axes, domains and series of Tema 4's two plots (μ against temperature, F_y against load),
- * shared by the static figures of steps 2–3 and the laboratory of step 4.
+ * shared by the static figures of steps 2–3 and the laboratory of step 4, plus the measured
+ * series of Figura 4.3: the temperature table of MUR's tyres.ini.
  */
 import {
   COMPOUND_WINDOWS,
+  gripCurvePoints,
   loadSeries,
   temperatureSeries,
   type Compound,
 } from '../../../lib/data/tyreModels';
 import { CHART_COLORS } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
-import type { SvgPlotProps } from '../../lab/SvgPlot';
+import type { Domain, PlotSeries, SvgPlotProps } from '../../lab/SvgPlot';
 import { LOAD_DOMAIN, TEMPERATURE_DOMAIN, windowLabel } from './tyreLabModel';
 
-/** μ(T) and the linear model wear chart 1 (the linear one dashed); the real curve, chart 2. */
+/**
+ * Models wear chart 1 (μ(T) and the linear load model, the latter dashed); what is real wears
+ * chart 2: the load-sensitive curve and the pairs read from MUR's file.
+ */
 export const MU_COLOR = CHART_COLORS[0];
 export const LINEAR_COLOR = CHART_COLORS[0];
 export const REAL_COLOR = CHART_COLORS[1];
+export const GRIP_CURVE_COLOR = CHART_COLORS[1];
+/** The temperatures the six quoted pairs of tcurve_F3soft.lut span (the file itself reaches 300). */
+export const GRIP_CURVE_DOMAIN: Readonly<Domain> = { min: 0, max: 240 };
+export const GRIP_CURVE_SERIES_ID = 'lut-mur';
 
 /** μ from 0 to 2, as v1's chart A; F_y to 16 000 N, a round top above μ₀ · 10 000 N. */
 const MU_DOMAIN = { min: 0, max: 2 } as const;
@@ -32,20 +41,21 @@ type PlotFrame = Pick<
 export const TEMPERATURE_AXIS = { label: 'Temperatura T', unit: '°C' } as const;
 export const LOAD_AXIS = { label: 'Carga vertical F_z', unit: 'N' } as const;
 
-/** μ(T) of a compound's bell over 40–160 °C, with its 2019 working window as a band. */
-export function temperaturePlot(compound: Compound): PlotFrame {
-  const rows = temperatureSeries(
-    TEMPERATURE_DOMAIN.min,
-    TEMPERATURE_DOMAIN.max,
-    TEMPERATURE_SAMPLE_STEP,
-    compound,
-  );
+/**
+ * μ(T) of a compound's bell, with its 2019 working window as a band, over the lab's 40–160 °C
+ * unless another domain is given (the static figure widens it to the file's 0–240).
+ */
+export function temperaturePlot(
+  compound: Compound,
+  domain: Readonly<Domain> = TEMPERATURE_DOMAIN,
+): PlotFrame {
+  const rows = temperatureSeries(domain.min, domain.max, TEMPERATURE_SAMPLE_STEP, compound);
   return {
     xLabel: TEMPERATURE_AXIS.label,
     xUnit: TEMPERATURE_AXIS.unit,
     yLabel: 'Coeficiente μ',
     yUnit: 'adimensional',
-    xDomain: TEMPERATURE_DOMAIN,
+    xDomain: domain,
     yDomain: MU_DOMAIN,
     series: [
       {
@@ -65,6 +75,22 @@ export function temperaturePlot(compound: Compound): PlotFrame {
         labelBefore: true,
       },
     ],
+  };
+}
+
+/**
+ * Six temperature|multiplier pairs of tcurve_F3soft.lut (MUR), scaled by the bell's μ_pico so
+ * they share Figura 4.3's axis; the legend says so. Dashed: the line only joins the pairs (the
+ * file does not say how the game reads between them); the pairs themselves are drawn as dots.
+ */
+export function gripCurveSeries(muPeak: number): PlotSeries {
+  if (!(muPeak > 0)) throw new RangeError(`μ_pico debe ser positivo (recibido ${muPeak})`);
+  return {
+    id: GRIP_CURVE_SERIES_ID,
+    label: 'tcurve_F3soft.lut de MUR, multiplicador × μ_pico',
+    points: gripCurvePoints().map(({ t, multiplier }) => ({ x: t, y: multiplier * muPeak })),
+    color: GRIP_CURVE_COLOR,
+    dashed: true,
   };
 }
 

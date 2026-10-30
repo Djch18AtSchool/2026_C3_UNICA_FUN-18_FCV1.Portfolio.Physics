@@ -3,9 +3,11 @@ import { gripVsTemperature, maxLateralForce } from '../physics';
 import {
   COMPOUND_WINDOWS,
   LOAD_MODEL,
+  MUR_GRIP_CURVE,
   PACEJKA_EXAMPLE,
   TEMPERATURE_MODEL,
   WORKING_WINDOW,
+  gripCurvePoints,
   gripFactor,
   loadPoint,
   loadSeries,
@@ -254,6 +256,34 @@ describe('sourceLabel', () => {
   test('the illustrative models say so', () => {
     expect(TEMPERATURE_MODEL.sourceLabel).toMatch(/ilustrativ/);
     expect(LOAD_MODEL.sourceLabel).toMatch(/parámetros ilustrativos/);
+  });
+
+  test('the load exponent no longer claims LS_EXPY as its inspiration (0,49 is not 0,9)', () => {
+    expect(LOAD_MODEL.sourceLabel).not.toMatch(/LS_EXPY/);
+  });
+});
+
+describe('MUR_GRIP_CURVE', () => {
+  test('keeps the six pairs as the file prints them, as measured data with its source', () => {
+    expect(MUR_GRIP_CURVE.values).toEqual([
+      { temperature: '0', multiplier: '0.80' },
+      { temperature: '40', multiplier: '0.96' },
+      { temperature: '75', multiplier: '1.0' },
+      { temperature: '100', multiplier: '1.0' },
+      { temperature: '140', multiplier: '0.97' },
+      { temperature: '240', multiplier: '0.80' },
+    ]);
+    expect(MUR_GRIP_CURVE.illustrative).toBe(false);
+    expect(MUR_GRIP_CURVE.sourceLabel).toMatch(/tcurve_F3soft\.lut/);
+    expect(MUR_GRIP_CURVE.sourceLabel).toMatch(/MUR/);
+    expect(MUR_GRIP_CURVE.sourceLabel).toMatch(/se supone °C/);
+  });
+
+  test('gripCurvePoints parses the pairs in order: a plateau at 1 from 75 to 100, 0,8 at both ends', () => {
+    const points = gripCurvePoints();
+
+    expect(points.map((p) => p.t)).toEqual([0, 40, 75, 100, 140, 240]);
+    expect(points.map((p) => p.multiplier)).toEqual([0.8, 0.96, 1, 1, 0.97, 0.8]);
   });
 });
 

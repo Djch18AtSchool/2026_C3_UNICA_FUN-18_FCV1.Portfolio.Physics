@@ -92,9 +92,60 @@ export function gripFactor(compound: Compound, t: number): number {
 export const LOAD_MODEL: DocumentedParams<{ mu0: number; fz0: number; exponent: number }> = {
   values: { mu0: 1.6, fz0: 4000, exponent: 0.9 },
   sourceLabel:
-    'Ley de potencia del autor con parámetros ilustrativos, inspirada en la sensibilidad a la carga de Milliken y Milliken (1995) y en el exponente LS_EXPY del tyres.ini del equipo MUR',
+    'Ley de potencia del autor con parámetros ilustrativos, inspirada en la sensibilidad a la carga de Milliken y Milliken (1995)',
   illustrative: true,
 };
+
+/**
+ * One temperature|multiplier line of an Assetto Corsa PERFORMANCE_CURVE table, as the file writes
+ * it (a type alias, so a table can take the pairs as its rows without copying them).
+ */
+export type GripCurvePair = {
+  /** Printed without a unit in the file; the topic assumes °C. */
+  temperature: string;
+  /** Multiplies the grip: 1.0 on the plateau, less when cold or overheated. */
+  multiplier: string;
+};
+
+/**
+ * Six of the pairs of tcurve_F3soft.lut, the table the mur_2019 tyres.ini points to with
+ * `PERFORMANCE_CURVE=tcurve_F3soft.lut ;File to use for temperature/grip relation`: the coldest
+ * pair, both ends of the plateau, one past it and the hottest pair the table shows (the file goes
+ * on, to 300|0.6012 and at least 13 pairs; the research note lists them). Kept as the file prints
+ * them (decimal point), so Tabla 4.4 shows them verbatim; gripCurvePoints parses them for
+ * Figura 4.3. Source: fuente 3 of the topic (docs/superpowers/research/2026-10-08-sources.md,
+ * item 11).
+ */
+export const MUR_GRIP_CURVE: DocumentedParams<readonly GripCurvePair[]> = {
+  values: [
+    { temperature: '0', multiplier: '0.80' },
+    { temperature: '40', multiplier: '0.96' },
+    { temperature: '75', multiplier: '1.0' },
+    { temperature: '100', multiplier: '1.0' },
+    { temperature: '140', multiplier: '0.97' },
+    { temperature: '240', multiplier: '0.80' },
+  ],
+  sourceLabel:
+    'tcurve_F3soft.lut, tabla de temperatura del tyres.ini del auto mur_2019, rama tyres del repositorio mur-assettocorsa del equipo MUR (Universidad de Melbourne); pares temperatura|multiplicador sin unidad impresa (se supone °C)',
+  illustrative: false,
+};
+
+export interface GripCurvePoint {
+  /** Temperature, assumed °C. */
+  t: number;
+  multiplier: number;
+}
+
+/** The pairs of MUR_GRIP_CURVE as numbers, in the file's order. */
+export function gripCurvePoints(): GripCurvePoint[] {
+  return MUR_GRIP_CURVE.values.map(({ temperature, multiplier }) => {
+    const point = { t: Number(temperature), multiplier: Number(multiplier) };
+    if (!Number.isFinite(point.t) || !Number.isFinite(point.multiplier)) {
+      throw new RangeError(`Par ilegible en tcurve_F3soft.lut: ${temperature}|${multiplier}`);
+    }
+    return point;
+  });
+}
 
 /** Evenly spaced values from `from` to `to`; counts by index so the steps do not drift. */
 function samplePoints(from: number, to: number, step: number): number[] {

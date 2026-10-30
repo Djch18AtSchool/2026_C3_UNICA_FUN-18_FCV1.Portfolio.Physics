@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { tableById } from '../index';
 import { tableMarkdown } from '../markdown';
+import { MUR_GRIP_CURVE } from '../../data/tyreModels';
 import { TABLES } from './llantas-f1';
 
 /** Markdown rows as plain cells: "| a | b |" → ['a', 'b'], with every space normalised. */
@@ -91,6 +92,7 @@ describe('llantas-f1 tables', () => {
       ['240', '0.80'],
     ]);
     const { caption } = TABLES[3];
+    expect(TABLES[3].rows).toEqual(MUR_GRIP_CURVE.values);
     expect(caption).toContain(
       'PERFORMANCE_CURVE=tcurve_F3soft.lut ;File to use for temperature/grip relation',
     );

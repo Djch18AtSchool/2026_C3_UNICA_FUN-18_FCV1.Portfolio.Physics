@@ -11,7 +11,14 @@ import { CHART_COLORS } from '../../charts/chartTheme';
 import SvgPlot from '../../lab/SvgPlot';
 import { BOX, boxFriction } from './tyreLabModel';
 import { PlotPoints, type PlotPoint } from '../../lab/PlotPoints';
-import { loadPlot, temperaturePlot, usePlotAspect } from './tyrePlots';
+import {
+  GRIP_CURVE_COLOR,
+  GRIP_CURVE_DOMAIN,
+  gripCurveSeries,
+  loadPlot,
+  temperaturePlot,
+  usePlotAspect,
+} from './tyrePlots';
 
 export type TyreFigureVariant = 'caja' | 'carga' | 'temperatura' | 'pacejka';
 
@@ -29,6 +36,8 @@ const REFERENCE_LOAD = 4000;
 const DOUBLE_LOAD = 8000;
 const COLD = 60;
 const HOT = 160;
+/** With a second series the legend appears, so the bell says what it is. */
+const TEMPERATURE_MODEL_LABEL = 'Modelo μ(T), ecuación (4.3)';
 /** Slip from 0 to 1: the peak near 0,18 and the value 0,91 at x = 1 that the text quotes. */
 const SLIP_MAX = 1;
 const SLIP_SAMPLE_STEP = 0.005;
@@ -136,25 +145,46 @@ function LoadFigure(): JSX.Element {
   );
 }
 
+/**
+ * Figura 4.3: the illustrative bell over the file's 0–240 range, the C3 window, the two readings
+ * of Tabla 4.2 and, as measured data, six pairs of MUR's tcurve_F3soft.lut scaled by μ_pico
+ * (dots on a dashed guide, in the "real" color).
+ */
 function TemperatureFigure(): JSX.Element {
   const { ref, aspectRatio } = usePlotAspect(WIDE_ASPECT, COMPACT_ASPECT);
   const model = temperatureModelFor('C3');
-  const points: PlotPoint[] = [COLD, HOT].map((t) => ({
+  const frame = temperaturePlot('C3', GRIP_CURVE_DOMAIN);
+  const fileSeries = gripCurveSeries(model.muPeak);
+  const readings: PlotPoint[] = [COLD, HOT].map((t) => ({
     id: `t-${t}`,
     x: t,
     y: gripVsTemperature(model, t),
     label: `${t} °C: ${twoDecimals(gripVsTemperature(model, t))}`,
-    anchor: t === HOT ? 'end' : 'start',
+    // On phones the full label would fall back to the other side and cross the bell and the
+    // band; the value alone fits (Tabla 4.2 pairs it with its temperature).
+    compactLabel: twoDecimals(gripVsTemperature(model, t)),
+    // Both readings sit mid-plot on the 0–240 axis: each label points away from the other.
+    anchor: t === HOT ? 'start' : 'end',
     side: 1,
+  }));
+  const filePairs: PlotPoint[] = fileSeries.points.map(({ x, y }) => ({
+    id: `lut-${x}`,
+    x,
+    y,
+    color: GRIP_CURVE_COLOR,
   }));
   return (
     <div ref={ref} data-testid="tyre-figure-temperatura">
       <SvgPlot
         aspectRatio={aspectRatio}
         title="Coeficiente de agarre μ en función de la temperatura de la banda de rodadura"
-        {...temperaturePlot('C3')}
-        overlay={(scales) => <PlotPoints points={points} scales={scales} />}
-        ariaLabel="μ(T) es una campana con pico de 1,8 a 120 °C; dentro de la ventana del C3, de 105 a 135 °C, no baja de 1,75; a 60 °C vale 1,11 y a 160 °C, 1,45."
+        {...frame}
+        series={[
+          ...frame.series.map((s) => ({ ...s, label: TEMPERATURE_MODEL_LABEL })),
+          fileSeries,
+        ]}
+        overlay={(scales) => <PlotPoints points={[...filePairs, ...readings]} scales={scales} />}
+        ariaLabel="El modelo μ(T) es una campana con pico de 1,8 a 120 °C; dentro de la ventana del C3, de 105 a 135 °C, no baja de 1,75; a 60 °C vale 1,11 y a 160 °C, 1,45. Seis pares de tcurve_F3soft.lut de MUR, multiplicados por μ_pico, valen 1,8 entre 75 y 100 y bajan a 1,44 en 0 y en 240."
       />
     </div>
   );

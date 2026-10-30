@@ -1,13 +1,15 @@
 /**
  * Tables of Tema 4. The load and temperature tables are computed at module load from the
- * illustrative models of src/lib/data/tyreModels.ts (equations 4.2 and 4.3); the two tyres.ini
- * tables copy, as the file writes them, what the MUR team's open example prints
- * (docs/superpowers/research/2026-10-08-sources.md, item 11).
+ * illustrative models of src/lib/data/tyreModels.ts (equations 4.2 and 4.3). The tyres.ini load
+ * table copies, as the file writes them, what the MUR team's open example prints
+ * (docs/superpowers/research/2026-10-08-sources.md, item 11); its temperature table prints the
+ * pairs that MUR_GRIP_CURVE holds, since Figura 4.3 draws them too (R34: one source per datum).
  */
 import { formatNumber } from '../../format';
 import {
   COMPOUND_WINDOWS,
   LOAD_MODEL,
+  MUR_GRIP_CURVE,
   loadPoint,
   temperatureModelFor,
 } from '../../data/tyreModels';
@@ -96,14 +98,7 @@ const MUR_TEMPERATURE: DataTableSpec = {
     { key: 'temperature', label: 'Temperatura', align: 'num', precision: 0 },
     { key: 'multiplier', label: 'Multiplicador del agarre', align: 'num', precision: 2 },
   ],
-  rows: [
-    { temperature: '0', multiplier: '0.80' },
-    { temperature: '40', multiplier: '0.96' },
-    { temperature: '75', multiplier: '1.0' },
-    { temperature: '100', multiplier: '1.0' },
-    { temperature: '140', multiplier: '0.97' },
-    { temperature: '240', multiplier: '0.80' },
-  ],
+  rows: MUR_GRIP_CURVE.values,
   source: MUR_SOURCE,
 };
 

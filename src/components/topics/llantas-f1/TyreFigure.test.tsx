@@ -65,6 +65,53 @@ describe('TyreFigure', () => {
     expect(screen.getByText('Temperatura T (°C)')).toBeInTheDocument();
   });
 
+  test("temperature: the six pairs of MUR's tcurve_F3soft.lut are drawn and named in the legend", () => {
+    const { container } = render(<TyreFigure variant="temperatura" />);
+    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const pairs = container.querySelectorAll('[data-point^="lut-"]');
+    const guide = container.querySelector('[data-series="lut-mur"]');
+
+    expect(legend).toHaveTextContent('Modelo μ(T), ecuación (4.3)');
+    expect(legend).toHaveTextContent('tcurve_F3soft.lut de MUR, multiplicador × μ_pico');
+    expect(pairs).toHaveLength(6);
+    expect([...pairs].map((p) => p.getAttribute('data-point'))).toEqual([
+      'lut-0',
+      'lut-40',
+      'lut-75',
+      'lut-100',
+      'lut-140',
+      'lut-240',
+    ]);
+    for (const pair of pairs) {
+      expect(pair.querySelector('circle')).toHaveAttribute('fill', 'var(--chart-2)');
+    }
+    expect(strokeOf(container, 'mu')).toBe('var(--chart-1)');
+    expect(guide).toHaveAttribute('stroke', 'var(--chart-2)');
+    expect(guide).toHaveAttribute('stroke-dasharray');
+    expect(screen.getByRole('img', { name: /tcurve_F3soft\.lut/ })).toBeInTheDocument();
+  });
+
+  test('temperature: the plateau pairs sit at μ_pico, the 0 and 240 pairs at 0,8 of it on the plot edges', () => {
+    const { container } = render(<TyreFigure variant="temperatura" />);
+    const circle = (id: string) => container.querySelector(`[data-point="${id}"] circle`);
+    const cy = (id: string) => Number(circle(id)?.getAttribute('cy'));
+    const cx = (id: string) => Number(circle(id)?.getAttribute('cx'));
+    // The model is sampled over the same 0–240: its path starts at the y axis and ends at the
+    // plot area's right edge, so the coldest and hottest pairs must sit on those two x.
+    const path = container.querySelector('[data-series="mu"]')?.getAttribute('d') ?? '';
+    const xs = [...path.matchAll(/[ML](-?[\d.]+) /g)].map((m) => Number(m[1]));
+    const [axisX, rightEdgeX] = [xs[0], xs.at(-1)];
+
+    expect(cy('lut-75')).toBeCloseTo(cy('lut-100'), 6);
+    expect(cy('lut-0')).toBeCloseTo(cy('lut-240'), 6);
+    expect(cy('lut-0')).toBeGreaterThan(cy('lut-75'));
+    expect(xs.length).toBeGreaterThan(2);
+    expect(cx('lut-0')).toBeCloseTo(axisX ?? Number.NaN, 1);
+    expect(cx('lut-240')).toBeCloseTo(rightEdgeX ?? Number.NaN, 1);
+    expect(cx('lut-40')).toBeGreaterThan(axisX ?? Number.NaN);
+    expect(cx('lut-140')).toBeLessThan(rightEdgeX ?? Number.NaN);
+  });
+
   test('pacejka: the curve of (4.4) with its peak near x = 0,18 and 0,91 at x = 1', () => {
     const { container } = render(<TyreFigure variant="pacejka" />);
 
@@ -74,6 +121,19 @@ describe('TyreFigure', () => {
     expect(screen.getByText('x = 1: y = 0,91')).toBeInTheDocument();
     expect(screen.getByText('Deslizamiento x (adimensional)')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /0,18/ })).toBeInTheDocument();
+  });
+
+  test('on a phone the temperature readings shorten to their value, each on its own side', () => {
+    // The figure's measured width on a 375 px phone (the page's gutters taken off).
+    stubWidth(340);
+    const { container } = render(<TyreFigure variant="temperatura" />);
+    const cold = container.querySelector('[data-point="t-60"] text');
+    const hot = container.querySelector('[data-point="t-160"] text');
+
+    expect(cold).toHaveTextContent(/^1,11$/);
+    expect(cold).toHaveAttribute('text-anchor', 'end');
+    expect(hot).toHaveTextContent(/^1,45$/);
+    expect(hot).toHaveAttribute('text-anchor', 'start');
   });
 
   test('on a phone the crossing label shortens to its force, clear of the curves', () => {
