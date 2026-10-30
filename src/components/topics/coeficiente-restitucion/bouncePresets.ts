@@ -126,9 +126,16 @@ const MIX_RULES: readonly { rule: CombineRule; name: string }[] = [
   { rule: 'multiply', name: 'producto' },
   { rule: 'sumClamped', name: 'suma recortada' },
 ];
-const mixNote = MIX_RULES.map(
-  ({ rule, name }) => `${name} → ${comma(combineRestitution(MIX_BALL, MIX_FLOOR, rule), 3)}`,
-).join('; ');
+/** "suelo de 0,5: máx → 0,850; …": the pair e under every rule over one floor (cálculo propio). */
+const mixOver = (floorE: number) =>
+  `suelo de ${comma(floorE, 1).replace(/,0$/, '')}: ${MIX_RULES.map(
+    ({ rule, name }) => `${name} → ${comma(combineRestitution(MIX_BALL, floorE, rule), 3)}`,
+  ).join('; ')}`;
+const mixNote = `${mixOver(MIX_FLOOR)}. Sobre un ${mixOver(0)}`;
+
+/** Unity's default floor bounciness (0), and the pair it gives under "promedio" for e = 0,9. */
+const UNITY_E = 0.9;
+const UNITY_DEFAULT_FLOOR = 0;
 
 export const BOUNCE_PRESETS: readonly BouncePreset[] = [
   ballPreset('tenis-itf', 'Tenis ITF (tipo 2)', TENNIS, centreOf(TENNIS), 'tenis'),
@@ -189,15 +196,15 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
     group: 'se-siente-mal',
     values: {
       ...ENGINE_DEFAULTS,
-      e: 0.9,
+      e: UNITY_E,
       h0: DEFAULT_DROP,
       threshold: 2,
-      floorE: 0.9,
+      floorE: UNITY_E,
       combine: 'average',
       ball: 'neutra',
     },
     sourceLabel: 'Physics.bounceThreshold de Unity (por defecto, 2)',
-    note: 'Umbral de 2 m/s y mezcla promedio (pelota y suelo con 0,9), como en Unity 3D, con 4 subpasos a 1/60 s: tras unos pocos botes, uno de unos 18 cm termina en una parada en seco.',
+    note: `Tomo de Unity solo el umbral de 2 m/s y la mezcla promedio, los valores por defecto de Unity 3D. El paso es el del laboratorio, 1/60 s con 4 subpasos, el paso fino de Box2D, y le doy al suelo el mismo e = ${comma(UNITY_E, 1)} que a la pelota: con el suelo en 0, el valor por defecto de Unity, el promedio daría ${comma(combineRestitution(UNITY_E, UNITY_DEFAULT_FLOOR, 'average'), 3)} y la pelota rebotaría la mitad. Tras unos pocos botes, uno de unos 18 cm termina en una parada en seco.`,
   },
   {
     id: 'mezcla',
@@ -212,7 +219,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       ball: 'neutra',
     },
     sourceLabel: 'Box2D, PhysX/Unity, Bullet y Godot (reglas por defecto)',
-    note: `Pelota de 0,85 sobre un suelo al que el motor da 0,5. Según la regla, el par queda en ${mixNote} (cálculo propio). Cambia la regla en los ajustes: e es del par, no de cada material.`,
+    note: `Pelota de 0,85 sobre un suelo al que el motor da 0,5. Según la regla, el par queda así sobre un ${mixNote} (cálculo propio). Cambia la regla en los ajustes: e es del par, no de cada material.`,
   },
   {
     id: 'pocos-fps',

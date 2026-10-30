@@ -38,7 +38,8 @@ import {
 } from './collisionScene';
 
 const g = G_EARTH;
-const E_STEP = 0.005;
+/** Thousandths, so the FIBA (0,767) and FIFA (0,851) centres sit on the grid. */
+const E_STEP = 0.001;
 const H0_STEP = 0.01;
 const MEASURED_PRECISION = 3;
 const COLLISION_FRAME_S = 1 / 60;

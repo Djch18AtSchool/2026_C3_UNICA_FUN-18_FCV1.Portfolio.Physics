@@ -1,10 +1,15 @@
 import { describe, expect, test } from 'vitest';
+import { monoTextWidth } from '../../lab/plotScales';
 import {
+  arrowTip,
+  bodyBoxes,
   COLLISION_DEFAULTS,
   COLLISION_DURATION_S,
   collisionOutcome,
   facePositions,
+  labelCentre,
   trackHalfSpan,
+  VELOCITY_LABEL_SIZE,
   type CollisionSettings,
 } from './collisionScene';
 
@@ -77,5 +82,52 @@ describe('facePositions and trackHalfSpan', () => {
     expect(
       trackHalfSpan(settings({ v1: 0.1, v2: 0 }), collisionOutcome(settings({ v1: 0.1 }))),
     ).toBe(1);
+  });
+});
+
+describe('collision layout on the canvas', () => {
+  const LONGEST_LABEL = 'v₁′ = -10,00 m/s';
+  const corners = [0.1, 10].flatMap((m1) =>
+    [0.1, 10].flatMap((m2) =>
+      [-10, 10].flatMap((v1) =>
+        [-10, 10].flatMap((v2) =>
+          [false, true].map((isWall) => settings({ m1, m2, v1, v2, isWall, e: 0.5 })),
+        ),
+      ),
+    ),
+  );
+
+  test.each([328, 720])(
+    'at %s px every body, arrow and label stays on the canvas at all slider corners',
+    (width) => {
+      for (const s of corners) {
+        const outcome = collisionOutcome(s);
+        for (let step = 0; step <= 20; step += 1) {
+          const t = (step / 20) * COLLISION_DURATION_S;
+          const boxes = bodyBoxes(s, outcome, t, width).slice(0, s.isWall ? 1 : 2);
+          for (const box of boxes) {
+            expect(box.left).toBeGreaterThanOrEqual(0);
+            expect(box.left + box.side).toBeLessThanOrEqual(width);
+            const tip = arrowTip(box.centre, 10, width);
+            expect(tip).toBeLessThanOrEqual(width);
+            expect(arrowTip(box.centre, -10, width)).toBeGreaterThanOrEqual(0);
+            const half = monoTextWidth(LONGEST_LABEL, VELOCITY_LABEL_SIZE) / 2;
+            const centre = labelCentre(box.centre, LONGEST_LABEL, width);
+            expect(centre - half).toBeGreaterThanOrEqual(0);
+            expect(centre + half).toBeLessThanOrEqual(width);
+          }
+        }
+      }
+    },
+  );
+
+  test('the reviewer’s cases: a 10 kg body at 10 m/s from either side', () => {
+    const width = 328;
+    const left = settings({ m1: 10, v1: 10, v2: 0 });
+    const right = settings({ m2: 10, v1: 0, v2: -10 });
+
+    expect(bodyBoxes(left, collisionOutcome(left), 0, width)[0].left).toBeGreaterThanOrEqual(0);
+    const box = bodyBoxes(right, collisionOutcome(right), 0, width)[1];
+    expect(box.left + box.side).toBeLessThanOrEqual(width);
   });
 });

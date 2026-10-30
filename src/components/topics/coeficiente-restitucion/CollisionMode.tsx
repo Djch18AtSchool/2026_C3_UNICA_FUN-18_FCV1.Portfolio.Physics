@@ -2,14 +2,19 @@ import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { AXIS_COLOR, TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import { monoTextWidth } from '../../lab/plotScales';
 import type { LabReadout } from '../../lab/LabShell';
 import { Arrow, Label } from '../../lab/OverlayMarks';
 import ParamField from '../../lab/ParamField';
 import { SwitchField } from '../../lab/SettingsFields';
 import {
+  arrowTip,
+  bodyBoxes,
   COLLISION_LIMITS,
-  facePositions,
-  trackHalfSpan,
+  labelCentre,
+  SCENE_EDGE_PX,
+  VELOCITY_LABEL_SIZE,
+  trackToPx,
   type CollisionOutcome,
   type CollisionSettings,
 } from './collisionScene';
@@ -20,13 +25,9 @@ const BODY_TEXT = ['var(--bg-elevated)', 'var(--fg)'];
 const BAR_FILL = 'var(--fg-muted)';
 
 const FALLBACK_WIDTH = 720;
-const SIDE_PAD = 16;
+const SIDE_PAD = SCENE_EDGE_PX;
 const TRACK_Y = 104;
-const BODY_BASE = 40;
-const BODY_MIN = 12;
-const MASS_MAX = COLLISION_LIMITS.mass[1];
-/** Arrow length per m/s (px); the two arrows ride at different heights so labels never meet. */
-const ARROW_PX_PER_MS = 7;
+/** The two arrows ride at different heights so their labels never meet. */
 const ARROW_ROWS = [36, 14];
 const WALL_HEIGHT = 64;
 const HATCH_GAP = 10;
@@ -34,8 +35,8 @@ const BARS_TOP = TRACK_Y + 38;
 const BAR_ROW = 26;
 const BAR_HEIGHT = 12;
 const BAR_LABEL_WIDTH = 92;
-/** Room right of the bars for the value label (px). */
-const VALUE_ROOM = 92;
+/** Gap (px) between a bar's end and its value label (the Label's dx) plus slack. */
+const VALUE_GAP = 10;
 const LABEL_SIZE = 11;
 const MASS_STEP = 0.1;
 const VELOCITY_STEP = 0.1;
@@ -44,10 +45,6 @@ const E_STEP = 0.005;
 const [M_MIN, M_MAX] = COLLISION_LIMITS.mass;
 const [V_MIN, V_MAX] = COLLISION_LIMITS.velocity;
 const [E_MIN, E_MAX] = COLLISION_LIMITS.e;
-
-function bodySide(mass: number): number {
-  return Math.max(BODY_MIN, BODY_BASE * Math.cbrt(mass / MASS_MAX));
-}
 
 interface BarRow {
   label: string;
@@ -72,7 +69,11 @@ function Bars({
   decimals: number;
 }): JSX.Element {
   const left = BAR_LABEL_WIDTH;
-  const right = width - SIDE_PAD - VALUE_ROOM;
+  const texts = rows.map((row) => formatNumber(row.value, { precision: decimals, unit: row.unit }));
+  // Room right of the bars for the widest value label, so "-100,00 kg·m/s" stays on the canvas.
+  const valueRoom =
+    Math.max(...texts.map((text) => monoTextWidth(text, VELOCITY_LABEL_SIZE))) + VALUE_GAP;
+  const right = width - SIDE_PAD - valueRoom;
   const reach = rows.map((row) => row.lostUpTo ?? row.value);
   const hasNegative = isSigned && reach.some((value) => value < 0);
   const hasPositive = reach.some((value) => value > 0);
@@ -87,7 +88,7 @@ function Bars({
       {rows.map((row, index) => {
         const y = top + index * BAR_ROW;
         const end = toPx(row.value);
-        const text = formatNumber(row.value, { precision: decimals, unit: row.unit });
+        const text = texts[index];
         return (
           <g key={row.label} data-bar={row.label}>
             <text
@@ -158,16 +159,14 @@ function describeCollision({ settings: s, outcome: o, decimals }: CollisionScene
 export function CollisionScene(props: CollisionSceneProps): JSX.Element {
   const { settings: s, outcome: o, t, decimals } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
-  const half = trackHalfSpan(s, o);
-  const centre = width / 2;
-  const toPx = (x: number) => centre + (x / half) * (centre - SIDE_PAD);
-  const { x1, x2 } = facePositions(s, o, t);
+  const toPx = trackToPx(s, o, width);
   const isAfter = o.isApproaching && t >= 1;
-  const sides = [bodySide(s.m1), bodySide(s.m2)];
+  const boxes = bodyBoxes(s, o, t, width);
+  const sides = boxes.map((box) => box.side);
   const velocities = [isAfter ? o.v1After : s.v1, isAfter ? o.v2After : s.isWall ? 0 : s.v2];
-  const body1 = { x: toPx(x1) - sides[0], y: TRACK_Y - sides[0] };
-  const body2 = { x: toPx(x2), y: TRACK_Y - sides[1] };
-  const centres = [body1.x + sides[0] / 2, body2.x + sides[1] / 2];
+  const body1 = { x: boxes[0].left, y: TRACK_Y - sides[0] };
+  const body2 = { x: boxes[1].left, y: TRACK_Y - sides[1] };
+  const centres = boxes.map((box) => box.centre);
   const prime = isAfter ? '′' : '';
   const pRows: BarRow[] = [
     { label: s.isWall ? 'p₁ antes' : 'p antes', value: o.pBefore, unit: 'kg·m/s' },
@@ -232,12 +231,17 @@ export function CollisionScene(props: CollisionSceneProps): JSX.Element {
           {(s.isWall ? [0] : [0, 1]).map((index) => {
             const y = TRACK_Y - Math.max(...sides) - ARROW_ROWS[index];
             const from = { x: centres[index], y };
-            const to = { x: centres[index] + velocities[index] * ARROW_PX_PER_MS, y };
+            const to = { x: arrowTip(centres[index], velocities[index], width), y };
             const text = `v${index === 0 ? '₁' : '₂'}${prime} = ${formatNumber(velocities[index], { precision: decimals, unit: 'm/s' })}`;
             return (
               <g key={index} data-velocity={index + 1}>
                 <Arrow from={from} to={to} color={TEXT_COLOR} />
-                <Label at={from} dx={0} dy={-8} anchor="middle">
+                <Label
+                  at={{ x: labelCentre(centres[index], text, width), y }}
+                  dx={0}
+                  dy={-8}
+                  anchor="middle"
+                >
                   {text}
                 </Label>
               </g>

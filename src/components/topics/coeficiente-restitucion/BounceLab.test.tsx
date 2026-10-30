@@ -302,6 +302,56 @@ describe('BounceLab', () => {
     expect(within(dialog).queryByRole('combobox', { name: 'Paso del motor Δt' })).toBeNull();
   });
 
+  test('the Unity preset credits Unity only with the threshold and the rule, and says why the floor is 0,9', async () => {
+    renderLab();
+    await choosePreset('umbral-unity');
+    const note = screen.getByTestId('preset-note');
+
+    expect(note).toHaveTextContent(
+      /umbral de 2 m\/s y la mezcla promedio, los valores por defecto de Unity 3D/,
+    );
+    expect(note).toHaveTextContent(/1\/60 s con 4 subpasos, el paso fino de Box2D/);
+    expect(note).toHaveTextContent(
+      /con el suelo en 0, el valor por defecto de Unity, el promedio daría 0,450/,
+    );
+  });
+
+  test('with e(v) on, a preset with e > 1 no longer claims the ball gains energy', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    await choosePreset('e-mayor-que-uno');
+    expect(screen.getByTestId('scene-notes')).toHaveTextContent(/gana energía/);
+    const dialog = await openDrawer(user);
+
+    await user.click(within(dialog).getByRole('switch', { name: /e\(v\)/ }));
+
+    expect(screen.queryByTestId('scene-notes')?.textContent ?? '').not.toMatch(/gana energía/);
+  });
+
+  test('the e control holds the FIBA and FIFA centres exactly (step 0,001)', async () => {
+    renderLab();
+
+    // jsdom does not snap a range to its step, so the step itself is checked.
+    expect(eRange()).toHaveAttribute('step', '0.001');
+    await choosePreset('baloncesto-fiba');
+    expect(eRange()).toHaveValue('0.767');
+    await choosePreset('futbol-fifa');
+    expect(eRange()).toHaveValue('0.851');
+  });
+
+  test('the mixing note gives every rule over a floor of 0,5 and over a floor of 0', async () => {
+    renderLab();
+    await choosePreset('mezcla');
+    const note = screen.getByTestId('preset-note');
+
+    expect(note).toHaveTextContent(
+      /suelo de 0,5: máx → 0,850; promedio → 0,675; producto → 0,425; suma recortada → 1,000/,
+    );
+    expect(note).toHaveTextContent(
+      /suelo de 0: máx → 0,850; promedio → 0,425; producto → 0,000; suma recortada → 0,850/,
+    );
+  });
+
   test('a threshold of 0 explains that the engine ball never rests', async () => {
     const user = userEvent.setup();
     renderLab();

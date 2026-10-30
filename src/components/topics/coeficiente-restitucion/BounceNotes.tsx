@@ -31,7 +31,8 @@ export function sceneNotes({
   speed,
   decimals,
 }: SceneNotesInput): string[] {
-  const isGaining = (!settings.speedDependent && settings.e > 1) || pairRestitution(settings) > 1;
+  // With e(v) on, both balls use the fit (≤ 0,79), whatever the stale constant e says.
+  const isGaining = !settings.speedDependent && (settings.e > 1 || pairRestitution(settings) > 1);
   const highest = Math.max(idealY, engine.y);
   const isAbove = viewY(highest, top).clamp === 'above';
   const sunk = -engine.y;

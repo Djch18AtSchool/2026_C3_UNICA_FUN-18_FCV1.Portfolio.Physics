@@ -4,6 +4,7 @@
  * body's contact face is at t for the animation. Body 1 moves on the left, body 2 on the right.
  */
 import { collide1D } from '../../../lib/physics';
+import { fitCentre, monoTextWidth } from '../../lab/plotScales';
 
 export interface CollisionSettings {
   m1: number;
@@ -111,4 +112,75 @@ export function trackHalfSpan(s: CollisionSettings, outcome: CollisionOutcome): 
     return [Math.abs(x1), Math.abs(x2)];
   });
   return Math.max(MIN_HALF_SPAN_M, Math.max(...reach) + SPAN_MARGIN_M);
+}
+
+/** Canvas padding (px) and the largest body's side (px), reserved on both sides of the track. */
+export const SCENE_EDGE_PX = 16;
+export const BODY_BASE_PX = 40;
+const BODY_MIN_PX = 12;
+/** Arrow length per m/s (px), clamped at the canvas edge (the label keeps the value). */
+export const ARROW_PX_PER_MS = 7;
+/** OverlayMarks' label size (px), for the width its text takes. */
+export const VELOCITY_LABEL_SIZE = 13;
+/** A label keeps this far (px) from the canvas edge. */
+const LABEL_EDGE_PX = 2;
+
+/** Side (px) of a body of this mass: ∛m scaling, 40 px at 10 kg, never under 12 px. */
+export function bodySide(mass: number): number {
+  return Math.max(BODY_MIN_PX, BODY_BASE_PX * Math.cbrt(mass / COLLISION_LIMITS.mass[1]));
+}
+
+/**
+ * Track position (m) to canvas x (px). The faces' span maps inside a margin of the edge plus the
+ * largest body, so body 1 (left of its face) and body 2 (right of it) always fit the canvas.
+ */
+export function trackToPx(
+  s: CollisionSettings,
+  outcome: CollisionOutcome,
+  width: number,
+): (x: number) => number {
+  const half = trackHalfSpan(s, outcome);
+  const centre = width / 2;
+  const room = centre - SCENE_EDGE_PX - BODY_BASE_PX;
+  return (x) => centre + (x / half) * room;
+}
+
+export interface BodyBox {
+  left: number;
+  side: number;
+  centre: number;
+}
+
+/** Both bodies' boxes (px) at t; body 2's is unused when it is the wall. */
+export function bodyBoxes(
+  s: CollisionSettings,
+  outcome: CollisionOutcome,
+  t: number,
+  width: number,
+): [BodyBox, BodyBox] {
+  const toPx = trackToPx(s, outcome, width);
+  const { x1, x2 } = facePositions(s, outcome, t);
+  const [side1, side2] = [bodySide(s.m1), bodySide(s.m2)];
+  const left1 = toPx(x1) - side1;
+  const left2 = toPx(x2);
+  return [
+    { left: left1, side: side1, centre: left1 + side1 / 2 },
+    { left: left2, side: side2, centre: left2 + side2 / 2 },
+  ];
+}
+
+/** Tip x (px) of a velocity arrow from `centre`, kept inside the canvas. */
+export function arrowTip(centre: number, v: number, width: number): number {
+  const tip = centre + v * ARROW_PX_PER_MS;
+  return Math.min(Math.max(tip, SCENE_EDGE_PX), width - SCENE_EDGE_PX);
+}
+
+/** Centre x (px) of a velocity label, slid inward so the whole text stays on the canvas. */
+export function labelCentre(centre: number, text: string, width: number): number {
+  return fitCentre(
+    centre,
+    monoTextWidth(text, VELOCITY_LABEL_SIZE),
+    LABEL_EDGE_PX,
+    width - LABEL_EDGE_PX,
+  );
 }
