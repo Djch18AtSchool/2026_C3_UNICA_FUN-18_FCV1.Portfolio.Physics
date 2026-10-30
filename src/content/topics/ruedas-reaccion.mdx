@@ -223,7 +223,7 @@ Para girar en órbita, la nave hace girar una rueda en sentido contrario al giro
 
 <Step n={1} title="Sistema aislado">
 
-Sistema: nave y rueda, de eje z común. Sin torque externo, su momento angular total no cambia <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. Ejemplo: un CubeSat 6U de 12 kg como caja <Cite id="cubesat-cds-14-1" sources={frontmatter.sources} />, <Equation inline latex="I_s = 0{,}1852\ \mathrm{kg{\cdot}m^2}" />, con la rueda RW400 <Cite id="aac-rw400" sources={frontmatter.sources} />, <Equation inline latex="I_w = 9{,}55 \cdot 10^{-5}\ \mathrm{kg{\cdot}m^2}" /> (cálculo propio).
+El sistema es la nave y su rueda, que comparten el eje z. Sin torque externo, su momento angular total no cambia <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. Ejemplo: un CubeSat 6U de 12 kg como caja <Cite id="cubesat-cds-14-1" sources={frontmatter.sources} />, <Equation inline latex="I_s = 0{,}1852\ \mathrm{kg{\cdot}m^2}" />, con la rueda RW400 <Cite id="aac-rw400" sources={frontmatter.sources} />, <Equation inline latex="I_w = 9{,}55 \cdot 10^{-5}\ \mathrm{kg{\cdot}m^2}" /> (cálculo propio).
 
 <Equation
   id="ec-ruedas-conservacion"
@@ -362,13 +362,13 @@ En órbita actúan torques externos, como el gradiente de gravedad o el arrastre
 
 <Fragment slot="fenomeno">
 
-En su tope, el torque externo ya no va a la rueda sino a la nave, que deriva: según Dougherty, «a loss of vehicle control» <Cite id="dougherty-1988" sources={frontmatter.sources} />.
+Saturada, la rueda ya no absorbe el torque externo: va a la nave, que deriva; según Dougherty, «a loss of vehicle control» <Cite id="dougherty-1988" sources={frontmatter.sources} />.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Vacía, con <Equation inline latex="\tau_\text{ext}" /> constante, se llena en <Equation inline latex="t = L_\text{máx}/\tau_\text{ext}" />. A 500 km, el gradiente de gravedad sobre el 6U no pasa de <Equation inline latex="2{,}28 \cdot 10^{-7}\ \mathrm{N{\cdot}m}" /> (cálculo propio con la fórmula de SP-8024 <Cite id="nasa-sp-8024" sources={frontmatter.sources} />): <Equation inline latex="t = 2{,}19 \cdot 10^{5}\ \mathrm{s}" />, unos 2,5 días en el peor caso.
+Si parte vacía y <Equation inline latex="\tau_\text{ext}" /> es constante, se llena en <Equation inline latex="t = L_\text{máx}/\tau_\text{ext}" />. A 500 km, el gradiente de gravedad sobre el eje más desfavorable del 6U no pasa de <Equation inline latex="2{,}28 \cdot 10^{-7}\ \mathrm{N{\cdot}m}" /> (cálculo propio con la fórmula de SP-8024 <Cite id="nasa-sp-8024" sources={frontmatter.sources} />): <Equation inline latex="t = 2{,}19 \cdot 10^{5}\ \mathrm{s}" />, unos 2,5 días.
 
 </Fragment>
 
@@ -389,7 +389,7 @@ Vacía, con <Equation inline latex="\tau_\text{ext}" /> constante, se llena en <
 
 <Step n={4} title="Descargar con un torque externo">
 
-Solo un torque externo cambia el momento total: el de un magnetopar o un propulsor, mientras el motor frena la rueda. Tres ejes piden al menos tres ruedas: Kepler llevaba cuatro <Cite id="kepler-2012-07-20" sources={frontmatter.sources} />; el Webb, seis <Cite id="gardner-2023-jwst" sources={frontmatter.sources} />.
+Solo un torque externo cambia el momento total: el de un magnetopar o propulsor, mientras el motor frena la rueda. Tres ejes piden al menos tres ruedas: Kepler llevaba cuatro <Cite id="kepler-2012-07-20" sources={frontmatter.sources} />; el Webb, seis <Cite id="gardner-2023-jwst" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-ruedas-descarga"
@@ -409,13 +409,13 @@ Solo un torque externo cambia el momento total: el de un magnetopar o un propuls
 
 <Fragment slot="fenomeno">
 
-El campo terrestre orienta un dipolo como a la aguja de una brújula: un torque externo. El Hubble descarga así, sin propelente <Cite id="nasa-hubble-pointing" sources={frontmatter.sources} />; el Webb, con propulsores cada unas seis semanas <Cite id="stsci-jwst-momentum" sources={frontmatter.sources} />.
+El campo terrestre orienta un dipolo como orienta la aguja de una brújula: un torque externo. El Hubble descarga así, sin propelente <Cite id="nasa-hubble-pointing" sources={frontmatter.sources} />; el Webb, con propulsores cada unas seis semanas <Cite id="stsci-jwst-momentum" sources={frontmatter.sources} />.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Como <Equation inline latex="\vec m \times \vec B \perp \vec B" />, la parte de <Equation inline latex="L_w" /> paralela a <Equation inline latex="\vec B" /> espera a que, a lo largo de la órbita, <Equation inline latex="\vec B" /> cambie de dirección. Un magnetopar de 6U <Cite id="gomspace-gst600" sources={frontmatter.sources} /> da <Equation inline latex="1{,}2 \cdot 10^{-5}\ \mathrm{N{\cdot}m}" /> <Cite id="noaa-wmm" sources={frontmatter.sources} /> (cálculo propio), 50 veces la perturbación: en el mejor caso, la vacía en algo más de una hora.
+Como <Equation inline latex="\vec m \times \vec B \perp \vec B" />, la parte de <Equation inline latex="L_w" /> paralela a <Equation inline latex="\vec B" /> espera a que <Equation inline latex="\vec B" /> gire con la órbita. Un magnetopar de 6U <Cite id="gomspace-gst600" sources={frontmatter.sources} /> da <Equation inline latex="1{,}2 \cdot 10^{-5}\ \mathrm{N{\cdot}m}" /> <Cite id="noaa-wmm" sources={frontmatter.sources} /> (cálculo propio), 50 veces la perturbación: con <Equation inline latex="\vec m \perp \vec B" /> y un campo típico, la vacía en algo más de una hora.
 
 </Fragment>
 
@@ -423,7 +423,7 @@ Como <Equation inline latex="\vec m \times \vec B \perp \vec B" />, la parte de 
 
 <Figure
   type="diagrama"
-  caption="El satélite y su rueda, con las ecuaciones (8.1) a (8.4). El panel A muestra el intercambio: L_w y L_s iguales y opuestos, y el motor con τ sobre la rueda y −τ sobre la nave. El panel B muestra la rueda llena hasta L_máx, la nave que deriva y las dos descargas: τ = m × B con el campo terrestre y τ = r × F con un propulsor."
+  caption="El satélite y su rueda con las ecuaciones (8.1) a (8.4). Panel A: el intercambio, L_w y L_s iguales y opuestos, y el motor con τ y −τ. Panel B: la rueda llena hasta L_máx por el gradiente de gravedad a 500 km, la nave que deriva y las dos descargas, con el campo terrestre y con un propulsor."
   source={{
     text: 'Diagrama del autor con las ecuaciones (8.1) a (8.4); CubeSat 6U con la RW400 (tabla 8.1), gradiente de gravedad (cálculo propio con la fórmula de NASA SP-8024, fuente 8) y magnetopar de GomSpace (fuente 9)',
   }}
@@ -434,12 +434,12 @@ Como <Equation inline latex="\vec m \times \vec B \perp \vec B" />, la parte de 
 <Figure
   type="simulacion"
   showBadge={false}
-  caption="Laboratorio de la rueda con las ecuaciones (8.1) a (8.4): arrastra la perilla del dial para fijar el ángulo objetivo, o muévela con las flechas, y elige T; si T es menor que T_mín, el laboratorio avisa que la rueda no alcanza. En «Perturbación y descarga» la nave sigue quieta mientras el gradiente de gravedad llena la rueda hasta el 80 % de L_máx, un umbral que elegí yo, y un magnetopar o un propulsor la vacía."
+  caption="Laboratorio de la rueda, ecuaciones (8.1) a (8.4). En «Maniobra», la nave gira el ángulo del dial en T ≥ T_mín. En «Perturbación y descarga», el gradiente de gravedad llena la rueda al 80 % de L_máx (mi umbral) y un magnetopar o propulsor la vacía."
   source={{ text: 'Simulación del autor sobre src/lib/physics/rotation.ts' }}
 >
   <WheelLab
     client:visible
-    footnote={`La maniobra corre en tiempo real. La perturbación va a cámara rápida: a 1×, ${DAY_LAPSE / SECONDS_PER_HOUR} h de órbita por segundo, un día en ${SECONDS_PER_DAY / DAY_LAPSE} s; cada descarga, que dura minutos con el magnetopar y segundos con el propulsor, se estira a ${MIN_DUMP_PLAYBACK} s de pantalla. Lo que deja fuera: resuelve un solo eje; la rueda parte de 0 rpm y no tiene fricción, aunque las ruedas reales evitan pasar por 0 rpm; el gradiente de gravedad es constante en su máximo, una cota; el magnetopar tiene m perpendicular a B, su mejor caso, y el torque del propulsor es un supuesto mío: el τ_máx de la rueda.`}
+    footnote={`La maniobra corre en tiempo real. La perturbación va a cámara rápida: a 1×, ${DAY_LAPSE / SECONDS_PER_HOUR} h de órbita por segundo, un día en ${SECONDS_PER_DAY / DAY_LAPSE} s; cada descarga, que dura minutos con el magnetopar y segundos con el propulsor, se estira a ${MIN_DUMP_PLAYBACK} s de pantalla. Fuera del modelo: resuelve un solo eje; la rueda parte de 0 rpm y no tiene fricción, aunque las ruedas reales evitan pasar por 0 rpm; el gradiente de gravedad es constante en su máximo sobre el eje más desfavorable, una cota; el magnetopar tiene m perpendicular a B, su mejor caso; el torque del propulsor es un supuesto mío, el τ_máx de la rueda.`}
   />
 </Figure>
 
@@ -451,13 +451,13 @@ Como <Equation inline latex="\vec m \times \vec B \perp \vec B" />, la parte de 
 
 <Fragment slot="caso">
 
-42, de Eric Stoneking (NASA Goddard), sirve para diseñar y validar el control de actitud «from concept studies through integration and test» (commit `df4fbdf5`) <Cite id="stoneking-42" sources={frontmatter.sources} />. Lo que 42 modela se vio en Kepler, que perdió dos ruedas en 2012 y 2013 <Cite id="kepler-2012-07-20" sources={frontmatter.sources} /> <Cite id="kepler-2013-05-15" sources={frontmatter.sources} />, y siguió como K2, con propulsores y presión solar equilibrada (tabla 8.3) <Cite id="howell-2014-k2" sources={frontmatter.sources} />.
+42, de Eric Stoneking (NASA Goddard), sirve para diseñar y validar el control de actitud «from concept studies through integration and test» (commit `df4fbdf5`) <Cite id="stoneking-42" sources={frontmatter.sources} />. Lo que 42 modela lo sufrió Kepler, que perdió dos ruedas en 2012 y 2013 <Cite id="kepler-2012-07-20" sources={frontmatter.sources} /> <Cite id="kepler-2013-05-15" sources={frontmatter.sources} />, y siguió como K2, con propulsores y presión solar equilibrada (tabla 8.3) <Cite id="howell-2014-k2" sources={frontmatter.sources} />.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-En 42, L se escribe H. La rueda cumple `W->Hdot = W->Trq` y la nave, `WhlTorq[i]-=S->Whl[j].Trq*S->Whl[j].A[i]` <Cite id="stoneking-42-dynamics" sources={frontmatter.sources} />: la (8.2). Con `if (W->Trq > 0.0 && W->H >= W->Hmax) W->Trq = 0.0;` la rueda llena ya no absorbe, la (8.3), y el magnetopar da <Equation inline latex="\vec\tau = \vec m \times \vec B" /> <Cite id="stoneking-42-actuators" sources={frontmatter.sources} />. El software de vuelo pide `AC->MTB[i].Mcmd = C->Kunl*HxB[i]`, un dipolo proporcional al exceso <Equation inline latex="\vec H - \vec H_\text{cmd}" /> por <Equation inline latex="\vec B" />: la (8.4) <Cite id="stoneking-42-fsw" sources={frontmatter.sources} />.
+En 42, L se escribe H. La rueda cumple `W->Hdot = W->Trq` y la nave, `WhlTorq[i]-=S->Whl[j].Trq*S->Whl[j].A[i]` <Cite id="stoneking-42-dynamics" sources={frontmatter.sources} />: la (8.2). Con `if (W->Trq > 0.0 && W->H >= W->Hmax) W->Trq = 0.0;` la rueda llena ya no absorbe, la (8.3), y el magnetopar da <Equation inline latex="\vec\tau = \vec m \times \vec B" /> <Cite id="stoneking-42-actuators" sources={frontmatter.sources} />. El software de vuelo pide `AC->MTB[i].Mcmd = C->Kunl*HxB[i]`, un dipolo proporcional al producto vectorial del exceso <Equation inline latex="(\vec H - \vec H_\text{cmd}) \times \vec B" />: la (8.4) <Cite id="stoneking-42-fsw" sources={frontmatter.sources} />.
 
 </Fragment>
 
