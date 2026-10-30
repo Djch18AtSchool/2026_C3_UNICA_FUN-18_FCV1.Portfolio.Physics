@@ -32,7 +32,7 @@ describe('RW400', () => {
   test('warns about the datasheet pitfalls: one top speed for three sizes, 8 vs 12 mN·m', () => {
     const notes = RW400.notes.join(' ');
 
-    expect(notes).toMatch(/5000 rpm/);
+    expect(notes).toMatch(/5\u202F000 rpm/);
     expect(notes).toMatch(/> 12 mN\.m \(braking\)/);
   });
 });
@@ -162,7 +162,7 @@ describe('MISSIONS', () => {
     expect(text('Kepler')).toMatch(/14 de mayo de 2013/);
     expect(text('Kepler')).not.toMatch(/11 de mayo/);
     expect(text('K2')).toMatch(/descarga cada 2 días/);
-    expect(text('Hubble')).toMatch(/3000 rpm/);
+    expect(text('Hubble')).toMatch(/3\u202F000 rpm/);
     expect(text('Hubble')).toMatch(/45 kg/);
     expect(text('JWST')).toMatch(/6 ruedas, 2 de ellas redundantes/);
     expect(text('JWST')).toMatch(/unas 6 semanas/);

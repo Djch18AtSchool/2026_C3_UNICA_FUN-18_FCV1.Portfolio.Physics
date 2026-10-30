@@ -147,7 +147,7 @@ const ruedas: DataTableSpec = {
   ],
   rows: [wheelRow(VRW_D_4), wheelRow(RW400)],
   source: {
-    text: `${REACTION_WHEEL_SOURCES.W1.label}; ${REACTION_WHEEL_SOURCES.W2.label}. La inercia de la RW400 es cálculo propio y supone que las 5000 rpm de la hoja valen para la variante de 50 mN·m·s.`,
+    text: `${REACTION_WHEEL_SOURCES.W1.label}; ${REACTION_WHEEL_SOURCES.W2.label}. La inercia de la RW400 es cálculo propio y supone que las ${formatNumber(RW400.rpmMax, { precision: 0, unit: 'rpm' })} de la hoja valen para la variante de 50 mN·m·s.`,
   },
 };
 

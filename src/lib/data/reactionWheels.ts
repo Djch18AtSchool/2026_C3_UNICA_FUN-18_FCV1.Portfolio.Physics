@@ -175,7 +175,7 @@ export const RW400: ReactionWheel = wheel({
   notes: [
     'La serie tiene variantes de 15, 30 y 50 mN·m·s; aquí se usa la de 50 mN·m·s (375 g).',
     'La tabla da ±8 mN·m de torque máximo; los destacados dicen «> 12 mN.m (braking)».',
-    'La hoja no imprime la inercia del rotor: I_w = L_max/ω_max (cálculo propio), suponiendo que las 5000 rpm de la hoja valen para la variante de 50 mN·m·s.',
+    'La hoja no imprime la inercia del rotor: I_w = L_max/ω_max (cálculo propio), suponiendo que las 5 000 rpm de la hoja valen para la variante de 50 mN·m·s.',
   ],
 });
 
@@ -299,7 +299,7 @@ export const MISSIONS: readonly MissionFact[] = [
   },
   {
     mission: 'Hubble',
-    fact: '4 RWA de 45 kg (100 lb), unos 60 cm (2 ft) de ancho; hasta 3000 rpm; pirámide inclinada',
+    fact: '4 RWA de 45 kg (100 lb), unos 60 cm (2 ft) de ancho; hasta 3 000 rpm; pirámide inclinada',
     sourceIds: ['H1', 'H2', 'H4'],
   },
   {

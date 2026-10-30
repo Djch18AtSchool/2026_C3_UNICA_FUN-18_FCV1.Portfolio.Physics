@@ -77,6 +77,11 @@ describe('ruedas-reaccion-ruedas', () => {
     expect(printed(spec, 1).origin).toMatch(/^cálculo propio/);
     expect(printed(spec, 0).origin).not.toMatch(/cálculo propio/);
   });
+
+  test('the source line groups the RW400 top speed as the table does: 5 000 rpm', () => {
+    expect(spec.source.text).toContain('las 5\u202F000\u202Frpm de la hoja');
+    expect(spec.source.text).not.toMatch(/5000/);
+  });
 });
 
 describe('ruedas-reaccion-maniobra', () => {
