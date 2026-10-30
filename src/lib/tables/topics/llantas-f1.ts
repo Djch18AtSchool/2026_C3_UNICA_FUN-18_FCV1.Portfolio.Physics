@@ -89,7 +89,7 @@ const MUR_LOAD: DataTableSpec = {
 const MUR_TEMPERATURE: DataTableSpec = {
   id: 'llantas-f1-mur-temperatura',
   caption:
-    'La línea PERFORMANCE_CURVE=tcurve_F3soft.lut ;File to use for temperature/grip relation del tyres.ini apunta a una tabla de pares temperatura|multiplicador, escritos como en el archivo y sin unidad impresa (supongo °C): entre 75 y 100 la llanta da todo su agarre; fría o recalentada, menos',
+    'La línea PERFORMANCE_CURVE=tcurve_F3soft.lut ;File to use for temperature/grip relation del tyres.ini apunta a una tabla de pares temperatura|multiplicador; copio seis de sus pares, escritos como en el archivo y sin unidad impresa (supongo °C): entre 75 y 100 la llanta da todo su agarre; fría o recalentada, menos',
   columns: [
     { key: 'temperature', label: 'Temperatura', align: 'text' },
     { key: 'multiplier', label: 'Multiplicador del agarre', align: 'text' },

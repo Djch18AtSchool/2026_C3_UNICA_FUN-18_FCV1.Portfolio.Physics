@@ -94,6 +94,7 @@ describe('llantas-f1 tables', () => {
     expect(caption).toContain(
       'PERFORMANCE_CURVE=tcurve_F3soft.lut ;File to use for temperature/grip relation',
     );
+    expect(caption).toContain('copio seis de sus pares');
     expect(caption).toContain('sin unidad impresa (supongo °C)');
     expect(caption).toContain(
       'entre 75 y 100 la llanta da todo su agarre; fría o recalentada, menos',
