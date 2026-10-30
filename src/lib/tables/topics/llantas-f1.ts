@@ -32,7 +32,7 @@ const twoDecimals = (value: number) => formatNumber(value, { precision: 2 });
 
 const LOAD: DataTableSpec = {
   id: 'llantas-f1-carga',
-  caption: `Fuerza lateral máxima de los dos modelos y μ efectivo en cuatro cargas. El μ efectivo de ${twoDecimals(loadPoint(ARTEFACT_LOAD_N).muEff)} a ${ARTEFACT_LOAD_N} N es un artefacto del modelo, no un agarre real: la ley de potencia sirve cerca de la carga de referencia y, cuando la carga tiende a cero, da un μ infinito`,
+  caption: `Fuerza lateral máxima de los dos modelos y μ efectivo en cuatro cargas. El μ efectivo de ${twoDecimals(loadPoint(ARTEFACT_LOAD_N).muEff)} a ${ARTEFACT_LOAD_N} N es un artefacto del modelo, no un agarre real: la ley de potencia sirve cerca de la carga de referencia y, cuando la carga tiende a cero, da un μ infinito.`,
   columns: [
     { key: 'fz', label: 'Carga vertical F_z', unit: 'N', align: 'num', precision: 0 },
     { key: 'linear', label: 'Modelo lineal, μ₀ F_z', unit: 'N', align: 'num', precision: 0 },
@@ -51,7 +51,7 @@ const shareOfPeak = (t: number) => gripVsTemperature(C3_MODEL, t) / C3_MODEL.muP
 
 const TEMPERATURE: DataTableSpec = {
   id: 'llantas-f1-temperatura',
-  caption: `Agarre de la campana del C3, ecuación (4.3), en el óptimo, en los bordes de su ventana de 2019 y fuera de ella; dentro de la ventana μ no baja del ${formatNumber(shareOfPeak(C3_WINDOW.from) * PERCENT, { precision: 0 })} % del pico`,
+  caption: `Agarre de la campana del C3, ecuación (4.3), en el óptimo, en los bordes de su ventana de 2019 y fuera de ella; dentro de la ventana μ no baja del ${formatNumber(shareOfPeak(C3_WINDOW.from) * PERCENT, { precision: 0 })} % del pico.`,
   columns: [
     { key: 't', label: 'Temperatura T', unit: '°C', align: 'num', precision: 0 },
     { key: 'mu', label: 'μ(T)', align: 'num', precision: 2 },
@@ -70,7 +70,7 @@ const TEMPERATURE: DataTableSpec = {
 const MUR_LOAD: DataTableSpec = {
   id: 'llantas-f1-mur-carga',
   caption:
-    'Claves de carga del tyres.ini del auto mur_2019, delante y detrás, escritas como en el archivo',
+    'Claves de carga del tyres.ini del auto mur_2019, delante y detrás, escritas como en el archivo.',
   columns: [
     { key: 'tyre', label: 'Llanta', align: 'text' },
     { key: 'key', label: 'Clave', align: 'text' },
@@ -89,7 +89,7 @@ const MUR_LOAD: DataTableSpec = {
 const MUR_TEMPERATURE: DataTableSpec = {
   id: 'llantas-f1-mur-temperatura',
   caption:
-    'La línea PERFORMANCE_CURVE=tcurve_F3soft.lut ;File to use for temperature/grip relation del tyres.ini apunta a una tabla de pares temperatura|multiplicador; copio seis de sus pares, escritos como en el archivo y sin unidad impresa (supongo °C): entre 75 y 100 la llanta da todo su agarre; fría o recalentada, menos',
+    'La línea PERFORMANCE_CURVE=tcurve_F3soft.lut ;File to use for temperature/grip relation del tyres.ini apunta a una tabla de pares temperatura|multiplicador; copio seis de sus pares, escritos como en el archivo y sin unidad impresa (supongo °C): entre 75 y 100 la llanta da todo su agarre; fría o recalentada, menos.',
   columns: [
     { key: 'temperature', label: 'Temperatura', align: 'text' },
     { key: 'multiplier', label: 'Multiplicador del agarre', align: 'text' },

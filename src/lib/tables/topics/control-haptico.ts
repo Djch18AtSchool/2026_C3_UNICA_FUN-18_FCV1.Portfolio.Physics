@@ -37,7 +37,7 @@ const TRAVEL_LABEL = `${TRIGGER_TRAVEL_MM} mm`;
 
 const VIBRATION: DataTableSpec = {
   id: 'control-haptico-vibracion',
-  caption: `Fuerza sobre el dedo en tres puntos del recorrido. F₀ = ${newtons(VIBRATION_N)} N es un supuesto del modelo, igual a la fuerza del resorte a ${MID_MM} mm para poder compararlas`,
+  caption: `Fuerza sobre el dedo en tres puntos del recorrido. F₀ = ${newtons(VIBRATION_N)} N es un supuesto del modelo, igual a la fuerza del resorte a ${MID_MM} mm para poder compararlas.`,
   columns: [
     { key: 'x', label: 'Desplazamiento x', unit: 'mm', align: 'num', precision: 0 },
     {
@@ -80,7 +80,7 @@ const BOTTOM_SUBSTITUTION = [
 
 const ENERGY: DataTableSpec = {
   id: 'control-haptico-energia',
-  caption: `Resorte ideal de ${SPRING_LABEL} a mitad del recorrido y al fondo, donde ${BOTTOM_SUBSTITUTION}; el trabajo de la propia fuerza elástica vale −U (Módulo 2, Tema 03, concepto 03)`,
+  caption: `Resorte ideal de ${SPRING_LABEL} a mitad del recorrido y al fondo, donde ${BOTTOM_SUBSTITUTION}; el trabajo de la propia fuerza elástica vale −U (Módulo 2, Tema 03, concepto 03).`,
   columns: [
     { key: 'point', label: 'Punto del recorrido', align: 'text' },
     { key: 'x', label: 'Desplazamiento x', unit: 'mm', align: 'num', precision: 0 },
@@ -113,7 +113,7 @@ function triggerRow({ name, values: { k, x0Mm } }: typeof IDEAL) {
 
 const TRIGGER: DataTableSpec = {
   id: 'control-haptico-gatillo',
-  caption: `Fuerza del perfil y trabajo del dedo al fondo, a ${TRAVEL_LABEL}, en dos preajustes del laboratorio, con valores ilustrativos`,
+  caption: `Fuerza del perfil y trabajo del dedo al fondo, a ${TRAVEL_LABEL}, en dos preajustes del laboratorio, con valores ilustrativos.`,
   columns: [
     { key: 'preset', label: 'Preajuste', align: 'text' },
     { key: 'k', label: 'k', unit: 'N/m', align: 'num', precision: 0 },

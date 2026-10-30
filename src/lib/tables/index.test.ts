@@ -54,6 +54,12 @@ describe('ALL_TABLES', () => {
     }
   });
 
+  test('every caption is a finished sentence: it ends with a period', () => {
+    for (const table of ALL_TABLES) {
+      expect(table.caption.trimEnd(), `${table.id}: caption`).toMatch(/\.$/);
+    }
+  });
+
   test('every id of a table ends in a kebab-case name after its topic slug', () => {
     for (const table of ALL_TABLES) {
       expect(table.id, table.id).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)+$/);
