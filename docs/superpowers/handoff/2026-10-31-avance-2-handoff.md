@@ -34,13 +34,14 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
   - **Temas 1 a 5:** sus datos de leyenda pasaron a tablas y cada uno ganó una frase de
     conexión recíproca hacia un tema nuevo (pendiente 2); `updated` = 2026-10-30.
   - **Hechas:** la tarea compartida de tipografía (signo menos verdadero, unidades de tiempo en
-    la barra de reproducción, suites e2e compartidas que recorren los nueve temas) y la revisión
-    final de toda la rama, con su ronda de correcciones (R35 a R37).
-- **Puerta final en `avance-2` (`779aff4`, último commit de código; después solo cambia este
-  traspaso):** `pnpm run check` sin errores ni avisos; 1 879 pruebas unitarias en 154 archivos,
-  cobertura 98,70 % de sentencias, 93,82 % de ramas, 99,04 % de funciones y 99,24 % de líneas;
-  11 páginas construidas (portada, 404 y los nueve temas); e2e 475 pasan y 0 fallan
-  (`--workers=2`).
+    la barra de reproducción, suites e2e compartidas que recorren los nueve temas), la revisión
+    final de toda la rama, con su ronda de correcciones (R35 a R37), y la pasada visual final en
+    360 px y 1280 px, con la suya (R38, R39).
+- **Puerta final en `avance-2` (`ff75427`, último commit de código, tras la pasada visual;
+  después solo cambia este traspaso):** `pnpm run check` sin errores ni avisos; 1 923 pruebas
+  unitarias en 157 archivos, cobertura 98,72 % de sentencias, 93,85 % de ramas, 99,06 % de
+  funciones y 99,25 % de líneas; 11 páginas construidas (portada, 404 y los nueve temas); e2e
+  478 pasan y 0 fallan (`--workers=2`).
 - **Sitio:** https://djch18atschool.github.io/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics/
 - **Repositorio:** https://github.com/Djch18AtSchool/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics
 - **Entrega:** Avance 2 (Temas 6 a 9; los Temas 1 a 5 se vuelven a evaluar), sábado
@@ -195,6 +196,8 @@ Final.
   por delante" se ilustra con r_p = 20 R_J. La ganancia máxima en Júpiter está cerca de
   3 R_J.
 - **Una sola insignia de recurso por tema:** solo la figura del recurso prescrito.
+- **Signo de grado pegado al número (R39):** «97,5°» en lecturas, figuras y texto; los grados
+  Celsius y las unidades compuestas llevan espacio («120 °C», «3,0 °/s»).
 - **Voz:** los textos van en primera persona. Las líneas de fuente de las figuras dicen casi
   todas «del autor» o «por el autor»; el Tema 7 y parte del Tema 2 dicen «que calculé»
   (pendiente 7).
@@ -217,7 +220,7 @@ Final.
 
 ## Decisiones que tomó Claude sin consultar
 
-Del libro de decisiones (`progress.md`, R1 a R37). Formato: qué se decidió; por qué; qué cuesta
+Del libro de decisiones (`progress.md`, R1 a R39). Formato: qué se decidió; por qué; qué cuesta
 si fue un error.
 
 - **R1:** los cuatro temas (y las tareas base) se hicieron en paralelo, cada uno en su
@@ -326,6 +329,18 @@ si fue un error.
   tilde en el Tema 8 (L_máx, ω_máx, τ_máx, T_mín), decimales del transporte en segundos fijos
   según el paso, la frase de e < 1 del Tema 5 y «≈ 223,6 m» en la leyenda 3.2; Dylan lee cada
   palabra (R30) y son errores visibles; costo: frases que Dylan debe releer (pendiente 1).
+- **R38:** una sola ronda corrigió los dos defectos importantes y todos los menores de la pasada
+  visual (subtítulos que chocaban en el laboratorio del Tema 7, «v∞,out» sobre la lectura de r_p
+  en el del Tema 9, etiquetas sobre arcos y flechas, cursor tachado por la serie, sombra de
+  desplazamiento en las tablas, «−1 940», detalle M de la figura 8.4, clave de flecha en la
+  leyenda 9.2 y números a la derecha en la tabla 8.1, y también en los rangos de la 7.2, el mismo
+  defecto), salvo «UT» (símbolo de la IAU, como lo escribe Horizons) y «Volver arriba» sobre el
+  contenido al desplazarse (control flotante, como en el Avance 1); la rúbrica premia el diseño
+  cuidado y en un teléfono es donde primero mira un evaluador; costo: una ronda más de revisión.
+- **R39:** el signo de grado va pegado al número, sin espacio («97,5°»; Folleto del SI §5.4.3),
+  como ya lo escriben figuras y prosa: `formatNumber` con unidad °, ′ o ″ no deja espacio, en
+  todo el sitio, Temas 1 a 5 incluidos (°C y °/s conservan el espacio); costo: una regla en
+  `format.ts` y sus pruebas.
 
 ## Menores diferidos (opcionales, sin efecto en la entrega)
 
@@ -365,8 +380,8 @@ siguen en su traspaso.
   par `WheelScene.tsx`/`wheelScene.ts`; comentarios que llaman "rojo" a `--chart-2`; con
   movimiento reducido a 4×/8× se puede saltar la ventana de descarga; "t" del transporte en
   segundos de reproducción frente a horas de órbita; "un día en 12 s" ≈ 14 s el día de la
-  descarga; la hora de órbita se congela durante la descarga; tabla 8.1 con L_máx y masa
-  alineadas a la izquierda y masa sin unidad; "Volver arriba" tapa el borde del panel B en
+  descarga; la hora de órbita se congela durante la descarga; la masa de la tabla 8.1 sin
+  unidad en el encabezado (cada celda lleva la suya); "Volver arriba" tapa el borde del panel B en
   360 px; punto del cubo como ⊙; "Tierra" sobre el borde; id SVG fijo; "En su tope" podría
   repetir la consigna; el título de Hasha lleva una elipsis (el título completo de NTRS podría
   reemplazarla).
@@ -377,11 +392,14 @@ siguen en su traspaso.
   fuera del plano; `DEG` con sentidos opuestos; formateador km/s ×4; control de rango y de
   texto con el mismo nombre; lado de Saturno de la V1 probado indirectamente; funciones y
   archivos largos en las gráficas (≈ 445 líneas); `formatOffset(0)` sin signo; "v∞" sin flecha
-  en las etiquetas; serie vacía de la leyenda sin verificar; el nombre accesible no dice
+  en las etiquetas; el nombre accesible no dice
   7,62 km/s; "c, su distancia" algo ambiguo; "(9.4), su superposición" escueto.
 - **Temas 1 a 5:** comentario de `jumpPresets` sobre `JUMP_SCALES`; conexión del Tema 2 impersonal; `MM_PER_M`
   definido tres veces y `toMetres` dos; la frase del Tema 3 en el Tema 5 quedó más elíptica;
-  cita de Isola dentro de la línea de fuente; `markdownRows` duplicado en pruebas.
+  cita de Isola dentro de la línea de fuente; `markdownRows` duplicado en pruebas; columnas de
+  números escritas como texto, alineadas a la izquierda, en la tabla 2.1 («En el código», «En
+  SI») y en la 4.4 («Temperatura», copiada tal cual del archivo): la prueba del registro las
+  lista como excepción hasta que Dylan decida.
 
 ## Forma de trabajo acordada
 
