@@ -55,15 +55,10 @@ describe('ALL_TABLES', () => {
   });
 
   test('a column of numbers is a num column, right-aligned, even when its cells are pre-written', () => {
-    // A number as a cell prints it: "4,0", "375 g", "6,37·10⁻³", "135–147"; "—" stands for none.
+    // A number as a cell prints it: "4,0", "375 g", "6,37·10⁻³", "135–147", or as a source file
+    // writes it ("0.80"); "—" stands for none.
     const NUMERIC_CELL =
-      /^[−+]?\d[\d ]*(?:,\d+)?(?:·10[⁻⁰¹²³⁴⁵⁶⁷⁸⁹]+)?(?:–\d[\d ]*(?:,\d+)?)?(?: [^\d\s]+)?$/;
-    // Avance 1 tables whose numbers stay as written there (pending a decision; task 23 report).
-    const TEXT_BY_DESIGN = new Set([
-      'llantas-f1-mur-temperatura.temperature',
-      'salto-personaje-constantes.codigo',
-      'salto-personaje-constantes.si',
-    ]);
+      /^[−+]?\d[\d ]*(?:[,.]\d+)?(?:·10[⁻⁰¹²³⁴⁵⁶⁷⁸⁹]+)?(?:–\d[\d ]*(?:,\d+)?)?(?: [^\d\s]+)?$/;
     const isNumeric = (cell: unknown) =>
       typeof cell === 'number' || (typeof cell === 'string' && NUMERIC_CELL.test(cell));
     const leftAligned = ALL_TABLES.flatMap((table) =>
@@ -72,8 +67,7 @@ describe('ALL_TABLES', () => {
           const cells = table.rows.map((row) => row[column.key]).filter((cell) => cell !== '—');
           return cells.length > 0 && cells.every(isNumeric) && column.align !== 'num';
         })
-        .map((column) => `${table.id}.${column.key}`)
-        .filter((name) => !TEXT_BY_DESIGN.has(name)),
+        .map((column) => `${table.id}.${column.key}`),
     );
 
     expect(leftAligned).toEqual([]);

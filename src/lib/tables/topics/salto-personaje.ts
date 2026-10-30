@@ -95,14 +95,19 @@ const constantRow = (constant: GameConstant) => ({
   }),
 });
 
+/** The finest precision a row prints in each column (the cells are written per constant). */
+const CODE_PRECISION = Math.max(...GAME_CONSTANTS.map((constant) => constant.decimals));
+const SI_PRECISION = Math.max(...GAME_CONSTANTS.map((constant) => constant.siDecimals));
+
 const CONSTANTES: DataTableSpec = {
   id: 'salto-personaje-constantes',
   caption: `Constantes de salto de los dos juegos y su conversión a SI: Celeste a ${CELESTE_PX_PER_M} px = 1 m; Super Mario Bros. a ${SMB_PX_PER_M} px = 1 m (el lado de un bloque) y ${SMB_FRAMES_PER_S} cuadros/s. JumpSpeed es negativa porque en pantalla +y apunta hacia abajo; en SI va con +y hacia arriba.`,
   columns: [
     { key: 'constante', label: 'Constante', align: 'text' },
     { key: 'juego', label: 'Juego', align: 'text' },
-    { key: 'codigo', label: 'En el código', align: 'text' },
-    { key: 'si', label: 'En SI', align: 'text' },
+    // Each cell carries its own precision and unit; right-aligned as every number (R40).
+    { key: 'codigo', label: 'En el código', align: 'num', precision: CODE_PRECISION },
+    { key: 'si', label: 'En SI', align: 'num', precision: SI_PRECISION },
   ],
   rows: GAME_CONSTANTS.map(constantRow),
   source: {

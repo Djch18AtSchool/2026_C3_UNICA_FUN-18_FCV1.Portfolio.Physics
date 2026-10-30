@@ -74,7 +74,8 @@ const MUR_LOAD: DataTableSpec = {
   columns: [
     { key: 'tyre', label: 'Llanta', align: 'text' },
     { key: 'key', label: 'Clave', align: 'text' },
-    { key: 'value', label: 'Valor en el archivo', align: 'text' },
+    // Written as in the file (decimal point), right-aligned as every number on the site (R40).
+    { key: 'value', label: 'Valor en el archivo', align: 'num', precision: 2 },
   ],
   rows: [
     { tyre: 'Delantera', key: 'FZ0', value: '1915' },
@@ -91,8 +92,9 @@ const MUR_TEMPERATURE: DataTableSpec = {
   caption:
     'La línea PERFORMANCE_CURVE=tcurve_F3soft.lut ;File to use for temperature/grip relation del tyres.ini apunta a una tabla de pares temperatura|multiplicador; copio seis de sus pares, escritos como en el archivo y sin unidad impresa (supongo °C): entre 75 y 100 la llanta da todo su agarre; fría o recalentada, menos.',
   columns: [
-    { key: 'temperature', label: 'Temperatura', align: 'text' },
-    { key: 'multiplier', label: 'Multiplicador del agarre', align: 'text' },
+    // Written as in the file (decimal point), right-aligned as every number on the site (R40).
+    { key: 'temperature', label: 'Temperatura', align: 'num', precision: 0 },
+    { key: 'multiplier', label: 'Multiplicador del agarre', align: 'num', precision: 2 },
   ],
   rows: [
     { temperature: '0', multiplier: '0.80' },
