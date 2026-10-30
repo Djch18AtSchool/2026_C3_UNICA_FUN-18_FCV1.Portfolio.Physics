@@ -88,7 +88,10 @@ classRefs:
     note: 'U = −GMm/r, rapidez de escape y E > 0 hiperbólica, con la Voyager 1 como ejemplo: la (9.1) y la curva de escape de la figura 9.4.'
   - module: 'Módulo 3'
     topic: 'Tema 02 · Colisiones y explosiones · Concepto 01 · Tipos de colisión'
-    note: 'Choque elástico, e = 1: en el marco del planeta la sonda sale tan rápido como llegó.'
+    note: 'Choque elástico, con coeficiente de restitución 1: en el marco del planeta la sonda sale tan rápido como llegó.'
+  - module: 'Módulo 4'
+    topic: 'Tema 04 · Leyes de Kepler y la Mecánica Celeste'
+    note: 'Primera ley: elipse con semieje mayor a y afelio a(1 + e), la órbita «solo el Sol» del paso 1; vis-viva es extensión.'
 updated: 2026-10-30
 ---
 
@@ -108,11 +111,11 @@ import VoyagerSpeedChart, {
 } from '../../components/topics/asistencia-gravitatoria/VoyagerSpeedChart';
 import FlybyLab, { FLYBY_LAPSE } from '../../components/topics/asistencia-gravitatoria/FlybyLab';
 
-Al pasar junto a Júpiter, la Voyager 2 ganó 10,2 km/s respecto al Sol sin gastar combustible: los puso Júpiter. En el marco del planeta sale tan rápido como entró; en el del Sol, no.
+Al pasar junto a Júpiter, la Voyager 2 ganó 10,2 km/s respecto al Sol sin gastar combustible: esa energía la cedió Júpiter. En el marco del planeta sale tan rápido como entró; en el del Sol, no.
 
 <Step n={1} title="Solo el Sol">
 
-Lejos de los planetas solo tira el Sol, una fuerza conservativa <Cite id="serway-jewett-2018" sources={frontmatter.sources} />: la energía por unidad de masa ε se conserva.
+Lejos de los planetas solo actúa la atracción del Sol, una fuerza conservativa <Cite id="serway-jewett-2018" sources={frontmatter.sources} />: la energía por unidad de masa ε se conserva.
 
 <Equation
   id="ec-asistencia-vis-viva"
@@ -148,7 +151,7 @@ Antes de Júpiter, <Equation inline latex="\varepsilon < 0" />: órbita ligada, 
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Rapidez de la Voyager 2 respecto al Sol frente a su distancia r. Los puntos son datos cada 20 días; las curvas son vis-viva con la energía de antes de Júpiter, que se detiene en el afelio, y con la de después, que sigue de largo. La línea discontinua es la rapidez de escape √(2GM☉/r)."
+  caption="Rapidez de la Voyager 2 respecto al Sol frente a su distancia r. Los puntos son datos cada 20 días; las curvas son vis-viva con la energía de antes de Júpiter (discontinua gris), que se detiene en el afelio, y con la de después, que sigue de largo. La discontinua ámbar es la rapidez de escape √(2GM☉/r)."
   source={{
     text: 'Curvas calculadas por el autor con la ecuación (9.1); datos de NASA/JPL Horizons (fuente 1)',
   }}
@@ -160,7 +163,7 @@ Antes de Júpiter, <Equation inline latex="\varepsilon < 0" />: órbita ligada, 
 
 <Step n={2} title="Por qué no basta: el marco del planeta">
 
-En el marco del planeta, casi inercial durante el encuentro, la energía se conserva: la sonda describe una hipérbola, sale con la rapidez <Equation inline latex="v_\infty" /> con que entró y solo gira un ángulo δ.
+Pero en Júpiter ε salta de −121,7 a +25,9 km²/s² (figura 9.1): imposible con solo el campo conservativo del Sol. En el marco del planeta, casi inercial en el encuentro, la energía sí se conserva: la sonda describe una hipérbola y sale con la misma rapidez <Equation inline latex="v_\infty" />, girada un ángulo δ.
 
 <Equation
   id="ec-asistencia-hiperbola"
@@ -177,7 +180,7 @@ En el marco del planeta, casi inercial durante el encuentro, la energía se cons
 
 <Fragment slot="fenomeno">
 
-Lo que gana al caer hacia el planeta lo devuelve al subir, como en un choque elástico.
+Lo que gana al caer hacia el planeta lo devuelve al subir.
 
 </Fragment>
 
@@ -226,13 +229,13 @@ Respecto al Sol, la velocidad es la del planeta más la relativa. Girar <Equatio
 
 <Fragment slot="fenomeno">
 
-Es el choque elástico visto desde fuera: la sonda rebota contra un planeta que avanza, y él pone la energía.
+Desde el Sol, la sonda rebota contra un planeta que avanza, y él pone la energía.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-En Júpiter, <Equation inline latex="|\Delta\vec v| = 11{,}45\ \mathrm{km/s}" /> lleva |v| de 9,59 a 19,50 km/s; con m = 721,9 kg <Cite id="nasa-v2" sources={frontmatter.sources} />, Júpiter retrocede <Equation inline latex="4{,}4 \cdot 10^{-21}\ \mathrm{m/s}" />. En Neptuno el giro apartó <Equation inline latex="\vec v_\infty" /> de <Equation inline latex="\vec V_p" />: −2,13 km/s.
+En Júpiter, <Equation inline latex="|\Delta\vec v| = 11{,}45\ \mathrm{km/s}" /> lleva <Equation inline latex="|\vec v|" /> de 9,59 a 19,50 km/s; con <Equation inline latex="m = 721{,}9\ \mathrm{kg}" /> <Cite id="nasa-v2" sources={frontmatter.sources} />, Júpiter retrocede <Equation inline latex="4{,}4 \cdot 10^{-21}\ \mathrm{m/s}" />. En Neptuno el giro apartó <Equation inline latex="\vec v_\infty" /> de <Equation inline latex="\vec V_p" />: −2,13 km/s.
 
 </Fragment>
 
@@ -241,7 +244,7 @@ En Júpiter, <Equation inline latex="|\Delta\vec v| = 11{,}45\ \mathrm{km/s}" />
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Triángulos de velocidades en el marco del Sol, a la misma escala: v⃗ = V⃗ₚ + v⃗∞ antes y después del giro. En Júpiter v⃗∞ sale casi alineada con V⃗ₚ y la sonda gana 9,91 km/s; en Neptuno, que la V2 sobrevoló por encima del polo norte, v⃗∞ se aparta de V⃗ₚ y la sonda pierde 2,13 km/s."
+  caption="Triángulos de velocidades en el marco del Sol, a la misma escala: v⃗ = V⃗ₚ + v⃗∞ antes y después del giro. En Júpiter v⃗∞ sale mucho más alineada con V⃗ₚ y la sonda gana 9,91 km/s; en Neptuno, que la V2 sobrevoló por encima del polo norte, v⃗∞ se aparta de V⃗ₚ y la sonda pierde 2,13 km/s."
   source={{
     text: 'Triángulos calculados por el autor con la ecuación (9.3); velocidades de NASA/JPL Horizons (fuente 1) y paso sobre el polo norte de Neptuno según NASA (fuente 7)',
   }}
@@ -253,7 +256,7 @@ En Júpiter, <Equation inline latex="|\Delta\vec v| = 11{,}45\ \mathrm{km/s}" />
 
 <Step n={4} title="Lo que muestran los datos">
 
-Los saltos de la gráfica, +10,2, +4,9, +1,9 y −2,1 km/s, coinciden con las cónicas empalmadas (tabla 9.2) salvo en Júpiter, que sigue tirando después del encuentro; el modelo mejorado suma todas las atracciones.
+Los saltos de la gráfica coinciden con las cónicas empalmadas de la tabla 9.2 salvo en Júpiter, que sigue tirando después del encuentro; el modelo mejorado suma todas las atracciones.
 
 <Equation
   id="ec-asistencia-n-cuerpos"
@@ -272,13 +275,13 @@ Los saltos de la gráfica, +10,2, +4,9, +1,9 y −2,1 km/s, coinciden con las c�
 
 <Fragment slot="fenomeno">
 
-Todos los cuerpos tiran a la vez; cerca de un planeta domina él.
+Todos los cuerpos tiran a la vez.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Sin la suma, la (9.4) es la (9.1); cerca de Júpiter domina su término: la (9.2). El último resta la aceleración del Sol hacia cada planeta, porque el Sol no es inercial.
+Sin la suma, la (9.4) es la (9.1), y cerca de Júpiter, la (9.2). El último término resta la aceleración del Sol hacia cada planeta, porque el marco centrado en el Sol no es inercial.
 
 </Fragment>
 
@@ -292,19 +295,19 @@ Sin la suma, la (9.4) es la (9.1); cerca de Júpiter domina su término: la (9.2
   <VoyagerSpeedChart client:visible />
 </Figure>
 
-La V2 superó la rapidez de escape del Sol durante el sobrevuelo de Júpiter, el 9 de julio de 1979; tras Neptuno le quedan <Equation inline latex="\sqrt{2\varepsilon} = 14{,}86\ \mathrm{km/s}" /> lejos del Sol, 3,13 UA por año, como da la NSSDCA <Cite id="nssdca-v2" sources={frontmatter.sources} />.
+Tras Neptuno le quedan <Equation inline latex="\sqrt{2\varepsilon} = 14{,}86\ \mathrm{km/s}" /> lejos del Sol: 3,13 UA/año, la cifra que publica la NSSDCA <Cite id="nssdca-v2" sources={frontmatter.sources} />.
 
 <DataTable id="asistencia-gravitatoria-encuentros" />
 
 <Figure
   type="simulacion"
   showBadge={false}
-  caption="Laboratorio del sobrevuelo con las ecuaciones (9.2) y (9.3): a la izquierda, la hipérbola en el marco del planeta; a la derecha, el triángulo de velocidades en el del Sol. Arrastra la máxima aproximación, o muévela con las flechas, y cambia el lado de paso: para la V2 en Júpiter la ganancia es máxima cerca de 3 radios, donde δ = θ_in: v⃗∞ sale paralela a V⃗ₚ y |v| llega a 20,37 km/s; más cerca gana menos. El lado decide: por delante, a 20 radios, saldría a 6,76 km/s, más lenta que al llegar."
+  caption="Laboratorio del sobrevuelo con las ecuaciones (9.2) y (9.3): un panel muestra la hipérbola en el marco del planeta y el otro, el triángulo de velocidades en el del Sol. Arrastra la máxima aproximación, o muévela con las flechas, y cambia el lado de paso: para la V2 en Júpiter la ganancia es máxima cerca de 3 radios, donde δ iguala a θ_in, el ángulo de llegada entre V⃗ₚ y v⃗∞; entonces v⃗∞ sale paralela a V⃗ₚ, |v| llega a 20,37 km/s y más cerca se gana menos. El lado decide: por delante, a 20 radios, saldría a 6,76 km/s, más lenta que al llegar."
   source={{ text: 'Simulación del autor sobre src/lib/physics/gravitation.ts' }}
 >
   <FlybyLab
     client:visible
-    footnote={`Cada paso se ve en ${FLYBY_LAPSE} s a 1×, dure horas o semanas; el dibujo indica cuántas veces más rápido va, y la lectura t va en segundos reales. Lo que el modelo deja fuera: es plano, y los giros reales de la V2 en Neptuno y de la V1 en Saturno salen de la eclíptica; no hay lunas, y el planeta solo actúa dentro de su esfera de influencia (cónicas empalmadas).`}
+    footnote={`Cada sobrevuelo se ve en ${FLYBY_LAPSE} s a 1×, dure horas o semanas; el dibujo indica cuántas veces más rápido va, y la lectura t va en segundos reales. Lo que el modelo deja fuera: es plano, y los giros reales de la V2 en Neptuno y de la V1 en Saturno salen de la eclíptica; no hay lunas, y el planeta solo actúa dentro de su esfera de influencia (cónicas empalmadas).`}
   />
 </Figure>
 
@@ -314,39 +317,39 @@ La V2 superó la rapidez de escape del Sol durante el sobrevuelo de Júpiter, el
 
 <Fragment slot="caso">
 
-En el memorando técnico 312-130 de JPL (23 de agosto de 1961, firmado «Minovich»), M. A. Minovitch calculó trayectorias por cónicas empalmadas: dentro de la esfera de influencia de un planeta solo actúa él; fuera, solo el Sol <Cite id="minovitch-1961" sources={frontmatter.sources} />. Flandro las aplicó en 1966 a la oportunidad de 1978 hacia los cuatro gigantes <Cite id="flandro-1966" sources={frontmatter.sources} />. Hoy JPL Horizons publica la trayectoria de la V2 <Cite id="horizons" sources={frontmatter.sources} /> <Cite id="horizons-api" sources={frontmatter.sources} />; la navegación usa programas cerrados como MONTE <Cite id="monte" sources={frontmatter.sources} />.
+En el memorando técnico 312-130 de JPL (23 de agosto de 1961, firmado «Minovich»), M. A. Minovitch calculó trayectorias por cónicas empalmadas <Cite id="minovitch-1961" sources={frontmatter.sources} />. Flandro aplicó el método en 1966 a la oportunidad de 1978 hacia los cuatro gigantes <Cite id="flandro-1966" sources={frontmatter.sources} />, y las Voyager despegaron en 1977 para aprovecharla <Cite id="nasa-planetary-voyage" sources={frontmatter.sources} />. Hoy JPL Horizons publica la trayectoria de la V2 <Cite id="horizons" sources={frontmatter.sources} /> <Cite id="horizons-api" sources={frontmatter.sources} />; la navegación usa programas cerrados como MONTE <Cite id="monte" sources={frontmatter.sources} />.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Son la (9.2) en el marco del planeta y la (9.3) para volver al del Sol; Flandro ve el planeta como «a field of force moving relative to the inertial heliocentric coordinate system» <Cite id="flandro-1966" sources={frontmatter.sources} />.
+El memorando define la esfera de influencia, <Equation inline latex="\rho^* = (m/M)^{2/5}\, c" /> (c, distancia al Sol) <Cite id="minovitch-1961" sources={frontmatter.sources} />: dentro solo actúa el planeta, la (9.2); fuera, solo el Sol, la (9.1), y la (9.3) los empalma. Diseñar es elegir <Equation inline latex="r_p" /> para que δ dirija la sonda al planeta siguiente.
 
 </Fragment>
 
 <Fragment slot="justificacion">
 
-La alternativa no física, una trayectoria precalculada o «cada planeta suma tanto», no responde qué pasa si la sonda llega una hora tarde o 1000 km más cerca, ni explica que Neptuno restara 2,1 km/s. La (9.2) da δ para cualquier <Equation inline latex="r_p" /> y <Equation inline latex="v_\infty" />.
+Las alternativas no físicas, una animación guionizada o una regla «cada planeta suma tanto», no responden qué pasa si la sonda llega una hora tarde o 1 000 km más cerca, ni explican que Neptuno restara 2,1 km/s; la (9.2) da δ para cualquier <Equation inline latex="r_p" /> y <Equation inline latex="v_\infty" />. La trayectoria de Horizons no es un guion: sale del modelo, cónicas empalmadas hasta 1989 y un ajuste de 2022 a datos de seguimiento <Cite id="horizons" sources={frontmatter.sources} />.
 
 </Fragment>
 
 <Fragment slot="balance">
 
-Se gana la gira de cuatro planetas con energía de los planetas. Cuestan integrar n cuerpos, la sensibilidad a la llegada (<Equation inline latex="r_p" /> fija δ y el destino siguiente), ventanas raras, pues la alineación «occurs about every 175 years» <Cite id="nasa-planetary-voyage" sources={frontmatter.sources} />, y correcciones: el ajuste de 2022 estima 24 maniobras de la V2 <Cite id="horizons" sources={frontmatter.sources} />.
+Se gana una gira de cuatro planetas pagada por ellos. Cuesta integrar n cuerpos, afinar la llegada (<Equation inline latex="r_p" /> fija δ y el destino siguiente), esperar una alineación poco frecuente, que se repite «about every 175 years» <Cite id="nasa-planetary-voyage" sources={frontmatter.sources} />, y corregir el rumbo: el ajuste de 2022 estima 24 maniobras de la V2 <Cite id="horizons" sources={frontmatter.sources} />.
 
 </Fragment>
 
 </UseCase>
 
-<Callout variant="clase" title="Módulo 4 · Temas 1 y 3, Módulo 3 · Tema 02 y una extensión">
+<Callout variant="clase" title="Módulo 4 · Temas 01, 03 y 04; Módulo 3 · Tema 02; y una extensión">
 
-La (9.1) es la gravitación del Tema 1 y la energía potencial del Tema 3; la suma de la (9.4), la superposición del Tema 1. El Tema 3 llama ligada a la trayectoria con <Equation inline latex="E < 0" /> e hiperbólica a la de <Equation inline latex="E > 0" />, con la Voyager 1 de ejemplo: la V2 pasó de una a otra en Júpiter (figura 9.4). Visto desde el planeta, el sobrevuelo es un choque elástico del Módulo 3: e = 1. El cambio de marco y la hipérbola son extensión.
+La (9.1) es la gravitación del Tema 01 y la energía potencial del Tema 03; la (9.4), la superposición del Tema 01. El Tema 03 da la Voyager 1 como ejemplo de trayectoria hiperbólica, <Equation inline latex="E > 0" />; la ligada del paso 1 es una elipse de Kepler (Tema 04). Desde el planeta, el sobrevuelo es un choque elástico (Módulo 3) con coeficiente de restitución 1. Vis-viva, el cambio de marco y la hipérbola son extensión.
 
 </Callout>
 
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-En el Tema 7, este sobrevuelo sería un rebote con e = 1. En el Tema 8 se intercambia momento angular; aquí, momento lineal con Júpiter. En el Tema 3 la fuerza centrípeta la da el piso; en una órbita, la gravedad.
+Como en los choques del Tema 7, sonda y Júpiter conservan el momento lineal; rueda y nave, en el Tema 8, el angular. En el Tema 3 la fuerza centrípeta la da el piso; en una órbita, la gravedad.
 
 </Connections>
 
