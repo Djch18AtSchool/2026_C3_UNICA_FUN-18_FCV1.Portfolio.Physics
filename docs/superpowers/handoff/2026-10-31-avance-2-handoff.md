@@ -33,15 +33,14 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
     Voyager desde JPL Horizons → `src/data/voyager-speed.json`).
   - **Temas 1 a 5:** sus datos de leyenda pasaron a tablas y cada uno ganó una frase de
     conexión recíproca hacia un tema nuevo (pendiente 2); `updated` = 2026-10-30.
-  - En paralelo corre una tarea compartida de tipografía (signo menos verdadero, unidades de
-    tiempo en la barra de reproducción, suites e2e compartidas que recorren los nueve temas).
-    Después viene una revisión final de toda la rama.
-- **Puerta en `avance-2` antes de la tarea compartida (`dd24743`):** `pnpm run check` sin
-  errores ni avisos; 1 824 pruebas unitarias en 153 archivos, cobertura 98,7 % de sentencias,
-  93,76 % de ramas, 99,04 % de funciones y 99,23 % de líneas; 11 páginas construidas (portada,
-  404 y los nueve temas); e2e 394 pasan y 3 fallan (`a11y.spec.ts:159` no aceptaba el nombre
-  "Tabla N.k desplazable"; asignado a la tarea compartida).
-- **Puerta final: pendiente de la revisión final.**
+  - **Hechas:** la tarea compartida de tipografía (signo menos verdadero, unidades de tiempo en
+    la barra de reproducción, suites e2e compartidas que recorren los nueve temas) y la revisión
+    final de toda la rama, con su ronda de correcciones (R35 a R37).
+- **Puerta final en `avance-2` (`779aff4`, último commit de código; después solo cambia este
+  traspaso):** `pnpm run check` sin errores ni avisos; 1 879 pruebas unitarias en 154 archivos,
+  cobertura 98,70 % de sentencias, 93,82 % de ramas, 99,04 % de funciones y 99,24 % de líneas;
+  11 páginas construidas (portada, 404 y los nueve temas); e2e 475 pasan y 0 fallan
+  (`--workers=2`).
 - **Sitio:** https://djch18atschool.github.io/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics/
 - **Repositorio:** https://github.com/Djch18AtSchool/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics
 - **Entrega:** Avance 2 (Temas 6 a 9; los Temas 1 a 5 se vuelven a evaluar), sábado
@@ -80,8 +79,12 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
 
 1. **Leer los cuatro textos nuevos (Temas 6 a 9).** Son borradores de Claude y cuentan como
    autoría de Dylan ante el profesor (el plagio se sanciona). El botón "Copiar Markdown" de
-   cada tema entrega el texto completo, con las tablas. Cada uno queda en 644 a 649 palabras
-   de prosa, bajo el tope de 650; si se agrega algo, hay que quitar otro tanto.
+   cada tema entrega el texto completo, con las tablas. Cada uno queda en 644 a 650 palabras
+   de prosa, con el tope en 650; si se agrega algo, hay que quitar otro tanto. La revisión
+   final cambió unas pocas frases (R37): en el Tema 6, «Cerca de detenerse» por «Al
+   detenerse»; en el Tema 9, «según los datos de Horizons» en la primera frase y, para seguir
+   en 650, «Pero en Júpiter» → «En Júpiter», «la cifra que publica la NSSDCA» → «la cifra de la
+   NSSDCA» y «una alineación poco frecuente, que se repite» → «una alineación que se repite».
 2. **Releer los Temas 1 a 5.** Los datos de las leyendas pasaron a tablas; las leyendas quedaron
    en dos o tres frases y algunas filas son cálculos nuevos del código. Cada tema ganó una frase
    de conexión (borrador de Claude) y el tema nuevo en `related`:
@@ -101,8 +104,9 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
      casos el agarre limita la desaceleración.» Prosa 648.
    - **Tema 5 (háptico):** tres tablas (vibración, energía del resorte, trabajo del dedo en dos
      preajustes); la aritmética de la figura 5.2 vive ahora en la leyenda de su tabla. Frase
-     nueva: «Con el Tema 7: veo un choque como un resorte breve; e < 1 mide la energía que no
-     devuelve.» Para volver a 650 palabras se acortaron **solo las dos frases que redactó
+     nueva: «Con el Tema 7: veo un choque como un resorte breve; con e < 1, no devuelve toda la
+     energía.» (la revisión final corrigió «e < 1 mide la energía que no devuelve»: e no mide
+     energía; lo perdido es la fracción 1 − e²). Para volver a 650 palabras se acortaron **solo las dos frases que redactó
      Claude** (esta y la del Tema 3 del 13 de octubre, que ahora dice «allí sentimos como peso
      la normal del piso, no m g; aquí, el contacto del gatillo, venga de un motor o de un
      resorte»). **Sigue siendo decisión de Dylan** el pendiente 3 del Avance 1: conservar,
@@ -135,6 +139,13 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
 6. **Retroalimentación del docente sobre el Avance 1.** Cuando llegue, se trata aparte (la
    especificación del Avance 2 la deja fuera de alcance). Los Temas 1 a 5 se vuelven a evaluar
    con este avance.
+7. **Voz de las líneas de fuente de las figuras: elegir una.** Hoy conviven dos: la mayoría dice
+   «del autor» o «por el autor» («Gráfica del autor con…», «Curva calculada por el autor
+   con…»), pero tres figuras del Tema 7 y dos del Tema 2 dicen «que calculé» («Curva que
+   calculé con…»). Decidir cuál queda y unificar las demás.
+8. **Nota del laboratorio del Tema 9 (commit `7e83acb`).** Su redacción, «la lectura t marca el
+   tiempo real», es de Claude y no se ha leído: confirmar que se entiende (la lectura escala a
+   horas o días mientras el sobrevuelo se ve en pocos segundos).
 
 ## Decisiones vigentes que condicionan el contenido
 
@@ -184,7 +195,14 @@ Final.
   por delante" se ilustra con r_p = 20 R_J. La ganancia máxima en Júpiter está cerca de
   3 R_J.
 - **Una sola insignia de recurso por tema:** solo la figura del recurso prescrito.
-- **Voz en primera persona** en los textos y en las líneas de fuente de las figuras.
+- **Voz:** los textos van en primera persona. Las líneas de fuente de las figuras dicen casi
+  todas «del autor» o «por el autor»; el Tema 7 y parte del Tema 2 dicen «que calculé»
+  (pendiente 7).
+- **Unidad de tiempo del transporte, por laboratorio (R35):** segundos fijos en los Temas 1, 3
+  y 6 y en la maniobra del Tema 8, porque sus lecturas, ejes y notas hablan en segundos; el
+  Tema 9 elige la unidad sola (horas o días). Las notas de los Temas 3 y 6 conservan «la lectura
+  t va en segundos reales», como se revisaron. Los decimales los fija el paso de la línea de
+  tiempo (R37): el UDDS se lee en segundos enteros.
 - **Los temas futuros no existen en el sitio:** los Temas 10 a 13 no tienen nombre, enlace ni
   página; la Entrega Final es la única sección con la insignia "Se publica con su consigna".
   `tests/e2e/site-pages.spec.ts` lo comprueba.
@@ -199,7 +217,7 @@ Final.
 
 ## Decisiones que tomó Claude sin consultar
 
-Del libro de decisiones (`progress.md`, R1 a R34). Formato: qué se decidió; por qué; qué cuesta
+Del libro de decisiones (`progress.md`, R1 a R37). Formato: qué se decidió; por qué; qué cuesta
 si fue un error.
 
 - **R1:** los cuatro temas (y las tareas base) se hicieron en paralelo, cada uno en su
@@ -294,10 +312,24 @@ si fue un error.
 - **R34:** un dato copiado de una fuente que solo usa su tabla puede quedar en el módulo de la
   tabla con su fuente; si ya existe en otro lugar, se importa (aplica a los Temas 1 a 3; los
   valores de `tyres.ini` del Tema 4 se quedan en su tabla); costo: mover datos después.
+- **R35:** la unidad de tiempo del transporte la fija cada laboratorio: segundos en los Temas 1,
+  3 y 6 y en la maniobra del Tema 8, automática en el Tema 9; las notas de los Temas 3 y 6 se
+  quedan como se revisaron; la unidad automática pasaba a minutos en ciclos largos y chocaba con
+  cursores, ejes y lecturas en segundos; costo: una propiedad `timeUnit` por laboratorio y sus
+  pruebas.
+- **R36:** las dos gráficas prescritas de los Temas 6 y 9 abren su línea de fuente con el autor
+  («Gráfica del autor con las ecuaciones (6.2) a (6.4); …» y «Gráfica del autor; datos:
+  NASA/JPL Horizons, …»); todas las demás figuras lo dicen y el recurso prescrito es lo que se
+  califica; costo: dos cadenas.
+- **R37:** la revisión final corrigió menores que ve el lector: «según los datos de Horizons» y
+  la cita de astro-par en el Tema 9 (con tres recortes para seguir en 650), subíndices con
+  tilde en el Tema 8 (L_máx, ω_máx, τ_máx, T_mín), decimales del transporte en segundos fijos
+  según el paso, la frase de e < 1 del Tema 5 y «≈ 223,6 m» en la leyenda 3.2; Dylan lee cada
+  palabra (R30) y son errores visibles; costo: frases que Dylan debe releer (pendiente 1).
 
 ## Menores diferidos (opcionales, sin efecto en la entrega)
 
-Lo que la tarea compartida y la revisión final no recojan queda como está. Los del Avance 1
+Lo que la tarea compartida y la revisión final no recogieron queda como está. Los del Avance 1
 siguen en su traspaso.
 
 - **Compartidos:** colores cercanos (urano y `--chart-6` ΔE 5,5; tenis y `--chart-5` 7,7; sol y
@@ -313,10 +345,8 @@ siguen en su traspaso.
   constantes duplicadas (`ENERGY_PRECISION`, `J_PER_KWH`, URL de la EPA dos veces); `--chart-1`
   significa tres cosas entre figuras; en el paso 3 la línea de fricción queda bajo la de
   P_freno; el término Bv del paso 2 se parece a la carga en carretera del paso 4; la barra de
-  frenado perdió su morado; la pista "sin él, la fricción no haría falta" vale solo con el
-  P_máx por omisión; el laboratorio anuncia lecturas al hidratar; "Tiempo" frente a "Línea de
-  tiempo"; texto "Al detenerse" algo menos preciso que "Cerca de detenerse"; "seis energías
-  acumuladas" sin verificar.
+  frenado perdió su morado; el laboratorio anuncia lecturas al hidratar; "Tiempo" frente a
+  "Línea de tiempo"; "seis energías acumuladas" sin verificar.
 - **Tema 7:** umbral de Godot rotulado "Godot (Jolt)"; supersuave 0,8644 mostrado como 0,86;
   `requirePositiveInteger` duplicado; la docstring de `resolveContact` debería decir que Box2D
   relaja todos los contactos; `e` sigue siendo obligatorio con `restitutionAt`; constantes de
@@ -331,9 +361,9 @@ siguen en su traspaso.
   movimiento reducido a 4×/8× se puede saltar la ventana de descarga; "t" del transporte en
   segundos de reproducción frente a horas de órbita; "un día en 12 s" ≈ 14 s el día de la
   descarga; la hora de órbita se congela durante la descarga; tabla 8.1 con L_máx y masa
-  alineadas a la izquierda y masa sin unidad; "5000 rpm" frente a "5 000"; "Volver arriba"
-  tapa el borde del panel B en 360 px; punto del cubo como ⊙; "Tierra" sobre el borde; id SVG
-  fijo; título de Hasha con paréntesis en español; "En su tope" podría repetir la consigna.
+  alineadas a la izquierda y masa sin unidad; "Volver arriba" tapa el borde del panel B en
+  360 px; punto del cubo como ⊙; "Tierra" sobre el borde; id SVG fijo; "En su tope" podría
+  repetir la consigna.
 - **Tema 9:** registro de encuentro sin tipo y `analyseEncounter` de 75 líneas en el script;
   `escapeSpeedSeries` con GM global; literales en pruebas (retroceso sin encadenar
   masa × Júpiter × Δv); `planarSideOf` prefiere "detrás" en empate; falta la aserción
@@ -342,10 +372,8 @@ siguen en su traspaso.
   texto con el mismo nombre; lado de Saturno de la V1 probado indirectamente; funciones y
   archivos largos en las gráficas (≈ 445 líneas); `formatOffset(0)` sin signo; "v∞" sin flecha
   en las etiquetas; serie vacía de la leyenda sin verificar; el nombre accesible no dice
-  7,62 km/s; la fuente astro-par no se cita en el cuerpo; "c, su distancia" algo ambiguo;
-  "(9.4), su superposición" escueto.
-- **Temas 1 a 5:** leyenda 3.2 "9,81/0,2094² = 223,6" (con el intermedio redondeado da 223,7);
-  comentario de `jumpPresets` sobre `JUMP_SCALES`; conexión del Tema 2 impersonal; `MM_PER_M`
+  7,62 km/s; "c, su distancia" algo ambiguo; "(9.4), su superposición" escueto.
+- **Temas 1 a 5:** comentario de `jumpPresets` sobre `JUMP_SCALES`; conexión del Tema 2 impersonal; `MM_PER_M`
   definido tres veces y `toMetres` dos; la frase del Tema 3 en el Tema 5 quedó más elíptica;
   cita de Isola dentro de la línea de fuente; `markdownRows` duplicado en pruebas.
 
