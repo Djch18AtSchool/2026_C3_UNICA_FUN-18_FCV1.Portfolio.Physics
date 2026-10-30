@@ -401,7 +401,7 @@ tema. Referencia de forma: `src/content/topics/gravedad-artificial.mdx` y
     hipérbola (cámara rápida indicada) y, al lado, el triángulo de velocidades en el marco del
     Sol. Lecturas: e, δ, |Δv|, |v| antes y después. Preajustes: V2 en Júpiter, Saturno, Urano y
     Neptuno; V1 en Júpiter (datos de la tabla). Lección: acercarse más no siempre da más (máximo
-    cerca de 2 R_J para la V2) y el lado de paso decide ganar o perder.
+    cerca de 3 R_J para la V2, donde δ = θ_in) y el lado de paso decide ganar o perder.
 - **Caso de uso:** frente a una trayectoria precalculada o una regla "el planeta suma Δv": no
   responde a llegar una hora tarde o 1000 km más cerca, ni explica que Neptuno restara 2,1 km/s;
   balance: se gana la gira de cuatro planetas con el combustible de uno; cuesta integrar n
