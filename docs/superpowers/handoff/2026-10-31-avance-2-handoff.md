@@ -81,7 +81,7 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
    autoría de Dylan ante el profesor (el plagio se sanciona). El botón "Copiar Markdown" de
    cada tema entrega el texto completo, con las tablas. Cada uno queda en 644 a 650 palabras
    de prosa, con el tope en 650; si se agrega algo, hay que quitar otro tanto. La revisión
-   final cambió unas pocas frases (R37): en el Tema 6, «Cerca de detenerse» por «Al
+   final cambió unas pocas frases (R37): en el Tema 6, «Al detenerse» → «Cerca de
    detenerse»; en el Tema 9, «según los datos de Horizons» en la primera frase y, para seguir
    en 650, «Pero en Júpiter» → «En Júpiter», «la cifra que publica la NSSDCA» → «la cifra de la
    NSSDCA» y «una alineación poco frecuente, que se repite» → «una alineación que se repite».
@@ -336,17 +336,22 @@ siguen en su traspaso.
   diagrama ≈ 10; neptuno ≈ acento en claro); baloncesto 3,03:1 sobre `--bg` en claro, justo;
   tolerancia 0,05 del ayudante ΔE. `DataTable`: escape de saltos de línea y barras invertidas
   en celdas Markdown, `expandTables` no distingue bloques de código, CSS de leyenda duplicado,
-  el nombre accesible de tablas y figuras no lleva "Tabla N.k". `responsive.spec.ts` con
-  `PHASE_1_TOPIC_COUNT = 5` y sin aserción explícita de anterior/siguiente Tema 5 → Tema 6 (si
-  la tarea compartida no lo cubre). `ChoiceField` del Tema 8, candidato a componente
-  compartido.
+  el nombre accesible de tablas y figuras no lleva "Tabla N.k". `responsive.spec.ts` sin
+  aserción explícita de anterior/siguiente Tema 5 → Tema 6. `ChoiceField` del Tema 8,
+  candidato a componente compartido. Transporte: en segundos automáticos (Tema 2, salto de
+  menos de 1 s) varios pasos seguidos anuncian el mismo `aria-valuetext`; con unidad fija y
+  duración 0 caería a 2 decimales (ningún laboratorio lo hace); los commits intermedios
+  `0be25e6` y `f997750` no pasan una prueba de `FlybyLab` (la arregla `68e1f5f`). El cursor
+  de algunas gráficas lleva otros decimales que el transporte para el mismo instante (Tema 8
+  maniobra «30,0 s» frente a «t = 30,00 s»; Tema 6 en HWFET y US06, 0 frente a 1 decimal):
+  misma unidad, otra precisión.
 - **Tema 6:** muestras de ciclos mutables (`readonly`); triple validación de tiempo creciente
   (el script debería usar el esquema compartido); `fetch` del script sin tiempo de espera;
   constantes duplicadas (`ENERGY_PRECISION`, `J_PER_KWH`, URL de la EPA dos veces); `--chart-1`
   significa tres cosas entre figuras; en el paso 3 la línea de fricción queda bajo la de
   P_freno; el término Bv del paso 2 se parece a la carga en carretera del paso 4; la barra de
   frenado perdió su morado; el laboratorio anuncia lecturas al hidratar; "Tiempo" frente a
-  "Línea de tiempo"; "seis energías acumuladas" sin verificar.
+  "Línea de tiempo".
 - **Tema 7:** umbral de Godot rotulado "Godot (Jolt)"; supersuave 0,8644 mostrado como 0,86;
   `requirePositiveInteger` duplicado; la docstring de `resolveContact` debería decir que Box2D
   relaja todos los contactos; `e` sigue siendo obligatorio con `restitutionAt`; constantes de
@@ -363,7 +368,8 @@ siguen en su traspaso.
   descarga; la hora de órbita se congela durante la descarga; tabla 8.1 con L_máx y masa
   alineadas a la izquierda y masa sin unidad; "Volver arriba" tapa el borde del panel B en
   360 px; punto del cubo como ⊙; "Tierra" sobre el borde; id SVG fijo; "En su tope" podría
-  repetir la consigna.
+  repetir la consigna; el título de Hasha lleva una elipsis (el título completo de NTRS podría
+  reemplazarla).
 - **Tema 9:** registro de encuentro sin tipo y `analyseEncounter` de 75 líneas en el script;
   `escapeSpeedSeries` con GM global; literales en pruebas (retroceso sin encadenar
   masa × Júpiter × Δv); `planarSideOf` prefiere "detrás" en empate; falta la aserción
