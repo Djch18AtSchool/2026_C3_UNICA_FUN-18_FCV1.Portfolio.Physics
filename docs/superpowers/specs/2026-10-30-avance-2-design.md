@@ -82,14 +82,16 @@ Anterior y siguiente enlazan del Tema 5 al 6 y del 9 a ninguno.
 
 ### 4.2 Tabla de datos (`src/components/ui/DataTable.astro`)
 
-- Props: `caption` (título de la tabla), `columns` (`key`, `label`, `unit` opcional, `align`
-  `'text' | 'num'`, `precision` opcional para números), `rows` (registros con números o
-  cadenas ya formateadas), `source` (`{ text }`, como en `Figure`), `id` opcional.
+- En el MDX se escribe `<DataTable id="…" />`. La tabla vive en un registro tipado por tema
+  (`src/lib/tables/topics/<slug>.ts`): `caption` (título), `columns` (`key`, `label`, `unit`
+  opcional, `align` `'text' | 'num'`, `precision` obligatoria en las numéricas), `rows`
+  (números o textos) y `source` (`{ text }`, como en `Figure`). El registro es la única fuente
+  de la tabla para la página, el tiempo de lectura y "Copiar Markdown".
 - Se numera por tema como las figuras ("Tabla 6.1") y se puede citar en la prosa.
 - HTML semántico: `<table>` con `<caption>`, `<th scope="col">` con la unidad entre paréntesis,
   primera columna como `<th scope="row">` cuando nombra la fila. Números con `formatNumber`
-  (coma decimal, `precision` de la columna o los decimales globales), alineados a la derecha
-  con cifras tabulares.
+  (coma decimal, con la `precision` de su columna: la precisión es la del dato, así que las
+  tablas no siguen el ajuste global de decimales), alineados a la derecha con cifras tabulares.
 - En móvil la tabla se desplaza dentro de su contenedor (`overflow-x: auto`, región con
   `role="region"`, `aria-label` y `tabindex="0"` solo cuando desborda), nunca la página.
 - Estilo de la casa: mismo marco que `Figure`, filetes finos, sin cebra, tipografía de las
@@ -236,17 +238,20 @@ tema. Referencia de forma: `src/content/topics/gravedad-artificial.mdx` y
     sincronizado. Línea de fuente: "Ciclo UDDS y coeficientes de carga: EPA (datos reales);
     reparto regenerativo/fricción: cálculo propio con el modelo y los parámetros de FASTSim".
   - **Tablas:** el vehículo (masa, A, B, C en EPA y en SI); el balance UDDS / HWFET / US06
-    (tracción, frenado, ΔK, batería, fracción: 43,9 %, 13,6 %, 34,5 %; potencia de frenado
-    máxima, desaceleración máxima). Siempre con el denominador explícito (pitfall 5).
+    (tracción, frenado, ΔK, batería, fracción; potencia de frenado máxima, desaceleración
+    máxima). Siempre con el denominador explícito (pitfall 5). Las cifras del sitio son las que
+    calcula su propio modelo con los valores por defecto (η constante 0,80, P_máx 239 kW, sin
+    f(v)): 43,5 % en UDDS, 12,8 % en HWFET y 32,1 % en US06 de la tracción vuelve a la batería. La
+    cadena completa de FASTSim de la investigación (43,9 %, 13,6 %, 34,5 %) se menciona solo como
+    contraste.
   - **Laboratorio (sin insignia):** reproduce un ciclo con el auto en movimiento y el flujo de
     potencia en vivo (batería ↔ motor ↔ ruedas ↔ frenos, grosor proporcional), barras
     acumuladas y la gráfica de energía con cursor arrastrable. Parámetros: η, P_máx; ajustes:
     ciclo (UDDS, HWFET, US06), f(v) sí/no, velocidad, repetir. Preajustes: Model 3 en ciudad,
     en carretera, agresivo; batería fría o llena (P_máx 10 kW: 0,487 kWh); Nissan LEAF 2025
-    (`KWB115`: ETW 3875 lb, A = 25,89 lbf, B = 0,3449 lbf/mph, C = 0,019 45 lbf/mph²; 37,4 % en
-    el UDDS). Lecturas: v, P en ruedas, E_batería, E_fricción, % de la
+    (`KWB115`: ETW 3875 lb, A = 25,89 lbf, B = 0,3449 lbf/mph, C = 0,019 45 lbf/mph²). Lecturas: v, P en ruedas, E_batería, E_fricción, % de la
     tracción recuperado. La reproducción va acelerada (`TIME_LAPSE`, indicado en la página).
-- **Caso de uso:** justificación frente a la constante "recupera X %" (13,6 % a 43,9 % según el
+- **Caso de uso:** justificación frente a la constante "recupera X %" (12,8 % a 43,5 % según el
   ciclo) y frente a una tabla de autonomía; balance: se gana una autonomía que responde al ciclo,
   al auto y a la batería; cuesta conocer A, B, C, η y los límites, y el modelo no ve frío ni SOC
   salvo que se los den. Coherencia con los MPGe de la EPA solo como indicio (NO CONFIRMADO).
