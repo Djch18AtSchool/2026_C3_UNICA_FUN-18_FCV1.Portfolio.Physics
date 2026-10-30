@@ -7,3 +7,4 @@ export * from './friction';
 export * from './spring';
 export * from './clock';
 export * from './energy';
+export * from './rotation';
