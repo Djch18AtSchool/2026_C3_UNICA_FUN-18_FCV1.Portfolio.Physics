@@ -36,12 +36,13 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
   - **Hechas:** la tarea compartida de tipografía (signo menos verdadero, unidades de tiempo en
     la barra de reproducción, suites e2e compartidas que recorren los nueve temas), la revisión
     final de toda la rama, con su ronda de correcciones (R35 a R37), y la pasada visual final en
-    360 px y 1280 px, con la suya (R38, R39).
-- **Puerta final en `avance-2` (`ff75427`, último commit de código, tras la pasada visual;
-  después solo cambia este traspaso):** `pnpm run check` sin errores ni avisos; 1 923 pruebas
-  unitarias en 157 archivos, cobertura 98,72 % de sentencias, 93,85 % de ramas, 99,06 % de
-  funciones y 99,25 % de líneas; 11 páginas construidas (portada, 404 y los nueve temas); e2e
-  478 pasan y 0 fallan (`--workers=2`).
+    360 px y 1280 px, con la suya (R38 a R40).
+- **Puerta final en `avance-2` (`e90ae61`, último commit de código, tras la pasada visual y
+  R40; después solo cambia este traspaso):** `pnpm run check` sin errores ni avisos; 1 923
+  pruebas unitarias en 157 archivos, cobertura 98,72 % de sentencias, 93,85 % de ramas, 99,06 %
+  de funciones y 99,25 % de líneas; 11 páginas construidas (portada, 404 y los nueve temas); e2e
+  478 pasan y 0 fallan (`--workers=2`) en `ff75427`, y tras R40 (solo tablas) vuelven a pasar
+  las de tablas, Temas 2 y 4 y herramientas del tema (54).
 - **Sitio:** https://djch18atschool.github.io/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics/
 - **Repositorio:** https://github.com/Djch18AtSchool/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics
 - **Entrega:** Avance 2 (Temas 6 a 9; los Temas 1 a 5 se vuelven a evaluar), sábado
@@ -95,7 +96,8 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
    - **Tema 2 (salto):** tabla de constantes de Celeste y Super Mario Bros. con su conversión a
      SI; las líneas de fuente remiten a ella. Frase nueva, impersonal: «En el Tema 7, entre
      rebotes la pelota es un lanzamiento vertical, la (2.1), y el motor la integra con el mismo
-     Euler semi-implícito.» La lectura subió 1 min.
+     Euler semi-implícito.» La lectura subió 1 min y volvió a bajar con R40 (las celdas de
+     números no cuentan): 7 min.
    - **Tema 3 (hábitat):** tablas de hábitats, del Toro de Stanford y de los límites de confort
      de los cinco autores que recopila SpinCalc (nueva, por autor). Frase nueva, en primera
      persona: «Al girar el hábitat desde dentro le doy momento angular: la nave gira al revés
@@ -220,7 +222,7 @@ Final.
 
 ## Decisiones que tomó Claude sin consultar
 
-Del libro de decisiones (`progress.md`, R1 a R39). Formato: qué se decidió; por qué; qué cuesta
+Del libro de decisiones (`progress.md`, R1 a R40). Formato: qué se decidió; por qué; qué cuesta
 si fue un error.
 
 - **R1:** los cuatro temas (y las tareas base) se hicieron en paralelo, cada uno en su
@@ -341,6 +343,12 @@ si fue un error.
   como ya lo escriben figuras y prosa: `formatNumber` con unidad °, ′ o ″ no deja espacio, en
   todo el sitio, Temas 1 a 5 incluidos (°C y °/s conservan el espacio); costo: una regla en
   `format.ts` y sus pruebas.
+- **R40:** sin excepciones, toda columna de números va a la derecha, también en los Temas 1 a 5:
+  «En el código» y «En SI» de la tabla 2.1 y los valores del tyres.ini de las tablas 4.3 y 4.4
+  (escritos como en el archivo, con punto); son tablas nuevas de este avance que Dylan aún no
+  lee, y la coherencia del sitio pesa más; la prueba del registro lo exige ahora en toda tabla.
+  Como los números se miran y no se leen, la lectura del Tema 2 baja de 8 a 7 min; costo:
+  cinco columnas que vuelven a texto si Dylan prefiere el formato del archivo a la izquierda.
 
 ## Menores diferidos (opcionales, sin efecto en la entrega)
 
@@ -396,10 +404,7 @@ siguen en su traspaso.
   7,62 km/s; "c, su distancia" algo ambiguo; "(9.4), su superposición" escueto.
 - **Temas 1 a 5:** comentario de `jumpPresets` sobre `JUMP_SCALES`; conexión del Tema 2 impersonal; `MM_PER_M`
   definido tres veces y `toMetres` dos; la frase del Tema 3 en el Tema 5 quedó más elíptica;
-  cita de Isola dentro de la línea de fuente; `markdownRows` duplicado en pruebas; columnas de
-  números escritas como texto, alineadas a la izquierda, en la tabla 2.1 («En el código», «En
-  SI») y en la 4.4 («Temperatura», copiada tal cual del archivo): la prueba del registro las
-  lista como excepción hasta que Dylan decida.
+  cita de Isola dentro de la línea de fuente; `markdownRows` duplicado en pruebas.
 
 ## Forma de trabajo acordada
 
