@@ -1,4 +1,5 @@
 import type { JSX } from 'react';
+import { formatNumber } from '../../../lib/format';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { arrow, mathRuns, spinArc, type MathPart, type Point } from './diagramGeometry';
 import { DIAGRAM_FACTS, WHEEL_COLORS } from './wheelFigures';
@@ -243,7 +244,8 @@ function AxisView(): JSX.Element {
  * view). I_s/I_w ≈ 1940 for the 6U and the RW400, so the wheel turns about 1940 times faster.
  */
 export default function ExchangeDiagram(): JSX.Element {
-  const ratio = String(DIAGRAM_FACTS.inertiaRatio);
+  const ratio = formatNumber(DIAGRAM_FACTS.inertiaRatio, { precision: 0 });
+  const wheelPerBody = formatNumber(-DIAGRAM_FACTS.inertiaRatio, { precision: 0 });
   return (
     <svg
       role="img"
@@ -281,7 +283,7 @@ export default function ExchangeDiagram(): JSX.Element {
         x={(DIVIDER_X + VIEW.width) / 2}
         y={BOTTOM_Y}
         anchor="middle"
-        parts={[{ symbol: 'ω', sub: 'w' }, ` ≈ −${ratio} `, { symbol: 'ω', sub: 's' }]}
+        parts={[{ symbol: 'ω', sub: 'w' }, ` ≈ ${wheelPerBody} `, { symbol: 'ω', sub: 's' }]}
       />
     </svg>
   );

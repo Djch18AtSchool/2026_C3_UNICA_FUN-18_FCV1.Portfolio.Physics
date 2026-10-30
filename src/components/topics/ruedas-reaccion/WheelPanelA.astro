@@ -10,7 +10,7 @@
 import { arrow, mathRuns, onEllipse, spinArc, type MathPart } from './diagramGeometry';
 import { DIAGRAM_FACTS } from './wheelFigures';
 
-const VIEW = { width: 420, height: 768 } as const;
+const VIEW = { width: 420, height: 784 } as const;
 const AXIS_X = 170;
 /** The axis ends above the equations so it crosses no label. */
 const AXIS = { top: 72, bottom: 404 } as const;
@@ -36,11 +36,12 @@ const omegaSLabel = onEllipse(BODY_SPIN, 172);
 const motorMark = { cx: AXIS_X, cy: (MOTOR.top + MOTOR.bottom) / 2, r: 21 } as const;
 
 // ---- Detail M: the motor between the wheel (rotor) and the body (stator) ----
-const DETAIL = { x: 12, y: 548, width: 396, height: 208 } as const;
+const DETAIL = { x: 12, y: 548, width: 396, height: 224 } as const;
 const DM_X = 120;
-const ROTOR = { cy: 606, rx: 72, ry: 14, thickness: 14 } as const;
-const STATOR = { top: 628, bottom: 656, rx: 24, ry: 6 } as const;
-const FLOOR = { y: 662, left: 34, right: 206 } as const;
+/** The «rueda» label above the rotor keeps clear of the box title. */
+const ROTOR = { cy: 622, rx: 72, ry: 14, thickness: 14 } as const;
+const STATOR = { top: 644, bottom: 672, rx: 24, ry: 6 } as const;
+const FLOOR = { y: 678, left: 34, right: 206 } as const;
 const HATCH_STEP = 12;
 const tauArc = spinArc({ cx: DM_X, cy: ROTOR.cy + 9, rx: 86, ry: 16 }, 160, 20);
 const minusTauArc = spinArc({ cx: DM_X, cy: STATOR.top + 18, rx: 40, ry: 10 }, 20, 160);
@@ -266,7 +267,7 @@ const runs = Object.fromEntries(
     height={DETAIL.height}
     rx="3"
   />
-  <text class="wd-title" x={DETAIL.x + 12} y={DETAIL.y + 24}>
+  <text class="wd-title" data-label="detalle-titulo" x={DETAIL.x + 12} y={DETAIL.y + 24}>
     Detalle M · el motor
   </text>
 
@@ -280,7 +281,7 @@ const runs = Object.fromEntries(
   <text class="wd-note" x={FLOOR.left} y={FLOOR.y + 26}>
     nave
   </text>
-  <text class="wd-note" x={DM_X} y={ROTOR.cy - 22} text-anchor="middle">
+  <text class="wd-note" data-label="detalle-rueda" x={DM_X} y={ROTOR.cy - 22} text-anchor="middle">
     rueda
   </text>
 
@@ -303,30 +304,30 @@ const runs = Object.fromEntries(
     ))}
   </text>
 
-  <text class="wd-label wd-strong" x="236" y="600">
+  <text class="wd-label wd-strong" x="236" y="616">
     Tercera ley
   </text>
-  <text class="wd-label" x="236" y="624">
+  <text class="wd-label" x="236" y="640">
     <tspan class="wd-math">τ</tspan> sobre la rueda,
   </text>
-  <text class="wd-label" x="236" y="646">
+  <text class="wd-label" x="236" y="662">
     −<tspan class="wd-math">τ</tspan> sobre la nave:
   </text>
-  <text class="wd-label" x="236" y="668">
+  <text class="wd-label" x="236" y="684">
     acción y reacción
   </text>
 
-  <text class="wd-eq" x={DETAIL.x + 12} y="716">
+  <text class="wd-eq" x={DETAIL.x + 12} y="732">
     {runs.wheelTorque.map((run) => (
       <tspan class={run.className} dy={run.dy}>
         {run.text}
       </tspan>
     ))}
   </text>
-  <text class="wd-tag" x="396" y="716" text-anchor="end">
+  <text class="wd-tag" x="396" y="732" text-anchor="end">
     (8.2)
   </text>
-  <text class="wd-eq" x={DETAIL.x + 12} y="744">
+  <text class="wd-eq" x={DETAIL.x + 12} y="760">
     {runs.bodyTorque.map((run) => (
       <tspan class={run.className} dy={run.dy}>
         {run.text}

@@ -94,6 +94,19 @@ test.describe('página', () => {
     }
   });
 
+  test('en el detalle M, el rótulo «rueda» queda debajo del título, sin tocarlo', async ({
+    page,
+  }) => {
+    const diagram = page.getByTestId('wheel-diagram');
+    const box = async (label: string) =>
+      (await diagram.locator(`text[data-label="${label}"]`).boundingBox())!;
+
+    const title = await box('detalle-titulo');
+    const wheel = await box('detalle-rueda');
+
+    expect(wheel.y).toBeGreaterThan(title.y + title.height);
+  });
+
   test('el paso 4 pone el diagrama antes del laboratorio', async ({ page }) => {
     const figures = page.locator('section.step#paso-4 figure[data-testid="figure"]');
 

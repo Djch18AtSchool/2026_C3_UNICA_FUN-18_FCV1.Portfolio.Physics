@@ -67,7 +67,9 @@ describe('WheelFigure', () => {
     );
     expect(figure.querySelector('[data-spin="nave"]')?.getAttribute('data-sense')).toBe('horario');
     expect(figure).toHaveTextContent('= 0');
-    expect(figure).toHaveTextContent('1940');
+    // The ratio prints as every number on the site: true minus and a U+202F thousands space.
+    expect(figure.textContent).toContain('≈ −1\u202f940');
+    expect(figure.getAttribute('aria-label')).toContain('unas 1\u202f940 veces');
   });
 
   test('exchange: the wheel wears the wheel token and the body the body token', () => {
