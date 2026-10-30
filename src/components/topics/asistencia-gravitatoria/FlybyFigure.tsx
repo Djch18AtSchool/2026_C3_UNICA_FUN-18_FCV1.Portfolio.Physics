@@ -13,6 +13,7 @@ import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
 import { fitCentre, monoTextWidth, type Domain, type Scale } from '../../lab/plotScales';
 import SvgPlot from '../../lab/SvgPlot';
 import { signed } from './flybyFormat';
+import { clearSpot, segmentsOf, type Box, type Segment } from './labelClearance';
 import { speedText } from './voyagerChartData';
 import { SUN_COLOR } from './VoyagerPlotParts';
 import {
@@ -58,6 +59,13 @@ const ASYMPTOTE_RADII = 90;
 const ASYMPTOTE_PAST_RADII = 14;
 const ARC_RADII = 9;
 const ARC_STEPS = 24;
+/** "v∞" tags: tried at these distances (px) from their arrow, at these fractions along it. */
+const TAG_DISTANCES_PX = [14, 20, 28, 36, 46];
+const TAG_ALONG = [0.5, 0.3, 0.7, 0.15, 0.85];
+/** Clear space (px) kept around a tag's text box, for the arrowheads and the line widths. */
+const TAG_PAD_PX = 3;
+/** Drops the baseline so the text is centred on its spot (13 px font: 10 px up, 3 px down). */
+const TAG_BASELINE_DROP = 3.5;
 /** Smallest drawn radius of Jupiter (px): at true scale it is a few pixels wide. */
 const MIN_PLANET_PX = 3;
 /**
@@ -209,6 +217,28 @@ function arc(centre: Point, radius: number, a: number, b: number): Point[] {
   });
 }
 
+/**
+ * Where a "v∞" tag goes: the nearest spot beside its arrow (either side, along the arrow, a
+ * little further out each round) whose box crosses no line of the figure, or beside the
+ * arrow's middle when nothing is clear.
+ */
+function vInfTagSpot(from: Point, to: Point, lines: readonly Segment[], area: Box): Point {
+  const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
+  const normal = { x: -(to.y - from.y) / length, y: (to.x - from.x) / length };
+  const at = (t: number, side: number, distance: number) => ({
+    x: from.x + t * (to.x - from.x) + side * distance * normal.x,
+    y: from.y + t * (to.y - from.y) + side * distance * normal.y,
+  });
+  const candidates = TAG_DISTANCES_PX.flatMap((distance) =>
+    TAG_ALONG.flatMap((t) => [at(t, 1, distance), at(t, -1, distance)]),
+  );
+  const size = {
+    width: monoTextWidth('v∞', LABEL_SIZE) + 2 * TAG_PAD_PX,
+    height: LABEL_SIZE + 2 * TAG_PAD_PX,
+  };
+  return clearSpot(candidates, size, lines, area) ?? at(0.5, 1, TAG_DISTANCES_PX[0]);
+}
+
 /** Paso 2: V2's hyperbola around Jupiter, to scale, with r_p, the equal v∞ arrows and δ. */
 function HyperbolaPlot(): JSX.Element {
   const figure = hyperbolaFigure();
@@ -218,17 +248,31 @@ function HyperbolaPlot(): JSX.Element {
     y: from.y + length * dir.y,
   });
   const extentY = Math.max(...path.map((p) => Math.abs(p.y))) + PATH_MARGIN_RADII;
-  const vInfText = `v∞ = ${speedText(figure.vInf)}`;
   const deltaText = `δ = ${degrees(figure.deltaDeg)}`;
   /** In the legend: on a phone there is no free corner of the plot for it. */
   const eText = formatNumber(figure.e, { precision: 3 });
-  const midpoint = (a: { from: Point; to: Point }) => ({
-    x: (a.from.x + a.to.x) / 2,
-    y: (a.from.y + a.to.y) / 2,
-  });
+  const asymptotes = [
+    along(center, inDir, -ASYMPTOTE_RADII),
+    along(center, inDir, ASYMPTOTE_PAST_RADII),
+    { x: Number.NaN, y: Number.NaN },
+    center,
+    along(center, outDir, ASYMPTOTE_RADII),
+  ];
   const overlay = ({ x, y }: Scales) => {
     const px = (p: Point) => ({ x: x.toPx(p.x), y: y.toPx(p.y) });
     const planetPx = Math.max(x.toPx(1) - x.toPx(0), MIN_PLANET_PX);
+    const area = { left: x.range[0], right: x.range[1], top: y.range[1], bottom: y.range[0] };
+    const arrowLines = [figure.inArrow, figure.outArrow].map((arrow): Segment => [
+      px(arrow.from),
+      px(arrow.to),
+    ]);
+    const rpLine: Segment = [px({ x: 0, y: 0 }), px({ x: figure.rpRadii, y: 0 })];
+    const lines = [
+      ...segmentsOf(path.map(px)),
+      ...segmentsOf(asymptotes.map(px)),
+      ...arrowLines,
+      rpLine,
+    ];
     const arcPoints = arc(
       center,
       ARC_RADII,
@@ -255,13 +299,14 @@ function HyperbolaPlot(): JSX.Element {
         </Label>
         <Arrow from={px(figure.inArrow.from)} to={px(figure.inArrow.to)} color={TEXT_COLOR} />
         <Arrow from={px(figure.outArrow.from)} to={px(figure.outArrow.to)} color={TEXT_COLOR} />
-        {/* Above its arrow, leaving the bottom-right corner to the value of rₚ. */}
-        <Label at={px(midpoint(figure.inArrow))} dx={10} dy={-8}>
-          {vInfText}
-        </Label>
-        <Label at={px(midpoint(figure.outArrow))} dx={10} dy={4}>
-          {vInfText}
-        </Label>
+        {[figure.inArrow, figure.outArrow].map((arrow) => {
+          const at = vInfTagSpot(px(arrow.from), px(arrow.to), lines, area);
+          return (
+            <Label key={arrow.from.x} at={at} dx={0} dy={TAG_BASELINE_DROP} anchor="middle">
+              v∞
+            </Label>
+          );
+        })}
         <polyline
           points={arcPoints.map((p) => `${p.x},${p.y}`).join(' ')}
           fill="none"
@@ -301,15 +346,15 @@ function HyperbolaPlot(): JSX.Element {
           color: TEXT_COLOR,
         },
         {
+          id: 'vinf',
+          label: `Flechas v⃗∞ al entrar y al salir: ${speedText(figure.vInf)} las dos`,
+          points: [],
+          color: TEXT_COLOR,
+        },
+        {
           id: 'asintotas',
           label: 'Asíntotas: direcciones de v⃗∞ al entrar y al salir',
-          points: [
-            along(center, inDir, -ASYMPTOTE_RADII),
-            along(center, inDir, ASYMPTOTE_PAST_RADII),
-            { x: Number.NaN, y: Number.NaN },
-            center,
-            along(center, outDir, ASYMPTOTE_RADII),
-          ],
+          points: asymptotes,
           color: TICK_COLOR,
           dashed: true,
         },

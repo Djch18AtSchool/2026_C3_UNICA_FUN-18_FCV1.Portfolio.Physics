@@ -3,6 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { monoTextWidth } from '../../lab/plotScales';
 import FlybyFigure from './FlybyFigure';
+import { segmentHitsBox, type Segment } from './labelClearance';
 
 /** OverlayMarks' Label: 13 px mono text; its box runs about 10 px above the baseline and 3 below. */
 const LABEL_SIZE = 13;
@@ -69,6 +70,42 @@ function pathPoints(d: string): { x: number; y: number }[] {
 
 const PHONE_WIDTHS = [260, 300, 360];
 
+/** Every straight piece of an SVG path "M x y L x y … M x y L …" (M starts a new piece). */
+function pathSegments(d: string): Segment[] {
+  const commands = [...d.matchAll(/([ML])([-\d.]+) ([-\d.]+)/g)];
+  return commands.flatMap((m, i): Segment[] => {
+    if (m[1] !== 'L' || i === 0) return [];
+    const previous = commands[i - 1];
+    return [
+      [
+        { x: Number(previous[2]), y: Number(previous[3]) },
+        { x: Number(m[2]), y: Number(m[3]) },
+      ],
+    ];
+  });
+}
+
+/** The lines the hyperbola draws: path, asymptotes, arrow shafts and heads, rₚ and the δ arc. */
+function hyperbolaLines(container: HTMLElement, overlay: Element): Segment[] {
+  const fromPath = ['trayectoria', 'asintotas'].flatMap((id) =>
+    pathSegments(container.querySelector(`[data-series="${id}"]`)?.getAttribute('d') ?? ''),
+  );
+  const fromLines = [...overlay.querySelectorAll('line')].map((line): Segment => [
+    { x: Number(line.getAttribute('x1')), y: Number(line.getAttribute('y1')) },
+    { x: Number(line.getAttribute('x2')), y: Number(line.getAttribute('y2')) },
+  ]);
+  const fromPolys = [...overlay.querySelectorAll('polygon, polyline')].flatMap((shape) => {
+    const points = (shape.getAttribute('points') ?? '')
+      .trim()
+      .split(/\s+/)
+      .map((pair) => pair.split(',').map(Number))
+      .map(([x, y]) => ({ x, y }));
+    const closed = shape.tagName === 'polygon' ? [...points, points[0]] : points;
+    return closed.slice(1).map((p, i): Segment => [closed[i], p]);
+  });
+  return [...fromPath, ...fromLines, ...fromPolys];
+}
+
 const strokeOf = (container: HTMLElement, id: string) =>
   container.querySelector(`[data-series="${id}"]`)?.getAttribute('stroke');
 
@@ -105,7 +142,10 @@ describe('FlybyFigure', () => {
     );
     expect(screen.getByText('δ = 97,5°')).toBeInTheDocument();
     expect(screen.getByText(`rₚ = 10,09 R_J`)).toBeInTheDocument();
-    expect(screen.getAllByText(`v∞ = 7,62 km/s`)).toHaveLength(2);
+    expect(screen.getAllByText('v∞')).toHaveLength(2);
+    expect(screen.getByRole('list', { name: 'Leyenda' })).toHaveTextContent(
+      'v⃗∞ al entrar y al salir: 7,62 km/s',
+    );
     expect(screen.getByRole('img', { name: /721\u202f375\u202fkm/ })).toBeInTheDocument();
   });
 
@@ -176,6 +216,29 @@ describe('FlybyFigure', () => {
           (p) => p.x >= box.left && p.x <= box.right && p.y >= box.top && p.y <= box.bottom,
         );
         expect(hits, `${label.textContent} at ${width} px`).toHaveLength(0);
+      }
+    },
+  );
+
+  test.each([...PHONE_WIDTHS, 720])(
+    'hiperbola at %i px: each v∞ tag crosses no path, asymptote or arrow',
+    (width) => {
+      stubWidths(width);
+      const { container } = render(<FlybyFigure variant="hiperbola" />);
+      const overlay = container.querySelector('svg[role="presentation"]') as Element;
+      const lines = hyperbolaLines(container, overlay);
+      const tags = [...overlay.querySelectorAll('text')].filter((t) => t.textContent === 'v∞');
+
+      expect(lines.length).toBeGreaterThan(100);
+      expect(tags).toHaveLength(2);
+      for (const tag of tags) {
+        const box = labelBox(tag);
+        expect(inside(box, plotArea(overlay))).toBe(true);
+        const hits = lines.filter((segment) => segmentHitsBox(segment, box));
+        expect(
+          hits,
+          `v∞ at (${tag.getAttribute('x')}, ${tag.getAttribute('y')}), ${width} px`,
+        ).toHaveLength(0);
       }
     },
   );
