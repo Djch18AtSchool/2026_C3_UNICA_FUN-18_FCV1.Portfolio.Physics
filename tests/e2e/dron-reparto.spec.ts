@@ -118,13 +118,29 @@ test('las gráficas de perfiles siguen presentes y su marcador sigue a t', async
   ]) {
     await expect(profiles.getByText(title, { exact: true })).toBeVisible();
   }
-  // Legend icons are .recharts-surface too; count only each chart's main surface.
-  await expect(profiles.locator('.recharts-wrapper > .recharts-surface')).toHaveCount(4);
+  // Four named charts (SvgPlot images), each with its t axis in seconds and the delivery bands.
+  await expect(profiles.getByRole('img')).toHaveCount(4);
+  await expect(profiles.getByRole('img', { name: /^Posición del dron/ })).toBeVisible();
+  await expect(profiles.getByText('t (s)', { exact: true })).toHaveCount(4);
+  for (const axis of ['Posición (m)', 'Velocidad (m/s)', 'Aceleración (m/s²)', 'Longitud (m)']) {
+    await expect(profiles.getByText(axis, { exact: true })).toBeVisible();
+  }
+  for (const stop of ['A', 'B', 'C']) {
+    await expect(profiles.locator(`rect[data-band="${stop}"]`)).toHaveCount(4);
+  }
 
-  const marker = profiles.locator('.recharts-reference-line line').first();
-  const before = await marker.getAttribute('x1');
+  const markers = profiles.locator('[data-profile-marker]');
+  await expect(markers).toHaveCount(4);
+  const marker = markers.first();
+  const before = await marker.getAttribute('transform');
   await setRange(page.locator(LAB).getByRole('slider', { name: 'Línea de tiempo' }), '700');
-  await expect.poll(() => marker.getAttribute('x1')).not.toBe(before);
+  await expect.poll(() => marker.getAttribute('transform')).not.toBe(before);
+  // Every chart reads its series at the same t, in a text row under the plot.
+  await expect(profiles.locator('dl[data-profile-reading]')).toHaveCount(4);
+  const readT = await markers.evaluateAll((nodes) =>
+    nodes.map((n) => n.getAttribute('data-marker-t')),
+  );
+  expect(new Set(readT).size).toBe(1);
 });
 
 test('la figura del laboratorio es una visualización con una sola insignia y fuente de ArduPilot', async ({

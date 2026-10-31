@@ -51,7 +51,7 @@ Los cuatro temas del Avance 2 siguen el mismo formato, cada uno con su laborator
 - `src/components/ui/`: componentes de interfaz base, incluidos `Step.astro` y `Why.astro` (el modelo de contenido por pasos) y `DataTable.astro` (la tabla de datos, que lee el registro de `src/lib/tables/`).
 - `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `SettingsDrawer`, `ParamField`, `TransportBar`, `useSimClock`), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), los ajustes de reproducción comunes (`clockSettings`), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
 - `src/components/controls/`: controles interactivos (deslizadores, botones).
-- `src/components/charts/`: gráficas.
+- `src/components/charts/`: `ChartFrame` (el marco con título y nota de toda gráfica) y `chartTheme`/`chartScale` (tokens de color y tipografía, formato de marcas); las gráficas mismas son `SvgPlot`, en `src/components/lab/`.
 - `src/components/nav/`: navegación: barra lateral con búsqueda (`SidebarSearch`), `TopicTools`, el pie (identidad, icono de GitHub y botón de tema) y `BackToTop.astro`, el botón flotante "Volver arriba", que aparece al bajar y se detiene sobre el pie.
 - `src/components/hooks/`: hooks de React compartidos.
 - `src/components/topics/`: laboratorios y figuras de cada tema (`DroneLab`, `JumpLab`, `HabitatLab`, `TyreLab`, `TriggerLab`, `RegenLab`, `BounceLab`, `WheelLab`, `FlybyLab`).
@@ -76,9 +76,12 @@ pnpm run format
 pnpm run data:drone
 pnpm run data:cycles
 pnpm run data:voyager
+pnpm run measure:labs http://localhost:4324/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics/
 bash scripts/compress-video.sh media-raw/<archivo>  # plan B del Tema 5, hoy sin uso
 ```
 
 `E2E_PORT=4322 pnpm run e2e` ejecuta las pruebas de extremo a extremo en otro puerto; úsalo en local cuando un servidor de desarrollo ocupa el 4321.
+
+`pnpm run measure:labs <url>` mide la reproducción de los siete laboratorios con reloj contra un `astro preview` ya levantado (`pnpm run build && pnpm run preview --port 4324`): por laboratorio, con la CPU a velocidad normal y frenada 4×, imprime fps, p95 del cuadro, mutaciones del DOM por cuadro bajo la raíz del laboratorio y milisegundos de script y de tarea por cuadro. Los números dependen de la máquina: compara antes y después en la misma. La prueba `tests/e2e/lab-performance.spec.ts` fija el presupuesto determinista (≤ 12 mutaciones por cuadro); los fps no se afirman en CI.
 
 `pnpm run data:cycles` y `pnpm run data:voyager` descargan de nuevo los ciclos de la EPA y la serie de JPL Horizons y reescriben `src/data/drive-cycles.json` y `src/data/voyager-speed.json`; el sitio no consulta nada al construirse. Las pruebas fijan los hechos que la página afirma, así que un cambio en la fuente se nota en `pnpm run test`.

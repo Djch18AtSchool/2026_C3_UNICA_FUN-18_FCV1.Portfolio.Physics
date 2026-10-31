@@ -17,7 +17,8 @@
     "format": "prettier --write .",
     "data:drone": "tsx scripts/generate-drone-route.ts",
     "data:cycles": "tsx scripts/generate-drive-cycles.ts",
-    "data:voyager": "tsx scripts/generate-voyager-speed.ts"
+    "data:voyager": "tsx scripts/generate-voyager-speed.ts",
+    "measure:labs": "tsx scripts/measure-labs.ts"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.2",
@@ -30,7 +31,6 @@
     "katex": "^0.19.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "recharts": "^3.10.1",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
     "tailwindcss": "^4.3.3"

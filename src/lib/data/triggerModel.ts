@@ -22,7 +22,7 @@ export const TRIGGER_TRAVEL_MM = 8;
 const CURVE_STEPS = 32;
 const MM_PER_M = 1000;
 
-/** A type alias, not an interface, so rows pass straight to LineChart's Record<string, number>[]. */
+/** A type alias, not an interface, so rows pass straight to plot builders that take Record<string, number>. */
 export type TriggerPoint = {
   /** Displacement of the trigger, mm. */
   x: number;

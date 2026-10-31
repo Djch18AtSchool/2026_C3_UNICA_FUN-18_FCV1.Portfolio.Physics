@@ -9,6 +9,7 @@ import {
   type RouteSample,
   type RouteStop,
 } from '../../../lib/data/droneRoute';
+import { indexBefore } from './routeSeries';
 
 /** Stops snap to a 10 m grid, so a dragged route reads as round numbers. */
 const GRID_M = 10;
@@ -73,25 +74,13 @@ export function isDeclaredRoute(def: RouteDefinition): boolean {
   );
 }
 
-/** Index of the last sample with t ≤ the given t (binary search; samples are sorted by t). */
-function sampleBefore(samples: RouteSample[], t: number): number {
-  let low = 0;
-  let high = samples.length - 1;
-  while (high - low > 1) {
-    const middle = Math.floor((low + high) / 2);
-    if (samples[middle].t <= t) low = middle;
-    else high = middle;
-  }
-  return low;
-}
-
 /** The flight at t, linear between the two samples around it; t clamped to the samples. */
 export function sampleAt(samples: RouteSample[], t: number): RouteSample {
   const first = samples[0];
   const last = samples[samples.length - 1];
   if (t <= first.t) return first;
   if (t >= last.t) return last;
-  const index = sampleBefore(samples, t);
+  const index = indexBefore(samples, t, (sample) => sample.t);
   const a = samples[index];
   const b = samples[index + 1];
   const fraction = (t - a.t) / (b.t - a.t);

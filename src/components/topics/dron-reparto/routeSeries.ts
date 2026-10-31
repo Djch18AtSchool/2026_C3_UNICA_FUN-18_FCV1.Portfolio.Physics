@@ -1,5 +1,5 @@
-import type { ReferenceBand } from '../../charts/LineChart';
 import type { RouteSample, RouteStop } from '../../../lib/data/droneRoute';
+import type { PlotBand } from '../../lab/SvgPlot';
 
 /** Shortest run at rest that counts as a delivery stop, so the final instant at the depot does not. */
 const MIN_DWELL_S = 1;
@@ -54,7 +54,7 @@ function nearestStop(sample: RouteSample, stops: readonly RouteStop[]): RouteSto
 export function dwellWindows(
   samples: readonly RouteSample[],
   stops: readonly RouteStop[],
-): ReferenceBand[] {
+): PlotBand[] {
   const runs = samples.reduce<{ from: RouteSample; to: RouteSample }[]>((acc, sample, i) => {
     if (!isAtRest(sample)) return acc;
     const current = acc[acc.length - 1];
@@ -73,4 +73,41 @@ export function motionPhase(sample: RouteSample): MotionPhase {
   if (sample.accel === 0) return sample.speed > 0 ? 'crucero' : 'detenido';
   const power = sample.vx * sample.ax + sample.vy * sample.ay;
   return power < 0 ? 'frenando' : 'acelerando';
+}
+
+/** Last index whose time is ≤ t (binary search over ascending times): 0 below the first time. */
+export function indexBefore(times: readonly number[], t: number): number;
+export function indexBefore<T>(items: readonly T[], t: number, timeOf: (item: T) => number): number;
+export function indexBefore<T>(
+  items: readonly T[],
+  t: number,
+  timeOf: (item: T) => number = (item) => item as unknown as number,
+): number {
+  if (items.length === 0) throw new RangeError('indexBefore: no hay muestras');
+  let low = 0;
+  let high = items.length - 1;
+  while (low < high) {
+    const middle = Math.ceil((low + high) / 2);
+    if (timeOf(items[middle]) <= t) low = middle;
+    else high = middle - 1;
+  }
+  return low;
+}
+
+/** The value at t, linear between the two samples around it; t clamped to the sampled range. */
+export function interpolateAt(
+  times: readonly number[],
+  values: readonly number[],
+  t: number,
+): number {
+  if (times.length !== values.length) {
+    throw new RangeError(`interpolateAt: ${times.length} tiempos y ${values.length} valores`);
+  }
+  const last = times.length - 1;
+  if (t <= times[0]) return values[0];
+  if (t >= times[last]) return values[last];
+  const index = indexBefore(times, t);
+  if (index === last || times[index + 1] === times[index]) return values[index];
+  const fraction = (t - times[index]) / (times[index + 1] - times[index]);
+  return values[index] + (values[index + 1] - values[index]) * fraction;
 }
