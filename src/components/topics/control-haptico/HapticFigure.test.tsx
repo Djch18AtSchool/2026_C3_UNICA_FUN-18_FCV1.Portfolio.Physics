@@ -41,7 +41,7 @@ describe('HapticFigure', () => {
     const { container } = render(<HapticFigure variant="vibracion" />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
-    expect(legend).toHaveTextContent('Vibración fija, F = F₀');
+    expect(legend).toHaveTextContent('Vibración fija, amplitud F₀');
     expect(legend).toHaveTextContent('Resorte de 400 N/m, F = k x');
     expect(strokeOf(container, 'vibracion')).toBe('var(--chart-3)');
     expect(strokeOf(container, 'hooke')).toBe('var(--chart-1)');

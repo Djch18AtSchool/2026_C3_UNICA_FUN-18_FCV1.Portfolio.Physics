@@ -19,13 +19,15 @@ function markdownRows(markdown: string): string[][] {
 const rowsOf = (index: number) => markdownRows(tableMarkdown(TABLES[index]));
 
 describe('control-haptico tables', () => {
-  test('the three tables are in the registry under the topic slug', () => {
+  test('the four tables are in the registry under the topic slug', () => {
     expect(TABLES.map((table) => table.id)).toEqual([
       'control-haptico-vibracion',
       'control-haptico-energia',
       'control-haptico-gatillo',
+      'control-haptico-modos',
     ]);
     expect(tableById('control-haptico-gatillo')).toBe(TABLES[2]);
+    expect(tableById('control-haptico-modos')).toBe(TABLES[3]);
   });
 
   test('vibracion: 1,6 N of vibration everywhere; the 400 N/m spring gives 0,8 N at 2 mm and 3,2 N at 8 mm', () => {
@@ -88,5 +90,35 @@ describe('control-haptico tables', () => {
       ['Resorte tardío', '400', '3', '2,0', '5,0'],
     ]);
     expect(TABLES[2].caption).toContain('ilustrativ');
+  });
+
+  test('modos: the four API modes, with vibration read as (5.1) and the slope as (5.4)', () => {
+    const [header, , ...rows] = rowsOf(3);
+
+    expect(header).toEqual(['Modo', 'Parámetros de la API', 'Forma de F(x)', 'Ecuación del sitio']);
+    expect(rows.map(([mode]) => mode)).toEqual([
+      'Resistencia (feedback)',
+      'Arma (weapon)',
+      'Vibración (vibration)',
+      'Pendiente (slope feedback)',
+    ]);
+    expect(rows[2][3]).toBe('(5.1), con posición de inicio nula');
+    expect(rows[3][3]).toBe('(5.4), con intensidad inicial nula');
+    expect(rows[3][1]).toBe(
+      'posición de inicio, posición final, intensidad inicial e intensidad final',
+    );
+    expect(TABLES[3].columns.every((column) => column.align === 'text')).toBe(true);
+  });
+
+  test('modos: the caption keeps the 0–1 ranges and the firmware staircase of Klein, with both sources', () => {
+    const { caption, source } = TABLES[3];
+
+    expect(caption).toContain('de 0 a 1, sin milímetros ni newtons');
+    expect(caption).toContain(
+      '10 zonas del recorrido, cada una con una intensidad entera de 0 a 8',
+    );
+    expect(source.text).toContain('fuente 2');
+    expect(source.text).toContain('Klein (2022), fuente 6');
+    expect(source.url).toContain('developer.apple.com');
   });
 });

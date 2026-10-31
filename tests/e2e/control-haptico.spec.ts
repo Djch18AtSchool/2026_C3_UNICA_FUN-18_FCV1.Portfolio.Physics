@@ -373,15 +373,16 @@ test.describe('página', () => {
     await expect(thirdLaw.getByTestId('third-law-diagram')).toBeVisible();
   });
 
-  test('los datos de las leyendas viven en tres tablas, junto a su figura', async ({ page }) => {
+  test('los datos de las leyendas viven en cuatro tablas, junto a su figura', async ({ page }) => {
     const table = (step: number) =>
       page.locator(`section.step#paso-${step} [data-testid="data-table"]`);
 
-    await expect(page.getByTestId('data-table')).toHaveCount(3);
+    await expect(page.getByTestId('data-table')).toHaveCount(4);
     await expect(table(1)).toContainText('supuesto del modelo');
     await expect(table(2)).toContainText('12,8');
-    await expect(table(4)).toContainText('Resorte tardío');
-    await expect(table(4)).toContainText('5,0');
+    await expect(table(4).first()).toContainText('Resorte tardío');
+    await expect(table(4).first()).toContainText('5,0');
+    await expect(table(4).last()).toContainText('Pendiente (slope feedback)');
   });
 
   test('la página cumple la estructura del tema', async ({ page }) => {

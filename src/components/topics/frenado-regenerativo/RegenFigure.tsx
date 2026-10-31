@@ -192,7 +192,7 @@ function BrakingFigure(): JSX.Element {
     <div ref={ref} data-testid="regen-figure-frenada">
       <SvgPlot
         aspectRatio={aspectRatio}
-        title={`Potencia de frenado en la mayor frenada del UDDS (de ${tStart} a ${tEnd} s), modelo del sitio: ${regenModelText(DEFAULT_REGEN)}`}
+        title={`Potencia de frenado en la frenada del UDDS que más energía quita en las ruedas (de ${tStart} a ${tEnd} s), modelo del sitio: ${regenModelText(DEFAULT_REGEN)}`}
         xLabel="Tiempo t"
         xUnit="s"
         yLabel="Potencia P"

@@ -85,7 +85,7 @@ function VibrationPlot(): JSX.Element {
         series={[
           {
             id: 'vibracion',
-            label: 'Vibración fija, F = F₀',
+            label: 'Vibración fija, amplitud F₀',
             points: [
               { x: 0, y: VIBRATION_N },
               { x: BOTTOM_MM, y: VIBRATION_N },
@@ -95,7 +95,7 @@ function VibrationPlot(): JSX.Element {
           hookeSeries(EXAMPLE_K, `Resorte de ${EXAMPLE_K} N/m, F = k x`),
         ]}
         overlay={(scales) => <PlotPoints points={points} scales={scales} />}
-        ariaLabel="La vibración fija da 1,6 N a 2 mm y a 8 mm: su fuerza no dice dónde está el gatillo. El resorte de 400 N/m da 0,8 N a 2 mm y 3,2 N a 8 mm."
+        ariaLabel="La vibración fija tiene amplitud 1,6 N a 2 mm y a 8 mm: su fuerza no dice dónde está el gatillo. El resorte de 400 N/m da 0,8 N a 2 mm y 3,2 N a 8 mm."
       />
     </div>
   );
