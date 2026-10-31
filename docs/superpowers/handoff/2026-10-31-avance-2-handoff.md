@@ -37,6 +37,16 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
     la barra de reproducción, suites e2e compartidas que recorren los nueve temas), la revisión
     final de toda la rama, con su ronda de correcciones (R35 a R37), y la pasada visual final en
     360 px y 1280 px, con la suya (R38 a R40).
+- **Fase A de la auditoría integral (30 de octubre, tarde):** tras la auditoría pedida por Dylan
+  (`docs/superpowers/audits/2026-10-30-auditoria-integral.md`), cinco tareas de texto en
+  paralelo, cada una con revisión independiente y ronda de correcciones, integradas en seis
+  commits: `f4dcb0e` (prueba del tope de 650), `935d3e4` (Temas 7 y 8), `681482d` (Tema 4 con
+  datos reales en la figura 4.3), `1715ec4` (Tema 9 sin flechas U+20D7), `aac05b4` (Temas 1 a 3,
+  caso de 1 g en el Tema 3) y `ac2a6a2` (Temas 5 y 6, Tabla 5.4 nueva). La lista completa de
+  frases «antes → después» para la lectura de Dylan está en
+  `docs/superpowers/audits/2026-10-30-fase-a-cambios.md`. Prosa final: 643, 648, 649, 649, 649,
+  649, 650, 650 y 650 palabras (Temas 1 a 9).
+- **Puerta tras la fase A:** `ac2a6a2` (último commit de contenido de la fase A; después solo cambia documentación): `pnpm run check` sin errores ni avisos; 1936 pruebas unitarias en 157 archivos, cobertura 98,70 % de sentencias, 93,79 % de ramas, 99,06 % de funciones y 99,24 % de líneas; 11 páginas construidas; e2e 478 pasan y 0 fallan en el puerto 4322 (2,5 min). Lighthouse no se repitió (sin cambios de interfaz).
 - **Puerta final en `avance-2` (`4526a4e`, último commit de contenido, tras la pasada visual,
   R40 y R41; después solo cambia este traspaso):** `pnpm run check` sin errores ni avisos;
   1 923 pruebas unitarias en 157 archivos, cobertura 98,72 % de sentencias, 93,85 % de ramas,
@@ -52,6 +62,7 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
 
 | Qué | Dónde |
 |---|---|
+| Auditoría integral del 30 de octubre, revisiones académicas por tema y lista de cambios de la fase A | `docs/superpowers/audits/2026-10-30-*.md` |
 | Especificación y plan del Avance 2 | `docs/superpowers/specs/2026-10-30-avance-2-design.md`, `docs/superpowers/plans/2026-10-30-avance-2.md` |
 | Especificaciones y planes del Avance 1 (historia) | `docs/superpowers/specs/2026-10-0*.md`, `docs/superpowers/plans/2026-10-0*.md` |
 | Investigación verificada de los Temas 6 a 9 (fuentes, números, código fijado a commit, trampas) | `docs/superpowers/research/2026-10-30-{frenado-regenerativo,coeficiente-restitucion,ruedas-reaccion,asistencia-gravitatoria}.md` |
@@ -79,7 +90,8 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
 
 ## Pendientes de Dylan para cerrar el Avance 2
 
-1. **Leer los cuatro textos nuevos (Temas 6 a 9).** Son borradores de Claude y cuentan como
+1. **Leer los cuatro textos nuevos (Temas 6 a 9).** La fase A cambió frases en los cuatro; la
+   lista exacta está en `docs/superpowers/audits/2026-10-30-fase-a-cambios.md`. Son borradores de Claude y cuentan como
    autoría de Dylan ante el profesor (el plagio se sanciona). El botón "Copiar Markdown" de
    cada tema entrega el texto completo, con las tablas. Cada uno queda en 644 a 650 palabras
    de prosa, con el tope en 650; si se agrega algo, hay que quitar otro tanto. La revisión
@@ -87,7 +99,9 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
    detenerse»; en el Tema 9, «según los datos de Horizons» en la primera frase y, para seguir
    en 650, «Pero en Júpiter» → «En Júpiter», «la cifra que publica la NSSDCA» → «la cifra de la
    NSSDCA» y «una alineación poco frecuente, que se repite» → «una alineación que se repite».
-2. **Releer los Temas 1 a 5.** Los datos de las leyendas pasaron a tablas; las leyendas quedaron
+2. **Releer los Temas 1 a 5.** También cambiados por la fase A (misma lista; el Tema 3 ganó el
+   caso de 1 g en prosa y en el diagrama, el Tema 4 los puntos reales en la figura 4.3 y el
+   Tema 5 la Tabla 5.4). Los datos de las leyendas pasaron a tablas; las leyendas quedaron
    en dos o tres frases y algunas filas son cálculos nuevos del código. Cada tema ganó una frase
    de conexión (borrador de Claude) y el tema nuevo en `related`:
    - **Tema 1 (dron):** tablas de tramos de la ruta y de límites. Frase nueva: «En el Tema 6
@@ -149,6 +163,14 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
 8. **Nota del laboratorio del Tema 9 (commit `7e83acb`).** Su redacción, «la lectura t marca el
    tiempo real», es de Claude y no se ha leído: confirmar que se entiende (la lectura escala a
    horas o días mientras el sobrevuelo se ve en pocos segundos).
+   Resuelto en la fase A: ahora dice «la lectura t da el tiempo real transcurrido, en horas o
+   días, aunque en pantalla pasen segundos».
+9. **Decisiones abiertas tras la auditoría** (`2026-10-30-auditoria-integral.md` §11 y §12):
+   Tema 6, f(v) a la rapidez media como FASTSim 2 (40,4 % → 41,2 %, fricción 0,062 → 0,046 kWh)
+   o a la rapidez final, ya declarada en la nota; Tema 4, si el caso de uso debe explicar qué
+   implicaría LS_EXPY = 0,49 como β (unas 20 palabras a recortar); raíz 16 px y cuerpo de 17 o
+   18 px (fase C); notación de vectores en texto plano (fase B); anillos de Saturno y realismo
+   (fase D); y la voz de las líneas de fuente (pendiente 7).
 
 ## Decisiones vigentes que condicionan el contenido
 
@@ -353,6 +375,33 @@ si fue un error.
   como la figura 8.1 y la convención KaTeX del resto del sitio («3 114», «721 375»); una
   búsqueda en los nueve temas no encontró otro caso. Costo si no gusta: un token.
 
+- **R42 — tope de 650 como prueba:** `src/content/topics.test.ts` falla si la prosa de un tema
+  supera 650 palabras según `readingStats`; la regla se comprobaba a mano. Costo: ninguno.
+- **R43 — Tema 4, datos reales en la figura 4.3:** seis pares de `tcurve_F3soft.lut` (MUR) se
+  dibujan sobre el modelo, con su fuente, y viven en `src/lib/data/tyreModels.ts`; la fuente de
+  la figura 4.2 ya no dice «inspirado en LS_EXPY» (β = 0,9 queda como ilustrativo) en lugar de
+  reencuadrar el caso de uso, por presupuesto; la rúbrica pide «datos reales bien citados».
+  Costo: una serie que quitar y 20 palabras si Dylan prefiere el reencuadre.
+- **R44 — Tema 6, f(v) a rapidez final, declarada:** el núcleo no cambió; la nota del laboratorio
+  dice que FASTSim 2 usa la media (41,2 %) y el comentario de `energy.ts` ya no afirma lo
+  contrario; cambiar el modelo mueve números en texto, tabla, pruebas y traspaso y es decisión
+  de Dylan (pendiente 9). Costo: una ronda de números si elige la media.
+- **R45 — Tema 9, vectores sin flecha en texto plano:** leyendas, etiquetas, notas y lecturas
+  escriben v, V_p y |Δv|; dos pruebas fallan si vuelve U+20D7; no se creó la Tabla 9.3 (la
+  leyenda del laboratorio conserva 3 radios, 20,37 y 6,76 km/s). Costo: ninguno; la notación
+  definitiva (KaTeX_Main o flecha dibujada) es de la fase B.
+- **R46 — Tema 5, (5.1) como amplitud y Tabla 5.4:** `F(x,t) = F₀ sin(ωt)`, símbolos ω y t, y
+  una tabla con los cuatro modos de la API de Apple y la escalera de Klein en lugar de la línea
+  de fuente de 210 palabras; la cita de Sony quedó como fragmento. Costo: una tabla que revisar.
+- **R47 — datos de validación en notas, no en tablas:** Tema 1 (3 876 muestras, 1 mm/s salvo
+  en los quiebres, 5 mm/s) en la nota del laboratorio; Tema 2 (ápice 3,75 / 3,88 / ≈ 3,95 m) en
+  la suya; la tabla 2.1 es «constantes tal como las imprime el código» y un derivado no cabe
+  sin romper su semántica. Costo: moverlos después.
+- **R48 — Tema 3, caso de 1 g en prosa y en el diagrama:** el `Why` del paso 2 lo resuelve en
+  los dos sentidos y `HabitatDiagram.astro` lleva la nota «a_c = g · 2 RPM → 223,6 m · 1 RPM →
+  894,6 m», a 17 px en móvil (el e2e exige ≥ 11 px efectivos y el SVG mide 290 px a 375 px, no
+  305 como decía el comentario). Costo: ninguno.
+
 ## Menores diferidos (opcionales, sin efecto en la entrega)
 
 Lo que la tarea compartida y la revisión final no recogieron queda como está. Los del Avance 1
@@ -455,6 +504,13 @@ Igual que en el Avance 1, con lo aprendido en el Avance 2:
   Avance 1); no es de ninguna tarea del Avance 2: decidir si se descarta.
 
 ## Después del Avance 2
+
+- **Fases B, C y D de la auditoría** (`docs/superpowers/audits/2026-10-30-auditoria-integral.md`
+  §10 y §12): B, rendimiento de las simulaciones (reloj fuera de React, memoización, Tema 1
+  sin Recharts), notación de símbolos sin depender de la fuente de reserva, controles junto al
+  lienzo en tres niveles y «legibilidad a 1×» (Temas 6 y 1); C, sistema de medidas (raíz 16 px,
+  escala 4/8, radios, separadores, `Why`); D, zoom con botones en el lienzo y barra de escala,
+  anillos de Saturno, modo «Conducir» del Tema 6, microinteracciones.
 
 - **Entrega Final:** esperar su consigna. Cuando llegue, agregar sus temas a `TOPICS` en
   `src/consigna.ts` y un MDX completo por tema, con el mismo esquema (`Step`/`Why`/`Figure`/
