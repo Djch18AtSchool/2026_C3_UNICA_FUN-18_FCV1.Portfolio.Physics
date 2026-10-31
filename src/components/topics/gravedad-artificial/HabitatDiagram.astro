@@ -113,6 +113,10 @@ const vArrow = arrow(
   { x: CENTER.x, y: floorBottom.y + 11 },
   { x: CENTER.x + 66, y: floorBottom.y + 11 },
 );
+// The 1 g case the consigna asks for (table 3.1): right-aligned under v = ω r, clear of the
+// apparent-gravity arrow (x ≤ 142) and above Detail A (y = 430), also at the phone font size.
+const ONE_G_NOTE = { x: 408, y: 386, lineHeight: 17 } as const;
+const ONE_G_CASES = ['2 RPM → r = 223,6 m', '1 RPM → r = 894,6 m'] as const;
 
 // ---- Detail A: head and feet ----
 const DETAIL = { x: 12, y: 430, width: 396, height: 186 } as const;
@@ -176,8 +180,9 @@ const headArrow = arrow(
     eje, con a_c = ω² r; a su izquierda, la gravedad aparente, que apunta hacia afuera con la misma
     magnitud; y bajo sus pies, la velocidad tangencial v, hacia la derecha, con v = ω r. El detalle
     A amplía a la persona de altura h: en los pies la aceleración es ω² r y en la cabeza, más cerca
-    del eje, ω² (r − h), de donde Δa/a = h/r. Dibujo esquemático, no a escala; la diferencia entre
-    cabeza y pies está exagerada.
+    del eje, ω² (r − h), de donde Δa/a = h/r. Una nota da el caso de 1 g: a_c = g con 2 RPM pide r =
+    223,6 m y con 1 RPM, 894,6 m. Dibujo esquemático, no a escala; la diferencia entre cabeza y pies
+    está exagerada.
   </desc>
 
   <!-- ===== Perspective view ===== -->
@@ -279,6 +284,26 @@ const headArrow = arrow(
     <tspan class="hd-math">v</tspan> = <tspan class="hd-math">ω</tspan>{' '}
     <tspan class="hd-math">r</tspan>
   </text>
+
+  <!-- The 1 g case: a_c = g, radius for a given spin (ecuación 3.2, tabla 3.1). -->
+  <text class="hd-note hd-note-key" x={ONE_G_NOTE.x} y={ONE_G_NOTE.y} text-anchor="end">
+    <tspan class="hd-math">a</tspan>
+    <tspan class="hd-sub hd-math" dy="3">
+      c
+    </tspan>
+    <tspan dy="-3"> = </tspan>
+    <tspan class="hd-math">g</tspan>
+  </text>
+  {ONE_G_CASES.map((line, index) => (
+    <text
+      class="hd-note hd-note-key"
+      x={ONE_G_NOTE.x}
+      y={ONE_G_NOTE.y + ONE_G_NOTE.lineHeight * (index + 1)}
+      text-anchor="end"
+    >
+      {line}
+    </text>
+  ))}
 
   <!-- ===== Detail A ===== -->
   <rect
@@ -412,9 +437,10 @@ const headArrow = arrow(
   }
 
   /*
-   * At phone widths the drawing shrinks to ~0,73× (420 viewBox units in ~305 px at 375 px), so
-   * every label is set here to reach at least 11 px on screen (16 units × 0,73 ≈ 11,7 px), and the
-   * redundant notes are dropped. gravedad-artificial.spec.ts measures it.
+   * At phone widths the drawing shrinks to ~0,69× (420 viewBox units in ~290 px at 375 px), so
+   * every label is set here to reach at least 11 px on screen (16 units × 0,69 ≈ 11,0 px), and the
+   * redundant notes are dropped; the 1 g note stays, since the consigna asks for it.
+   * gravedad-artificial.spec.ts measures it.
    */
   @media (max-width: 30rem) {
     .hd-title {
@@ -436,6 +462,10 @@ const headArrow = arrow(
     }
     .hd-note {
       display: none;
+    }
+    .hd-note-key {
+      display: inline;
+      font-size: 17px;
     }
   }
 

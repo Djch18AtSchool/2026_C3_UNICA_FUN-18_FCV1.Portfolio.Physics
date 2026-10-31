@@ -116,7 +116,7 @@ La velocidad vertical se anula, <Equation inline latex="v_y = 0" />, en <Equatio
 
 <Step n={2} title="Por qué no basta la gravedad real">
 
-Con <Equation inline latex="g = 9{,}81\ \mathrm{m/s^2}" /> y el impulso de Madeline, protagonista de Celeste, el salto flota: sube <Equation inline latex="8{,}75\ \mathrm{m}" />. Subir g lo acorta, pero también lo baja.
+Con <Equation inline latex="g = 9{,}81\ \mathrm{m/s^2}" /> y los <Equation inline latex="13{,}1\ \mathrm{m/s}" /> de impulso de Madeline, de Celeste, el salto flota: sube <Equation inline latex="8{,}75\ \mathrm{m}" />. Subir g acorta el tiempo, pero también reduce la altura.
 
 <Equation
   id="ec-salto-apice"
@@ -127,13 +127,13 @@ Con <Equation inline latex="g = 9{,}81\ \mathrm{m/s^2}" /> y el impulso de Madel
 
 <Fragment slot="fenomeno">
 
-Su salto sostenido de 3,5 m tardaría 0,84 s en llegar al ápice, más del doble de los 0,36 s del juego.
+El salto sostenido de Madeline, 3,5 m y 0,36 s según mi cálculo (figura 2.3), tardaría 0,84 s con g terrestre, más del doble.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Con el impulso fijo, multiplicar g por λ divide altura y tiempo entre λ: en <Equation inline latex="(v_0, g)" /> no se separan.
+Con el impulso fijo, multiplicar g por λ divide altura y tiempo entre λ: con <Equation inline latex="(v_0, g)" /> como mandos no se ajustan por separado.
 
 </Fragment>
 
@@ -162,7 +162,7 @@ Kyle Pittman propuso en GDC 2016 elegir la altura del ápice h y el tiempo <Equa
 
 <Fragment slot="fenomeno">
 
-El diseñador piensa en alturas y cuadros: pedir <Equation inline latex="h = 4\ \mathrm{m}" /> y <Equation inline latex="t_h = 32\ \text{cuadros} = 0{,}533\ \mathrm{s}" /> devuelve <Equation inline latex="g = 28{,}1\ \mathrm{m/s^2}" /> y <Equation inline latex="v_0 = 15\ \mathrm{m/s}" />, el salto parado de Mario.
+El diseñador piensa en alturas y cuadros: pedir <Equation inline latex="h = 4\ \mathrm{m}" /> (cuatro bloques) y <Equation inline latex="t_h = 32\ \text{cuadros} = 0{,}533\ \mathrm{s}" /> devuelve <Equation inline latex="g = 28{,}1\ \mathrm{m/s^2}" /> y <Equation inline latex="v_0 = 15\ \mathrm{m/s}" />: el salto parado de Mario (tabla 2.1).
 
 </Fragment>
 
@@ -191,7 +191,7 @@ Es la (2.2) invertida; la diapositiva da g negativa, como componente con +y arri
 
 <Step n={4} title="Gravedad asimétrica">
 
-El modelo mejorado separa subida y caída: Mario sube con poca gravedad mientras sostiene A y cae con más al soltarlo o tras el ápice. Aquí la caída usa <Equation inline latex="k \ge 1" /> desde el ápice: el descenso dura <Equation inline latex="\sqrt{2h_\text{máx}/(k\,g)}" />. En el laboratorio se arrastra <Equation inline latex="\vec v_0" /> y se recorre t.
+El modelo mejorado separa subida y caída: Mario sube con poca gravedad mientras sostiene A y cae con más al soltarlo o tras el ápice. Aquí la caída usa <Equation inline latex="k \ge 1" /> desde el ápice: el descenso dura <Equation inline latex="\sqrt{2h_\text{máx}/(k\,g)}" />. En el laboratorio arrastro <Equation inline latex="\vec v_0" /> y recorro t.
 
 <Equation
   id="ec-salto-aire"
@@ -206,7 +206,7 @@ El modelo mejorado separa subida y caída: Mario sube con poca gravedad mientras
 
 <Fragment slot="fenomeno">
 
-El salto variable cambia un parámetro, no la curva: Celeste mantiene la velocidad 0,2 s y divide g entre dos cerca del ápice.
+El salto variable no cambia la ecuación, solo un parámetro: Celeste mantiene <Equation inline latex="v_y" /> 0,2 s con el botón pulsado y divide g entre dos cerca del ápice.
 
 </Fragment>
 
@@ -225,7 +225,7 @@ La subida sigue la ecuación (2.2); solo la caída usa <Equation inline latex="k
 >
   <JumpLab
     client:visible
-    footnote="Lo que el modelo deja fuera: usa g al subir y k·g desde el ápice, sin la prolongación del impulso (0,2 s) ni la media gravedad de Celeste, sin el cambio de Mario al soltar A antes del ápice (el preajuste sostiene A toda la subida) y sin los topes de caída, 20 m/s en Celeste (MaxFall = 160 px/s) y 15 m/s en Mario (4 px/cuadro). Por ese tope, según mi cálculo, Mario tarda unos 0,34 s en bajar, no los 0,29 s del modelo."
+    footnote="Lo que el modelo deja fuera: usa g al subir y k·g desde el ápice, sin la prolongación del impulso (0,2 s) ni la media gravedad de Celeste, sin el cambio de Mario al soltar A antes del ápice (el preajuste sostiene A toda la subida) y sin los topes de caída, 20 m/s en Celeste (MaxFall = 160 px/s) y 15 m/s en Mario (4 px/cuadro). Por ese tope, según mi cálculo, Mario tarda unos 0,34 s en bajar, no los 0,29 s del modelo. Con el integrador del motor (Euler semi-implícito), el ápice de Mario baja de 4,00 m a 3,75, 3,88 y ≈ 3,95 m a 30, 60 y 144 cuadros/s."
   />
 </Figure>
 
@@ -235,25 +235,25 @@ La subida sigue la ecuación (2.2); solo la caída usa <Equation inline latex="k
 
 <Fragment slot="caso">
 
-Noel Berry publicó en 2018 el código de Celeste <Cite id="celeste-player-cs" sources={frontmatter.sources} />. En `Player.cs`, con unidades deducidas del uso (px/s y px/s²), cada cuadro la velocidad vertical avanza `Gravity * mult * Engine.DeltaTime`, con `mult = .5` mientras <Equation inline latex="|v_y| < 40\ \text{px/s}" /> con el botón pulsado. Con 8 px = 1 m, ancho de la caja de colisión de Madeline (<Equation inline latex="8 \times 11\ \text{px}" />, 1,4 m de alto), <Equation inline latex="g = 112{,}5\ \mathrm{m/s^2}" /> es 11,5 veces la terrestre y el impulso, <Equation inline latex="13{,}125 \approx 13{,}1\ \mathrm{m/s}" />.
+Noel Berry publicó en 2018 el código de Celeste <Cite id="celeste-player-cs" sources={frontmatter.sources} />. En `Player.cs`, con unidades deducidas del uso (px/s y px/s²), cada cuadro la velocidad vertical avanza `Gravity * mult * Engine.DeltaTime`, con `mult = .5` mientras <Equation inline latex="|v_y| < 40\ \text{px/s}" /> con el botón pulsado. Con 8 px = 1 m, ancho de la caja de colisión de Madeline (<Equation inline latex="8 \times 11\ \text{px}" />: 1,4 m de estatura), <Equation inline latex="g = 112{,}5\ \mathrm{m/s^2}" /> es 11,5 veces la terrestre y el impulso, <Equation inline latex="13{,}125 \approx 13{,}1\ \mathrm{m/s}" />.
 
 </Fragment>
 
 <Fragment slot="ecuacion">
 
-Entre cuadros Madeline cumple la ecuación (2.1) con <Equation inline latex="v_0 = 105/8" /> y <Equation inline latex="g = 900/8" />. Unity trae por defecto una gravedad 2D de <Equation inline latex="(0;\ -9{,}8)" />, la terrestre si cada unidad es un metro <Cite id="unity-physics2d-gravity" sources={frontmatter.sources} />: el motor parte de la Tierra y cada juego puede cambiarla.
+El modelo continuo de Madeline es la (2.1) con <Equation inline latex="v_0 = 105/8" /> y <Equation inline latex="g = 900/8" />; el motor la aproxima cuadro a cuadro. Unity trae por defecto una gravedad 2D de `(0, -9.8)`, la terrestre si cada unidad es un metro <Cite id="unity-physics2d-gravity" sources={frontmatter.sources} />, y cada juego puede cambiarla.
 
 </Fragment>
 
 <Fragment slot="justificacion">
 
-Una animación guionizada falla si el jugador suelta antes, despega de una plataforma móvil, choca con un techo o lo empuja el viento; una tabla (x, y) precalculada también, y fija <Equation inline latex="v_x" />. Subir y bajar a rapidez constante da un salto triangular, sin la desaceleración que marca el ápice. El modelo sigue desde cualquier posición y velocidad.
+Una animación guionizada falla si el jugador suelta antes, despega de una plataforma móvil, choca con un techo o lo empuja el viento; una tabla (x, y) precalculada falla igual y además fija <Equation inline latex="v_x" />. Subir y bajar a rapidez constante da un salto triangular, sin la desaceleración que marca el ápice. El modelo sigue desde cualquier posición y velocidad.
 
 </Fragment>
 
 <Fragment slot="balance">
 
-Se gana coherencia, altura variable y control con <Equation inline latex="(h, t_h)" />. Cuesta el error de integración: el motor no evalúa la ecuación (2.1), suma cuadro a cuadro primero la velocidad y luego la posición, y con ese Euler semi-implícito el ápice baja <Equation inline latex="v_0\,\Delta t/2" /> (Mario: <Equation inline latex="3{,}75" />, <Equation inline latex="3{,}88" /> y <Equation inline latex="3{,}95\ \mathrm{m}" /> a 30, 60 y 144 cuadros/s, frente a 4,00 m). Si <Equation inline latex="\Delta t" /> sigue al refresco, la altura depende de la máquina; el paso fijo lo evita, como en el NES por construcción: sus unidades ya son px/cuadro. Los 112,5 m/s², sensación y no error, exigen documentar la escala; la nota del laboratorio enumera lo que el modelo omite.
+Se gana coherencia, altura variable y control con <Equation inline latex="(h, t_h)" />. Cuesta el error de integración: el motor suma cuadro a cuadro primero la velocidad y luego la posición, y con ese Euler semi-implícito el ápice baja <Equation inline latex="v_0\,\Delta t/2" /> (Mario, en la nota del laboratorio). Si <Equation inline latex="\Delta t" /> sigue al refresco, la altura depende de la máquina; el paso fijo lo evita, como en el NES por construcción: sus unidades ya son px/cuadro. Los 112,5 m/s², sensación y no error, exigen documentar la escala.
 
 </Fragment>
 
