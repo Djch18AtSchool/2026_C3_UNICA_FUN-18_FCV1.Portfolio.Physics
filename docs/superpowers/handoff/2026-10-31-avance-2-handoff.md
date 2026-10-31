@@ -7,13 +7,13 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
 
 ## Estado
 
-- **Publicado:** `origin/main` = `1069de1` (el Avance 1, entregado el 17 de octubre). Es lo
-  que hoy sirve GitHub Pages. La rama local `main` está desactualizada en `fa33c68`, 53 commits
-  **detrás** de `origin/main` (no adelante): antes de usarla, `git fetch` y
-  `git switch main && git merge --ff-only origin/main`. La etiqueta `avance-1` nunca se creó
-  (pendiente 5).
-- **En curso:** rama `avance-2`, todavía **sin integrar a `main`**. `origin/main` es ancestro
-  de `avance-2`, así que `git push origin avance-2:main` es un avance rápido. Reúne:
+- **Publicado:** `origin/main` = `c9a773d` (Avance 2 con la fase A de la auditoría), integrado
+  con avance rápido el 31 de octubre a las 02:34 UTC por indicación de Dylan («sube el código que
+  tenemos»); el despliegue a GitHub Pages terminó en verde y las nueve páginas de tema y la
+  portada responden 200. La rama local `main` ya apunta al mismo commit. Lo publicado antes
+  (`1069de1`, Avance 1 del 17 de octubre) queda en la historia. Las etiquetas `avance-1` y
+  `avance-2` siguen sin crearse (pendientes 4 y 5).
+- **Contenido del Avance 2** (rama `avance-2`, ya en `main`). Reúne:
   - **Temas 6 a 9**, con el formato del Avance 1 (cuatro `Step` con ecuación numerada y `Why`,
     `UseCase`, `Callout` de clase, `Connections`, `Sources`), su recurso prescrito con insignia
     y un laboratorio por tema:
@@ -402,6 +402,28 @@ si fue un error.
   894,6 m», a 17 px en móvil (el e2e exige ≥ 11 px efectivos y el SVG mide 290 px a 375 px, no
   305 como decía el comentario). Costo: ninguno.
 
+- **R49 — Tema 1 sin Recharts (fase B, `23c907d`):** los cuatro perfiles se dibujan con
+  `SvgPlot`; no hay cursor arrastrable por gráfica (la línea de tiempo es el único mando de t,
+  también con teclado); la lectura del instante va en una fila HTML bajo cada gráfica, no en una
+  placa dentro del SVG, para no tapar las series, e interpola entre muestras como las lecturas
+  del laboratorio; las etiquetas de banda pasan abajo como en el Tema 4. Costo si Dylan quiere
+  cursor por gráfica: una prop `onSeek` y el cursor de `SvgPlot`.
+
+- **R50 — reloj fuera de React (fase B, `0fa68f0`):** el tiempo vivo de cada laboratorio está en
+  un almacén de cuadro escrito por `requestAnimationFrame`; el estado de React se sincroniza a
+  10 Hz y en cada transición discreta (`clock.state.t` es exacto tras play, pause, seek y step);
+  las lecturas, el texto del transporte y el anunciador se refrescan a 10 Hz (antes 60: ningún
+  texto es legible más rápido) y el pulgar de la línea de tiempo se escribe por cuadro;
+  `MAX_FRAME_DT_S` pasó de 0,05 a 0,25 s: un cuadro lento salta en vez de frenar la simulación y
+  una parada mayor reanuda sin brinco; los arcos ω del Tema 8 avanzan en pasos de 0,5° (cuerpo) y
+  1° (rueda); `useThrottledFrameTime` se descartó por YAGNI. La revisión independiente cazó una
+  regresión (el `rotate` de SVG gira horario y el laboratorio cuenta antihorario) que ninguna
+  prueba comparaba; ahora `WheelScene.test.tsx` compara el morro vivo con el fantasma objetivo.
+  Medido en producción: 4,6–8,1 mutaciones por cuadro (antes 45–86), < 1 ms de script por
+  cuadro, 60 fps con CPU ×4 en los siete laboratorios con reloj; `pnpm run measure:labs <url>`
+  imprime la tabla y `tests/e2e/lab-performance.spec.ts` vigila el presupuesto. Costo si algo
+  no gusta: los ganchos son locales a `src/components/lab/`.
+
 ## Menores diferidos (opcionales, sin efecto en la entrega)
 
 Lo que la tarea compartida y la revisión final no recogieron queda como está. Los del Avance 1
@@ -505,6 +527,16 @@ Igual que en el Avance 1, con lo aprendido en el Avance 2:
 
 ## Después del Avance 2
 
+- **Estado de la fase B (31 de octubre):** rama `fase-b` con B1a (`0fa68f0`) y B1b (`23c907d`)
+  hechos, revisados y medidos; Dylan pidió **detenerse antes de B2** y dejar la rama lista para
+  integrarse. Puerta completa sobre `0fa68f0`: `pnpm run check` sin errores ni avisos; 1 961
+  pruebas unitarias en 154 archivos; cobertura 98,74 % de sentencias, 93,84 % de ramas, 99,19 % de
+  funciones y 99,27 % de líneas; 11 páginas construidas; e2e 485 pasan y 0 fallan en el 4322
+  (siete nuevas de rendimiento). Integrar con `git push origin fase-b:main` (avance rápido). Quedan B2 (notación de símbolos), B3 (controles junto al lienzo en tres niveles) y
+  B4 (legibilidad a 1×), con sus briefs en `docs/superpowers/plans/2026-10-31-fases-b-c-d.md`.
+  Pendiente de verificar en el servidor de desarrollo de Dylan: que los avisos de hidratación de
+  los Temas 7 y 9 desaparecieron tras el redondeo de coordenadas (Claude no levanta un segundo
+  `astro dev` para no compartir la caché de Vite con el 4321).
 - **Fases B, C y D de la auditoría** (`docs/superpowers/audits/2026-10-30-auditoria-integral.md`
   §10 y §12): B, rendimiento de las simulaciones (reloj fuera de React, memoización, Tema 1
   sin Recharts), notación de símbolos sin depender de la fuente de reserva, controles junto al
