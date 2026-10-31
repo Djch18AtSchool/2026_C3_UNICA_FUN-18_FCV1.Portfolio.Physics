@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { Arrow, Label } from '../../lab/OverlayMarks';
 import type { DumpActuator } from './wheelLabModel';
-import { arcPath, BODY_FOOTPRINT, DEG, polar, type Point } from './wheelScene';
+import { arcPath, BODY_FOOTPRINT, polar, type Point } from './wheelScene';
 
 /** The Earth's field B wears the Earth blue (spec §4.3), as in Tema 2. */
 const FIELD_COLOR = 'var(--chart-1)';
@@ -25,10 +25,20 @@ export interface SceneGeometry {
   wheel: number;
 }
 
+/** Decimals of the arcs' angle attributes: a stable string per frame, a hundredth of a degree. */
+const ANGLE_DECIMALS = 2;
+/** SVG's rotate turns clockwise on screen; the laboratory counts counterclockwise, like polar(). */
+const rotateAttr = (degrees: number, about: Point) =>
+  `rotate(${(-degrees).toFixed(ANGLE_DECIMALS)} ${about.x} ${about.y})`;
+
 /**
  * A curved rate arrow on the circle (c, radius), centred at `centreDeg` and sweeping `sweep`
  * degrees (positive: counterclockwise on screen), with its head at the leading end and its label
  * outside the middle. Nothing is drawn for a zero sweep.
+ *
+ * Drawn about angle 0 inside a group rotated to the centre, so a frame in which only the sweep
+ * grows rewrites the arc's path and the head's rotation, and one in which the centre turns rewrites
+ * the group's rotation and the label's counter-rotation: two attributes each, not one per element.
  */
 export function RateArc({
   c,
@@ -46,28 +56,30 @@ export function RateArc({
   label: string;
 }): JSX.Element | null {
   if (sweep === 0) return null;
-  const from = centreDeg - sweep / 2;
-  const to = centreDeg + sweep / 2;
-  const end = polar(c, radius, to);
+  const half = sweep / 2;
   const direction = Math.sign(sweep);
-  // Counterclockwise on screen the tangent at angle a is (−sin a, −cos a) in SVG coordinates.
-  const tip = {
-    x: end.x - direction * ARROW_TIP * Math.sin(to * DEG),
-    y: end.y - direction * ARROW_TIP * Math.cos(to * DEG),
-  };
+  // In the head's own frame (rotated to the leading end) the end sits at angle 0 and the
+  // counterclockwise tangent there points up the screen (−y).
+  const end = polar(c, radius, 0);
+  const tip = { x: end.x, y: end.y - direction * ARROW_TIP };
+  const labelAt = polar(c, radius + ARC_LABEL_GAP, 0);
   return (
-    <g data-rate={label} className="pointer-events-none">
+    <g data-rate={label} className="pointer-events-none" transform={rotateAttr(centreDeg, c)}>
       <path
-        d={arcPath(c, radius, from, to)}
+        d={arcPath(c, radius, -half, half)}
         fill="none"
         stroke={color}
         strokeWidth={ARC_WIDTH}
         strokeLinecap="round"
       />
-      <Arrow from={end} to={tip} color={color} />
-      <Label at={polar(c, radius + ARC_LABEL_GAP, centreDeg)} dx={0} dy={4} anchor="middle">
-        {label}
-      </Label>
+      <g transform={rotateAttr(half, c)}>
+        <Arrow from={end} to={tip} color={color} />
+      </g>
+      <g transform={rotateAttr(-centreDeg, labelAt)}>
+        <Label at={labelAt} dx={0} dy={4} anchor="middle">
+          {label}
+        </Label>
+      </g>
     </g>
   );
 }

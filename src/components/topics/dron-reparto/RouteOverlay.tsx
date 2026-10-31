@@ -2,9 +2,11 @@ import { useRef, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
 import type { RouteSample, RouteStop } from '../../../lib/data/droneRoute';
 import { CHART_COLORS, SURFACE_COLOR, TEXT_COLOR } from '../../charts/chartTheme';
+import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Knob, Label, type Point } from '../../lab/OverlayMarks';
 import type { Scale } from '../../lab/plotScales';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
+import { useFrameDerived } from '../../lab/useFrameTime';
 import { clampStop, STOP_BOUNDS, stopKeyTarget, timeFromPoint, trailSamples } from './droneScene';
 
 export type StopIndex = 1 | 2 | 3;
@@ -14,11 +16,19 @@ export const VELOCITY_COLOR = CHART_COLORS[2];
 export const ACCEL_COLOR = CHART_COLORS[3];
 export const ROUTE_COLOR = CHART_COLORS[0];
 
+/** The live clock and the flight's sample at any of its times: what the moving layer draws. */
+export interface LiveFlight {
+  frame: FrameStore;
+  sampleAt(t: number): RouteSample;
+}
+
 export interface RouteOverlayProps {
   scales: { x: Scale; y: Scale };
   stops: readonly RouteStop[];
   samples: RouteSample[];
+  /** The sample at the settled time (the marker's aria values and keyboard steps). */
   now: RouteSample;
+  live: LiveFlight;
   duration: number;
   showVectors: boolean;
   showTrail: boolean;
@@ -45,6 +55,12 @@ const VECTOR_LABEL_GAP = 12;
 const LABEL_HALF_HEIGHT = 4;
 /** The drone marker steps duration / DRONE_KEY_STEPS per arrow key. */
 const DRONE_KEY_STEPS = 100;
+const ORIGIN: Point = { x: 0, y: 0 };
+/** Decimals of the moving groups' translations: a stable attribute string per frame. */
+const PX_DECIMALS = 2;
+
+const translate = ({ x, y }: Point) =>
+  `translate(${x.toFixed(PX_DECIMALS)} ${y.toFixed(PX_DECIMALS)})`;
 
 const clampTime = (t: number, duration: number) => Math.min(Math.max(t, 0), duration);
 
@@ -54,19 +70,99 @@ function path(points: Point[], scales: RouteOverlayProps['scales']): string {
     .join(' ');
 }
 
-/** A vector's letter just past its tip, along the vector, so it points away from the drone. */
-function VectorLabel({ from, to, text }: { from: Point; to: Point; text: string }): JSX.Element {
-  const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
-  const along = { x: (to.x - from.x) / length, y: (to.y - from.y) / length };
+/**
+ * A vector from the drone (the origin of its group) to `tip`, with its letter just past the tip,
+ * along the vector, so it points away from the drone. The letter sits in a group translated to
+ * the tip: on a straight leg only that translation changes.
+ */
+function DroneVector({
+  tip,
+  color,
+  text,
+}: {
+  tip: Point;
+  color: string;
+  text: string;
+}): JSX.Element {
+  const length = Math.hypot(tip.x, tip.y) || 1;
+  const along = { x: tip.x / length, y: tip.y / length };
   return (
-    <Label
-      at={to}
-      dx={along.x * VECTOR_LABEL_GAP}
-      dy={along.y * VECTOR_LABEL_GAP + LABEL_HALF_HEIGHT}
-      anchor="middle"
-    >
-      {text}
-    </Label>
+    <>
+      <Arrow from={ORIGIN} to={tip} color={color} />
+      <g transform={translate(tip)}>
+        <Label
+          at={ORIGIN}
+          dx={along.x * VECTOR_LABEL_GAP}
+          dy={along.y * VECTOR_LABEL_GAP + LABEL_HALF_HEIGHT}
+          anchor="middle"
+        >
+          {text}
+        </Label>
+      </g>
+    </>
+  );
+}
+
+interface FlightLayerProps {
+  live: LiveFlight;
+  samples: RouteSample[];
+  scales: RouteOverlayProps['scales'];
+  showTrail: boolean;
+  showVectors: boolean;
+  velocityScale: number;
+  accelScale: number;
+}
+
+/**
+ * The moving layer: the trail flown so far and the drone's v and a vectors at the live time,
+ * drawn relative to the drone inside a translated group.
+ */
+function FlightLayer(props: FlightLayerProps): JSX.Element {
+  const { live, samples, scales, showTrail, showVectors, velocityScale, accelScale } = props;
+  const now = useFrameDerived(live.frame, live.sampleAt);
+  const toPx = (p: Point) => ({ x: scales.x.toPx(p.x), y: scales.y.toPx(p.y) });
+  const drone = toPx(now);
+  const relative = (p: Point) => {
+    const px = toPx(p);
+    return { x: px.x - drone.x, y: px.y - drone.y };
+  };
+  const velocityTip = relative({
+    x: now.x + now.vx * velocityScale,
+    y: now.y + now.vy * velocityScale,
+  });
+  const accelTip = relative({ x: now.x + now.ax * accelScale, y: now.y + now.ay * accelScale });
+  return (
+    <>
+      {showTrail ? (
+        <path
+          data-trail=""
+          d={path(trailSamples(samples, now), scales)}
+          fill="none"
+          stroke={ROUTE_COLOR}
+          strokeWidth={TRAIL_WIDTH}
+          strokeOpacity={TRAIL_OPACITY}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="pointer-events-none"
+        />
+      ) : null}
+      {showVectors ? (
+        <g data-vectors="" transform={translate(drone)}>
+          <DroneVector tip={velocityTip} color={VELOCITY_COLOR} text="v" />
+          <DroneVector tip={accelTip} color={ACCEL_COLOR} text="a" />
+        </g>
+      ) : null}
+    </>
+  );
+}
+
+/** The drone's knob at the live position, inside its slider group. */
+function DroneKnob({ live, scales }: Pick<FlightLayerProps, 'live' | 'scales'>): JSX.Element {
+  const now = useFrameDerived(live.frame, live.sampleAt);
+  return (
+    <g transform={translate({ x: scales.x.toPx(now.x), y: scales.y.toPx(now.y) })}>
+      <Knob at={ORIGIN} fill={TEXT_COLOR} />
+    </g>
   );
 }
 
@@ -122,17 +218,8 @@ function StopHandle({ index, stop, scales, onStopDrag }: StopHandleProps): JSX.E
  * (it seeks t) and takes the arrow keys; the stops take them too.
  */
 export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
-  const { scales, stops, samples, now, duration, decimals, onSeek } = props;
+  const { scales, stops, samples, now, live, duration, decimals, onSeek } = props;
   const toPx = (p: Point) => ({ x: scales.x.toPx(p.x), y: scales.y.toPx(p.y) });
-  const drone = toPx(now);
-  const velocityTip = toPx({
-    x: now.x + now.vx * props.velocityScale,
-    y: now.y + now.vy * props.velocityScale,
-  });
-  const accelTip = toPx({
-    x: now.x + now.ax * props.accelScale,
-    y: now.y + now.ay * props.accelScale,
-  });
   const depot = toPx(stops[0]);
   const droneDrag = useDrag(({ x, y }: DragPoint) =>
     onSeek(timeFromPoint(samples, scales.x.toValue(x), scales.y.toValue(y))),
@@ -155,19 +242,6 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
 
   return (
     <g>
-      {props.showTrail ? (
-        <path
-          data-trail=""
-          d={path(trailSamples(samples, now), scales)}
-          fill="none"
-          stroke={ROUTE_COLOR}
-          strokeWidth={TRAIL_WIDTH}
-          strokeOpacity={TRAIL_OPACITY}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="pointer-events-none"
-        />
-      ) : null}
       <g className="pointer-events-none">
         <rect
           data-testid="depot"
@@ -183,14 +257,16 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
           Depósito
         </Label>
       </g>
-      {props.showVectors ? (
-        <g data-vectors="">
-          <Arrow from={drone} to={velocityTip} color={VELOCITY_COLOR} />
-          <VectorLabel from={drone} to={velocityTip} text="v" />
-          <Arrow from={drone} to={accelTip} color={ACCEL_COLOR} />
-          <VectorLabel from={drone} to={accelTip} text="a" />
-        </g>
-      ) : null}
+      {/* After the depot, so at t = 0 the vectors and the trail paint over its square and label. */}
+      <FlightLayer
+        live={live}
+        samples={samples}
+        scales={scales}
+        showTrail={props.showTrail}
+        showVectors={props.showVectors}
+        velocityScale={props.velocityScale}
+        accelScale={props.accelScale}
+      />
       {DELIVERY_INDICES.map((index) => (
         <StopHandle
           key={index}
@@ -214,7 +290,7 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
         onKeyDown={onDroneKeyDown}
         {...droneDrag}
       >
-        <Knob at={drone} fill={TEXT_COLOR} />
+        <DroneKnob live={live} scales={scales} />
       </g>
     </g>
   );

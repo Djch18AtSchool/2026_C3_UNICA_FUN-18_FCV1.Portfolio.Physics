@@ -15,10 +15,12 @@ import {
   type DrivePhase,
   type FlowLink,
 } from './regenScene';
-import RoadStrip from './RoadStrip';
+import RoadStrip, { type LiveBalance } from './RoadStrip';
 
 export interface RegenSceneProps {
+  /** The balance at the settled time (phase, flows, description); the car follows `live`. */
   at: BalanceAt;
+  live: LiveBalance;
   /** Length of the cycle (m). */
   totalDistance: number;
   vehicleName: string;
@@ -106,7 +108,7 @@ const LEGEND: readonly { color: string; text: string }[] = [
  * proportional to |P|. The viewBox follows the measured width, so text keeps its pixel size.
  */
 export default function RegenScene(props: RegenSceneProps): JSX.Element {
-  const { at, totalDistance, vehicleName, cycleName } = props;
+  const { at, live, totalDistance, vehicleName, cycleName } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const flows = powerFlows(at);
   const phase = drivePhase(at);
@@ -143,15 +145,7 @@ export default function RegenScene(props: RegenSceneProps): JSX.Element {
             >
               no a escala
             </text>
-            <RoadStrip
-              distance={at.distance}
-              total={totalDistance}
-              x0={x0}
-              x1={x1}
-              y={ROAD_Y}
-              isRegenerating={phase === 'regen' || phase === 'blended'}
-              isFrictionBraking={phase === 'friction' || phase === 'blended'}
-            />
+            <RoadStrip total={totalDistance} x0={x0} x1={x1} y={ROAD_Y} live={live} />
             <PowerFlow flows={flows} x0={x0} x1={x1} y={flowY} />
           </g>
         </svg>

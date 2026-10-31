@@ -1,4 +1,5 @@
 import type { JSX } from 'react';
+import { withStableCallbacks } from '../../lab/withStableCallbacks';
 
 export interface ChoiceFieldProps<T extends string> {
   id: string;
@@ -12,7 +13,7 @@ export interface ChoiceFieldProps<T extends string> {
  * Native radios sharing a name (arrow keys move the choice) drawn as segments that wrap on phones:
  * the lab's mode and dump actuator, whose labels are words rather than the drawer's short values.
  */
-export default function ChoiceField<T extends string>({
+function ChoiceField<T extends string>({
   id,
   label,
   value,
@@ -49,3 +50,6 @@ export default function ChoiceField<T extends string>({
     </div>
   );
 }
+
+/** Memoized with stable callbacks (the cast keeps the generic): the 10 Hz renders skip its radios. */
+export default withStableCallbacks(ChoiceField) as typeof ChoiceField;

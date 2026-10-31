@@ -8,8 +8,10 @@ import {
   TICK_FONT_FAMILY,
 } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import type { FrameStore } from '../../lab/frameStore';
 import { Knob, Label } from '../../lab/OverlayMarks';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
+import { useFrameDerived } from '../../lab/useFrameTime';
 import { LIMIT_COLOR } from './MomentumGauge';
 import type { DumpActuator, WheelMode } from './wheelLabModel';
 import {
@@ -26,6 +28,7 @@ import {
   spokeOpacity,
   TARGET_LIMITS,
   targetKeyTarget,
+  type Point,
 } from './wheelScene';
 import { DisturbanceMarks, FieldLines, RateArc, type SceneGeometry } from './WheelSceneMarks';
 
@@ -56,16 +59,42 @@ const WHEEL_ARC_GAP = 6;
 const ZERO_LABEL_GAP = 6;
 const TARGET_PRECISION = 0;
 const TEXT_INSET = 8;
+/** Decimals of the turned groups' angles: a stable attribute string per frame. */
+const ANGLE_DECIMALS = 2;
+/**
+ * The rate arcs grow in steps of this many degrees, so a slow ramp redraws them every few frames:
+ * half a degree on the body's wide arc (a degree there is 2,7 px), a degree on the wheel's.
+ */
+const BODY_ARC_GRAIN_DEG = 0.5;
+const WHEEL_ARC_GRAIN_DEG = 1;
 
-export interface WheelSceneProps {
-  mode: WheelMode;
-  /** Body angle (°) and rate (°/s), and the rate the arc is scaled to (°/s). */
+const quantize = (value: number, grain: number) => Math.round(value / grain) * grain;
+/** SVG's rotate turns clockwise on screen; the laboratory counts counterclockwise, like polar(). */
+const rotateAttr = (degrees: number, c: Point) =>
+  `rotate(${(-degrees).toFixed(ANGLE_DECIMALS)} ${c.x} ${c.y})`;
+
+/** The body's and the wheel's angles and rates at one time. */
+export interface SpinState {
+  /** Body angle (°) and rate (°/s). */
   thetaS: number;
   omegaS: number;
-  omegaSReference: number;
   /** Inertial wheel angle (rad) and rate (rpm). */
   thetaW: number;
   omegaW: number;
+}
+
+/** The live clock and the spin at any of its times: what the moving layer draws. */
+export interface LiveSpin {
+  frame: FrameStore;
+  spinAt(t: number): SpinState;
+}
+
+export interface WheelSceneProps extends SpinState {
+  mode: WheelMode;
+  /** The spin at the settled time (the description); the drawing follows `live`. */
+  live: LiveSpin;
+  /** The rate the body's arc is scaled to (°/s). */
+  omegaSReference: number;
   rpmMax: number;
   targetDeg: number;
   actuator: DumpActuator;
@@ -164,7 +193,10 @@ function Body({
   );
 }
 
-/** The wheel seen face-on: rim, hub and three spokes at θ_w, fading as it speeds up. */
+/**
+ * The wheel seen face-on: rim, hub and three spokes turned to θ_w by one group rotation, fading as
+ * it speeds up.
+ */
 function Wheel({
   geometry,
   thetaW,
@@ -185,9 +217,9 @@ function Wheel({
         stroke={BODY_STROKE}
         strokeWidth={1.5}
       />
-      <g opacity={spokeOpacity}>
+      <g opacity={spokeOpacity} transform={rotateAttr(thetaW / DEG, c)}>
         {SPOKES.map((offset) => {
-          const end = polar(c, wheel, thetaW / DEG + offset);
+          const end = polar(c, wheel, offset);
           return (
             <line
               key={offset}
@@ -266,6 +298,57 @@ function TargetHandle({
   );
 }
 
+/**
+ * The moving layer: the body turned to the live θ_s by one group rotation, the wheel at θ_w and,
+ * with arrows on, the two rate arcs (their sweeps quantized to their grain).
+ */
+function SpinLayer({
+  geometry,
+  live,
+  omegaSReference,
+  rpmMax,
+  showArrows,
+}: {
+  geometry: Geometry;
+  live: LiveSpin;
+  omegaSReference: number;
+  rpmMax: number;
+  showArrows: boolean;
+}): JSX.Element {
+  const { thetaS, omegaS, thetaW, omegaW } = useFrameDerived(live.frame, live.spinAt);
+  const { c, dial, wheel } = geometry;
+  const wheelArc = rateArcSweep(omegaW, rpmMax);
+  const bodyArc = rateArcSweep(omegaS, omegaSReference, BODY_ARC_MAX);
+  return (
+    <>
+      <g data-body-turn="" transform={rotateAttr(thetaS, c)}>
+        <Body geometry={geometry} angle={0} />
+      </g>
+      <Wheel geometry={geometry} thetaW={thetaW} spokeOpacity={spokeOpacity(omegaW)} />
+      {showArrows ? (
+        <>
+          <RateArc
+            c={c}
+            radius={dial - BODY_GAP / 2}
+            centreDeg={thetaS + 180}
+            sweep={Math.sign(omegaS) * quantize(bodyArc.sweep, BODY_ARC_GRAIN_DEG)}
+            color={RATE_COLOR}
+            label="ω_s"
+          />
+          <RateArc
+            c={c}
+            radius={wheel + WHEEL_ARC_GAP}
+            centreDeg={90}
+            sweep={Math.sign(omegaW) * quantize(wheelArc.sweep, WHEEL_ARC_GRAIN_DEG)}
+            color={wheelArc.isOver ? LIMIT_COLOR : RATE_COLOR}
+            label="ω_w"
+          />
+        </>
+      ) : null}
+    </>
+  );
+}
+
 function describeScene(props: WheelSceneProps): string {
   const deg = (value: number) => formatNumber(value, { precision: 1, unit: '°' });
   const rpm = formatNumber(props.omegaW, { precision: 0, unit: 'rpm' });
@@ -283,14 +366,11 @@ function describeScene(props: WheelSceneProps): string {
  * held at 0° and the dial shows the disturbance and the dump actuator instead of the target.
  */
 export default function WheelScene(props: WheelSceneProps): JSX.Element {
-  const { mode, thetaS, omegaS, omegaSReference, thetaW, omegaW, rpmMax, targetDeg, showArrows } =
-    props;
+  const { mode, live, omegaSReference, rpmMax, targetDeg, showArrows } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const { side, geometry } = layout(width);
-  const { c, dial, wheel } = geometry;
+  const { c } = geometry;
   const isManeuver = mode === 'maniobra';
-  const wheelArc = rateArcSweep(omegaW, rpmMax);
-  const bodyArc = rateArcSweep(omegaS, omegaSReference, BODY_ARC_MAX);
 
   return (
     <div ref={wrapperRef} className="w-full">
@@ -308,8 +388,13 @@ export default function WheelScene(props: WheelSceneProps): JSX.Element {
           <Dial {...geometry} />
           {isManeuver ? <TargetSweep {...geometry} targetDeg={targetDeg} /> : null}
           {isManeuver ? <Body geometry={geometry} angle={targetDeg} isGhost /> : null}
-          <Body geometry={geometry} angle={thetaS} />
-          <Wheel geometry={geometry} thetaW={thetaW} spokeOpacity={spokeOpacity(omegaW)} />
+          <SpinLayer
+            geometry={geometry}
+            live={live}
+            omegaSReference={omegaSReference}
+            rpmMax={rpmMax}
+            showArrows={showArrows}
+          />
           {isManeuver ? null : (
             <DisturbanceMarks
               geometry={geometry}
@@ -317,26 +402,6 @@ export default function WheelScene(props: WheelSceneProps): JSX.Element {
               dumping={props.dumping}
             />
           )}
-          {showArrows ? (
-            <>
-              <RateArc
-                c={c}
-                radius={dial - BODY_GAP / 2}
-                centreDeg={thetaS + 180}
-                sweep={Math.sign(omegaS) * bodyArc.sweep}
-                color={RATE_COLOR}
-                label="ω_s"
-              />
-              <RateArc
-                c={c}
-                radius={wheel + WHEEL_ARC_GAP}
-                centreDeg={90}
-                sweep={Math.sign(omegaW) * wheelArc.sweep}
-                color={wheelArc.isOver ? LIMIT_COLOR : RATE_COLOR}
-                label="ω_w"
-              />
-            </>
-          ) : null}
         </g>
         {isManeuver ? (
           <g data-testid="wheel-dial" data-cx={c.x} data-cy={c.y}>

@@ -33,6 +33,14 @@ export interface FlybyFigureProps {
 
 type Scales = { x: Scale; y: Scale };
 
+/**
+ * Coordinates rounded to two decimals before they reach an attribute: the server's and the
+ * browser's Math differ in the last bit on this hyperbola, and React would warn at hydration.
+ */
+const PX_DECIMALS = 2;
+const round = (value: number) => Number(value.toFixed(PX_DECIMALS));
+const roundPoint = (p: Point): Point => ({ x: round(p.x), y: round(p.y) });
+
 const JUPITER = `var(${PLANETS.jupiter.token})`;
 const DOT_RADIUS = 3;
 const GUIDE_DASH = '4 4';
@@ -123,11 +131,11 @@ function VisVivaPlot(): JSX.Element {
     speedText(figure.aphelion.y),
   ];
   const overlay = ({ x, y }: Scales) => {
-    const px = (p: Point) => ({ x: x.toPx(p.x), y: y.toPx(p.y) });
+    const px = (p: Point) => roundPoint({ x: x.toPx(p.x), y: y.toPx(p.y) });
     const aphelion = px(figure.aphelion);
     const isSplit = x.range[1] - x.range[0] < SPLIT_LABEL_BELOW_PX;
     const lines = isSplit ? aphelionLines : [aphelionLines.join(' ')];
-    const jupiterX = x.toPx(figure.jupiterR);
+    const jupiterX = round(x.toPx(figure.jupiterR));
     return (
       <g className="pointer-events-none">
         <line
@@ -145,8 +153,8 @@ function VisVivaPlot(): JSX.Element {
           <circle
             key={p.x}
             data-dot=""
-            cx={x.toPx(p.x)}
-            cy={y.toPx(p.y)}
+            cx={px(p).x}
+            cy={px(p).y}
             r={DOT_RADIUS}
             fill={TEXT_COLOR}
           />
@@ -259,8 +267,9 @@ function HyperbolaPlot(): JSX.Element {
     along(center, outDir, ASYMPTOTE_RADII),
   ];
   const overlay = ({ x, y }: Scales) => {
-    const px = (p: Point) => ({ x: x.toPx(p.x), y: y.toPx(p.y) });
-    const planetPx = Math.max(x.toPx(1) - x.toPx(0), MIN_PLANET_PX);
+    const px = (p: Point) => roundPoint({ x: x.toPx(p.x), y: y.toPx(p.y) });
+    const planetPx = round(Math.max(x.toPx(1) - x.toPx(0), MIN_PLANET_PX));
+    const centrePx = px({ x: 0, y: 0 });
     const area = { left: x.range[0], right: x.range[1], top: y.range[1], bottom: y.range[0] };
     const arrowLines = [figure.inArrow, figure.outArrow].map((arrow): Segment => [
       px(arrow.from),
@@ -281,12 +290,12 @@ function HyperbolaPlot(): JSX.Element {
     ).map(px);
     return (
       <g className="pointer-events-none">
-        <circle data-planet="jupiter" cx={x.toPx(0)} cy={y.toPx(0)} r={planetPx} fill={JUPITER} />
+        <circle data-planet="jupiter" cx={centrePx.x} cy={centrePx.y} r={planetPx} fill={JUPITER} />
         <line
-          x1={x.toPx(0)}
-          y1={y.toPx(0)}
-          x2={x.toPx(figure.rpRadii)}
-          y2={y.toPx(0)}
+          x1={centrePx.x}
+          y1={centrePx.y}
+          x2={rpLine[1].x}
+          y2={rpLine[1].y}
           stroke={TEXT_COLOR}
         />
         {/* Between Jupiter and periapsis there is room for the symbol only; the value goes to the
@@ -314,13 +323,15 @@ function HyperbolaPlot(): JSX.Element {
         />
         <Label
           at={{
-            x: fitCentre(
-              x.toPx(center.x),
-              monoTextWidth(deltaText, LABEL_SIZE),
-              x.range[0],
-              x.range[1],
+            x: round(
+              fitCentre(
+                x.toPx(center.x),
+                monoTextWidth(deltaText, LABEL_SIZE),
+                x.range[0],
+                x.range[1],
+              ),
             ),
-            y: y.toPx(ARC_RADII),
+            y: round(y.toPx(ARC_RADII)),
           }}
           dx={0}
           dy={-8}
@@ -415,7 +426,7 @@ function TrianglePlot({
   const { name, token } = PLANETS[t.planet];
   const color = `var(${token})`;
   const overlay = ({ x, y }: Scales) => {
-    const px = (p: Point) => ({ x: x.toPx(p.x), y: y.toPx(p.y) });
+    const px = (p: Point) => roundPoint({ x: x.toPx(p.x), y: y.toPx(p.y) });
     const origin = px({ x: 0, y: 0 });
     const vpTip = px({ x: t.Vp, y: 0 });
     /** A tip's |v| above it, kept inside the plot. */

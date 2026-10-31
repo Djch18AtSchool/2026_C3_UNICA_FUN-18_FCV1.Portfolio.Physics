@@ -368,8 +368,9 @@ describe('WheelLab', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
     frames.flush(0);
-    frames.flush(50);
-    expect(timelineText()).toBe('t = 0,050 s');
+    // The transport's settled time is synced every 100 ms of playback.
+    frames.flush(100);
+    expect(timelineText()).toBe('t = 0,100 s');
     for (let now = 100; frames.pending > 0 && now < 20_000; now += 50) frames.flush(now);
 
     expect(lab()).toHaveAttribute('data-playing', 'false');

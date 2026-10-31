@@ -2,10 +2,11 @@
 import { act, cleanup, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../lib/settingsStore';
-import { useSimClock } from './useSimClock';
+import { CLOCK_SYNC_HZ, MAX_FRAME_DT_S, useSimClock } from './useSimClock';
 
 const FRAME_MS = 16;
 const REDUCED_STEP_MS = 250;
+const SYNC_MS = 1000 / CLOCK_SYNC_HZ;
 
 type ChangeListener = (event: MediaQueryListEvent) => void;
 
@@ -131,8 +132,8 @@ describe('useSimClock', () => {
     });
     advance(400);
 
-    expect(normal.result.current.state.t).toBeGreaterThan(0);
-    expect(fast.result.current.state.t).toBeCloseTo(2 * normal.result.current.state.t, 10);
+    expect(normal.result.current.frame.get()).toBeGreaterThan(0);
+    expect(fast.result.current.frame.get()).toBeCloseTo(2 * normal.result.current.frame.get(), 10);
   });
 
   test('a time scale of 20 advances the simulation 20 times the real time', () => {
@@ -146,8 +147,8 @@ describe('useSimClock', () => {
     });
     advance(400);
 
-    expect(real.result.current.state.t).toBeGreaterThan(0);
-    expect(lapse.result.current.state.t).toBeCloseTo(20 * real.result.current.state.t, 10);
+    expect(real.result.current.frame.get()).toBeGreaterThan(0);
+    expect(lapse.result.current.frame.get()).toBeCloseTo(20 * real.result.current.frame.get(), 10);
   });
 
   test('the time scale also stops at the end without looping', () => {
@@ -161,15 +162,142 @@ describe('useSimClock', () => {
     expect(result.current.state.playing).toBe(false);
   });
 
-  test('caps the real dt of a frame at 50 ms', () => {
+  test('a stalled frame advances the clock by MAX_FRAME_DT_S (250 ms), not by the stall', () => {
     stubAnimationFrame(1000);
     const { result } = renderClock(10);
 
     act(() => result.current.play());
     advance(2000);
 
-    // First frame only sets the reference timestamp; the second adds min(1 s, 50 ms).
-    expect(result.current.state.t).toBeCloseTo(0.05, 10);
+    // First frame only sets the reference timestamp; the second adds min(1 s, 0,25 s).
+    expect(MAX_FRAME_DT_S).toBe(0.25);
+    expect(result.current.frame.get()).toBeCloseTo(0.25, 10);
+    expect(result.current.state.t).toBeCloseTo(0.25, 10);
+  });
+
+  test('a slow frame advances by its real duration, so the pace never drops', () => {
+    stubAnimationFrame(100);
+    const { result } = renderClock(10);
+
+    act(() => result.current.play());
+    advance(1000);
+
+    // Nine 100 ms frames after the reference one.
+    expect(result.current.frame.get()).toBeCloseTo(0.9, 10);
+  });
+
+  describe('frame store', () => {
+    test('advances every frame without re-rendering the owner', () => {
+      stubAnimationFrame();
+      let renders = 0;
+      const { result } = renderHook(() => {
+        renders += 1;
+        return useSimClock(10);
+      });
+
+      act(() => result.current.play());
+      const after = renders;
+      advance(FRAME_MS * 3);
+
+      expect(result.current.frame.get()).toBeCloseTo(0.032, 10);
+      expect(renders).toBe(after);
+      expect(result.current.state.t).toBe(0);
+    });
+
+    test('writes the live time into state at CLOCK_SYNC_HZ while playing', () => {
+      stubAnimationFrame();
+      const { result } = renderClock(10);
+
+      act(() => result.current.play());
+      advance(SYNC_MS + FRAME_MS * 2);
+
+      expect(result.current.state.t).toBeGreaterThan(0);
+      expect(result.current.state.t).toBeLessThanOrEqual(result.current.frame.get());
+      expect(result.current.frame.get() - result.current.state.t).toBeLessThan(SYNC_MS / 1000);
+    });
+
+    test('pause settles state.t on the live time', () => {
+      stubAnimationFrame();
+      const { result } = renderClock(10);
+
+      act(() => result.current.play());
+      advance(FRAME_MS * 3);
+      act(() => result.current.pause());
+
+      expect(result.current.state.t).toBe(result.current.frame.get());
+      expect(result.current.state.t).toBeCloseTo(0.032, 10);
+    });
+
+    test('seek, step and reset move the live time at once', () => {
+      stubAnimationFrame();
+      const { result } = renderClock(10);
+
+      act(() => result.current.seek(4));
+      expect(result.current.frame.get()).toBe(4);
+      act(() => result.current.step(0.5));
+      expect(result.current.frame.get()).toBe(4.5);
+      act(() => result.current.reset());
+      expect(result.current.frame.get()).toBe(0);
+    });
+
+    test('step while playing starts from the live time, not from the last settled one', () => {
+      stubAnimationFrame();
+      const { result } = renderClock(10);
+
+      act(() => result.current.play());
+      advance(FRAME_MS * 3);
+      act(() => result.current.step(1));
+
+      expect(result.current.state.t).toBeCloseTo(1.032, 10);
+      expect(result.current.state.playing).toBe(false);
+    });
+
+    test('a shrinking duration clamps the live time too', () => {
+      stubAnimationFrame();
+      const { result, rerender } = renderClock(2);
+
+      act(() => result.current.seek(1.5));
+      rerender({ d: 1 });
+
+      expect(result.current.frame.get()).toBe(1);
+    });
+
+    test('a frame queued before a pause runs no longer advances the live time', () => {
+      // A queue whose cancel does nothing, so the frame requested before the pause still fires.
+      let queue: FrameRequestCallback[] = [];
+      vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+        queue.push(callback);
+        return queue.length;
+      });
+      vi.stubGlobal('cancelAnimationFrame', () => undefined);
+      const flush = (now: number) => {
+        const pending = queue;
+        queue = [];
+        act(() => pending.forEach((callback) => callback(now)));
+      };
+      const { result } = renderClock(10);
+
+      act(() => result.current.play());
+      flush(0);
+      flush(16);
+      const t = result.current.frame.get();
+      act(() => result.current.pause());
+      flush(32);
+
+      expect(t).toBeCloseTo(0.016, 10);
+      expect(result.current.frame.get()).toBe(t);
+      expect(queue).toHaveLength(0);
+    });
+
+    test('keeps the same store across renders', () => {
+      stubAnimationFrame();
+      const { result } = renderClock(1);
+      const { frame } = result.current;
+
+      act(() => result.current.seek(0.5));
+
+      expect(result.current.frame).toBe(frame);
+    });
   });
 
   test('pause cancels the frame loop', () => {
@@ -178,12 +306,14 @@ describe('useSimClock', () => {
 
     act(() => result.current.play());
     advance(100);
-    const t = result.current.state.t;
+    const t = result.current.frame.get();
     act(() => result.current.pause());
     advance(500);
 
     expect(cancel).toHaveBeenCalled();
+    expect(t).toBeGreaterThan(0);
     expect(result.current.state.t).toBe(t);
+    expect(result.current.frame.get()).toBe(t);
     expect(vi.getTimerCount()).toBe(0);
   });
 

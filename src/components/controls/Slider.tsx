@@ -1,5 +1,6 @@
 import { formatNumber } from '../../lib/format';
 import { useGlobalSettings } from '../lab/useGlobalSettings';
+import { withStableCallbacks } from '../lab/withStableCallbacks';
 
 export interface SliderProps {
   id: string;
@@ -13,17 +14,7 @@ export interface SliderProps {
   precision?: number;
 }
 
-export default function Slider({
-  id,
-  label,
-  unit,
-  min,
-  max,
-  step,
-  value,
-  onChange,
-  precision,
-}: SliderProps) {
+function Slider({ id, label, unit, min, max, step, value, onChange, precision }: SliderProps) {
   const { decimals } = useGlobalSettings();
   const resolvedPrecision = precision ?? decimals;
   return (
@@ -53,3 +44,6 @@ export default function Slider({
     </div>
   );
 }
+
+/** Memoized with stable callbacks: a playing lab's 10 Hz renders never reach its input. */
+export default withStableCallbacks(Slider);

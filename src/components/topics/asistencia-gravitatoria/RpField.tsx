@@ -1,5 +1,6 @@
 import { useState, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
+import { withStableCallbacks } from '../../lab/withStableCallbacks';
 import { RP_RANGE, rpToSlider, sliderToRp } from './flybyScene';
 
 export interface RpFieldProps {
@@ -39,7 +40,7 @@ export function rpText(rp: number, unit: string, radiusKm: number): string {
  * field in planet radii that commits on blur or Enter. Out-of-range values go to the laboratory,
  * which clamps them and says why.
  */
-export default function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
+function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
   const labelId = `${ID}-label`;
   const unitId = `${ID}-unit`;
@@ -94,3 +95,6 @@ export default function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps):
     </div>
   );
 }
+
+/** Memoized with stable callbacks: a playing lab's 10 Hz renders never reach its inputs. */
+export default withStableCallbacks(RpField);

@@ -9,9 +9,11 @@ import {
   TICK_FONT_FAMILY,
 } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import type { FrameStore } from '../../lab/frameStore';
 import { segmentsOf, spotsAround, spotsBeside, textBox, type Box } from '../../lab/labelClearance';
 import { Arrow, Knob, LABEL_SIZE, Label, type Point } from '../../lab/OverlayMarks';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
+import { useFrameDerived } from '../../lab/useFrameTime';
 import { sampleTrack, type FlybyHyperbola, type FlybyState } from './flybyOrbit';
 import {
   ARROW_PX,
@@ -32,15 +34,25 @@ export const PROBE_COLOR = 'var(--accent)';
 export const VINF_COLOR = TEXT_COLOR;
 export const TRACK_COLOR = TICK_COLOR;
 
+/** Time from periapsis (s) and where the probe is then (Kepler's equation). */
+export interface ProbeAt {
+  tau: number;
+  probe: FlybyState;
+}
+
+/** The live clock and the probe at any of its times: what the moving layer draws. */
+export interface LiveProbe {
+  frame: FrameStore;
+  probeAt(t: number): ProbeAt;
+}
+
 export interface PlanetFrameProps {
   hyperbola: FlybyHyperbola;
   planet: Planet;
   /** r_p in planet radii and its unit («R_J»). */
   rp: number;
   unit: string;
-  /** Time from periapsis, s, and where the probe is then (Kepler's equation). */
-  tau: number;
-  probe: FlybyState;
+  live: LiveProbe;
   showVectors: boolean;
   /** r_p (planet radii) asked for by the handle, unclamped. */
   onRpRequest(rp: number): void;
@@ -74,6 +86,9 @@ const TEXT_BAND = 30;
 const SCALE_BAR_SHARE = 0.3;
 const DECIMALS_E = 3;
 const DEG = 180 / Math.PI;
+const ORIGIN: Point = { x: 0, y: 0 };
+/** Decimals of the probe's coordinates: a stable attribute string per frame. */
+const PX_DECIMALS = 2;
 
 /** Unit vector on screen for an angle counted counter-clockwise with y up. */
 const direction = (angle: number): Point => ({ x: Math.cos(angle), y: -Math.sin(angle) });
@@ -98,6 +113,54 @@ function describe({ hyperbola, planet, rp, unit }: PlanetFrameProps): string {
   return `Sobrevuelo en el marco de ${planet.name}: la sonda llega con v∞ = ${n(hyperbola.vInf, 2, 'km/s')} y pasa por ${SIDE_NAMES[hyperbola.sense < 0 ? 'behind' : 'front']} a r_p = ${n(rp, 2, unit)}. La hipérbola tiene e = ${n(hyperbola.e, DECIMALS_E)} y gira la velocidad δ = ${n(hyperbola.delta * DEG, 1, '°')}; lejos del planeta sale con la misma rapidez v∞.`;
 }
 
+interface ProbeLayerProps {
+  live: LiveProbe;
+  hyperbola: FlybyHyperbola;
+  /** The sampled track in canvas px with each sample's τ, and km → canvas px. */
+  track: { tau: number }[];
+  trackPx: Point[];
+  toPx(x: number, y: number): Point;
+  showVectors: boolean;
+}
+
+/**
+ * The moving layer: the stretch of track already flown, the probe at the live τ and, with vectors
+ * on, v_rel from the probe (drawn relative to it inside a translated group).
+ */
+function ProbeLayer({ live, hyperbola, track, trackPx, toPx, showVectors }: ProbeLayerProps) {
+  const { tau, probe } = useFrameDerived(live.frame, live.probeAt);
+  const probePx = toPx(probe.x, probe.y);
+  const travelled = [...trackPx.filter((_, k) => track[k].tau <= tau), probePx];
+  const vRelLength = ARROW_PX * Math.min(probe.speed / hyperbola.vInf, VREL_CAP);
+  const vRelTip = along(
+    ORIGIN,
+    { x: probe.vx / probe.speed, y: -probe.vy / probe.speed },
+    vRelLength,
+  );
+  return (
+    <>
+      <path d={toPath(travelled)} fill="none" stroke={PROBE_COLOR} strokeWidth={LINE_WIDTH + 0.5} />
+      {showVectors ? (
+        <g
+          data-vector="vrel"
+          transform={`translate(${probePx.x.toFixed(PX_DECIMALS)} ${probePx.y.toFixed(PX_DECIMALS)})`}
+        >
+          <Arrow from={ORIGIN} to={vRelTip} color={PROBE_COLOR} />
+        </g>
+      ) : null}
+      <circle
+        data-testid="flyby-probe"
+        cx={probePx.x.toFixed(PX_DECIMALS)}
+        cy={probePx.y.toFixed(PX_DECIMALS)}
+        r={PROBE_RADIUS}
+        fill={PROBE_COLOR}
+        stroke={SURFACE_COLOR}
+        strokeWidth={1.5}
+      />
+    </>
+  );
+}
+
 /**
  * The flyby in the planet frame, to the scale the log bar sets: the planet (enlarged only when it
  * would vanish), the hyperbola out to where v∞ is drawn, the probe at τ from periapsis by
@@ -105,7 +168,7 @@ function describe({ hyperbola, planet, rp, unit }: PlanetFrameProps): string {
  * logarithmic r_p scale: drag it, or use the arrow keys, Page keys, Home and End.
  */
 export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
-  const { hyperbola, planet, rp, unit, tau, probe, showVectors, onRpRequest } = props;
+  const { hyperbola, planet, rp, unit, live, showVectors, onRpRequest } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const side = Math.min(width, MAX_SIDE);
   const drawSide = side - 2 * TEXT_BAND;
@@ -131,9 +194,8 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
   const c = heldCentre ?? fitted;
   const shift = (p: Point): Point => ({ x: c.x + p.x, y: c.y + p.y });
 
-  const probePx = shift(rel(probe.x, probe.y));
+  const toPx = (x: number, y: number): Point => shift(rel(x, y));
   const trackPx = trackRel.map(shift);
-  const travelled = [...trackPx.filter((_, k) => track[k].tau <= tau), probePx];
   const first = trackPx[0];
   const last = trackPx[trackPx.length - 1];
   const inTail = shift(inTailRel);
@@ -142,12 +204,6 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
   const periapsis = along(c, periDir, view.periapsisPx);
   // A short name by the knob always fits; its value sits in a corner, clear of the drawing.
   const knobLabel = tipLabel(periapsis, periDir, 'r_p', width, KNOB_LABEL_GAP);
-  const vRelLength = ARROW_PX * Math.min(probe.speed / hyperbola.vInf, VREL_CAP);
-  const vRelTip = along(
-    probePx,
-    { x: probe.vx / probe.speed, y: -probe.vy / probe.speed },
-    vRelLength,
-  );
   const bar = scaleBar(view.scale, planet.radiusKm, side * SCALE_BAR_SHARE);
   const planetColor = `var(${planet.token})`;
   const rpValue = `r_p = ${formatNumber(rp, { precision: 2, unit })}`;
@@ -274,12 +330,6 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
             strokeDasharray="3 3"
           />
           <path d={toPath(trackPx)} fill="none" stroke={TRACK_COLOR} strokeWidth={1.5} />
-          <path
-            d={toPath(travelled)}
-            fill="none"
-            stroke={PROBE_COLOR}
-            strokeWidth={LINE_WIDTH + 0.5}
-          />
           {showVectors ? (
             <>
               <g data-vector="vinf-in">
@@ -294,19 +344,15 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
                   {outLabel.text}
                 </Label>
               </g>
-              <g data-vector="vrel">
-                <Arrow from={probePx} to={vRelTip} color={PROBE_COLOR} />
-              </g>
             </>
           ) : null}
-          <circle
-            data-testid="flyby-probe"
-            cx={probePx.x}
-            cy={probePx.y}
-            r={PROBE_RADIUS}
-            fill={PROBE_COLOR}
-            stroke={SURFACE_COLOR}
-            strokeWidth={1.5}
+          <ProbeLayer
+            live={live}
+            hyperbola={hyperbola}
+            track={track}
+            trackPx={trackPx}
+            toPx={toPx}
+            showVectors={showVectors}
           />
         </g>
         <g

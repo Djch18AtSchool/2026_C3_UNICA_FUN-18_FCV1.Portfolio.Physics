@@ -1,7 +1,9 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
-import { FLOW_COLORS, M_PER_KM, roadPosition } from './regenScene';
+import type { FrameStore } from '../../lab/frameStore';
+import { useFrameDerived } from '../../lab/useFrameTime';
+import { drivePhase, FLOW_COLORS, M_PER_KM, roadPosition, type BalanceAt } from './regenScene';
 
 const ROAD_HEIGHT = 10;
 const LANE_DASH = '8 6';
@@ -20,17 +22,23 @@ const KM_PRECISION = 2;
 const ROAD_FILL = 'color-mix(in srgb, var(--fg) 12%, var(--bg-elevated))';
 const COVERED_FILL = 'color-mix(in srgb, var(--accent) 28%, var(--bg-elevated))';
 const BODY_FILL = 'color-mix(in srgb, var(--fg) 14%, var(--bg-elevated))';
+/** Decimals of the car's translation: a stable attribute string per frame. */
+const PX_DECIMALS = 2;
+
+/** The live clock and the cycle's balance at any of its times: what the moving layer draws. */
+export interface LiveBalance {
+  frame: FrameStore;
+  atTime(t: number): BalanceAt;
+}
 
 export interface RoadStripProps {
-  /** Distance covered and the cycle's total (m). */
-  distance: number;
+  /** The cycle's total length (m). */
   total: number;
   /** Ends of the road and the y of its top edge, in viewBox pixels. */
   x0: number;
   x1: number;
   y: number;
-  isRegenerating: boolean;
-  isFrictionBraking: boolean;
+  live: LiveBalance;
 }
 
 /** A side view of a hatchback facing right, wheels on y, centred on x. */
@@ -39,10 +47,12 @@ function Car({
   y,
   isRegenerating,
   isFrictionBraking,
-}: { x: number; y: number } & Pick<
-  RoadStripProps,
-  'isRegenerating' | 'isFrictionBraking'
->): JSX.Element {
+}: {
+  x: number;
+  y: number;
+  isRegenerating: boolean;
+  isFrictionBraking: boolean;
+}): JSX.Element {
   const axle = y - WHEEL_RADIUS;
   const sill = axle - 1;
   const body = `M${x - 23} ${sill} L${x - 23} ${sill - 8} L${x - 13} ${sill - 9} L${x - 7} ${sill - 16} L${x + 8} ${sill - 16} L${x + 15} ${sill - 9} L${x + 22} ${sill - 7} L${x + 23} ${sill} Z`;
@@ -84,33 +94,53 @@ const kmLabel = (meters: number) =>
   formatNumber(meters / M_PER_KM, { precision: KM_PRECISION, unit: 'km' });
 
 /**
+ * The moving layer: the stretch already driven and the car at the live time, translated along the
+ * road (one attribute per frame, plus the tint's width), with its halos from the live phase.
+ */
+function RoadLive({ total, x0, x1, y, live }: RoadStripProps): JSX.Element {
+  const at = useFrameDerived(live.frame, live.atTime);
+  const phase = drivePhase(at);
+  const carX = roadPosition(at.distance, total, x0 + CAR_HALF_LENGTH, x1 - CAR_HALF_LENGTH);
+  const coveredX = roadPosition(at.distance, total, x0, x1);
+  return (
+    <>
+      <rect
+        data-covered=""
+        x={x0}
+        y={y}
+        width={(coveredX - x0).toFixed(PX_DECIMALS)}
+        height={ROAD_HEIGHT}
+        style={{ fill: COVERED_FILL }}
+      />
+      <g
+        data-testid="regen-car"
+        data-x={carX}
+        transform={`translate(${carX.toFixed(PX_DECIMALS)} 0)`}
+      >
+        <Car
+          x={0}
+          y={y}
+          isRegenerating={phase === 'regen' || phase === 'blended'}
+          isFrictionBraking={phase === 'friction' || phase === 'blended'}
+        />
+      </g>
+    </>
+  );
+}
+
+/**
  * The cycle as a road: its whole length spans the strip, the stretch already driven is tinted, a
  * tick marks every kilometre and the car stands where the cycle has taken it, clamped to the road.
  * Green halos on the wheels mean the motor brakes; orange-red ones, the friction brakes.
  */
-export default function RoadStrip({
-  distance,
-  total,
-  x0,
-  x1,
-  y,
-  isRegenerating,
-  isFrictionBraking,
-}: RoadStripProps): JSX.Element {
-  const carX = roadPosition(distance, total, x0 + CAR_HALF_LENGTH, x1 - CAR_HALF_LENGTH);
-  const coveredX = roadPosition(distance, total, x0, x1);
+export default function RoadStrip(props: RoadStripProps): JSX.Element {
+  const { total, x0, x1, y } = props;
   const kilometres = Array.from({ length: Math.floor(total / M_PER_KM) + 1 }, (_, k) => k);
   return (
     <g>
       <g data-testid="regen-road" data-x1={x1}>
         <rect x={x0} y={y} width={x1 - x0} height={ROAD_HEIGHT} style={{ fill: ROAD_FILL }} />
-        <rect
-          x={x0}
-          y={y}
-          width={coveredX - x0}
-          height={ROAD_HEIGHT}
-          style={{ fill: COVERED_FILL }}
-        />
+        <RoadLive {...props} />
         <line
           x1={x0}
           y1={y + ROAD_HEIGHT / 2}
@@ -151,9 +181,6 @@ export default function RoadStrip({
         >
           {kmLabel(total)}
         </text>
-      </g>
-      <g data-testid="regen-car" data-x={carX}>
-        <Car x={carX} y={y} isRegenerating={isRegenerating} isFrictionBraking={isFrictionBraking} />
       </g>
     </g>
   );

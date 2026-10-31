@@ -8,9 +8,11 @@ import {
   TICK_FONT_FAMILY,
 } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import type { FrameStore } from '../../lab/frameStore';
 import { Knob, Label, type Point } from '../../lab/OverlayMarks';
 import { wrapLabel } from '../../lab/SvgPlotMarks';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
+import { useFrameDerived } from '../../lab/useFrameTime';
 import { BOUNCE_LIMITS, type BallKind } from './bouncePresets';
 import { h0KeyTarget, snapH0, viewY } from './bounceScene';
 
@@ -56,10 +58,24 @@ const PENETRATION_LABEL_MIN = 5e-4;
 const CM_PER_M = 100;
 
 const [H0_MIN, H0_MAX] = BOUNCE_LIMITS.h0;
+const ORIGIN: Point = { x: 0, y: 0 };
+/** Decimals of a ball's translation: a stable attribute string per frame. */
+const PX_DECIMALS = 2;
 
 export interface SceneBall {
   y: number;
   isResting: boolean;
+}
+
+export interface SceneBalls {
+  ideal: SceneBall;
+  engine: SceneBall;
+}
+
+/** The live clock and the two balls at any of its times: what the moving layer draws. */
+export interface LiveBalls {
+  frame: FrameStore;
+  ballsAt(t: number): SceneBalls;
 }
 
 export interface BounceSceneProps {
@@ -67,8 +83,10 @@ export interface BounceSceneProps {
   /** Height (m) of the scene's top line. */
   top: number;
   ball: BallKind;
+  /** The balls at the settled time, for the description; the drawing follows `live`. */
   ideal: SceneBall;
   engine: SceneBall;
+  live: LiveBalls;
   /**
    * Under "Motor de juego": its step and substeps. On a narrow canvas it wraps at its spaces to
    * fit its column; no-break spaces keep a group («Δt = 1/60 s») on one line.
@@ -158,13 +176,17 @@ function ballStatus(state: SceneBall, top: number, decimals: number): string[] {
   ].filter(Boolean);
 }
 
-/** One ball drawn on the floor line at its height, clamped into the scene (a chevron when above). */
+/**
+ * One ball drawn on the floor line at its height, clamped into the scene (a chevron when above).
+ * The ball, its seams and the chevron sit in one group translated to the centre, so a frame of
+ * flight costs that translation and the shadow's width.
+ */
 function BallMark({ testId, kind, x, state, top, geo }: BallMarkProps): JSX.Element {
   const view = viewY(state.y, top);
   const r = geo.radius;
-  const c = { x, y: geo.toPx(view.y) - r };
+  const cy = geo.toPx(view.y) - r;
   const shadowScale = 1 - SHADOW_SHRINK * (view.y / top);
-  const chevronY = c.y - r - 2;
+  const chevronY = -r - 2;
   return (
     <g
       data-testid={testId}
@@ -180,24 +202,77 @@ function BallMark({ testId, kind, x, state, top, geo }: BallMarkProps): JSX.Elem
         fill={TEXT_COLOR}
         opacity={SHADOW_OPACITY}
       />
-      <circle
-        cx={c.x}
-        cy={c.y}
-        r={r}
-        style={{ fill: BALL_FILL[kind] }}
-        stroke={BALL_STROKE}
-        strokeWidth={1.5}
-      />
-      <Seams kind={kind} c={c} r={r} />
-      {view.clamp === 'above' ? (
-        <path
-          d={`M${x - CHEVRON} ${chevronY} L${x} ${chevronY - CHEVRON} L${x + CHEVRON} ${chevronY}`}
-          fill="none"
-          stroke={TEXT_COLOR}
+      <g transform={`translate(${x} ${cy.toFixed(PX_DECIMALS)})`}>
+        <circle
+          data-ball-body=""
+          cx={0}
+          cy={0}
+          r={r}
+          style={{ fill: BALL_FILL[kind] }}
+          stroke={BALL_STROKE}
           strokeWidth={1.5}
         />
-      ) : null}
+        <Seams kind={kind} c={ORIGIN} r={r} />
+        {view.clamp === 'above' ? (
+          <path
+            d={`M${-CHEVRON} ${chevronY} L0 ${chevronY - CHEVRON} L${CHEVRON} ${chevronY}`}
+            fill="none"
+            stroke={TEXT_COLOR}
+            strokeWidth={1.5}
+          />
+        ) : null}
+      </g>
     </g>
+  );
+}
+
+interface BallsLayerProps {
+  live: LiveBalls;
+  kind: BallKind;
+  top: number;
+  geo: Geometry;
+  decimals: number;
+  /** Baseline of the first status line under a column. */
+  statusTop: number;
+}
+
+/** The moving layer: both balls at the live time and the status lines under their columns. */
+function BallsLayer({ live, kind, top, geo, decimals, statusTop }: BallsLayerProps): JSX.Element {
+  const balls = useFrameDerived(live.frame, live.ballsAt);
+  const columns: [string, number, SceneBall][] = [
+    ['ball-ideal', geo.columns[0], balls.ideal],
+    ['ball-engine', geo.columns[1], balls.engine],
+  ];
+  return (
+    <>
+      {columns.map(([testId, x, state]) =>
+        ballStatus(state, top, decimals).map((line, index) => (
+          <text
+            key={`${testId}-${line}`}
+            data-status=""
+            x={x}
+            y={statusTop + index * STATUS_LINE}
+            textAnchor="middle"
+            fontFamily={TICK_FONT_FAMILY}
+            fontSize={NOTE_SIZE}
+            fill={TEXT_COLOR}
+          >
+            {line}
+          </text>
+        )),
+      )}
+      {columns.map(([testId, x, state]) => (
+        <BallMark
+          key={testId}
+          testId={testId}
+          kind={kind}
+          x={x}
+          state={state}
+          top={top}
+          geo={geo}
+        />
+      ))}
+    </>
   );
 }
 
@@ -273,7 +348,7 @@ function H0Handle({
  * (Baumgarte penetration) is drawn on the edge and labelled with its real height.
  */
 export default function BounceScene(props: BounceSceneProps): JSX.Element {
-  const { h0, top, ball, ideal, engine, engineSubtitle, decimals } = props;
+  const { h0, top, ball, live, engineSubtitle, decimals } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const subtitles = [IDEAL_SUBTITLE, engineSubtitle].map((text) => subtitleLines(text, width));
   const extraLines = Math.max(...subtitles.map((lines) => lines.length)) - 1;
@@ -285,9 +360,9 @@ export default function BounceScene(props: BounceSceneProps): JSX.Element {
     { length: Math.ceil((right - MARGIN.left) / HATCH_GAP) },
     (_, i) => MARGIN.left + i * HATCH_GAP,
   );
-  const titles: [string, string[], number, SceneBall][] = [
-    ['Física ideal', subtitles[0], columns[0], ideal],
-    ['Motor de juego', subtitles[1], columns[1], engine],
+  const titles: [string, string[], number][] = [
+    ['Física ideal', subtitles[0], columns[0]],
+    ['Motor de juego', subtitles[1], columns[1]],
   ];
   const statusTop = floorY + STATUS_GAP + extraLines * STATUS_LINE;
 
@@ -364,7 +439,7 @@ export default function BounceScene(props: BounceSceneProps): JSX.Element {
               stroke={AXIS_COLOR}
             />
           ))}
-          {titles.map(([title, subtitle, x, state]) => (
+          {titles.map(([title, subtitle, x]) => (
             <g key={title}>
               <text
                 x={x}
@@ -392,37 +467,15 @@ export default function BounceScene(props: BounceSceneProps): JSX.Element {
                   </tspan>
                 ))}
               </text>
-              {ballStatus(state, top, decimals).map((line, index) => (
-                <text
-                  key={line}
-                  data-status=""
-                  x={x}
-                  y={statusTop + index * STATUS_LINE}
-                  textAnchor="middle"
-                  fontFamily={TICK_FONT_FAMILY}
-                  fontSize={NOTE_SIZE}
-                  fill={TEXT_COLOR}
-                >
-                  {line}
-                </text>
-              ))}
             </g>
           ))}
-          <BallMark
-            testId="ball-ideal"
+          <BallsLayer
+            live={live}
             kind={ball}
-            x={columns[0]}
-            state={ideal}
             top={top}
             geo={geo}
-          />
-          <BallMark
-            testId="ball-engine"
-            kind={ball}
-            x={columns[1]}
-            state={engine}
-            top={top}
-            geo={geo}
+            decimals={decimals}
+            statusTop={statusTop}
           />
         </g>
         <H0Handle

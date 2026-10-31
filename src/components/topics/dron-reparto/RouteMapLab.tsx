@@ -10,6 +10,7 @@ import RouteOverlay, {
   ACCEL_COLOR,
   ROUTE_COLOR,
   VELOCITY_COLOR,
+  type LiveFlight,
   type StopIndex,
 } from './RouteOverlay';
 import { motionPhase, type MotionPhase } from './routeSeries';
@@ -17,7 +18,9 @@ import { motionPhase, type MotionPhase } from './routeSeries';
 export interface RouteMapLabProps {
   stops: readonly RouteStop[];
   samples: RouteSample[];
+  /** The sample at the settled time (phase, description, marker aria); the drawing follows `live`. */
   now: RouteSample;
+  live: LiveFlight;
   duration: number;
   showVectors: boolean;
   showTrail: boolean;

@@ -5,6 +5,7 @@ import { monoTextWidth, type Domain, type Scale } from './plotScales';
 import type { PlotCursor } from './SvgPlot';
 import { svgPointFromClient } from './dragMath';
 import { isPrimaryPointer, preventTouchPan } from './useDrag';
+import { useOptionalFrameTime } from './useFrameTime';
 
 /** The plot area inside the viewBox, in viewBox units. */
 export interface PlotArea {
@@ -49,6 +50,10 @@ const PLATE_PAD = 3;
 const PLATE_RADIUS = 2;
 /** The plate reaches back to the knob's edge (7 px and its 1 px ring), so no series peeks between. */
 const PLATE_KNOB_GAP = KNOB_RADIUS + 1;
+/** Decimals of the group's translation, so a frame writes a stable attribute string. */
+const TRANSLATE_DECIMALS = 2;
+
+const sameValue = (t: number) => t;
 
 export function clamp(value: number, { min, max }: Domain): number {
   return Math.min(max, Math.max(min, value));
@@ -90,7 +95,12 @@ function pointerViewBoxX(event: PointerEvent<SVGGElement>): number | undefined {
   return svgPointFromClient(ctm.inverse(), event.clientX, event.clientY).x;
 }
 
-/** The vertical cursor line; with onChange, a draggable, keyboard-operable slider handle. */
+/**
+ * The vertical cursor line; with onChange, a draggable, keyboard-operable slider handle. Everything
+ * is drawn at x = 0 inside one group translated to the cursor, so following a playing clock costs
+ * one attribute per frame (and the label's text), not one per element. With `cursor.follow` the
+ * group tracks the live time; the slider's aria values and its keyboard steps keep the settled x.
+ */
 export default function SvgPlotCursor({
   cursor,
   x,
@@ -103,10 +113,12 @@ export default function SvgPlotCursor({
   const isDraggingRef = useRef(false);
   /** Pointer x minus handle x at grab time, so the knob keeps its offset instead of jumping. */
   const grabOffsetRef = useRef(0);
-  const { onChange } = cursor;
+  const { onChange, follow } = cursor;
   const value = clamp(cursor.x, x.domain);
-  const cx = x.toPx(value);
-  const labelText = cursor.label?.(value);
+  const liveT = useOptionalFrameTime(follow?.frame, Number.NaN);
+  const shown = follow ? clamp((follow.toX ?? sameValue)(liveT), x.domain) : value;
+  const cx = x.toPx(shown);
+  const labelText = cursor.label?.(shown);
   const isPastFlipLine = cx > area.left + (area.right - area.left) * LABEL_FLIP_FRACTION;
   const wouldOverrun =
     labelText !== undefined && cx + LABEL_GAP + monoTextWidth(labelText, fontSize) > area.right;
@@ -154,10 +166,11 @@ export default function SvgPlotCursor({
     }
   };
 
+  const translate = `translate(${cx.toFixed(TRANSLATE_DECIMALS)} 0)`;
   const line = (
     <line
-      x1={cx}
-      x2={cx}
+      x1={0}
+      x2={0}
       y1={area.top}
       y2={area.bottom}
       stroke={TEXT_COLOR}
@@ -165,13 +178,14 @@ export default function SvgPlotCursor({
     />
   );
 
-  const labelX = isLabelLeft ? cx - LABEL_GAP : cx + LABEL_GAP;
+  // From here on, x coordinates are relative to the cursor (the group is translated to cx).
+  const labelX = isLabelLeft ? -LABEL_GAP : LABEL_GAP;
   const labelWidth = labelText === undefined ? 0 : monoTextWidth(labelText, fontSize);
   const label = labelText ? (
     <>
       <rect
         data-cursor-plate=""
-        x={isLabelLeft ? labelX - labelWidth - PLATE_PAD : cx + PLATE_KNOB_GAP}
+        x={isLabelLeft ? labelX - labelWidth - PLATE_PAD : PLATE_KNOB_GAP}
         y={area.top - fontSize / 2 - PLATE_PAD}
         width={labelWidth + PLATE_PAD + LABEL_GAP - PLATE_KNOB_GAP}
         height={fontSize + 2 * PLATE_PAD}
@@ -199,7 +213,7 @@ export default function SvgPlotCursor({
 
   if (!onChange) {
     return (
-      <g data-cursor="">
+      <g data-cursor="" transform={translate}>
         {line}
         {label}
       </g>
@@ -207,7 +221,7 @@ export default function SvgPlotCursor({
   }
 
   return (
-    <g data-cursor="">
+    <g data-cursor="" transform={translate}>
       <g
         role="slider"
         tabIndex={0}
@@ -229,7 +243,7 @@ export default function SvgPlotCursor({
       >
         <rect
           data-cursor-strip=""
-          x={cx - HIT_HALF_WIDTH}
+          x={-HIT_HALF_WIDTH}
           y={area.top}
           width={HIT_HALF_WIDTH * 2}
           height={area.bottom - area.top}
@@ -238,7 +252,7 @@ export default function SvgPlotCursor({
         <rect
           ref={preventTouchPan}
           data-cursor-knob-target=""
-          x={cx - HIT_HALF_WIDTH}
+          x={-HIT_HALF_WIDTH}
           y={area.top - KNOB_TARGET_HALF_HEIGHT}
           width={HIT_HALF_WIDTH * 2}
           height={KNOB_TARGET_HALF_HEIGHT * 2}
@@ -247,7 +261,7 @@ export default function SvgPlotCursor({
         />
         {line}
         <circle
-          cx={cx}
+          cx={0}
           cy={area.top}
           r={FOCUS_RING_RADIUS}
           fill="none"
@@ -257,7 +271,7 @@ export default function SvgPlotCursor({
         />
         <circle
           data-knob=""
-          cx={cx}
+          cx={0}
           cy={area.top}
           r={KNOB_RADIUS}
           fill={TEXT_COLOR}

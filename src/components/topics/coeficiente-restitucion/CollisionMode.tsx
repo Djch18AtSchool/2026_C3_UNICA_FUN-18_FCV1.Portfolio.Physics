@@ -4,7 +4,9 @@ import { AXIS_COLOR, TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../char
 import { useElementWidth } from '../../hooks/useElementWidth';
 import { monoTextWidth } from '../../lab/plotScales';
 import type { LabReadout } from '../../lab/LabShell';
+import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Label } from '../../lab/OverlayMarks';
+import { useFrameTime } from '../../lab/useFrameTime';
 import ParamField from '../../lab/ParamField';
 import { SwitchField } from '../../lab/SettingsFields';
 import {
@@ -136,7 +138,8 @@ function Bars({
 export interface CollisionSceneProps {
   settings: CollisionSettings;
   outcome: CollisionOutcome;
-  t: number;
+  /** The clock's live time: the bodies slide with it (they touch at 1 s). */
+  frame: FrameStore;
   decimals: number;
 }
 
@@ -157,7 +160,8 @@ function describeCollision({ settings: s, outcome: o, decimals }: CollisionScene
  * bar loses the dashed ΔK = ½ μ (1 − e²) v_rel².
  */
 export function CollisionScene(props: CollisionSceneProps): JSX.Element {
-  const { settings: s, outcome: o, t, decimals } = props;
+  const { settings: s, outcome: o, frame, decimals } = props;
+  const t = useFrameTime(frame);
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const toPx = trackToPx(s, o, width);
   const isAfter = o.isApproaching && t >= 1;

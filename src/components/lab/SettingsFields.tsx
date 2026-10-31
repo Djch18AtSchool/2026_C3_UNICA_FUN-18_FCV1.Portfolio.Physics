@@ -1,4 +1,5 @@
 import type { JSX } from 'react';
+import { withStableCallbacks } from './withStableCallbacks';
 
 /** Visible focus for a control whose native input is visually hidden behind a styled sibling. */
 const PEER_FOCUS =
@@ -21,7 +22,7 @@ export interface SwitchFieldProps {
 }
 
 /** A checkbox exposed as role="switch", drawn as a track with a square thumb. */
-export function SwitchField({ id, label, checked, onChange }: SwitchFieldProps): JSX.Element {
+function SwitchFieldBase({ id, label, checked, onChange }: SwitchFieldProps): JSX.Element {
   return (
     <label htmlFor={id} className="flex min-h-11 cursor-pointer items-center justify-between gap-3">
       <span className="text-sm font-medium">{label}</span>
@@ -37,6 +38,9 @@ export function SwitchField({ id, label, checked, onChange }: SwitchFieldProps):
     </label>
   );
 }
+
+/** SwitchFieldBase memoized with stable callbacks: a playing lab's 10 Hz renders never reach it. */
+export const SwitchField = withStableCallbacks(SwitchFieldBase);
 
 export interface SelectFieldProps {
   id: string;
@@ -97,7 +101,7 @@ export interface SegmentedFieldProps<T extends string | number> {
 }
 
 /** Native radios sharing a name (arrow keys move the choice), drawn as one segmented control. */
-export function SegmentedField<T extends string | number>({
+function SegmentedFieldBase<T extends string | number>({
   id,
   label,
   value,
@@ -136,3 +140,6 @@ export function SegmentedField<T extends string | number>({
     </div>
   );
 }
+
+/** SegmentedFieldBase memoized with stable callbacks; the cast keeps its generic option type. */
+export const SegmentedField = withStableCallbacks(SegmentedFieldBase) as typeof SegmentedFieldBase;

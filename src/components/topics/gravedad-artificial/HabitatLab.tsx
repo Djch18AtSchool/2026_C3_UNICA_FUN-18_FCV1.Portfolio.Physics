@@ -18,7 +18,6 @@ import {
   type HabitatState,
 } from './habitatModel';
 import HabitatScene from './HabitatScene';
-import { angleAt } from './habitatScene';
 
 /**
  * The clock runs in real seconds; playback compresses them 6 times, so one revolution at 1 rpm
@@ -53,7 +52,6 @@ export default function HabitatLab({ footnote }: HabitatLabProps): JSX.Element {
   const solution = useMemo(() => solveHabitat(settings), [settings]);
 
   const clock = useSimClock(solution.period, { timeScale: TIME_LAPSE });
-  const angle = angleAt(solution.omega, clock.state.t);
 
   /** Every edit, by slider, field, handle, key or preset, pauses playback like a timeline drag. */
   const update = (next: (previous: HabitatState) => HabitatState) => {
@@ -139,7 +137,8 @@ export default function HabitatLab({ footnote }: HabitatLabProps): JSX.Element {
       <HabitatScene
         r={settings.r}
         rpm={settings.rpm}
-        angle={angle}
+        omega={solution.omega}
+        frame={clock.frame}
         gRatio={solution.gRatio}
         showVectors={display.showVectors}
         decimals={decimals}

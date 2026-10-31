@@ -1,21 +1,8 @@
-import { describe, expect, test, vi } from 'vitest';
-import { createClock } from '../../lib/physics/clock';
+import { describe, expect, test } from 'vitest';
+import { fakeClock as fakeSimClock } from '../../test-fake-clock';
 import { clockSettings, DEFAULT_SPEEDS } from './clockSettings';
-import type { SimClock } from './useSimClock';
 
-function fakeClock(speed = 1, loop = false): SimClock {
-  return {
-    state: { ...createClock(10), speed, loop },
-    play: vi.fn(),
-    pause: vi.fn(),
-    toggle: vi.fn(),
-    reset: vi.fn(),
-    seek: vi.fn(),
-    step: vi.fn(),
-    setSpeed: vi.fn(),
-    setLoop: vi.fn(),
-  };
-}
+const fakeClock = (speed = 1, loop = false) => fakeSimClock({ speed, loop }, 10);
 
 describe('clockSettings', () => {
   test('offers the spec speeds, 0,25× to 2×, as a select with comma labels', () => {

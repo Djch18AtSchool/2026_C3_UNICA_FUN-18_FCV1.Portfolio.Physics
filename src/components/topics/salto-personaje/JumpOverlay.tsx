@@ -1,8 +1,10 @@
 import { useRef, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { TEXT_COLOR } from '../../charts/chartTheme';
+import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Knob, Label, type Point } from '../../lab/OverlayMarks';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
+import { useFrameTime } from '../../lab/useFrameTime';
 import { JUMP_LIMITS, type JumpResult, type JumpSettings } from './jumpModel';
 import {
   handleFromSettings,
@@ -20,7 +22,9 @@ export interface JumpOverlayProps {
   plotClipPath?: string;
   settings: JumpSettings;
   live: JumpResult;
+  /** The settled time (the slider's aria values and keyboard steps) and the live one (the drawing). */
   t: number;
+  frame: FrameStore;
   /** Metres drawn per m/s, shared by the launch vector and the velocity vector. */
   lengthPerMs: number;
   color: string;
@@ -41,6 +45,12 @@ const TRAIL_OPACITY = 0.3;
 const V0_KEY_STEP = 0.5;
 const VX_KEY_STEP = 0.25;
 const MARKER_KEY_STEPS = 40;
+const ORIGIN: Point = { x: 0, y: 0 };
+/** Decimals of the moving groups' translations: a stable attribute string per frame. */
+const PX_DECIMALS = 2;
+
+const translate = ({ x, y }: Point) =>
+  `translate(${x.toFixed(PX_DECIMALS)} ${y.toFixed(PX_DECIMALS)})`;
 
 const clampTo = (value: number, [min, max]: readonly [number, number]) =>
   Math.min(Math.max(value, min), max);
@@ -84,6 +94,8 @@ function trailPath(live: JumpResult, t: number, scales: PlotScales): string {
  * Everything drawn over the jump plot: the trail up to t, the velocity vector at t, the draggable
  * marker on the curve (seeks t) and the draggable launch vector v⃗₀ = (vₓ, v₀) from the origin.
  * Both handles also take the arrow keys; the sliders below the canvas are their other alternative.
+ * The marker and the velocity vector follow the live time inside translated groups, so a frame
+ * costs the trail's path, two translations and the vector's own tip.
  */
 export default function JumpOverlay({
   scales,
@@ -91,6 +103,7 @@ export default function JumpOverlay({
   settings,
   live,
   t,
+  frame,
   lengthPerMs,
   color,
   showTrail,
@@ -100,13 +113,15 @@ export default function JumpOverlay({
   onLaunchDragPhase,
   onSeek,
 }: JumpOverlayProps): JSX.Element {
+  const liveT = useFrameTime(frame);
   const origin = { x: scales.x.toPx(0), y: scales.y.toPx(0) };
   const tip = handleFromSettings(settings, scales, lengthPerMs);
-  const now = stateAt(live, t);
+  const now = stateAt(live, liveT);
   const body = { x: scales.x.toPx(now.x), y: scales.y.toPx(now.y) };
+  /** The velocity vector's tip, relative to the body. */
   const velocityTip = {
-    x: scales.x.toPx(now.x + settings.vx * lengthPerMs),
-    y: scales.y.toPx(now.y + now.vy * lengthPerMs),
+    x: scales.x.toPx(now.x + settings.vx * lengthPerMs) - body.x,
+    y: scales.y.toPx(now.y + now.vy * lengthPerMs) - body.y,
   };
   /** Pointer minus tip at grab time, so the knob keeps its offset instead of jumping. */
   const grabOffsetRef = useRef<Point>({ x: 0, y: 0 });
@@ -146,7 +161,7 @@ export default function JumpOverlay({
         {showTrail ? (
           <path
             data-trail=""
-            d={trailPath(live, t, scales)}
+            d={trailPath(live, liveT, scales)}
             fill="none"
             stroke={color}
             strokeWidth={TRAIL_WIDTH}
@@ -157,9 +172,11 @@ export default function JumpOverlay({
           />
         ) : null}
         {showVelocity ? (
-          <g data-velocity="">
-            <Arrow from={body} to={velocityTip} color={TEXT_COLOR} />
-            <Label at={velocityTip}>v</Label>
+          <g data-velocity="" transform={translate(body)}>
+            <Arrow from={ORIGIN} to={velocityTip} color={TEXT_COLOR} />
+            <g transform={translate(velocityTip)}>
+              <Label at={ORIGIN}>v</Label>
+            </g>
           </g>
         ) : null}
         <Arrow from={origin} to={tip} color={LAUNCH_COLOR} />
@@ -178,7 +195,9 @@ export default function JumpOverlay({
         onKeyDown={onMarkerKeyDown}
         {...markerDrag}
       >
-        <Knob at={body} fill={color} />
+        <g transform={translate(body)}>
+          <Knob at={ORIGIN} fill={color} />
+        </g>
       </g>
       <g
         data-testid="launch-handle"

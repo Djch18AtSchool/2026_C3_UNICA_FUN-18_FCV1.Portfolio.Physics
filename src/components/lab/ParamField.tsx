@@ -1,6 +1,7 @@
 import { useState, type JSX, type ReactNode } from 'react';
 import { formatNumber, MINUS_SIGN } from '../../lib/format';
 import { useGlobalSettings } from './useGlobalSettings';
+import { withStableCallbacks } from './withStableCallbacks';
 
 export interface ParamFieldProps {
   id: string;
@@ -60,9 +61,10 @@ function snapToStep(value: number, min: number, max: number, step: number): numb
 /**
  * A parameter as a range and a number field bound to the same value. The range commits on every
  * move; the field keeps what is typed and commits on blur or Enter, snapped to the step grid
- * min + k·step and clamped to [min, max].
+ * min + k·step and clamped to [min, max]. Memoized with stable callbacks: a playing lab's 10 Hz
+ * renders never reach its inputs.
  */
-export default function ParamField({
+function ParamField({
   id,
   label,
   unit,
@@ -135,3 +137,5 @@ export default function ParamField({
     </div>
   );
 }
+
+export default withStableCallbacks(ParamField);

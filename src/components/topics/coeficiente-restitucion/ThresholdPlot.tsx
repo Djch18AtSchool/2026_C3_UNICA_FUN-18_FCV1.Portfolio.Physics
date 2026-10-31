@@ -211,7 +211,9 @@ function ThresholdLine({
   y: Scale;
   area: PlotArea;
 }) {
-  const level = y.toPx(item.thresholdHeight);
+  // Rounded, like every coordinate here: Math.log10 differs in its last bit between the server's
+  // and the browser's engines, and React would warn at hydration.
+  const level = px(y.toPx(item.thresholdHeight));
   return (
     <g data-threshold={item.id}>
       <line
@@ -247,12 +249,12 @@ function StopMark({
   area: PlotArea;
 }) {
   const color = CASE_COLORS[item.id];
-  const last = { x: x.toPx(item.bounces), y: y.toPx(item.lastHeight) };
+  const last = { x: px(x.toPx(item.bounces)), y: px(y.toPx(item.lastHeight)) };
   return (
     <g data-stop={item.id}>
       <Arrow
         from={last}
-        to={{ x: x.toPx(item.bounces + 1), y: area.bottom }}
+        to={{ x: px(x.toPx(item.bounces + 1)), y: px(area.bottom) }}
         color={color}
         dashed
       />
@@ -335,7 +337,12 @@ export default function ThresholdPlot(): JSX.Element {
             />
             <g fill={IDEAL_COLOR}>
               {IDEAL_POINTS.map((point) => (
-                <circle key={point.x} cx={x.toPx(point.x)} cy={y.toPx(point.y)} r={DOT_RADIUS} />
+                <circle
+                  key={point.x}
+                  cx={px(x.toPx(point.x))}
+                  cy={px(y.toPx(point.y))}
+                  r={DOT_RADIUS}
+                />
               ))}
             </g>
             {THRESHOLD_CASES.map((item) => (

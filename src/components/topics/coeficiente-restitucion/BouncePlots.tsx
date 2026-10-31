@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
+import type { FrameStore } from '../../lab/frameStore';
 import SvgPlot, { type OverlayScales, type PlotSeries } from '../../lab/SvgPlot';
 import type { BounceModel, EnergyGain } from './bounceScene';
 
@@ -48,7 +49,9 @@ function GainMarks({ gains, scales }: { gains: EnergyGain[]; scales: OverlayScal
 
 export interface BouncePlotsProps {
   model: BounceModel;
+  /** The settled time and the live one the cursors follow between renders. */
   t: number;
+  frame: FrameStore;
   decimals: number;
   onSeek(t: number): void;
 }
@@ -58,10 +61,17 @@ export interface BouncePlotsProps {
  * moved with the keys, seeks it. The energy plot marks with ▲ every rebound where the engine
  * gains energy: above the previous flight (e > 1) or above what e allows (Baumgarte).
  */
-export default function BouncePlots({ model, t, decimals, onSeek }: BouncePlotsProps): JSX.Element {
+export default function BouncePlots({
+  model,
+  t,
+  frame,
+  decimals,
+  onSeek,
+}: BouncePlotsProps): JSX.Element {
   const xDomain = { min: 0, max: model.duration };
   const cursor = {
     x: t,
+    follow: { frame },
     onChange: onSeek,
     label: (x: number) => `t = ${formatNumber(x, { precision: TIME_PRECISION, unit: 's' })}`,
   };

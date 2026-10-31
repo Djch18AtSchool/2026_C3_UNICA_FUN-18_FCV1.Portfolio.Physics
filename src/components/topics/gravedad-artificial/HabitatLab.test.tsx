@@ -221,7 +221,7 @@ describe('HabitatLab', () => {
     expect(readout('Gravedad aparente a_c/g')).toBe('1,00 g');
   });
 
-  test('the speed setting reaches the clock: one 50 ms frame at 8× advances 6 · 8 · 0,05 s', async () => {
+  test('the speed setting reaches the clock: one 100 ms frame at 8× advances 6 · 8 · 0,1 s', async () => {
     const frames = installFrameQueue();
     const user = userEvent.setup();
     renderLab();
@@ -232,9 +232,10 @@ describe('HabitatLab', () => {
 
     await user.click(screen.getByRole('button', { name: 'Reproducir' }));
     frames.flush(1000);
-    frames.flush(1050);
+    // The settled time the transport reads is synced every 100 ms of playback.
+    frames.flush(1100);
 
-    expect(timelineText()).toBe('t = 2,40 s');
+    expect(timelineText()).toBe('t = 4,80 s');
     frames.restore();
   });
 
@@ -249,16 +250,16 @@ describe('HabitatLab', () => {
     expect(timelineText()).toBe('t = 120,0 s');
   });
 
-  test('at 1× the same frame advances only 6 · 0,05 s', async () => {
+  test('at 1× the same frame advances only 6 · 0,1 s', async () => {
     const frames = installFrameQueue();
     const user = userEvent.setup();
     renderLab();
 
     await user.click(screen.getByRole('button', { name: 'Reproducir' }));
     frames.flush(1000);
-    frames.flush(1050);
+    frames.flush(1100);
 
-    expect(timelineText()).toBe('t = 0,30 s');
+    expect(timelineText()).toBe('t = 0,60 s');
     frames.restore();
   });
 

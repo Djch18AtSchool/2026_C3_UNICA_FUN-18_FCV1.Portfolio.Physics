@@ -1,4 +1,5 @@
 import type { Preset } from '../../lib/presets';
+import { withStableCallbacks } from '../lab/withStableCallbacks';
 
 export type { Preset };
 
@@ -13,7 +14,7 @@ const BUTTON_BASE =
 const BUTTON_ACTIVE = 'border-accent bg-accent/10';
 const BUTTON_IDLE = 'border-border bg-bg-elevated hover:border-fg-muted';
 
-export default function Presets<T>({ presets, activeId, onSelect }: PresetsProps<T>) {
+function PresetsBase<T>({ presets, activeId, onSelect }: PresetsProps<T>) {
   const active = presets.find((preset) => preset.id === activeId);
 
   return (
@@ -47,3 +48,6 @@ export default function Presets<T>({ presets, activeId, onSelect }: PresetsProps
     </div>
   );
 }
+
+/** Memoized with stable callbacks (the cast keeps the generic); re-renders when the choice changes. */
+export default withStableCallbacks(PresetsBase) as typeof PresetsBase;

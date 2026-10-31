@@ -2,6 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../../lib/settingsStore';
+import { cursorX } from '../../lab/svgPlotTestKit';
 import EnergyBalanceChart from './EnergyBalanceChart';
 import { ENERGY_SERIES } from './regenScene';
 
@@ -67,21 +68,20 @@ describe('EnergyBalanceChart', () => {
   test('one slider on the energy plot moves the cursor of both plots and the readout', () => {
     const { container } = render(<EnergyBalanceChart />);
     const sliders = screen.getAllByRole('slider');
-    const cursorX = (testId: string) =>
-      screen.getByTestId(testId).querySelector('[data-cursor] line')?.getAttribute('x1');
+    const cursorAt = (testId: string) => cursorX(screen.getByTestId(testId));
 
     expect(sliders).toHaveLength(1);
     expect(container.querySelectorAll('[data-cursor]')).toHaveLength(2);
     fireEvent.keyDown(sliders[0], { key: 'Home' });
     expect(readoutValue('Tiempo t')).toBe('0 s');
     expect(readoutValue('Batería / tracción')).toBe('0,0 %');
-    const atStart = cursorX('energy-balance-speed');
+    const atStart = cursorAt('energy-balance-speed');
 
     fireEvent.keyDown(sliders[0], { key: 'ArrowRight', shiftKey: true });
 
     expect(readoutValue('Tiempo t')).toBe('137 s');
     expect(sliders[0]).toHaveAttribute('aria-valuenow', '137');
-    expect(cursorX('energy-balance-speed')).not.toBe(atStart);
+    expect(cursorAt('energy-balance-speed')).not.toBe(atStart);
     expect(readoutValue('Tracción en las ruedas')).not.toBe('0,000 kWh');
   });
 

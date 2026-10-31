@@ -2,26 +2,11 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { createClock, type ClockState } from '../../lib/physics/clock';
 import { resetSettingsForTests } from '../../lib/settingsStore';
 import { installDialogPolyfill } from '../../test-dialog';
+import { fakeClock } from '../../test-fake-clock';
 import { EXACT_TEXT } from '../../test-exact-text';
 import LabShell, { READOUT_ANNOUNCE_DELAY_MS, type LabShellProps } from './LabShell';
-import type { SimClock } from './useSimClock';
-
-function fakeClock(overrides: Partial<ClockState> = {}): SimClock {
-  return {
-    state: { ...createClock(4), ...overrides },
-    play: vi.fn(),
-    pause: vi.fn(),
-    toggle: vi.fn(),
-    reset: vi.fn(),
-    seek: vi.fn(),
-    step: vi.fn(),
-    setSpeed: vi.fn(),
-    setLoop: vi.fn(),
-  };
-}
 
 function shellProps(overrides: Partial<LabShellProps> = {}): LabShellProps {
   return {

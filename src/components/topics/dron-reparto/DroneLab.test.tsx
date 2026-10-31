@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { resetSettingsForTests } from '../../../lib/settingsStore';
@@ -88,7 +88,8 @@ describe('DroneLab', () => {
     await screen.findByTestId('drone-lab', {}, { timeout: LAB_READY_TIMEOUT_MS });
 
     expect(readout('Duración de la ruta')).toBe(DECLARED_DURATION);
-    expect(valueText(timeline())).toBe('t = 30,0 s');
+    // The opening seek is an effect after the first ready commit; wait for it rather than race it.
+    await waitFor(() => expect(valueText(timeline())).toBe('t = 30,0 s'));
     expect(screen.getByText(/crucero \(a = 0\)/)).toBeInTheDocument();
     expect(readout('Rapidez |v|')).toBe('10,00 m/s');
     expect(modifiedNote()).toBeNull();

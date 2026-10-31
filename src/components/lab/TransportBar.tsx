@@ -1,6 +1,7 @@
-import type { JSX } from 'react';
+import { useRef, type JSX } from 'react';
 import { ICON_BUTTON } from './iconButton';
 import { TIMELINE_STEPS, transportTimeText, type TransportTimeUnitChoice } from './transportTime';
+import { useFrameEffect } from './useFrameTime';
 import type { SimClock } from './useSimClock';
 
 export interface TransportBarProps {
@@ -48,18 +49,34 @@ function ResetIcon() {
   );
 }
 
+/** Range position of a time t in a run of `duration`. */
+const toPosition = (t: number, duration: number) => Math.round((t / duration) * RANGE_MAX);
+
 /**
  * Play/Pause, Reiniciar and a timeline scrubber with a t readout in the run's unit (s, min, h or d,
  * or the lab's timeUnit; the clock and the range stay in seconds); nothing when duration is 0.
+ *
+ * The thumb follows the live time: the range is uncontrolled and its value is written every frame
+ * (a property write, no DOM mutation and no render), while the text and aria-valuetext read the
+ * settled time the clock syncs CLOCK_SYNC_HZ times a second.
  */
 export default function TransportBar({
   clock,
   timeUnit = 'auto',
 }: TransportBarProps): JSX.Element | null {
   const { t, duration, playing } = clock.state;
+  const rangeRef = useRef<HTMLInputElement>(null);
+  useFrameEffect(
+    clock,
+    (liveT) => {
+      if (rangeRef.current && duration > 0) {
+        rangeRef.current.value = String(toPosition(liveT, duration));
+      }
+    },
+    [duration],
+  );
   if (duration === 0) return null;
 
-  const position = Math.round((t / duration) * RANGE_MAX);
   const timeText = transportTimeText(t, duration, timeUnit);
 
   return (
@@ -81,11 +98,12 @@ export default function TransportBar({
         <ResetIcon />
       </button>
       <input
+        ref={rangeRef}
         type="range"
         min={0}
         max={RANGE_MAX}
         step={1}
-        value={position}
+        defaultValue={toPosition(t, duration)}
         aria-label="Línea de tiempo"
         aria-valuetext={timeText}
         // seek pauses, so scrubbing never fights a running clock.

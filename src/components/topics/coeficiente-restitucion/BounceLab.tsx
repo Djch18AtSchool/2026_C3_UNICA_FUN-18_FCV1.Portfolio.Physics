@@ -183,6 +183,18 @@ export default function BounceLab({ footnote }: BounceLabProps): JSX.Element {
   const ideal = idealStateAt(settings, g, t);
   const engine = engineFrameAt(model.run, t);
   const frameStep = mode === 'bounce' ? model.run.dt : COLLISION_FRAME_S;
+  /** Both balls at any time, for the scene's moving layer. */
+  const ballsAt = useCallback(
+    (time: number) => {
+      const frame = engineFrameAt(model.run, time);
+      return {
+        ideal: idealStateAt(settings, g, time),
+        engine: { y: frame.y, isResting: frame.resting },
+      };
+    },
+    [model, settings],
+  );
+  const live = useMemo(() => ({ frame: clock.frame, ballsAt }), [clock.frame, ballsAt]);
 
   const edit = (patch: Partial<BounceSettings>) =>
     setState((previous) => ({
@@ -338,6 +350,7 @@ export default function BounceLab({ footnote }: BounceLabProps): JSX.Element {
               ball={settings.ball}
               ideal={ideal}
               engine={{ y: engine.y, isResting: engine.resting }}
+              live={live}
               engineSubtitle={`Δt\u00a0=\u00a01/${settings.rate}\u00a0s ×\u00a0${settings.substeps}`}
               decimals={decimals}
               onH0Change={(h0) => edit({ h0 })}
@@ -359,11 +372,22 @@ export default function BounceLab({ footnote }: BounceLabProps): JSX.Element {
             <BounceSummary settings={settings} model={model} decimals={decimals} />
           </div>
         ) : (
-          <CollisionScene settings={collision} outcome={outcome} t={t} decimals={decimals} />
+          <CollisionScene
+            settings={collision}
+            outcome={outcome}
+            frame={clock.frame}
+            decimals={decimals}
+          />
         )}
       </LabShell>
       {isBounce ? (
-        <BouncePlots model={model} t={t} decimals={decimals} onSeek={clock.seek} />
+        <BouncePlots
+          model={model}
+          t={t}
+          frame={clock.frame}
+          decimals={decimals}
+          onSeek={clock.seek}
+        />
       ) : null}
     </div>
   );

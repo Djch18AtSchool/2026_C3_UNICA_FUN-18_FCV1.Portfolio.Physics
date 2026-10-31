@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../lib/settingsStore';
 import { TICK_FONT_SIZE } from '../charts/chartTheme';
+import { createFrameStore } from './frameStore';
 import { monoTextWidth, type Scale } from './plotScales';
 import SvgPlot from './SvgPlot';
 import { mockIdentityCtm, PROPS } from './svgPlotTestKit';
@@ -210,6 +211,46 @@ describe('SvgPlot cursor', () => {
       expect(box.top + box.height).toBeGreaterThan(textY + TICK_FONT_SIZE / 2);
     },
   );
+
+  describe('following a frame store', () => {
+    const knobX = (container: HTMLElement) => {
+      const cursor = container.querySelector('[data-cursor]') as SVGGElement;
+      return Number(/translate\(([-\d.]+)/.exec(cursor.getAttribute('transform') ?? '')?.[1]);
+    };
+
+    test('moves the line, knob and label with the store, through toX, without a render', () => {
+      const frame = createFrameStore(1);
+      let renders = 0;
+      const label = (x: number) => {
+        renders += 1;
+        return `x = ${x}`;
+      };
+      const { container } = render(
+        <SvgPlot
+          {...PROPS}
+          cursor={{ x: 2, onChange: () => {}, label, follow: { frame, toX: (t) => 2 * t } }}
+        />,
+      );
+      const before = knobX(container);
+      renders = 0;
+
+      act(() => frame.set(4));
+
+      expect(knobX(container)).toBeGreaterThan(before);
+      expect(screen.getByText('x = 8')).toBeInTheDocument();
+      // Only the cursor re-rendered: its label ran once; the plot's series path did not change.
+      expect(renders).toBe(1);
+    });
+
+    test('the live time is clamped to the domain and the aria values keep the settled x', () => {
+      const frame = createFrameStore(50);
+      render(<SvgPlot {...PROPS} cursor={{ x: 5, onChange: () => {}, follow: { frame } }} />);
+
+      expect(screen.getByRole('slider')).toHaveAttribute('aria-valuenow', '5');
+      const line = document.querySelector('[data-cursor] line') as SVGLineElement;
+      expect(line.getAttribute('x1')).toBe('0');
+    });
+  });
 
   test('a cursor without a label draws no plate', () => {
     const { container } = render(<SvgPlot {...PROPS} cursor={{ x: 5, onChange: () => {} }} />);

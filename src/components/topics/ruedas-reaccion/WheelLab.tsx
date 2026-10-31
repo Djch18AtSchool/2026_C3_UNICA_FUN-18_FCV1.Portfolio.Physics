@@ -1,4 +1,4 @@
-import { useMemo, useState, type JSX } from 'react';
+import { useCallback, useMemo, useState, type JSX } from 'react';
 import Presets from '../../controls/Presets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
@@ -34,7 +34,7 @@ import {
   WHEEL_LIMITS,
   WHEEL_PRESETS,
 } from './wheelPresets';
-import WheelScene from './WheelScene';
+import WheelScene, { type SpinState } from './WheelScene';
 import WheelStatus from './WheelStatus';
 
 export { DAY_LAPSE } from './wheelLabModel';
@@ -127,12 +127,33 @@ export default function WheelLab({ footnote }: WheelLabProps): JSX.Element {
 
   // The disturbance clock runs in playback seconds: DAY_LAPSE on the fills, dumps stretched.
   const clock = useSimClock(isManeuver ? settings.T : warp.duration);
-  const t = isManeuver ? clock.state.t : orbitTimeAt(warp, clock.state.t);
+  const toOrbitTime = useCallback(
+    (playbackTime: number) => (isManeuver ? playbackTime : orbitTimeAt(warp, playbackTime)),
+    [isManeuver, warp],
+  );
+  const t = toOrbitTime(clock.state.t);
   const seekOrbit = (orbitTime: number) =>
     clock.seek(isManeuver ? orbitTime : playbackTimeAt(warp, orbitTime));
   const maneuver = isManeuver ? maneuverReadings(settings, t) : undefined;
   const disturbance = isManeuver ? undefined : disturbanceReadings(settings.actuator, t);
   const live = maneuver ?? (disturbance as DisturbanceReadings);
+  /** The body's and wheel's spin at any playback time, for the scene's moving layer. */
+  const spinAt = useCallback(
+    (playbackTime: number): SpinState => {
+      const orbit = toOrbitTime(playbackTime);
+      const readings = isManeuver
+        ? maneuverReadings(settings, orbit)
+        : disturbanceReadings(settings.actuator, orbit);
+      return {
+        thetaS: readings.thetaS,
+        omegaS: readings.omegaS,
+        thetaW: 'thetaW' in readings ? readings.thetaW : 0,
+        omegaW: readings.omegaW,
+      };
+    },
+    [isManeuver, settings, toOrbitTime],
+  );
+  const liveSpin = useMemo(() => ({ frame: clock.frame, spinAt }), [clock.frame, spinAt]);
 
   /** Every edit pauses playback; a new mode also rewinds, since its clock means other times. */
   const apply = (next: WheelSettings) => {
@@ -223,6 +244,7 @@ export default function WheelLab({ footnote }: WheelLabProps): JSX.Element {
           omegaSReference={(2 * Math.abs(settings.thetaDeg)) / settings.T}
           thetaW={maneuver?.thetaW ?? 0}
           omegaW={live.omegaW}
+          live={liveSpin}
           rpmMax={SPACECRAFT.rpmMax}
           targetDeg={settings.thetaDeg}
           actuator={settings.actuator}
@@ -242,7 +264,15 @@ export default function WheelLab({ footnote }: WheelLabProps): JSX.Element {
           speed={clock.state.speed}
           onGoToDump={() => clock.seek(firstDumpPlayback(warp))}
         />
-        {display.showPlot ? <WheelPlot settings={settings} t={t} onSeek={seekOrbit} /> : null}
+        {display.showPlot ? (
+          <WheelPlot
+            settings={settings}
+            t={t}
+            frame={clock.frame}
+            orbitTimeAt={toOrbitTime}
+            onSeek={seekOrbit}
+          />
+        ) : null}
       </div>
     </LabShell>
   );

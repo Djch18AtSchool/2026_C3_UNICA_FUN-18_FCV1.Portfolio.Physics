@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type JSX } from 'react';
+import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
 import { DRIVE_CYCLES, type CycleId } from '../../../lib/data/driveCycles';
 import { cycleBalance } from '../../../lib/physics/energy';
 import Presets from '../../controls/Presets';
@@ -84,7 +84,9 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
   const clock = useSimClock(duration, { timeScale: TIME_LAPSE });
   const { seek, pause, reset } = clock;
   useEffect(() => seek(OPENING_TIME), [seek]);
-  const at = balanceAt(steps, distances, clock.state.t);
+  const atTime = useCallback((t: number) => balanceAt(steps, distances, t), [steps, distances]);
+  const at = atTime(clock.state.t);
+  const live = useMemo(() => ({ frame: clock.frame, atTime }), [clock.frame, atTime]);
 
   /** Every edit pauses playback like a timeline drag; a new cycle starts again from t = 0. */
   const update = (next: RegenLabState) => {
@@ -165,9 +167,9 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
       <p className="m-0 text-sm text-fg-muted">
         η es el rendimiento de la rueda a la batería: Boretti midió del 70 al 80 % en un Leaf 2012 y
         del 72 al 87 % en uno 2013. f(v) apaga la regeneración cerca de detenerse; sin él, con el
-        tope de {DEFAULT_P_MAX_KW} kW, la fricción no haría falta en estos ciclos. Arrastra el cursor de la gráfica de energía, o
-        enfócalo y muévelo con las flechas (1 % del ciclo; con Mayús, 10 %). El ciclo y f(v) se
-        eligen en los ajustes del engranaje.
+        tope de {DEFAULT_P_MAX_KW} kW, la fricción no haría falta en estos ciclos. Arrastra el
+        cursor de la gráfica de energía, o enfócalo y muévelo con las flechas (1 % del ciclo; con
+        Mayús, 10 %). El ciclo y f(v) se eligen en los ajustes del engranaje.
       </p>
     </>
   );
@@ -195,6 +197,7 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
       <div className="flex flex-col gap-6">
         <RegenScene
           at={at}
+          live={live}
           totalDistance={distances[distances.length - 1]}
           vehicleName={vehicle.name}
           cycleName={cycle.name}
@@ -206,6 +209,7 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
           duration={duration}
           axisMax={axisMax}
           t={clock.state.t}
+          frame={clock.frame}
           onSeek={seek}
         />
       </div>

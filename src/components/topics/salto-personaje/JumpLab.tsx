@@ -238,6 +238,7 @@ export default function JumpLab({ footnote }: JumpLabProps): JSX.Element {
               settings={settings}
               live={live}
               t={clock.state.t}
+              frame={clock.frame}
               lengthPerMs={lengthPerMs}
               color={world.color}
               showTrail={display.showTrail}

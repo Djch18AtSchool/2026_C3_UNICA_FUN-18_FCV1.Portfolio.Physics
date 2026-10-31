@@ -18,6 +18,7 @@ export type ClockAction =
   | { type: 'seek'; t: number }
   | { type: 'step'; dt: number }
   | { type: 'tick'; dt: number }
+  | { type: 'sync'; t: number }
   | { type: 'setSpeed'; speed: number }
   | { type: 'setLoop'; loop: boolean }
   | { type: 'setDuration'; duration: number };
@@ -55,6 +56,19 @@ function tick(state: ClockState, dt: number): ClockState {
   return { ...state, t: state.duration, playing: false };
 }
 
+/**
+ * The frame loop reports the live time t (≥ 0 s) it has reached: t < duration keeps playing
+ * there; past the end it wraps (t mod duration) when looping, else stops at duration. Ignored
+ * while paused, like tick.
+ */
+function sync(state: ClockState, t: number): ClockState {
+  requireNonNegative('t', t);
+  if (!state.playing) return state;
+  if (t < state.duration) return { ...state, t };
+  if (state.loop && state.duration > 0) return { ...state, t: t % state.duration };
+  return { ...state, t: state.duration, playing: false };
+}
+
 /** Replaces the duration (≥ 0 s) and clamps t into the new range. */
 function setDuration(state: ClockState, duration: number): ClockState {
   requireNonNegative('duration', duration);
@@ -62,8 +76,9 @@ function setDuration(state: ClockState, duration: number): ClockState {
 }
 
 /**
- * Pure playback reducer; always returns a new object, except a tick while paused (unchanged state).
- * tick: t' = t + dt·speed; if t' ≥ duration → loop ? t' mod duration (keeps playing) : t = duration, paused.
+ * Pure playback reducer; always returns a new object, except a tick or sync while paused (unchanged
+ * state). tick: t' = t + dt·speed; sync: t' = the reported live time; in both, if t' ≥ duration →
+ * loop ? t' mod duration (keeps playing) : t = duration, paused.
  * seek and step clamp to [0, duration] and pause; play at t = duration restarts from 0.
  */
 export function clockReducer(state: ClockState, action: ClockAction): ClockState {
@@ -83,6 +98,8 @@ export function clockReducer(state: ClockState, action: ClockAction): ClockState
       return seek(state, state.t + action.dt);
     case 'tick':
       return tick(state, action.dt);
+    case 'sync':
+      return sync(state, action.t);
     case 'setSpeed':
       requirePositive('speed', action.speed);
       return { ...state, speed: action.speed };

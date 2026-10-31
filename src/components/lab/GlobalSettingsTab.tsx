@@ -1,4 +1,4 @@
-import type { JSX } from 'react';
+import { memo, type JSX } from 'react';
 import { setSettings, type GlobalSettings } from '../../lib/settingsStore';
 import { SegmentedField, SelectField, SwitchField } from './SettingsFields';
 import { useGlobalSettings } from './useGlobalSettings';
@@ -14,8 +14,12 @@ function isMotion(value: string): value is GlobalSettings['motion'] {
   return MOTION_OPTIONS.some((option) => option.value === value);
 }
 
-/** Site-wide settings, read from and written straight to the global store. */
-export default function GlobalSettingsTab({ idPrefix }: { idPrefix: string }): JSX.Element {
+/**
+ * Site-wide settings, read from and written straight to the global store. Memoized: it only
+ * depends on that store and its id prefix, not on the lab that renders the drawer ten times a
+ * second while playing.
+ */
+export default memo(function GlobalSettingsTab({ idPrefix }: { idPrefix: string }): JSX.Element {
   const settings = useGlobalSettings();
 
   return (
@@ -47,4 +51,4 @@ export default function GlobalSettingsTab({ idPrefix }: { idPrefix: string }): J
       />
     </div>
   );
-}
+});

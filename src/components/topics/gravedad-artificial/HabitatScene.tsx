@@ -2,8 +2,10 @@ import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { CHART_COLORS, LINE_WIDTH, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
-import { radiusToSlider, ringRadius, vectorLength } from './habitatScene';
+import { useFrameTime } from '../../lab/useFrameTime';
+import { angleAt, radiusToSlider, ringRadius, vectorLength } from './habitatScene';
 import HabitatPerson from './HabitatPerson';
 import RadiusBar, { CAPTION_LINE, COMPACT_BAR } from './RadiusBar';
 
@@ -18,8 +20,9 @@ const SPOKE_COLOR = 'var(--fg-muted)';
 export interface HabitatSceneProps {
   r: number;
   rpm: number;
-  /** Spin angle (rad), counterclockwise on screen. */
-  angle: number;
+  /** Angular speed (rad/s) and the clock's live time: the ring turns by ω·t, counterclockwise. */
+  omega: number;
+  frame: FrameStore;
   gRatio: number;
   showVectors: boolean;
   decimals: number;
@@ -57,17 +60,10 @@ const BAR_TOP_GAP = 34;
 const BAR_BOTTOM = 50;
 const NOTE_SIZE = 12;
 const DEG = Math.PI / 180;
+/** Decimals of the turn's angle attribute: a stable string per frame, a hundredth of a degree. */
+const ANGLE_DECIMALS = 2;
 const KEY_WIDTH = 26;
 const KEY_HEIGHT = 12;
-
-/** `p` turned by −angle about `c`: counterclockwise on screen (SVG y points down). */
-function turn(p: Point, c: Point, angle: number): Point {
-  const cos = Math.cos(-angle);
-  const sin = Math.sin(-angle);
-  const dx = p.x - c.x;
-  const dy = p.y - c.y;
-  return { x: c.x + dx * cos - dy * sin, y: c.y + dx * sin + dy * cos };
-}
 
 function onCircle(c: Point, radius: number, degrees: number): Point {
   return { x: c.x + radius * Math.cos(degrees * DEG), y: c.y + radius * Math.sin(degrees * DEG) };
@@ -121,18 +117,45 @@ interface RingGeometry {
   unit: number;
 }
 
-/** Spokes, person, radius line and vectors, drawn with the person at the bottom and turned. */
+/** An upright label inside the turned group: counter-turned about its own anchor. */
+function UprightLabel({
+  at,
+  degrees,
+  children,
+}: {
+  at: Point;
+  degrees: number;
+  children: string;
+}): JSX.Element {
+  return (
+    <g transform={`rotate(${degrees.toFixed(ANGLE_DECIMALS)} ${at.x} ${at.y})`}>
+      <Label at={at} dx={0} dy={4} anchor="middle">
+        {children}
+      </Label>
+    </g>
+  );
+}
+
+/**
+ * The moving layer: spokes, person, radius line, vectors and their labels, drawn with the person
+ * at the bottom inside one group turned by the live angle (one attribute per frame), the labels
+ * counter-turned so they stay upright.
+ */
 function SpinningParts({
   geometry,
-  angle,
+  omega,
+  frame,
   gRatio,
   showVectors,
 }: {
   geometry: RingGeometry;
-  angle: number;
+  omega: number;
+  frame: FrameStore;
   gRatio: number;
   showVectors: boolean;
 }): JSX.Element {
+  const angle = angleAt(omega, useFrameTime(frame));
+  const degrees = angle / DEG;
   const { c, ring, unit } = geometry;
   const floorY = c.y + ring;
   const { length, isClipped } = vectorLength(gRatio, unit);
@@ -144,62 +167,60 @@ function SpinningParts({
   const acLabelY = Math.min(ac.toY, floorY - person);
   const gapLabelY = Math.max(gap.toY, floorY + RING_BAND) + VECTOR_LABEL_GAP;
   // a_c's label sits beside its tip, on the side away from the r line.
-  const acTip = turn({ x: ac.from.x + AC_LABEL_SIDE, y: acLabelY }, c, angle);
-  const gapTip = turn({ x: gap.from.x, y: gapLabelY }, c, angle);
+  const acTip = { x: ac.from.x + AC_LABEL_SIDE, y: acLabelY };
+  const gapTip = { x: gap.from.x, y: gapLabelY };
   // The r label sits near the hub, clear of the vector labels by the floor.
-  const rLabel = turn({ x: c.x - R_LABEL_SIDE, y: c.y + ring * R_LABEL_AT }, c, angle);
+  const rLabel = { x: c.x - R_LABEL_SIDE, y: c.y + ring * R_LABEL_AT };
 
   return (
-    <>
-      <g transform={`rotate(${-angle / DEG} ${c.x} ${c.y})`}>
-        {SPOKE_ANGLES.map((degrees) => {
-          const end = onCircle(c, ring, degrees);
-          return (
-            <line
-              key={degrees}
-              x1={c.x}
-              y1={c.y}
-              x2={end.x}
-              y2={end.y}
-              stroke={SPOKE_COLOR}
-              strokeWidth={SPOKE_WIDTH}
-              strokeLinecap="round"
-            />
-          );
-        })}
-        <line x1={c.x} y1={c.y} x2={c.x} y2={floorY} stroke={TICK_COLOR} strokeDasharray="3 3" />
-        <HabitatPerson x={c.x} feetY={floorY} height={person} />
-        {showVectors ? (
-          <>
-            <g data-vector="ac">
-              <Arrow from={ac.from} to={{ x: ac.from.x, y: ac.toY }} color={AC_COLOR} />
-              {isClipped ? (
-                <ClipMark x={ac.from.x} y={ac.from.y - CLIP_MARK.at * length} color={AC_COLOR} />
-              ) : null}
-            </g>
-            <g data-vector="gap">
-              <Arrow from={gap.from} to={{ x: gap.from.x, y: gap.toY }} color={GAP_COLOR} dashed />
-              {isClipped ? (
-                <ClipMark x={gap.from.x} y={gap.from.y + CLIP_MARK.at * length} color={GAP_COLOR} />
-              ) : null}
-            </g>
-          </>
-        ) : null}
-      </g>
-      <Label at={rLabel} dx={0} dy={4} anchor="middle">
-        r
-      </Label>
+    <g data-spinning="" transform={`rotate(${(-degrees).toFixed(ANGLE_DECIMALS)} ${c.x} ${c.y})`}>
+      {SPOKE_ANGLES.map((degrees) => {
+        const end = onCircle(c, ring, degrees);
+        return (
+          <line
+            key={degrees}
+            x1={c.x}
+            y1={c.y}
+            x2={end.x}
+            y2={end.y}
+            stroke={SPOKE_COLOR}
+            strokeWidth={SPOKE_WIDTH}
+            strokeLinecap="round"
+          />
+        );
+      })}
+      <line x1={c.x} y1={c.y} x2={c.x} y2={floorY} stroke={TICK_COLOR} strokeDasharray="3 3" />
+      <HabitatPerson x={c.x} feetY={floorY} height={person} />
       {showVectors ? (
         <>
-          <Label at={acTip} dx={0} dy={4} anchor="middle">
-            a_c
-          </Label>
-          <Label at={gapTip} dx={0} dy={4} anchor="middle">
-            g_ap
-          </Label>
+          <g data-vector="ac">
+            <Arrow from={ac.from} to={{ x: ac.from.x, y: ac.toY }} color={AC_COLOR} />
+            {isClipped ? (
+              <ClipMark x={ac.from.x} y={ac.from.y - CLIP_MARK.at * length} color={AC_COLOR} />
+            ) : null}
+          </g>
+          <g data-vector="gap">
+            <Arrow from={gap.from} to={{ x: gap.from.x, y: gap.toY }} color={GAP_COLOR} dashed />
+            {isClipped ? (
+              <ClipMark x={gap.from.x} y={gap.from.y + CLIP_MARK.at * length} color={GAP_COLOR} />
+            ) : null}
+          </g>
         </>
       ) : null}
-    </>
+      <UprightLabel at={rLabel} degrees={degrees}>
+        r
+      </UprightLabel>
+      {showVectors ? (
+        <>
+          <UprightLabel at={acTip} degrees={degrees}>
+            a_c
+          </UprightLabel>
+          <UprightLabel at={gapTip} degrees={degrees}>
+            g_ap
+          </UprightLabel>
+        </>
+      ) : null}
+    </g>
   );
 }
 
@@ -236,7 +257,7 @@ function LegendKey({ color, dashed }: { color: string; dashed?: boolean }): JSX.
  * bar on a log scale. The viewBox follows the measured width, so text keeps its pixel size.
  */
 export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
-  const { r, angle, gRatio, showVectors, onRadiusChange } = props;
+  const { r, omega, frame, gRatio, showVectors, onRadiusChange } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const side = Math.min(width, MAX_RING_AREA);
   const largest = side / 2 - OUTER_ROOM;
@@ -273,7 +294,8 @@ export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
             <OmegaArrow c={c} radius={ring + RING_BAND + OMEGA_ARC.gap} />
             <SpinningParts
               geometry={geometry}
-              angle={angle}
+              omega={omega}
+              frame={frame}
               gRatio={gRatio}
               showVectors={showVectors}
             />

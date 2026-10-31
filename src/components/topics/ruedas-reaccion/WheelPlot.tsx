@@ -1,6 +1,7 @@
 import { useMemo, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
+import type { FrameStore } from '../../lab/frameStore';
 import SvgPlot, { type PlotSeries } from '../../lab/SvgPlot';
 import { LIMIT_COLOR } from './MomentumGauge';
 import {
@@ -22,8 +23,11 @@ const GAP: SeriesPoint = { x: Number.NaN, y: Number.NaN };
 
 export interface WheelPlotProps {
   settings: WheelSettings;
-  /** The clock's time (s). */
+  /** The settled orbit time (s). */
   t: number;
+  /** The live clock (its time is playback time) and the orbit time it means. */
+  frame: FrameStore;
+  orbitTimeAt(playbackTime: number): number;
   onSeek(t: number): void;
 }
 
@@ -89,7 +93,13 @@ function disturbancePlot(settings: WheelSettings) {
  * L_w as a share of L_max against time, with L_max in red and, in the disturbance, the dump
  * threshold; its cursor is the clock: dragging it, or its arrow keys, scrubs the laboratory.
  */
-export default function WheelPlot({ settings, t, onSeek }: WheelPlotProps): JSX.Element {
+export default function WheelPlot({
+  settings,
+  t,
+  frame,
+  orbitTimeAt,
+  onSeek,
+}: WheelPlotProps): JSX.Element {
   const isManeuver = settings.mode === 'maniobra';
   const plot = useMemo(
     () => (isManeuver ? maneuverPlot(settings) : disturbancePlot(settings)),
@@ -110,7 +120,12 @@ export default function WheelPlot({ settings, t, onSeek }: WheelPlotProps): JSX.
       series={plot.series}
       xDomain={plot.xDomain}
       yDomain={plot.yDomain}
-      cursor={{ x: plot.toX(t), onChange: (x) => onSeek(plot.toT(x)), label: cursorText }}
+      cursor={{
+        x: plot.toX(t),
+        follow: { frame, toX: (playbackTime) => plot.toX(orbitTimeAt(playbackTime)) },
+        onChange: (x) => onSeek(plot.toT(x)),
+        label: cursorText,
+      }}
       ariaLabel={ariaLabel}
       testId="wheel-plot"
     />

@@ -1,6 +1,7 @@
 import { useMemo, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import type { BalanceStep } from '../../../lib/physics/energy';
+import type { FrameStore } from '../../lab/frameStore';
 import SvgPlot, { type PlotSeries } from '../../lab/SvgPlot';
 import { ENERGY_SERIES, energySeries, J_PER_KWH } from './regenScene';
 
@@ -11,6 +12,8 @@ export interface RegenEnergyPlotProps {
   axisMax: number;
   /** The lab's instant; dragging the cursor or moving it with the keys seeks there (and pauses). */
   t: number;
+  /** The live clock the cursor follows between renders. */
+  frame: FrameStore;
   onSeek(t: number): void;
 }
 
@@ -25,6 +28,7 @@ export default function RegenEnergyPlot({
   duration,
   axisMax,
   t,
+  frame,
   onSeek,
 }: RegenEnergyPlotProps): JSX.Element {
   const series = useMemo<PlotSeries[]>(
@@ -54,6 +58,7 @@ export default function RegenEnergyPlot({
       yDomain={{ min: 0, max: axisMax }}
       cursor={{
         x: t,
+        follow: { frame },
         onChange: onSeek,
         label: (x) => `t = ${formatNumber(x, { precision: 0, unit: 's' })}`,
       }}

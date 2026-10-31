@@ -136,8 +136,10 @@ describe('BounceLab', () => {
       for (let position = 0; position <= 1000; position += 50) {
         fireEvent.change(timeline(), { target: { value: String(position) } });
         for (const which of ['ideal', 'engine'] as const) {
-          const circle = ball(which).querySelector('circle') as SVGCircleElement;
-          const cy = Number(circle.getAttribute('cy'));
+          // The ball is drawn at the origin of a group translated to its centre.
+          const circle = ball(which).querySelector('[data-ball-body]') as SVGCircleElement;
+          const transform = circle.parentElement?.getAttribute('transform') ?? '';
+          const cy = Number(/translate\([-\d.]+ ([-\d.]+)\)/.exec(transform)?.[1]);
           const r = Number(circle.getAttribute('r'));
           expect(cy - r).toBeGreaterThanOrEqual(0);
           expect(cy + r).toBeLessThanOrEqual(height);

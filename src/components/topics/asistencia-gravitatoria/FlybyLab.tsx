@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type JSX } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import { PLANETS } from '../../../lib/data/planets';
 import { formatNumber } from '../../../lib/format';
 import { deltaVMagnitude, planarFlyby, type PassSide } from '../../../lib/physics';
@@ -88,9 +88,20 @@ export default function FlybyLab({ footnote }: FlybyLabProps): JSX.Element {
   const clock = useSimClock(passSeconds, { timeScale: passSeconds / FLYBY_LAPSE });
   const { seek } = clock;
   // The clock's own duration lags a render behind an edit, so the share of the pass stays put.
-  const progress = clock.state.duration > 0 ? clock.state.t / clock.state.duration : 0;
+  const clockDuration = clock.state.duration;
+  const progress = clockDuration > 0 ? clock.state.t / clockDuration : 0;
   const tau = (2 * progress - 1) * (passSeconds / 2);
   const probe = stateAt(hyperbola, tau);
+  /** The probe at any clock time, for the planet frame's moving layer. */
+  const probeAt = useCallback(
+    (t: number) => {
+      const share = clockDuration > 0 ? t / clockDuration : 0;
+      const liveTau = (2 * share - 1) * (passSeconds / 2);
+      return { tau: liveTau, probe: stateAt(hyperbola, liveTau) };
+    },
+    [clockDuration, passSeconds, hyperbola],
+  );
+  const live = useMemo(() => ({ frame: clock.frame, probeAt }), [clock.frame, probeAt]);
 
   /** Where in the pass (0..1) an edit found the probe, so the new pass resumes there. */
   const progressRef = useRef(0);
@@ -198,6 +209,7 @@ export default function FlybyLab({ footnote }: FlybyLabProps): JSX.Element {
         unit={unit}
         tau={tau}
         probe={probe}
+        live={live}
         passSeconds={passSeconds}
         playbackSeconds={FLYBY_LAPSE}
         display={display}

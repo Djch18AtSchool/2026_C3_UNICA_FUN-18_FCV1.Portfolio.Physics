@@ -1,28 +1,14 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { createClock, type ClockState } from '../../lib/physics/clock';
 import { EXACT_TEXT } from '../../test-exact-text';
+import { fakeClock } from '../../test-fake-clock';
 import TransportBar from './TransportBar';
-import { useSimClock, type SimClock } from './useSimClock';
+import { useSimClock } from './useSimClock';
 
 function LiveBar({ duration }: { duration: number }) {
   const clock = useSimClock(duration);
   return <TransportBar clock={clock} />;
-}
-
-function fakeClock(overrides: Partial<ClockState> = {}): SimClock {
-  return {
-    state: { ...createClock(4), ...overrides },
-    play: vi.fn(),
-    pause: vi.fn(),
-    toggle: vi.fn(),
-    reset: vi.fn(),
-    seek: vi.fn(),
-    step: vi.fn(),
-    setSpeed: vi.fn(),
-    setLoop: vi.fn(),
-  };
 }
 
 function timeline(): HTMLInputElement {
@@ -135,6 +121,25 @@ describe('TransportBar', () => {
     fireEvent.change(timeline(), { target: { value: '250' } });
 
     expect(clock.seek).toHaveBeenCalledWith(151_200);
+  });
+
+  test('the thumb follows the live time between renders; the text waits for the settled one', () => {
+    const clock = fakeClock({ duration: 4, t: 0 });
+    render(<TransportBar clock={clock} />);
+
+    act(() => clock.frame.set(2));
+
+    expect(timeline().value).toBe('500');
+    expect(screen.getByText('t = 0,000\u202Fs', EXACT_TEXT)).toBeInTheDocument();
+  });
+
+  test('a live clock keeps the thumb on the time it seeks to', () => {
+    render(<LiveBar duration={2} />);
+
+    fireEvent.change(timeline(), { target: { value: '250' } });
+
+    expect(timeline().value).toBe('250');
+    expect(timeline()).toHaveAttribute('aria-valuetext', 't = 0,500\u202Fs');
   });
 
   test('"Reiniciar" resets the clock', () => {

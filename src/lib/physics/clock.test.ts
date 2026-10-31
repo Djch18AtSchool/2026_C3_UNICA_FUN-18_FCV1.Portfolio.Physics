@@ -175,3 +175,40 @@ describe('clockReducer: immutability', () => {
     expect(frozen).toEqual({ ...c, t: 1, playing: true });
   });
 });
+
+describe('clockReducer: sync (the frame loop reports the live time)', () => {
+  test('sets t to the reported time while playing', () => {
+    expect(clockReducer({ ...c, playing: true }, { type: 'sync', t: 4.25 })).toMatchObject({
+      t: 4.25,
+      playing: true,
+    });
+  });
+
+  test('ends the run at duration when the reported time reaches it and loop is off', () => {
+    expect(clockReducer({ ...c, playing: true }, { type: 'sync', t: 10 })).toMatchObject({
+      t: 10,
+      playing: false,
+    });
+    expect(clockReducer({ ...c, playing: true }, { type: 'sync', t: 12 })).toMatchObject({
+      t: 10,
+      playing: false,
+    });
+  });
+
+  test('wraps the reported time when looping', () => {
+    expect(
+      clockReducer({ ...c, playing: true, loop: true }, { type: 'sync', t: 10.5 }),
+    ).toMatchObject({ t: expect.closeTo(0.5, 9), playing: true });
+  });
+
+  test('is ignored while paused and rejects a negative or non-finite time', () => {
+    const paused = { ...c, t: 3 };
+    expect(clockReducer(paused, { type: 'sync', t: 5 })).toBe(paused);
+    expect(() => clockReducer({ ...c, playing: true }, { type: 'sync', t: -1 })).toThrow(
+      RangeError,
+    );
+    expect(() => clockReducer({ ...c, playing: true }, { type: 'sync', t: Number.NaN })).toThrow(
+      RangeError,
+    );
+  });
+});

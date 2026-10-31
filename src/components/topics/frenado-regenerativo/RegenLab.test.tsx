@@ -153,9 +153,10 @@ describe('RegenLab', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
     frames.flush(1000);
-    frames.flush(1050);
-    // One 50 ms frame at 20× is one second of the cycle.
-    expect(timelineText()).toBe('t = 117 s');
+    // One 100 ms frame at 20× is two seconds of the cycle; the transport's settled time is
+    // synced every 100 ms of playback.
+    frames.flush(1100);
+    expect(timelineText()).toBe('t = 118 s');
 
     fireEvent.change(timeline(), { target: { value: '999' } });
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));

@@ -10,7 +10,7 @@ import { lapseFactorText, signed } from './flybyFormat';
 import type { FlybyDisplay } from './flybyLabSettings';
 import type { FlybyHyperbola, FlybyState } from './flybyOrbit';
 import type { RpWarning } from './flybyScene';
-import PlanetFrame, { PROBE_COLOR, TRACK_COLOR, VINF_COLOR } from './PlanetFrame';
+import PlanetFrame, { PROBE_COLOR, TRACK_COLOR, VINF_COLOR, type LiveProbe } from './PlanetFrame';
 import SunFrame, { V_AFTER_COLOR, V_BEFORE_COLOR } from './SunFrame';
 
 export interface FlybySceneProps {
@@ -21,9 +21,11 @@ export interface FlybySceneProps {
   /** r_p in planet radii and its unit («R_J»). */
   rp: number;
   unit: string;
-  /** Time from periapsis (s) and the probe's state then. */
+  /** Time from periapsis (s) and the probe's state then, at the settled time (the clock text). */
   tau: number;
   probe: FlybyState;
+  /** The live probe the planet frame draws. */
+  live: LiveProbe;
   /** Real duration of the drawn pass (s) and its playback at 1× (s). */
   passSeconds: number;
   playbackSeconds: number;
@@ -88,7 +90,7 @@ function warningText(warning: RpWarning, unit: string): string {
  * the stated time lapse, the r_p warning and the model-versus-data table.
  */
 export default function FlybyScene(props: FlybySceneProps): JSX.Element {
-  const { hyperbola, planet, Vp, result, rp, unit, tau, probe, display, decimals } = props;
+  const { hyperbola, planet, Vp, result, rp, unit, tau, probe, live, display, decimals } = props;
   const kms = (value: number) => formatNumber(value, { precision: decimals, unit: 'km/s' });
   const token = planet.token;
   const clock = [
@@ -107,8 +109,7 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
             planet={planet}
             rp={rp}
             unit={unit}
-            tau={tau}
-            probe={probe}
+            live={live}
             showVectors={display.showVectors}
             onRpRequest={props.onRpRequest}
           />

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type JSX } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import {
   DRONE_ROUTE,
   routeDuration,
@@ -161,6 +161,11 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
     ? moveStop(route.def, preview.index, preview.at.x, preview.at.y).stops
     : route.def.stops;
   const now = sampleAt(route.samples, clock.state.t);
+  const flightSampleAt = useCallback((t: number) => sampleAt(route.samples, t), [route.samples]);
+  const live = useMemo(
+    () => ({ frame: clock.frame, sampleAt: flightSampleAt }),
+    [clock.frame, flightSampleAt],
+  );
 
   const readouts: LabReadout[] = [
     { id: 'x', label: 'Posición x', value: now.x, unit: 'm' },
@@ -214,6 +219,7 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
           stops={shownStops}
           samples={route.samples}
           now={now}
+          live={live}
           duration={duration}
           showVectors={display.showVectors}
           showTrail={display.showTrail}

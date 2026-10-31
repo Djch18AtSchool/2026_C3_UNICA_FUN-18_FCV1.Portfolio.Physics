@@ -7,6 +7,7 @@ import {
   LINE_WIDTH,
   TICK_FONT_SIZE,
 } from '../charts/chartTheme';
+import type { FrameStore } from './frameStore';
 import { isFinitePoint, linearScale, padDomain, type Domain, type Scale } from './plotScales';
 import { axisTicks, PlotAxes, PlotGrid, yTickLabelChars } from './SvgPlotAxes';
 import SvgPlotCursor, { type PlotArea } from './SvgPlotCursor';
@@ -44,6 +45,12 @@ export interface PlotCursor {
    * name it apart from the transport's "Línea de tiempo".
    */
   ariaLabel?: string;
+  /**
+   * The frame store the cursor follows between renders (a playing clock's live time), through
+   * `toX` when the plot's x is not that time itself. `x` stays the settled value, the one the
+   * slider's aria attributes and the server render use.
+   */
+  follow?: { frame: FrameStore; toX?: (t: number) => number };
 }
 export interface PlotMarker {
   x: number;

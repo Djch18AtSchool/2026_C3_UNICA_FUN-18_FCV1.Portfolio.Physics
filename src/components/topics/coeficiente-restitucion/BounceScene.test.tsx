@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import { createFrameStore } from '../../lab/frameStore';
 import { monoTextWidth } from '../../lab/plotScales';
 import { stubResizeObserver, viewBoxOf } from '../../lab/svgPlotTestKit';
 import BounceScene, { type BounceSceneProps } from './BounceScene';
@@ -16,6 +17,10 @@ const PROPS: BounceSceneProps = {
   ball: 'tenis',
   ideal: { y: 2.54, isResting: false },
   engine: { y: 0, isResting: true },
+  live: {
+    frame: createFrameStore(0),
+    ballsAt: () => ({ ideal: { y: 2.54, isResting: false }, engine: { y: 0, isResting: true } }),
+  },
   engineSubtitle: ENGINE_SUBTITLE,
   decimals: 2,
   onH0Change: () => {},

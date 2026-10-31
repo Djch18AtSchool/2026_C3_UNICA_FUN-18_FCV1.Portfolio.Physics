@@ -52,3 +52,9 @@ export function stubResizeObserver(width: number): void {
 export function viewBoxOf(svg: Element): number[] {
   return (svg.getAttribute('viewBox') ?? '').split(' ').map(Number);
 }
+
+/** The x (viewBox px) a plot's cursor group is translated to; NaN without a cursor. */
+export function cursorX(root: ParentNode): number {
+  const cursor = root.querySelector('[data-cursor]');
+  return Number(/translate\(([-\d.]+)/.exec(cursor?.getAttribute('transform') ?? '')?.[1]);
+}
