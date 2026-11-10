@@ -9,6 +9,7 @@ import {
   TICK_FONT_FAMILY,
 } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import { CANVAS_INSET } from '../../lab/canvasInset';
 import type { FrameStore } from '../../lab/frameStore';
 import MathText from '../../lab/MathText';
 import { Knob, Label, type Point } from '../../lab/OverlayMarks';
@@ -377,7 +378,11 @@ export default function BounceScene(props: BounceSceneProps): JSX.Element {
   const statusTop = floorY + STATUS_GAP + extraLines * STATUS_LINE;
 
   return (
-    <div ref={wrapperRef} className="mx-auto w-full px-3 sm:px-0" style={{ maxWidth: MAX_WIDTH }}>
+    <div
+      ref={wrapperRef}
+      className={`mx-auto w-full ${CANVAS_INSET}`}
+      style={{ maxWidth: MAX_WIDTH }}
+    >
       <svg
         data-testid="bounce-scene"
         viewBox={`0 0 ${width} ${geo.height}`}

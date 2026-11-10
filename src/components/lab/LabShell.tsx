@@ -33,6 +33,7 @@
 import { useId, type JSX, type ReactNode } from 'react';
 import Readout from '../controls/Readout';
 import { useOverflowsY } from '../hooks/useOverflowsY';
+import { CANVAS_BLEED } from './canvasInset';
 import InlineMath from './InlineMath';
 import LabNotes from './LabNotes';
 import { GearButton, ReadoutAnnouncer, useLabDrawer, type LabDrawer } from './labShellParts';
@@ -71,11 +72,12 @@ const PANEL =
 const TRANSPORT =
   'lab-split:sticky lab-split:bottom-0 lab-split:z-10 lab-split:border-t lab-split:border-border lab-split:bg-bg-elevated lab-split:py-3';
 /**
- * On phones the canvas bleeds into the card's padding. In two columns, whatever in it takes focus
- * keeps the pinned transport's room below it (WCAG 2.4.11): scroll-margin on its own descendants,
- * so nothing is reserved where the transport cannot pin (one column, or below lg).
+ * In a narrow lab the canvas bleeds into the card's padding (canvasInset.ts). In two columns,
+ * whatever in it takes focus keeps the pinned transport's room below it (WCAG 2.4.11):
+ * scroll-margin on its own descendants, so nothing is reserved where the transport cannot pin
+ * (one column, or below lg).
  */
-const CANVAS = '-mx-3 sm:mx-0 lab-split:**:scroll-mb-[calc(var(--lab-transport-room)+0.5rem)]';
+const CANVAS = `${CANVAS_BLEED} lab-split:**:scroll-mb-[calc(var(--lab-transport-room)+0.5rem)]`;
 const CHIP =
   'inline-flex min-h-8 items-center whitespace-nowrap rounded-base border border-border bg-bg px-2 text-xs font-medium text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
 const RESET =

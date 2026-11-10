@@ -3,6 +3,7 @@ import { formatNumber } from '../../../lib/format';
 import { AXIS_COLOR, TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { mathTextToString, mathTextWidth } from '../../../lib/mathNotation';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import { CANVAS_INSET } from '../../lab/canvasInset';
 import InlineMath from '../../lab/InlineMath';
 import MathText from '../../lab/MathText';
 import type { LabReadout } from '../../lab/LabShell';
@@ -187,7 +188,7 @@ export function CollisionScene(props: CollisionSceneProps): JSX.Element {
   const wallX = toPx(0);
 
   return (
-    <div ref={wrapperRef} className="w-full px-3 sm:px-0">
+    <div ref={wrapperRef} className={`w-full ${CANVAS_INSET}`}>
       <svg
         data-testid="collision-scene"
         viewBox={`0 0 ${width} ${height}`}

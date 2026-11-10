@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState, type JSX } from 'react';
+import { CANVAS_INSET } from '../../lab/canvasInset';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
@@ -138,7 +139,7 @@ function readoutsFor(
 }
 
 /**
- * Tema 8's laboratory on the v2 shell: the 6U CubeSat with the RW400 seen along its slew axis.
+ * Tema 8's laboratory on LabShell: the 6U CubeSat with the RW400 seen along its slew axis.
  * "Maniobra" turns the body rest to rest by a dragged target θ in T seconds, in real time, with
  * the warning when T < T_min; "Perturbación y descarga" holds the body still for three days of
  * gravity-gradient torque, time-lapsed (DAY_LAPSE), dumping from 80 % of L_max (a design choice)
@@ -286,7 +287,7 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
           showArrows={display.showArrows}
           onTargetChange={(thetaDeg) => set('thetaDeg', thetaDeg)}
         />
-        <div className="px-3 sm:px-0">
+        <div className={CANVAS_INSET}>
           <MomentumGauge
             Lw={live.Lw}
             Lmax={SPACECRAFT.Lmax}

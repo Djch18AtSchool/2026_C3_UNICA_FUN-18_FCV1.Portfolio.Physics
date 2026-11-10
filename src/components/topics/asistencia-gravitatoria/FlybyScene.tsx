@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import type { Planet } from '../../../lib/data/planets';
 import { formatNumber } from '../../../lib/format';
 import type { PlanarFlybyResult } from '../../../lib/physics';
+import { CANVAS_INSET } from '../../lab/canvasInset';
 import InlineMath from '../../lab/InlineMath';
 import { signed, unitTex } from './flybyFormat';
 import type { FlybyDisplay } from './flybyLabSettings';
@@ -48,7 +49,7 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
     <div className="@container">
       <div className="grid gap-4 @lg:grid-cols-2">
         <div className="flex flex-col gap-1">
-          <p className="m-0 px-3 text-sm font-medium sm:px-0">{`Marco de ${planet.name}`}</p>
+          <p className={`m-0 text-sm font-medium ${CANVAS_INSET}`}>{`Marco de ${planet.name}`}</p>
           <PlanetFrame
             hyperbola={hyperbola}
             planet={planet}
@@ -60,13 +61,13 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
           />
           <p
             data-testid="flyby-clock"
-            className="m-0 px-3 font-mono text-xs tabular-nums text-fg-muted sm:px-0"
+            className={`m-0 font-mono text-xs tabular-nums text-fg-muted ${CANVAS_INSET}`}
           >
             <InlineMath text={clock} />
           </p>
         </div>
         <div className="flex flex-col gap-1">
-          <p className="m-0 px-3 text-sm font-medium sm:px-0">Marco del Sol</p>
+          <p className={`m-0 text-sm font-medium ${CANVAS_INSET}`}>Marco del Sol</p>
           <SunFrame
             Vp={Vp}
             hyperbola={hyperbola}
@@ -75,7 +76,7 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
             showCircle={display.showCircle}
             decimals={decimals}
           />
-          <p className="m-0 px-3 font-mono text-xs tabular-nums text-fg-muted sm:px-0">
+          <p className={`m-0 font-mono text-xs tabular-nums text-fg-muted ${CANVAS_INSET}`}>
             <InlineMath
               text={`$\\Delta|\\vec v|$ = ${signed(result.vOut - result.vIn, decimals, 'km/s')}`}
             />
