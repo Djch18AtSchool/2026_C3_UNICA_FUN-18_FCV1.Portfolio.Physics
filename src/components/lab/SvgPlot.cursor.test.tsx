@@ -4,6 +4,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../lib/settingsStore';
 import { TICK_FONT_SIZE } from '../charts/chartTheme';
 import { createFrameStore } from './frameStore';
+import { mathTextWidth } from '../../lib/mathNotation';
 import { monoTextWidth, type Scale } from './plotScales';
 import SvgPlot from './SvgPlot';
 import { mockIdentityCtm, PROPS } from './svgPlotTestKit';
@@ -273,5 +274,31 @@ describe('SvgPlot cursor name in notation', () => {
     render(<SvgPlot {...PROPS} xLabel="t − t_p" cursor={{ x: 5, onChange: () => {} }} />);
 
     expect(screen.getByRole('slider', { name: 't − t sub p' })).toBeInTheDocument();
+  });
+});
+
+describe('SvgPlot cursor label in notation', () => {
+  afterEach(cleanup);
+
+  test('draws the label with a real subscript and says it in words as the slider value', () => {
+    const { container } = render(
+      <SvgPlot {...PROPS} cursor={{ x: 5, onChange: () => {}, label: (x) => `F_z = ${x} N` }} />,
+    );
+
+    const label = container.querySelector('[data-cursor] text') as SVGTextElement;
+    expect(label).toHaveAttribute('data-notation', 'F_z = 5 N');
+    expect(label.textContent).toBe('Fz = 5 N');
+    expect(screen.getByRole('slider')).toHaveAttribute('aria-valuetext', 'F sub z = 5 N');
+  });
+
+  test('the plate spans the drawn width of a label with a subscript', () => {
+    const { container } = render(
+      <SvgPlot {...PROPS} cursor={{ x: 2, onChange: () => {}, label: () => 'F_z = 0 N' }} />,
+    );
+    const plate = container.querySelector('[data-cursor-plate]') as SVGRectElement;
+    const drawn = mathTextWidth('F_z = 0 N', TICK_FONT_SIZE, 'mono');
+
+    // The plate is the drawn width plus its margin (3), plus the gap from the knob (14 - 8).
+    expect(Number(plate.getAttribute('width'))).toBeCloseTo(drawn + 9, 5);
   });
 });

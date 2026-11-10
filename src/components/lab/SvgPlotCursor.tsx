@@ -1,8 +1,9 @@
 import { useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import { formatNumber } from '../../lib/format';
-import { mathTextToString } from '../../lib/mathNotation';
-import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_FAMILY } from '../charts/chartTheme';
-import { monoTextWidth, type Domain, type Scale } from './plotScales';
+import { mathTextToString, mathTextWidth } from '../../lib/mathNotation';
+import { SURFACE_COLOR, TEXT_COLOR } from '../charts/chartTheme';
+import MathText from './MathText';
+import type { Domain, Scale } from './plotScales';
 import type { PlotCursor } from './SvgPlot';
 import { svgPointFromClient } from './dragMath';
 import { isPrimaryPointer, preventTouchPan } from './useDrag';
@@ -40,6 +41,8 @@ const HIT_HALF_WIDTH = 12;
  */
 const KNOB_TARGET_HALF_HEIGHT = 22;
 const LABEL_GAP = 14;
+/** Centres the label on the plot's top edge (the former dy="0.35em"). */
+const LABEL_BASELINE_EM = 0.35;
 /** Past this fraction of the plot width, or when it would overrun the plot, the label flips left. */
 const LABEL_FLIP_FRACTION = 0.7;
 const HALO_WIDTH = 4;
@@ -121,8 +124,8 @@ export default function SvgPlotCursor({
   const cx = x.toPx(shown);
   const labelText = cursor.label?.(shown);
   const isPastFlipLine = cx > area.left + (area.right - area.left) * LABEL_FLIP_FRACTION;
-  const wouldOverrun =
-    labelText !== undefined && cx + LABEL_GAP + monoTextWidth(labelText, fontSize) > area.right;
+  const labelWidth = labelText === undefined ? 0 : mathTextWidth(labelText, fontSize, 'mono');
+  const wouldOverrun = labelText !== undefined && cx + LABEL_GAP + labelWidth > area.right;
   const isLabelLeft = isPastFlipLine || wouldOverrun;
 
   const emit = (next: number) => {
@@ -181,7 +184,6 @@ export default function SvgPlotCursor({
 
   // From here on, x coordinates are relative to the cursor (the group is translated to cx).
   const labelX = isLabelLeft ? -LABEL_GAP : LABEL_GAP;
-  const labelWidth = labelText === undefined ? 0 : monoTextWidth(labelText, fontSize);
   const label = labelText ? (
     <>
       <rect
@@ -194,21 +196,17 @@ export default function SvgPlotCursor({
         fill={SURFACE_COLOR}
         className="pointer-events-none"
       />
-      <text
+      <MathText
+        source={labelText}
         x={labelX}
         y={area.top}
-        dy="0.35em"
-        textAnchor={isLabelLeft ? 'end' : 'start'}
+        dy={fontSize * LABEL_BASELINE_EM}
+        anchor={isLabelLeft ? 'end' : 'start'}
         fill={TEXT_COLOR}
-        fontFamily={TICK_FONT_FAMILY}
         fontSize={fontSize}
-        stroke={SURFACE_COLOR}
-        strokeWidth={HALO_WIDTH}
-        paintOrder="stroke"
+        halo={{ color: SURFACE_COLOR, width: HALO_WIDTH }}
         className="pointer-events-none"
-      >
-        {labelText}
-      </text>
+      />
     </>
   ) : null;
 
@@ -230,7 +228,11 @@ export default function SvgPlotCursor({
         aria-valuemin={x.domain.min}
         aria-valuemax={x.domain.max}
         aria-valuenow={value}
-        aria-valuetext={labelText ?? formatNumber(value, { precision: decimals, unit: xUnit })}
+        aria-valuetext={
+          labelText === undefined
+            ? formatNumber(value, { precision: decimals, unit: xUnit })
+            : mathTextToString(labelText)
+        }
         aria-orientation="horizontal"
         className="group pointer-events-auto cursor-ew-resize outline-none"
         onKeyDown={handleKeyDown}
