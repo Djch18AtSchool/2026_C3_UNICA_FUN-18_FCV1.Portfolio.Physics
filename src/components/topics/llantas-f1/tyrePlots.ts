@@ -132,6 +132,15 @@ export function loadPlot(temperatureFactor?: number): PlotFrame {
 const COMPACT_WIDTH = 480;
 const FALLBACK_WIDTH = 720;
 
+/**
+ * The class of a plot's wrapper: its height is reserved by CSS before any script measures it. The
+ * server draws every plot at 720 px, so the drawing's own ratio (2) would be the wrong one in a
+ * 395 px stage and the plot would grow when it hydrates; this gives the SVG the ratio that
+ * usePlotAspect will choose at the same width (11/10 under 30 rem, 2 from there).
+ */
+export const PLOT_BOX =
+  '@container [&_svg[role=img]]:aspect-[11/10] @[30rem]:[&_svg[role=img]]:aspect-2';
+
 /** A wrapper ref and the aspect ratio for its measured width: `wide` from 480 px, else `compact`. */
 export function usePlotAspect(wide: number, compact: number) {
   const [ref, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);

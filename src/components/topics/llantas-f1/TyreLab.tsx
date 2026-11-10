@@ -1,7 +1,7 @@
 import { useState, type JSX } from 'react';
 import type { Compound } from '../../../lib/data/tyreModels';
 import { formatNumber } from '../../../lib/format';
-import Presets from '../../controls/Presets';
+import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import type { SettingOption } from '../../lab/SettingsDrawer';
@@ -29,13 +29,17 @@ import {
   LINEAR_COLOR,
   LOAD_AXIS,
   loadPlot,
+  PLOT_BOX,
   REAL_COLOR,
   TEMPERATURE_AXIS,
   temperaturePlot,
   usePlotAspect,
 } from './tyrePlots';
 
-/** Two stacked plots: flatter than a lone figure on wide screens, squarer on phones. */
+/**
+ * Two stacked plots: flatter than a lone figure on wide screens, squarer on phones. PLOT_BOX
+ * (tyrePlots.ts) reserves the same two ratios in CSS: change them together.
+ */
 const WIDE_ASPECT = 2;
 const COMPACT_ASPECT = 1.1;
 /** Forces read in whole newtons; the global decimals would print 11 942,90 N. */
@@ -46,9 +50,13 @@ const COMPOUND_OPTIONS = COMPOUNDS.map((compound) => ({
   label: compoundOptionLabel(compound),
 }));
 
+/** «Cómo se usa»: the two cursors and their keys. The compound is read off the chip. */
+const DRAG_HINT =
+  'Arrastra el cursor de cada gráfica, o enfócalo y muévelo con las flechas (1 % del eje; con Mayús, 10 %).';
+
 export interface TyreLabProps {
-  /** The model's caveats, written in the topic's MDX so they travel with its text. */
-  footnote?: string;
+  /** «Qué deja fuera el modelo», written in the topic's MDX so it travels with its text. */
+  leftOut?: string;
 }
 
 /**
@@ -59,7 +67,7 @@ export interface TyreLabProps {
  * readouts μ(T), F_y (both) and μ efectivo.
  * The load curves are multiplied by μ(T)/μ_pico, so moving the temperature moves them too.
  */
-export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
+export default function TyreLab({ leftOut }: TyreLabProps): JSX.Element {
   const [state, setState] = useState<TyreLabState>(INITIAL_TYRE_STATE);
   const { decimals } = useGlobalSettings();
   const readings = tyreReadings(state);
@@ -88,10 +96,11 @@ export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
     { id: 'muEff', label: 'Coeficiente efectivo $\\mu$', value: readings.muEff, unit: '' },
   ];
 
-  const localSettings: SettingOption[] = [
+  const display: SettingOption[] = [
     {
       key: 'compound',
       label: 'Compuesto (Pirelli, 2019)',
+      chip: 'Compuesto',
       kind: 'select',
       value: state.compound,
       options: COMPOUND_OPTIONS,
@@ -101,52 +110,49 @@ export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
 
   const params = (
     <>
-      <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-        <ParamField
-          id="tyre-t"
-          label="Temperatura de la banda T"
-          unit="°C"
-          min={TEMPERATURE_DOMAIN.min}
-          max={TEMPERATURE_DOMAIN.max}
-          step={TEMPERATURE_STEP}
-          value={state.t}
-          onChange={onTemperature}
-        />
-        <ParamField
-          id="tyre-fz"
-          label="Carga sobre la llanta $F_z$"
-          unit="N"
-          min={LOAD_DOMAIN.min}
-          max={LOAD_DOMAIN.max}
-          step={LOAD_STEP}
-          value={state.fz}
-          onChange={onLoad}
-        />
-      </div>
-      <Presets
-        presets={TYRE_PRESETS}
-        activeId={presetIdFor(state)}
-        onSelect={(preset) => setState(preset.values)}
+      <ParamField
+        id="tyre-t"
+        label="Temperatura de la banda T"
+        unit="°C"
+        min={TEMPERATURE_DOMAIN.min}
+        max={TEMPERATURE_DOMAIN.max}
+        step={TEMPERATURE_STEP}
+        value={state.t}
+        onChange={onTemperature}
       />
-      <p className="m-0 text-sm text-fg-muted">
-        Arrastra el cursor de cada gráfica, o enfócalo y muévelo con las flechas (1 % del eje; con
-        Mayús, 10 %). El compuesto se elige en los ajustes del engranaje.
-      </p>
+      <ParamField
+        id="tyre-fz"
+        label="Carga sobre la llanta $F_z$"
+        unit="N"
+        min={LOAD_DOMAIN.min}
+        max={LOAD_DOMAIN.max}
+        step={LOAD_STEP}
+        value={state.fz}
+        onChange={onLoad}
+      />
     </>
+  );
+
+  const scenario = (
+    <LabPresets
+      id="tyre-preset"
+      presets={TYRE_PRESETS}
+      activeId={presetIdFor(state)}
+      onSelect={(preset) => setState(preset.values)}
+    />
   );
 
   return (
     <LabShell
       title="Laboratorio de la llanta"
       readouts={readouts}
-      params={params}
-      localSettings={localSettings}
+      levels={{ params, scenario, display }}
+      notes={{ usage: [DRAG_HINT], leftOut: leftOut ? [leftOut] : [] }}
       onReset={() => setState(INITIAL_TYRE_STATE)}
-      footnote={footnote}
       testId="tyre-lab"
     >
       <div className="flex flex-col gap-6">
-        <div ref={temperatureAspect.ref} data-testid="tyre-temperature-plot">
+        <div ref={temperatureAspect.ref} data-testid="tyre-temperature-plot" className={PLOT_BOX}>
           <SvgPlot
             aspectRatio={temperatureAspect.aspectRatio}
             title="Coeficiente de agarre $\mu$ frente a la temperatura"
@@ -162,7 +168,7 @@ export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
             )}
           />
         </div>
-        <div ref={loadAspect.ref} data-testid="tyre-load-plot">
+        <div ref={loadAspect.ref} data-testid="tyre-load-plot" className={PLOT_BOX}>
           <SvgPlot
             aspectRatio={loadAspect.aspectRatio}
             title="Fuerza lateral máxima frente a la carga vertical"

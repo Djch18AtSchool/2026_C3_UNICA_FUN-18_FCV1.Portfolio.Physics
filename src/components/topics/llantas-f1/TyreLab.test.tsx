@@ -10,7 +10,7 @@ import { mathSourceText } from '../../../test-inline-math';
 import { svgText } from '../../../test-svg-text';
 import { readout } from '../../../test-readout';
 
-const FOOTNOTE = 'Parámetros ilustrativos, no medidos.';
+const LEFT_OUT = 'Deja fuera el ángulo de deriva, el desgaste, la presión y la caída.';
 
 /** Identity CTM on every svg: client pixels are viewBox units, so DOM coordinates are pointer ones. */
 function mockIdentityCtm(): void {
@@ -23,7 +23,7 @@ function mockIdentityCtm(): void {
 }
 
 function renderLab() {
-  const view = render(<TyreLab footnote={FOOTNOTE} />);
+  const view = render(<TyreLab leftOut={LEFT_OUT} />);
   mockIdentityCtm();
   return view;
 }
@@ -53,7 +53,98 @@ describe('TyreLab', () => {
     expect(readout('Fuerza lateral lineal $F_y$')).toBe('6 400 N');
     expect(readout('Fuerza lateral real $F_y$')).toBe('6 400 N');
     expect(readout('Coeficiente efectivo $\\mu$')).toBe('1,60');
-    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
+  });
+
+  test('the shell is the tiered one: T and F_z in Parámetros, the presets in Escenario', () => {
+    const { container } = renderLab();
+    const region = (name: string) => screen.getByRole('region', { name });
+
+    expect(container.querySelector('[data-lab-shell="tiered"]')).not.toBeNull();
+    expect(within(region('Parámetros')).getByRole('textbox', { name: /^Temperatura/ })).toBe(
+      temperatureField(),
+    );
+    expect(within(region('Parámetros')).getByRole('textbox', { name: /^Carga/ })).toBe(loadField());
+    expect(
+      within(region('Escenario')).getByRole('group', { name: 'Valores de referencia' }),
+    ).toBeInTheDocument();
+    expect(within(region('Lecturas')).getByText(/^Fuerza lateral lineal/)).toBeInTheDocument();
+    // The compound lives in the drawer; no clock, so no transport bar.
+    expect(within(region('Parámetros')).queryByRole('combobox')).toBeNull();
+    expect(container.querySelector('[data-lab-transport]')).toBeNull();
+  });
+
+  test('T and F_z stack in the 20 rem panel: no window-width columns', () => {
+    renderLab();
+    const grid = temperatureField().closest('[data-lab-level="params"]') as HTMLElement;
+
+    expect(grid.innerHTML).not.toMatch(/\bsm:grid-cols/);
+  });
+
+  test('under the choice, one line with the active preset note and its source', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    // It opens at 120 °C and 4 000 N, which no preset has: no note yet.
+    expect(screen.queryByTestId('preset-note')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: /^C3 en ventana/ }));
+    expect(screen.getByTestId('preset-note')).toHaveTextContent(
+      /^En el óptimo del C3, la carga doble da 11 943 N.*Fuente: cálculo propio/,
+    );
+
+    await user.click(screen.getByRole('button', { name: /^Compuesto C4/ }));
+
+    expect(screen.getByTestId('preset-note')).toHaveTextContent(/Fuente: supuesto del modelo/);
+  });
+
+  test('beside the gear, a chip with the compound that follows the drawer', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const chips = () =>
+      within(screen.getByRole('group', { name: 'Ajustes activos' }))
+        .getAllByRole('button')
+        .map((chip) => chip.getAttribute('aria-label'));
+    expect(chips()).toEqual(['Compuesto C3 (105–135 °C)']);
+
+    await user.click(screen.getByRole('button', { name: 'Compuesto C3 (105–135 °C)' }));
+    await user.selectOptions(
+      within(screen.getByRole('dialog')).getByRole('combobox', { name: /^Compuesto/ }),
+      'C4',
+    );
+
+    expect(chips()).toEqual(['Compuesto C4 (90–120 °C)']);
+  });
+
+  test('how to use it says the drag and the keys, not the gear; what the model leaves out waits closed', () => {
+    const { container } = renderLab();
+    const usage = container.querySelector<HTMLDetailsElement>('details[data-lab-note="usage"]')!;
+    const leftOut = container.querySelector<HTMLDetailsElement>(
+      'details[data-lab-note="left-out"]',
+    )!;
+
+    expect(usage.open || leftOut.open).toBe(false);
+    expect(usage).toHaveTextContent('Arrastra el cursor de cada gráfica');
+    expect(usage).toHaveTextContent('con las flechas');
+    expect(usage).not.toHaveTextContent('engranaje');
+    expect(leftOut).toHaveTextContent(LEFT_OUT);
+    expect(screen.queryByTestId('lab-footnote')).toBeNull();
+  });
+
+  test('without the MDX text there is no empty «Qué deja fuera el modelo»', () => {
+    const { container } = render(<TyreLab />);
+
+    expect(container.querySelector('details[data-lab-note="left-out"]')).toBeNull();
+    expect(container.querySelector('details[data-lab-note="usage"]')).not.toBeNull();
+  });
+
+  test('each plot reserves its height before it measures: CSS aspect by container width', () => {
+    renderLab();
+
+    for (const id of ['tyre-temperature-plot', 'tyre-load-plot']) {
+      const box = screen.getByTestId(id);
+      expect(box.className).toContain('@container');
+      expect(box.className).toMatch(/\[&_svg\[role=img\]\]:aspect-\[11\/10\]/);
+      expect(box.className).toMatch(/@\[30rem\]:\[&_svg\[role=img\]\]:aspect-2/);
+    }
   });
 
   test('moving the load cursor to 8 000 N shows 11 943 N', async () => {
