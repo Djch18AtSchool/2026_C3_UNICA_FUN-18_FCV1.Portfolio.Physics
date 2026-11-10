@@ -205,7 +205,26 @@ for (const { path, testId } of LABS) {
         }) => {
           const lab = await openTiered(page, path, testId);
           const top = await stickyTop(lab);
-          await scrollLabTo(lab, -SCROLL_INTO_LAB_PX);
+          // Each column sticks inside its row: scroll halfway through the panel's sticky travel.
+          const { cellTop, travel } = await lab.evaluate((root) => {
+            const cell = root.querySelector('[data-lab-stage]')?.parentElement;
+            const panelBox = root.querySelector('[data-lab-panel]')?.getBoundingClientRect();
+            const cellBox = cell?.getBoundingClientRect();
+            return {
+              cellTop: (cellBox?.top ?? 0) + window.scrollY,
+              travel: (cellBox?.height ?? 0) - (panelBox?.height ?? 0),
+            };
+          });
+          if (travel <= 0) {
+            // Nothing to travel: the columns are no taller than the panel, which fits the window.
+            const columns = await boxOf(lab.locator('[data-lab-columns]'));
+            expect(columns.height).toBeLessThanOrEqual(size.height - top);
+            return;
+          }
+          await page.evaluate(
+            (y) => window.scrollTo(0, y),
+            cellTop - top + Math.min(travel / 2, SCROLL_INTO_LAB_PX),
+          );
 
           const panel = await boxOf(lab.locator('[data-lab-panel]'));
           const firstLevel = await boxOf(lab.getByRole('region', { name: 'Parámetros' }));
