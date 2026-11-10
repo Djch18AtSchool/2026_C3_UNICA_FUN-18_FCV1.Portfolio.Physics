@@ -11,7 +11,7 @@ import { describe, expect, test } from 'vitest';
  */
 const ENGLISH_COMMANDS = /\\(max|min|inf|lim|limsup|liminf|deg|argmax|argmin|csc|cot)(?![A-Za-z])/g;
 const ENGLISH_WORDS =
-  /\\(?:operatorname\*?|mathrm|text|textrm)\{\s*(max|min|inf|lim|deg|argmax|argmin|csc|cot)\s*\}/g;
+  /\\(?:operatorname\*?|mathrm|text|textrm)\{\s*(max|min|inf|lim|limsup|liminf|deg|argmax|argmin|csc|cot)\s*\}/g;
 const SOURCE_ROOT = join(process.cwd(), 'src');
 const SCANNED = /\.(ts|tsx|astro|mdx)$/;
 
@@ -22,19 +22,37 @@ function englishOperators(source: string): string[] {
   );
 }
 
+/** A file an editor or the dev server removed between the listing and the read: skip it. */
+const isGone = (error: unknown) => (error as NodeJS.ErrnoException).code === 'ENOENT';
+
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name);
-    if (statSync(path).isDirectory()) return sourceFiles(path);
+    try {
+      if (statSync(path).isDirectory()) return sourceFiles(path);
+    } catch (error) {
+      if (isGone(error)) return [];
+      throw error;
+    }
     return SCANNED.test(name) && !/\.test\.tsx?$/.test(name) ? [path] : [];
   });
+}
+
+/** The file's text, or nothing if it was removed after the listing. */
+function readSource(file: string): string {
+  try {
+    return readFileSync(file, 'utf8');
+  } catch (error) {
+    if (isGone(error)) return '';
+    throw error;
+  }
 }
 
 describe('math operators', () => {
   test('finds the English operators, commands or spelt out, and only those', () => {
     expect(
       englishOperators(
-        String.raw`\max(a) \min_x \lim \liminf \deg p \csc x \cot x \argmax \operatorname{max} \mathrm{min} \text{lim} \operatorname*{argmin}`,
+        String.raw`\max(a) \min_x \lim \liminf \deg p \csc x \cot x \argmax \operatorname{max} \mathrm{min} \text{lim} \operatorname*{argmin} \operatorname{limsup} \mathrm{liminf} \operatorname*{argmax}`,
       ),
     ).toEqual([
       '\\max',
@@ -49,6 +67,9 @@ describe('math operators', () => {
       '\\mathrm{min}',
       '\\text{lim}',
       '\\operatorname*{argmin}',
+      '\\operatorname{limsup}',
+      '\\mathrm{liminf}',
+      '\\operatorname*{argmax}',
     ]);
   });
 
@@ -62,7 +83,7 @@ describe('math operators', () => {
 
   test('no TeX in the site writes an operator in English where Spanish has its own word', () => {
     const found = sourceFiles(SOURCE_ROOT).flatMap((file) =>
-      englishOperators(readFileSync(file, 'utf8')).map(
+      englishOperators(readSource(file)).map(
         (operator) => `${file.replace(SOURCE_ROOT, 'src')}: ${operator}`,
       ),
     );
