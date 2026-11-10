@@ -88,8 +88,9 @@ function warningText(warning: RpWarning, unit: string): string {
 
 /**
  * The flyby laboratory's canvas: the planet frame (hyperbola, probe, periapsis handle) beside the
- * Sun frame (velocity triangles), stacked on phones; under them the probe's clock, the legend,
- * the stated time lapse, the r_p warning and the model-versus-data table.
+ * Sun frame (velocity triangles) once the canvas is 32rem wide, stacked when narrower (a phone, or
+ * the stage of the two-column lab); under them the probe's clock, the legend, the stated time
+ * lapse, the r_p warning and the model-versus-data table.
  */
 export default function FlybyScene(props: FlybySceneProps): JSX.Element {
   const { hyperbola, planet, Vp, result, rp, unit, tau, probe, live, display, decimals } = props;
@@ -102,8 +103,8 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
   ].join(' · ');
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="grid gap-4 sm:grid-cols-2">
+    <div className="@container flex flex-col gap-3">
+      <div className="grid gap-4 @lg:grid-cols-2">
         <div className="flex flex-col gap-1">
           <p className="m-0 px-3 text-sm font-medium sm:px-0">{`Marco de ${planet.name}`}</p>
           <PlanetFrame

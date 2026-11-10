@@ -22,15 +22,16 @@ export interface FlybyLocalSettingsInput {
   clock: SimClock;
 }
 
-/** Vectores, círculo, velocidad and repetir, in that order. */
+/** Vectores, círculo, velocidad and repetir, in that order; each with its chip («vectores», «círculo»). */
 export function flybyLocalSettings({
   display,
   onDisplayChange,
   clock,
 }: FlybyLocalSettingsInput): SettingOption[] {
-  const toggle = (key: keyof FlybyDisplay, label: string): SettingOption => ({
+  const toggle = (key: keyof FlybyDisplay, label: string, chip: string): SettingOption => ({
     key,
     label,
+    chip,
     kind: 'toggle',
     value: display[key],
     onChange: (value) => onDisplayChange({ ...display, [key]: value }),
@@ -39,8 +40,9 @@ export function flybyLocalSettings({
     toggle(
       'showVectors',
       'Vectores $\\vec v_\\infty$ y $\\vec v_\\text{rel}$ en el marco del planeta',
+      'vectores',
     ),
-    toggle('showCircle', 'Círculo $|\\vec v_\\infty|$ en el triángulo'),
+    toggle('showCircle', 'Círculo $|\\vec v_\\infty|$ en el triángulo', 'círculo'),
     ...clockSettings(clock, SPEEDS),
   ];
 }

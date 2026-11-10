@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import { PLANETS } from '../../../lib/data/planets';
 import { formatNumber } from '../../../lib/format';
-import InlineMath from '../../lab/InlineMath';
 import { deltaVMagnitude, planarFlyby, type PassSide } from '../../../lib/physics';
-import Presets from '../../controls/Presets';
+import InlineMath from '../../lab/InlineMath';
+import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import { SegmentedField } from '../../lab/SettingsFields';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
@@ -35,6 +35,11 @@ const E_PRECISION = 3;
 const ANGLE_PRECISION = 1;
 
 const SIDE_BY_NAME: Record<string, PassSide> = { detrás: 'behind', delante: 'front' };
+
+/** «Cómo se usa»: the drag and its keys, then what a preset fixes and what the reader keeps. */
+const DRAG_HINT =
+  'Arrastra el punto de máxima aproximación en el dibujo, o enfócalo y muévelo con las flechas (1 % de la escala logarítmica; con Mayús, 10 %); Inicio y Fin lo llevan a 1 y 100 radios.';
+const ARRIVAL_HINT = String.raw`Un preajuste fija la llegada: $V_p$, $v_\infty$ y $\theta_\text{in}$, el ángulo entre $\vec V_p$ y $\vec v_{\infty,\text{in}}$; $r_p$ y el lado son tuyos.`;
 const SIDE_OPTIONS = [SIDE_NAMES.behind, SIDE_NAMES.front] as const;
 
 interface FlybyLabState {
@@ -51,8 +56,10 @@ const INITIAL_STATE: FlybyLabState = {
 };
 
 export interface FlybyLabProps {
-  /** The model's caveats and the stated time lapse, written in the topic's MDX. */
-  footnote?: string;
+  /** «Cómo se usa», after the drag and preset hints: the stated time lapse, from the topic's MDX. */
+  usage?: string;
+  /** «Qué deja fuera el modelo», written in the topic's MDX. */
+  leftOut?: string;
 }
 
 /**
@@ -62,7 +69,7 @@ export interface FlybyLabProps {
  * planet radii on a log scale (field, range and the draggable periapsis), the side is behind or in
  * front, and the presets load each Voyager encounter with its Horizons value beside the model's.
  */
-export default function FlybyLab({ footnote }: FlybyLabProps): JSX.Element {
+export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element {
   const [state, setState] = useState<FlybyLabState>(INITIAL_STATE);
   const [display, setDisplay] = useState<FlybyDisplay>(DEFAULT_DISPLAY);
   const { decimals } = useGlobalSettings();
@@ -158,7 +165,7 @@ export default function FlybyLab({ footnote }: FlybyLabProps): JSX.Element {
   ];
 
   const kms = (value: number) => formatNumber(value, { precision: decimals, unit: 'km/s' });
-  const arrival = `Llegada de la ${encounter.probe} a ${planet.name}: $V_p$ = ${kms(encounter.VpKms)}, $v_\\infty$ = ${kms(encounter.vInf)} y $\\theta_\\text{in}$ = ${formatNumber(encounter.thetaInDeg, { precision: 1, unit: '°' })} entre $\\vec V_p$ y $\\vec v_{\\infty,\\text{in}}$. Un preajuste las cambia; $r_p$ y el lado son tuyos.`;
+  const arrival = `Llegada: $V_p$ = ${kms(encounter.VpKms)}, $v_\\infty$ = ${kms(encounter.vInf)}, $\\theta_\\text{in}$ = ${formatNumber(encounter.thetaInDeg, { precision: 1, unit: '°' })}.`;
 
   const params = (
     <>
@@ -175,19 +182,21 @@ export default function FlybyLab({ footnote }: FlybyLabProps): JSX.Element {
           }))
         }
       />
-      <p className="m-0 text-sm text-fg-muted">
-        <InlineMath text={arrival} />
-      </p>
-      <Presets
+    </>
+  );
+
+  const scenario = (
+    <>
+      <LabPresets
+        id="flyby-preset"
         presets={FLYBY_PRESETS}
         activeId={presetId}
         onSelect={(preset) =>
           update(() => ({ settings: preset.values, presetId: preset.id, warning: null }))
         }
       />
-      <p className="m-0 text-sm text-fg-muted">
-        Arrastra el punto de máxima aproximación en el dibujo, o enfócalo y muévelo con las flechas
-        (1 % de la escala logarítmica; con Mayús, 10 %); Inicio y Fin lo llevan a 1 y 100 radios.
+      <p data-testid="flyby-arrival" className="m-0 text-sm text-fg-muted">
+        <InlineMath text={arrival} />
       </p>
     </>
   );
@@ -197,10 +206,16 @@ export default function FlybyLab({ footnote }: FlybyLabProps): JSX.Element {
       title="Laboratorio del sobrevuelo (modelo plano)"
       clock={clock}
       readouts={readouts}
-      params={params}
-      localSettings={flybyLocalSettings({ display, onDisplayChange: setDisplay, clock })}
+      levels={{
+        params,
+        scenario,
+        display: flybyLocalSettings({ display, onDisplayChange: setDisplay, clock }),
+      }}
+      notes={{
+        usage: [DRAG_HINT, ARRIVAL_HINT, ...(usage ? [usage] : [])],
+        leftOut: leftOut ? [leftOut] : [],
+      }}
       onReset={onReset}
-      footnote={footnote}
       testId="flyby-lab"
     >
       <FlybyScene

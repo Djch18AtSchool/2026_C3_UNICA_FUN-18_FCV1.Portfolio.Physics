@@ -7,7 +7,7 @@
 import { formatNumber } from '../../../lib/format';
 import { unitTex } from './flybyFormat';
 import { PLANETS } from '../../../lib/data/planets';
-import { VOYAGER, type Encounter } from '../../../lib/data/voyager';
+import { HORIZONS_URL, VOYAGER, type Encounter } from '../../../lib/data/voyager';
 import { planarFlyby, type PassSide } from '../../../lib/physics';
 import type { Preset } from '../../../lib/presets';
 
@@ -51,14 +51,17 @@ export function nearestSide(encounter: Encounter): PassSide {
 
 const presetId = (e: Encounter) => `${e.probe.toLowerCase()}-${e.planet}`;
 
+/** One sentence, the line under the preset: where the probe passed and, out of the plane, which side the model takes. */
 function note(e: Encounter, side: PassSide): string {
   const planet = PLANETS[e.planet];
   const rp = formatNumber(e.rpKm / planet.radiusKm, { precision: RP_DECIMALS });
-  const distance = `${formatNumber(e.rpKm, { precision: 0, unit: 'km' })} del centro (${rp} ${unitTex(radiusUnit(e))})`;
-  const where = `Máxima aproximación a ${distance}`;
-  if (e.planarTurnReproduces) return `${where}, paso por ${SIDE_NAMES[side]}.`;
-  return `${where}. El giro sale del plano de $\\vec V_p$ y $\\vec v_{\\infty,\\text{in}}$, así que ningún lado lo reproduce; el modelo plano usa el que más se le acerca, ${SIDE_NAMES[side]}.`;
+  const where = `Máxima aproximación a ${formatNumber(e.rpKm, { precision: 0, unit: 'km' })} del centro (${rp} ${unitTex(radiusUnit(e))})`;
+  if (e.planarTurnReproduces) return `${where}, por ${SIDE_NAMES[side]}.`;
+  return `${where}; el giro sale del plano y el modelo usa el lado más cercano, ${SIDE_NAMES[side]}.`;
 }
+
+/** «JPL Horizons, 1979-07-09 22:29 UT»: the source and the minute of closest approach. */
+const sourceOf = (e: Encounter) => `JPL Horizons, ${e.caUtc.replace('T', ' ').replace('Z', ' UT')}`;
 
 /** One preset per encounter, V2 first, each in the order of the voyage. */
 export const FLYBY_PRESETS: Preset<FlybySettings>[] = [...VOYAGER.encounters]
@@ -69,7 +72,8 @@ export const FLYBY_PRESETS: Preset<FlybySettings>[] = [...VOYAGER.encounters]
       id: presetId(encounter),
       name: `${encounter.probe} · ${PLANETS[encounter.planet].name}`,
       values: { encounter, rp: encounter.rpKm / PLANETS[encounter.planet].radiusKm, side },
-      sourceLabel: encounter.caUtc.replace('T', ' ').replace('Z', ' UT'),
+      sourceLabel: sourceOf(encounter),
+      sourceUrl: HORIZONS_URL,
       note: note(encounter, side),
     };
   });

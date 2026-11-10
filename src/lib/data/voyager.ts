@@ -34,6 +34,9 @@ const PASS_SIDES: readonly PassSide[] = ['behind', 'front'];
  * (721.9 kg for both); research §3, CONFIRMADO.
  */
 export const VOYAGER_MASS_KG = 721.9;
+
+/** JPL Horizons' public page, where the reader can query the same trajectories. */
+export const HORIZONS_URL = 'https://ssd.jpl.nasa.gov/horizons/';
 /** Days on each side of closest approach where ε is taken (research §5, «Δ|v| vis-viva»). */
 const JUMP_WINDOW_DAYS = 120;
 

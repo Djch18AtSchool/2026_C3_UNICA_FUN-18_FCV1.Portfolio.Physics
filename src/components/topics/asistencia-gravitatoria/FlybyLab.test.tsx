@@ -9,7 +9,8 @@ import { mathSourceText } from '../../../test-inline-math';
 import FlybyLab, { FLYBY_LAPSE } from './FlybyLab';
 import { readout } from '../../../test-readout';
 
-const FOOTNOTE = 'Modelo plano de cónicas empalmadas.';
+const USAGE = 'Cada sobrevuelo se ve en 12 s a 1×.';
+const LEFT_OUT = 'Es plano: cónicas empalmadas.';
 /** useSimClock under reduced motion: one step of duration/60 every 250 ms. */
 const REDUCED_STEP_MS = 250;
 const REDUCED_STEPS = 60;
@@ -28,7 +29,7 @@ function mockIdentityCtm(): void {
 }
 
 function renderLab() {
-  const view = render(<FlybyLab footnote={FOOTNOTE} />);
+  const view = render(<FlybyLab usage={USAGE} leftOut={LEFT_OUT} />);
   mockIdentityCtm();
   return view;
 }
@@ -59,6 +60,13 @@ const lab = () => screen.getByTestId('flyby-lab');
 const timeline = () => screen.getByRole('slider', { name: 'Línea de tiempo' });
 const warning = () => screen.getByTestId('flyby-rp-warning');
 const comparison = () => screen.getByRole('table', { name: 'Modelo plano frente al dato' });
+const presetSelect = () => screen.getByRole('combobox', { name: 'Valores de referencia' });
+const region = (name: string) => screen.getByRole('region', { name });
+
+/** Chooses an encounter in the presets' select (six presets: a select, not chips). */
+async function choosePreset(user: ReturnType<typeof userEvent.setup>, name: string) {
+  await user.selectOptions(presetSelect(), name);
+}
 
 async function typeRp(user: ReturnType<typeof userEvent.setup>, text: string) {
   await user.clear(rpField());
@@ -118,8 +126,7 @@ describe('FlybyLab', () => {
     async (id) => {
       const user = userEvent.setup();
       const { container } = renderLab();
-      const name = id === 'v2-jupiter' ? /^V2 · Júpiter/ : /^V2 · Neptuno/;
-      await user.click(screen.getByRole('button', { name }));
+      await choosePreset(user, id === 'v2-jupiter' ? 'V2 · Júpiter' : 'V2 · Neptuno');
       await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
 
       expect(plexViolations(container)).toEqual([]);
@@ -136,7 +143,7 @@ describe('FlybyLab', () => {
     expect(plain(timeline().getAttribute('aria-valuetext'))).toBe('t = 2,688 d');
 
     // V2 at Neptune (r_p = 1,18 R_N): about 17 340 s, a pass of hours.
-    await user.click(screen.getByRole('button', { name: /^V2 · Neptuno/ }));
+    await choosePreset(user, 'V2 · Neptuno');
     expect(plain(timeline().getAttribute('aria-valuetext'))).toMatch(/^t = \d+,\d{3} h$/);
   });
 
@@ -152,7 +159,7 @@ describe('FlybyLab', () => {
     expect(note()).toContain(`el paso dibujado dura ${endReading()} y`);
     expect(note()).toContain('dura 2,688 d y');
 
-    await user.click(screen.getByRole('button', { name: /^V2 · Neptuno/ }));
+    await choosePreset(user, 'V2 · Neptuno');
     expect(note()).toContain(`el paso dibujado dura ${endReading()} y`);
     expect(note()).toMatch(/dura \d+,\d{3} h y/);
   });
@@ -165,12 +172,91 @@ describe('FlybyLab', () => {
     expect(readout('|v| antes, marco del Sol')).toBe('9,59 km/s');
     expect(readout('|v| después, marco del Sol')).toBe('19,53 km/s');
     expect(readout(DELTA_V)).toBe('9,94 km/s');
-    expect(screen.getByRole('button', { name: /^V2 · Júpiter/ })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    expect(presetSelect()).toHaveValue('v2-jupiter');
     expect(rpField()).toHaveValue('10,09');
-    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
+  });
+
+  test('lays out the three levels: r_p and the side, then the encounter, then the readouts', () => {
+    renderLab();
+
+    expect(within(region('Parámetros')).getByRole('textbox', { name: /r sub p/ })).toBe(rpField());
+    expect(
+      within(region('Parámetros')).getByRole('radiogroup', { name: 'Lado de paso' }),
+    ).toBeInTheDocument();
+    expect(within(region('Escenario')).getByRole('combobox')).toBe(presetSelect());
+    expect(within(region('Escenario')).getByTestId('flyby-arrival')).toBeInTheDocument();
+    // The model-versus-data table stays on the canvas, under the frames it compares.
+    expect(region('Escenario')).not.toContainElement(comparison());
+    expect(within(region('Lecturas')).getByText('Excentricidad e')).toBeInTheDocument();
+  });
+
+  test('the six encounters are a select; under it one line with the note and Horizons as a link', async () => {
+    const user = userEvent.setup();
+    renderLab();
+
+    expect(within(presetSelect()).getAllByRole('option')).toHaveLength(6);
+    const note = screen.getByTestId('preset-note');
+    expect(plain(mathSourceText(note))).toBe(
+      'Máxima aproximación a 721 375 km del centro (10,09 $R_\\mathrm{J}$), por detrás. Fuente: JPL Horizons, 1979-07-09 22:29 UT',
+    );
+    expect(within(note).getByRole('link')).toHaveAttribute(
+      'href',
+      'https://ssd.jpl.nasa.gov/horizons/',
+    );
+
+    await choosePreset(user, 'V2 · Neptuno');
+    expect(mathSourceText(screen.getByTestId('preset-note'))).toMatch(/el giro sale del plano/);
+  });
+
+  test('the arrival is one line under the choice, in the global decimals', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const arrival = () => plain(mathSourceText(screen.getByTestId('flyby-arrival')));
+
+    expect(arrival()).toBe(
+      'Llegada: $V_p$ = 12,75 km/s, $v_\\infty$ = 7,62 km/s, $\\theta_\\text{in}$ = 131,5°.',
+    );
+    await choosePreset(user, 'V1 · Saturno');
+    expect(arrival()).not.toContain('12,75');
+  });
+
+  test('beside the gear, chips for the speed, the vectors and the circle; they follow the drawer', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const chips = () =>
+      within(screen.getByRole('group', { name: 'Ajustes activos' }))
+        .getAllByRole('button')
+        .map((chip) => chip.textContent);
+    expect(chips()).toEqual(['vectores', 'círculo', '1×']);
+
+    await user.click(screen.getByRole('button', { name: 'vectores' }));
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('switch', {
+        name: 'Vectores vector v sub infinito y vector v sub rel en el marco del planeta',
+      }),
+    );
+
+    expect(chips()).toEqual(['círculo', '1×']);
+  });
+
+  test('without the MDX texts it still says how to use it, and drops the empty disclosure', () => {
+    const { container } = render(<FlybyLab />);
+
+    const notes = [...container.querySelectorAll('details')];
+    expect(notes.map((details) => details.getAttribute('data-lab-note'))).toEqual(['usage']);
+    expect(notes[0].querySelectorAll('p')).toHaveLength(2);
+  });
+
+  test('how to use it and what the model leaves out wait in two closed disclosures', () => {
+    const { container } = renderLab();
+    const [usage, leftOut] = [...container.querySelectorAll('details')];
+
+    expect(usage.open || leftOut.open).toBe(false);
+    expect(mathSourceText(usage)).toContain('Arrastra el punto de máxima aproximación');
+    expect(mathSourceText(usage)).toContain('$r_p$ y el lado son tuyos.');
+    expect(usage).toHaveTextContent(USAGE);
+    expect(leftOut).toHaveTextContent(LEFT_OUT);
+    expect(screen.queryByTestId('lab-footnote')).toBeNull();
   });
 
   test('the preset shows the planar model next to the Horizons value, both labelled', () => {
@@ -223,10 +309,9 @@ describe('FlybyLab', () => {
 
     expect(screen.queryByRole('table', { name: 'Modelo plano frente al dato' })).toBeNull();
     expect(screen.getByText(/el dato de la Voyager ya no aplica/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^V2 · Júpiter/ })).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    );
+    expect(presetSelect()).toHaveValue('');
+    expect(within(presetSelect()).getByRole('option', { name: 'Personalizado' })).toBeDisabled();
+    expect(screen.queryByTestId('preset-note')).toBeNull();
   });
 
   test('r_p cannot go below 1 R_J: a typed 0,5 stays at 1 R_J with a warning', async () => {
@@ -302,7 +387,7 @@ describe('FlybyLab', () => {
     const user = userEvent.setup();
     renderLab();
 
-    await user.click(screen.getByRole('button', { name: /^V2 · Neptuno/ }));
+    await choosePreset(user, 'V2 · Neptuno');
 
     expect(
       screen.getByText('Giro fuera del plano: el modelo plano no reproduce el dato.'),
@@ -410,7 +495,7 @@ describe('FlybyLab', () => {
   test('Restablecer returns to V2 at Jupiter, passing behind', async () => {
     const user = userEvent.setup();
     renderLab();
-    await user.click(screen.getByRole('button', { name: /^V1 · Saturno/ }));
+    await choosePreset(user, 'V1 · Saturno');
     await user.click(screen.getByRole('radio', { name: 'delante' }));
 
     await user.click(screen.getByRole('button', { name: 'Restablecer' }));

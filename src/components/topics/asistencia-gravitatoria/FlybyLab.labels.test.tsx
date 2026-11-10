@@ -15,12 +15,12 @@ import FlybyLab from './FlybyLab';
 /** Panel widths: a 360 px phone and one column of the 1280 px layout (the panels cap at 380). */
 const WIDTHS = [290, 380];
 const PRESETS = [
-  /^V2 · Júpiter/,
-  /^V2 · Saturno/,
-  /^V2 · Urano/,
-  /^V2 · Neptuno/,
-  /^V1 · Júpiter/,
-  /^V1 · Saturno/,
+  'V2 · Júpiter',
+  'V2 · Saturno',
+  'V2 · Urano',
+  'V2 · Neptuno',
+  'V1 · Júpiter',
+  'V1 · Saturno',
 ];
 /** The labels in the MathText notation they are written in (data-notation on the <text>). */
 const PLANET_LABELS = ['vec v_∞,in', 'vec v_∞,out'];
@@ -132,12 +132,13 @@ describe('FlybyLab vector labels', () => {
   describe.each(WIDTHS)('at %i px', (width) => {
     test.each(PRESETS)('%s: labels clear of arrows, readouts and each other', (preset) => {
       stubResizeObserver(width);
-      render(<FlybyLab footnote="Nota." />);
-      fireEvent.click(
-        within(screen.getByRole('group', { name: 'Valores de referencia' })).getByRole('button', {
-          name: preset,
-        }),
-      );
+      render(<FlybyLab leftOut="Nota." />);
+      const select = screen.getByRole('combobox', { name: 'Valores de referencia' });
+      fireEvent.change(select, {
+        target: {
+          value: within(select).getByRole('option', { name: preset }).getAttribute('value'),
+        },
+      });
 
       expectClear(screen.getByTestId('flyby-planet-frame'), PLANET_LABELS);
       expectClear(screen.getByTestId('flyby-sun-frame'), SUN_LABELS);
@@ -147,7 +148,7 @@ describe('FlybyLab vector labels', () => {
 
   test('at the ends of the r_p bar the labels stay clear too', () => {
     stubResizeObserver(WIDTHS[0]);
-    render(<FlybyLab footnote="Nota." />);
+    render(<FlybyLab leftOut="Nota." />);
     const handle = screen.getByTestId('periapsis-handle');
 
     for (const key of ['Home', 'End']) {

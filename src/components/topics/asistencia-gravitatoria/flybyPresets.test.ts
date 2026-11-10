@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { PLANETS } from '../../../lib/data/planets';
-import { VOYAGER } from '../../../lib/data/voyager';
+import { HORIZONS_URL, VOYAGER } from '../../../lib/data/voyager';
 import { DEFAULT_FLYBY_PRESET_ID, FLYBY_PRESETS, flybyPreset, nearestSide } from './flybyPresets';
 
 describe('FLYBY_PRESETS', () => {
@@ -22,7 +22,17 @@ describe('FLYBY_PRESETS', () => {
     expect(values.encounter.planet).toBe('jupiter');
     expect(values.rp).toBeCloseTo(721375 / PLANETS.jupiter.radiusKm, 9);
     expect(values.side).toBe('behind');
-    expect(FLYBY_PRESETS[0].sourceLabel).toBe('1979-07-09 22:29 UT');
+    expect(FLYBY_PRESETS[0].sourceLabel).toBe('JPL Horizons, 1979-07-09 22:29 UT');
+  });
+
+  test('every preset names JPL Horizons and the minute of closest approach, linked to Horizons', () => {
+    for (const { sourceLabel, sourceUrl, values } of FLYBY_PRESETS) {
+      expect(sourceLabel).toBe(
+        `JPL Horizons, ${values.encounter.caUtc.replace('T', ' ').replace('Z', ' UT')}`,
+      );
+      expect(sourceUrl).toBe(HORIZONS_URL);
+    }
+    expect(HORIZONS_URL).toBe('https://ssd.jpl.nasa.gov/horizons/');
   });
 
   test('a planar encounter takes its side from the data (planarSide)', () => {
@@ -41,9 +51,18 @@ describe('FLYBY_PRESETS', () => {
   });
 
   test('each note says where the probe passed; out-of-plane ones say the model does not reproduce it', () => {
-    expect(flybyPreset('v2-jupiter').note).toMatch(/721\s375\skm/);
-    expect(flybyPreset('v2-jupiter').note).toMatch(/por detrás/);
-    expect(flybyPreset('v2-neptune').note).toMatch(/giro sale del plano/);
+    expect(flybyPreset('v2-jupiter').note).toBe(
+      'Máxima aproximación a 721\u202f375\u202fkm del centro (10,09 $R_\\mathrm{J}$), por detrás.',
+    );
+    expect(flybyPreset('v2-neptune').note).toMatch(
+      /^Máxima aproximación a 29\s\d{3}\skm del centro \(1,18 \$R_\\mathrm\{N\}\$\); el giro sale del plano y el modelo usa el lado más cercano, delante\.$/,
+    );
+  });
+
+  test('each note is a single sentence, the one line under the preset (auditoría §4)', () => {
+    for (const { note } of FLYBY_PRESETS) {
+      expect(note?.match(/\.(\s|$)/g)).toHaveLength(1);
+    }
   });
 
   test('flybyPreset throws for an unknown id', () => {

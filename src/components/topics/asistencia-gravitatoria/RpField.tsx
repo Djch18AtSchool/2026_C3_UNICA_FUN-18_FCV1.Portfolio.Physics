@@ -61,11 +61,12 @@ function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between gap-3">
+      {/* On a phone the field drops under its label instead of squeezing it into three lines. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <label id={labelId} htmlFor={ID} className="text-sm font-medium">
           <InlineMath text={LABEL} />
         </label>
-        <span className="flex items-center gap-1.5">
+        <span className="ml-auto flex items-center gap-1.5">
           <input
             type="text"
             inputMode="decimal"

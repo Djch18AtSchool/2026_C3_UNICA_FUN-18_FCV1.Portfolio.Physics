@@ -7,6 +7,7 @@ const TITLE = 'Asistencia gravitatoria: cómo la Voyager ganó velocidad sin gas
 const LAB = '[data-testid="flyby-lab"]';
 const CHART = '[data-testid="voyager-speed-chart"]';
 const PHONE = { width: 360, height: 800 };
+const DESKTOP = { width: 1280, height: 800 };
 const THEMES = ['light', 'dark'] as const;
 const BLOCKING_IMPACTS = ['serious', 'critical'];
 const STEP_COUNT = 4;
@@ -115,25 +116,109 @@ test.describe('laboratorio', () => {
     await open(page, LAB);
   });
 
-  test('un preajuste cambia el ángulo de giro δ', async ({ page }) => {
+  test('un preajuste del selector cambia el ángulo de giro δ y la línea de su fuente', async ({
+    page,
+  }) => {
+    const lab = page.locator(LAB);
     const before = await readoutText(page, DELTA);
+    const presets = lab.getByRole('combobox', { name: 'Valores de referencia' });
+    await expect(presets.locator('option')).toHaveCount(6);
 
-    await page
-      .locator(LAB)
-      .getByRole('group', { name: 'Valores de referencia' })
-      .getByRole('button', { name: /^V2 · Saturno/ })
-      .click();
+    await presets.selectOption({ label: 'V2 · Saturno' });
 
     await expect.poll(() => readoutText(page, DELTA)).not.toBe(before);
+    const note = lab.getByTestId('preset-note');
+    await expect(note).toContainText('Máxima aproximación');
+    await expect(note.getByRole('link', { name: /^JPL Horizons, 1981-08-26/ })).toHaveAttribute(
+      'href',
+      'https://ssd.jpl.nasa.gov/horizons/',
+    );
   });
 
-  test('la nota dice cuánto dura cada paso y qué deja fuera el modelo', async ({ page }) => {
-    const footnote = page.locator(LAB).getByTestId('lab-footnote');
+  test('«Cómo se usa» y «Qué deja fuera el modelo» abren cerrados y dicen el paso y los supuestos', async ({
+    page,
+  }) => {
+    const lab = page.locator(LAB);
+    const usage = lab.locator('details[data-lab-note="usage"]');
+    const leftOut = lab.locator('details[data-lab-note="left-out"]');
+    await expect(usage).not.toHaveAttribute('open');
+    await expect(leftOut).not.toHaveAttribute('open');
+    await expect(usage.getByText(/12 s a 1×/)).toBeHidden();
 
-    await expect(footnote).toContainText('12 s');
+    await usage.locator('summary').click();
+    await leftOut.locator('summary').press('Enter');
+
+    await expect(usage.getByText(/12 s a 1×/)).toBeVisible();
+    await expect(usage).toContainText('Arrastra el punto de máxima aproximación');
     for (const left of ['plano', 'eclíptica', 'lunas', 'cónicas empalmadas']) {
-      await expect(footnote).toContainText(left);
+      await expect(leftOut).toContainText(left);
     }
+  });
+
+  test('las fichas junto al engranaje dicen lo activo y abren los ajustes', async ({ page }) => {
+    const lab = page.locator(LAB);
+    const chips = lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button');
+    await expect(chips).toHaveText(['vectores', 'círculo', '1×']);
+
+    await lab.getByRole('button', { name: 'Velocidad 1×' }).click();
+    const dialog = page.getByRole('dialog', { name: /^Ajustes: / });
+    await dialog.getByRole('combobox', { name: 'Velocidad' }).selectOption('2');
+    await dialog.getByRole('switch', { name: /^Círculo/ }).uncheck({ force: true });
+    await page.keyboard.press('Escape');
+
+    await expect(chips).toHaveText(['vectores', '2×']);
+    await expect(lab.getByRole('button', { name: 'Velocidad 2×' })).toBeFocused();
+  });
+});
+
+test.describe('laboratorio a 1 280 × 800', () => {
+  test.use({ viewport: DESKTOP });
+
+  test('el primer control físico queda en la primera pantalla, a la derecha del lienzo', async ({
+    page,
+  }) => {
+    await page.goto(PAGE);
+    await open(page, LAB);
+    const lab = page.locator(LAB);
+    await lab.evaluate((node) =>
+      window.scrollTo(0, node.getBoundingClientRect().top + window.scrollY),
+    );
+
+    const field = await lab
+      .getByRole('textbox', { name: 'Máxima aproximación r sub p' })
+      .boundingBox();
+    const canvas = await lab.locator('[data-lab-canvas]').boundingBox();
+    expect(field && canvas).toBeTruthy();
+    if (!field || !canvas) return;
+    expect(field.y + field.height).toBeLessThanOrEqual(DESKTOP.height);
+    expect(field.x).toBeGreaterThanOrEqual(canvas.x + canvas.width);
+    expect(field.y).toBeLessThan(canvas.y + canvas.height);
+  });
+});
+
+test.describe('laboratorio a 360 px', () => {
+  test.use({ viewport: PHONE });
+
+  test('apila lienzo, reproducción, parámetros, escenario, lecturas y desplegables, en ese orden', async ({
+    page,
+  }) => {
+    await page.goto(PAGE);
+    await open(page, LAB);
+    const lab = page.locator(LAB);
+    const parts = [
+      lab.locator('[data-lab-canvas]'),
+      lab.getByRole('group', { name: 'Reproducción' }),
+      lab.getByRole('region', { name: 'Parámetros' }),
+      lab.getByRole('region', { name: 'Escenario' }),
+      lab.getByRole('region', { name: 'Lecturas' }),
+      lab.locator('details[data-lab-note="usage"]'),
+      lab.locator('details[data-lab-note="left-out"]'),
+    ];
+
+    const tops: number[] = [];
+    for (const part of parts) tops.push((await part.boundingBox())?.y ?? Number.NaN);
+    expect(tops).toEqual([...tops].sort((a, b) => a - b));
+    expect(new Set(tops).size).toBe(parts.length);
   });
 });
 

@@ -4,7 +4,7 @@
  * (|V⃗_p + v⃗∞| after minus before) and from the data (encounterJump, vis-viva, research §5).
  */
 import { GM_SUN, PLANETS, PLANET_IDS } from '../../data/planets';
-import { VOYAGER, encounterJump, type Encounter } from '../../data/voyager';
+import { HORIZONS_URL, VOYAGER, encounterJump, type Encounter } from '../../data/voyager';
 import type { DataTableSpec, TableCell } from '../types';
 
 /** With a no-break space, so a narrow table never splits the name from its number. */
@@ -49,7 +49,7 @@ const ENCUENTROS: DataTableSpec = {
   rows: VOYAGER.encounters.map(encounterRow),
   source: {
     text: 'NASA/JPL Horizons (trayectorias de diseño de la misión en los seis encuentros), consultado el 30 de octubre de 2026; cálculo propio',
-    url: 'https://ssd.jpl.nasa.gov/horizons/',
+    url: HORIZONS_URL,
   },
 };
 
