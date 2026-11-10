@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
+  marksTopEm,
   mathRuns,
   mathTextToString,
   mathTextWidth,
@@ -157,5 +158,32 @@ describe('mathTextWidth', () => {
 describe('mathTextToString keeps number spacing', () => {
   test('the narrow no-break space of formatNumber survives', () => {
     expect(mathTextToString('r_p = 721 375 km')).toBe('r sub p = 721 375 km');
+  });
+});
+
+describe('review fixes', () => {
+  test('a period, colon or semicolon followed by a space or the end ends a subscript', () => {
+    const scripts = (source: string) =>
+      parseNotation(source).flatMap((token) => (token.kind === 'script' ? [token.text] : []));
+
+    expect(scripts('V_p: x')).toEqual(['p']);
+    expect(scripts('v_∞.')).toEqual(['∞']);
+    expect(scripts('a_x; b_y.z')).toEqual(['x', 'y.z']);
+    expect(mathTextToString('V_p: 13; v_∞.')).toBe('V sub p: 13; v sub infinito.');
+  });
+
+  test('an empty script says nothing', () => {
+    expect(mathTextToString('x^ = 1')).toBe('x = 1');
+    expect(mathTextToString('x_{}')).toBe('x');
+  });
+
+  test('moduli pair up across a label', () => {
+    expect(mathTextToString('|a| + |b|')).toBe('módulo de a + módulo de b');
+  });
+
+  test('marksTopEm: how far above the baseline a drawn arrow reaches, in em', () => {
+    expect(marksTopEm('V_p')).toBe(0);
+    expect(marksTopEm('vec v')).toBeCloseTo(0.516 + 0.12 + 0.16);
+    expect(marksTopEm('vec V')).toBeGreaterThan(marksTopEm('vec v'));
   });
 });

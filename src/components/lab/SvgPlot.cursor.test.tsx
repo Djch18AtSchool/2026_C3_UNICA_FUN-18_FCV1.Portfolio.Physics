@@ -265,3 +265,13 @@ describe('SvgPlot cursor', () => {
     expect(container.querySelector('[data-cursor] line')).toBeInTheDocument();
   });
 });
+
+describe('SvgPlot cursor name in notation', () => {
+  afterEach(cleanup);
+
+  test('an x label in the MathText notation names the slider in words', () => {
+    render(<SvgPlot {...PROPS} xLabel="t − t_p" cursor={{ x: 5, onChange: () => {} }} />);
+
+    expect(screen.getByRole('slider', { name: 't − t sub p' })).toBeInTheDocument();
+  });
+});

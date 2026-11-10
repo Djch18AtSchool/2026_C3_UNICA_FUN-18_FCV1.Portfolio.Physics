@@ -1,5 +1,6 @@
 import { useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import { formatNumber } from '../../lib/format';
+import { mathTextToString } from '../../lib/mathNotation';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_FAMILY } from '../charts/chartTheme';
 import { monoTextWidth, type Domain, type Scale } from './plotScales';
 import type { PlotCursor } from './SvgPlot';
@@ -225,7 +226,7 @@ export default function SvgPlotCursor({
       <g
         role="slider"
         tabIndex={0}
-        aria-label={cursor.ariaLabel || xLabel}
+        aria-label={mathTextToString(cursor.ariaLabel || xLabel)}
         aria-valuemin={x.domain.min}
         aria-valuemax={x.domain.max}
         aria-valuenow={value}

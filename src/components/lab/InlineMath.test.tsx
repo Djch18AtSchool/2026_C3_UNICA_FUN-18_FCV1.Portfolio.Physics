@@ -2,9 +2,15 @@
 import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import katex from 'katex';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import InlineMath from './InlineMath';
-import { loadedTexRenderer, loadTexRenderer, resetTexRendererForTests } from './texRenderer';
+import {
+  loadedTexRenderer,
+  loadTexRenderer,
+  resetTexRendererForTests,
+  setTexImporterForTests,
+} from './texRenderer';
 
 /** The HTML the server sends: rendered with KaTeX at hand. */
 async function serverHtml(text: string): Promise<string> {
@@ -105,5 +111,41 @@ describe('InlineMath punctuation', () => {
 
     expect(group?.querySelector('.katex')).not.toBeNull();
     expect(group?.lastChild?.textContent).toBe('.');
+  });
+});
+
+describe('InlineMath review fixes', () => {
+  afterEach(() => {
+    cleanup();
+    setTexImporterForTests(undefined);
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  test('re-rendering the same formula does not typeset it again', async () => {
+    await loadTexRenderer();
+    const spy = vi.spyOn(katex, 'renderToString');
+    const { rerender } = render(<InlineMath text="a $x_{99}$ b" />);
+    const first = spy.mock.calls.length;
+
+    rerender(<InlineMath text="a $x_{99}$ b" />);
+    rerender(<InlineMath text="c $x_{99}$ d" />);
+
+    expect(first).toBe(1);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  test('a failed KaTeX load shows the TeX source and reports the error', async () => {
+    const reportError = vi.fn();
+    vi.stubGlobal('reportError', reportError);
+    const failure = new Error('chunk failed');
+    setTexImporterForTests(() => Promise.reject(failure));
+
+    const { container } = render(<InlineMath text="$v_\infty$" />);
+
+    await waitFor(() =>
+      expect(container.querySelector('.inline-math')).toHaveTextContent('v_\\infty'),
+    );
+    expect(reportError).toHaveBeenCalledWith(failure);
   });
 });

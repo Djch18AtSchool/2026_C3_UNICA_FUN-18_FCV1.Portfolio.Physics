@@ -115,6 +115,7 @@ function SegmentedFieldBase<T extends string | number>({
   onChange,
 }: SegmentedFieldProps<T>): JSX.Element {
   const labelId = `${id}-label`;
+  const spokenLabel = mathAriaLabel(label);
   return (
     <div className="flex items-center justify-between gap-3">
       <span id={labelId} className="text-sm font-medium">
@@ -122,8 +123,8 @@ function SegmentedFieldBase<T extends string | number>({
       </span>
       <div
         role="radiogroup"
-        aria-labelledby={mathAriaLabel(label) ? undefined : labelId}
-        aria-label={mathAriaLabel(label)}
+        aria-labelledby={spokenLabel ? undefined : labelId}
+        aria-label={spokenLabel}
         className="flex gap-1 rounded-base border border-border p-1"
       >
         {options.map((option) => (

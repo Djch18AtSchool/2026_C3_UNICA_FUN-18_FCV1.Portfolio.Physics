@@ -32,7 +32,8 @@ function readout(label: string): string {
 }
 
 const temperatureCursor = () => screen.getByRole('slider', { name: 'Temperatura T' });
-const loadCursor = () => screen.getByRole('slider', { name: 'Carga vertical F_z' });
+/** The cursor is named from the axis label F_z in words (mathTextToString). */
+const loadCursor = () => screen.getByRole('slider', { name: 'Carga vertical F sub z' });
 const temperatureField = () => screen.getByRole('textbox', { name: /^Temperatura de la banda/ });
 const loadField = () => screen.getByRole('textbox', { name: /^Carga sobre la llanta/ });
 

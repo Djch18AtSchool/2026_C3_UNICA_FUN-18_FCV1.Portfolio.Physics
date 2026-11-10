@@ -2,7 +2,7 @@
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import { mathRuns } from '../../lib/mathNotation';
-import MathText, { marksTopEm, mathMarks, type MathTextProps } from './MathText';
+import MathText, { mathMarks, type MathTextProps } from './MathText';
 
 const BASE = { x: 100, y: 50, fontSize: 10 } as const;
 
@@ -179,11 +179,5 @@ describe('MathText for layout and tests', () => {
 
     expect(notation.querySelector('text')).toHaveAttribute('data-notation', 'vec v_∞,in');
     expect(plain.querySelector('text')).not.toHaveAttribute('data-notation');
-  });
-
-  test('marksTopEm: how far above the baseline a drawn arrow reaches, in em', () => {
-    expect(marksTopEm('V_p')).toBe(0);
-    expect(marksTopEm('vec v')).toBeCloseTo(0.516 + 0.12 + 0.16);
-    expect(marksTopEm('vec V')).toBeGreaterThan(marksTopEm('vec v'));
   });
 });

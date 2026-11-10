@@ -13,7 +13,7 @@
  */
 import { useEffect, useRef, useState, type JSX } from 'react';
 import { escapeHtml, groupInlineMath, NO_WRAP_CLASS } from '../../lib/inlineMath';
-import { loadedTexRenderer, loadTexRenderer } from './texRenderer';
+import { loadedTexRenderer, loadTexRenderer, reportTexError } from './texRenderer';
 
 export interface InlineMathProps {
   text: string;
@@ -28,6 +28,7 @@ function TexSpan({ tex }: { tex: string }): JSX.Element {
   const [loaded, setLoaded] = useState<{ tex: string; html: string } | undefined>(undefined);
   /** The formula the span's current markup shows (the server's, after hydration). */
   const shown = useRef<string | undefined>(undefined);
+  // The renderer caches per formula, so a lab's 10 Hz re-renders do not typeset again.
   const html = loaded?.tex === tex ? loaded.html : loadedTexRenderer()?.(tex);
 
   useEffect(() => {
@@ -43,9 +44,10 @@ function TexSpan({ tex }: { tex: string }): JSX.Element {
         if (isLive) setLoaded({ tex, html: render(tex) });
       })
       .catch((error: unknown) => {
-        // A failed chunk load shows the TeX source rather than an empty span, and still reports.
+        // A failed chunk load shows the TeX source rather than an empty span, and is reported
+        // explicitly (a rethrow here would only be an unhandled rejection).
         if (isLive) setLoaded({ tex, html: escapeHtml(tex) });
-        throw error;
+        reportTexError(error);
       });
     return () => {
       isLive = false;

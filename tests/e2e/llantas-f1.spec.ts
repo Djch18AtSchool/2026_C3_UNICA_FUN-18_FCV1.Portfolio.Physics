@@ -5,7 +5,8 @@ const PAGE = './temas/llantas-f1/';
 const LAB = '[data-testid="tyre-lab"]';
 /** The lab must fill the reading column (spec §6): at least this share of the article width. */
 const MIN_WIDTH_SHARE = 0.9;
-const LOAD_CURSOR = 'Carga vertical F_z';
+/** The cursor's name: the axis label F_z said in words (mathTextToString). */
+const LOAD_CURSOR = 'Carga vertical F sub z';
 const TEMPERATURE_CURSOR = 'Temperatura T';
 
 /** The value text of a LabShell readout row. */

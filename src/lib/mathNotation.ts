@@ -19,7 +19,7 @@ import {
   PLEX_MONO_ADVANCE,
   PLEX_SANS_ADVANCES,
 } from './glyphAdvances';
-import { KATEX_SCALE, mathFontOf, type MathFont } from './mathFonts';
+import { KATEX_HEIGHTS, KATEX_SCALE, mathFontOf, PLEX_HEIGHTS, type MathFont } from './mathFonts';
 import { spokenName } from './mathSpeech';
 import { MINUS_SIGN } from './format';
 
@@ -60,6 +60,10 @@ const PLEX_SUPERSCRIPTS = new Set(['¹', '²', '³']);
 const COMBINING_ARROW = '\u20D7';
 const SCRIPT_STOPS = new Set([' ', '\t', '\n', '(', ')', '[', ']', '{', '}', '|', '/', '=', '+']);
 const MINUS_CHARS = new Set(['-', MINUS_SIGN]);
+/** Punctuation that ends a script when a space or the end follows it: «V_p: x», «v_∞.». */
+const CLOSING_PUNCTUATION = new Set([',', '.', ':', ';']);
+/** The vector keyword and the space after it: «vec v». */
+const VEC_PREFIX = 'vec ';
 /** Characters drawn with another glyph, and their mark. */
 const DISPLAY: Readonly<Record<string, { text: string; mark?: 'not' }>> = {
   '☉': { text: '⊙' },
@@ -94,7 +98,7 @@ function scriptRunEnd(chars: readonly string[], from: number): number {
     const char = chars[end];
     const next = chars[end + 1];
     if (SCRIPT_STOPS.has(char) || char === '_' || char === '^') break;
-    if (char === ',' && (next === undefined || next === ' ')) break;
+    if (CLOSING_PUNCTUATION.has(char) && (next === undefined || next === ' ')) break;
     if (MINUS_CHARS.has(char) && end > from) break;
     end += 1;
   }
@@ -114,9 +118,9 @@ function readScript(chars: readonly string[], at: number): { text: string; next:
 
 const isAsciiLetter = (char: string | undefined) => char !== undefined && /[A-Za-z]/.test(char);
 const startsVector = (chars: readonly string[], i: number) =>
-  chars.slice(i, i + 4).join('') === 'vec ' &&
-  chars[i + 4] !== undefined &&
-  chars[i + 4] !== ' ' &&
+  chars.slice(i, i + VEC_PREFIX.length).join('') === VEC_PREFIX &&
+  chars[i + VEC_PREFIX.length] !== undefined &&
+  chars[i + VEC_PREFIX.length] !== ' ' &&
   !isAsciiLetter(chars[i - 1]);
 const asScriptText = (text: string) =>
   [...text].map((char) => (MINUS_CHARS.has(char) ? MINUS_SIGN : char)).join('');
@@ -140,8 +144,8 @@ export function parseNotation(source: string): MathToken[] {
       });
       i = next;
     } else if (startsVector(chars, i)) {
-      tokens.push({ kind: 'vector', char: chars[i + 4] });
-      i += 5;
+      tokens.push({ kind: 'vector', char: chars[i + VEC_PREFIX.length] });
+      i += VEC_PREFIX.length + 1;
     } else {
       tokens.push({ kind: 'char', char });
       i += 1;
@@ -194,8 +198,9 @@ const tidy = (text: string) =>
     .replace(/([([]) /g, '$1')
     .replace(/^ | $/g, '');
 
-/** A script's content said aloud: commas get a pause, minus signs a word. */
+/** A script's content said aloud: commas get a pause, minus signs a word; empty says nothing. */
 function spokenScript(script: 'sub' | 'sup', text: string): string {
+  if (text === '') return '';
   if (script === 'sup' && text === '2') return ' al cuadrado';
   if (script === 'sup' && text === '3') return ' al cubo';
   const words = [...text]
@@ -209,13 +214,15 @@ function spokenScript(script: 'sub' | 'sup', text: string): string {
  * «10 a la menos 7», «vector V sub p», «módulo de delta v». Plain text comes back unchanged.
  */
 export function mathTextToString(source: string): string {
-  let bars = 0;
-  const parts = parseNotation(source).map((token) => {
+  const tokens = parseNotation(source);
+  const isBar = (token: MathToken) => token.kind === 'char' && token.char === '|';
+  const parts = tokens.map((token, i) => {
     if (token.kind === 'script') return spokenScript(token.script, token.text);
     if (token.kind === 'vector') return ` vector ${spokenChar(token.char)}`;
     if (token.char !== '|') return spokenChar(token.char);
-    bars += 1;
-    return bars % 2 === 1 ? ' módulo de ' : ' ';
+    // Bars pair up: an odd one opens a modulus, an even one closes it.
+    const opens = tokens.slice(0, i).filter(isBar).length % 2 === 0;
+    return opens ? ' módulo de ' : ' ';
   });
   return tidy(parts.join(''));
 }
@@ -243,4 +250,33 @@ export function runWidth(run: MathRun, fontSize: number, family: LabelFamily): n
 /** Width (px) of a label in the notation, set at `fontSize` in Plex `family` (kerning aside). */
 export function mathTextWidth(source: string, fontSize: number, family: LabelFamily): number {
   return mathRuns(source).reduce((sum, run) => sum + runWidth(run, fontSize, family), 0);
+}
+
+/** Baseline offsets of scripts, in em of the label (down is positive in SVG). */
+export const SHIFT_EM: Readonly<Record<Script, number>> = { base: 0, sub: 0.25, sup: -0.4 };
+/** Letters whose top is the x-height: a vector arrow sits lower over them. */
+const SHORT_LETTERS = 'acegmnopqrsuvwxyzαγεηικμνοπρστυφχψω';
+/** Drawn vector arrow: gap above the letter and head size, in em of its base letter. */
+export const ARROW_GAP_EM = 0.12;
+export const ARROW_HEAD_EM = 0.16;
+
+/** Top of a letter above the baseline, in em: x-height or cap height of its font. */
+export function letterTop(char: string, font: MathFont | undefined): number {
+  const heights = font ? KATEX_HEIGHTS : PLEX_HEIGHTS;
+  return SHORT_LETTERS.includes(char) ? heights.x : heights.cap;
+}
+
+/**
+ * How far above the baseline the label's drawn arrows reach, in em of the label (0 without
+ * vectors), so a layout can keep the arrow clear of lines as well as the letters.
+ */
+export function marksTopEm(source: string): number {
+  const tops = mathRuns(source)
+    .filter((run) => run.mark === 'vector')
+    .map(
+      (run) =>
+        (letterTop(run.text, run.font) + ARROW_GAP_EM + ARROW_HEAD_EM) * runScale(run) -
+        SHIFT_EM[run.script],
+    );
+  return Math.max(0, ...tops);
 }

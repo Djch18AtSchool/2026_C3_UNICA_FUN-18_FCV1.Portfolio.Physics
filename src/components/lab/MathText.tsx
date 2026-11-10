@@ -17,14 +17,17 @@
  * the server and needs no DOM measurement; pass `fill` when the label holds a vector or ≠.
  */
 import type { JSX } from 'react';
-import { KATEX_HEIGHTS, MATH_FONT_FAMILY, PLEX_HEIGHTS, type MathFont } from '../../lib/mathFonts';
+import { MATH_FONT_FAMILY } from '../../lib/mathFonts';
 import {
+  ARROW_GAP_EM,
+  ARROW_HEAD_EM,
+  letterTop,
   mathRuns,
   runScale,
+  SHIFT_EM,
   runWidth,
   type LabelFamily,
   type MathRun,
-  type Script,
 } from '../../lib/mathNotation';
 
 export type TextAnchor = 'start' | 'middle' | 'end';
@@ -52,17 +55,10 @@ const FAMILY_CSS: Readonly<Record<LabelFamily, string>> = {
   mono: 'var(--font-mono)',
   sans: 'var(--font-sans)',
 };
-/** Baseline offsets of scripts, in em of the label (down is positive in SVG). */
-const SUB_SHIFT_EM = 0.25;
-const SUP_SHIFT_EM = -0.4;
 const PERCENT = 100;
 const PERCENT_DECIMALS = 1;
-/** Letters whose top is the x-height: the arrow sits lower over them. */
-const SHORT_LETTERS = 'acegmnopqrsuvwxyzαγεηικμνοπρστυφχψω';
-/** Drawn arrow: gap above the letter, stroke, head and side insets, in em of the base. */
-const ARROW_GAP_EM = 0.12;
+/** Drawn arrow: stroke and side insets, in em of the base (gap and head: mathNotation). */
 const ARROW_STROKE_EM = 0.07;
-const ARROW_HEAD_EM = 0.16;
 const ARROW_INSET = 0.08;
 /** KaTeX_Math is italic: its arrow leans right with the letter, as KaTeX's skew does. */
 const ITALIC_SKEW_EM = 0.08;
@@ -72,21 +68,11 @@ const NOT_LOW_EM = 0.02;
 const NOT_HIGH_EM = 0.56;
 const PX_DECIMALS = 2;
 
-const SHIFT_EM: Readonly<Record<Script, number>> = {
-  base: 0,
-  sub: SUB_SHIFT_EM,
-  sup: SUP_SHIFT_EM,
-};
 const round = (value: number) => Number(value.toFixed(PX_DECIMALS));
 
 function startX(x: number, width: number, anchor: TextAnchor): number {
   if (anchor === 'middle') return x - width / 2;
   return anchor === 'end' ? x - width : x;
-}
-
-function letterTop(char: string, font: MathFont | undefined): number {
-  const heights = font ? KATEX_HEIGHTS : PLEX_HEIGHTS;
-  return SHORT_LETTERS.includes(char) ? heights.x : heights.cap;
 }
 
 /** An arrow over a run of width `width` (px) starting at `left`, its letter on `baseline`. */
@@ -132,21 +118,6 @@ export function mathMarks(
         : notPath(lefts[i], widths[i], baseline, em);
     return [{ kind: run.mark, d }];
   });
-}
-
-/**
- * How far above the baseline the label's drawn arrows reach, in em of the label (0 without
- * vectors), so a layout can keep the arrow clear of lines as well as the letters.
- */
-export function marksTopEm(source: string): number {
-  const tops = mathRuns(source)
-    .filter((run) => run.mark === 'vector')
-    .map(
-      (run) =>
-        (letterTop(run.text, run.font) + ARROW_GAP_EM + ARROW_HEAD_EM) * runScale(run) -
-        SHIFT_EM[run.script],
-    );
-  return Math.max(0, ...tops);
 }
 
 const isPlain = (runs: readonly MathRun[]) =>

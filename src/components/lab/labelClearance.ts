@@ -3,8 +3,7 @@
  * asymptotes), overlaps no other text and stays inside the plot: the first clear candidate wins.
  * Also builds those candidates (around a point, beside a segment). Pixels throughout. Pure.
  */
-import { mathTextWidth } from '../../lib/mathNotation';
-import { marksTopEm } from './MathText';
+import { marksTopEm, mathTextWidth } from '../../lib/mathNotation';
 
 export interface Point {
   x: number;
