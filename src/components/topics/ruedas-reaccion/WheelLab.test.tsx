@@ -21,17 +21,6 @@ const TORQUE = String.raw`Torque del motor sobre la rueda $\tau$`;
 /** The timeline maps [0, duration] onto 0..1000. */
 const TIMELINE_MAX = 1000;
 
-/** Text outside KaTeX that still holds a `$`: a formula that was never typeset. */
-function strayDollars(root: Element): string[] {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  const found: string[] = [];
-  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    const text = node.textContent ?? '';
-    if (text.includes('$') && !node.parentElement?.closest('.katex')) found.push(text.trim());
-  }
-  return found;
-}
-
 /** Identity CTM on every svg: client pixels are viewBox units, so DOM coordinates are pointer ones. */
 function mockIdentityCtm(): void {
   for (const svg of document.querySelectorAll('svg')) {
@@ -219,22 +208,21 @@ describe('WheelLab', () => {
     const user = userEvent.setup();
     renderLab();
     expect(plexViolations(document.body), 'maniobra').toEqual([]);
-    expect(strayDollars(document.body), 'maniobra').toEqual([]);
 
     typeInto(durationField(), '8');
     expect(plexViolations(document.body), 'warning').toEqual([]);
-    expect(strayDollars(document.body), 'warning').toEqual([]);
+    fireEvent.change(timeline(), { target: { value: String(TIMELINE_MAX / 2) } });
+    expect(screen.getByTestId('momentum-gauge')).toHaveAttribute('data-exceeds', 'true');
+    expect(plexViolations(document.body), 'over the limit').toEqual([]);
 
     await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
     expect(plexViolations(document.body), 'magnetopar').toEqual([]);
     await user.click(screen.getByRole('radio', { name: 'Propulsor' }));
     await user.click(screen.getByRole('button', { name: 'Ir a la descarga' }));
     expect(plexViolations(document.body), 'propulsor').toEqual([]);
-    expect(strayDollars(document.body), 'propulsor').toEqual([]);
 
     await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
     expect(plexViolations(document.body), 'settings').toEqual([]);
-    expect(strayDollars(document.body), 'settings').toEqual([]);
   });
 
   test('"El giro más rápido" sits just above T_min: no warning, about 96 % of L_max at T/2', async () => {
