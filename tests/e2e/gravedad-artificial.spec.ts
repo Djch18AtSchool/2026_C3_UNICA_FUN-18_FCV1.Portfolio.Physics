@@ -1,25 +1,20 @@
 import { expect, test, type Page } from '@playwright/test';
-import { uncoveredChars } from '../../src/lib/typography';
-import { setRange, waitForIsland } from './helpers';
+import { measureGlyphs, openFontSession } from './glyphKit';
+import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/gravedad-artificial/';
 const LAB = '[data-testid="habitat-lab"]';
 /** The lab must fill the reading column (spec §6): at least this share of the article width. */
 const MIN_WIDTH_SHARE = 0.9;
 /** Timeline position (of 1000) to start from, so the revolution ends within a second. */
+const APPARENT_GRAVITY = String.raw`Gravedad aparente $a_c/g$`;
 const NEAR_END = '995';
 /** Longest the last 0,5 % of playback may take to reach the end. */
 const PLAYBACK_TIMEOUT_MS = 3000;
 const STILL_AT_END_MS = 500;
 
-/**
- * The value text of a LabShell readout row, found by the start of its label: a label with KaTeX
- * ("Gravedad aparente $a_c/g$") is split across elements, so an exact text match cannot see it.
- */
-async function readoutText(page: Page, label: string): Promise<string> {
-  const row = page.locator(LAB).locator('[data-readout]').filter({ hasText: label });
-  return ((await row.last().locator('span').last().textContent()) ?? '').trim();
-}
+/** The value text of the readout row of the lab labelled exactly `label` (helpers.ts). */
+const readoutText = (page: Page, label: string) => readReadout(page, LAB, label);
 
 /** Centre of the radius handle's visible knob, in page coordinates. */
 async function knobCentre(page: Page): Promise<{ x: number; y: number }> {
@@ -72,7 +67,7 @@ test.describe('laboratorio', () => {
   test('arrastrar el radio con el ratón cambia la gravedad aparente', async ({ page }) => {
     await page.getByRole('switch', { name: 'Fijar 1 g' }).uncheck({ force: true });
     await centreScene(page);
-    const before = await readoutText(page, 'Gravedad aparente');
+    const before = await readoutText(page, APPARENT_GRAVITY);
     const { x, y } = await knobCentre(page);
 
     await page.mouse.move(x, y);
@@ -81,7 +76,7 @@ test.describe('laboratorio', () => {
     await page.mouse.move(x - 80, y, { steps: 4 });
     await page.mouse.up();
 
-    await expect.poll(() => readoutText(page, 'Gravedad aparente')).not.toBe(before);
+    await expect.poll(() => readoutText(page, APPARENT_GRAVITY)).not.toBe(before);
   });
 
   test('el radio se mueve con las flechas del teclado', async ({ page }) => {
@@ -121,7 +116,7 @@ test.describe('laboratorio', () => {
     for (const label of [
       'Velocidad angular ω',
       'Velocidad tangencial v',
-      'Gravedad aparente',
+      APPARENT_GRAVITY,
       'Período T',
       'Diferencia cabeza–pies h/r',
     ]) {
@@ -148,28 +143,24 @@ test.describe('página', () => {
     const diagram = page.getByTestId('habitat-diagram');
 
     await expect(diagram).toBeVisible();
-    await expect(diagram.locator('text', { hasText: 'ω²' }).first()).toBeAttached();
-    await expect(diagram.locator('text', { hasText: '2π' }).first()).toBeAttached();
+    await expect(diagram.locator('text[data-notation="a_c = ω^2 r"]')).toBeAttached();
+    await expect(diagram.locator('text[data-notation="T = 2π/ω"]')).toBeAttached();
   });
 
-  test('el diagrama solo usa glifos de IBM Plex (o KaTeX) en sus textos', async ({ page }) => {
-    const texts = await page.getByTestId('habitat-diagram').evaluate((svg) =>
-      [...svg.querySelectorAll('text')].flatMap((text) =>
-        [...text.childNodes].flatMap((node) => {
-          const owner = node instanceof Element ? node : text;
-          const family = getComputedStyle(owner).fontFamily;
-          const isKatex = /KaTeX/.test(family.split(',')[0]);
-          if (!node.textContent?.trim() || isKatex) return [];
-          return [{ text: node.textContent, isMono: /mono/i.test(family.split(',')[0]) }];
-        }),
-      ),
-    );
+  test('el diagrama dibuja sus textos solo con IBM Plex o KaTeX, según la fuente que el navegador usó', async ({
+    page,
+  }) => {
+    await page.evaluate(() => document.fonts.ready);
+    const cdp = await openFontSession(page);
 
-    expect(texts.length).toBeGreaterThan(0);
-    const bad = texts.flatMap(({ text, isMono }) =>
-      uncoveredChars(text, isMono ? 'mono' : 'sans').map((char) => `${char} in «${text.trim()}»`),
-    );
-    expect(bad).toEqual([]);
+    // ω and π live only in KaTeX_Math: a text asking for KaTeX_Main falls to Times, which the
+    // declared family hides and the fonts really used reveal.
+    const report = await measureGlyphs(page, cdp, '[data-testid="habitat-diagram"]');
+
+    expect(report).toEqual({ uncovered: [], rawNotation: [], fonts: [] });
+    expect(
+      await page.getByTestId('habitat-diagram').locator('text[data-notation]').count(),
+    ).toBeGreaterThan(0);
   });
 
   test('el paso 4 lleva el diagrama antes del laboratorio, con una sola insignia de diagrama', async ({
@@ -215,6 +206,8 @@ test.describe('a 375 px', () => {
   test('ningún texto del diagrama queda por debajo de 11 px efectivos', async ({ page }) => {
     await page.goto(PAGE);
     const MIN_EFFECTIVE_PX = 11;
+    /** A subscript or a power (a tspan at 75 %) may be smaller: 9 px, as the other topics' figures. */
+    const MIN_SCRIPT_PX = 9;
     const diagram = page.getByTestId('habitat-diagram');
     await diagram.scrollIntoViewIfNeeded();
 
@@ -227,11 +220,14 @@ test.describe('a 375 px', () => {
           .map((node) => ({
             text: node.textContent?.trim() ?? '',
             px: parseFloat(getComputedStyle(node).fontSize) * scale,
+            isScript: (node.getAttribute('font-size') ?? '').endsWith('%'),
           }))
       );
     });
 
-    const tooSmall = sizes.filter(({ px }) => px < MIN_EFFECTIVE_PX);
+    const tooSmall = sizes.filter(
+      ({ px, isScript }) => px < (isScript ? MIN_SCRIPT_PX : MIN_EFFECTIVE_PX),
+    );
     expect(sizes.length).toBeGreaterThan(0);
     expect(tooSmall).toEqual([]);
   });
@@ -248,7 +244,7 @@ test.describe('con pantalla táctil', () => {
     await waitForIsland(page, LAB);
     await page.getByRole('switch', { name: 'Fijar 1 g' }).uncheck({ force: true });
     await centreScene(page);
-    const before = await readoutText(page, 'Gravedad aparente');
+    const before = await readoutText(page, APPARENT_GRAVITY);
     const { x, y } = await knobCentre(page);
     const scrollBefore = await page.evaluate(() => window.scrollY);
     const cdp = await page.context().newCDPSession(page);
@@ -262,7 +258,7 @@ test.describe('con pantalla táctil', () => {
     }
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 
-    await expect.poll(() => readoutText(page, 'Gravedad aparente')).not.toBe(before);
+    await expect.poll(() => readoutText(page, APPARENT_GRAVITY)).not.toBe(before);
     expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore);
   });
 });

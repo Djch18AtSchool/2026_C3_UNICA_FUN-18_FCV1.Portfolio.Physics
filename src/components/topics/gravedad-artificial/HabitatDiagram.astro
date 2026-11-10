@@ -125,8 +125,12 @@ const vArrow = arrow(
 // apparent-gravity arrow (x ≤ 142) and above Detail A (y = 430), also at the phone font size.
 const ONE_G_NOTE = { x: 408, y: 386, lineHeight: 17 } as const;
 const ONE_G_CASES = ['2 RPM → r = 223,6 m', '1 RPM → r = 894,6 m'] as const;
-/** The notes are MathText (a React island-free component), so their CSS is global to the drawing. */
-const NOTE_SIZE = 13;
+/** Size of the notes (MathText: their CSS is global to the drawing, see the style block). */
+const NOTE_SIZE = 14;
+/** Sizes of the sans texts at the wide layout; the phone layout enlarges them in the CSS below. */
+const LABEL_SIZE = 15;
+const BIG_LABEL_SIZE = 19;
+const EQ_SIZE = 19;
 
 // ---- Detail A: head and feet ----
 const DETAIL = { x: 12, y: 430, width: 396, height: 186 } as const;
@@ -214,20 +218,36 @@ const headArrow = arrow(
     y2={radiusArrow.y2}
   />
   <polygon class="hd-dim-head" points={radiusArrow.points} />
-  <text class="hd-label hd-math" x={radiusLabel.x} y={radiusLabel.y} text-anchor="end">
-    r
-  </text>
+  <MathText
+    source="r"
+    x={radiusLabel.x}
+    y={radiusLabel.y}
+    fontSize={LABEL_SIZE}
+    family="sans"
+    anchor="end"
+    className="hd-label"
+  />
 
   <!-- ω: sense of rotation. -->
   <path class="hd-omega" d={omegaPath} />
   <polygon class="hd-omega-head" points={omegaHead.points} />
-  <text class="hd-label hd-math hd-big" x={omegaLabel.x} y={omegaLabel.y}>
-    ω
-  </text>
-  <text class="hd-eq" x="412" y="142" text-anchor="end">
-    <tspan class="hd-math">T</tspan> = 2<tspan class="hd-math">π</tspan>/
-    <tspan class="hd-math">ω</tspan>
-  </text>
+  <MathText
+    source="ω"
+    x={omegaLabel.x}
+    y={omegaLabel.y}
+    fontSize={BIG_LABEL_SIZE}
+    family="sans"
+    className="hd-label hd-big"
+  />
+  <MathText
+    source="T = 2π/ω"
+    x={412}
+    y={142}
+    fontSize={EQ_SIZE}
+    family="sans"
+    anchor="end"
+    className="hd-eq"
+  />
 
   <!-- Person on the rim, head toward the axis. -->
   <circle class="hd-mark" cx={detailMark.cx} cy={detailMark.cy} r={detailMark.r} />
@@ -249,21 +269,23 @@ const headArrow = arrow(
   <!-- a_c toward the axis. -->
   <line class="hd-ac" x1={acArrow.x1} y1={acArrow.y1} x2={acArrow.x2} y2={acArrow.y2} />
   <polygon class="hd-ac-head" points={acArrow.points} />
-  <text class="hd-label hd-math" x="212" y={acArrow.y2 + 6}>
-    a
-    <tspan class="hd-sub" dy="4">
-      c
-    </tspan>
-  </text>
+  <MathText
+    source="a_c"
+    x={212}
+    y={acArrow.y2 + 6}
+    fontSize={LABEL_SIZE}
+    family="sans"
+    className="hd-label"
+  />
   <line class="hd-leader" x1="232" y1={acArrow.y2 + 4} x2="296" y2="300" />
-  <text class="hd-eq" x="300" y="306">
-    <tspan class="hd-math">a</tspan>
-    <tspan class="hd-sub hd-math" dy="5">
-      c
-    </tspan>
-    <tspan dy="-5"> = </tspan>
-    <tspan class="hd-math">ω</tspan>² <tspan class="hd-math">r</tspan>
-  </text>
+  <MathText
+    source="a_c = ω^2 r"
+    x={300}
+    y={306}
+    fontSize={EQ_SIZE}
+    family="sans"
+    className="hd-eq"
+  />
 
   <!-- Apparent gravity, outward. -->
   <line class="hd-gap" x1={gArrow.x1} y1={gArrow.y1} x2={gArrow.x2} y2={gArrow.y2} />
@@ -278,20 +300,24 @@ const headArrow = arrow(
   <!-- v, tangent to the rim. -->
   <line class="hd-v" x1={vArrow.x1} y1={vArrow.y1} x2={vArrow.x2} y2={vArrow.y2} />
   <polygon class="hd-v-head" points={vArrow.points} />
-  <text class="hd-eq" x={vArrow.x2 + 18} y={vArrow.y1 + 6}>
-    <tspan class="hd-math">v</tspan> = <tspan class="hd-math">ω</tspan>{' '}
-    <tspan class="hd-math">r</tspan>
-  </text>
+  <MathText
+    source="v = ω r"
+    x={vArrow.x2 + 18}
+    y={vArrow.y1 + 6}
+    fontSize={EQ_SIZE}
+    family="sans"
+    className="hd-eq"
+  />
 
   <!-- The 1 g case: a_c = g, radius for a given spin (ecuación 3.2, tabla 3.1). -->
-  <text class="hd-note hd-note-key" x={ONE_G_NOTE.x} y={ONE_G_NOTE.y} text-anchor="end">
-    <tspan class="hd-math">a</tspan>
-    <tspan class="hd-sub hd-math" dy="3">
-      c
-    </tspan>
-    <tspan dy="-3"> = </tspan>
-    <tspan class="hd-math">g</tspan>
-  </text>
+  <MathText
+    source="a_c = g"
+    x={ONE_G_NOTE.x}
+    y={ONE_G_NOTE.y}
+    fontSize={NOTE_SIZE}
+    anchor="end"
+    className="hd-note hd-note-key"
+  />
   {ONE_G_CASES.map((line, index) => (
     <MathText
       source={line}
@@ -339,14 +365,15 @@ const headArrow = arrow(
   <polygon class="hd-dim-head" points={dimUp.points} />
   <line class="hd-dim" x1={dimDown.x1} y1={dimDown.y1} x2={dimDown.x2} y2={dimDown.y2} />
   <polygon class="hd-dim-head" points={dimDown.points} />
-  <text
-    class="hd-label hd-math hd-big"
+  <MathText
+    source="h"
     x={DIM_X - 10}
     y={(bigFeet + bigHeadTop) / 2 + 2}
-    text-anchor="end"
-  >
-    h
-  </text>
+    fontSize={BIG_LABEL_SIZE}
+    family="sans"
+    anchor="end"
+    className="hd-label hd-big"
+  />
   <text
     class="hd-label hd-muted"
     x={DIM_X - 10}
@@ -358,20 +385,34 @@ const headArrow = arrow(
 
   <line class="hd-ac" x1={headArrow.x1} y1={headArrow.y1} x2={headArrow.x2} y2={headArrow.y2} />
   <polygon class="hd-ac-head" points={headArrow.points} />
-  <text class="hd-label" x={ARROW_X + 10} y={headArrow.y1 - 12}>
-    <tspan class="hd-math">ω</tspan>²(<tspan class="hd-math">r</tspan> −{' '}
-    <tspan class="hd-math">h</tspan>)
-  </text>
+  <MathText
+    source="ω^2(r − h)"
+    x={ARROW_X + 10}
+    y={headArrow.y1 - 12}
+    fontSize={LABEL_SIZE}
+    family="sans"
+    className="hd-label"
+  />
   <line class="hd-ac" x1={feetArrow.x1} y1={feetArrow.y1} x2={feetArrow.x2} y2={feetArrow.y2} />
   <polygon class="hd-ac-head" points={feetArrow.points} />
-  <text class="hd-label" x={ARROW_X + 10} y={feetArrow.y1 - 22}>
-    <tspan class="hd-math">ω</tspan>²<tspan class="hd-math">r</tspan>
-  </text>
+  <MathText
+    source="ω^2 r"
+    x={ARROW_X + 10}
+    y={feetArrow.y1 - 22}
+    fontSize={LABEL_SIZE}
+    family="sans"
+    className="hd-label"
+  />
 
-  <text class="hd-eq" x="398" y={DETAIL.y + 82} text-anchor="end">
-    Δ<tspan class="hd-math">a</tspan>/<tspan class="hd-math">a</tspan> ={' '}
-    <tspan class="hd-math">h</tspan>/<tspan class="hd-math">r</tspan>
-  </text>
+  <MathText
+    source="Δa/a = h/r"
+    x={398}
+    y={DETAIL.y + 82}
+    fontSize={EQ_SIZE}
+    family="sans"
+    anchor="end"
+    className="hd-eq"
+  />
   <MathText
     source="r = 223,6 m → 0,8 %"
     x={398}
@@ -408,8 +449,8 @@ const headArrow = arrow(
     text-transform: uppercase;
     fill: var(--fg-muted);
   }
-  .hd-label,
-  .hd-eq,
+  .habitat-diagram :global(.hd-label),
+  .habitat-diagram :global(.hd-eq),
   .habitat-diagram :global(.hd-note) {
     paint-order: stroke;
     stroke: var(--bg-elevated);
@@ -417,31 +458,24 @@ const headArrow = arrow(
     stroke-linejoin: round;
     fill: var(--fg);
   }
-  .hd-label {
+  .habitat-diagram :global(.hd-label) {
     font-family: var(--font-sans);
     font-size: 15px;
   }
-  .hd-eq {
-    font-family: KaTeX_Main, 'Times New Roman', serif;
+  .habitat-diagram :global(.hd-eq) {
+    font-family: var(--font-sans);
     font-size: 19px;
   }
   .habitat-diagram :global(.hd-note) {
     font-family: var(--font-mono);
-    font-size: 13px;
+    font-size: 14px;
     fill: var(--fg-muted);
   }
   .hd-muted {
     fill: var(--fg-muted);
   }
-  .hd-math {
-    font-family: KaTeX_Main, 'Times New Roman', serif;
-    font-style: italic;
-  }
-  .hd-big {
+  .habitat-diagram :global(.hd-big) {
     font-size: 19px;
-  }
-  .hd-sub {
-    font-size: 0.72em;
   }
 
   /*
@@ -455,25 +489,22 @@ const headArrow = arrow(
       font-size: 16px;
       letter-spacing: 0;
     }
-    .hd-label,
-    .hd-big {
+    .habitat-diagram :global(.hd-label),
+    .habitat-diagram :global(.hd-big) {
       font-size: 19px;
     }
     .hd-hint {
       font-size: 16px;
     }
-    .hd-eq {
+    .habitat-diagram :global(.hd-eq) {
       font-size: 22px;
-    }
-    .hd-sub {
-      font-size: 16px;
     }
     .habitat-diagram :global(.hd-note) {
       display: none;
     }
     .habitat-diagram :global(.hd-note-key) {
       display: inline;
-      font-size: 17px;
+      font-size: 18px;
     }
   }
 

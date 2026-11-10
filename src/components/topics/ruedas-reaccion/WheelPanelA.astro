@@ -100,9 +100,7 @@ const EQ = {
     class="wd-axis-head"
     points={arrow({ x: AXIS_X, y: AXIS.top + 20 }, { x: AXIS_X, y: AXIS.top }, 10).head}
   />
-  <text class="wd-label wd-math" x={AXIS_X - 10} y={AXIS.top + 12} text-anchor="end">
-    z
-  </text>
+  <MathText source="z" x={AXIS_X - 10} y={AXIS.top + 12} anchor="end" {...LABEL_TEXT} />
 
   <!-- Body: top face, front face and the cut that shows the wheel. -->
   <rect

@@ -7,6 +7,7 @@ import { installDialogPolyfill } from '../../../test-dialog';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
 import HabitatLab from './HabitatLab';
+import { readout } from '../../../test-readout';
 
 const FOOTNOTE = 'No calcula el efecto Coriolis.';
 
@@ -24,15 +25,6 @@ function renderLab() {
   const view = render(<HabitatLab footnote={FOOTNOTE} />);
   mockIdentityCtm();
   return view;
-}
-
-/** The value text of a LabShell readout row, normalised to plain spaces. */
-function readout(label: string): string {
-  const row = [...document.querySelectorAll('[data-readout]')].find(
-    (candidate) => mathSourceText(candidate.firstElementChild) === label,
-  );
-  if (!row) throw new Error(`no readout labelled ${label}`);
-  return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
 
 const rpmSlider = () => screen.getByRole('slider', { name: /^Velocidad de giro/ });
