@@ -1,18 +1,15 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
-import { CHART_COLORS, LINE_WIDTH, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
+import { LINE_WIDTH, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
 import { useFrameTime } from '../../lab/useFrameTime';
+import { AC_COLOR, GAP_COLOR, OMEGA_COLOR } from './habitatColors';
 import { angleAt, radiusToSlider, ringRadius, vectorLength } from './habitatScene';
 import HabitatPerson from './HabitatPerson';
 import RadiusBar, { CAPTION_LINE, COMPACT_BAR } from './RadiusBar';
 
-/** a_c and apparent gravity wear the static diagram's colors: accent, and chart 2 dashed. */
-export const AC_COLOR = 'var(--accent)';
-export const GAP_COLOR = CHART_COLORS[1];
-export const OMEGA_COLOR = CHART_COLORS[3];
 const RING_FILL = 'color-mix(in srgb, var(--fg) 7%, var(--bg-elevated))';
 const RING_STROKE = 'var(--fg)';
 const SPOKE_COLOR = 'var(--fg-muted)';

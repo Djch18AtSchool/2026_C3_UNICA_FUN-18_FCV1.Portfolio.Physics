@@ -1,34 +1,7 @@
 import type { JSX } from 'react';
-import { LINE_WIDTH } from '../../charts/chartTheme';
 import InlineMath from '../../lab/InlineMath';
+import { LEGEND_LIST, LegendItem } from '../../lab/LegendKey';
 import { FLOW_COLORS } from './regenScene';
-
-const KEY_WIDTH = 26;
-const KEY_HEIGHT = 12;
-/** The arrowhead's length along the key, and the margin that keeps it inside. */
-const HEAD_LENGTH = 8;
-const KEY_MARGIN = 1;
-
-/** A flow's key: a thick line ending in an arrowhead, as the power flow draws it. */
-function LegendKey({ color }: { color: string }): JSX.Element {
-  const mid = KEY_HEIGHT / 2;
-  return (
-    <svg width={KEY_WIDTH} height={KEY_HEIGHT} aria-hidden="true" className="shrink-0">
-      <line
-        x1={KEY_MARGIN}
-        y1={mid}
-        x2={KEY_WIDTH - HEAD_LENGTH}
-        y2={mid}
-        stroke={color}
-        strokeWidth={LINE_WIDTH + 2}
-      />
-      <polygon
-        points={`${KEY_WIDTH - KEY_MARGIN},${mid} ${KEY_WIDTH - HEAD_LENGTH - 1},${KEY_MARGIN} ${KEY_WIDTH - HEAD_LENGTH - 1},${KEY_HEIGHT - KEY_MARGIN}`}
-        fill={color}
-      />
-    </svg>
-  );
-}
 
 const LEGEND: readonly { color: string; text: string }[] = [
   { color: FLOW_COLORS.traction, text: 'Tracción: de la batería a las ruedas' },
@@ -49,15 +22,11 @@ const BRAKE_BAR_NOTE =
 export default function RegenNotes(): JSX.Element {
   return (
     <div className="flex flex-col gap-3">
-      <ul
-        aria-label="Leyenda del flujo de potencia"
-        className="m-0 flex list-none flex-wrap gap-x-4 gap-y-1 p-0 text-sm"
-      >
+      <ul aria-label="Leyenda del flujo de potencia" className={LEGEND_LIST}>
         {LEGEND.map(({ color, text }) => (
-          <li key={text} className="m-0 flex items-center gap-2">
-            <LegendKey color={color} />
+          <LegendItem key={text} color={color} weight="thick">
             {text}
-          </li>
+          </LegendItem>
         ))}
       </ul>
       <p className="m-0 text-sm text-fg-muted">
