@@ -121,8 +121,8 @@ async function optionSteps(select: Locator): Promise<[string, StateStep][]> {
 }
 
 /**
- * The presets of a lab, as steps: the chips of the Presets or LabPresets group, the options of
- * LabPresets' select (more than four presets) or of Tema 7's own select.
+ * The presets of a lab, as steps: the chips of LabPresets' group, or the options of its select
+ * (more than four presets, in <optgroup>s or not).
  */
 async function presetSteps(lab: Locator): Promise<[string, StateStep][]> {
   const buttons = lab.getByRole('group', { name: 'Valores de referencia' }).getByRole('button');
@@ -135,11 +135,8 @@ async function presetSteps(lab: Locator): Promise<[string, StateStep][]> {
       }),
     );
   }
-  for (const selector of ['[data-lab-presets="select"] select', '#bounce-preset']) {
-    const select = lab.locator(selector);
-    if ((await select.count()) > 0) return optionSteps(select);
-  }
-  return [];
+  const select = lab.locator('[data-lab-presets="select"] select');
+  return (await select.count()) > 0 ? optionSteps(select) : [];
 }
 
 /** A tiered lab's two disclosures, opened: their text is measured drawn, not only as characters. */

@@ -9,7 +9,7 @@ import {
 
 describe('BOUNCE_PRESETS', () => {
   test('every preset belongs to a listed group and has a source and a note', () => {
-    const groups = PRESET_GROUPS.map(({ group }) => group);
+    const groups = PRESET_GROUPS.map(({ id }) => id);
 
     expect(new Set(BOUNCE_PRESETS.map(({ id }) => id)).size).toBe(BOUNCE_PRESETS.length);
     for (const { id, group, sourceLabel, note } of BOUNCE_PRESETS) {

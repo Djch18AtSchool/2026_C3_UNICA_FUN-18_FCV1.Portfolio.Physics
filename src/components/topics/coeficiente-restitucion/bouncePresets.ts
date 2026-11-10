@@ -42,10 +42,10 @@ export interface BounceSettings {
   ball: BallKind;
 }
 
-export type PresetGroup = 'realista' | 'se-siente-mal';
+export type BounceGroup = 'realista' | 'se-siente-mal';
 
 export interface BouncePreset extends Preset<BounceSettings> {
-  group: PresetGroup;
+  group: BounceGroup;
 }
 
 /** Slider ranges (spec §7, research §7). */
@@ -254,9 +254,9 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
   },
 ];
 
-export const PRESET_GROUPS: readonly { group: PresetGroup; label: string }[] = [
-  { group: 'realista', label: 'Rebotes realistas' },
-  { group: 'se-siente-mal', label: 'Rebotes que se sienten mal' },
+export const PRESET_GROUPS: readonly { id: BounceGroup; label: string }[] = [
+  { id: 'realista', label: 'Rebotes realistas' },
+  { id: 'se-siente-mal', label: 'Rebotes que se sienten mal' },
 ];
 
 export const DEFAULT_PRESET_ID = 'tenis-itf';

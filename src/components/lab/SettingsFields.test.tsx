@@ -50,6 +50,40 @@ describe('SelectField', () => {
 
     expect(onChange).toHaveBeenCalledWith('euler');
   });
+
+  test('an option group is a native <optgroup> with its label, in the order given', () => {
+    const onChange = vi.fn();
+    const { container } = render(
+      <SelectField
+        id="ball"
+        label="Pelota"
+        value="fiba"
+        options={[
+          { value: '', label: 'Personalizado', disabled: true },
+          { label: 'Rebotes realistas', options: OPTIONS },
+          { label: 'Rebotes que se sienten mal', options: [{ value: 'fiba', label: 'FIBA' }] },
+        ]}
+        onChange={onChange}
+      />,
+    );
+
+    const groups = [...container.querySelectorAll('optgroup')];
+    expect(groups.map((group) => group.label)).toEqual([
+      'Rebotes realistas',
+      'Rebotes que se sienten mal',
+    ]);
+    expect([...groups[0].children].map((option) => option.textContent)).toEqual(['RK4', 'Euler']);
+    expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+      'Personalizado',
+      'RK4',
+      'Euler',
+      'FIBA',
+    ]);
+    expect(screen.getByLabelText('Pelota')).toHaveValue('fiba');
+
+    fireEvent.change(screen.getByLabelText('Pelota'), { target: { value: 'euler' } });
+    expect(onChange).toHaveBeenCalledWith('euler');
+  });
 });
 
 describe('fields with KaTeX in their label', () => {

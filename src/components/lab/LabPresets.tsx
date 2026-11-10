@@ -8,12 +8,15 @@
  * Both forms are named «Valores de referencia» (the glyph guard finds them by `data-lab-presets`).
  * A native <option> cannot hold KaTeX, so a preset named with `$…$` needs a plain `optionLabel`
  * once its list passes four (a missing one throws, so the build fails rather than print TeX).
+ * `groups` splits the select into <optgroup>s by each preset's `group` (Tema 7's thirteen);
+ * `basedOnId` keeps the last chosen preset's note after an edit, led by «Partí de «…» y cambié
+ * algún valor.».
  */
 import type { JSX } from 'react';
 import { hasInlineMath, inlineMathToSpeech } from '../../lib/inlineMath';
-import type { Preset } from '../../lib/presets';
+import type { Preset, PresetGroup } from '../../lib/presets';
 import InlineMath from './InlineMath';
-import { SelectField } from './SettingsFields';
+import { SelectField, type SelectOption, type SelectOptionGroup } from './SettingsFields';
 import { withStableCallbacks } from './withStableCallbacks';
 
 /** Up to this many presets are chips; past it, a select (auditoría §4). */
@@ -22,6 +25,7 @@ export const PRESETS_LABEL = 'Valores de referencia';
 /** The select's option while the values match no preset (an edit left the preset). */
 const MODIFIED_LABEL = 'Personalizado';
 const SOURCE_LEAD = 'Fuente: ';
+const modifiedLead = (name: string) => `Partí de «${name}» y cambié algún valor. `;
 
 export interface LabPresetsProps<T> {
   /** Id of the select (and prefix of nothing else): unique in the page. */
@@ -32,6 +36,10 @@ export interface LabPresetsProps<T> {
   onSelect(preset: Preset<T>): void;
   /** Names the chips' group or the select; «Valores de referencia» by default. */
   label?: string;
+  /** The select's <optgroup>s, in order; every preset's `group` must name one. */
+  groups?: readonly PresetGroup[];
+  /** The last preset chosen: while none is active, its note stays, marked as modified. */
+  basedOnId?: string;
 }
 
 const CHIP_BASE =
@@ -81,12 +89,33 @@ function PresetChips<T>({ presets, activeId, onSelect, label }: Omit<LabPresetsP
   );
 }
 
+const toOption = <T,>(preset: Preset<T>): SelectOption => ({
+  value: preset.id,
+  label: optionText(preset),
+});
+
+/** The presets as options, or under their groups' headings; a preset in no group throws. */
+function presetOptions<T>(
+  presets: readonly Preset<T>[],
+  groups?: readonly PresetGroup[],
+): (SelectOption | SelectOptionGroup)[] {
+  if (!groups) return presets.map(toOption);
+  const stray = presets.find((preset) => !groups.some((group) => group.id === preset.group));
+  if (stray) {
+    throw new Error(`LabPresets: «${stray.name}» no está en ninguno de los grupos (groups)`);
+  }
+  return groups.map((group) => ({
+    label: group.label,
+    options: presets.filter((preset) => preset.group === group.id).map(toOption),
+  }));
+}
+
 /** The select's value is the active preset's id; any other activeId (or none) is «Personalizado». */
-function PresetSelect<T>({ id, presets, activeId, onSelect, label }: LabPresetsProps<T>) {
+function PresetSelect<T>({ id, presets, groups, activeId, onSelect, label }: LabPresetsProps<T>) {
   const value = presets.find((preset) => preset.id === activeId)?.id ?? '';
   const options = [
     ...(value === '' ? [{ value: '', label: MODIFIED_LABEL, disabled: true }] : []),
-    ...presets.map((preset) => ({ value: preset.id, label: optionText(preset) })),
+    ...presetOptions(presets, groups),
   ];
   return (
     <SelectField
@@ -113,12 +142,22 @@ function Source({ label, url }: { label: string; url?: string }): JSX.Element {
   );
 }
 
-/** «note Fuente: source» on one line; nothing without note and source. */
-function NoteLine<T>({ preset }: { preset?: Preset<T> }): JSX.Element | null {
+/**
+ * «note Fuente: source» on one line, led by «Partí de…» when the preset is the one an edit left;
+ * nothing without note and source.
+ */
+function NoteLine<T>({
+  preset,
+  isModified,
+}: {
+  preset?: Preset<T>;
+  isModified: boolean;
+}): JSX.Element | null {
   if (!preset || (!preset.note && !preset.sourceLabel)) return null;
   const { note, sourceLabel, sourceUrl } = preset;
   return (
     <p data-testid="preset-note" className="m-0 text-sm text-fg-muted">
+      {isModified ? <InlineMath text={modifiedLead(preset.name)} /> : null}
       {note ? <InlineMath text={note} /> : null}
       {note && sourceLabel ? ' ' : null}
       {sourceLabel ? <Source label={sourceLabel} url={sourceUrl} /> : null}
@@ -127,9 +166,10 @@ function NoteLine<T>({ preset }: { preset?: Preset<T> }): JSX.Element | null {
 }
 
 function LabPresetsBase<T>(props: LabPresetsProps<T>): JSX.Element {
-  const { presets, activeId, label = PRESETS_LABEL } = props;
+  const { presets, activeId, basedOnId, label = PRESETS_LABEL } = props;
   const isSelect = presets.length > MAX_PRESET_CHIPS;
   const active = presets.find((preset) => preset.id === activeId);
+  const basedOn = active ? undefined : presets.find((preset) => preset.id === basedOnId);
   return (
     <div data-lab-presets={isSelect ? 'select' : 'chips'} className="flex flex-col gap-2">
       {isSelect ? (
@@ -137,7 +177,7 @@ function LabPresetsBase<T>(props: LabPresetsProps<T>): JSX.Element {
       ) : (
         <PresetChips {...props} label={label} />
       )}
-      <NoteLine preset={active} />
+      <NoteLine preset={active ?? basedOn} isModified={basedOn !== undefined} />
     </div>
   );
 }

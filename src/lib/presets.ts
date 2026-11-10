@@ -12,4 +12,12 @@ export interface Preset<T> {
    * cannot hold KaTeX: required when `name` has `$…$`.
    */
   optionLabel?: string;
+  /** The id of its group in LabPresets' `groups` (an <optgroup> of the select). */
+  group?: string;
+}
+
+/** A heading of LabPresets' select: the presets whose `group` is its id, under its label. */
+export interface PresetGroup {
+  id: string;
+  label: string;
 }

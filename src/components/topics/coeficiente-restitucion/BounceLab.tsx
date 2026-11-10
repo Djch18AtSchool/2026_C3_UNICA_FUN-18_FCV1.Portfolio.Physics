@@ -1,20 +1,22 @@
 import { useCallback, useEffect, useMemo, useState, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { G_EARTH } from '../../../lib/physics';
+import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { useSimClock } from '../../lab/useSimClock';
 import { bounceLocalSettings, MODE_OPTIONS, type LabMode } from './bounceLabSettings';
-import BouncePresetPicker from './BouncePresetPicker';
 import BounceNotes, { sceneNotes } from './BounceNotes';
 import BouncePlots from './BouncePlots';
 import {
   BOUNCE_DEFAULTS,
   BOUNCE_LIMITS,
+  BOUNCE_PRESETS,
   DEFAULT_PRESET_ID,
-  presetById,
+  PRESET_GROUPS,
   SPEED_FIT,
+  type BouncePreset,
   type BounceSettings,
 } from './bouncePresets';
 import BounceScene from './BounceScene';
@@ -166,10 +168,8 @@ export default function BounceLab({ usage, leftOut }: BounceLabProps): JSX.Eleme
       settings: { ...previous.settings, ...patch },
       presetId: undefined,
     }));
-  const choosePreset = (id: string) => {
-    if (!id) return;
-    setState({ settings: presetById(id).values, presetId: id, basedOn: id });
-  };
+  const choosePreset = ({ id, values }: BouncePreset) =>
+    setState({ settings: values, presetId: id, basedOn: id });
   const onH0DragPhase = useCallback(
     (phase: 'start' | 'end') => setHeldTop(phase === 'start' ? sceneTop(settings.h0) : null),
     [settings.h0],
@@ -291,9 +291,12 @@ export default function BounceLab({ usage, leftOut }: BounceLabProps): JSX.Eleme
             <>
               <ModeToggle mode={mode} onChange={setMode} />
               {isBounce ? (
-                <BouncePresetPicker
-                  presetId={state.presetId}
-                  basedOn={state.basedOn}
+                <LabPresets
+                  id="bounce-preset"
+                  presets={BOUNCE_PRESETS}
+                  groups={PRESET_GROUPS}
+                  activeId={state.presetId}
+                  basedOnId={state.basedOn}
                   onSelect={choosePreset}
                 />
               ) : null}

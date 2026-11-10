@@ -138,6 +138,62 @@ describe('LabPresets', () => {
     expect(screen.queryByTestId('preset-note')).toBeNull();
   });
 
+  test('with groups, the select lists each group as an <optgroup> in the groups’ order', () => {
+    const grouped = MANY.map((item, i) => ({ ...item, group: i < 2 ? 'real' : 'mal' }));
+    const { container } = render(
+      <LabPresets
+        id="p"
+        presets={grouped}
+        groups={[
+          { id: 'mal', label: 'Se sienten mal' },
+          { id: 'real', label: 'Realistas' },
+        ]}
+        activeId="a"
+        onSelect={vi.fn()}
+      />,
+    );
+
+    const groups = [...container.querySelectorAll('optgroup')];
+    expect(groups.map((group) => group.label)).toEqual(['Se sienten mal', 'Realistas']);
+    expect(groups.map((group) => [...group.children].map((option) => option.textContent))).toEqual([
+      ['Planeta c', 'Planeta d', 'Planeta e'],
+      ['Planeta a', 'Planeta b'],
+    ]);
+    expect(screen.getByRole('combobox', { name: 'Valores de referencia' })).toHaveValue('a');
+  });
+
+  test('with groups, a preset in none of them throws rather than vanish from the select', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const grouped = MANY.map((item) => ({ ...item, group: item.id === 'e' ? 'otro' : 'real' }));
+
+    expect(() =>
+      render(
+        <LabPresets
+          id="p"
+          presets={grouped}
+          groups={[{ id: 'real', label: 'Realistas' }]}
+          onSelect={vi.fn()}
+        />,
+      ),
+    ).toThrow(/Planeta e/);
+    error.mockRestore();
+  });
+
+  test('after an edit, the preset it was based on keeps its note, led by «Partí de…»', () => {
+    const notes = MANY.map((item) => ({ ...item, note: `Nota ${item.id}.`, sourceLabel: 'NASA' }));
+    const { rerender } = render(
+      <LabPresets id="p" presets={notes} activeId="b" basedOnId="b" onSelect={vi.fn()} />,
+    );
+    expect(noteLine().textContent).toBe('Nota b. Fuente: NASA');
+
+    rerender(<LabPresets id="p" presets={notes} basedOnId="b" onSelect={vi.fn()} />);
+
+    expect(screen.getByRole('combobox', { name: 'Valores de referencia' })).toHaveValue('');
+    expect(noteLine().textContent).toBe(
+      'Partí de «Planeta b» y cambié algún valor. Nota b. Fuente: NASA',
+    );
+  });
+
   test('takes another name for its group or select', () => {
     render(<LabPresets id="p" label="Preajuste" presets={MANY} activeId="a" onSelect={vi.fn()} />);
 

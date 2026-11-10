@@ -48,15 +48,37 @@ function SwitchFieldBase({ id, label, checked, onChange }: SwitchFieldProps): JS
 /** SwitchFieldBase memoized with stable callbacks: a playing lab's 10 Hz renders never reach it. */
 export const SwitchField = withStableCallbacks(SwitchFieldBase);
 
+export interface SelectOption {
+  value: string;
+  label: string;
+  /** A disabled option shows a state that cannot be chosen (LabPresets' «Personalizado»). */
+  disabled?: boolean;
+}
+
+/** Options under a heading of their own: a native <optgroup>. */
+export interface SelectOptionGroup {
+  label: string;
+  options: readonly SelectOption[];
+}
+
 export interface SelectFieldProps {
   id: string;
   /** Plain text, with KaTeX inline between `$…$`. The option labels are plain text: a native <option> takes no markup. */
   label: string;
   value: string;
-  /** A disabled option shows a state that cannot be chosen (LabPresets' «Personalizado»). */
-  options: readonly { value: string; label: string; disabled?: boolean }[];
+  /** Options and groups of options, in the order the list shows them. */
+  options: readonly (SelectOption | SelectOptionGroup)[];
   onChange(value: string): void;
 }
+
+const isGroup = (entry: SelectOption | SelectOptionGroup): entry is SelectOptionGroup =>
+  'options' in entry;
+
+const renderOption = (option: SelectOption) => (
+  <option key={option.value} value={option.value} disabled={option.disabled}>
+    {option.label}
+  </option>
+);
 
 export function SelectField({
   id,
@@ -78,11 +100,15 @@ export function SelectField({
           onChange={(event) => onChange(event.target.value)}
           className={SELECT}
         >
-          {options.map((option) => (
-            <option key={option.value} value={option.value} disabled={option.disabled}>
-              {option.label}
-            </option>
-          ))}
+          {options.map((entry) =>
+            isGroup(entry) ? (
+              <optgroup key={`group:${entry.label}`} label={entry.label}>
+                {entry.options.map(renderOption)}
+              </optgroup>
+            ) : (
+              renderOption(entry)
+            ),
+          )}
         </select>
         <svg
           viewBox="0 0 16 16"
