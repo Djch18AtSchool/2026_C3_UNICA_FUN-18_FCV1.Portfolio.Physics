@@ -8,7 +8,14 @@
  */
 import { expect, test, type Locator } from '@playwright/test';
 import { hydrateAllIslands, setRange } from './helpers';
-import { describeReport, measureGlyphs, openFontSession, settle, type StateStep } from './glyphKit';
+import {
+  describeReport,
+  measureGlyphs,
+  openFontSession,
+  requireStates,
+  settle,
+  type StateStep,
+} from './glyphKit';
 import { TOPIC_PAGES } from './topicPages';
 
 const VIEWPORTS = [
@@ -35,8 +42,21 @@ const settingsClose: StateStep = async (page) => {
   await expect(page.getByRole('dialog')).toBeHidden();
 };
 
+/** The only lab without presets: its dynamic text comes from editing the route (see EXTRA_STATES). */
+const LAB_WITHOUT_PRESETS = 'dron-reparto';
+
 /** Labs that show text only in some states, beyond their presets: [state name, how to reach it]. */
 const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
+  'dron-reparto': [
+    [
+      'ruta modificada (parada C movida con el teclado)',
+      async (page, lab) => {
+        await lab.getByTestId('stop-C').focus();
+        await page.keyboard.press('Shift+ArrowLeft');
+        await expect(lab.getByTestId('route-modified')).toBeVisible();
+      },
+    ],
+  ],
   'gravedad-artificial': [
     [
       'Fijar 1 g',
@@ -128,7 +148,7 @@ for (const colorScheme of SCHEMES) {
           const measure = async (state: string, root = 'body') => {
             await settle(page);
             const report = await measureGlyphs(page, cdp, root);
-            failures.push(...describeReport(report).map((line) => `[${state}] ${line}`));
+            failures.push(...describeReport(report, root).map((line) => `[${state}] ${line}`));
           };
 
           await measure('estado inicial');
@@ -136,15 +156,21 @@ for (const colorScheme of SCHEMES) {
             const lab = page.getByTestId(labTestId);
             const root = `[data-testid="${labTestId}"]`;
             await lab.scrollIntoViewIfNeeded();
-            for (const [state, step] of [
-              ...(await presetSteps(lab)),
-              ...(EXTRA_STATES[slug] ?? []),
-            ]) {
+            const presets = await presetSteps(lab);
+            // A renamed group or select must fail the guard, not silently empty it.
+            if (slug !== LAB_WITHOUT_PRESETS) requireStates(`${slug} (preajustes)`, presets);
+            const states = requireStates(slug, [...presets, ...(EXTRA_STATES[slug] ?? [])]);
+            for (const [state, step] of states) {
               await step(page, lab);
               await measure(state, root);
             }
             await settingsOpen(page, lab);
-            await measure('ajustes abiertos', 'body');
+            // Every tab of the drawer, not only the one that opens.
+            const dialog = page.getByRole('dialog');
+            for (const tab of await dialog.getByRole('tab').all()) {
+              await tab.click();
+              await measure(`ajustes, pestaña «${(await tab.textContent())?.trim()}»`);
+            }
             await settingsClose(page, lab);
           }
 
