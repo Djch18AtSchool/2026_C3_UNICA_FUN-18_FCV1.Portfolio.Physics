@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { bindNumerals, isCovered, uncoveredChars } from './typography';
+import { bindNumerals, isCovered, uncoveredChars, rawNotationMarks } from './typography';
 
 const NBSP = ' ';
 
@@ -70,5 +70,26 @@ describe('isCovered', () => {
     expect(isCovered('ω', 'mono')).toBe(false);
     expect(isCovered('ω', 'sans')).toBe(true);
     expect(isCovered('∞', 'sans')).toBe(false);
+  });
+});
+
+describe('rawNotationMarks', () => {
+  test.each([
+    ['Carga F_z', ['_']],
+    ['10^-7 rad/s', ['^']],
+    ['cuesta $5', ['$']],
+    ['F_z y 10^-7', ['_', '^']],
+    ['Sin marcas', []],
+  ])('finds the marks of %s', (text, marks) => {
+    expect(rawNotationMarks(text)).toEqual(marks);
+  });
+
+  test('lets real names pass: files with an extension and variables set with "="', () => {
+    expect(rawNotationMarks('src/contact_solver.c L383 y tcurve_F3soft.lut')).toEqual([]);
+    expect(rawNotationMarks('del orden del DY_REF=1.80 de MUR')).toEqual([]);
+  });
+
+  test('a subscript at the end of a sentence is not a file name', () => {
+    expect(rawNotationMarks('el valor de F_z. Luego sigue')).toEqual(['_']);
   });
 });

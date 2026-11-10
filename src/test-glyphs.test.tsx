@@ -20,6 +20,22 @@ describe('plexViolations', () => {
     expect(plexViolations(container)).toEqual(['∞ in «v∞ = 7»', 'δ in «δ = 97»']);
   });
 
+  test('finds a subscript, a power or a formula written raw', () => {
+    const { container } = render(
+      <div>
+        <p>Carga F_z</p>
+        <p>10^-7</p>
+        <p>cuesta $5</p>
+      </div>,
+    );
+
+    expect(plexViolations(container)).toEqual([
+      '_ in «Carga F_z»',
+      '^ in «10^-7»',
+      '$ in «cuesta $5»',
+    ]);
+  });
+
   test('skips KaTeX formulas and MathText tspans set in KaTeX', () => {
     const { container } = render(
       <div>

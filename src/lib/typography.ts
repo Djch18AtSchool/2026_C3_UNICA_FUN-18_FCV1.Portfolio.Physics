@@ -47,3 +47,19 @@ export function isCovered(char: string, family: PlexFamily = 'sans'): boolean {
 export function uncoveredChars(text: string, family: PlexFamily = 'sans'): string[] {
   return [...new Set(text)].filter((char) => !isCovered(char, family));
 }
+
+/** Marks of the notation that must never reach a reader as text: a subscript, a power or a formula written raw. */
+export const RAW_NOTATION_MARKS = ['_', '^', '$'] as const;
+
+/**
+ * Real names that hold an underscore (files such as "contact_solver.c" or "tcurve_F3soft.lut",
+ * a variable such as "DY_REF=1.80"): a file name ends in an extension, a variable is followed by
+ * "=". A subscript written raw ("F_z", "v_y1") matches neither.
+ */
+const LITERAL_NAME = /[\w/.-]*_[\w/.-]*\.[A-Za-z0-9]+|[A-Za-z]+(?:_[A-Za-z]+)+(?==)/g;
+
+/** The notation marks left in `text` once real names are set aside: a raw `F_z`, `10^-7` or `$`. */
+export function rawNotationMarks(text: string): string[] {
+  const rest = text.replace(LITERAL_NAME, '');
+  return RAW_NOTATION_MARKS.filter((mark) => rest.includes(mark));
+}

@@ -1,11 +1,13 @@
 /**
- * Characters of rendered text that IBM Plex does not draw, outside KaTeX: the unit-test guard of
- * a topic until the page-level e2e (tests/e2e/glyphs.spec.ts) exists. A text node counts as mono
+ * Characters of rendered text that IBM Plex does not draw, outside KaTeX, and the notation marks
+ * that were never typeset (`_`, `^`, `$`: a subscript, a power or a formula written raw, which
+ * Plex does draw and so no glyph check would see): the unit-test guard of a lab or a figure, the
+ * counterpart of the page-level e2e (tests/e2e/glyphs.spec.ts). A text node counts as mono
  * when an ancestor sets the mono family (font-family attribute or Tailwind's font-mono); text in
  * a KaTeX formula or in a MathText tspan set in KaTeX's fonts is skipped. Returns "char in «text»"
  * entries, empty when every character is covered.
  */
-import { uncoveredChars, type PlexFamily } from './lib/typography';
+import { rawNotationMarks, uncoveredChars, type PlexFamily } from './lib/typography';
 
 const KATEX_FAMILY = /KaTeX/;
 
@@ -28,7 +30,10 @@ export function plexViolations(root: Element): string[] {
     const family = familyOf(parent);
     if (family === 'katex') continue;
     const text = node.textContent ?? '';
-    found.push(...uncoveredChars(text, family).map((char) => `${char} in «${text.trim()}»`));
+    const raw = rawNotationMarks(text);
+    found.push(
+      ...[...uncoveredChars(text, family), ...raw].map((char) => `${char} in «${text.trim()}»`),
+    );
   }
   return found;
 }
