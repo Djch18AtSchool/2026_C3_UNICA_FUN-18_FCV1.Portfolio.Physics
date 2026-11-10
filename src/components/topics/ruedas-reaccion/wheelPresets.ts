@@ -50,12 +50,12 @@ function slowNote(): string {
   const peak = maneuverReadings(DEFAULT_SETTINGS, DEFAULT_SETTINGS.T / 2);
   const end = maneuverReadings(DEFAULT_SETTINGS, DEFAULT_SETTINGS.T);
   const torque = plan.torqueShare * SPACECRAFT.tauMax * MILLI;
-  return `Giro de reposo a reposo del 6U ($I_s$ = ${n(SPACECRAFT.Is, 4, 'kg·m²')}) con la RW400: $\\tau$ = ${n(torque, 2, 'mN·m')}, el ${percent(plan.torqueShare)} de $\\tau_\\text{máx}$. A los ${n(DEFAULT_SETTINGS.T / 2, 0, 's')} la nave gira a ${n(peak.omegaS, 1, '°/s')} y la rueda a ${n(peak.omegaW, 0, 'rpm')}, el ${percent(peak.share)} de $L_\\text{máx}$; al final la rueda vuelve a 0 rpm tras ${n(Math.abs(end.turns), 0)} vueltas.`;
+  return `Giro de reposo a reposo del 6U ($I_s$ = ${n(SPACECRAFT.Is, 4, 'kg·m²')}) con la RW400: $\\tau$ = ${n(torque, 2, 'mN·m')}, el ${percent(plan.torqueShare)} de $\\tau_\\text{máx}$; a los ${n(DEFAULT_SETTINGS.T / 2, 0, 's')} la rueda va a ${n(peak.omegaW, 0, 'rpm')}, el ${percent(peak.share)} de $L_\\text{máx}$, y al final vuelve a 0 rpm tras ${n(Math.abs(end.turns), 0)} vueltas.`;
 }
 
 function fastestNote(): string {
   const plan = maneuverFeasibility({ ...DEFAULT_SETTINGS, T: FASTEST_T });
-  return `$T_\\text{mín}$ = ${n(FASTEST.byTorque, 1, 's')} por torque y ${n(FASTEST.byMomentum, 1, 's')} por momento: las dos cotas casi coinciden, así que la rueda está bien dimensionada para este 6U. Con T = ${n(FASTEST_T, 1, 's')} el giro pide el ${percent(plan.torqueShare)} de $\\tau_\\text{máx}$ y el ${percent(plan.momentumShare)} de $L_\\text{máx}$.`;
+  return `$T_\\text{mín}$ = ${n(FASTEST.byTorque, 1, 's')} por torque y ${n(FASTEST.byMomentum, 1, 's')} por momento: las dos cotas casi coinciden, así que la rueda está bien dimensionada para este 6U, y con T = ${n(FASTEST_T, 1, 's')} el giro pide el ${percent(plan.torqueShare)} de $\\tau_\\text{máx}$ y el ${percent(plan.momentumShare)} de $L_\\text{máx}$.`;
 }
 
 function disturbanceNote(): string {
@@ -63,7 +63,7 @@ function disturbanceNote(): string {
   const fillTime = (DUMP_THRESHOLD * Lmax) / tauExt;
   const dumpTime = (DUMP_THRESHOLD * Lmax) / (tauDump - tauExt);
   const reached = disturbanceReadings('magnetopar', fillTime);
-  return `El gradiente de gravedad a 500 km, tomado constante en su máximo ($${formatScientific(GRAVITY_GRADIENT_6U.torque)}$ N·m, una cota superior), llena la rueda mientras la nave sigue quieta: llega al ${percent(reached.share)} de $L_\\text{máx}$ a las ${n(fillTime / SECONDS_PER_HOUR, 1, 'h')}. El magnetopar ($${formatScientific(tauDump, 2)}$ N·m) la vacía en ${n(dumpTime / SECONDS_PER_MINUTE, 0, 'min')}. La reproducción muestra ${DISTURBANCE_DAYS} días a cámara rápida, a 1× un día cada ${n(SECONDS_PER_DAY / DAY_LAPSE, 0, 's')}: la descarga cae en el tercero.`;
+  return `El gradiente de gravedad a 500 km, tomado constante en su máximo ($${formatScientific(GRAVITY_GRADIENT_6U.torque)}$ N·m, una cota superior), llena la rueda mientras la nave sigue quieta hasta el ${percent(reached.share)} de $L_\\text{máx}$ a las ${n(fillTime / SECONDS_PER_HOUR, 1, 'h')}, y el magnetopar ($${formatScientific(tauDump, 2)}$ N·m) la vacía en ${n(dumpTime / SECONDS_PER_MINUTE, 0, 'min')}, en el tercero de los ${DISTURBANCE_DAYS} días que muestra la reproducción a cámara rápida (a 1×, un día cada ${n(SECONDS_PER_DAY / DAY_LAPSE, 0, 's')}).`;
 }
 
 export const WHEEL_PRESETS: Preset<WheelSettings>[] = [
@@ -83,7 +83,7 @@ export const WHEEL_PRESETS: Preset<WheelSettings>[] = [
   },
   {
     id: 'tres-dias-perturbacion',
-    name: 'Tres días de perturbación con descarga',
+    name: 'Tres días de perturbación',
     values: { ...DEFAULT_SETTINGS, mode: 'perturbacion' },
     sourceLabel: 'Gradiente de gravedad y magnetopar (cálculo propio)',
     note: disturbanceNote(),

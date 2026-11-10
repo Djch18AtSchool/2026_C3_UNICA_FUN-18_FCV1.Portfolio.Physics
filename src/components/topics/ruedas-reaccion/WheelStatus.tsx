@@ -47,7 +47,10 @@ function WarningRegion({ text }: { text: string | undefined }): JSX.Element {
   return (
     <div role="status">
       {text === undefined ? null : (
-        <p className="m-0 rounded-base border-l-[3px] px-3 py-2 text-sm" style={WARNING_STYLE}>
+        <p
+          className="mx-0 mt-4 mb-0 rounded-base border-l-[3px] px-3 py-2 text-sm"
+          style={WARNING_STYLE}
+        >
           <InlineMath text={text} />
         </p>
       )}
@@ -57,7 +60,7 @@ function WarningRegion({ text }: { text: string | undefined }): JSX.Element {
 
 function ManeuverLimits({ feasibility }: { feasibility: Feasibility }): JSX.Element {
   return (
-    <p className="m-0 text-sm text-fg-muted">
+    <p className="m-0">
       <InlineMath
         text={`Giro más corto para este ángulo: $T_\\text{mín}$ = ${n(feasibility.byTorque, 1, 's')} por torque ($\\tau_\\text{máx}$ = ${n(SPACECRAFT.tauMax * MILLI, 0, 'mN·m')}) y ${n(feasibility.byMomentum, 1, 's')} por momento ($L_\\text{máx}$). La maniobra corre en tiempo real.`}
       />
@@ -89,16 +92,14 @@ function actuatorLaw(isMagnetic: boolean): string {
   return `Propulsor: $\\tau = r \\times F$. Su torque es un supuesto ilustrativo, no un dato de una fuente: lo acoto con el $\\tau_\\text{máx}$ de la rueda (${n(tauDump * MILLI, 0, 'mN·m')}), porque la rueda debe frenarse igual de rápido mientras la nave sigue quieta. Con esa cota la descarga dura unos ${n(seconds, 0, 's')}, lo más rápido posible.`;
 }
 
-/** What the disturbance mode is doing now, the dump actuator's law, the time-lapse and a jump to the dump. */
+/** What the disturbance mode is doing now, and a jump to the dump (a button: it stays in the canvas). */
 function DisturbanceStatus({
   settings,
   dumping,
-  speed,
   onGoToDump,
 }: {
   settings: WheelSettings;
   dumping: boolean;
-  speed: number;
   onGoToDump(): void;
 }): JSX.Element {
   const isMagnetic = settings.actuator === 'magnetopar';
@@ -106,15 +107,11 @@ function DisturbanceStatus({
     ? `Descargando con el ${isMagnetic ? 'magnetopar' : 'propulsor'}: el torque externo de descarga frena la rueda y la nave sigue quieta.`
     : `Acumulando: la rueda absorbe $\\tau_\\text{ext}$ = ${scientific(GRAVITY_GRADIENT_6U.torque, -7, DISTURBANCE_DECIMALS)} N·m (gradiente de gravedad a 500 km, tomado constante en su máximo: una cota superior) y la nave sigue quieta.`;
   return (
-    <div className="flex flex-col gap-1 text-sm">
+    <div className="mt-4 flex flex-col gap-2 text-sm">
       <p data-testid="wheel-phase" className="m-0">
         <InlineMath text={phase} />
       </p>
-      <p className="m-0 text-fg-muted">
-        <InlineMath text={actuatorLaw(isMagnetic)} />
-      </p>
-      <p className="m-0 text-fg-muted">{lapseStatement(speed)}</p>
-      <button type="button" onClick={onGoToDump} className={`${BUTTON} mt-1`}>
+      <button type="button" onClick={onGoToDump} className={BUTTON}>
         Ir a la descarga
       </button>
     </div>
@@ -125,38 +122,58 @@ export interface WheelStatusProps {
   settings: WheelSettings;
   feasibility: Feasibility;
   dumping: boolean;
-  /** The clock's playback speed, for the time-lapse statement. */
-  speed: number;
   onGoToDump(): void;
 }
 
 /**
- * The lines under the gauge: the warning's live region (filled when T < T_min), then in the
- * maneuver T_min, and in the disturbance the phase, the actuator's law and the time-lapse.
+ * The canvas's status, under the gauge: the warning's live region (filled when T < T_min) and, in
+ * the disturbance, the phase and the jump to the dump. The region sits in the page even when empty,
+ * so it takes no space; each block brings its own top margin.
  */
 export default function WheelStatus({
   settings,
   feasibility,
   dumping,
-  speed,
   onGoToDump,
 }: WheelStatusProps): JSX.Element {
   const isManeuver = settings.mode === 'maniobra';
   const warning =
     isManeuver && !feasibility.isFeasible ? maneuverWarning(settings, feasibility) : undefined;
   return (
-    <div className="flex flex-col gap-2">
+    <div>
       <WarningRegion text={warning} />
-      {isManeuver ? (
-        <ManeuverLimits feasibility={feasibility} />
-      ) : (
-        <DisturbanceStatus
-          settings={settings}
-          dumping={dumping}
-          speed={speed}
-          onGoToDump={onGoToDump}
-        />
+      {isManeuver ? null : (
+        <DisturbanceStatus settings={settings} dumping={dumping} onGoToDump={onGoToDump} />
       )}
+    </div>
+  );
+}
+
+export interface WheelNotesProps {
+  settings: WheelSettings;
+  feasibility: Feasibility;
+  /** The clock's playback speed, for the time-lapse statement. */
+  speed: number;
+}
+
+/**
+ * What reads the canvas without being a control, in the lab's canvas notes: in the maneuver the
+ * shortest turn; in the disturbance the dump actuator's law and the time-lapse.
+ */
+export function WheelNotes({ settings, feasibility, speed }: WheelNotesProps): JSX.Element {
+  if (settings.mode === 'maniobra') {
+    return (
+      <div className="text-sm text-fg-muted">
+        <ManeuverLimits feasibility={feasibility} />
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-2 text-sm text-fg-muted">
+      <p className="m-0">
+        <InlineMath text={actuatorLaw(settings.actuator === 'magnetopar')} />
+      </p>
+      <p className="m-0">{lapseStatement(speed)}</p>
     </div>
   );
 }

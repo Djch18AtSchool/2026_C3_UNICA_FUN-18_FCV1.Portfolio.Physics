@@ -12,7 +12,11 @@ import WheelLab, { DAY_LAPSE } from './WheelLab';
 import type { DumpActuator } from './wheelLabModel';
 import { readout } from '../../../test-readout';
 
-const FOOTNOTE = 'Rueda partiendo de 0 rpm; un eje.';
+const USAGE = 'La maniobra corre en tiempo real.';
+const LEFT_OUT = 'Resuelve un solo eje; la rueda parte de 0 rpm.';
+const usageNote = () => document.querySelector('details[data-lab-note="usage"]') as HTMLElement;
+const leftOutNote = () =>
+  document.querySelector('details[data-lab-note="left-out"]') as HTMLElement;
 /** The readout labels, as written (with `$…$` for KaTeX). */
 const OMEGA_PEAK = String.raw`$\omega_w$ máxima de la maniobra`;
 const SHARE = String.raw`Porcentaje de $L_\text{máx}$`;
@@ -33,7 +37,7 @@ function mockIdentityCtm(): void {
 }
 
 function renderLab() {
-  const view = render(<WheelLab footnote={FOOTNOTE} />);
+  const view = render(<WheelLab usage={USAGE} leftOut={LEFT_OUT} />);
   mockIdentityCtm();
   return view;
 }
@@ -120,7 +124,7 @@ describe('WheelLab', () => {
     resetSettingsForTests();
   });
 
-  test('opens on "90° en 60 s": the target at 90°, the plan readouts and the footnote', () => {
+  test('opens on "90° en 60 s": the target at 90°, the plan readouts and the two disclosures', () => {
     renderLab();
 
     expect(preset(/^90° en 60 s/)).toHaveAttribute('aria-pressed', 'true');
@@ -129,8 +133,125 @@ describe('WheelLab', () => {
     expect(readout(OMEGA_PEAK)).toBe('−969,54 rpm');
     expect(readout('Vueltas de la rueda')).toBe('0,0 vueltas');
     expect(readout(SHARE)).toBe('0,0 %');
-    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
+    expect(usageNote()).not.toHaveAttribute('open');
+    expect(usageNote()).toHaveTextContent(USAGE);
+    expect(leftOutNote()).toHaveTextContent(LEFT_OUT);
     expect(screen.queryByText(/la rueda no alcanza/i)).toBeNull();
+  });
+
+  test('the levels: θ and T are the parameters; the mode and the presets are the scenario', () => {
+    renderLab();
+    const params = screen.getByRole('region', { name: 'Parámetros' });
+    const scenario = screen.getByRole('region', { name: 'Escenario' });
+
+    expect(within(params).getByRole('textbox', { name: /^Ángulo objetivo theta/ })).toBeVisible();
+    expect(
+      within(params).getByRole('textbox', { name: /^Duración de la maniobra T/ }),
+    ).toBeVisible();
+    expect(within(params).queryByRole('radio')).toBeNull();
+    expect(within(params).queryByRole('button', { name: /^90° en 60 s/ })).toBeNull();
+    expect(within(scenario).getByRole('radio', { name: 'Maniobra' })).toBeChecked();
+    expect(within(scenario).getAllByRole('button')).toHaveLength(3);
+    expect(within(scenario).getByTestId('preset-note')).toHaveTextContent(
+      /^Giro de reposo a reposo/,
+    );
+    expect(within(scenario).getByTestId('preset-note')).toHaveTextContent(
+      'Fuente: Ejemplo del tema (cálculo propio)',
+    );
+  });
+
+  test('in the disturbance the only parameter is the dump actuator, and the mode keeps its place', async () => {
+    const user = userEvent.setup();
+    renderLab();
+
+    await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
+
+    const params = screen.getByRole('region', { name: 'Parámetros' });
+    expect(within(params).getByRole('radio', { name: 'Magnetopar' })).toBeChecked();
+    expect(within(params).queryByRole('textbox')).toBeNull();
+    expect(
+      within(screen.getByRole('region', { name: 'Escenario' })).getByRole('radio', {
+        name: 'Perturbación y descarga',
+      }),
+    ).toBeChecked();
+  });
+
+  test('the display settings show their chips by the gear: flechas and gráfica, 1× and no repeat', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const chips = () =>
+      within(screen.getByRole('group', { name: 'Ajustes activos' }))
+        .getAllByRole('button')
+        .map((chip) => chip.getAttribute('aria-label'));
+
+    expect(chips()).toEqual(['flechas', 'gráfica', 'Velocidad 1×']);
+
+    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('switch', { name: 'Gráfica de L sub w(t)' }),
+    );
+    await user.keyboard('{Escape}');
+
+    expect(chips()).toEqual(['flechas', 'Velocidad 1×']);
+  });
+
+  test('"Cómo se usa" starts with the hint of the mode, then the topic text', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    expect(usageNote()).toHaveTextContent(/^Cómo se usaArrastra la perilla del dial/);
+    expect(usageNote()).toHaveTextContent(USAGE);
+
+    await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
+
+    expect(usageNote()).toHaveTextContent(/La nave se mantiene quieta/);
+    expect(usageNote()).not.toHaveTextContent(/Arrastra la perilla/);
+  });
+
+  test('without MDX texts the lab still says how to use it and has no empty "Qué deja fuera"', () => {
+    render(<WheelLab />);
+
+    expect(usageNote()).toHaveTextContent(/Arrastra la perilla del dial/);
+    expect(leftOutNote()).toBeNull();
+  });
+
+  test('the canvas notes read the drawing and hold no control: T_min in the maneuver', () => {
+    renderLab();
+    const notes = document.querySelector('[data-lab-canvas-notes]') as HTMLElement;
+
+    expect(notes).toHaveTextContent(/Giro más corto para este ángulo/);
+    expect(
+      notes.querySelector('a, button, input, select, textarea, summary, [tabindex]'),
+    ).toBeNull();
+  });
+
+  test('in the disturbance the law of the actuator and the time-lapse are canvas notes; the jump stays in the canvas', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
+    const notes = document.querySelector('[data-lab-canvas-notes]') as HTMLElement;
+    const canvas = document.querySelector('[data-lab-canvas]') as HTMLElement;
+
+    expect(notes).toHaveTextContent(/Magnetopar:/);
+    expect(notes).toHaveTextContent(/A cámara rápida/);
+    expect(notes.querySelector('button')).toBeNull();
+    expect(within(canvas).getByRole('button', { name: 'Ir a la descarga' })).toBeVisible();
+    expect(within(canvas).getByTestId('wheel-phase')).toHaveTextContent(/acumulando/i);
+  });
+
+  test('the live region for the warning is in the canvas, once, and holds no space while empty', () => {
+    renderLab();
+    const canvas = document.querySelector('[data-lab-canvas]') as HTMLElement;
+
+    expect(within(canvas).getAllByRole('status')).toHaveLength(1);
+    expect(screen.getAllByRole('status')).toHaveLength(1);
+  });
+
+  test('the scene is a square of at most 400, whatever the width of the stage', () => {
+    renderLab();
+
+    const wrapper = scene().parentElement as HTMLElement;
+    expect(wrapper.style.maxWidth).toBe('400px');
+    expect(scene().getAttribute('viewBox')).toBe('0 0 400 400');
   });
 
   test('the target handle takes the keyboard: arrows 1°, Shift 10°, and the peak ω_w follows', () => {
@@ -308,11 +429,11 @@ describe('WheelLab', () => {
     expect(frames.request).not.toHaveBeenCalled();
   });
 
-  test('"Tres días de perturbación con descarga" switches to the time-lapsed disturbance', async () => {
+  test('"Tres días de perturbación" switches to the time-lapsed disturbance', async () => {
     const user = userEvent.setup();
     renderLab();
 
-    await user.click(preset(/^Tres días de perturbación con descarga/));
+    await user.click(preset(/^Tres días de perturbación/));
 
     expect(screen.getByRole('radio', { name: 'Perturbación y descarga' })).toBeChecked();
     expect(screen.getByRole('radio', { name: 'Magnetopar' })).toBeChecked();

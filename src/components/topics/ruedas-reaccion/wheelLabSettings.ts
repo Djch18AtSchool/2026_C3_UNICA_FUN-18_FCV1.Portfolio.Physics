@@ -23,22 +23,23 @@ export interface WheelLocalSettingsInput {
   clock: SimClock;
 }
 
-/** Flechas de giro, gráfica, velocidad and repetir, in that order. */
+/** Flechas de giro, gráfica, velocidad and repetir, in that order; the first two with their chips. */
 export function wheelLocalSettings({
   display,
   onDisplayChange,
   clock,
 }: WheelLocalSettingsInput): SettingOption[] {
-  const toggle = (key: keyof WheelDisplay, label: string): SettingOption => ({
+  const toggle = (key: keyof WheelDisplay, label: string, chip: string): SettingOption => ({
     key,
     label,
+    chip,
     kind: 'toggle',
     value: display[key],
     onChange: (value) => onDisplayChange({ ...display, [key]: value }),
   });
   return [
-    toggle('showArrows', String.raw`Flechas de giro $\omega_s$ y $\omega_w$`),
-    toggle('showPlot', 'Gráfica de $L_w(t)$'),
+    toggle('showArrows', String.raw`Flechas de giro $\omega_s$ y $\omega_w$`, 'flechas'),
+    toggle('showPlot', 'Gráfica de $L_w(t)$', 'gráfica'),
     ...clockSettings(clock, SPEEDS),
   ];
 }

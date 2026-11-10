@@ -38,10 +38,13 @@ const BODY_FILL = 'color-mix(in srgb, var(--fg) 7%, var(--bg-elevated))';
 const BODY_STROKE = 'var(--fg)';
 const RATE_COLOR = 'var(--accent)';
 
-/** viewBox width before the container is measured (SSR, jsdom): the article column. */
-const FALLBACK_WIDTH = 720;
-/** The dial lives in a square of at most this side. */
+/**
+ * The dial lives in a square of at most this side, and the scene is never wider: the server (and
+ * jsdom) draw that square before the width is measured, so the scene keeps its height when it
+ * hydrates in the lab's stage, whatever the stage's width (no layout shift).
+ */
 const MAX_SIDE = 400;
+const FALLBACK_WIDTH = MAX_SIDE;
 /** Room outside the dial for the knob and its degree labels. */
 const DIAL_MARGIN = 34;
 /** Gap between the body's corners and the dial, where the body's rate arc runs. */
@@ -374,7 +377,7 @@ export default function WheelScene(props: WheelSceneProps): JSX.Element {
   const isManeuver = mode === 'maniobra';
 
   return (
-    <div ref={wrapperRef} className="w-full">
+    <div ref={wrapperRef} className="mx-auto w-full" style={{ maxWidth: MAX_SIDE }}>
       <svg
         data-testid="wheel-scene"
         viewBox={`0 0 ${width} ${side}`}

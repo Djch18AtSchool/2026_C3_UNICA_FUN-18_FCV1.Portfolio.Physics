@@ -127,7 +127,9 @@ test.describe('página', () => {
     await expect(figures.nth(0).getByTestId('wheel-diagram')).toBeAttached();
     await expect(figures.nth(1)).toHaveAttribute('data-type', 'simulacion');
     await expect(figures.nth(1).getByTestId('wheel-lab')).toBeAttached();
-    await expect(figures.nth(1).getByTestId('lab-footnote')).toContainText('tiempo real');
+    await expect(figures.nth(1).locator('details[data-lab-note="usage"]')).toContainText(
+      'tiempo real',
+    );
   });
 
   test('las tres tablas se numeran Tabla 8.1 a 8.3, en orden', async ({ page }) => {
@@ -199,6 +201,35 @@ test.describe('laboratorio', () => {
     await expect(lab).toHaveAttribute('data-playing', 'false');
   });
 });
+
+/** Widths where the presets' one-line chips (LabPresets, no wrap) must fit inside the panel. */
+const CHIP_FIT_VIEWPORTS = [
+  { name: '360 px', size: PHONE },
+  { name: '1 280 px', size: { width: 1280, height: 800 } },
+] as const;
+
+for (const { name, size } of CHIP_FIT_VIEWPORTS) {
+  test.describe(`a ${name}`, () => {
+    test.use({ viewport: size });
+
+    test('las fichas de los tres preajustes caben en el panel, sin salirse por la derecha', async ({
+      page,
+    }) => {
+      await openLab(page);
+      const panel = await page.locator(`${LAB} [data-lab-panel]`).boundingBox();
+      const chips = page.locator(`${LAB} [data-lab-presets="chips"]`).getByRole('button');
+
+      await expect(chips).toHaveCount(3);
+      for (const chip of await chips.all()) {
+        const box = await chip.boundingBox();
+        const label = (await chip.textContent())?.trim();
+        expect((box?.x ?? 0) + (box?.width ?? 0), label).toBeLessThanOrEqual(
+          (panel?.x ?? 0) + (panel?.width ?? 0),
+        );
+      }
+    });
+  });
+}
 
 test.describe('a 360 px', () => {
   test.use({ viewport: PHONE });

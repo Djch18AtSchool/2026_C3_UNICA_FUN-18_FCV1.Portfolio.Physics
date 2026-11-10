@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, type JSX } from 'react';
-import Presets from '../../controls/Presets';
+import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import { useSimClock } from '../../lab/useSimClock';
@@ -35,7 +35,7 @@ import {
   WHEEL_PRESETS,
 } from './wheelPresets';
 import WheelScene, { type SpinState } from './WheelScene';
-import WheelStatus from './WheelStatus';
+import WheelStatus, { WheelNotes } from './WheelStatus';
 
 export { DAY_LAPSE } from './wheelLabModel';
 
@@ -53,9 +53,17 @@ const PRECISION = { Lw: 4, maneuverTorque: 3, disturbanceTorque: 6, percent: 1, 
 const MILLI = 1000;
 const PERCENT = 100;
 
+/** «Cómo se usa», by mode: how the maneuver is set, what the disturbance shows. */
+const MANEUVER_HINT =
+  'Arrastra la perilla del dial, o enfócala y muévela con las flechas (1°; con Mayús, 10°). El signo positivo es antihorario visto desde arriba; la rueda parte de 0 rpm.';
+const DISTURBANCE_HINT =
+  'La nave se mantiene quieta: la rueda absorbe el torque externo hasta el umbral y otro actuador, que sí intercambia momento con algo externo, la vacía.';
+
 export interface WheelLabProps {
-  /** The model's caveats and the playback speeds, written in the topic's MDX. */
-  footnote?: string;
+  /** «Cómo se usa», after the mode's hint: the time-lapse and the dump's stretch, from the topic's MDX. */
+  usage?: string;
+  /** «Qué deja fuera el modelo», written in the topic's MDX. */
+  leftOut?: string;
 }
 
 function readoutsFor(
@@ -137,7 +145,7 @@ function readoutsFor(
  * with the magnetorquer or the thruster. Readouts, the L_w/L_max gauge and the L_w(t) plot follow
  * the clock.
  */
-export default function WheelLab({ footnote }: WheelLabProps): JSX.Element {
+export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element {
   const [settings, setSettings] = useState<WheelSettings>(DEFAULT_SETTINGS);
   const [display, setDisplay] = useState<WheelDisplay>(DEFAULT_DISPLAY);
   const isManeuver = settings.mode === 'maniobra';
@@ -190,7 +198,40 @@ export default function WheelLab({ footnote }: WheelLabProps): JSX.Element {
     setDisplay(DEFAULT_DISPLAY);
   };
 
-  const params = (
+  const params = isManeuver ? (
+    <>
+      <ParamField
+        id="wheel-theta"
+        label={String.raw`Ángulo objetivo $\theta$`}
+        unit="°"
+        min={WHEEL_LIMITS.thetaDeg[0]}
+        max={WHEEL_LIMITS.thetaDeg[1]}
+        step={THETA_STEP}
+        value={settings.thetaDeg}
+        onChange={(thetaDeg) => set('thetaDeg', thetaDeg)}
+      />
+      <ParamField
+        id="wheel-T"
+        label="Duración de la maniobra T"
+        unit="s"
+        min={WHEEL_LIMITS.T[0]}
+        max={WHEEL_LIMITS.T[1]}
+        step={T_STEP}
+        value={settings.T}
+        onChange={(T) => set('T', T)}
+      />
+    </>
+  ) : (
+    <ChoiceField
+      id="wheel-actuator"
+      label="Descarga con"
+      value={settings.actuator}
+      options={ACTUATOR_OPTIONS}
+      onChange={(actuator) => set('actuator', actuator)}
+    />
+  );
+
+  const scenario = (
     <>
       <ChoiceField
         id="wheel-mode"
@@ -199,48 +240,12 @@ export default function WheelLab({ footnote }: WheelLabProps): JSX.Element {
         options={MODE_OPTIONS}
         onChange={(mode) => set('mode', mode)}
       />
-      {isManeuver ? (
-        <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-          <ParamField
-            id="wheel-theta"
-            label={String.raw`Ángulo objetivo $\theta$`}
-            unit="°"
-            min={WHEEL_LIMITS.thetaDeg[0]}
-            max={WHEEL_LIMITS.thetaDeg[1]}
-            step={THETA_STEP}
-            value={settings.thetaDeg}
-            onChange={(thetaDeg) => set('thetaDeg', thetaDeg)}
-          />
-          <ParamField
-            id="wheel-T"
-            label="Duración de la maniobra T"
-            unit="s"
-            min={WHEEL_LIMITS.T[0]}
-            max={WHEEL_LIMITS.T[1]}
-            step={T_STEP}
-            value={settings.T}
-            onChange={(T) => set('T', T)}
-          />
-        </div>
-      ) : (
-        <ChoiceField
-          id="wheel-actuator"
-          label="Descarga con"
-          value={settings.actuator}
-          options={ACTUATOR_OPTIONS}
-          onChange={(actuator) => set('actuator', actuator)}
-        />
-      )}
-      <Presets
+      <LabPresets
+        id="wheel-preset"
         presets={WHEEL_PRESETS}
         activeId={presetIdFor(settings)}
         onSelect={(preset) => apply(preset.values)}
       />
-      <p className="m-0 text-sm text-fg-muted">
-        {isManeuver
-          ? 'Arrastra la perilla del dial, o enfócala y muévela con las flechas (1°; con Mayús, 10°). El signo positivo es antihorario visto desde arriba; la rueda parte de 0 rpm.'
-          : 'La nave se mantiene quieta: la rueda absorbe el torque externo hasta el umbral y otro actuador, que sí intercambia momento con algo externo, la vacía.'}
-      </p>
     </>
   );
 
@@ -250,10 +255,19 @@ export default function WheelLab({ footnote }: WheelLabProps): JSX.Element {
       clock={clock}
       timeUnit="s"
       readouts={readoutsFor(t, live, maneuver)}
-      params={params}
-      localSettings={wheelLocalSettings({ display, onDisplayChange: setDisplay, clock })}
+      canvasNotes={
+        <WheelNotes settings={settings} feasibility={feasibility} speed={clock.state.speed} />
+      }
+      levels={{
+        params,
+        scenario,
+        display: wheelLocalSettings({ display, onDisplayChange: setDisplay, clock }),
+      }}
+      notes={{
+        usage: [isManeuver ? MANEUVER_HINT : DISTURBANCE_HINT, ...(usage ? [usage] : [])],
+        leftOut: leftOut ? [leftOut] : [],
+      }}
       onReset={onReset}
-      footnote={footnote}
       testId="wheel-lab"
     >
       <div className="flex flex-col gap-4">
@@ -272,18 +286,19 @@ export default function WheelLab({ footnote }: WheelLabProps): JSX.Element {
           showArrows={display.showArrows}
           onTargetChange={(thetaDeg) => set('thetaDeg', thetaDeg)}
         />
-        <MomentumGauge
-          Lw={live.Lw}
-          Lmax={SPACECRAFT.Lmax}
-          threshold={isManeuver ? undefined : DUMP_THRESHOLD}
-        />
-        <WheelStatus
-          settings={settings}
-          feasibility={feasibility}
-          dumping={disturbance?.dumping ?? false}
-          speed={clock.state.speed}
-          onGoToDump={() => clock.seek(firstDumpPlayback(warp))}
-        />
+        <div>
+          <MomentumGauge
+            Lw={live.Lw}
+            Lmax={SPACECRAFT.Lmax}
+            threshold={isManeuver ? undefined : DUMP_THRESHOLD}
+          />
+          <WheelStatus
+            settings={settings}
+            feasibility={feasibility}
+            dumping={disturbance?.dumping ?? false}
+            onGoToDump={() => clock.seek(firstDumpPlayback(warp))}
+          />
+        </div>
         {display.showPlot ? (
           <WheelPlot
             settings={settings}
