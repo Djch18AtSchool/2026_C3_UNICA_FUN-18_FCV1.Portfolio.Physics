@@ -42,6 +42,16 @@ describe('LabPresets', () => {
     expect(onSelect).toHaveBeenCalledExactlyOnceWith(FEW[1]);
   });
 
+  test('a chip is its mark and one inline run: no flex gap opens around a formula in its name', () => {
+    const withMath = [preset('rapido', { name: 'El giro más rápido ($\\approx$ 12 s)' })];
+    render(<LabPresets id="p" presets={withMath} onSelect={vi.fn()} />);
+
+    const chip = screen.getByRole('button');
+    expect(chip.childNodes).toHaveLength(2);
+    expect([...chip.children].map((child) => child.tagName)).toEqual(['SPAN', 'SPAN']);
+    expect(chip.lastElementChild?.querySelector('.katex')).not.toBeNull();
+  });
+
   test('a chip keeps the accessible name it had as a two-line button: name and source', () => {
     render(<LabPresets id="p" presets={FEW} onSelect={vi.fn()} />);
 

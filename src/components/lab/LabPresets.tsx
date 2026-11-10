@@ -81,7 +81,10 @@ function PresetChips<T>({ presets, activeId, onSelect, label }: Omit<LabPresetsP
               aria-hidden="true"
               className={`${MARKER} ${isActive ? 'border-accent bg-accent' : 'border-fg-muted'}`}
             />
-            <InlineMath text={preset.name} />
+            {/* One inline run: as flex items, text and formula would sit a gap apart. */}
+            <span>
+              <InlineMath text={preset.name} />
+            </span>
           </button>
         );
       })}
