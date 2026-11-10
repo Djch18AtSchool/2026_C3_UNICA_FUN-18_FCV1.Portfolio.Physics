@@ -59,7 +59,7 @@ export interface TriggerLabProps {
 }
 
 /**
- * Tema 5's laboratory on the v2 shell, with no clock: a lever on a pivot pressed through 0–8 mm
+ * Tema 5's laboratory on LabShell, with no clock: a lever on a pivot pressed through 0–8 mm
  * (pointer, touch or keys), the F–x plot with the ideal spring and the trigger's piecewise
  * profile and a live marker, k and x₀ as main parameters, presets from the text's examples and the
  * readouts x, F, U and W. Let go, the lever returns with the kernel's damped spring (critical or

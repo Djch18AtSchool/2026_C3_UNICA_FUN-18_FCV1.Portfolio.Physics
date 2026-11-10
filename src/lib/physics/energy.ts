@@ -157,7 +157,7 @@ interface IntervalFlow {
  * ΔK = ½ m (v1² − v0²), P = ΔK/Δt + F_RL(v̄)·v̄, P_freno = max(0, −P),
  * P_regen = min(f·P_freno, P_máx). The fade f is taken at the end speed v1; FASTSim 2 evaluates it
  * at the mean speed of the interval (41,2 % instead of 40,4 % on the UDDS). The topic's laboratory
- * footnote declares this choice.
+ * says so in «Qué deja fuera el modelo».
  */
 function intervalFlow(
   s0: CycleSample,

@@ -72,7 +72,7 @@ function describePlot(live: JumpResult, ghost: JumpResult | undefined): string {
 }
 
 /**
- * Tema 2's laboratory on the v2 shell: the jump plotted in metres with equal aspect, the Earth
+ * Tema 2's laboratory on LabShell: the jump plotted in metres with equal aspect, the Earth
  * reference, a trail and the velocity at t, a draggable marker that scrubs t and a draggable
  * launch vector that sets v₀ and vₓ. The clock lasts the live jump's air time; any change to the
  * trajectory rewinds it. "Diseñar el salto" sits below, compact.

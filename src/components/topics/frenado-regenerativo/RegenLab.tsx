@@ -77,7 +77,7 @@ export interface RegenLabProps {
 }
 
 /**
- * Tema 6's laboratory on the v2 shell: an EPA cycle played 20 times faster with the car on the
+ * Tema 6's laboratory on LabShell: an EPA cycle played 20 times faster with the car on the
  * road, the live power flow battery ↔ motor ↔ wheels → friction brakes, the cumulative energies
  * as bars and as a plot whose cursor seeks the clock; η and P_máx as parameters, the cycle and
  * f(v) (on by default, ruling R19) as local settings, five presets and the readouts v, P,

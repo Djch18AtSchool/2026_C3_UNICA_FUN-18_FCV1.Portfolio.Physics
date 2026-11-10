@@ -47,7 +47,7 @@ export interface HabitatLabProps {
 }
 
 /**
- * Tema 3's laboratory on the v2 shell: the ring turning for one revolution (the clock lasts
+ * Tema 3's laboratory on LabShell: the ring turning for one revolution (the clock lasts
  * T = 2π/ω), a person on the floor with live a_c and apparent-gravity vectors, the radius dragged
  * along a log bar, RPM and radius as main parameters, the "fijar 1 g" switch that solves one from
  * the other, the v1 presets and the readouts ω, v, a_c/g, T and the head-to-feet gradient.

@@ -227,7 +227,7 @@ export interface DroneLabProps {
 }
 
 /**
- * Tema 1's laboratory on the v2 shell: the route map with draggable stops A, B and C, the drone
+ * Tema 1's laboratory on LabShell: the route map with draggable stops A, B and C, the drone
  * flown along the route with its v and a vectors, vₘₐₓ and aₘₐₓ as main parameters and, below,
  * the four profile charts with a marker at t. The declared route comes from the committed
  * dataset, loaded lazily; an edited route is generated in the browser when a stop is dropped.

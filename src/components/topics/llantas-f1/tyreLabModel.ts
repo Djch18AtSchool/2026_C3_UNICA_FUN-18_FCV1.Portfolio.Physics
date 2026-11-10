@@ -31,13 +31,14 @@ export const INITIAL_TYRE_STATE: Readonly<TyreLabState> = { t: 120, fz: 4000, co
 
 export const COMPOUNDS: readonly Compound[] = ['C3', 'C4'];
 
+/** The three C3 presets and their numbers come from the topic's equations and the 2019 window. */
+const OWN_SOURCE = 'cálculo propio con las ecuaciones (4.2) y (4.3)';
+
 /**
  * States worth comparing, all from the topic's own numbers: the C3 in its window at 8 000 N (the
  * 11 943 N of figure 4.2), the cold tyre at 60 °C, a load below the reference and the C4 at its
- * optimum (its bell is a model assumption, as the footnote says).
+ * optimum (its bell is a model assumption, as «Qué deja fuera el modelo» says).
  */
-/** The three C3 presets and their numbers come from the topic's equations and the 2019 window. */
-const OWN_SOURCE = 'cálculo propio con las ecuaciones (4.2) y (4.3)';
 
 export const TYRE_PRESETS: Preset<TyreLabState>[] = [
   {

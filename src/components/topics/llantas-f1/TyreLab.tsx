@@ -54,7 +54,7 @@ export interface TyreLabProps {
 }
 
 /**
- * Tema 4's laboratory on the v2 shell, with no clock: two stacked plots, each with a draggable
+ * Tema 4's laboratory on LabShell, with no clock: two stacked plots, each with a draggable
  * cursor (temperature, which reads μ(T) over the chosen compound's 2019 window, and load, which
  * reads the linear and the load-sensitive peak lateral force), the parameters T and F_z bound to
  * those cursors, presets from the topic's numbers, the compound as a local setting and the

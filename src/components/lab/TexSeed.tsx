@@ -6,7 +6,7 @@
  * mounts its labels and InlineMath finds them ready. A formula that was not listed still loads
  * KaTeX as usual, so a missing entry costs bytes, never correctness. Usage:
  *
- *   <TexSeed formulas={[...LAB_FORMULAS, ...formulasOf(footnote)]} />   // in the skeleton
+ *   <TexSeed formulas={[...LAB_FORMULAS, ...formulasOf(usage)]} />      // in the skeleton
  *   readTexSeed();                                                      // before the labels
  */
 import type { JSX } from 'react';
