@@ -53,6 +53,8 @@ describe('LabShell', () => {
     uninstall();
     localStorage.clear();
     resetSettingsForTests();
+    // A spy left by a failed assertion must not leak into the next test.
+    vi.restoreAllMocks();
   });
 
   test('shows the title, names the group after it and leaves the type badge to its Figure', () => {

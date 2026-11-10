@@ -26,7 +26,11 @@ const MANY: Preset<G>[] = ['a', 'b', 'c', 'd', 'e'].map((id) => preset(id));
 const noteLine = () => screen.getByTestId('preset-note');
 
 describe('LabPresets', () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    // A spy left by a failed assertion must not leak into the next test.
+    vi.restoreAllMocks();
+  });
 
   test(`up to ${MAX_PRESET_CHIPS} presets are one-line chips in a group named «${PRESETS_LABEL}»`, () => {
     const onSelect = vi.fn();
