@@ -27,6 +27,8 @@ const INTEGRATOR_OPTIONS: { value: Integrator; label: string }[] = [
 ];
 
 const FALL_MULTIPLIER_STEP = 0.1;
+/** The fall multiplier of a plain jump: only a different one is worth a chip. */
+const DEFAULT_FALL_MULTIPLIER = 1;
 
 function isIntegrator(value: string): value is Integrator {
   return INTEGRATOR_OPTIONS.some((option) => option.value === value);
@@ -42,7 +44,8 @@ export interface JumpLocalSettingsInput {
 
 /**
  * Referencia terrestre, vector velocidad, rastro, multiplicador de caída (1–4), integrador,
- * velocidad and repetir, in that order. Speed and repeat live on the clock itself.
+ * velocidad and repetir, in that order. Speed and repeat live on the clock itself. The chips show
+ * what is on, and the multiplier and the integrator only once they differ from the plain jump.
  */
 export function jumpLocalSettings({
   display,
@@ -71,7 +74,7 @@ export function jumpLocalSettings({
     {
       key: 'fallMultiplier',
       label: 'Multiplicador de caída',
-      chip: 'caída',
+      chip: fallMultiplier === DEFAULT_FALL_MULTIPLIER ? undefined : 'caída',
       kind: 'range',
       value: fallMultiplier,
       min: kMin,
@@ -83,7 +86,7 @@ export function jumpLocalSettings({
     {
       key: 'integrator',
       label: 'Integrador',
-      chip: 'Integrador',
+      chip: display.integrator === DEFAULT_DISPLAY.integrator ? undefined : 'Integrador',
       kind: 'select',
       value: display.integrator,
       options: INTEGRATOR_OPTIONS,

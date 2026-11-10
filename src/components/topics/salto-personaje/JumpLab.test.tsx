@@ -268,26 +268,36 @@ describe('JumpLab', () => {
     expect(within(screen.getByTestId('preset-note')).queryByRole('link')).toBeNull();
   });
 
-  test('beside the gear, one chip per setting that is on, and the fall multiplier and the integrator', async () => {
+  test('beside the gear, one chip per setting that is on, and the speed', async () => {
     const user = userEvent.setup();
     renderLab();
     const chips = () =>
       within(screen.getByRole('group', { name: 'Ajustes activos' }))
         .getAllByRole('button')
         .map((chip) => chip.getAttribute('aria-label')?.replace(/\s/g, ' '));
-    expect(chips()).toEqual([
-      'referencia',
-      'vector v',
-      'rastro',
-      'caída 1,0 ×',
-      'Integrador Analítico',
-      'Velocidad 1×',
-    ]);
+    expect(chips()).toEqual(['referencia', 'vector v', 'rastro', 'Velocidad 1×']);
 
     await user.click(screen.getByRole('button', { name: 'rastro' }));
     await user.click(within(screen.getByRole('dialog')).getByRole('switch', { name: 'Rastro' }));
 
     expect(chips()).not.toContain('rastro');
+  });
+
+  test('the fall multiplier and the integrator get a chip once they differ from the plain jump', async () => {
+    const user = userEvent.setup();
+    const { container } = renderLab();
+    const chips = () =>
+      within(screen.getByRole('group', { name: 'Ajustes activos' }))
+        .getAllByRole('button')
+        .map((chip) => chip.getAttribute('aria-label')?.replace(/\s/g, ' '));
+
+    await user.click(screen.getByRole('button', { name: /^Super Mario Bros\./ }));
+    expect(chips()).toContain('caída 3,5 ×');
+
+    await user.click(gear());
+    const dialog = container.querySelector('dialog') as HTMLDialogElement;
+    await user.selectOptions(within(dialog).getByLabelText('Integrador'), 'euler');
+    expect(chips()).toContain('Integrador Euler semi-implícito');
   });
 
   test('«Cómo se usa» is not drawn without a text, and «Qué deja fuera el modelo» waits closed', () => {

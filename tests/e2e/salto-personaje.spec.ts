@@ -173,7 +173,7 @@ test('«Qué deja fuera el modelo» abre cerrado y suma la nota del integrador s
   await expect(leftOut).toContainText('Euler semi-implícito con paso fijo');
 });
 
-test('el laboratorio va por niveles: v₀ y g, los cuatro preajustes con su fuente enlazada y las fichas', async ({
+test('el laboratorio va por niveles: v₀ y g, los cuatro preajustes con su fuente enlazada y las fichas de lo activo', async ({
   page,
 }) => {
   const lab = page.locator(LAB);
@@ -194,7 +194,8 @@ test('el laboratorio va por niveles: v₀ y g, los cuatro preajustes con su fuen
   await expect(params.getByRole('slider', { name: 'Gravedad g' })).toHaveValue('1.62');
   await expect(scenario.getByTestId('preset-note')).toContainText('Fuente: g lunar, 1,62 m/s²');
   const chips = lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button');
-  await expect(chips).toHaveCount(6);
+  // Referencia, vector, rastro and the speed: the fall multiplier and the integrator only differ.
+  await expect(chips).toHaveCount(4);
   await expect(chips.first()).toHaveAccessibleName('referencia');
 });
 
