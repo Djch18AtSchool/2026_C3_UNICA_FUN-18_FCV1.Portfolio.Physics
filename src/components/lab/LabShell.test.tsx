@@ -6,9 +6,9 @@ import { resetSettingsForTests } from '../../lib/settingsStore';
 import { installDialogPolyfill } from '../../test-dialog';
 import { fakeClock } from '../../test-fake-clock';
 import { EXACT_TEXT } from '../../test-exact-text';
-import LabShell, { READOUT_ANNOUNCE_DELAY_MS, type LabShellProps } from './LabShell';
+import LabShell, { READOUT_ANNOUNCE_DELAY_MS, type StackedLabShellProps } from './LabShell';
 
-function shellProps(overrides: Partial<LabShellProps> = {}): LabShellProps {
+function shellProps(overrides: Partial<StackedLabShellProps> = {}): StackedLabShellProps {
   return {
     title: 'Laboratorio del salto',
     readouts: [
@@ -26,7 +26,7 @@ function shellProps(overrides: Partial<LabShellProps> = {}): LabShellProps {
   };
 }
 
-function renderShell(overrides: Partial<LabShellProps> = {}) {
+function renderShell(overrides: Partial<StackedLabShellProps> = {}) {
   return render(<LabShell {...shellProps(overrides)} />);
 }
 

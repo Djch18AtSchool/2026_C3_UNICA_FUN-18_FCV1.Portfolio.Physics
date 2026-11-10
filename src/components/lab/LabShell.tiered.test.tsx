@@ -1,0 +1,256 @@
+// @vitest-environment jsdom
+import { act, cleanup, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { resetSettingsForTests } from '../../lib/settingsStore';
+import { installDialogPolyfill } from '../../test-dialog';
+import { fakeClock } from '../../test-fake-clock';
+import LabShell, { READOUT_ANNOUNCE_DELAY_MS, type TieredLabShellProps } from './LabShell';
+import type { SettingOption } from './SettingsDrawer';
+
+const display = (trail = true): SettingOption[] => [
+  {
+    key: 'trail',
+    label: 'Estela de la sonda',
+    chip: 'estela',
+    kind: 'toggle',
+    value: trail,
+    onChange: () => {},
+  },
+  { key: 'grid', label: 'Rejilla fina', kind: 'toggle', value: true, onChange: () => {} },
+  {
+    key: 'speed',
+    label: 'Velocidad',
+    chip: 'Velocidad',
+    kind: 'select',
+    value: '1',
+    options: [{ value: '1', label: '1×' }],
+    onChange: () => {},
+  },
+];
+
+function tieredProps(overrides: Partial<TieredLabShellProps> = {}): TieredLabShellProps {
+  return {
+    title: 'Laboratorio del sobrevuelo',
+    readouts: [
+      { id: 'e', label: 'Excentricidad e', value: 1.33, unit: '', precision: 3 },
+      { id: 'delta', label: 'Ángulo de giro δ', value: 97.5, unit: '°', precision: 1 },
+    ],
+    levels: {
+      params: <input aria-label="Máxima aproximación" />,
+      scenario: <p>escenario del encuentro</p>,
+      display: display(),
+    },
+    notes: { usage: ['Arrastra el punto.'], leftOut: ['Es plano.'] },
+    onReset: () => {},
+    testId: 'flyby-lab',
+    children: <svg data-testid="canvas" />,
+    ...overrides,
+  };
+}
+
+const renderTiered = (overrides: Partial<TieredLabShellProps> = {}) =>
+  render(<LabShell {...tieredProps(overrides)} />);
+
+const gear = () => screen.getByRole('button', { name: 'Ajustes del simulador' });
+const dialogOf = (container: HTMLElement) => container.querySelector('dialog') as HTMLDialogElement;
+const region = (name: string) => screen.getByRole('region', { name });
+
+function expectInOrder(nodes: readonly Node[]): void {
+  nodes.slice(1).forEach((node, index) => {
+    const isFollowing =
+      nodes[index].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING;
+    expect(isFollowing, `item ${index + 1} follows item ${index}`).toBeTruthy();
+  });
+}
+
+describe('LabShell with levels (tiered)', () => {
+  let uninstall: () => void;
+  beforeEach(() => {
+    uninstall = installDialogPolyfill();
+  });
+  afterEach(() => {
+    cleanup();
+    uninstall();
+    vi.useRealTimers();
+    localStorage.clear();
+    resetSettingsForTests();
+  });
+
+  test('is one group named by its title, marked as the tiered layout', () => {
+    renderTiered();
+
+    const lab = screen.getByRole('group', { name: 'Laboratorio del sobrevuelo' });
+    expect(lab).toBe(screen.getByTestId('flyby-lab'));
+    expect(lab).toHaveAttribute('data-lab-shell', 'tiered');
+  });
+
+  test('beside the gear, a chip per active display setting that declares one', () => {
+    renderTiered();
+
+    const chips = within(screen.getByRole('group', { name: 'Ajustes activos' })).getAllByRole(
+      'button',
+    );
+    expect(chips.map((chip) => chip.textContent)).toEqual(['estela', '1×']);
+    expect(chips.map((chip) => chip.getAttribute('aria-label'))).toEqual([
+      'estela',
+      'Velocidad 1×',
+    ]);
+    expectInOrder([screen.getByText('Laboratorio del sobrevuelo'), ...chips, gear()]);
+  });
+
+  test('a toggle switched off leaves the row; the row follows the settings it is given', () => {
+    const { rerender } = renderTiered();
+    expect(screen.getByRole('button', { name: 'estela' })).toBeInTheDocument();
+
+    rerender(<LabShell {...tieredProps({ levels: { params: null, display: display(false) } })} />);
+
+    expect(screen.queryByRole('button', { name: 'estela' })).toBeNull();
+  });
+
+  test('without chips there is no chip group, only the gear', () => {
+    renderTiered({ levels: { params: null, display: [] } });
+
+    expect(screen.queryByRole('group', { name: 'Ajustes activos' })).toBeNull();
+    expect(gear()).toBeInTheDocument();
+  });
+
+  test('a chip opens the drawer, and closing it returns focus to that chip', async () => {
+    const user = userEvent.setup();
+    const { container } = renderTiered();
+    const chip = screen.getByRole('button', { name: 'Velocidad 1×' });
+    expect(chip).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(chip).toHaveAttribute('aria-controls', dialogOf(container).id);
+
+    await user.click(chip);
+    expect(dialogOf(container).open).toBe(true);
+    expect(chip).toHaveAttribute('aria-expanded', 'true');
+    expect(gear()).toHaveAttribute('aria-expanded', 'true');
+    expect(
+      within(dialogOf(container)).getByRole('switch', { name: 'Estela de la sonda' }),
+    ).toBeChecked();
+
+    await user.keyboard('{Escape}');
+    expect(dialogOf(container).open).toBe(false);
+    expect(chip).toHaveFocus();
+  });
+
+  test('the gear still opens the drawer and gets focus back', async () => {
+    const user = userEvent.setup();
+    const { container } = renderTiered();
+
+    await user.click(gear());
+    expect(dialogOf(container).open).toBe(true);
+    await user.keyboard('{Escape}');
+
+    expect(gear()).toHaveFocus();
+  });
+
+  test('levels are named regions: Parámetros (with Restablecer), Escenario, Lecturas', async () => {
+    const user = userEvent.setup();
+    const onReset = vi.fn();
+    renderTiered({ onReset });
+
+    expect(
+      within(region('Parámetros')).getByRole('textbox', { name: 'Máxima aproximación' }),
+    ).toBeInTheDocument();
+    expect(within(region('Escenario')).getByText('escenario del encuentro')).toBeInTheDocument();
+    expect(region('Parámetros')).toHaveAttribute('data-lab-level', 'params');
+    expect(region('Escenario')).toHaveAttribute('data-lab-level', 'scenario');
+    expect(region('Lecturas')).toHaveAttribute('data-lab-level', 'readouts');
+
+    await user.click(within(region('Parámetros')).getByRole('button', { name: 'Restablecer' }));
+    expect(onReset).toHaveBeenCalledTimes(1);
+  });
+
+  test('a lab without a scenario has no Escenario region; one without readouts, no Lecturas', () => {
+    renderTiered({ readouts: [], levels: { params: <p>solo parámetros</p>, display: [] } });
+
+    expect(screen.queryByRole('region', { name: 'Escenario' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Lecturas' })).toBeNull();
+    expect(region('Parámetros')).toHaveTextContent('solo parámetros');
+  });
+
+  test('readouts are cells in two narrow columns', () => {
+    renderTiered();
+
+    const cells = region('Lecturas').querySelectorAll('[data-readout]');
+    expect([...cells].map((cell) => cell.getAttribute('data-layout'))).toEqual(['cell', 'cell']);
+    expect(cells[0].parentElement).toHaveClass('grid-cols-2');
+  });
+
+  test('the canvas and the transport share the stage; the levels share the panel', () => {
+    const { container } = renderTiered({ clock: fakeClock() });
+
+    const stage = container.querySelector('[data-lab-stage]') as HTMLElement;
+    const panel = container.querySelector('[data-lab-panel]') as HTMLElement;
+    expect(within(stage).getByTestId('canvas')).toBeInTheDocument();
+    expect(within(stage).getByRole('group', { name: 'Reproducción' })).toBeInTheDocument();
+    expect(within(panel).getAllByRole('region')).toHaveLength(3);
+    expect(stage.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  test('reading and focus order: canvas, transport, params, scenario, readouts, notes', () => {
+    renderTiered({ clock: fakeClock() });
+
+    expectInOrder([
+      gear(),
+      screen.getByTestId('canvas'),
+      screen.getByRole('group', { name: 'Reproducción' }),
+      screen.getByRole('textbox', { name: 'Máxima aproximación' }),
+      screen.getByText('escenario del encuentro'),
+      screen.getByText('Excentricidad e'),
+      screen.getByText('Cómo se usa'),
+      screen.getByText('Qué deja fuera el modelo'),
+    ]);
+  });
+
+  test('the notes are two closed disclosures; without notes there are none', () => {
+    const { container, unmount } = renderTiered();
+    expect([...container.querySelectorAll('details')].map((details) => details.open)).toEqual([
+      false,
+      false,
+    ]);
+    unmount();
+
+    const bare = renderTiered({ notes: undefined });
+    expect(bare.container.querySelector('details')).toBeNull();
+  });
+
+  test('no footnote paragraph: the notes replace it', () => {
+    renderTiered();
+
+    expect(screen.queryByTestId('lab-footnote')).toBeNull();
+  });
+
+  test('data-playing mirrors the clock and the transport sits in the stage', () => {
+    const { rerender } = renderTiered({ clock: fakeClock({ playing: true }) });
+    expect(screen.getByTestId('flyby-lab')).toHaveAttribute('data-playing', 'true');
+
+    rerender(<LabShell {...tieredProps({ clock: fakeClock({ playing: false }) })} />);
+    expect(screen.getByTestId('flyby-lab')).toHaveAttribute('data-playing', 'false');
+  });
+
+  test('without a clock: no transport bar', () => {
+    renderTiered();
+
+    expect(screen.queryByRole('group', { name: 'Reproducción' })).toBeNull();
+  });
+
+  test('announces the settled readouts as the stacked layout did', () => {
+    vi.useFakeTimers();
+    const shell = (value: number) => (
+      <LabShell
+        {...tieredProps({
+          readouts: [{ id: 'e', label: 'Excentricidad e', value, unit: '', precision: 3 }],
+        })}
+      />
+    );
+    const { rerender } = render(shell(1));
+
+    rerender(shell(1.5));
+    act(() => vi.advanceTimersByTime(READOUT_ANNOUNCE_DELAY_MS));
+
+    expect(screen.getByTestId('readout-announcer').textContent).toBe('Excentricidad e: 1,500');
+  });
+});
