@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
+import { mathSource, readoutText as readReadout, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/dron-reparto/';
 const LAB = '[data-testid="drone-lab"]';
@@ -108,14 +108,8 @@ test('una parada se mueve con las flechas del teclado', async ({ page }) => {
 test('las gráficas de perfiles siguen presentes y su marcador sigue a t', async ({ page }) => {
   const profiles = page.getByTestId('drone-profiles');
   // Each chart title as its author wrote it, KaTeX formulas included.
-  const titles = await profiles.locator('figcaption').evaluateAll((captions) =>
-    captions.map((caption) => {
-      const copy = caption.cloneNode(true) as Element;
-      for (const katex of copy.querySelectorAll('.katex')) {
-        katex.replaceWith('$' + (katex.querySelector('annotation')?.textContent ?? '') + '$');
-      }
-      return (copy.textContent ?? '').trim().replace(/\s+/g, ' ');
-    }),
+  const titles = await Promise.all(
+    (await profiles.locator('figcaption').all()).map((caption) => mathSource(caption)),
   );
   for (const title of [
     'Posición: x(t) y y(t)',
@@ -125,6 +119,8 @@ test('las gráficas de perfiles siguen presentes y su marcador sigue a t', async
   ]) {
     expect(titles).toContain(title);
   }
+  // Four named charts (SvgPlot images), each with its t axis in seconds and the delivery bands.
+  await expect(profiles.getByRole('img')).toHaveCount(4);
   await expect(profiles.getByRole('img', { name: /^Posición del dron/ })).toBeVisible();
   await expect(profiles.getByText('t (s)', { exact: true })).toHaveCount(4);
   for (const axis of ['Posición (m)', 'Velocidad (m/s)', 'Aceleración (m/s²)', 'Longitud (m)']) {

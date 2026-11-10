@@ -6,8 +6,9 @@ const PAGE = './temas/gravedad-artificial/';
 const LAB = '[data-testid="habitat-lab"]';
 /** The lab must fill the reading column (spec §6): at least this share of the article width. */
 const MIN_WIDTH_SHARE = 0.9;
-/** Timeline position (of 1000) to start from, so the revolution ends within a second. */
+/** The readout label of the apparent gravity, as written (its a_c/g is KaTeX). */
 const APPARENT_GRAVITY = String.raw`Gravedad aparente $a_c/g$`;
+/** Timeline position (of 1000) to start from, so the revolution ends within a second. */
 const NEAR_END = '995';
 /** Longest the last 0,5 % of playback may take to reach the end. */
 const PLAYBACK_TIMEOUT_MS = 3000;

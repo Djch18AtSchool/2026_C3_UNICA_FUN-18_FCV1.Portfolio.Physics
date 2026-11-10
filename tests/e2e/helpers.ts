@@ -26,25 +26,36 @@ export async function hydrateAllIslands(page: Page): Promise<void> {
 }
 
 /**
+ * The text of an element as its author wrote it: each KaTeX formula back to `$tex$` (from its
+ * MathML annotation), whitespace collapsed. The one conversion the e2e suites share.
+ */
+export async function mathSource(locator: Locator): Promise<string> {
+  return locator.evaluate((element) => {
+    const copy = element.cloneNode(true) as Element;
+    for (const katex of copy.querySelectorAll('.katex')) {
+      katex.replaceWith('$' + (katex.querySelector('annotation')?.textContent ?? '') + '$');
+    }
+    return (copy.textContent ?? '').trim().replace(/\s+/g, ' ');
+  });
+}
+
+/**
  * The value text of the LabShell readout row of `labSelector` whose label, as its author wrote it
- * (each KaTeX formula back to `$tex$`), is exactly `label`; plain spaces. An unknown label throws
- * and lists the labels there are.
+ * (see mathSource), is exactly `label`; plain spaces. An unknown label throws and lists the
+ * labels there are.
  */
 export async function readoutText(page: Page, labSelector: string, label: string): Promise<string> {
-  return page.locator(labSelector).evaluate((lab, wanted) => {
-    const source = (element: Element): string => {
-      const copy = element.cloneNode(true) as Element;
-      for (const katex of copy.querySelectorAll('.katex')) {
-        katex.replaceWith('$' + (katex.querySelector('annotation')?.textContent ?? '') + '$');
-      }
-      return (copy.textContent ?? '').trim();
-    };
-    const rows = [...lab.querySelectorAll('[data-readout]')];
-    const row = rows.find((candidate) => source(candidate.firstElementChild as Element) === wanted);
-    if (!row) {
-      const known = rows.map((r) => '«' + source(r.firstElementChild as Element) + '»').join(', ');
-      throw new Error('No readout labelled «' + wanted + '»; there are ' + known);
+  const rows = page.locator(labSelector).locator('[data-readout]');
+  const count = await rows.count();
+  const known: string[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const row = rows.nth(index);
+    const name = await mathSource(row.locator(':scope > :first-child'));
+    if (name === label) {
+      const value = (await row.locator(':scope > :last-child').textContent()) ?? '';
+      return value.trim().replace(/\s/g, ' ');
     }
-    return (row.lastElementChild?.textContent ?? '').trim().replace(/\s/g, ' ');
-  }, label);
+    known.push(`«${name}»`);
+  }
+  throw new Error(`No readout labelled «${label}»; there are ${known.join(', ')}`);
 }

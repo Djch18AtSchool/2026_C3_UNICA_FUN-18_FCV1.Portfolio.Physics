@@ -12,7 +12,7 @@ const TABLE_IDS = [
   'ruedas-reaccion-maniobra',
   'ruedas-reaccion-misiones',
 ];
-/** The readout's plain text (its ω_w is KaTeX). */
+/** The readout label of the peak ω_w, as written (its ω_w is KaTeX). */
 const PEAK_OMEGA = String.raw`$\omega_w$ máxima de la maniobra`;
 const DIAGRAM_TEXTS = ['(8.1)', '(8.2)', '(8.3)', '(8.4)', '485 vueltas', 'la nave deriva'];
 const PHONE = { width: 360, height: 800 };
