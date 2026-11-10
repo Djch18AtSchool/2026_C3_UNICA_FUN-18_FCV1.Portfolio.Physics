@@ -145,7 +145,11 @@ async function checkFonts(
       );
     }
   }
-  return { problems, errors, fontNodes };
+  // One line per distinct failure, with how many nodes it hit (a broken protocol hits all of them).
+  const counts = new Map<string, number>();
+  for (const error of errors) counts.set(error, (counts.get(error) ?? 0) + 1);
+  const summary = [...counts].map(([error, count]) => (count > 1 ? `${error} (×${count})` : error));
+  return { problems, errors: summary, fontNodes };
 }
 
 export interface GlyphReport {
