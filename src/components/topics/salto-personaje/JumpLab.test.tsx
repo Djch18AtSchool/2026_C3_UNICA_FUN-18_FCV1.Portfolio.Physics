@@ -211,6 +211,17 @@ describe('JumpLab', () => {
     );
   });
 
+  test('the gravity slider is a parameter of level 1: Earth gravity gives a 3,26 m apex at 8 m/s', () => {
+    renderLab();
+
+    fireEvent.change(v0Range(), { target: { value: '8' } });
+    fireEvent.change(screen.getByRole('slider', { name: /^Gravedad g/ }), {
+      target: { value: '9.81' },
+    });
+
+    expect(readout('Altura máxima')).toBe('3,26 m');
+  });
+
   test('the integrator is in the notes only while the Euler one is chosen', () => {
     const { container } = renderLab();
 

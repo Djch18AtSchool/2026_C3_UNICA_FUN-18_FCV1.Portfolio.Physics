@@ -267,6 +267,18 @@ describe('DroneLab', () => {
     ).toBeGreaterThan(600);
   });
 
+  test('a new aₘₐₓ regenerates the route: gentler braking takes longer', async () => {
+    await renderLab();
+    const aMax = screen.getByRole('slider', { name: /Aceleración máxima/ });
+
+    fireEvent.change(aMax, { target: { value: '1' } });
+
+    await screen.findByTestId('route-modified');
+    expect(
+      Number(readout('Duración de la ruta').replace(',', '.').replace(' s', '')),
+    ).toBeGreaterThan(400);
+  });
+
   test('dragging the drone along the route seeks t and pauses a playing clock', async () => {
     const user = userEvent.setup();
     await renderLab();
