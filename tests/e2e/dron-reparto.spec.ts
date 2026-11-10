@@ -244,12 +244,13 @@ test.describe('con pantalla táctil', () => {
   });
 });
 
-/** The loaded lab's card and its skeleton may differ by this much (the notes' row wraps by a line). */
-const SKELETON_SLACK_PX = 32;
+/** The loaded lab's card and its skeleton: the skeleton's places are measured in rem (≤ 2 px apart). */
+const SKELETON_SLACK_PX = 8;
 /** The map's height may move by this much while it mounts: rounding of a fractional width. */
 const MAP_GROWTH_SLACK_PX = 1;
-const MOUNT_SETTLE_MS = 800;
 const PHONE = { width: 360, height: 800 } as const;
+/** One column with the canvas notes on one line (the case the skeleton missed by 24 px). */
+const ONE_COLUMN = { width: 900, height: 800 } as const;
 const DESKTOP = { width: 1280, height: 800 } as const;
 
 const heightOf = (locator: Locator) =>
@@ -257,6 +258,7 @@ const heightOf = (locator: Locator) =>
 
 for (const [name, size] of [
   ['360 px', PHONE],
+  ['900 px', ONE_COLUMN],
   ['1 280 px', DESKTOP],
 ] as const) {
   test(`a ${name}, el esqueleto reserva la altura del laboratorio y el mapa no crece al montarse`, async ({
@@ -292,7 +294,16 @@ for (const [name, size] of [
       () => (window as unknown as { mapAtMount: number }).mapAtMount,
     );
     const labCard = await heightOf(page.locator(LAB));
-    await page.waitForTimeout(MOUNT_SETTLE_MS);
+    // Settled once SvgPlot has measured: its viewBox then has the map's own width.
+    const map = page.getByTestId('route-map').locator('svg[role="img"]');
+    await expect
+      .poll(() =>
+        map.evaluate((svg) => {
+          const box = svg.getBoundingClientRect();
+          return Math.abs((svg as SVGSVGElement).viewBox.baseVal.width - box.width);
+        }),
+      )
+      .toBeLessThanOrEqual(1);
     const mapSettled = await heightOf(page.getByTestId('route-map'));
 
     expect(Math.abs(labCard - skeletonCard)).toBeLessThanOrEqual(SKELETON_SLACK_PX);

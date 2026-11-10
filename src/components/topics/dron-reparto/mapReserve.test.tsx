@@ -12,6 +12,7 @@ import {
   mapPlotHeight,
 } from './mapReserve';
 import { sampleAt } from './routeEdit';
+import DroneSkeleton from './DroneSkeleton';
 import RouteMapLab from './RouteMapLab';
 
 let samples: RouteSample[] = [];
@@ -109,9 +110,17 @@ describe('the skeleton’s placeholder of the map figure', () => {
     );
   });
 
-  test('turns wide where the svg reaches 480 px: the class says the same threshold', () => {
+  test('turns wide where the svg reaches 480 px: the map and the chart places say the same threshold', () => {
     expect(resolveCss(MAP_WIDE_FROM_CONTAINER, 0, 16)).toBe(480 + 2 + 2 * 16);
     expect(MAP_FIGURE_CLASS).toContain(`@min-[${MAP_WIDE_FROM_CONTAINER}]:`);
+
+    // Tailwind needs each class literal: every place that switches with the svg uses this one.
+    const { container } = render(<DroneSkeleton status="loading" />);
+    const switching = [...container.querySelectorAll('[class*="@min-[calc("]')];
+    expect(switching.length).toBeGreaterThan(1);
+    for (const place of switching) {
+      expect(place.getAttribute('class')).toContain(`@min-[${MAP_WIDE_FROM_CONTAINER}]:`);
+    }
   });
 
   test('the mounted map reserves, through SvgPlot, the height the placeholder says', () => {
