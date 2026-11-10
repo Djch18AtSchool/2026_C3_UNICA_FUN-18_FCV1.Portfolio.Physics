@@ -108,7 +108,7 @@ export default function TransportBar({
         aria-valuetext={timeText}
         // seek pauses, so scrubbing never fights a running clock.
         onChange={(event) => clock.seek((Number(event.target.value) / RANGE_MAX) * duration)}
-        className="h-6 min-w-40 flex-1 cursor-pointer accent-accent"
+        className="h-6 min-w-32 flex-1 cursor-pointer accent-accent"
       />
       <span className="font-mono text-sm tabular-nums">{timeText}</span>
     </div>

@@ -22,10 +22,14 @@ const ROOT =
   '@container/lab flex flex-col gap-4 rounded-base border border-border bg-bg-elevated p-4';
 const COLUMNS =
   'flex flex-col gap-6 @2xl/lab:grid @2xl/lab:grid-cols-[minmax(0,1fr)_20rem] @2xl/lab:items-start';
-/** Sticks under the topic bar (4rem); the panel's 0,25rem padding keeps focus rings unclipped. */
+/**
+ * Sticks under the topic bar (4rem). The panel's 0,25rem padding keeps focus rings unclipped (its
+ * top is 0,25rem higher so its content lines up with the stage's), and its edges shade while it
+ * hides content above or below (scroll-cue-y).
+ */
 const STAGE = 'flex min-w-0 flex-col gap-4 @2xl/lab:sticky @2xl/lab:top-16';
 const PANEL =
-  'flex min-w-0 flex-col gap-6 @2xl/lab:sticky @2xl/lab:top-15 @2xl/lab:-m-1 @2xl/lab:max-h-[calc(100dvh-5rem)] @2xl/lab:overflow-y-auto @2xl/lab:p-1 @2xl/lab:[scrollbar-width:thin]';
+  'flex min-w-0 flex-col gap-6 @2xl/lab:sticky @2xl/lab:top-15 @2xl/lab:-m-1 @2xl/lab:max-h-[calc(100dvh-5rem)] @2xl/lab:overflow-y-auto @2xl/lab:p-1 @2xl/lab:scroll-cue-y @2xl/lab:[scrollbar-width:thin]';
 /** Over a stage taller than the window, the transport waits at the window's bottom. */
 const TRANSPORT =
   '@2xl/lab:sticky @2xl/lab:bottom-0 @2xl/lab:z-10 @2xl/lab:border-t @2xl/lab:border-border @2xl/lab:bg-bg-elevated @2xl/lab:py-3';

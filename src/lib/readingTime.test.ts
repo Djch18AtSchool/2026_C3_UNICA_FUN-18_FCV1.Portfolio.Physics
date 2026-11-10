@@ -70,6 +70,12 @@ describe('readingMinutes', () => {
     expect(readingMinutes(body)).toBe(2);
   });
 
+  test('las notas de un laboratorio por niveles («Cómo se usa», «Qué deja fuera») suman palabras', () => {
+    const lab = `<Lab client:visible usage={\`${words(12)} \${LAPSE} s\`} leftOut="${words(20)}" />`;
+
+    expect(readingStats(lab).propWords).toBe(12 + 2 + 20);
+  });
+
   test('las props que no se leen (id, latex, src, variant, símbolos) no suman palabras', () => {
     const tag = `<HapticVideo id="${tokens(10)}" src="${tokens(10)}" variant="${tokens(10)}" poster='${tokens(10)}' symbols={[{ symbol: '${tokens(10)}', unit: '${tokens(10)}' }]} />`;
 

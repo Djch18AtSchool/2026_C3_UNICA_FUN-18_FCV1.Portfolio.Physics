@@ -17,7 +17,8 @@ export interface ReadoutProps {
 
 const LAYOUT_CLASS: Readonly<Record<ReadoutLayout, string>> = {
   row: 'flex items-baseline justify-between gap-3 border-b border-dotted border-border pb-1.5',
-  cell: 'flex min-w-0 flex-col gap-1 border-b border-dotted border-border pb-2',
+  // justify-between: in a row of the grid the values line up even when one label wraps.
+  cell: 'flex min-w-0 flex-col justify-between gap-1 border-b border-dotted border-border pb-2',
 };
 
 /** A labelled value: the label is always the first child and the value the last (test kits). */

@@ -197,6 +197,16 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
   }
+  /*
+   * A tiered laboratory's stage and panel stick to the window (TieredLabShell): a frame that
+   * scrolls would become their scroll container and pin them to itself instead. From lg the lab
+   * fits the frame, so the frame need not scroll.
+   */
+  @media (width >= 64rem) {
+    .figure-frame:has([data-lab-shell='tiered']) {
+      overflow: visible;
+    }
+  }
   .content-figure > figcaption {
     max-width: 70ch;
     margin-top: 0.75rem;

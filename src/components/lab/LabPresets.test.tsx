@@ -95,20 +95,27 @@ describe('LabPresets', () => {
     error.mockRestore();
   });
 
-  test('one line under the choice: the active preset’s note, then its source as a link', () => {
+  test('one line under the choice: the active preset’s note, then «Fuente:» and its link', () => {
     const { rerender } = render(
       <LabPresets id="p" presets={FEW} activeId="luna" onSelect={vi.fn()} />,
     );
 
-    expect(noteLine()).toHaveTextContent('Media. · NASA');
+    expect(noteLine()).toHaveTextContent('Media. Fuente: NASA');
     expect(within(noteLine()).getByRole('link', { name: 'NASA' })).toHaveAttribute(
       'href',
       'https://nssdc.gsfc.nasa.gov/',
     );
 
     rerender(<LabPresets id="p" presets={FEW} activeId="tierra" onSelect={vi.fn()} />);
-    expect(mathSourceText(noteLine())).toBe('Superficie, $g$ = 9,81 m/s². · g estándar');
+    expect(mathSourceText(noteLine())).toBe('Superficie, $g$ = 9,81 m/s². Fuente: g estándar');
     expect(within(noteLine()).queryByRole('link')).toBeNull();
+  });
+
+  test('a source without a note is the whole line', () => {
+    const sourceOnly = [preset('marte', { sourceLabel: 'NSSDCA' }), ...MANY];
+    render(<LabPresets id="p" presets={sourceOnly} activeId="marte" onSelect={vi.fn()} />);
+
+    expect(noteLine().textContent).toBe('Fuente: NSSDCA');
   });
 
   test('no note line while no preset is active, or when the active one has neither note nor source', () => {

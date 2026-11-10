@@ -1,7 +1,7 @@
 /**
  * The presets of a tiered laboratory, in its level 2 (scenario): up to MAX_PRESET_CHIPS as chips
  * of one line, more as a native select. Under the choice, one line with the active preset's note
- * and its source, a link when the preset has a `sourceUrl`. Usage:
+ * and «Fuente:» its source, a link when the preset has a `sourceUrl`. Usage:
  *
  *   <LabPresets id="flyby-preset" presets={FLYBY_PRESETS} activeId={presetId} onSelect={apply} />
  *
@@ -21,7 +21,7 @@ export const MAX_PRESET_CHIPS = 4;
 export const PRESETS_LABEL = 'Valores de referencia';
 /** The select's option while the values match no preset (an edit left the preset). */
 const MODIFIED_LABEL = 'Personalizado';
-const SEPARATOR = ' · ';
+const SOURCE_LEAD = 'Fuente: ';
 
 export interface LabPresetsProps<T> {
   /** Id of the select (and prefix of nothing else): unique in the page. */
@@ -99,24 +99,26 @@ function PresetSelect<T>({ id, presets, activeId, onSelect, label }: LabPresetsP
   );
 }
 
-/** «note · source», the source a link when it has one; nothing without note and source. */
+/** The preset's source after «Fuente:», a link when it has a URL. */
+function Source({ label, url }: { label: string; url?: string }): JSX.Element {
+  const text = <InlineMath text={label} />;
+  return (
+    <>
+      {SOURCE_LEAD}
+      {url ? <a href={url}>{text}</a> : text}
+    </>
+  );
+}
+
+/** «note Fuente: source» on one line; nothing without note and source. */
 function NoteLine<T>({ preset }: { preset?: Preset<T> }): JSX.Element | null {
   if (!preset || (!preset.note && !preset.sourceLabel)) return null;
   const { note, sourceLabel, sourceUrl } = preset;
-  const source = sourceLabel ? (
-    sourceUrl ? (
-      <a href={sourceUrl}>
-        <InlineMath text={sourceLabel} />
-      </a>
-    ) : (
-      <InlineMath text={sourceLabel} />
-    )
-  ) : null;
   return (
     <p data-testid="preset-note" className="m-0 text-sm text-fg-muted">
       {note ? <InlineMath text={note} /> : null}
-      {note && source ? SEPARATOR : null}
-      {source}
+      {note && sourceLabel ? ' ' : null}
+      {sourceLabel ? <Source label={sourceLabel} url={sourceUrl} /> : null}
     </p>
   );
 }
