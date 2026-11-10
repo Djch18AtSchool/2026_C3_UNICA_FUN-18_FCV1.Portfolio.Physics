@@ -6,7 +6,6 @@ import SvgPlot from '../../lab/SvgPlot';
 import type { Point } from '../../lab/OverlayMarks';
 import type { DragPoint } from '../../lab/useDrag';
 import { MAP_DOMAIN } from './droneScene';
-import { MAP_PLOT_CLASS, MAP_PLOT_STYLE } from './mapReserve';
 import RouteOverlay, { ROUTE_COLOR, type LiveFlight, type StopIndex } from './RouteOverlay';
 
 export interface RouteMapLabProps {
@@ -36,34 +35,32 @@ function describeMap(now: RouteSample, decimals: number): string {
 /**
  * The route map on SvgPlot with equal aspect: the route through the stops, the trail, the drone
  * at t with its v and a vectors and draggable stops A, B and C. It is the lab's canvas; its
- * legend and notes are in RouteMapNotes. Its height is reserved in CSS (mapReserve.ts), so it does
- * not grow when SvgPlot measures its width.
+ * legend and notes are in RouteMapNotes. SvgPlot reserves its height in CSS until it measures its
+ * width, so it does not grow then.
  */
 export default function RouteMapLab(props: RouteMapLabProps): JSX.Element {
   const { stops, now, decimals } = props;
   return (
-    <div className={MAP_PLOT_CLASS} style={MAP_PLOT_STYLE}>
-      <SvgPlot
-        title="Mapa de la ruta"
-        xLabel="x (este)"
-        xUnit="m"
-        yLabel="y (norte)"
-        yUnit="m"
-        series={[
-          {
-            id: 'route',
-            label: 'Ruta',
-            points: stops.map(({ x, y }) => ({ x, y })),
-            color: ROUTE_COLOR,
-          },
-        ]}
-        xDomain={MAP_DOMAIN.x}
-        yDomain={MAP_DOMAIN.y}
-        equalAspect
-        ariaLabel={describeMap(now, decimals)}
-        testId="route-map"
-        overlay={(scales) => <RouteOverlay {...props} scales={scales} />}
-      />
-    </div>
+    <SvgPlot
+      title="Mapa de la ruta"
+      xLabel="x (este)"
+      xUnit="m"
+      yLabel="y (norte)"
+      yUnit="m"
+      series={[
+        {
+          id: 'route',
+          label: 'Ruta',
+          points: stops.map(({ x, y }) => ({ x, y })),
+          color: ROUTE_COLOR,
+        },
+      ]}
+      xDomain={MAP_DOMAIN.x}
+      yDomain={MAP_DOMAIN.y}
+      equalAspect
+      ariaLabel={describeMap(now, decimals)}
+      testId="route-map"
+      overlay={(scales) => <RouteOverlay {...props} scales={scales} />}
+    />
   );
 }

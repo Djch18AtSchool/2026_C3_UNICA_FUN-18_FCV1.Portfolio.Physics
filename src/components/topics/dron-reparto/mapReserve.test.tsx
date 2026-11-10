@@ -5,9 +5,9 @@ import { DRONE_ROUTE, type RouteSample } from '../../../lib/data/droneRoute';
 import { createFrameStore } from '../../lab/frameStore';
 import { stubResizeObserver, viewBoxOf } from '../../lab/svgPlotTestKit';
 import {
-  MAP_PLOT_CLASS,
-  MAP_PLOT_VARS,
   MAP_FIGURE_CHROME,
+  MAP_FIGURE_CLASS,
+  MAP_FIGURE_VARS,
   MAP_WIDE_FROM_CONTAINER,
   mapPlotHeight,
 } from './mapReserve';
@@ -71,40 +71,74 @@ describe('mapPlotHeight', () => {
   });
 });
 
-describe('the reserved height in CSS', () => {
-  test('both layouts are written from the same numbers as mapPlotHeight, in the figure width less its frame', () => {
-    // The frame is 2 rem of padding and 2 px of border; the compact margins add 66 px, the wide 112.
-    expect(MAP_PLOT_VARS['--map-plot-h-compact']).toBe(
-      'calc(80px + 0.90625 * (100cqw - 2rem - 68px))',
+/**
+ * A CSS length of this module's shapes, resolved: «calc(…)» with px, rem and 100cqw, + − and a
+ * number times a parenthesis. Enough for the placeholder's expressions, nothing more.
+ */
+function resolveCss(expression: string, container: number, rem: number): number {
+  const js = expression
+    .replace(/calc\(/g, '(')
+    .replace(/100cqw/g, String(container))
+    .replace(/([\d.]+)rem/g, (_, n: string) => String(Number(n) * rem))
+    .replace(/([\d.]+)px/g, '$1')
+    .replace(/var\(--[\w-]+\)/g, '0');
+  if (!/^[\d.+\-*() ]+$/.test(js)) throw new Error(`no es una longitud simple: ${expression}`);
+  return Function(`return ${js}`)() as number;
+}
+
+/** The figure's height around an svg of the given width: the svg plus the frame and caption. */
+const figureHeight = (svgWidth: number, rem: number) =>
+  mapPlotHeight(svgWidth) + resolveCss(MAP_FIGURE_CHROME, 0, rem);
+
+describe('the skeleton’s placeholder of the map figure', () => {
+  // The frame is in rem: check both the current 17 px root and phase C's 16 px.
+  test.each([
+    [300, 17],
+    [360, 16],
+    [515, 17],
+    [600, 16],
+    [800, 17],
+  ])('a %i px container at a %i px root is as tall as the figure SvgPlot draws', (width, rem) => {
+    const svgWidth = width - 2 * rem - 2;
+    const wideFrom = resolveCss(MAP_WIDE_FROM_CONTAINER, 0, rem);
+    const layout = width >= wideFrom ? 'wide' : 'compact';
+
+    expect(resolveCss(MAP_FIGURE_VARS[`--map-figure-h-${layout}`], width, rem)).toBeCloseTo(
+      figureHeight(svgWidth, rem),
+      5,
     );
-    expect(MAP_PLOT_VARS['--map-plot-h-wide']).toBe(
-      'calc(80px + 0.90625 * (100cqw - 2rem - 114px))',
+  });
+
+  test('turns wide where the svg reaches 480 px: the class says the same threshold', () => {
+    expect(resolveCss(MAP_WIDE_FROM_CONTAINER, 0, 16)).toBe(480 + 2 + 2 * 16);
+    expect(MAP_FIGURE_CLASS).toContain(`@min-[${MAP_WIDE_FROM_CONTAINER}]:`);
+  });
+
+  test('the mounted map reserves, through SvgPlot, the height the placeholder says', () => {
+    vi.stubGlobal('ResizeObserver', undefined);
+    const now = sampleAt(samples, 30);
+    const { container } = render(
+      <RouteMapLab
+        stops={DRONE_ROUTE.stops}
+        samples={samples}
+        now={now}
+        live={{ frame: createFrameStore(), sampleAt: (t) => sampleAt(samples, t) }}
+        duration={387.43}
+        showVectors
+        showTrail
+        velocityScale={15}
+        accelScale={60}
+        decimals={2}
+        onStopDrag={() => undefined}
+        onSeek={() => undefined}
+      />,
     );
-  });
+    const svg = container.querySelector('svg[role="img"]') as unknown as SVGSVGElement;
 
-  test('with a 16 px root, a 300 px container is the compact layout and mapPlotHeight agrees', () => {
-    const REM = 16;
-    const svgWidth = 300 - 2 * REM - 2;
-    expect(mapPlotHeight(svgWidth)).toBeCloseTo(80 + 0.90625 * (300 - 2 * REM - 68), 5);
-  });
-
-  test('the wide layout starts where the svg reaches 480 px: the figure frame wider', () => {
-    expect(MAP_WIDE_FROM_CONTAINER).toBe('calc(482px + 2rem)');
-    expect(MAP_PLOT_CLASS).toContain(`@min-[${MAP_WIDE_FROM_CONTAINER.replace(' + ', '+')}]`);
-  });
-
-  test('the figure around the svg adds 4 rem and 2 px: border, padding, caption and its margin', () => {
-    expect(MAP_FIGURE_CHROME).toBe('calc(4rem + 2px)');
-  });
-
-  test('the map sits in a container of its own that carries both heights', () => {
-    const { container } = renderMapAt(PHONE_WIDTH);
-
-    const reserve = container.firstElementChild as HTMLElement;
-    expect(reserve.className).toContain('@container');
-    expect(reserve.style.getPropertyValue('--map-plot-h-compact')).toBe(
-      MAP_PLOT_VARS['--map-plot-h-compact'],
-    );
-    expect(reserve.querySelector('svg[role="img"]')).not.toBeNull();
+    for (const svgWidth of [PHONE_WIDTH, 363, NARROWEST_WIDE, COLUMN_WIDTH]) {
+      const layout = svgWidth >= NARROWEST_WIDE ? 'wide' : 'compact';
+      const reserved = svg.style.getPropertyValue(`--plot-height-${layout}`);
+      expect(resolveCss(reserved, svgWidth, 16)).toBeCloseTo(mapPlotHeight(svgWidth), 1);
+    }
   });
 });

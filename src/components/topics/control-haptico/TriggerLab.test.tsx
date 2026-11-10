@@ -196,16 +196,18 @@ describe('TriggerLab', () => {
     expect(container.querySelector('details[data-lab-note="left-out"]')).toBeNull();
   });
 
-  test('the drawings keep their height until they measure: the lever has a fixed one, the plot reserves it in CSS', () => {
+  test('the drawings keep their height until they measure: the lever has a fixed one, the plot reserves its two aspects', () => {
     renderLab();
     const svg = screen.getByTestId('trigger-lever');
-    const box = screen.getByTestId('trigger-plot');
+    const plotSvg = within(screen.getByTestId('trigger-plot')).getByRole(
+      'img',
+    ) as unknown as SVGSVGElement;
 
     expect(Number(svg.getAttribute('height'))).toBeGreaterThan(0);
     expect(svg.getAttribute('class')).not.toContain('h-auto');
-    expect(box.className).toContain('@container');
-    expect(box.className).toMatch(/\[&_svg\[role=img\]\]:aspect-\[11\/10\]/);
-    expect(box.className).toMatch(/@\[30rem\]:\[&_svg\[role=img\]\]:aspect-2/);
+    // SvgPlot reserves them by container width (SvgPlot.reserve.test.tsx): squarer in a stage.
+    expect(plotSvg.style.getPropertyValue('--plot-aspect-compact')).toBe('1.1');
+    expect(plotSvg.style.getPropertyValue('--plot-aspect-wide')).toBe('2');
   });
 
   test('every character outside KaTeX is one IBM Plex draws, in the lab, its settings and the notes', () => {

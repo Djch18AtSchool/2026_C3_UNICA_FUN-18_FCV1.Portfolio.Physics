@@ -213,16 +213,19 @@ describe('RegenLab', () => {
     expect(canvas).not.toHaveTextContent('El grosor es proporcional');
   });
 
-  test('the drawings keep their height until they measure: fixed scene, CSS-reserved plot, bars by container', () => {
+  test('the drawings keep their height until they measure: fixed scene, SvgPlot-reserved plot, bars by container', () => {
     const { container } = renderLab();
     const scene = screen.getByTestId('regen-scene').querySelector('svg')!;
-    const plot = screen.getByTestId('regen-energy-plot').parentElement!;
+    const plotSvg = within(screen.getByTestId('regen-energy-plot')).getByRole(
+      'img',
+    ) as unknown as SVGSVGElement;
 
     expect(Number(scene.getAttribute('height'))).toBeGreaterThan(0);
     expect(scene.getAttribute('class')).not.toContain('h-auto');
-    expect(plot.className).toContain('@container');
-    expect(plot.className).toMatch(/\[&_svg\[role=img\]\]:aspect-\[5\/4\]/);
-    expect(plot.className).toMatch(/@\[30rem\]:\[&_svg\[role=img\]\]:aspect-\[8\/5\]/);
+    // SvgPlot's own default pair, reserved by container width (SvgPlot.reserve.test.tsx).
+    expect(plotSvg.style.getPropertyValue('--plot-aspect-compact')).toBe('1.25');
+    expect(plotSvg.style.getPropertyValue('--plot-aspect-wide')).toBe('1.6');
+
     // The bars switch layout by the stage's width, not the window's.
     expect(container.querySelector('[data-energy]')?.className).not.toMatch(/(^|\s)sm:/);
     expect(container.querySelector('[data-energy]')?.className).toMatch(/@md:/);

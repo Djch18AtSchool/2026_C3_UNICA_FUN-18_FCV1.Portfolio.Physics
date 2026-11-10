@@ -1,8 +1,11 @@
 import { expect, type Browser, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
 
-/** Phone and the 1 280 px desktop, where the stage of a tiered lab measures about 395 px. */
-export const HYDRATION_WIDTHS = [360, 1280] as const;
+/**
+ * Phone; a 540 px window, whose one-column stage (~495 px) sits just past SvgPlot's 480 px
+ * switch to its wide layout; and the 1 280 px desktop, where the stage measures about 430 px.
+ */
+export const HYDRATION_WIDTHS = [360, 540, 1280] as const;
 /** Sub-pixel rounding between two layouts of the same boxes. */
 const HEIGHT_TOLERANCE_PX = 1;
 const VIEWPORT_HEIGHT = 800;
@@ -32,6 +35,8 @@ export async function expectSameHeightAfterHydration(
   const plain = await browser.newContext({ viewport, javaScriptEnabled: false });
   const server = await plain.newPage();
   await server.goto(url);
+  // Fonts set the wrapping of every label; measure both pages with them in place.
+  await server.evaluate(() => document.fonts.ready);
   const sent = await measureLab(server, labSelector);
   await plain.close();
 
@@ -41,15 +46,39 @@ export async function expectSameHeightAfterHydration(
   await page.locator(labSelector).scrollIntoViewIfNeeded();
   await waitForIsland(page, labSelector);
   await page.evaluate(() => document.fonts.ready);
+  // Each height against the server's, unrounded, within the tolerance: [] once all agree.
+  const drift = async () => {
+    const hydrated = await measureLab(page, labSelector);
+    if (hydrated.length !== sent.length) return [`${hydrated.length} cajas, no ${sent.length}`];
+    return hydrated.flatMap((height, index) =>
+      Math.abs(height - sent[index]) > HEIGHT_TOLERANCE_PX
+        ? [`caja ${index}: ${sent[index].toFixed(1)} → ${height.toFixed(1)} px`]
+        : [],
+    );
+  };
   await expect
-    .poll(async () => (await measureLab(page, labSelector)).map((h) => Math.round(h)), {
+    .poll(drift, {
       message: `${labSelector} a ${width} px: alturas del laboratorio, el lienzo y sus dibujos`,
     })
-    .toEqual(sent.map((h) => Math.round(h)));
-  const hydrated = await measureLab(page, labSelector);
+    .toEqual([]);
+  expect(await letterboxed(page, labSelector), `${labSelector} a ${width} px`).toEqual([]);
   await live.close();
+}
 
-  hydrated.forEach((height, index) => {
-    expect(Math.abs(height - sent[index])).toBeLessThanOrEqual(HEIGHT_TOLERANCE_PX);
-  });
+/**
+ * The hydrated drawings whose box has another shape than their viewBox: a height reserved in CSS
+ * for one layout while React drew the other leaves empty bands above and below the drawing.
+ */
+async function letterboxed(page: Page, labSelector: string): Promise<string[]> {
+  return page.locator(labSelector).evaluate((lab, tolerance) => {
+    const drawings = [...lab.querySelectorAll('[data-lab-canvas] svg[role=img][viewBox]')];
+    return drawings.flatMap((svg, index) => {
+      const box = svg.getBoundingClientRect();
+      const view = (svg as SVGSVGElement).viewBox.baseVal;
+      const drawn = (box.width * view.height) / view.width;
+      return Math.abs(drawn - box.height) > tolerance
+        ? [`dibujo ${index}: caja ${box.height.toFixed(1)} px, dibujo ${drawn.toFixed(1)} px`]
+        : [];
+    });
+  }, HEIGHT_TOLERANCE_PX);
 }

@@ -135,14 +135,13 @@ describe('TyreLab', () => {
     expect(container.querySelector('details[data-lab-note="usage"]')).not.toBeNull();
   });
 
-  test('each plot reserves its height before it measures: CSS aspect by container width', () => {
+  test('each plot reserves its height before it measures: its two aspects, by container width', () => {
     renderLab();
 
     for (const id of ['tyre-temperature-plot', 'tyre-load-plot']) {
-      const box = screen.getByTestId(id);
-      expect(box.className).toContain('@container');
-      expect(box.className).toMatch(/\[&_svg\[role=img\]\]:aspect-\[11\/10\]/);
-      expect(box.className).toMatch(/@\[30rem\]:\[&_svg\[role=img\]\]:aspect-2/);
+      const plotSvg = within(screen.getByTestId(id)).getByRole('img') as unknown as SVGSVGElement;
+      expect(plotSvg.style.getPropertyValue('--plot-aspect-compact')).toBe('1.1');
+      expect(plotSvg.style.getPropertyValue('--plot-aspect-wide')).toBe('2');
     }
   });
 

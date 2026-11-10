@@ -30,14 +30,14 @@ const HANDLE_COLOR = TEXT_COLOR;
 
 /**
  * The scene is never wider than this, which is also the viewBox width the server (and jsdom) draw
- * before the container is measured: a compact scene (under COMPACT_WIDTH) of the same proportions
- * as the hydrated one, so it keeps its height in the lab's stage (no layout shift).
+ * before the container is measured. Its height does not follow its width (only a wrapped subtitle
+ * adds lines), so the svg's box takes the drawing's height in px: the server's box is already as
+ * tall as the hydrated one, with the 400 px drawing fitted inside until React measures the stage.
  */
 const MAX_WIDTH = 400;
 const FALLBACK_WIDTH = MAX_WIDTH;
-const COMPACT_WIDTH = 480;
-const HEIGHT = { compact: 300, wide: 340 } as const;
-const BALL_RADIUS = { compact: 9, wide: 11 } as const;
+const HEIGHT = 300;
+const BALL_RADIUS = 9;
 const MARGIN = { left: 44, right: 12, bottom: 80 } as const;
 /** Room above the top line for a ball clamped there and its chevron. */
 const TOP_ROOM = 10;
@@ -128,9 +128,8 @@ export function subtitleLines(text: string, width: number): string[] {
 
 /** `extraLines` subtitle lines past the first grow the canvas below the floor. */
 function geometry(width: number, top: number, extraLines: number): Geometry {
-  const isCompact = width < COMPACT_WIDTH;
-  const height = (isCompact ? HEIGHT.compact : HEIGHT.wide) + extraLines * STATUS_LINE;
-  const radius = isCompact ? BALL_RADIUS.compact : BALL_RADIUS.wide;
+  const height = HEIGHT + extraLines * STATUS_LINE;
+  const radius = BALL_RADIUS;
   const floorY = height - MARGIN.bottom - extraLines * STATUS_LINE;
   const areaTop = 2 * radius + TOP_ROOM;
   const column = columnWidth(width);
@@ -378,16 +377,13 @@ export default function BounceScene(props: BounceSceneProps): JSX.Element {
   const statusTop = floorY + STATUS_GAP + extraLines * STATUS_LINE;
 
   return (
-    <div
-      ref={wrapperRef}
-      className="mx-auto w-full px-3 sm:px-0"
-      style={{ maxWidth: MAX_WIDTH, minHeight: HEIGHT.compact }}
-    >
+    <div ref={wrapperRef} className="mx-auto w-full px-3 sm:px-0" style={{ maxWidth: MAX_WIDTH }}>
       <svg
         data-testid="bounce-scene"
         viewBox={`0 0 ${width} ${geo.height}`}
         width="100%"
-        className="block h-auto"
+        height={geo.height}
+        className="block"
       >
         <g role="img" aria-label={describeScene(props)}>
           {rulerTicks(top).map((tick) => (

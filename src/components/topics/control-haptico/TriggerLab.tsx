@@ -7,10 +7,10 @@ import LabShell, { type LabReadout } from '../../lab/LabShell';
 import InlineMath from '../../lab/InlineMath';
 import ParamField from '../../lab/ParamField';
 import type { SettingOption } from '../../lab/SettingsDrawer';
-import SvgPlot from '../../lab/SvgPlot';
+import SvgPlot, { type PlotAspect } from '../../lab/SvgPlot';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { usePrefersReducedMotion } from '../../lab/useSimClock';
-import { HOOKE_COLOR, labPlot, PLOT_BOX, usePlotAspect } from './hapticPlots';
+import { HOOKE_COLOR, labPlot } from './hapticPlots';
 import TriggerLever from './TriggerLever';
 import {
   DAMPING_OPTIONS,
@@ -42,9 +42,8 @@ const K_STEP = 10;
 const X0_STEP = 0.5;
 /** The travel reads to 0,1 mm, the keyboard grain; the rest follow the global decimals. */
 const X_PRECISION = 1;
-/** The plot's two ratios; PLOT_BOX (hapticPlots.ts) reserves the same two in CSS: change them together. */
-const WIDE_ASPECT = 2;
-const COMPACT_ASPECT = 1.1;
+/** The plot's two ratios, squarer in a narrow stage (SvgPlot reserves the one it will draw). */
+const PLOT_ASPECT: PlotAspect = { compact: 1.1, wide: 2 };
 /** The ideal spring's point: a ring around the trigger's marker, so both read when they coincide. */
 const HOOKE_RING = 8;
 const ACTION_BUTTON =
@@ -70,7 +69,6 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
   const [state, setState] = useState<TriggerLabState>(INITIAL_STATE);
   const settings = useGlobalSettings();
   const isReduced = motionReduced(settings, usePrefersReducedMotion());
-  const plotAspect = usePlotAspect(WIDE_ASPECT, COMPACT_ASPECT);
   const spring = { k: state.k, x0Mm: state.x0Mm };
   const readings = triggerReadings(spring, state.xMm);
   const release = useTriggerRelease({
@@ -209,9 +207,9 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
             Repetir retorno
           </button>
         </div>
-        <div ref={plotAspect.ref} data-testid="trigger-plot" className={PLOT_BOX}>
+        <div data-testid="trigger-plot">
           <SvgPlot
-            aspectRatio={plotAspect.aspectRatio}
+            aspectRatio={PLOT_ASPECT}
             title="Fuerza frente al desplazamiento del gatillo"
             {...labPlot(spring)}
             marker={{ x: state.xMm, y: readings.force }}

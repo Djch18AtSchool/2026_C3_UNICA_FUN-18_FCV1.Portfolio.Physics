@@ -19,14 +19,6 @@ export interface RegenEnergyPlotProps {
 
 const ENERGY_PRECISION = 3;
 /**
- * The plot's height is reserved by CSS before any script measures it. The server draws SvgPlot at
- * 720 px (ratio 1,6), and the stage of a tiered lab is narrower (ratio 1,25 under 30 rem): without
- * this the plot would grow when it hydrates. SvgPlot's own default ratios, by container width.
- */
-const PLOT_BOX =
-  '@container [&_svg[role=img]]:aspect-[5/4] @[30rem]:[&_svg[role=img]]:aspect-[8/5]';
-
-/**
  * The five cumulative energies over the whole cycle with a draggable cursor at the lab's t: the
  * cursor and the transport timeline are the same clock.
  */
@@ -54,25 +46,23 @@ export default function RegenEnergyPlot({
     formatNumber(joules / J_PER_KWH, { precision: ENERGY_PRECISION, unit: 'kWh' });
 
   return (
-    <div className={PLOT_BOX}>
-      <SvgPlot
-        title="Energías acumuladas a lo largo del ciclo"
-        xLabel="Tiempo"
-        xUnit="s"
-        yLabel="Energía"
-        yUnit="kWh"
-        series={series}
-        xDomain={{ min: 0, max: duration }}
-        yDomain={{ min: 0, max: axisMax }}
-        cursor={{
-          x: t,
-          follow: { frame },
-          onChange: onSeek,
-          label: (x) => `t = ${formatNumber(x, { precision: 0, unit: 's' })}`,
-        }}
-        ariaLabel={`Energías acumuladas en ${formatNumber(duration, { precision: 0, unit: 's' })}: tracción ${kWh(last.eTraction)}, carga en carretera ${kWh(last.eRoadLoad)}, frenado en las ruedas ${kWh(last.eBrake)}, a la batería ${kWh(last.eBattery)} y calor en los frenos ${kWh(last.eFriction)}.`}
-        testId="regen-energy-plot"
-      />
-    </div>
+    <SvgPlot
+      title="Energías acumuladas a lo largo del ciclo"
+      xLabel="Tiempo"
+      xUnit="s"
+      yLabel="Energía"
+      yUnit="kWh"
+      series={series}
+      xDomain={{ min: 0, max: duration }}
+      yDomain={{ min: 0, max: axisMax }}
+      cursor={{
+        x: t,
+        follow: { frame },
+        onChange: onSeek,
+        label: (x) => `t = ${formatNumber(x, { precision: 0, unit: 's' })}`,
+      }}
+      ariaLabel={`Energías acumuladas en ${formatNumber(duration, { precision: 0, unit: 's' })}: tracción ${kWh(last.eTraction)}, carga en carretera ${kWh(last.eRoadLoad)}, frenado en las ruedas ${kWh(last.eBrake)}, a la batería ${kWh(last.eBattery)} y calor en los frenos ${kWh(last.eFriction)}.`}
+      testId="regen-energy-plot"
+    />
   );
 }

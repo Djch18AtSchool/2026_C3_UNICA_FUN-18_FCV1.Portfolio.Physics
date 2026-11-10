@@ -1,7 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { hydrateAllIslands, readoutText as readReadout, setRange, waitForIsland } from './helpers';
-import { expectSameHeightAfterHydration, HYDRATION_WIDTHS } from './hydrationStability';
 
 const PAGE = './temas/frenado-regenerativo/';
 const TITLE = 'Frenado regenerativo en un vehículo eléctrico';
@@ -145,14 +144,6 @@ test.describe('laboratorio', () => {
       await expect(leftOut).toContainText(left);
     }
   });
-});
-
-test.describe('hidratación', () => {
-  for (const width of HYDRATION_WIDTHS) {
-    test(`a ${width} px el laboratorio no cambia de altura al hidratarse`, async ({ browser }) => {
-      await expectSameHeightAfterHydration(browser, PAGE, LAB, width);
-    });
-  }
 });
 
 test.describe('a 360 px', () => {

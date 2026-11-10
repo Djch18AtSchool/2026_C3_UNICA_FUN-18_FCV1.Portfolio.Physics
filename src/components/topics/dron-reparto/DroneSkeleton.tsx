@@ -10,7 +10,7 @@
 import type { CSSProperties, JSX } from 'react';
 import TexSeed, { formulasOf } from '../../lab/TexSeed';
 import { DRONE_LAB_FORMULAS } from './droneLabFormulas';
-import { MAP_FIGURE_CLASS, MAP_PLOT_STYLE } from './mapReserve';
+import { MAP_FIGURE_CLASS, MAP_FIGURE_STYLE } from './mapReserve';
 
 export interface DroneSkeletonProps {
   status: 'loading' | 'error';
@@ -66,7 +66,7 @@ export default function DroneSkeleton({ status, usage, leftOut }: DroneSkeletonP
             data-skeleton="stage"
             className="flex min-w-0 flex-col gap-4 lab-split:col-start-1 lab-split:row-start-1"
           >
-            <div style={MAP_PLOT_STYLE} className="@container -mx-3 sm:mx-0">
+            <div style={MAP_FIGURE_STYLE} className="@container -mx-3 sm:mx-0">
               <div className={`${MAP_FIGURE_CLASS} flex items-center justify-center p-4 ${PLACE}`}>
                 <p role="status" className="m-0 text-center text-sm text-fg-muted">
                   {STATUS_TEXT[status]}

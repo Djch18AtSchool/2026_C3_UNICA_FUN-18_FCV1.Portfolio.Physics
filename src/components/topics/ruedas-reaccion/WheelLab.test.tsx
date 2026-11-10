@@ -254,17 +254,16 @@ describe('WheelLab', () => {
     expect(scene().getAttribute('viewBox')).toBe('0 0 400 400');
   });
 
-  test('the plot is at most 440 px wide with the phone aspect, so it hydrates at the height the server drew', () => {
+  test('the plot is at most 440 px wide, under the dial, and reserves the phone aspect it draws there', () => {
     renderLab();
     const plot = screen.getByTestId('wheel-plot');
     const wrapper = plot.parentElement as HTMLElement;
-    const [, , width, height] = (plot.querySelector('svg[role="img"]') as SVGElement)
-      .getAttribute('viewBox')!
-      .split(' ')
-      .map(Number);
+    const plotSvg = plot.querySelector('svg[role="img"]') as SVGSVGElement;
 
     expect(wrapper.style.maxWidth).toBe('440px');
-    expect(width / height).toBeCloseTo(1.25, 2);
+    // 440 px less the frame is under SvgPlot's 480 px switch: the compact 1,25 always.
+    expect(plotSvg.style.getPropertyValue('--plot-aspect-compact')).toBe('1.25');
+    expect(plotSvg.style.getPropertyValue('--plot-aspect-wide')).toBe('1.6');
   });
 
   test('the target handle takes the keyboard: arrows 1°, Shift 10°, and the peak ω_w follows', () => {

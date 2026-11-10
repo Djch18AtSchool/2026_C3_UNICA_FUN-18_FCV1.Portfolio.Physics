@@ -5,7 +5,7 @@ import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import type { SettingOption } from '../../lab/SettingsDrawer';
-import SvgPlot from '../../lab/SvgPlot';
+import SvgPlot, { type PlotAspect } from '../../lab/SvgPlot';
 import { mathTextToString } from '../../../lib/mathNotation';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import {
@@ -29,19 +29,13 @@ import {
   LINEAR_COLOR,
   LOAD_AXIS,
   loadPlot,
-  PLOT_BOX,
   REAL_COLOR,
   TEMPERATURE_AXIS,
   temperaturePlot,
-  usePlotAspect,
 } from './tyrePlots';
 
-/**
- * Two stacked plots: flatter than a lone figure on wide screens, squarer on phones. PLOT_BOX
- * (tyrePlots.ts) reserves the same two ratios in CSS: change them together.
- */
-const WIDE_ASPECT = 2;
-const COMPACT_ASPECT = 1.1;
+/** Two stacked plots: flatter than a lone figure on wide screens, squarer on phones. */
+const PLOT_ASPECT: PlotAspect = { compact: 1.1, wide: 2 };
 /** Forces read in whole newtons; the global decimals would print 11 942,90 N. */
 const FORCE_PRECISION = 0;
 
@@ -71,8 +65,6 @@ export default function TyreLab({ leftOut }: TyreLabProps): JSX.Element {
   const [state, setState] = useState<TyreLabState>(INITIAL_TYRE_STATE);
   const { decimals } = useGlobalSettings();
   const readings = tyreReadings(state);
-  const temperatureAspect = usePlotAspect(WIDE_ASPECT, COMPACT_ASPECT);
-  const loadAspect = usePlotAspect(WIDE_ASPECT, COMPACT_ASPECT);
 
   const onTemperature = (t: number) => setState((previous) => setTemperature(previous, t));
   const onLoad = (fz: number) => setState((previous) => setLoad(previous, fz));
@@ -152,9 +144,9 @@ export default function TyreLab({ leftOut }: TyreLabProps): JSX.Element {
       testId="tyre-lab"
     >
       <div className="flex flex-col gap-6">
-        <div ref={temperatureAspect.ref} data-testid="tyre-temperature-plot" className={PLOT_BOX}>
+        <div data-testid="tyre-temperature-plot">
           <SvgPlot
-            aspectRatio={temperatureAspect.aspectRatio}
+            aspectRatio={PLOT_ASPECT}
             title="Coeficiente de agarre $\mu$ frente a la temperatura"
             {...temperaturePlot(state.compound)}
             cursor={{
@@ -168,9 +160,9 @@ export default function TyreLab({ leftOut }: TyreLabProps): JSX.Element {
             )}
           />
         </div>
-        <div ref={loadAspect.ref} data-testid="tyre-load-plot" className={PLOT_BOX}>
+        <div data-testid="tyre-load-plot">
           <SvgPlot
-            aspectRatio={loadAspect.aspectRatio}
+            aspectRatio={PLOT_ASPECT}
             title="Fuerza lateral máxima frente a la carga vertical"
             {...loadPlot(readings.factor)}
             cursor={{

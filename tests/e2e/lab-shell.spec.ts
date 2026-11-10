@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
+import { expectSameHeightAfterHydration, HYDRATION_WIDTHS } from './hydrationStability';
 import { TOPIC_PAGES } from './topicPages';
 
 const DESKTOP = { width: 1280, height: 800 };
@@ -264,6 +265,20 @@ for (const { path, testId } of LABS) {
       expect(MIGRATED_LABS.has(testId), `${testId} está en MIGRATED_LABS`).toBe(true);
     }
   });
+}
+
+/** Tema 1's lab loads its dataset after hydration: its skeleton has its own test (dron-reparto). */
+const SKELETON_FIRST_LABS: ReadonlySet<string> = new Set(['drone-lab']);
+
+for (const { path, testId } of LABS) {
+  if (SKELETON_FIRST_LABS.has(testId)) continue;
+  for (const width of HYDRATION_WIDTHS) {
+    test(`${testId} a ${width} px: el servidor dibuja el laboratorio con el alto que tendrá hidratado`, async ({
+      browser,
+    }) => {
+      await expectSameHeightAfterHydration(browser, path, `[data-testid="${testId}"]`, width);
+    });
+  }
 }
 
 for (const { path, testId } of LABS) {

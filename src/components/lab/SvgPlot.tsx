@@ -12,6 +12,13 @@ import { isFinitePoint, linearScale, padDomain, type Domain, type Scale } from '
 import { axisTicks, PlotAxes, PlotGrid, yTickLabelChars } from './SvgPlotAxes';
 import SvgPlotCursor, { type PlotArea } from './SvgPlotCursor';
 import { Bands, Marker } from './SvgPlotMarks';
+import {
+  aspectReserve,
+  equalAspectReserve,
+  type HeightReserve,
+  type PlotAspect,
+  type PlotMargins,
+} from './svgPlotReserve';
 import { useElementWidth } from '../hooks/useElementWidth';
 import InlineMath from './InlineMath';
 import { useGlobalSettings } from './useGlobalSettings';
@@ -71,8 +78,12 @@ export interface SvgPlotProps {
   yDomain?: Domain;
   /** Equal units per pixel on both axes; the viewBox height then follows the y range. */
   equalAspect?: boolean;
-  /** viewBox width over height when not equalAspect (default 1.6, or 1.25 below 480 px). */
-  aspectRatio?: number;
+  /**
+   * viewBox width over height when not equalAspect: one number at every width, or a compact and
+   * a wide one switching at COMPACT_WIDTH (default PLOT_ASPECT: 1.25 below 480 px, else 1.6). The
+   * box reserves that height in CSS before React measures it (no shift when it hydrates).
+   */
+  aspectRatio?: number | PlotAspect;
   bands?: PlotBand[];
   cursor?: PlotCursor;
   marker?: PlotMarker;
@@ -91,6 +102,7 @@ export interface SvgPlotProps {
 }
 
 export type { Domain, Scale } from './plotScales';
+export type { PlotAspect } from './svgPlotReserve';
 
 /** What the overlay draws with: the scales and, with a bleed, the plain plot-area clip. */
 export interface OverlayScales {
@@ -110,10 +122,12 @@ const MAX_EQUAL_ASPECT_HEIGHT = 1.5;
 type Margin = { top: number; right: number; bottom: number; left: number };
 const MARGIN: Margin = { top: 22, right: 28, bottom: 58, left: 84 };
 /** Below this viewBox width (phones) the margins tighten so the plot area keeps most of the width. */
-const COMPACT_WIDTH = 480;
+export const COMPACT_WIDTH = 480;
 const COMPACT_MARGIN: Omit<Margin, 'left'> = { top: 30, right: 14, bottom: 50 };
-/** Default aspect below 480 px: at 1.6 a phone plot area would be under 90 px tall. */
-const COMPACT_ASPECT_RATIO = 1.25;
+/** The default aspects: below 480 px, at 1.6 a phone plot area would be under 90 px tall. */
+export const PLOT_ASPECT: PlotAspect = { compact: 1.25, wide: DEFAULT_ASPECT_RATIO };
+/** A typical compact width (a phone's or a stage's plot) to fit the reserved compact left margin. */
+const COMPACT_PROBE_WIDTH = 360;
 /**
  * With a draggable cursor, its knob sits on the top edge of the plot area: a compact plot then
  * grows its top margin, and lifts its horizontal y title by as much, so the knob clears the title.
@@ -167,6 +181,12 @@ function resolveDomains({ series, marker, xDomain, yDomain }: SvgPlotProps) {
   };
 }
 
+/** Plot height over plot width with equal units: the data's span ratio, kept within bounds. */
+function equalAspectSlope(domains: { x: Domain; y: Domain }): number {
+  const ratio = (domains.y.max - domains.y.min) / (domains.x.max - domains.x.min);
+  return Math.min(Math.max(ratio, MIN_EQUAL_ASPECT_HEIGHT), MAX_EQUAL_ASPECT_HEIGHT);
+}
+
 /** Widens a domain symmetrically about its centre to the given span. */
 function widenTo(domain: Domain, span: number): Domain {
   const centre = (domain.min + domain.max) / 2;
@@ -181,10 +201,7 @@ function equalAspectFit(domains: { x: Domain; y: Domain }, plotWidth: number) {
   const xSpan = domains.x.max - domains.x.min;
   const ySpan = domains.y.max - domains.y.min;
   const naturalHeight = (ySpan / xSpan) * plotWidth;
-  const plotHeight = Math.min(
-    Math.max(naturalHeight, plotWidth * MIN_EQUAL_ASPECT_HEIGHT),
-    plotWidth * MAX_EQUAL_ASPECT_HEIGHT,
-  );
+  const plotHeight = equalAspectSlope(domains) * plotWidth;
   if (naturalHeight > plotHeight) {
     return { plotHeight, x: widenTo(domains.x, (ySpan / plotHeight) * plotWidth), y: domains.y };
   }
@@ -195,8 +212,9 @@ function equalAspectFit(domains: { x: Domain; y: Domain }, plotWidth: number) {
 }
 
 function layoutWith(props: SvgPlotProps, width: number, margin: Margin) {
-  const defaultAspect = width < COMPACT_WIDTH ? COMPACT_ASPECT_RATIO : DEFAULT_ASPECT_RATIO;
-  const aspectRatio = props.aspectRatio ?? defaultAspect;
+  const aspect = props.aspectRatio ?? PLOT_ASPECT;
+  const aspectRatio =
+    typeof aspect === 'number' ? aspect : width < COMPACT_WIDTH ? aspect.compact : aspect.wide;
   if (!(aspectRatio > 0) || !Number.isFinite(aspectRatio)) {
     throw new RangeError(`SvgPlot: aspectRatio debe ser positivo (${aspectRatio})`);
   }
@@ -243,6 +261,25 @@ function computeLayout(props: SvgPlotProps, measuredWidth: number) {
 }
 
 const px = (value: number) => Number(value.toFixed(PATH_DECIMALS));
+
+/** A layout's margins around its plot area. */
+function marginsOf(layout: ReturnType<typeof computeLayout>): PlotMargins {
+  return {
+    top: layout.area.top,
+    right: layout.width - layout.area.right,
+    bottom: layout.height - layout.area.bottom,
+    left: layout.area.left,
+  };
+}
+
+/** The CSS that holds the drawing's final height until the plot measures its container. */
+function heightReserve(props: SvgPlotProps): HeightReserve {
+  if (!props.equalAspect) return aspectReserve(props.aspectRatio ?? PLOT_ASPECT);
+  return equalAspectReserve(equalAspectSlope(resolveDomains(props)), {
+    compact: marginsOf(computeLayout(props, COMPACT_PROBE_WIDTH)),
+    wide: marginsOf(computeLayout(props, FALLBACK_WIDTH)),
+  });
+}
 
 /** "M x y L x y …", starting a new subpath after every non-finite point. */
 function seriesPath(points: Point[], x: Scale, y: Scale): string {
@@ -326,10 +363,12 @@ export default function SvgPlot(props: SvgPlotProps) {
   const settings = useGlobalSettings();
   const showGrid = props.showGrid ?? settings.grid;
   const clipBase = `svgplot-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
-  const [wrapperRef, measuredWidth] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
+  const [wrapperRef, measuredWidth, isMeasured] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const { x, y, area, width, height, compact, titleLift } = computeLayout(props, measuredWidth);
   const ticks = axisTicks(x, y);
   const viewBox = `0 0 ${width} ${height}`;
+  // Measured, the viewBox has the container's width and the svg its natural height.
+  const reserve = isMeasured ? { className: 'h-auto' } : heightReserve(props);
   const clipRect = (id: string, bleed = 0) => (
     <defs>
       <clipPath id={id}>
@@ -346,13 +385,14 @@ export default function SvgPlot(props: SvgPlotProps) {
   return (
     <ChartFrame title={title} testId={props.testId}>
       {series.length >= MIN_SERIES_FOR_LEGEND ? <Legend series={series} /> : null}
-      <div ref={wrapperRef} className="relative w-full min-w-0">
+      <div ref={wrapperRef} className="@container/plot relative w-full min-w-0">
         <svg
           role="img"
           aria-label={props.ariaLabel}
           viewBox={viewBox}
           width="100%"
-          className="block h-auto"
+          className={`block ${reserve.className}`}
+          style={reserve.style}
         >
           {clipRect(`${clipBase}-plot`)}
           {showGrid ? <PlotGrid ticks={ticks} x={x} y={y} area={area} /> : null}

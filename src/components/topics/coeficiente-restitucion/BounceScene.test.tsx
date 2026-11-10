@@ -86,7 +86,7 @@ describe('BounceScene column subtitles', () => {
   });
 
   test('a wrapped subtitle pushes the status lines and the canvas down by one line', () => {
-    stubResizeObserver(720);
+    stubResizeObserver(400);
     const wide = render(<BounceScene {...PROPS} />);
     const wideHeight = viewBoxOf(screen.getByTestId('bounce-scene'))[3];
     const wideStatus = Number(document.querySelector('[data-status]')?.getAttribute('y'));
@@ -97,11 +97,11 @@ describe('BounceScene column subtitles', () => {
     const status = document.querySelector('[data-status]');
     const lastLine = [...document.querySelectorAll('[data-subtitle] text')].at(-1);
 
-    // 300 px tall below 480 px, 340 at 720; the wrap adds one 14 px line on the phone.
-    expect(wideHeight).toBe(340);
+    // 300 px tall at any width; the wrap adds one 14 px line on the phone.
+    expect(wideHeight).toBe(300);
     expect(viewBoxOf(screen.getByTestId('bounce-scene'))[3]).toBe(300 + 14);
     expect(status).toHaveTextContent('en reposo');
-    expect(Number(status?.getAttribute('y')) - wideStatus).toBe(-40 + 14);
+    expect(Number(status?.getAttribute('y')) - wideStatus).toBe(14);
     expect(lastLine).toBeDefined();
   });
 });
@@ -112,22 +112,24 @@ describe('BounceScene before it measures its width (the server, and the lab stag
     vi.unstubAllGlobals();
   });
 
-  test('draws the compact scene at the width it is capped to, so hydrating in the stage moves nothing', () => {
+  test('draws the scene at the width it is capped to, in a box as tall as the drawing', () => {
     vi.stubGlobal('ResizeObserver', undefined);
     render(<BounceScene {...PROPS} />);
-    const wrapper = screen.getByTestId('bounce-scene').parentElement as HTMLElement;
+    const svg = screen.getByTestId('bounce-scene');
 
-    expect(viewBoxOf(screen.getByTestId('bounce-scene'))).toEqual([0, 0, 400, 300]);
-    expect(wrapper.style.maxWidth).toBe('400px');
-    expect(wrapper.style.minHeight).toBe('300px');
+    expect(viewBoxOf(svg)).toEqual([0, 0, 400, 300]);
+    expect(svg.getAttribute('height')).toBe('300');
+    expect((svg.parentElement as HTMLElement).style.maxWidth).toBe('400px');
   });
 
-  test('a stage narrower than the cap keeps the height of the drawing it will become', () => {
-    stubResizeObserver(360);
-    render(<BounceScene {...PROPS} />);
-    const wrapper = screen.getByTestId('bounce-scene').parentElement as HTMLElement;
+  test('a stage narrower than the cap: the box keeps the drawing’s height, whatever its width', () => {
+    for (const width of [250, 360]) {
+      stubResizeObserver(width);
+      render(<BounceScene {...PROPS} />);
+      const svg = screen.getByTestId('bounce-scene');
 
-    expect(viewBoxOf(screen.getByTestId('bounce-scene'))[3]).toBeGreaterThanOrEqual(300);
-    expect(wrapper.style.minHeight).toBe('300px');
+      expect(Number(svg.getAttribute('height'))).toBe(viewBoxOf(svg)[3]);
+      cleanup();
+    }
   });
 });
