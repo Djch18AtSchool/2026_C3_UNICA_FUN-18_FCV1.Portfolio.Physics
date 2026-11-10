@@ -60,6 +60,15 @@ Los cuatro temas del Avance 2 siguen el mismo formato, cada uno con su laborator
 - `src/styles/`: estilos globales.
 - `tests/e2e/`: pruebas de extremo a extremo (Playwright).
 
+## Notación matemática
+
+Todo símbolo del sitio se dibuja con una fuente que lo tiene: IBM Plex Sans, IBM Plex Mono o KaTeX; nunca con una fuente de reserva del sistema. La guardia `tests/e2e/glyphs.spec.ts` lo comprueba en las nueve páginas de tema y la portada (1 280 y 360 px, claro y oscuro, con cada preajuste de cada laboratorio) con las fuentes que el navegador realmente usó; los laboratorios y figuras repiten la comprobación en sus pruebas con `plexViolations` (`src/test-glyphs.ts`), que además rechaza un `_`, `^` o `$` sin tipografiar.
+
+- **Texto de HTML** (leyendas, títulos, lecturas, parámetros, notas de preajuste, celdas y fuente de `DataTable`, atributos de `Figure`): escribe la fórmula entre `$…$` y se compone con KaTeX (`InlineMath` en React; `inlineMathToHtml` en Astro). `\$` es un signo de dólar literal; un `$` sin cerrar rompe la compilación. Los controles con `$…$` en su etiqueta (`ParamField`, `SwitchField`, `SelectField`, `SegmentedField`, `Presets`) llevan un `aria-label` hablado (`mathAriaLabel`: «r sub p»).
+- **Texto dentro de un SVG**: `MathText` con la mininotación de `src/lib/mathNotation.ts`: `v_∞,in` (subíndice), `10^-7` (potencia), `vec v` (flecha dibujada sobre la letra) y `\_` o `\^` para el signo literal. Pasa la etiqueta completa, números y unidades incluidos, en un solo `MathText`, y escribe el nombre accesible de la figura con `mathTextToString` (dice «v sub infinito», «10 a la menos 7»).
+- **Los `<option>` nativos no admiten KaTeX** (ni ninguna marca): ahí va texto plano de Plex sin símbolos que Plex no tenga («Crítica, c = 2 raíz(k m)»). Un preajuste en botones (`Presets`) sí admite `$…$`; uno en un `<select>` (Tema 7) no.
+- Un cambio en las fuentes de Plex se regenera con `pnpm run data:fonts` (la cobertura sale de los archivos de las fuentes, no de una lista escrita a mano).
+
 ## Comandos
 
 ```bash
