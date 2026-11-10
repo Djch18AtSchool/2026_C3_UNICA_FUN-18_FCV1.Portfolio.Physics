@@ -15,6 +15,12 @@ const STICKY_SLACK_PX = 6;
 const SCROLL_INTO_LAB_PX = 300;
 /** The first physical control of a lab: the first field of its «Parámetros». */
 const FIRST_CONTROL = ':is(input, select, textarea, [role="slider"], [role="radio"])';
+/** Anything that is or may become a control: none may sit in a lab's canvas notes. */
+const CONTROL = ':is(a, button, input, select, textarea, summary, [tabindex]:not([tabindex^="-"]))';
+/** A pinned transport against --lab-transport-room (global.css): rounding of rem at 17 px. */
+const TRANSPORT_ROOM_SLACK_PX = 1;
+/** Sub-pixel rounding of the columns grid against its cells. */
+const LAYOUT_SLACK_PX = 1;
 /** What the Tab key reaches, in document order. */
 const TABBABLE =
   ':is(a[href], button, input, select, textarea, summary, [tabindex]):not([tabindex="-1"]):not([disabled])';
@@ -180,6 +186,59 @@ async function boxOf(locator: Locator) {
   return box;
 }
 
+/** The controls inside a lab's canvas notes, described; empty when it has none or no notes. */
+async function canvasNotesControls(lab: Locator): Promise<string[]> {
+  return lab
+    .locator(`[data-lab-canvas-notes] ${CONTROL}`)
+    .evaluateAll((nodes) =>
+      nodes.map((node) => `${node.tagName.toLowerCase()} «${(node.textContent ?? '').trim()}»`),
+    );
+}
+
+/** The columns' height beyond their cells (row 1) and the canvas notes' row (with its gap). */
+async function columnsSlack(lab: Locator): Promise<number> {
+  return lab.evaluate((root) => {
+    const height = (node: Element | null | undefined) => node?.getBoundingClientRect().height ?? 0;
+    const columns = root.querySelector('[data-lab-columns]');
+    const notes = root.querySelector('[data-lab-canvas-notes]');
+    const rowGap = columns ? parseFloat(getComputedStyle(columns).rowGap) : 0;
+    const rowOne = Math.max(
+      height(root.querySelector('[data-lab-stage]')?.parentElement),
+      height(root.querySelector('[data-lab-panel]')?.parentElement),
+    );
+    return height(columns) - rowOne - (notes ? rowGap + height(notes) : 0);
+  });
+}
+
+test.describe('guardias del cascarón por niveles, autocomprobadas', () => {
+  test.use({ viewport: SPLIT_VIEWPORTS[0].size });
+
+  test('un botón inyectado en las notas del lienzo pone en rojo la guardia de controles', async ({
+    page,
+  }) => {
+    const lab = await openTiered(page, './temas/asistencia-gravitatoria/', 'flyby-lab');
+    expect(await canvasNotesControls(lab)).toEqual([]);
+
+    await lab.evaluate((root) =>
+      root
+        .querySelector('[data-lab-canvas-notes]')
+        ?.insertAdjacentHTML('beforeend', '<button type="button">Ir a la descarga</button>'),
+    );
+
+    expect(await canvasNotesControls(lab)).toEqual(['button «Ir a la descarga»']);
+  });
+
+  test('sin notas del lienzo, la rejilla no deja una fila vacía con su hueco', async ({ page }) => {
+    const lab = await openTiered(page, './temas/asistencia-gravitatoria/', 'flyby-lab');
+    expect(Math.abs(await columnsSlack(lab))).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
+
+    // A lab without canvas notes: the same lab with that cell taken out.
+    await lab.evaluate((root) => root.querySelector('[data-lab-canvas-notes]')?.remove());
+
+    expect(Math.abs(await columnsSlack(lab))).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
+  });
+});
+
 for (const { path, testId } of LABS) {
   test.describe(`${testId} por niveles`, () => {
     test.skip(!MIGRATED_LABS.has(testId), 'lo migra B3.2');
@@ -263,6 +322,19 @@ for (const { path, testId } of LABS) {
       }
     });
 
+    test('las notas del lienzo no tienen controles y la rejilla no deja huecos', async ({
+      page,
+    }) => {
+      await page.setViewportSize(SPLIT_VIEWPORTS[0].size);
+      const lab = await openTiered(page, path, testId);
+
+      expect(
+        await canvasNotesControls(lab),
+        'canvasNotes sin controles (labShellTypes.ts)',
+      ).toEqual([]);
+      expect(Math.abs(await columnsSlack(lab))).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
+    });
+
     test('un control del lienzo enfocado con el teclado no queda tapado por la reproducción pegada abajo', async ({
       page,
     }) => {
@@ -293,6 +365,19 @@ for (const { path, testId } of LABS) {
       const control = await boxOf(target);
       const bar = await boxOf(transport);
       expect(control.y + control.height).toBeLessThanOrEqual(bar.y + 1);
+      // The scroll padding reserves --lab-transport-room: it must stay the transport's height.
+      const room = await page.evaluate(() => {
+        const probe = document.createElement('div');
+        probe.style.height = 'var(--lab-transport-room)';
+        document.body.append(probe);
+        const height = probe.getBoundingClientRect().height;
+        probe.remove();
+        return height;
+      });
+      expect(
+        Math.abs(room - bar.height),
+        `--lab-transport-room (global.css) = ${room} px, la reproducción pegada (TieredLabShell TRANSPORT) = ${bar.height} px`,
+      ).toBeLessThanOrEqual(TRANSPORT_ROOM_SLACK_PX);
     });
 
     for (const { name, size } of ONE_COLUMN_VIEWPORTS) {
