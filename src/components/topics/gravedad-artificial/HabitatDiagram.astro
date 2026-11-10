@@ -125,12 +125,18 @@ const vArrow = arrow(
 // apparent-gravity arrow (x ≤ 142) and above Detail A (y = 430), also at the phone font size.
 const ONE_G_NOTE = { x: 408, y: 386, lineHeight: 17 } as const;
 const ONE_G_CASES = ['2 RPM → r = 223,6 m', '1 RPM → r = 894,6 m'] as const;
-/** Size of the notes (MathText: their CSS is global to the drawing, see the style block). */
+/**
+ * Text sizes in viewBox units, the same at every width and the only place they are set (the CSS
+ * below carries colors and families, never sizes): MathText offsets a script by its own font size,
+ * so a media query that resized the text would misplace every subscript. The drawing shrinks to
+ * ~0,69× on a 375 px phone, so each size reaches at least 11 px there (16 units) and a subscript
+ * (75 %) at least 9 px; the notes of the detail are hidden on a phone, and the 1 g note stays.
+ */
+const TITLE_SIZE = 16;
+const LABEL_SIZE = 19;
+const EQ_SIZE = 22;
 const NOTE_SIZE = 14;
-/** Sizes of the sans texts at the wide layout; the phone layout enlarges them in the CSS below. */
-const LABEL_SIZE = 15;
-const BIG_LABEL_SIZE = 19;
-const EQ_SIZE = 19;
+const NOTE_KEY_SIZE = 16;
 
 // ---- Detail A: head and feet ----
 const DETAIL = { x: 12, y: 430, width: 396, height: 186 } as const;
@@ -188,12 +194,18 @@ const headArrow = arrow(
   <desc id="habitat-diagram-desc">{DESCRIPTION}</desc>
 
   <!-- ===== Perspective view ===== -->
-  <text class="hd-title" x="16" y="24">
+  <text class="hd-title" font-size={TITLE_SIZE} x="16" y="24">
     Vista en perspectiva · no a escala
   </text>
 
   <line class="hd-axis" x1="14" y1={CENTER.y} x2={VIEW.width - 14} y2={CENTER.y} />
-  <text class="hd-label hd-muted" x={VIEW.width - 14} y={CENTER.y - 9} text-anchor="end">
+  <text
+    class="hd-label hd-muted"
+    font-size={LABEL_SIZE}
+    x={VIEW.width - 14}
+    y={CENTER.y - 9}
+    text-anchor="end"
+  >
     eje de giro
   </text>
 
@@ -235,9 +247,9 @@ const headArrow = arrow(
     source="ω"
     x={omegaLabel.x}
     y={omegaLabel.y}
-    fontSize={BIG_LABEL_SIZE}
+    fontSize={LABEL_SIZE}
     family="sans"
-    className="hd-label hd-big"
+    className="hd-label"
   />
   <MathText
     source="T = 2π/ω"
@@ -253,6 +265,7 @@ const headArrow = arrow(
   <circle class="hd-mark" cx={detailMark.cx} cy={detailMark.cy} r={detailMark.r} />
   <text
     class="hd-label hd-mark-label"
+    font-size={LABEL_SIZE}
     x={detailMark.cx - detailMark.r - 4}
     y={detailMark.cy - detailMark.r + 4}
     text-anchor="end"
@@ -290,10 +303,22 @@ const headArrow = arrow(
   <!-- Apparent gravity, outward. -->
   <line class="hd-gap" x1={gArrow.x1} y1={gArrow.y1} x2={gArrow.x2} y2={gArrow.y2} />
   <polygon class="hd-gap-head" points={gArrow.points} />
-  <text class="hd-label" x={gArrow.x1 - 8} y={gArrow.y2 + 2} text-anchor="end">
+  <text
+    class="hd-label"
+    font-size={LABEL_SIZE}
+    x={gArrow.x1 - 8}
+    y={gArrow.y2 + 2}
+    text-anchor="end"
+  >
     gravedad
   </text>
-  <text class="hd-label" x={gArrow.x1 - 8} y={gArrow.y2 + 20} text-anchor="end">
+  <text
+    class="hd-label"
+    font-size={LABEL_SIZE}
+    x={gArrow.x1 - 8}
+    y={gArrow.y2 + 22}
+    text-anchor="end"
+  >
     aparente
   </text>
 
@@ -314,7 +339,7 @@ const headArrow = arrow(
     source="a_c = g"
     x={ONE_G_NOTE.x}
     y={ONE_G_NOTE.y}
-    fontSize={NOTE_SIZE}
+    fontSize={NOTE_KEY_SIZE}
     anchor="end"
     className="hd-note hd-note-key"
   />
@@ -323,7 +348,7 @@ const headArrow = arrow(
       source={line}
       x={ONE_G_NOTE.x}
       y={ONE_G_NOTE.y + ONE_G_NOTE.lineHeight * (index + 1)}
-      fontSize={NOTE_SIZE}
+      fontSize={NOTE_KEY_SIZE}
       anchor="end"
       className="hd-note hd-note-key"
     />
@@ -338,11 +363,12 @@ const headArrow = arrow(
     height={DETAIL.height}
     rx="3"
   />
-  <text class="hd-title" x={DETAIL.x + 12} y={DETAIL.y + 22}>
+  <text class="hd-title" font-size={TITLE_SIZE} x={DETAIL.x + 12} y={DETAIL.y + 22}>
     Detalle A · cabeza y pies
   </text>
   <text
     class="hd-label hd-muted hd-hint"
+    font-size={TITLE_SIZE}
     x={DETAIL.x + DETAIL.width - 12}
     y={DETAIL.y + 22}
     text-anchor="end"
@@ -369,13 +395,14 @@ const headArrow = arrow(
     source="h"
     x={DIM_X - 10}
     y={(bigFeet + bigHeadTop) / 2 + 2}
-    fontSize={BIG_LABEL_SIZE}
+    fontSize={LABEL_SIZE}
     family="sans"
     anchor="end"
-    className="hd-label hd-big"
+    className="hd-label"
   />
   <text
     class="hd-label hd-muted"
+    font-size={LABEL_SIZE}
     x={DIM_X - 10}
     y={(bigFeet + bigHeadTop) / 2 + 22}
     text-anchor="end"
@@ -398,7 +425,7 @@ const headArrow = arrow(
   <MathText
     source="ω^2 r"
     x={ARROW_X + 10}
-    y={feetArrow.y1 - 22}
+    y={feetArrow.y1 - 12}
     fontSize={LABEL_SIZE}
     family="sans"
     className="hd-label"
@@ -441,11 +468,9 @@ const headArrow = arrow(
     overflow: visible;
   }
 
-  /* ---- Text ---- */
+  /* ---- Text: families and inks; every size is an attribute (see the constants above) ---- */
   .hd-title {
     font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 0.06em;
     text-transform: uppercase;
     fill: var(--fg-muted);
   }
@@ -458,53 +483,25 @@ const headArrow = arrow(
     stroke-linejoin: round;
     fill: var(--fg);
   }
-  .habitat-diagram :global(.hd-label) {
-    font-family: var(--font-sans);
-    font-size: 15px;
-  }
+  .habitat-diagram :global(.hd-label),
   .habitat-diagram :global(.hd-eq) {
     font-family: var(--font-sans);
-    font-size: 19px;
   }
   .habitat-diagram :global(.hd-note) {
     font-family: var(--font-mono);
-    font-size: 14px;
     fill: var(--fg-muted);
   }
   .hd-muted {
     fill: var(--fg-muted);
   }
-  .habitat-diagram :global(.hd-big) {
-    font-size: 19px;
-  }
 
-  /*
-   * At phone widths the drawing shrinks to ~0,69× (420 viewBox units in ~290 px at 375 px), so
-   * every label is set here to reach at least 11 px on screen (16 units × 0,69 ≈ 11,0 px), and the
-   * redundant notes are dropped; the 1 g note stays, since the consigna asks for it.
-   * gravedad-artificial.spec.ts measures it.
-   */
+  /* On a phone the redundant notes go; the 1 g note stays, since the consigna asks for it. */
   @media (max-width: 30rem) {
-    .hd-title {
-      font-size: 16px;
-      letter-spacing: 0;
-    }
-    .habitat-diagram :global(.hd-label),
-    .habitat-diagram :global(.hd-big) {
-      font-size: 19px;
-    }
-    .hd-hint {
-      font-size: 16px;
-    }
-    .habitat-diagram :global(.hd-eq) {
-      font-size: 22px;
-    }
     .habitat-diagram :global(.hd-note) {
       display: none;
     }
     .habitat-diagram :global(.hd-note-key) {
       display: inline;
-      font-size: 18px;
     }
   }
 

@@ -207,7 +207,7 @@ test.describe('a 375 px', () => {
   test('ningún texto del diagrama queda por debajo de 11 px efectivos', async ({ page }) => {
     await page.goto(PAGE);
     const MIN_EFFECTIVE_PX = 11;
-    /** A subscript or a power (a tspan at 75 %) may be smaller: 9 px, as the other topics' figures. */
+    /** A subscript or a power (a tspan below 100 %) may be smaller: 9 px, as the other topics' figures. */
     const MIN_SCRIPT_PX = 9;
     const diagram = page.getByTestId('habitat-diagram');
     await diagram.scrollIntoViewIfNeeded();
@@ -221,7 +221,11 @@ test.describe('a 375 px', () => {
           .map((node) => ({
             text: node.textContent?.trim() ?? '',
             px: parseFloat(getComputedStyle(node).fontSize) * scale,
-            isScript: (node.getAttribute('font-size') ?? '').endsWith('%'),
+            // MathText sets a subscript or power at 75 % and a KaTeX glyph at 117 % (the x-height
+            // of Plex): only a size below 100 % of the label is a script.
+            isScript:
+              parseFloat(node.getAttribute('font-size') ?? '') < 100 &&
+              /%$/.test(node.getAttribute('font-size') ?? ''),
           }))
       );
     });
