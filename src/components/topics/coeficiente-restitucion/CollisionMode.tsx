@@ -1,8 +1,10 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { AXIS_COLOR, TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
+import { mathTextToString, mathTextWidth } from '../../../lib/mathNotation';
 import { useElementWidth } from '../../hooks/useElementWidth';
-import { monoTextWidth } from '../../lab/plotScales';
+import InlineMath from '../../lab/InlineMath';
+import MathText from '../../lab/MathText';
 import type { LabReadout } from '../../lab/LabShell';
 import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Label } from '../../lab/OverlayMarks';
@@ -49,6 +51,7 @@ const [V_MIN, V_MAX] = COLLISION_LIMITS.velocity;
 const [E_MIN, E_MAX] = COLLISION_LIMITS.e;
 
 interface BarRow {
+  /** In the MathText notation ("p_1 antes"). */
   label: string;
   value: number;
   unit: string;
@@ -74,7 +77,7 @@ function Bars({
   const texts = rows.map((row) => formatNumber(row.value, { precision: decimals, unit: row.unit }));
   // Room right of the bars for the widest value label, so "-100,00 kg·m/s" stays on the canvas.
   const valueRoom =
-    Math.max(...texts.map((text) => monoTextWidth(text, VELOCITY_LABEL_SIZE))) + VALUE_GAP;
+    Math.max(...texts.map((text) => mathTextWidth(text, VELOCITY_LABEL_SIZE, 'mono'))) + VALUE_GAP;
   const right = width - SIDE_PAD - valueRoom;
   const reach = rows.map((row) => row.lostUpTo ?? row.value);
   const hasNegative = isSigned && reach.some((value) => value < 0);
@@ -93,15 +96,13 @@ function Bars({
         const text = texts[index];
         return (
           <g key={row.label} data-bar={row.label}>
-            <text
+            <MathText
+              source={row.label}
               x={4}
               y={y + BAR_HEIGHT - 2}
-              fontFamily={TICK_FONT_FAMILY}
               fontSize={LABEL_SIZE}
               fill={TICK_COLOR}
-            >
-              {row.label}
-            </text>
+            />
             <rect
               x={Math.min(zero, end)}
               y={y}
@@ -146,18 +147,20 @@ export interface CollisionSceneProps {
 function describeCollision({ settings: s, outcome: o, decimals }: CollisionSceneProps): string {
   const n = (value: number, unit: string) => formatNumber(value, { precision: decimals, unit });
   const second = s.isWall
-    ? 'el piso, inmóvil (m₂ → ∞)'
+    ? 'el piso, inmóvil (m_2 → ∞)'
     : `el cuerpo 2 de ${n(s.m2, 'kg')} a ${n(s.v2, 'm/s')}`;
   const result = o.isApproaching
-    ? `Después: v₁′ = ${n(o.v1After, 'm/s')}${s.isWall ? '' : ` y v₂′ = ${n(o.v2After, 'm/s')}`}. La energía cinética pasa de ${n(o.kBefore, 'J')} a ${n(o.kAfter, 'J')}.`
+    ? `Después: v_{1}′ = ${n(o.v1After, 'm/s')}${s.isWall ? '' : ` y v_{2}′ = ${n(o.v2After, 'm/s')}`}. La energía cinética pasa de ${n(o.kBefore, 'J')} a ${n(o.kAfter, 'J')}.`
     : 'No se acercan, así que no chocan.';
-  return `Choque en una dimensión, e = ${n(s.e, '')}: el cuerpo 1 de ${n(s.m1, 'kg')} a ${n(s.v1, 'm/s')} contra ${second}. ${result}`;
+  return mathTextToString(
+    `Choque en una dimensión, e = ${n(s.e, '')}: el cuerpo 1 de ${n(s.m1, 'kg')} a ${n(s.v1, 'm/s')} contra ${second}. ${result}`,
+  );
 }
 
 /**
  * The two-body mode's canvas: the bodies sliding on a track (they touch at 1 s) with their
  * velocity arrows, then bars of p and K before and after. The p bars match for any e; the K
- * bar loses the dashed ΔK = ½ μ (1 − e²) v_rel².
+ * bar loses the dashed ΔK = ½ μ (1 − e²) v_rel² (the note under the controls writes it in KaTeX).
  */
 export function CollisionScene(props: CollisionSceneProps): JSX.Element {
   const { settings: s, outcome: o, frame, decimals } = props;
@@ -173,8 +176,8 @@ export function CollisionScene(props: CollisionSceneProps): JSX.Element {
   const centres = boxes.map((box) => box.centre);
   const prime = isAfter ? '′' : '';
   const pRows: BarRow[] = [
-    { label: s.isWall ? 'p₁ antes' : 'p antes', value: o.pBefore, unit: 'kg·m/s' },
-    { label: s.isWall ? 'p₁ después' : 'p después', value: o.pAfter, unit: 'kg·m/s' },
+    { label: s.isWall ? 'p_1 antes' : 'p antes', value: o.pBefore, unit: 'kg·m/s' },
+    { label: s.isWall ? 'p_1 después' : 'p después', value: o.pAfter, unit: 'kg·m/s' },
   ];
   const kRows: BarRow[] = [
     { label: 'K antes', value: o.kBefore, unit: 'J' },
@@ -236,7 +239,7 @@ export function CollisionScene(props: CollisionSceneProps): JSX.Element {
             const y = TRACK_Y - Math.max(...sides) - ARROW_ROWS[index];
             const from = { x: centres[index], y };
             const to = { x: arrowTip(centres[index], velocities[index], width), y };
-            const text = `v${index === 0 ? '₁' : '₂'}${prime} = ${formatNumber(velocities[index], { precision: decimals, unit: 'm/s' })}`;
+            const text = `v_{${index + 1}}${prime} = ${formatNumber(velocities[index], { precision: decimals, unit: 'm/s' })}`;
             return (
               <g key={index} data-velocity={index + 1}>
                 <Arrow from={from} to={to} color={TEXT_COLOR} />
@@ -293,7 +296,11 @@ export interface CollisionParamsProps {
   onChange(patch: Partial<CollisionSettings>): void;
 }
 
-/** m₁, m₂, v₁, v₂ and e, the "m₂ → ∞" switch, and what the mode shows. */
+const LOSS_NOTE = String.raw`El momento lineal es el mismo antes y después para cualquier e; la energía cinética no: se pierde $\Delta K = \tfrac{1}{2}\mu\,(1 - e^2)\,v_\text{rel}^2$, con $\mu = m_1 m_2/(m_1 + m_2)$, así que $\Delta K/K_\text{rel} = 1 - e^2$. En las barras, el tramo punteado es $\Delta K$.`;
+const WALL_NOTE = String.raw`Con $m_2 \to \infty$ el cuerpo 2 es el piso: $v_1' = -e\,v_1$, el rebote de la pelota. El piso recibe el impulso sin moverse, así que el momento del cuerpo 1 solo no se conserva.`;
+const RECEDING_NOTE = String.raw`Con $v_1 \le v_2$ los cuerpos no se acercan: no hay choque y nada cambia.`;
+
+/** m_1, m_2, v_1, v_2 and e, the "m_2 → ∞" switch, and what the mode shows. */
 export function CollisionParams({
   settings: s,
   outcome,
@@ -320,10 +327,10 @@ export function CollisionParams({
   return (
     <>
       <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-        {field('m1', 'Masa m₁', 'kg', [M_MIN, M_MAX], MASS_STEP)}
-        {s.isWall ? null : field('m2', 'Masa m₂', 'kg', [M_MIN, M_MAX], MASS_STEP)}
-        {field('v1', 'Velocidad v₁', 'm/s', [V_MIN, V_MAX], VELOCITY_STEP)}
-        {s.isWall ? null : field('v2', 'Velocidad v₂', 'm/s', [V_MIN, V_MAX], VELOCITY_STEP)}
+        {field('m1', 'Masa $m_1$', 'kg', [M_MIN, M_MAX], MASS_STEP)}
+        {s.isWall ? null : field('m2', 'Masa $m_2$', 'kg', [M_MIN, M_MAX], MASS_STEP)}
+        {field('v1', 'Velocidad $v_1$', 'm/s', [V_MIN, V_MAX], VELOCITY_STEP)}
+        {s.isWall ? null : field('v2', 'Velocidad $v_2$', 'm/s', [V_MIN, V_MAX], VELOCITY_STEP)}
         <ParamField
           id="collision-e"
           label="Coeficiente de restitución e"
@@ -337,7 +344,7 @@ export function CollisionParams({
       </div>
       <SwitchField
         id="collision-wall"
-        label="Cuerpo 2 fijo (m₂ → ∞, como el piso)"
+        label={String.raw`Cuerpo 2 fijo ($m_2 \to \infty$, como el piso)`}
         checked={s.isWall}
         onChange={(isWall) => onChange({ isWall })}
       />
@@ -346,18 +353,17 @@ export function CollisionParams({
         className="m-0 flex list-disc flex-col gap-1 pl-5 text-sm text-fg-muted"
       >
         <li>
-          El momento lineal es el mismo antes y después para cualquier e; la energía cinética no: se
-          pierde ΔK = ½ μ (1 − e²) v_rel², con μ = m₁m₂/(m₁ + m₂), así que ΔK/K_rel = 1 − e². En las
-          barras, el tramo punteado es ΔK.
+          <InlineMath text={LOSS_NOTE} />
         </li>
         {s.isWall ? (
           <li>
-            Con m₂ → ∞ el cuerpo 2 es el piso: v₁′ = −e v₁, el rebote de la pelota. El piso recibe
-            el impulso sin moverse, así que el momento del cuerpo 1 solo no se conserva.
+            <InlineMath text={WALL_NOTE} />
           </li>
         ) : null}
         {outcome.isApproaching ? null : (
-          <li>Con v₁ ≤ v₂ los cuerpos no se acercan: no hay choque y nada cambia.</li>
+          <li>
+            <InlineMath text={RECEDING_NOTE} />
+          </li>
         )}
       </ul>
     </>
@@ -368,21 +374,26 @@ export function CollisionParams({
 export function collisionReadouts(s: CollisionSettings, o: CollisionOutcome): LabReadout[] {
   const momentum: LabReadout[] = s.isWall
     ? [
-        { id: 'p-before', label: 'p₁ antes', value: o.pBefore, unit: 'kg·m/s' },
-        { id: 'p-after', label: 'p₁ después', value: o.pAfter, unit: 'kg·m/s' },
-        { id: 'v1', label: 'v₁′', value: o.v1After, unit: 'm/s' },
+        { id: 'p-before', label: '$p_1$ antes', value: o.pBefore, unit: 'kg·m/s' },
+        { id: 'p-after', label: '$p_1$ después', value: o.pAfter, unit: 'kg·m/s' },
+        { id: 'v1', label: "$v_1'$", value: o.v1After, unit: 'm/s' },
         { id: 'impulse', label: 'Impulso del piso sobre 1', value: o.impulse, unit: 'N·s' },
       ]
     : [
         { id: 'p-before', label: 'p antes', value: o.pBefore, unit: 'kg·m/s' },
         { id: 'p-after', label: 'p después', value: o.pAfter, unit: 'kg·m/s' },
-        { id: 'v1', label: 'v₁′', value: o.v1After, unit: 'm/s' },
-        { id: 'v2', label: 'v₂′', value: o.v2After, unit: 'm/s' },
+        { id: 'v1', label: "$v_1'$", value: o.v1After, unit: 'm/s' },
+        { id: 'v2', label: "$v_2'$", value: o.v2After, unit: 'm/s' },
       ];
   return [
     ...momentum,
-    { id: 'loss', label: 'ΔK perdida', value: o.kineticLoss, unit: 'J' },
-    { id: 'fraction', label: 'ΔK/K_rel', value: o.lossFraction, unit: '' },
+    { id: 'loss', label: String.raw`$\Delta K$ perdida`, value: o.kineticLoss, unit: 'J' },
+    {
+      id: 'fraction',
+      label: String.raw`$\Delta K/K_\text{rel}$`,
+      value: o.lossFraction,
+      unit: '',
+    },
     { id: 'one-minus-e2', label: '1 − e²', value: 1 - s.e * s.e, unit: '' },
   ];
 }

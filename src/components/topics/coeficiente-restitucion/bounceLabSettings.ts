@@ -69,6 +69,7 @@ function engineOptions(
   return [
     {
       key: 'rate',
+      // A select's label is plain text (SelectField does not typeset `$…$`); Δ is in Plex Sans.
       label: 'Paso del motor Δt',
       kind: 'select',
       value: String(settings.rate),
@@ -91,7 +92,7 @@ function engineOptions(
       },
     },
     range('floorE', 'e del material del suelo', COEFFICIENT_STEP),
-    range('baumgarte', 'Corrección de Baumgarte β', COEFFICIENT_STEP),
+    range('baumgarte', 'Corrección de Baumgarte $\\beta$', COEFFICIENT_STEP),
     {
       key: 'speedDependent',
       label: 'e(v) = 0,79 − 0,009·|v| (ajuste ilustrativo)',

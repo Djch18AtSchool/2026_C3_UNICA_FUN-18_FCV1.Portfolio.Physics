@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { G_EARTH } from '../../../lib/physics';
+import InlineMath from '../../lab/InlineMath';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
@@ -38,6 +39,7 @@ import {
 } from './collisionScene';
 
 const g = G_EARTH;
+const DRAG_HINT = String.raw`Arrastra la manija $h_0$ de la escena, o enfócala y muévela con las flechas (5 cm; con Mayús, 25 cm). El motor ($\Delta t$, subpasos, umbral, regla de combinación, e del suelo, Baumgarte y e(v)) se ajusta en el engranaje. Atajos, fuera de los campos: Espacio o K reproduce y pausa; R reinicia; «,» y «.» retroceden o avanzan un paso $\Delta t$ del motor.`;
 /** Thousandths, so the FIBA (0,767) and FIFA (0,851) centres sit on the grid. */
 const E_STEP = 0.001;
 const H0_STEP = 0.01;
@@ -234,10 +236,10 @@ export default function BounceLab({ footnote }: BounceLabProps): JSX.Element {
   };
 
   const bounceReadouts: LabReadout[] = [
-    { id: 'h1', label: 'Primer rebote h₁ (motor)', value: firstRebound(model.run), unit: 'm' },
+    { id: 'h1', label: 'Primer rebote $h_1$ (motor)', value: firstRebound(model.run), unit: 'm' },
     {
       id: 'measured',
-      label: 'e medido √(h₁/h₀) (motor)',
+      label: String.raw`e medido $\sqrt{h_1/h_0}$ (motor)`,
       value: measuredRestitution(model.run),
       unit: '',
       precision: MEASURED_PRECISION,
@@ -245,13 +247,13 @@ export default function BounceLab({ footnote }: BounceLabProps): JSX.Element {
     { id: 'bounces', label: 'Rebotes del motor', value: engine.bounces, unit: '', precision: 0 },
     {
       id: 'ideal-energy',
-      label: 'E/E₀ ideal',
+      label: '$E/E_0$ ideal',
       value: idealEnergyAt(model.impacts, t, settings.h0, g),
       unit: '',
     },
     {
       id: 'engine-energy',
-      label: 'E/E₀ del motor',
+      label: '$E/E_0$ del motor',
       value: engineEnergy(engine, settings.h0, g),
       unit: '',
     },
@@ -265,7 +267,7 @@ export default function BounceLab({ footnote }: BounceLabProps): JSX.Element {
     speed: clock.state.speed,
     decimals,
   });
-  const engineConfig = `Motor: Δt = 1/${settings.rate} s × ${settings.substeps} subpasos · umbral ${formatNumber(settings.threshold, { precision: 2, unit: 'm/s' })} · regla ${combineName(settings.combine)}, suelo e = ${formatNumber(settings.floorE, { precision: 2 })} · β = ${formatNumber(settings.baumgarte, { precision: 2 })}`;
+  const engineConfig = `Motor: $\\Delta t$ = 1/${settings.rate} s × ${settings.substeps} subpasos · umbral ${formatNumber(settings.threshold, { precision: 2, unit: 'm/s' })} · regla ${combineName(settings.combine)}, suelo e = ${formatNumber(settings.floorE, { precision: 2 })} · $\\beta$ = ${formatNumber(settings.baumgarte, { precision: 2 })}`;
 
   const bounceParams = (
     <>
@@ -292,7 +294,7 @@ export default function BounceLab({ footnote }: BounceLabProps): JSX.Element {
         )}
         <ParamField
           id="bounce-h0"
-          label="Altura de suelta h₀"
+          label="Altura de suelta $h_0$"
           unit="m"
           min={H0_MIN}
           max={H0_MAX}
@@ -302,10 +304,7 @@ export default function BounceLab({ footnote }: BounceLabProps): JSX.Element {
         />
       </div>
       <p className="m-0 text-sm text-fg-muted">
-        Arrastra la manija h₀ de la escena, o enfócala y muévela con las flechas (5 cm; con Mayús,
-        25 cm). El motor (Δt, subpasos, umbral, regla de combinación, e del suelo, Baumgarte y e(v))
-        se ajusta en el engranaje. Atajos, fuera de los campos: Espacio o K reproduce y pausa; R
-        reinicia; «,» y «.» retroceden o avanzan un paso Δt del motor.
+        <InlineMath text={DRAG_HINT} />
       </p>
     </>
   );
@@ -357,7 +356,7 @@ export default function BounceLab({ footnote }: BounceLabProps): JSX.Element {
               onH0DragPhase={onH0DragPhase}
             />
             <p data-testid="engine-config" className="m-0 px-3 text-xs text-fg-muted sm:px-0">
-              {engineConfig}
+              <InlineMath text={engineConfig} />
             </p>
             {notes.length > 0 ? (
               <ul

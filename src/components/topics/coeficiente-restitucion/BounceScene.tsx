@@ -1,5 +1,6 @@
 import { useRef, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString } from '../../../lib/mathNotation';
 import {
   AXIS_COLOR,
   TEXT_COLOR,
@@ -9,6 +10,7 @@ import {
 } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import type { FrameStore } from '../../lab/frameStore';
+import MathText from '../../lab/MathText';
 import { Knob, Label, type Point } from '../../lab/OverlayMarks';
 import { wrapLabel } from '../../lab/SvgPlotMarks';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
@@ -57,6 +59,7 @@ const TICK_LENGTH = 5;
 const PENETRATION_LABEL_MIN = 5e-4;
 const CM_PER_M = 100;
 
+const H0_HANDLE_NAME = mathTextToString('Altura de suelta h_0');
 const [H0_MIN, H0_MAX] = BOUNCE_LIMITS.h0;
 const ORIGIN: Point = { x: 0, y: 0 };
 /** Decimals of a ball's translation: a stable attribute string per frame. */
@@ -89,7 +92,8 @@ export interface BounceSceneProps {
   live: LiveBalls;
   /**
    * Under "Motor de juego": its step and substeps. On a narrow canvas it wraps at its spaces to
-   * fit its column; no-break spaces keep a group («Δt = 1/60 s») on one line.
+   * fit its column; no-break spaces keep a group («Δt = 1/60 s») on one line. In the MathText
+   * notation.
    */
   engineSubtitle: string;
   decimals: number;
@@ -280,7 +284,9 @@ function describeScene({ h0, ideal, engine, decimals }: BounceSceneProps): strin
   const m = (value: number) => formatNumber(value, { precision: decimals, unit: 'm' });
   const describe = (state: SceneBall) =>
     state.isResting ? 'en reposo en el piso' : `a ${m(Math.max(state.y, 0))}`;
-  return `Dos pelotas iguales soltadas desde h₀ = ${m(h0)}. A la izquierda, la física ideal, ${describe(ideal)}; a la derecha, el motor de juego, ${describe(engine)}.`;
+  return mathTextToString(
+    `Dos pelotas iguales soltadas desde h_0 = ${m(h0)}. A la izquierda, la física ideal, ${describe(ideal)}; a la derecha, el motor de juego, ${describe(engine)}.`,
+  );
 }
 
 /** The h₀ handle: a knob on the release line between the columns, dragged or moved with keys. */
@@ -296,7 +302,7 @@ function H0Handle({
 }): JSX.Element {
   const at = { x: (geo.columns[0] + geo.columns[1]) / 2, y: geo.toPx(h0) };
   const grabOffsetRef = useRef(0);
-  const text = `h₀ = ${formatNumber(h0, { precision: decimals, unit: 'm' })}`;
+  const text = `h_0 = ${formatNumber(h0, { precision: decimals, unit: 'm' })}`;
 
   const drag = useDrag(({ y, phase }: DragPoint) => {
     if (phase === 'start') {
@@ -322,12 +328,12 @@ function H0Handle({
       data-testid="h0-handle"
       role="slider"
       tabIndex={0}
-      aria-label="Altura de suelta h₀"
+      aria-label={H0_HANDLE_NAME}
       aria-orientation="vertical"
       aria-valuemin={H0_MIN}
       aria-valuemax={H0_MAX}
       aria-valuenow={h0}
-      aria-valuetext={text}
+      aria-valuetext={mathTextToString(text)}
       className="group cursor-ns-resize outline-none"
       onKeyDown={onKeyDown}
       {...drag}
@@ -452,21 +458,19 @@ export default function BounceScene(props: BounceSceneProps): JSX.Element {
               >
                 {title}
               </text>
-              <text
-                data-subtitle=""
-                x={x}
-                y={floorY + SUBTITLE_GAP}
-                textAnchor="middle"
-                fontFamily={TICK_FONT_FAMILY}
-                fontSize={NOTE_SIZE}
-                fill={TICK_COLOR}
-              >
+              <g data-subtitle="" data-x={x}>
                 {subtitle.map((line, index) => (
-                  <tspan key={line} x={x} dy={index === 0 ? 0 : STATUS_LINE}>
-                    {line}
-                  </tspan>
+                  <MathText
+                    key={line}
+                    source={line}
+                    x={x}
+                    y={floorY + SUBTITLE_GAP + index * STATUS_LINE}
+                    anchor="middle"
+                    fontSize={NOTE_SIZE}
+                    fill={TICK_COLOR}
+                  />
                 ))}
-              </text>
+              </g>
             </g>
           ))}
           <BallsLayer

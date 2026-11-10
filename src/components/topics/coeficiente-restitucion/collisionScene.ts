@@ -4,7 +4,8 @@
  * body's contact face is at t for the animation. Body 1 moves on the left, body 2 on the right.
  */
 import { collide1D } from '../../../lib/physics';
-import { fitCentre, monoTextWidth } from '../../lab/plotScales';
+import { fitCentre } from '../../lab/plotScales';
+import { mathTextWidth } from '../../../lib/mathNotation';
 
 export interface CollisionSettings {
   m1: number;
@@ -179,7 +180,7 @@ export function arrowTip(centre: number, v: number, width: number): number {
 export function labelCentre(centre: number, text: string, width: number): number {
   return fitCentre(
     centre,
-    monoTextWidth(text, VELOCITY_LABEL_SIZE),
+    mathTextWidth(text, VELOCITY_LABEL_SIZE, 'mono'),
     LABEL_EDGE_PX,
     width - LABEL_EDGE_PX,
   );

@@ -62,16 +62,16 @@ describe('Paso 1: the ITF tennis ball', () => {
       expect(idealBallAt(apex.t, 2.54, 0.745, G_EARTH).v).toBeCloseTo(0, 9);
     }
     expect(apexes.map((apex) => apex.label)).toEqual([
-      'h₀ = 2,54 m',
-      'h₁ = 1,41 m',
-      'h₂ = 0,78 m',
-      'h₃ = 0,43 m',
+      'h_0 = 2,54 m',
+      'h_1 = 1,41 m',
+      'h_2 = 0,78 m',
+      'h_3 = 0,43 m',
     ]);
-    expect(apexes[1].shortLabel).toBe('h₁ = 1,41');
+    expect(apexes[1].shortLabel).toBe('h_1 = 1,41');
   });
 
-  test('labels two-digit indices with two subscripts', () => {
-    expect(apexPoints(1, 0.9, G_EARTH, 13)[12].label).toBe('h₁₂ = 0,08 m');
+  test('labels two-digit indices with one two-digit subscript', () => {
+    expect(apexPoints(1, 0.9, G_EARTH, 13)[12].label).toBe('h_12 = 0,08 m');
   });
 
   test('the first rebound, 1,41 m, falls inside the band the ITF admits', () => {

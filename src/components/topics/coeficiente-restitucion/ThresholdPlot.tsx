@@ -11,12 +11,14 @@ import {
   TICK_FONT_SIZE,
 } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import InlineMath from '../../lab/InlineMath';
 import { Arrow } from '../../lab/OverlayMarks';
 import { linearScale, niceTicks, type Domain, type Scale } from '../../lab/plotScales';
 import { PlotAxes, PlotGrid, yTickLabelChars } from '../../lab/SvgPlotAxes';
 import type { PlotArea } from '../../lab/SvgPlotCursor';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString } from '../../../lib/mathNotation';
 import { G_EARTH } from '../../../lib/physics';
 import {
   formatTrimmed,
@@ -173,14 +175,14 @@ function Legend({ items }: { items: readonly LegendItem[] }) {
               strokeDasharray={item.dashed ? DASH_PATTERN : undefined}
             />
           </svg>
-          {item.label}
+          <InlineMath text={item.label} />
         </li>
       ))}
     </ul>
   );
 }
 
-const IDEAL_LEGEND = 'Ideal, sin umbral: hₙ = e²ⁿ h₀';
+const IDEAL_LEGEND = 'Ideal, sin umbral: $h_n = e^{2n} h_0$';
 
 const LEGEND_ITEMS: readonly LegendItem[] = [
   {
@@ -279,7 +281,9 @@ function ariaLabel(): string {
         `con ${formatTrimmed(item.vth)} m/s (${item.engine}, ${formatNumber(item.thresholdHeight, { precision: 1 })} cm) se queda en el piso tras ${item.bounces} rebotes, el último de ${formatNumber(item.lastHeight, { precision: 1 })} cm`,
     )
     .join(', y ');
-  return `hₙ frente a n en escala logarítmica para una pelota de e = ${formatTrimmed(e)} soltada desde ${formatTrimmed(h0)} m: la serie ideal baja en línea recta y no se corta; ${stops}.`;
+  return mathTextToString(
+    `h_n frente a n en escala logarítmica para una pelota de e = ${formatTrimmed(e)} soltada desde ${formatTrimmed(h0)} m: la serie ideal baja en línea recta y no se corta; ${stops}.`,
+  );
 }
 
 const IDEAL_POINTS = heightSeries(UMBRAL_DROP.h0, UMBRAL_DROP.e, G_EARTH, UMBRAL_DROP.count);
@@ -317,7 +321,7 @@ export default function ThresholdPlot(): JSX.Element {
             y={y}
             area={area}
             xTitle="n (número de rebote)"
-            yTitle="hₙ (cm, escala logarítmica)"
+            yTitle="h_n (cm, escala logarítmica)"
             tickFontSize={TICK_SIZE}
             titleFontSize={TITLE_SIZE}
             compact={compact}

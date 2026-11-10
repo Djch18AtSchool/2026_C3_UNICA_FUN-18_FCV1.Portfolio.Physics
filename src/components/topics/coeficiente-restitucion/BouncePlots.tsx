@@ -11,6 +11,8 @@ export const ENGINE_COLOR = TEXT_COLOR;
 /** Energy gains wear the warm red of the site's losses and warnings, plus a triangle shape. */
 const GAIN_COLOR = 'var(--chart-2)';
 const GAIN_SIZE = 6;
+const GAIN_HEIGHT_RATIO = 1.6;
+const GAIN_STROKE = 0.75;
 const TIME_PRECISION = 2;
 
 function pair(model: BounceModel, key: 'position' | 'energy'): PlotSeries[] {
@@ -26,6 +28,28 @@ function pair(model: BounceModel, key: 'position' | 'energy'): PlotSeries[] {
   ];
 }
 
+/** The plot's gain triangle, small, to lead the note that explains it. */
+function GainKey(): JSX.Element {
+  const height = GAIN_SIZE * GAIN_HEIGHT_RATIO;
+  return (
+    <svg
+      aria-hidden="true"
+      data-testid="gain-key"
+      width={GAIN_SIZE * 2}
+      height={height}
+      viewBox={`0 0 ${GAIN_SIZE * 2} ${height}`}
+      className="inline-block align-baseline"
+    >
+      <path
+        d={`M${GAIN_SIZE} 0 L0 ${height} L${GAIN_SIZE * 2} ${height} Z`}
+        style={{ fill: GAIN_COLOR }}
+        stroke={TEXT_COLOR}
+        strokeWidth={GAIN_STROKE}
+      />
+    </svg>
+  );
+}
+
 function GainMarks({ gains, scales }: { gains: EnergyGain[]; scales: OverlayScales }) {
   return (
     <g className="pointer-events-none">
@@ -36,10 +60,10 @@ function GainMarks({ gains, scales }: { gains: EnergyGain[]; scales: OverlayScal
           <path
             key={gain.t}
             data-gain={gain.kind}
-            d={`M${x} ${y - GAIN_SIZE * 1.6} L${x - GAIN_SIZE} ${y} L${x + GAIN_SIZE} ${y} Z`}
+            d={`M${x} ${y - GAIN_SIZE * GAIN_HEIGHT_RATIO} L${x - GAIN_SIZE} ${y} L${x + GAIN_SIZE} ${y} Z`}
             style={{ fill: GAIN_COLOR }}
             stroke={TEXT_COLOR}
-            strokeWidth={0.75}
+            strokeWidth={GAIN_STROKE}
           />
         );
       })}
@@ -58,7 +82,7 @@ export interface BouncePlotsProps {
 
 /**
  * y(t) and E/E₀(t) of both balls under one time cursor that follows the clock and, dragged or
- * moved with the keys, seeks it. The energy plot marks with ▲ every rebound where the engine
+ * moved with the keys, seeks it. The energy plot marks with a triangle every rebound where the engine
  * gains energy: above the previous flight (e > 1) or above what e allows (Baumgarte).
  */
 export default function BouncePlots({
@@ -95,11 +119,11 @@ export default function BouncePlots({
         testId="height-plot"
       />
       <SvgPlot
-        title="Energía mecánica, E/E₀"
+        title="Energía mecánica, $E/E_0$"
         xLabel="t"
         xUnit="s"
         yLabel="Energía"
-        yUnit="E/E₀"
+        yUnit="E/E_0"
         series={pair(model, 'energy')}
         xDomain={xDomain}
         cursor={cursor}
@@ -108,9 +132,12 @@ export default function BouncePlots({
         testId="energy-plot"
       />
       <p className="m-0 text-sm text-fg-muted">
-        {model.gains.length > 0
-          ? `▲ Botes en que el motor gana energía: ${rises} por encima del vuelo anterior (e > 1) y ${excess} por encima de lo que e permite (sesgo de Baumgarte). `
-          : ''}
+        {model.gains.length > 0 ? (
+          <>
+            <GainKey />
+            {` Botes en que el motor gana energía: ${rises} por encima del vuelo anterior (e > 1) y ${excess} por encima de lo que e permite (sesgo de Baumgarte). `}
+          </>
+        ) : null}
         Cada escalón de la física ideal deja una fracción e² de la energía: pierde 1 − e² por bote.
         Con Baumgarte, la penetración cuenta como energía potencial negativa.
       </p>

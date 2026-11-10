@@ -17,11 +17,6 @@ import {
 type XY = { x: number; y: number };
 
 const CM_PER_M = 100;
-const SUBSCRIPT_DIGITS = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉'];
-/** n as a subscript: 12 → "₁₂". */
-const subscript = (n: number) =>
-  [...String(n)].map((digit) => SUBSCRIPT_DIGITS[Number(digit)]).join('');
-
 const comma = (value: number, decimals: number) => formatNumber(value, { precision: decimals });
 
 /** "6", "1,25", "7,69": two decimals at most, without trailing zeros. */
@@ -87,7 +82,7 @@ export interface ApexPoint {
   t: number;
   /** hₙ = e²ⁿ h₀ (m). */
   h: number;
-  /** "h₁ = 1,41 m", and without the unit (the axis gives it) for narrow plots: "h₁ = 1,41". */
+  /** "h_1 = 1,41 m" (MathText notation), and without the unit (the axis gives it) for narrow plots. */
   label: string;
   shortLabel: string;
 }
@@ -97,7 +92,7 @@ export function apexPoints(h0: number, e: number, g: number, count: number): Ape
   const { heights, flightTimes } = bounceSeries(h0, e, g, count);
   const ends = impactTimes(h0, e, g, count);
   return heights.map((h, n) => {
-    const shortLabel = `h${subscript(n)} = ${comma(h, 2)}`;
+    const shortLabel = `h_${n} = ${comma(h, 2)}`;
     return {
       n,
       t: n === 0 ? 0 : ends[n - 1] + flightTimes[n] / 2,

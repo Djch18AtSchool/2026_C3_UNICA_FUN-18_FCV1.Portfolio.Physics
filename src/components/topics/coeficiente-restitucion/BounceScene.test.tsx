@@ -29,9 +29,11 @@ const PROPS: BounceSceneProps = {
 
 /** Each subtitle: its lines and the x its column is centred on. */
 function subtitles(): { x: number; lines: string[] }[] {
-  return [...document.querySelectorAll('[data-subtitle]')].map((text) => ({
-    x: Number(text.getAttribute('x')),
-    lines: [...text.querySelectorAll('tspan')].map((tspan) => tspan.textContent ?? ''),
+  return [...document.querySelectorAll('[data-subtitle]')].map((group) => ({
+    x: Number(group.getAttribute('data-x')),
+    lines: [...group.querySelectorAll('text')].map(
+      (text) => text.getAttribute('data-notation') ?? text.textContent ?? '',
+    ),
   }));
 }
 
@@ -93,7 +95,7 @@ describe('BounceScene column subtitles', () => {
     stubResizeObserver(250);
     render(<BounceScene {...PROPS} />);
     const status = document.querySelector('[data-status]');
-    const lastLine = [...document.querySelectorAll('[data-subtitle] tspan')].at(-1);
+    const lastLine = [...document.querySelectorAll('[data-subtitle] text')].at(-1);
 
     // 300 px tall below 480 px, 340 at 720; the wrap adds one 14 px line on the phone.
     expect(wideHeight).toBe(340);

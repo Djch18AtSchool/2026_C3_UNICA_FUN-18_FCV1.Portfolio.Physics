@@ -115,7 +115,7 @@ function ballPreset(
     group: 'realista',
     values: { ...ENGINE_DEFAULTS, e, h0, ball: kind },
     sourceLabel: sourceOf(standard),
-    note: `${standard.standard}. De ahí ${range} (cálculo propio, e = √(h′/h) o v′/v); uso ${comma(e, E_DECIMALS)} con h₀ = ${comma(h0, 2)} m. El motor usa los valores por defecto de Box2D.`,
+    note: `${standard.standard}. De ahí ${range} (cálculo propio, e = $\\sqrt{h'/h}$ o $v'/v$); uso ${comma(e, E_DECIMALS)} con $h_0$ = ${comma(h0, 2)} m. El motor usa los valores por defecto de Box2D.`,
   };
 }
 
@@ -134,7 +134,7 @@ const MIX_RULES: readonly { rule: CombineRule; name: string }[] = [
 /** "suelo de 0,5: máx → 0,850; …": the pair e under every rule over one floor (cálculo propio). */
 const mixOver = (floorE: number) =>
   `suelo de ${comma(floorE, 1).replace(/,0$/, '')}: ${MIX_RULES.map(
-    ({ rule, name }) => `${name} → ${comma(combineRestitution(MIX_BALL, floorE, rule), 3)}`,
+    ({ rule, name }) => `${name} $\\to$ ${comma(combineRestitution(MIX_BALL, floorE, rule), 3)}`,
   ).join('; ')}`;
 const mixNote = `${mixOver(MIX_FLOOR)}. Sobre un ${mixOver(0)}`;
 
@@ -179,7 +179,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       ball: 'tenis',
     },
     sourceLabel: 'Cross (1999), «Dynamic properties of tennis balls», Fig. 8',
-    note: 'e(v) = 0,79 − 0,009·|v|: ajuste lineal ilustrativo (cálculo propio) a la medida de Cross, que baja de ≈ 0,76 a ≈ 0,64 entre 4 y 17 m/s. A baja velocidad e sube, así que la serie de botes pequeños se alarga en vez de cortarse.',
+    note: 'e(v) = 0,79 − 0,009·|v|: ajuste lineal ilustrativo (cálculo propio) a la medida de Cross, que baja de $\\approx$ 0,76 a $\\approx$ 0,64 entre 4 y 17 m/s. A baja velocidad e sube, así que la serie de botes pequeños se alarga en vez de cortarse.',
   },
   {
     id: 'e-uno',
@@ -187,7 +187,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
     group: 'se-siente-mal',
     values: { ...ENGINE_DEFAULTS, e: 1, h0: DEFAULT_DROP, threshold: 0, ball: 'neutra' },
     sourceLabel: 'Box2D, documentación: «perfectly elastic»',
-    note: 'Choque perfectamente elástico: la pelota vuelve siempre a h₀ y no se detiene nunca, porque E no cambia. Ninguna pelota real lo hace.',
+    note: 'Choque perfectamente elástico: la pelota vuelve siempre a $h_0$ y no se detiene nunca, porque E no cambia. Ninguna pelota real lo hace.',
   },
   {
     id: 'e-mayor-que-uno',
@@ -250,7 +250,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       ball: 'neutra',
     },
     sourceLabel: 'Catto, Solver2D y GDC 2014: el sesgo de Baumgarte «adds kinetic energy»',
-    note: 'A 1/30 s sin subpasos la pelota se hunde varios centímetros en el piso antes de detectar el contacto, y el sesgo β = 0,2 que la saca le suma velocidad: rebota más alto de lo que e permite (ilustrativo).',
+    note: 'A 1/30 s sin subpasos la pelota se hunde varios centímetros en el piso antes de detectar el contacto, y el sesgo $\\beta$ = 0,2 que la saca le suma velocidad: rebota más alto de lo que e permite (ilustrativo).',
   },
 ];
 

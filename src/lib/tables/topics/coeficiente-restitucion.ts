@@ -63,12 +63,12 @@ function sourceList(sources: readonly Source[]): string {
  * Which e are ours: the drop-test ranges (√(h′/h)) and the baseball's v₂/v₁ from Cross's Table I;
  * the superball's 0,86 and the plasticine's 0 are printed by Cross himself (research §3.4, §4).
  */
-const OWN_CALCULATION = `Los rangos de e de las normas y el ${restitutionCell(ballStandardById('beisbol'))} del béisbol son cálculo propio, con e = √(h′/h) y e = v₂/v₁; el ${restitutionCell(ballStandardById('superbola'))} de la superbola y el ${restitutionCell(ballStandardById('plastilina'))} de la plastilina son de Cross.`;
+const OWN_CALCULATION = `Los rangos de e de las normas y el ${restitutionCell(ballStandardById('beisbol'))} del béisbol son cálculo propio, con las fórmulas de la leyenda de la tabla; el ${restitutionCell(ballStandardById('superbola'))} de la superbola y el ${restitutionCell(ballStandardById('plastilina'))} de la plastilina son de Cross.`;
 
 const PELOTAS: DataTableSpec = {
   id: 'coeficiente-restitucion-pelotas',
   caption:
-    'Coeficiente de restitución de pelotas reales: e = √(h′/h) del ensayo de caída de cada norma y e = v₂/v₁ de las medidas de Cross.',
+    "Coeficiente de restitución de pelotas reales: $e = \\sqrt{h'/h}$ del ensayo de caída de cada norma y $e = v_2/v_1$ de las medidas de Cross.",
   columns: [
     { key: 'pelota', label: 'Pelota', align: 'text' },
     { key: 'ensayo', label: 'Norma o medida', align: 'text' },
@@ -87,11 +87,11 @@ const NOT_DOCUMENTED = 'No documentado';
 
 /** The rule as the formula it applies to the two materials' e. */
 const COMBINE_FORMULA: Record<EngineRestitutionRow['combine'], string> = {
-  max: 'máx(e₁, e₂)',
-  average: '(e₁ + e₂)/2',
-  min: 'mín(e₁, e₂)',
-  multiply: 'e₁ · e₂',
-  sumClamped: 'mín(e₁ + e₂, 1)',
+  max: 'El mayor de los dos',
+  average: 'El promedio de los dos',
+  min: 'El menor de los dos',
+  multiply: 'El producto de los dos',
+  sumClamped: 'La suma, con tope en 1',
   unknown: 'No documentada',
 };
 
@@ -127,7 +127,7 @@ const DERIVED_THRESHOLDS = `El ${thresholdOf('Box2D v3')} m/s de Box2D (1.0f × 
 const MOTORES: DataTableSpec = {
   id: 'coeficiente-restitucion-motores',
   caption:
-    'Umbral de restitución y regla de mezcla por defecto de siete motores de física: por debajo del umbral el choque no rebota, y la regla combina el e de los dos materiales (e₁, e₂).',
+    'Umbral de restitución y regla de mezcla por defecto de siete motores de física: por debajo del umbral el choque no rebota, y la regla combina el e de los dos materiales ($e_1$, $e_2$).',
   columns: [
     { key: 'motor', label: 'Motor', align: 'text' },
     { key: 'umbral', label: 'Umbral', unit: 'm/s', align: 'num', precision: 1 },

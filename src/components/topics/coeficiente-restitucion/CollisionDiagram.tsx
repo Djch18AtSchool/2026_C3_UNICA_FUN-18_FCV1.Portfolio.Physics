@@ -7,7 +7,9 @@ import {
   TICK_FONT_FAMILY,
 } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import MathText from '../../lab/MathText';
 import { Arrow } from '../../lab/OverlayMarks';
+import { mathTextToString } from '../../../lib/mathNotation';
 import {
   COLLISION_CASE,
   collisionRows,
@@ -65,8 +67,8 @@ const KEY_GAP = 18;
 const LABEL_X = 2;
 const LABEL_SIZE = 12;
 const SMALL_SIZE = 11;
-/** The mass labels sit side by side over the balls of the first row. */
-const MASS_SIZE = 10;
+/** The mass labels sit side by side over the balls of the first row (subscripts at 75 %: 9 px). */
+const MASS_SIZE = 12;
 /** Ball radii scale as ∛m (same density): 12 px for 2 kg, 12/∛2 for 1 kg. */
 const BALL_1 = { id: 1, x: 78, r: 12 } as const;
 const BALL_2 = { id: 2, x: 146, r: 12 / Math.cbrt(2) } as const;
@@ -104,8 +106,8 @@ function Balls({
   isBefore: boolean;
 }) {
   const balls = [
-    { ...BALL_1, v: state.v1, color: BODY_1_COLOR, mass: `m₁ = ${COLLISION_CASE.m1} kg` },
-    { ...BALL_2, v: state.v2, color: BODY_2_COLOR, mass: `m₂ = ${COLLISION_CASE.m2} kg` },
+    { ...BALL_1, v: state.v1, color: BODY_1_COLOR, mass: `m_1 = ${COLLISION_CASE.m1} kg` },
+    { ...BALL_2, v: state.v2, color: BODY_2_COLOR, mass: `m_2 = ${COLLISION_CASE.m2} kg` },
   ];
   return (
     <g>
@@ -138,15 +140,14 @@ function Balls({
             {speedLabel(ball.v)}
           </text>
           {isBefore ? (
-            <text
+            <MathText
+              source={ball.mass}
               x={ball.x}
               y={middle - ball.r - MASS_LABEL_GAP}
-              textAnchor="middle"
+              anchor="middle"
               fontSize={MASS_SIZE}
-              {...textStyle}
-            >
-              {ball.mass}
-            </text>
+              fill={TEXT_COLOR}
+            />
           ) : null}
         </g>
       ))}
@@ -386,7 +387,9 @@ function ariaLabel(before: CollisionState, after: readonly CollisionAfter[]): st
   const { m1, v1, m2 } = COLLISION_CASE;
   const es = after.map((row) => formatTrimmed(row.e)).join(', ');
   const energies = after.map((row) => `${formatTrimmed(row.kinetic)} J`).join(', ');
-  return `Choque de m₁ = ${m1} kg a ${v1} m/s contra m₂ = ${m2} kg en reposo, antes y después con e = ${es}: el momento total es ${formatTrimmed(before.momentum)} kg·m/s en las cuatro filas; la energía cinética pasa de ${formatTrimmed(before.kinetic)} J a ${energies}, porque solo cambia su parte relativa, que se multiplica por e².`;
+  return mathTextToString(
+    `Choque de m_1 = ${m1} kg a ${v1} m/s contra m_2 = ${m2} kg en reposo, antes y después con e = ${es}: el momento total es ${formatTrimmed(before.momentum)} kg·m/s en las cuatro filas; la energía cinética pasa de ${formatTrimmed(before.kinetic)} J a ${energies}, porque solo cambia su parte relativa, que se multiplica por e².`,
+  );
 }
 
 /**

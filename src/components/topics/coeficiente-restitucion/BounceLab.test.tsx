@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
 import BounceLab from './BounceLab';
 
 const FOOTNOTE = 'Desprecio el arrastre del aire.';
@@ -28,7 +30,10 @@ function renderLab() {
 
 /** The value text of a LabShell readout row, normalised to plain spaces. */
 function readout(label: string): string {
-  const row = screen.getByText(label, { selector: 'span' }).parentElement as HTMLElement;
+  const row = [...document.querySelectorAll<HTMLElement>('[data-readout]')].find(
+    (candidate) => mathSourceText(candidate.firstElementChild) === label,
+  );
+  if (!row) throw new Error(`No readout labelled «${label}»`);
   return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
 
@@ -93,13 +98,13 @@ describe('BounceLab', () => {
 
   test('moving e changes the engine ball’s next apex and the measured e', () => {
     renderLab();
-    const apexBefore = numberOf(readout('Primer rebote h₁ (motor)'));
-    const measuredBefore = numberOf(readout('e medido √(h₁/h₀) (motor)'));
+    const apexBefore = numberOf(readout('Primer rebote $h_1$ (motor)'));
+    const measuredBefore = numberOf(readout(String.raw`e medido $\sqrt{h_1/h_0}$ (motor)`));
 
     fireEvent.change(eRange(), { target: { value: '0.5' } });
 
-    const apexAfter = numberOf(readout('Primer rebote h₁ (motor)'));
-    const measuredAfter = numberOf(readout('e medido √(h₁/h₀) (motor)'));
+    const apexAfter = numberOf(readout('Primer rebote $h_1$ (motor)'));
+    const measuredAfter = numberOf(readout(String.raw`e medido $\sqrt{h_1/h_0}$ (motor)`));
     expect(apexAfter).toBeLessThan(apexBefore);
     // h₁ ≈ e² h₀ = 0,25 · 2,54 m, a little less from the step's gravity.
     expect(apexAfter).toBeGreaterThan(0.6);
@@ -151,7 +156,7 @@ describe('BounceLab', () => {
       }
 
       expect(sawClamp).toBe(true);
-      expect(numberOf(readout('E/E₀ ideal'))).toBeGreaterThan(1);
+      expect(numberOf(readout('$E/E_0$ ideal'))).toBeGreaterThan(1);
       expect(screen.getByTestId('scene-notes')).toHaveTextContent(/gana energía/);
       expect(screen.getByTestId('bounce-summary')).toHaveTextContent('∞');
     },
@@ -183,15 +188,15 @@ describe('BounceLab', () => {
     const user = userEvent.setup();
     renderLab();
     const handle = screen.getByTestId('h0-handle');
-    const apexBefore = readout('Primer rebote h₁ (motor)');
+    const apexBefore = readout('Primer rebote $h_1$ (motor)');
     expect(handle).toHaveAttribute('role', 'slider');
 
     handle.focus();
     await user.keyboard('{ArrowUp}');
 
     expect(handle).toHaveAttribute('aria-valuenow', '2.59');
-    expect(handle.getAttribute('aria-valuetext')?.replace(/\s/g, ' ')).toBe('h₀ = 2,59 m');
-    expect(readout('Primer rebote h₁ (motor)')).not.toBe(apexBefore);
+    expect(handle.getAttribute('aria-valuetext')?.replace(/\s/g, ' ')).toBe('h sub 0 = 2,59 m');
+    expect(readout('Primer rebote $h_1$ (motor)')).not.toBe(apexBefore);
     await user.keyboard('{End}');
     expect(handle).toHaveAttribute('aria-valuenow', '3');
   });
@@ -222,8 +227,8 @@ describe('BounceLab', () => {
       expect(readout('p antes'), e).toBe(readout('p después'));
     }
     // e = 1: no kinetic energy lost; ΔK/K_rel = 1 − e² = 0.
-    expect(readout('ΔK perdida')).toBe('0,00 J');
-    expect(readout('ΔK/K_rel')).toBe(readout('1 − e²'));
+    expect(readout(String.raw`$\Delta K$ perdida`)).toBe('0,00 J');
+    expect(readout(String.raw`$\Delta K/K_\text{rel}$`)).toBe(readout('1 − e²'));
   });
 
   test('collision mode: e = 0 leaves both bodies with the centre-of-mass velocity', async () => {
@@ -235,18 +240,40 @@ describe('BounceLab', () => {
     await user.clear(eField);
     await user.type(eField, '0{Enter}');
 
-    expect(readout('v₁′')).toBe(readout('v₂′'));
-    expect(readout('ΔK/K_rel')).toBe('1,00');
+    expect(readout("$v_1'$")).toBe(readout("$v_2'$"));
+    expect(readout(String.raw`$\Delta K/K_\text{rel}$`)).toBe('1,00');
   });
+
+  test(
+    'every character outside KaTeX, in both modes, every preset and the settings, is one IBM Plex draws',
+    async () => {
+      const user = userEvent.setup();
+      renderLab();
+      const ids = [...presetSelect().querySelectorAll('option')].map((option) => option.value);
+
+      for (const id of ids) {
+        await user.selectOptions(presetSelect(), id);
+        expect(plexViolations(document.body), id).toEqual([]);
+      }
+      await user.click(gear());
+      expect(plexViolations(document.body), 'settings').toEqual([]);
+      await user.keyboard('{Escape}');
+      await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
+      expect(plexViolations(document.body), 'collision').toEqual([]);
+      await user.click(screen.getByRole('switch', { name: /m sub 2 flecha infinito/ }));
+      expect(plexViolations(document.body), 'wall').toEqual([]);
+    },
+    HEAVY_TEST_TIMEOUT_MS,
+  );
 
   test('collision mode with a fixed body 2 is the floor: v₁′ = −e v₁', async () => {
     const user = userEvent.setup();
     renderLab();
     await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
 
-    await user.click(screen.getByRole('switch', { name: /m₂ → ∞/ }));
+    await user.click(screen.getByRole('switch', { name: /m sub 2 flecha infinito/ }));
 
-    expect(readout('v₁′')).toBe('−2,00 m/s');
+    expect(readout("$v_1'$")).toBe('−2,00 m/s');
     expect(screen.getByTestId('collision-notes')).toHaveTextContent(/piso/);
   });
 
@@ -354,11 +381,11 @@ describe('BounceLab', () => {
     await choosePreset('mezcla');
     const note = screen.getByTestId('preset-note');
 
-    expect(note).toHaveTextContent(
-      /suelo de 0,5: máx → 0,850; promedio → 0,675; producto → 0,425; suma recortada → 1,000/,
+    expect(mathSourceText(note)).toContain(
+      String.raw`suelo de 0,5: máx $\to$ 0,850; promedio $\to$ 0,675; producto $\to$ 0,425; suma recortada $\to$ 1,000`,
     );
-    expect(note).toHaveTextContent(
-      /suelo de 0: máx → 0,850; promedio → 0,425; producto → 0,000; suma recortada → 0,850/,
+    expect(mathSourceText(note)).toContain(
+      String.raw`suelo de 0: máx $\to$ 0,850; promedio $\to$ 0,425; producto $\to$ 0,000; suma recortada $\to$ 0,850`,
     );
   });
 
@@ -405,7 +432,7 @@ describe('BounceLab', () => {
     expect(screen.getByTestId('energy-plot').querySelector('[data-gain]')).not.toBeNull();
     expect(ball('engine')).toHaveAttribute('data-clamped', 'below');
     expect(screen.getByTestId('scene-notes')).toHaveTextContent(/penetración/);
-    expect(numberOf(readout('e medido √(h₁/h₀) (motor)'))).toBeGreaterThan(0.75);
+    expect(numberOf(readout(String.raw`e medido $\sqrt{h_1/h_0}$ (motor)`))).toBeGreaterThan(0.75);
   });
 
   test('"Choque de reglas de combinación" shows the pair e the engine uses', async () => {

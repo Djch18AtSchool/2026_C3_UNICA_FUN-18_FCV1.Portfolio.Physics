@@ -154,13 +154,13 @@ classRefs:
     note: 'Momento más restitución: la (7.2) y el ejemplo de 2 kg a +3 m/s contra 1 kg en reposo de la figura 7.2.'
   - module: 'Módulo 3'
     topic: 'Tema 02 · Colisiones y explosiones · Concepto 03 · Colisión completamente inelástica'
-    note: 'Kᵢ − K_f = ½ μ (v₁ᵢ − v₂ᵢ)²: la pérdida de la (7.2) con e = 0.'
+    note: '$K_i - K_f = \tfrac{1}{2}\mu\,(v_{1i} - v_{2i})^2$: la pérdida de la (7.2) con e = 0.'
   - module: 'Módulo 3'
     topic: 'Tema 02 · Colisiones y explosiones · Concepto 04 · Colisiones en dos dimensiones'
     note: 'El momento por componentes; el laboratorio se queda en una dimensión.'
   - module: 'Módulo 3'
     topic: 'Tema 02 · Colisiones y explosiones · Concepto 05 · Impulso normal en discos lisos'
-    note: 'j = (1+e)(v_A − v_B)·n̂/(1/m_A + 1/m_B) sobre la normal: sumado al impulso del solver, el de la (7.3) da este.'
+    note: '$j = (1+e)(v_A - v_B) \cdot \hat n/(1/m_A + 1/m_B)$ sobre la normal: sumado al impulso del solver, el de la (7.3) da este.'
 updated: 2026-10-30
 ---
 
@@ -196,7 +196,7 @@ e compara la velocidad vertical después del contacto con la de antes <Cite id="
     },
     { symbol: "v_y'", meaning: 'velocidad vertical justo después del contacto', unit: 'm/s' },
     { symbol: "h,\\ h'", meaning: 'altura de caída y altura de rebote', unit: 'm' },
-    { symbol: 'h_n', meaning: 'altura que alcanza tras el rebote n, desde h₀', unit: 'm' },
+    { symbol: 'h_n', meaning: 'altura que alcanza tras el rebote n, desde $h_0$', unit: 'm' },
   ]}
 />
 
@@ -243,10 +243,10 @@ Si el impulso externo es despreciable, dos cuerpos que chocan conservan el momen
       meaning: 'velocidades con signo sobre el eje, antes y después del choque',
       unit: 'm/s',
     },
-    { symbol: '\\mu', meaning: 'masa reducida, m₁m₂/(m₁ + m₂)', unit: 'kg' },
+    { symbol: '\\mu', meaning: 'masa reducida, $m_1 m_2/(m_1 + m_2)$', unit: 'kg' },
     {
       symbol: 'v_\\text{rel}',
-      meaning: 'velocidad relativa antes del choque, v₂ − v₁',
+      meaning: 'velocidad relativa antes del choque, $v_2 - v_1$',
       unit: 'm/s',
     },
   ]}
@@ -283,7 +283,7 @@ La energía relativa es <Equation inline latex="\tfrac12\mu v_\text{rel}^2" /> y
 
 <Step n={3} title="Por qué rebota mal">
 
-Con <Equation inline latex="0 < e < 1" /> hay infinitos botes en un tiempo finito T, y un motor con paso Δt no resuelve los más cortos que Δt. Box2D aplica el impulso de restitución tras el solver solo si la aproximación supera un umbral <Cite id="box2d-v311" sources={frontmatter.sources} />.
+Con <Equation inline latex="0 < e < 1" /> hay infinitos botes en un tiempo finito T, y un motor con paso $\Delta t$ no resuelve los más cortos que $\Delta t$. Box2D aplica el impulso de restitución tras el solver solo si la aproximación supera un umbral <Cite id="box2d-v311" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-restitucion-motor"
@@ -292,7 +292,7 @@ Con <Equation inline latex="0 < e < 1" /> hay infinitos botes en un tiempo finit
     { symbol: 'T', meaning: 'tiempo total de botes, desde que se suelta', unit: 's' },
     {
       symbol: 'm_\\text{ef}',
-      meaning: 'masa efectiva del contacto, 1/(1/m₁ + 1/m₂) sin rotación',
+      meaning: 'masa efectiva del contacto, $1/(1/m_1 + 1/m_2)$ sin rotación',
       unit: 'kg',
     },
     {
@@ -308,7 +308,8 @@ Con <Equation inline latex="0 < e < 1" /> hay infinitos botes en un tiempo finit
     { symbol: 'v_\\text{th}', meaning: 'umbral de restitución del motor', unit: 'm/s' },
     {
       symbol: 'N',
-      meaning: 'rebotes antes de que el impacto, eⁿv₀ con v₀ = √(2gh₀), deje de superar el umbral',
+      meaning:
+        'rebotes antes de que el impacto, $e^n v_0$ con $v_0 = \sqrt{2gh_0}$, deje de superar el umbral',
     },
   ]}
 />
@@ -346,7 +347,7 @@ El impulso deja la velocidad normal en <Equation inline latex="-e\,v_n^-" />, la
 
 <Step n={4} title="Un rebote que se siente bien">
 
-Box2D v3.2 acota el impulso de restitución con el de compresión: «Poisson kinetic restitution guarantees no energy gain» <Cite id="box2d-v320" sources={frontmatter.sources} />. Y e no es constante: en pelotas de tenis baja, en lectura aproximada, de ≈ 0,76 (a unos 4 m/s) a ≈ 0,64 (a unos 17 m/s) <Cite id="cross-1999-tennis" sources={frontmatter.sources} />.
+Box2D v3.2 acota el impulso de restitución con el de compresión: «Poisson kinetic restitution guarantees no energy gain» <Cite id="box2d-v320" sources={frontmatter.sources} />. Y e no es constante: en pelotas de tenis baja, en lectura aproximada, de $\approx$ 0,76 (a unos 4 m/s) a $\approx$ 0,64 (a unos 17 m/s) <Cite id="cross-1999-tennis" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-restitucion-poisson"
@@ -383,12 +384,12 @@ Contra un piso fijo, <Equation inline latex="J_c = m|v^-|" /> y <Equation inline
 
 <Figure
   type="simulacion"
-  caption="Laboratorio del rebote: la misma pelota con física ideal, (7.1) y (7.3), y en un motor con paso Δt, umbral, mezcla y Baumgarte; compara el e medido. Los preajustes cargan pelotas reales y rebotes que se sienten mal; «Choque de dos cuerpos» aplica la (7.2)."
+  caption="Laboratorio del rebote: la misma pelota con física ideal, (7.1) y (7.3), y en un motor con paso $\Delta t$, umbral, mezcla y Baumgarte; compara el e medido. Los preajustes cargan pelotas reales y rebotes que se sienten mal; «Choque de dos cuerpos» aplica la (7.2)."
   source={{ text: 'Simulación del autor sobre src/lib/physics/collision.ts' }}
 >
   <BounceLab
     client:visible
-    footnote={`A 1× la reproducción va en tiempo real; en el engranaje, Velocidad ${formatNumber(Math.min(...DEFAULT_SPEEDS), { precision: 2 })}× es cámara lenta. Todo con g = 9,81 m/s². Fuera del modelo: el giro y la fricción del contacto (la superbola de Cross tiene un e horizontal de 0,76); el arrastre del aire, por el que √(h′/h) subestima un poco el e de una pelota ligera; los contactos múltiples, que Box2D aproxima; el movimiento en 2D, porque todo es vertical; la e(v) real, que aquí es un ajuste ilustrativo.`}
+    footnote={`A 1× la reproducción va en tiempo real; en el engranaje, Velocidad ${formatNumber(Math.min(...DEFAULT_SPEEDS), { precision: 2 })}× es cámara lenta. Todo con g = 9,81 m/s². Fuera del modelo: el giro y la fricción del contacto (la superbola de Cross tiene un e horizontal de 0,76); el arrastre del aire, por el que $\\sqrt{h'/h}$ subestima un poco el e de una pelota ligera; los contactos múltiples, que Box2D aproxima; el movimiento en 2D, porque todo es vertical; la e(v) real, que aquí es un ajuste ilustrativo.`}
   />
 </Figure>
 

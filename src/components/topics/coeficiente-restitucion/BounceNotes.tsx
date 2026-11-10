@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
+import InlineMath from '../../lab/InlineMath';
 import type { BallState } from '../../../lib/physics';
 import { combineName } from './bounceLabSettings';
 import type { BounceSettings } from './bouncePresets';
@@ -8,7 +9,8 @@ import { MAX_TIMELINE_S, pairRestitution, viewY, type BounceModel } from './boun
 const CM_PER_M = 100;
 /** Penetration below this (m) is not worth a note. */
 const PENETRATION_NOTE_MIN = 5e-4;
-const INFINITY_SIGN = '∞';
+/** ∞ in the InlineMath text of the summary rows. */
+const INFINITY_SIGN = '$\\infty$';
 
 const n = (value: number, precision: number, unit?: string) =>
   formatNumber(value, { precision, unit });
@@ -57,8 +59,12 @@ export function sceneNotes({
 function Row({ term, children }: { term: string; children: string }): JSX.Element {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b border-dotted border-border pb-1.5">
-      <dt className="text-sm text-fg-muted">{term}</dt>
-      <dd className="m-0 text-sm tabular-nums">{children}</dd>
+      <dt className="text-sm text-fg-muted">
+        <InlineMath text={term} />
+      </dt>
+      <dd className="m-0 text-sm tabular-nums">
+        <InlineMath text={children} />
+      </dd>
     </div>
   );
 }
@@ -95,7 +101,7 @@ export function BounceSummary({ settings: s, model, decimals }: BounceSummaryPro
     : `${combineName(s.combine)}(${n(s.e, 3)}; ${n(s.floorE, 3)}) = ${n(pairRestitution(s), 3)}`;
   return (
     <dl data-testid="bounce-summary" className="m-0 flex flex-col gap-2 px-3 sm:px-0">
-      <Row term="T teórico, t₀(1+e)/(1−e)">{idealRow}</Row>
+      <Row term="T teórico, $t_0(1+e)/(1-e)$">{idealRow}</Row>
       <Row term="Motor de juego">{engineRow}</Row>
       <Row term="Umbral con eventos exactos">{predictionRow}</Row>
       <Row term="e del par en el motor">{pairRow}</Row>

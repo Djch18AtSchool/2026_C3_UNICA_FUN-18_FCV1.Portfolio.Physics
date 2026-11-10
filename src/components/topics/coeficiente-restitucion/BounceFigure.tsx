@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import { SURFACE_COLOR, TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
+import { SURFACE_COLOR, TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import {
   boxAround,
@@ -10,9 +10,11 @@ import {
   type Point,
   type Segment,
 } from '../../lab/labelClearance';
-import { fitCentre, monoTextWidth } from '../../lab/plotScales';
+import MathText from '../../lab/MathText';
+import { fitCentre } from '../../lab/plotScales';
 import SvgPlot, { type OverlayScales } from '../../lab/SvgPlot';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString, mathTextWidth } from '../../../lib/mathNotation';
 import { bounceSeries, G_EARTH } from '../../../lib/physics';
 import { apexPoints, bounceTrajectory, ITF_DROP, type ApexPoint } from './bounceFigures';
 import CollisionDiagram from './CollisionDiagram';
@@ -57,14 +59,32 @@ const T_LABEL_INSET = 4;
 const T_LABEL_DROP = 32;
 const T_DASH = '4 4';
 
-const haloText = {
-  fill: TEXT_COLOR,
-  fontFamily: TICK_FONT_FAMILY,
-  fontSize: LABEL_SIZE,
-  stroke: SURFACE_COLOR,
-  strokeWidth: HALO_WIDTH,
-  paintOrder: 'stroke',
-} as const;
+const HALO = { color: SURFACE_COLOR, width: HALO_WIDTH } as const;
+
+/** A 12 px label in the figures' ink with the surface halo, in the MathText notation. */
+function HaloLabel({
+  source,
+  x,
+  y,
+  anchor,
+}: {
+  source: string;
+  x: number;
+  y: number;
+  anchor: 'middle' | 'end';
+}): JSX.Element {
+  return (
+    <MathText
+      source={source}
+      x={x}
+      y={y}
+      anchor={anchor}
+      fontSize={LABEL_SIZE}
+      fill={TEXT_COLOR}
+      halo={HALO}
+    />
+  );
+}
 
 const { h0, e } = ITF_DROP;
 const TOTAL_TIME = bounceSeries(h0, e, G_EARTH, 1).totalTime;
@@ -113,7 +133,7 @@ function layApexLabels(
   return apexes.reduce<ApexLayout>(
     ({ labels, isClear }, apex) => {
       const text = apex[form];
-      const width = monoTextWidth(text, LABEL_SIZE);
+      const width = mathTextWidth(text, LABEL_SIZE, 'mono');
       const ax = scales.x.toPx(apex.t);
       const cy = scales.y.toPx(apex.h) - APEX_LABEL_RISE - BASELINE_BELOW_CENTRE;
       const spots = [
@@ -126,7 +146,7 @@ function layApexLabels(
       const blocked = [
         ...texts,
         ...labels.map((label) =>
-          boxAround(label.at, monoTextWidth(label.text, LABEL_SIZE), LABEL_HEIGHT),
+          boxAround(label.at, mathTextWidth(label.text, LABEL_SIZE, 'mono'), LABEL_HEIGHT),
         ),
       ];
       const at = clearSpot(spots, { width, height: LABEL_HEIGHT }, lines, area, blocked);
@@ -193,18 +213,12 @@ function ReboteOverlay(scales: OverlayScales): JSX.Element {
         fill={TENNIS_COLOR}
         fillOpacity={BAND_OPACITY}
       />
-      <text x={bandAt.x} y={bandAt.y} textAnchor="end" {...haloText}>
-        {bandLabel}
-      </text>
+      <HaloLabel source={bandLabel} x={bandAt.x} y={bandAt.y} anchor="end" />
       <line x1={tx} x2={tx} y1={top} y2={bottom} stroke={TICK_COLOR} strokeDasharray={T_DASH} />
-      <text x={tAt.x} y={tAt.y} textAnchor="end" {...haloText}>
-        {T_LABEL}
-      </text>
+      <HaloLabel source={T_LABEL} x={tAt.x} y={tAt.y} anchor="end" />
       {apexLabels.map(({ n, text, at }) => (
         <g key={n} data-apex={n}>
-          <text x={at.x} y={at.y + BASELINE_BELOW_CENTRE} textAnchor="middle" {...haloText}>
-            {text}
-          </text>
+          <HaloLabel source={text} x={at.x} y={at.y + BASELINE_BELOW_CENTRE} anchor="middle" />
         </g>
       ))}
     </g>
@@ -215,7 +229,9 @@ function reboteAriaLabel(): string {
   const rebounds = APEXES.slice(1)
     .map((apex) => `${comma(apex.h, 2)} m`)
     .join(', ');
-  return `Altura y de la pelota de tenis ITF frente al tiempo, soltada desde ${comma(h0, 2)} m con e = ${comma(e, 3)}: los rebotes suben a ${rebounds}, cada uno e² = ${comma(e * e, 3)} veces el anterior, dentro de la banda de la ITF el primero, y se acaban en ${T_LABEL}.`;
+  return mathTextToString(
+    `Altura y de la pelota de tenis ITF frente al tiempo, soltada desde ${comma(h0, 2)} m con e = ${comma(e, 3)}: los rebotes suben a ${rebounds}, cada uno e² = ${comma(e * e, 3)} veces el anterior, dentro de la banda de la ITF el primero, y se acaban en ${T_LABEL}.`,
+  );
 }
 
 function ReboundPlot(): JSX.Element {

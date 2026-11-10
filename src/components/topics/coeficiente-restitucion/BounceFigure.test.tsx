@@ -10,10 +10,15 @@ import {
 } from '../../lab/labelClearance';
 import { monoTextWidth } from '../../lab/plotScales';
 import BounceFigure from './BounceFigure';
+import { mathSourceText } from '../../../test-inline-math';
+import { plexViolations } from '../../../test-glyphs';
 import { svgText } from '../../../test-svg-text';
 
 /** BounceFigure's apex labels are 12 px. */
 const APEX_LABEL_SIZE = 12;
+/** A label's source: its notation when MathText drew it, else its text. */
+const notationOf = (text: Element) => text.getAttribute('data-notation') ?? text.textContent ?? '';
+
 /** A label set on the plot's edge may sit there up to float round-off. */
 const EPSILON = 1e-6;
 
@@ -56,6 +61,15 @@ describe('BounceFigure', () => {
     vi.unstubAllGlobals();
   });
 
+  test.each(['rebote', 'choque', 'umbral'] as const)(
+    '%s: every character outside KaTeX is one IBM Plex draws',
+    (variant) => {
+      const { container } = render(<BounceFigure variant={variant} />);
+
+      expect(plexViolations(container)).toEqual([]);
+    },
+  );
+
   describe('rebote (Paso 1)', () => {
     test('draws y(t) of the ITF tennis ball in the tennis color, with its apexes labelled', () => {
       const { container } = render(<BounceFigure variant="rebote" />);
@@ -63,9 +77,10 @@ describe('BounceFigure', () => {
       expect(screen.getByText('t (s)')).toBeInTheDocument();
       expect(screen.getByText('y (m)')).toBeInTheDocument();
       expect(strokeOf(container, 'tenis-itf')).toBe('var(--tennis)');
-      for (const label of ['h₀ = 2,54 m', 'h₁ = 1,41 m', 'h₂ = 0,78 m', 'h₃ = 0,43 m']) {
-        expect(screen.getByText(label)).toBeInTheDocument();
+      for (const label of ['h_0 = 2,54 m', 'h_1 = 1,41 m', 'h_2 = 0,78 m', 'h_3 = 0,43 m']) {
+        expect(container.querySelector(`[data-notation="${label}"]`), label).not.toBeNull();
       }
+      expect(screen.getByText(svgText('h1 = 1,41 m'))).toBeInTheDocument();
     });
 
     test('marks the rebound band the ITF admits and the time T when the bounces end', () => {
@@ -94,8 +109,8 @@ describe('BounceFigure', () => {
       expect(diagram).toHaveTextContent('e = 0');
       expect(diagram).toHaveTextContent('e = 0,75');
       expect(diagram).toHaveTextContent('e = 1');
-      expect(diagram).toHaveTextContent('m₁ = 2 kg');
-      expect(diagram).toHaveTextContent('m₂ = 1 kg');
+      expect(diagram.querySelector('[data-notation="m_1 = 2 kg"]')).not.toBeNull();
+      expect(diagram.querySelector('[data-notation="m_2 = 1 kg"]')).not.toBeNull();
       expect(diagram).toHaveTextContent('1,25 m/s');
       expect(diagram).toHaveTextContent('3,5 m/s');
     });
@@ -177,7 +192,7 @@ describe('BounceFigure', () => {
   });
 
   describe('umbral (Paso 3)', () => {
-    test('puts hₙ on a logarithmic axis labelled by decades of centimetres', () => {
+    test('puts h_n on a logarithmic axis labelled by decades of centimetres', () => {
       const { container } = render(<BounceFigure variant="umbral" />);
       const decades = yTickLabels(container).filter((text) =>
         ['0,1', '1', '10', '100'].includes(text.textContent ?? ''),
@@ -195,7 +210,7 @@ describe('BounceFigure', () => {
       const { container } = render(<BounceFigure variant="umbral" />);
       const legend = screen.getByRole('list', { name: 'Leyenda' });
 
-      expect(legend).toHaveTextContent('Ideal, sin umbral: hₙ = e²ⁿ h₀');
+      expect(mathSourceText(legend)).toContain('Ideal, sin umbral: $h_n = e^{2n} h_0$');
       expect(legend).toHaveTextContent(
         'Umbral de 1 m/s (Box2D v3): 15 rebotes, el último de 4,2 cm',
       );
@@ -274,7 +289,7 @@ describe('BounceFigure', () => {
   function apexBox(label: SVGTextElement): Box {
     const anchor = (label.getAttribute('text-anchor') ?? 'start') as 'start' | 'middle' | 'end';
     const at = { x: Number(label.getAttribute('x')), y: Number(label.getAttribute('y')) };
-    return textBox(at, label.textContent ?? '', APEX_LABEL_SIZE, anchor);
+    return textBox(at, notationOf(label), APEX_LABEL_SIZE, anchor);
   }
 
   test.each([
@@ -292,16 +307,16 @@ describe('BounceFigure', () => {
       const arcs = pathSegments(container, 'tenis-itf');
       const area = plotArea(container);
 
-      expect(labels.map((label) => label.textContent)).toEqual(
-        ['h₀ = 2,54', 'h₁ = 1,41', 'h₂ = 0,78', 'h₃ = 0,43'].map((label) => `${label}${unit}`),
+      expect(labels.map(notationOf)).toEqual(
+        ['h_0 = 2,54', 'h_1 = 1,41', 'h_2 = 0,78', 'h_3 = 0,43'].map((label) => `${label}${unit}`),
       );
       for (const label of labels) {
         const box = apexBox(label);
-        expect(box.left, label.textContent ?? '').toBeGreaterThanOrEqual(area.left - EPSILON);
-        expect(box.right, label.textContent ?? '').toBeLessThanOrEqual(area.right + EPSILON);
-        expect(box.top, label.textContent ?? '').toBeGreaterThanOrEqual(area.top - EPSILON);
+        expect(box.left, notationOf(label)).toBeGreaterThanOrEqual(area.left - EPSILON);
+        expect(box.right, notationOf(label)).toBeLessThanOrEqual(area.right + EPSILON);
+        expect(box.top, notationOf(label)).toBeGreaterThanOrEqual(area.top - EPSILON);
         for (const arc of arcs) {
-          expect(segmentHitsBox(arc, box), `${label.textContent} on an arc`).toBe(false);
+          expect(segmentHitsBox(arc, box), `${notationOf(label)} on an arc`).toBe(false);
         }
       }
     },

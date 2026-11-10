@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { BALL_STANDARDS } from '../../data/ballStandards';
 import { ENGINE_RESTITUTION } from '../../data/engineRestitution';
 import { tableById } from '../index';
+import { uncoveredChars } from '../../typography';
 import { tableMarkdown } from '../markdown';
 import type { DataTableSpec } from '../types';
 import { TABLES } from './coeficiente-restitucion';
@@ -14,7 +15,22 @@ const byId = (id: string): DataTableSpec => {
 
 const column = (table: DataTableSpec, key: string) => table.rows.map((row) => row[key]);
 
+/** What a text shows outside its `$…$` formulas, which KaTeX draws. */
+const outsideKatex = (text: string) => text.replace(/\$[^$]*\$/g, '');
+
 describe('coeficiente-restitucion tables', () => {
+  test('captions, headers, cells and sources leave IBM Plex only inside $…$ (KaTeX)', () => {
+    for (const table of TABLES) {
+      const texts = [
+        table.caption,
+        table.source.text,
+        ...table.columns.map((column) => column.label),
+        ...table.rows.flatMap((row) => table.columns.map((column) => String(row[column.key]))),
+      ];
+      expect(texts.flatMap((text) => uncoveredChars(outsideKatex(text), 'sans'))).toEqual([]);
+    }
+  });
+
   test('registers the ball and the engine tables', () => {
     expect(TABLES.map((table) => table.id)).toEqual([
       'coeficiente-restitucion-pelotas',
@@ -59,7 +75,7 @@ describe('coeficiente-restitucion tables', () => {
         for (const source of ball.sources) expect(table.source.text).toContain(source.authors);
       }
       expect(table.source.text).toContain(
-        'Los rangos de e de las normas y el 0,49 del béisbol son cálculo propio, con e = √(h′/h) y e = v₂/v₁; el 0,86 de la superbola y el 0 de la plastilina son de Cross.',
+        'Los rangos de e de las normas y el 0,49 del béisbol son cálculo propio, con las fórmulas de la leyenda de la tabla; el 0,86 de la superbola y el 0 de la plastilina son de Cross.',
       );
       expect(table.source.text).not.toContain('Los valores de e son cálculo propio');
     });
@@ -108,13 +124,13 @@ describe('coeficiente-restitucion tables', () => {
 
     test('each engine mixes the two e with its own rule', () => {
       expect(column(table, 'mezcla')).toEqual([
-        'máx(e₁, e₂)',
-        '(e₁ + e₂)/2',
-        '(e₁ + e₂)/2',
-        'máx(e₁, e₂)',
-        'e₁ · e₂',
-        'máx(e₁, e₂)',
-        'mín(e₁ + e₂, 1)',
+        'El mayor de los dos',
+        'El promedio de los dos',
+        'El promedio de los dos',
+        'El mayor de los dos',
+        'El producto de los dos',
+        'El mayor de los dos',
+        'La suma, con tope en 1',
       ]);
     });
 
