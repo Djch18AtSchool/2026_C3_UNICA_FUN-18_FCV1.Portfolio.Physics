@@ -5,7 +5,7 @@ import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import type { SettingOption } from '../../lab/SettingsDrawer';
-import SvgPlot, { type PlotAspect } from '../../lab/SvgPlot';
+import SvgPlot, { STAGE_PLOT_ASPECT } from '../../lab/SvgPlot';
 import { mathTextToString } from '../../../lib/mathNotation';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import {
@@ -34,8 +34,6 @@ import {
   temperaturePlot,
 } from './tyrePlots';
 
-/** Two stacked plots: flatter than a lone figure on wide screens, squarer on phones. */
-const PLOT_ASPECT: PlotAspect = { compact: 1.1, wide: 2 };
 /** Forces read in whole newtons; the global decimals would print 11 942,90 N. */
 const FORCE_PRECISION = 0;
 
@@ -146,7 +144,7 @@ export default function TyreLab({ leftOut }: TyreLabProps): JSX.Element {
       <div className="flex flex-col gap-6">
         <div data-testid="tyre-temperature-plot">
           <SvgPlot
-            aspectRatio={PLOT_ASPECT}
+            aspectRatio={STAGE_PLOT_ASPECT}
             title="Coeficiente de agarre $\mu$ frente a la temperatura"
             {...temperaturePlot(state.compound)}
             cursor={{
@@ -162,7 +160,7 @@ export default function TyreLab({ leftOut }: TyreLabProps): JSX.Element {
         </div>
         <div data-testid="tyre-load-plot">
           <SvgPlot
-            aspectRatio={PLOT_ASPECT}
+            aspectRatio={STAGE_PLOT_ASPECT}
             title="Fuerza lateral máxima frente a la carga vertical"
             {...loadPlot(readings.factor)}
             cursor={{

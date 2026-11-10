@@ -7,7 +7,7 @@ import LabShell, { type LabReadout } from '../../lab/LabShell';
 import InlineMath from '../../lab/InlineMath';
 import ParamField from '../../lab/ParamField';
 import type { SettingOption } from '../../lab/SettingsDrawer';
-import SvgPlot, { type PlotAspect } from '../../lab/SvgPlot';
+import SvgPlot, { STAGE_PLOT_ASPECT } from '../../lab/SvgPlot';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { usePrefersReducedMotion } from '../../lab/useSimClock';
 import { HOOKE_COLOR, labPlot } from './hapticPlots';
@@ -42,8 +42,6 @@ const K_STEP = 10;
 const X0_STEP = 0.5;
 /** The travel reads to 0,1 mm, the keyboard grain; the rest follow the global decimals. */
 const X_PRECISION = 1;
-/** The plot's two ratios, squarer in a narrow stage (SvgPlot reserves the one it will draw). */
-const PLOT_ASPECT: PlotAspect = { compact: 1.1, wide: 2 };
 /** The ideal spring's point: a ring around the trigger's marker, so both read when they coincide. */
 const HOOKE_RING = 8;
 const ACTION_BUTTON =
@@ -209,7 +207,7 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
         </div>
         <div data-testid="trigger-plot">
           <SvgPlot
-            aspectRatio={PLOT_ASPECT}
+            aspectRatio={STAGE_PLOT_ASPECT}
             title="Fuerza frente al desplazamiento del gatillo"
             {...labPlot(spring)}
             marker={{ x: state.xMm, y: readings.force }}

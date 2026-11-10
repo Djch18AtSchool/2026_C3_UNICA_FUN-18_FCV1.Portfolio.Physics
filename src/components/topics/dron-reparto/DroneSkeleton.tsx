@@ -12,6 +12,7 @@
  */
 import type { CSSProperties, JSX } from 'react';
 import { CANVAS_BLEED } from '../../lab/canvasInset';
+import { PLOT_ASPECT } from '../../lab/svgPlotReserve';
 import TexSeed, { formulasOf } from '../../lab/TexSeed';
 import { DRONE_LAB_FORMULAS } from './droneLabFormulas';
 import { MAP_FIGURE_CLASS, MAP_FIGURE_STYLE } from './mapReserve';
@@ -71,12 +72,13 @@ const DISCLOSURE: PlaceHeights = { narrow: 2.5625 };
 const DISCLOSURES = 2;
 
 /**
- * A chart's place: the svg at SvgPlot's 1,6 (1,25 below 480 px) and 8 rem for the frame, caption,
- * legend and readings. On a phone the legends of the velocity, acceleration and distance charts
- * wrap to a second line: the extra rem of each, measured on the loaded charts.
+ * A chart's place: the svg at SvgPlot's own aspects (PLOT_ASPECT, through custom properties) and
+ * 8 rem for the frame, caption, legend and readings, wide where the map figure is. On a phone the
+ * legends of the velocity, acceleration and distance charts wrap to a second line: the extra rem
+ * of each, measured on the loaded charts.
  */
 const CHART =
-  'h-[calc((100cqw-2rem)/1.25+8rem+var(--chart-extra))] @min-[calc(482px+2rem)]:h-[calc((100cqw-2rem)/1.6+8rem)]';
+  'h-[calc((100cqw-2rem)/var(--chart-compact)+8rem+var(--chart-extra))] @min-[calc(481.5px+2rem)]:h-[calc((100cqw-2rem)/var(--chart-wide)+8rem)]';
 const CHART_PHONE_EXTRA_REM = [0, 1.75, 1.75, 2.75] as const;
 
 /** A dashed place of the given heights; `className` places it in the grid. */
@@ -145,7 +147,13 @@ function ChartPlaces(): JSX.Element {
       {CHART_PHONE_EXTRA_REM.map((extra, index) => (
         <div
           key={index}
-          style={{ '--chart-extra': `${extra}rem` } as CSSProperties}
+          style={
+            {
+              '--chart-extra': `${extra}rem`,
+              '--chart-compact': PLOT_ASPECT.compact,
+              '--chart-wide': PLOT_ASPECT.wide,
+            } as CSSProperties
+          }
           className={`${CHART} ${PLACE}`}
         />
       ))}

@@ -3,6 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../lib/settingsStore';
 import SvgPlot, { COMPACT_WIDTH, PLOT_ASPECT, type SvgPlotProps } from './SvgPlot';
+import { resolveCssLength } from '../../test-css-length';
 import { PROPS, stubResizeObserver, viewBoxOf } from './svgPlotTestKit';
 
 type Reserve = { className: string; style: CSSStyleDeclaration };
@@ -46,10 +47,7 @@ function reservedHeightAt(reserve: Reserve, width: number): number {
   const aspect = reserve.style.getPropertyValue(`--plot-aspect-${layout}`);
   if (aspect) return width / Number(aspect);
   const height = reserve.style.getPropertyValue(`--plot-height-${layout}`);
-  const match = /^calc\(([\d.]+)px \+ ([\d.]+) \* \(100cqw - ([\d.]+)px\)\)$/.exec(height);
-  if (!match) throw new Error(`sin reserva legible: «${height}»`);
-  const [base, slope, margins] = match.slice(1).map(Number);
-  return base + slope * (width - margins);
+  return resolveCssLength(height, { container: width });
 }
 
 const expectReserved = (props: SvgPlotProps, width: number) =>

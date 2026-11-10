@@ -1,12 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import ChartFrame from '../charts/ChartFrame';
-import {
-  CHART_COLORS,
-  DASH_PATTERN,
-  DEFAULT_ASPECT_RATIO,
-  LINE_WIDTH,
-  TICK_FONT_SIZE,
-} from '../charts/chartTheme';
+import { CHART_COLORS, DASH_PATTERN, LINE_WIDTH, TICK_FONT_SIZE } from '../charts/chartTheme';
 import type { FrameStore } from './frameStore';
 import { isFinitePoint, linearScale, padDomain, type Domain, type Scale } from './plotScales';
 import { axisTicks, PlotAxes, PlotGrid, yTickLabelChars } from './SvgPlotAxes';
@@ -14,7 +8,9 @@ import SvgPlotCursor, { type PlotArea } from './SvgPlotCursor';
 import { Bands, Marker } from './SvgPlotMarks';
 import {
   aspectReserve,
+  COMPACT_WIDTH,
   equalAspectReserve,
+  PLOT_ASPECT,
   type HeightReserve,
   type PlotAspect,
   type PlotMargins,
@@ -102,7 +98,13 @@ export interface SvgPlotProps {
 }
 
 export type { Domain, Scale } from './plotScales';
-export type { PlotAspect } from './svgPlotReserve';
+export {
+  COMPACT_WIDTH,
+  PLOT_ASPECT,
+  STAGE_PLOT_ASPECT,
+  WIDE_FROM_PX,
+  type PlotAspect,
+} from './svgPlotReserve';
 
 /** What the overlay draws with: the scales and, with a bleed, the plain plot-area clip. */
 export interface OverlayScales {
@@ -121,11 +123,7 @@ const MIN_EQUAL_ASPECT_HEIGHT = 0.5;
 const MAX_EQUAL_ASPECT_HEIGHT = 1.5;
 type Margin = { top: number; right: number; bottom: number; left: number };
 const MARGIN: Margin = { top: 22, right: 28, bottom: 58, left: 84 };
-/** Below this viewBox width (phones) the margins tighten so the plot area keeps most of the width. */
-export const COMPACT_WIDTH = 480;
 const COMPACT_MARGIN: Omit<Margin, 'left'> = { top: 30, right: 14, bottom: 50 };
-/** The default aspects: below 480 px, at 1.6 a phone plot area would be under 90 px tall. */
-export const PLOT_ASPECT: PlotAspect = { compact: 1.25, wide: DEFAULT_ASPECT_RATIO };
 /** A typical compact width (a phone's or a stage's plot) to fit the reserved compact left margin. */
 const COMPACT_PROBE_WIDTH = 360;
 /**

@@ -12,12 +12,25 @@
  * class literals below say COMPACT_WIDTH − 0,5 (SvgPlot.reserve.test.tsx checks both sides).
  */
 import type { CSSProperties } from 'react';
+import { DEFAULT_ASPECT_RATIO } from '../charts/chartTheme';
 
 /** viewBox width over height below COMPACT_WIDTH (phones, a lab's stage) and from it up. */
 export interface PlotAspect {
   compact: number;
   wide: number;
 }
+
+/** Below this viewBox width (phones) the margins tighten so the plot area keeps most of the width. */
+export const COMPACT_WIDTH = 480;
+/** The CSS width from which the measured (rounded) width is COMPACT_WIDTH: the class literals'. */
+export const WIDE_FROM_PX = COMPACT_WIDTH - 0.5;
+/** The default aspects: below 480 px, at 1.6 a phone plot area would be under 90 px tall. */
+export const PLOT_ASPECT: PlotAspect = { compact: 1.25, wide: DEFAULT_ASPECT_RATIO };
+/**
+ * A plot that shares a lab's stage with other drawings (Temas 4 and 5): squarer than a lone plot
+ * in a narrow stage, so its curves keep height, and flatter when wide, so the stage stays short.
+ */
+export const STAGE_PLOT_ASPECT: PlotAspect = { compact: 1.1, wide: 2 };
 
 /** A layout's margins around the plot area, in viewBox px (= CSS px once measured). */
 export interface PlotMargins {

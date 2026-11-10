@@ -3,7 +3,9 @@ import { cleanup, render } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 import { DRONE_ROUTE, type RouteSample } from '../../../lib/data/droneRoute';
 import { createFrameStore } from '../../lab/frameStore';
+import { WIDE_FROM_PX } from '../../lab/svgPlotReserve';
 import { stubResizeObserver, viewBoxOf } from '../../lab/svgPlotTestKit';
+import { resolveCssLength } from '../../../test-css-length';
 import {
   MAP_FIGURE_CHROME,
   MAP_FIGURE_CLASS,
@@ -72,20 +74,9 @@ describe('mapPlotHeight', () => {
   });
 });
 
-/**
- * A CSS length of this module's shapes, resolved: «calc(…)» with px, rem and 100cqw, + − and a
- * number times a parenthesis. Enough for the placeholder's expressions, nothing more.
- */
-function resolveCss(expression: string, container: number, rem: number): number {
-  const js = expression
-    .replace(/calc\(/g, '(')
-    .replace(/100cqw/g, String(container))
-    .replace(/([\d.]+)rem/g, (_, n: string) => String(Number(n) * rem))
-    .replace(/([\d.]+)px/g, '$1')
-    .replace(/var\(--[\w-]+\)/g, '0');
-  if (!/^[\d.+\-*() ]+$/.test(js)) throw new Error(`no es una longitud simple: ${expression}`);
-  return Function(`return ${js}`)() as number;
-}
+/** A CSS length of this module, resolved at a container width and a root size. */
+const resolveCss = (expression: string, container: number, rem: number) =>
+  resolveCssLength(expression, { container, rem });
 
 /** The figure's height around an svg of the given width: the svg plus the frame and caption. */
 const figureHeight = (svgWidth: number, rem: number) =>
@@ -110,8 +101,8 @@ describe('the skeleton’s placeholder of the map figure', () => {
     );
   });
 
-  test('turns wide where the svg reaches 480 px: the map and the chart places say the same threshold', () => {
-    expect(resolveCss(MAP_WIDE_FROM_CONTAINER, 0, 16)).toBe(480 + 2 + 2 * 16);
+  test('turns wide where SvgPlot does (479,5 px of svg): the map and the chart places say the same threshold', () => {
+    expect(resolveCss(MAP_WIDE_FROM_CONTAINER, 0, 16)).toBe(WIDE_FROM_PX + 2 + 2 * 16);
     expect(MAP_FIGURE_CLASS).toContain(`@min-[${MAP_WIDE_FROM_CONTAINER}]:`);
 
     // Tailwind needs each class literal: every place that switches with the svg uses this one.

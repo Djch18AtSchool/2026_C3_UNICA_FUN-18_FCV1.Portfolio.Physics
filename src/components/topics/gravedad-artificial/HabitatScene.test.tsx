@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
+import { resolveCssLength } from '../../../test-css-length';
 import { createFrameStore } from '../../lab/frameStore';
 import HabitatScene, { RESERVED_HEIGHT, sceneHeight } from './HabitatScene';
 
@@ -22,26 +23,14 @@ describe('sceneHeight', () => {
   });
 });
 
-/**
- * RESERVED_HEIGHT resolved as the browser would at a container width: «calc(…)» with px, 100cqw,
- * min() and clamp(). Enough for this expression, nothing more.
- */
-function resolveReserved(width: number): number {
-  const js = RESERVED_HEIGHT.replace(/^calc/, '')
-    .replace(/100cqw/g, String(width))
-    .replace(/([\d.]+)px/g, '$1')
-    .replace(/clamp\(/g, 'clamp(')
-    .replace(/min\(/g, 'Math.min(');
-  if (!/^[\d.+\-*(), a-zA-Z]+$/.test(js)) throw new Error(`no es una longitud simple: ${js}`);
-  const clamp = (low: number, value: number, high: number) => Math.min(Math.max(value, low), high);
-  return Function('clamp', `return ${js}`)(clamp) as number;
-}
-
 describe('RESERVED_HEIGHT', () => {
   test.each([NARROW_PHONE_WIDTH, 360, WIDEST_COMPACT, NARROWEST_ROOMY, 600, COLUMN_WIDTH])(
     'is sceneHeight in CSS: a %i px container reserves the drawing’s height',
     (width) => {
-      expect(resolveReserved(width)).toBeCloseTo(sceneHeight(width), 2);
+      expect(resolveCssLength(RESERVED_HEIGHT, { container: width })).toBeCloseTo(
+        sceneHeight(width),
+        2,
+      );
     },
   );
 });

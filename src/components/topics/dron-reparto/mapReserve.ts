@@ -10,6 +10,7 @@
  * frame is in rem, like everything else that scales with the root font size.
  */
 import type { CSSProperties } from 'react';
+import { COMPACT_WIDTH, WIDE_FROM_PX } from '../../lab/svgPlotReserve';
 import { MAP_DOMAIN } from './droneScene';
 
 interface Margins {
@@ -19,8 +20,6 @@ interface Margins {
   bottom: number;
 }
 
-/** From this svg width up, SvgPlot draws its desktop margins; narrower, the compact ones. */
-const COMPACT_BELOW_PX = 480;
 const WIDE: Margins = { left: 84, right: 28, top: 22, bottom: 58 };
 const COMPACT: Margins = { left: 52, right: 14, top: 30, bottom: 50 };
 /** The figure's frame (ChartFrame): border and padding on both sides of the svg, as CSS lengths. */
@@ -33,7 +32,7 @@ const HEIGHT_PER_WIDTH =
 
 /** The svg's height (px) for its width (px), as SvgPlot lays the map out. */
 export function mapPlotHeight(svgWidth: number): number {
-  const margins = svgWidth >= COMPACT_BELOW_PX ? WIDE : COMPACT;
+  const margins = svgWidth >= COMPACT_WIDTH ? WIDE : COMPACT;
   const plotWidth = svgWidth - margins.left - margins.right;
   return margins.top + margins.bottom + HEIGHT_PER_WIDTH * plotWidth;
 }
@@ -54,16 +53,16 @@ export const MAP_FIGURE_VARS = {
 } as const;
 
 /**
- * The skeleton's placeholder of the whole figure, wide from where the svg reaches 480 px: that plus
- * the figure's frame (2 px of border and 2 rem of padding; Tailwind needs the literal, the test
- * checks it against COMPACT_BELOW_PX and the frame). Its parent is the container (an element's own
+ * The skeleton's placeholder of the whole figure, wide from where SvgPlot turns wide (WIDE_FROM_PX)
+ * plus the figure's frame (2 px of border and 2 rem of padding; Tailwind needs the literal, the
+ * test checks it against WIDE_FROM_PX and the frame). Its parent is the container (an element's own
  * container units refer to the ones around it).
  */
 export const MAP_FIGURE_CLASS =
-  'h-(--map-figure-h-compact) @min-[calc(482px+2rem)]:h-(--map-figure-h-wide)';
+  'h-(--map-figure-h-compact) @min-[calc(481.5px+2rem)]:h-(--map-figure-h-wide)';
 
 /** The container's width from which the svg is wide, as the class above writes it. */
-export const MAP_WIDE_FROM_CONTAINER = `calc(${COMPACT_BELOW_PX + FRAME_BORDER_PX}px+${FRAME_PADDING})`;
+export const MAP_WIDE_FROM_CONTAINER = `calc(${WIDE_FROM_PX + FRAME_BORDER_PX}px+${FRAME_PADDING})`;
 
 /** MAP_FIGURE_VARS as a style prop: React types custom properties as plain strings. */
 export const MAP_FIGURE_STYLE = MAP_FIGURE_VARS as CSSProperties;
