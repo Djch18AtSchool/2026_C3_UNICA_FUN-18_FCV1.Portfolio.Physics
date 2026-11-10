@@ -149,10 +149,18 @@ const notesOpen: StateStep = async (_page, lab) => {
   await expect(lab.locator('details[data-lab-note]:not([open])')).toHaveCount(0);
 };
 
-/** States every lab of the shell's tiered layout has, beyond its own. */
-async function shellStates(lab: Locator): Promise<[string, StateStep][]> {
+/**
+ * States every lab of the shell's tiered layout has, beyond its own: its disclosures opened. A
+ * tiered lab without them fails (a renamed data-lab-note must not drop the measure in silence);
+ * a stacked lab has none.
+ */
+async function shellStates(slug: string, lab: Locator): Promise<[string, StateStep][]> {
+  if ((await lab.getAttribute('data-lab-shell')) !== 'tiered') return [];
   const hasNotes = (await lab.locator('details[data-lab-note]').count()) > 0;
-  return hasNotes ? [['«Cómo se usa» y «Qué deja fuera el modelo» abiertos', notesOpen]] : [];
+  const states: [string, StateStep][] = hasNotes
+    ? [['«Cómo se usa» y «Qué deja fuera el modelo» abiertos', notesOpen]]
+    : [];
+  return [...requireStates(`${slug} (desplegables del diseño por niveles)`, states)];
 }
 
 for (const colorScheme of SCHEMES) {
@@ -185,7 +193,7 @@ for (const colorScheme of SCHEMES) {
             const states = requireStates(slug, [
               ...presets,
               ...(EXTRA_STATES[slug] ?? []),
-              ...(await shellStates(lab)),
+              ...(await shellStates(slug, lab)),
             ]);
             for (const [state, step] of states) {
               await step(page, lab);
