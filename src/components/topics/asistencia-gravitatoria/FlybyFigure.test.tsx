@@ -3,6 +3,8 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { monoTextWidth } from '../../lab/plotScales';
 import FlybyFigure from './FlybyFigure';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
 import { svgText } from '../../../test-svg-text';
 import { segmentHitsBox, type Segment } from '../../lab/labelClearance';
 
@@ -132,7 +134,8 @@ describe('FlybyFigure', () => {
     expect(container.querySelectorAll('[data-dot]').length).toBeGreaterThan(40);
     expect(screen.getByText(`Afelio: 6,29 UA, 6,21 km/s`)).toBeInTheDocument();
     expect(screen.getByText('r (UA)')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: /ε = −121,7/ })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /épsilon = −121,7/ })).toBeInTheDocument();
+    expect(mathSourceText(legend)).toContain('Escape, $\\sqrt{2GM_\\odot/r}$: ε = 0');
   });
 
   test('hiperbola: the V2 path in Jupiter frame with r_p, e and δ, and equal v∞ arrows', () => {
@@ -147,8 +150,8 @@ describe('FlybyFigure', () => {
     expect(screen.getByText(svgText('δ = 97,5°'))).toBeInTheDocument();
     expect(screen.getByText(svgText('rp = 10,09 RJ'))).toBeInTheDocument();
     expect(screen.getAllByText(svgText('v∞'))).toHaveLength(2);
-    expect(screen.getByRole('list', { name: 'Leyenda' })).toHaveTextContent(
-      'v∞ al entrar y al salir: 7,62 km/s',
+    expect(mathSourceText(screen.getByRole('list', { name: 'Leyenda' }))).toContain(
+      'Flechas $\\vec v_\\infty$ al entrar y al salir: 7,62\u202fkm/s',
     );
     // The v∞ arrows are keyed by an arrow, not by the trajectory's plain line.
     const keys = within(screen.getByRole('list', { name: 'Leyenda' }))
@@ -169,18 +172,21 @@ describe('FlybyFigure', () => {
     expect(screen.getByRole('img', { name: /Júpiter/ })).not.toHaveAccessibleName(
       /fuera del plano/,
     );
-    expect(screen.getByText(/4,4·10⁻²¹\sm\/s/)).toBeInTheDocument();
+    const notes = [...container.querySelectorAll('[data-triangle-cell] p')].map(mathSourceText);
+    expect(notes[0]).toContain('Júpiter retrocede $4{,}4 \\cdot 10^{-21}$\u202fm/s');
+    expect(notes[0]).toContain('($m\\,\\Delta\\vec v = -M\\,\\Delta\\vec V_p$)');
   });
 
   test.each(['vis-viva', 'hiperbola', 'triangulo'] as const)(
-    '%s: no rendered text or accessible name carries the combining arrow U+20D7',
+    '%s: text outside KaTeX is all in Plex, and no name carries the combining arrow U+20D7',
     (variant) => {
       const { container } = render(<FlybyFigure variant={variant} />);
       const names = [...container.querySelectorAll('[aria-label], [aria-description], [title]')]
         .flatMap((el) => NAME_ATTRIBUTES.map((attribute) => el.getAttribute(attribute) ?? ''))
         .join(' ');
 
-      expect(container.textContent).not.toContain(COMBINING_ARROW);
+      expect(mathSourceText(container)).not.toContain(COMBINING_ARROW);
+      expect(plexViolations(container)).toEqual([]);
       expect(names).not.toContain(COMBINING_ARROW);
     },
   );

@@ -1,5 +1,9 @@
 import { useState, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
+import { mathAriaLabel } from '../../../lib/inlineMath';
+import { mathTextToString } from '../../../lib/mathNotation';
+import InlineMath from '../../lab/InlineMath';
+import { unitTex } from './flybyFormat';
 import { withStableCallbacks } from '../../lab/withStableCallbacks';
 import { RP_RANGE, rpToSlider, sliderToRp } from './flybyScene';
 
@@ -17,6 +21,9 @@ const ID = 'flyby-rp';
 /** The range runs over the log bar in this many steps (0,2 % of the bar each). */
 const RANGE_STEPS = 1000;
 const RP_DECIMALS = 2;
+const LABEL = 'Máxima aproximación $r_p$';
+/** Both inputs are named in words: «Máxima aproximación r sub p». */
+const SPOKEN_LABEL = mathAriaLabel(LABEL);
 
 /** "10,09" as typed back: decimal comma, no grouping, no trailing zeros. */
 const toFieldText = (rp: number) => String(Number(rp.toFixed(RP_DECIMALS))).replace('.', ',');
@@ -56,14 +63,14 @@ function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between gap-3">
         <label id={labelId} htmlFor={ID} className="text-sm font-medium">
-          Máxima aproximación r_p
+          <InlineMath text={LABEL} />
         </label>
         <span className="flex items-center gap-1.5">
           <input
             type="text"
             inputMode="decimal"
             autoComplete="off"
-            aria-labelledby={labelId}
+            aria-label={SPOKEN_LABEL}
             aria-describedby={unitId}
             value={draft ?? toFieldText(rp)}
             onChange={(event) => setDraft(event.target.value)}
@@ -74,7 +81,7 @@ function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
             className="h-9 w-24 rounded-base border border-border bg-bg px-2 text-right font-mono text-sm tabular-nums text-fg"
           />
           <span id={unitId} className="font-mono text-sm text-fg-muted">
-            {unit}
+            <InlineMath text={unitTex(unit)} />
           </span>
         </span>
       </div>
@@ -85,12 +92,13 @@ function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
         max={RANGE_STEPS}
         step={1}
         value={Math.round(rpToSlider(rp) * RANGE_STEPS)}
-        aria-valuetext={rpText(rp, unit, radiusKm)}
+        aria-label={SPOKEN_LABEL}
+        aria-valuetext={mathTextToString(rpText(rp, unit, radiusKm))}
         onChange={(event) => onChange(sliderToRp(Number(event.target.value) / RANGE_STEPS))}
         className="h-6 w-full cursor-pointer accent-accent"
       />
       <span className="font-mono text-xs tabular-nums text-fg-muted">
-        {`${RP_RANGE.min}–${RP_RANGE.max} ${unit}, escala logarítmica`}
+        <InlineMath text={`${RP_RANGE.min}–${RP_RANGE.max} ${unitTex(unit)}, escala logarítmica`} />
       </span>
     </div>
   );

@@ -36,8 +36,11 @@ export function flybyLocalSettings({
     onChange: (value) => onDisplayChange({ ...display, [key]: value }),
   });
   return [
-    toggle('showVectors', 'Vectores v∞ y v_rel en el marco del planeta'),
-    toggle('showCircle', 'Círculo |v∞| en el triángulo'),
+    toggle(
+      'showVectors',
+      'Vectores $\\vec v_\\infty$ y $\\vec v_\\text{rel}$ en el marco del planeta',
+    ),
+    toggle('showCircle', 'Círculo $|\\vec v_\\infty|$ en el triángulo'),
     ...clockSettings(clock, SPEEDS),
   ];
 }

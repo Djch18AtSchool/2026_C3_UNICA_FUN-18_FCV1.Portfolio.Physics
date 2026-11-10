@@ -22,18 +22,22 @@ const PRESETS = [
   /^V1 · Júpiter/,
   /^V1 · Saturno/,
 ];
-const PLANET_LABELS = ['v∞,in', 'v∞,out'];
-const SUN_LABELS = ['v antes', 'v después', 'δ'];
+/** The labels in the MathText notation they are written in (data-notation on the <text>). */
+const PLANET_LABELS = ['vec v_∞,in', 'vec v_∞,out'];
+const SUN_LABELS = ['vec v antes', 'vec v después', 'δ'];
 /** Corner texts inherit 12 px from their group; Labels set 13 px themselves. */
 const CORNER_FONT = 12;
 /** Room the drawing leaves around a corner text, px: it must not even graze it. */
 const CORNER_MARGIN = 3;
 
+/** A label's source: its notation when MathText drew it, else its text. */
+const notationOf = (text: Element) => text.getAttribute('data-notation') ?? text.textContent ?? '';
+
 function boxOf(text: SVGTextElement): Box {
   const fontSize = Number(text.getAttribute('font-size') ?? CORNER_FONT);
   const anchor = (text.getAttribute('text-anchor') ?? 'start') as 'start' | 'middle' | 'end';
   const at = { x: Number(text.getAttribute('x')), y: Number(text.getAttribute('y')) };
-  return textBox(at, text.textContent ?? '', fontSize, anchor);
+  return textBox(at, notationOf(text), fontSize, anchor);
 }
 
 function textsOf(frame: Element): SVGTextElement[] {
@@ -41,7 +45,7 @@ function textsOf(frame: Element): SVGTextElement[] {
 }
 
 function labelBox(frame: Element, label: string): Box {
-  const text = textsOf(frame).find((element) => element.textContent === label);
+  const text = textsOf(frame).find((element) => notationOf(element) === label);
   expect(text, label).toBeDefined();
   return boxOf(text as SVGTextElement);
 }
@@ -59,7 +63,7 @@ function linesOf(frame: Element): Segment[] {
 function expectClear(frame: Element, labels: readonly string[]): void {
   const [, , width, height] = viewBoxOf(frame);
   const lines = linesOf(frame);
-  const others = textsOf(frame).filter((text) => !labels.includes(text.textContent ?? ''));
+  const others = textsOf(frame).filter((text) => !labels.includes(notationOf(text)));
   const boxes = labels.map((label) => labelBox(frame, label));
   boxes.forEach((box, index) => {
     const name = labels[index];
@@ -71,7 +75,7 @@ function expectClear(frame: Element, labels: readonly string[]): void {
       expect(segmentHitsBox(line, box), `${name} crosses a line`).toBe(false);
     }
     for (const other of others) {
-      expect(boxesOverlap(box, boxOf(other)), `${name} covers «${other.textContent}»`).toBe(false);
+      expect(boxesOverlap(box, boxOf(other)), `${name} covers «${notationOf(other)}»`).toBe(false);
     }
     boxes.slice(index + 1).forEach((next, offset) => {
       expect(boxesOverlap(box, next), `${name} covers ${labels[index + 1 + offset]}`).toBe(false);
@@ -81,11 +85,11 @@ function expectClear(frame: Element, labels: readonly string[]): void {
 
 /** The track and the v∞ arrows keep out of the r_p readout and the scale bar's text. */
 function expectCornersClear(frame: Element): void {
-  const readout = boxOf(frame.querySelector('[data-testid="flyby-rp-value"]') as SVGTextElement);
+  const readout = boxOf(
+    frame.querySelector('[data-testid="flyby-rp-value"] text') as SVGTextElement,
+  );
   const bar = boxOf(
-    textsOf(frame).find((text) =>
-      /^\d+(,\d)? R_[A-Z]$/.test(text.textContent ?? ''),
-    ) as SVGTextElement,
+    textsOf(frame).find((text) => /^\d+(,\d)? R_[A-Z]$/.test(notationOf(text))) as SVGTextElement,
   );
   const d = frame.querySelector('path')?.getAttribute('d') ?? '';
   const track = [...d.matchAll(/[ML]([-\d.]+) ([-\d.]+)/g)].map(([, x, y]) => ({

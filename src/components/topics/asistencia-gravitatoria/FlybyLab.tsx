@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import { PLANETS } from '../../../lib/data/planets';
 import { formatNumber } from '../../../lib/format';
+import InlineMath from '../../lab/InlineMath';
 import { deltaVMagnitude, planarFlyby, type PassSide } from '../../../lib/physics';
 import Presets from '../../controls/Presets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
@@ -157,7 +158,7 @@ export default function FlybyLab({ footnote }: FlybyLabProps): JSX.Element {
   ];
 
   const kms = (value: number) => formatNumber(value, { precision: decimals, unit: 'km/s' });
-  const arrival = `Llegada de la ${encounter.probe} a ${planet.name}: V_p = ${kms(encounter.VpKms)}, v∞ = ${kms(encounter.vInf)} y θ_in = ${formatNumber(encounter.thetaInDeg, { precision: 1, unit: '°' })} entre V_p y v∞,in. Un preajuste las cambia; r_p y el lado son tuyos.`;
+  const arrival = `Llegada de la ${encounter.probe} a ${planet.name}: $V_p$ = ${kms(encounter.VpKms)}, $v_\\infty$ = ${kms(encounter.vInf)} y $\\theta_\\text{in}$ = ${formatNumber(encounter.thetaInDeg, { precision: 1, unit: '°' })} entre $\\vec V_p$ y $\\vec v_{\\infty,\\text{in}}$. Un preajuste las cambia; $r_p$ y el lado son tuyos.`;
 
   const params = (
     <>
@@ -174,7 +175,9 @@ export default function FlybyLab({ footnote }: FlybyLabProps): JSX.Element {
           }))
         }
       />
-      <p className="m-0 text-sm text-fg-muted">{arrival}</p>
+      <p className="m-0 text-sm text-fg-muted">
+        <InlineMath text={arrival} />
+      </p>
       <Presets
         presets={FLYBY_PRESETS}
         activeId={presetId}

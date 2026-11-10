@@ -13,6 +13,12 @@ export function signed(value: number, precision: number, unit?: string): string 
   return `${value < 0 ? MINUS : '+'}${text}`;
 }
 
+/** A planet radius as a unit in HTML (InlineMath): «R_J» → «$R_\mathrm{J}$»; others unchanged. */
+export function unitTex(unit: string): string {
+  const radius = /^R_([A-Z])$/.exec(unit);
+  return radius ? `$R_\\mathrm{${radius[1]}}$` : unit;
+}
+
 /** How many times faster than real a pass of `seconds` plays in `playback` s, to two digits. */
 export function lapseFactorText(seconds: number, playback: number): string {
   return formatNumber(Number((seconds / playback).toPrecision(LAPSE_DIGITS)), { precision: 0 });

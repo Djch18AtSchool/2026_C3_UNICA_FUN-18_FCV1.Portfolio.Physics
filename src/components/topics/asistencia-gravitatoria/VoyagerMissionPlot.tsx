@@ -51,7 +51,7 @@ export const MISSION_LINES: Readonly<Record<string, LineSpec>> = {
   v1: { id: 'v1', label: 'Voyager 1 (hasta 1981)', color: TICK_COLOR, width: THIN_LINE_WIDTH },
   escape: {
     id: 'escape',
-    label: 'Rapidez de escape del Sol en la posición de la V2, √(2GM☉/r)',
+    label: 'Rapidez de escape del Sol en la posición de la V2, $\\sqrt{2GM_\\odot/r}$',
     color: SUN_COLOR,
     dash: DASH_PATTERN,
   },

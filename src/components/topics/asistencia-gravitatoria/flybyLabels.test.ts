@@ -10,8 +10,14 @@ const WALL: Segment = [
 
 describe('labelSize', () => {
   test('pads the 13 px monospace text by 2 px on every side', () => {
-    // «v∞,in» is 5 characters of 0,6 × 13 px.
-    expect(labelSize('v∞,in')).toEqual({ width: 5 * 0.6 * 13 + 4, height: 17 });
+    // «v antes» is 7 characters of 0,6 × 13 px.
+    expect(labelSize('v antes')).toEqual({ width: 7 * 0.6 * 13 + 4, height: 17 });
+  });
+
+  test('measures a label in the notation as drawn: scripts at 75 %, KaTeX glyphs their size', () => {
+    // v (0,6 em) then «∞,in» as a subscript: ∞ in KaTeX_Main (1 em, × 0,516/0,442), «,in» mono.
+    const subscript = 0.75 * ((1 * 0.516) / 0.442 + 3 * 0.6);
+    expect(labelSize('vec v_∞,in').width).toBeCloseTo((0.6 + subscript) * 13 + 4);
   });
 });
 

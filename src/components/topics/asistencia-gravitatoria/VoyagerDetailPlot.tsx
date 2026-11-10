@@ -51,7 +51,7 @@ export const DETAIL_LINES: Readonly<Record<string, LineSpec>> = {
   v2: { id: 'v2', label: 'Voyager 2, cada hora', color: TEXT_COLOR },
   escape: {
     id: 'escape',
-    label: 'Rapidez de escape del Sol, √(2GM☉/r)',
+    label: 'Rapidez de escape del Sol, $\\sqrt{2GM_\\odot/r}$',
     color: SUN_COLOR,
     dash: DASH_PATTERN,
   },
@@ -205,7 +205,7 @@ const VoyagerDetailPlot = memo(function VoyagerDetailPlot({
           area={area}
           ticks={ticks}
           scale={x}
-          title="t − t_MA (d)"
+          title="t − t_{MA} (d)"
           viewWidth={geometry.width}
         />
       </g>

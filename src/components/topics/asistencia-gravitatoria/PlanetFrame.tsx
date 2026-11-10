@@ -1,6 +1,8 @@
 import { useMemo, useState, type JSX, type KeyboardEvent } from 'react';
 import type { Planet } from '../../../lib/data/planets';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString } from '../../../lib/mathNotation';
+import MathText from '../../lab/MathText';
 import {
   LINE_WIDTH,
   SURFACE_COLOR,
@@ -70,6 +72,8 @@ const KNOB_LABEL_GAP = 22;
 const CORNER = 12;
 const NOTE_SIZE = 12;
 const VP_ARROW = 36;
+/** The key beside the V⃗_p arrow, in the MathText notation. */
+const VP_KEY = 'vec V_p';
 /** The corner texts' baseline below the corner, and the V_p key's gap to its text. */
 const CORNER_BASELINE = 10;
 const VP_TEXT_GAP = 6;
@@ -110,7 +114,9 @@ const toPath = (points: Point[]) =>
 function describe({ hyperbola, planet, rp, unit }: PlanetFrameProps): string {
   const n = (value: number, precision: number, suffix = '') =>
     formatNumber(value, { precision, unit: suffix });
-  return `Sobrevuelo en el marco de ${planet.name}: la sonda llega con v∞ = ${n(hyperbola.vInf, 2, 'km/s')} y pasa por ${SIDE_NAMES[hyperbola.sense < 0 ? 'behind' : 'front']} a r_p = ${n(rp, 2, unit)}. La hipérbola tiene e = ${n(hyperbola.e, DECIMALS_E)} y gira la velocidad δ = ${n(hyperbola.delta * DEG, 1, '°')}; lejos del planeta sale con la misma rapidez v∞.`;
+  return mathTextToString(
+    `Sobrevuelo en el marco de ${planet.name}: la sonda llega con v_∞ = ${n(hyperbola.vInf, 2, 'km/s')} y pasa por ${SIDE_NAMES[hyperbola.sense < 0 ? 'behind' : 'front']} a r_p = ${n(rp, 2, unit)}. La hipérbola tiene e = ${n(hyperbola.e, DECIMALS_E)} y gira la velocidad δ = ${n(hyperbola.delta * DEG, 1, '°')}; lejos del planeta sale con la misma rapidez v_∞.`,
+  );
 }
 
 interface ProbeLayerProps {
@@ -215,14 +221,14 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
   const [outLabel, inLabel] = placeLabels(
     [
       {
-        text: 'v∞,out',
+        text: 'vec v_∞,out',
         spots: (size) => [
           ...spotsBeside(last, outTip, size, LABEL_GAP),
           ...spotsAround(outTip, outDir, size, LABEL_GAP),
         ],
       },
       {
-        text: 'v∞,in',
+        text: 'vec v_∞,in',
         spots: (size) => [
           ...spotsBeside(inTail, first, size, LABEL_GAP),
           ...spotsAround(inTail, negate(inDir), size, LABEL_GAP),
@@ -240,7 +246,7 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
       ],
     ],
     [
-      { ...textBox(vpText, 'V_p', NOTE_SIZE, 'start'), left: CORNER },
+      { ...textBox(vpText, VP_KEY, NOTE_SIZE, 'start'), left: CORNER },
       textBox({ x: width - CORNER, y: cornerY }, rpValue, NOTE_SIZE, 'end'),
       textBox({ x: CORNER, y: side - CORNER - BAR_TEXT_LIFT }, barText, NOTE_SIZE, 'start'),
       ...(view.isPlanetEnlarged
@@ -285,18 +291,23 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
               to={{ x: CORNER + VP_ARROW, y: CORNER + 6 }}
               color={planetColor}
             />
-            <text x={vpText.x} y={vpText.y} fill={TEXT_COLOR}>
-              V_p
-            </text>
-            <text
-              data-testid="flyby-rp-value"
-              x={width - CORNER}
-              y={cornerY}
+            <MathText
+              source={VP_KEY}
+              x={vpText.x}
+              y={vpText.y}
+              fontSize={NOTE_SIZE}
               fill={TEXT_COLOR}
-              textAnchor="end"
-            >
-              {rpValue}
-            </text>
+            />
+            <g data-testid="flyby-rp-value">
+              <MathText
+                source={rpValue}
+                x={width - CORNER}
+                y={cornerY}
+                fontSize={NOTE_SIZE}
+                fill={TEXT_COLOR}
+                anchor="end"
+              />
+            </g>
             {view.isPlanetEnlarged ? (
               <text x={width - CORNER} y={side - CORNER} fill={TICK_COLOR} textAnchor="end">
                 planeta agrandado
@@ -310,9 +321,13 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
               stroke={TEXT_COLOR}
               strokeWidth={LINE_WIDTH}
             />
-            <text x={CORNER} y={side - CORNER - BAR_TEXT_LIFT} fill={TICK_COLOR}>
-              {barText}
-            </text>
+            <MathText
+              source={barText}
+              x={CORNER}
+              y={side - CORNER - BAR_TEXT_LIFT}
+              fontSize={NOTE_SIZE}
+              fill={TICK_COLOR}
+            />
           </g>
           <circle
             data-testid="flyby-planet"
@@ -363,7 +378,7 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
           aria-valuemin={RP_RANGE.min}
           aria-valuemax={RP_RANGE.max}
           aria-valuenow={Number(rp.toFixed(2))}
-          aria-valuetext={`r_p = ${rpText(rp, unit, planet.radiusKm)}`}
+          aria-valuetext={mathTextToString(`r_p = ${rpText(rp, unit, planet.radiusKm)}`)}
           className="group cursor-grab outline-none"
           onKeyDown={onKeyDown}
           {...drag}

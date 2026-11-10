@@ -5,6 +5,7 @@
  * the data, and the preset takes the side whose planar result lands nearest to it.
  */
 import { formatNumber } from '../../../lib/format';
+import { unitTex } from './flybyFormat';
 import { PLANETS } from '../../../lib/data/planets';
 import { VOYAGER, type Encounter } from '../../../lib/data/voyager';
 import { planarFlyby, type PassSide } from '../../../lib/physics';
@@ -53,10 +54,10 @@ const presetId = (e: Encounter) => `${e.probe.toLowerCase()}-${e.planet}`;
 function note(e: Encounter, side: PassSide): string {
   const planet = PLANETS[e.planet];
   const rp = formatNumber(e.rpKm / planet.radiusKm, { precision: RP_DECIMALS });
-  const distance = `${formatNumber(e.rpKm, { precision: 0, unit: 'km' })} del centro (${rp} ${radiusUnit(e)})`;
+  const distance = `${formatNumber(e.rpKm, { precision: 0, unit: 'km' })} del centro (${rp} ${unitTex(radiusUnit(e))})`;
   const where = `Máxima aproximación a ${distance}`;
   if (e.planarTurnReproduces) return `${where}, paso por ${SIDE_NAMES[side]}.`;
-  return `${where}. El giro sale del plano de V_p y v∞,in, así que ningún lado lo reproduce; el modelo plano usa el que más se le acerca, ${SIDE_NAMES[side]}.`;
+  return `${where}. El giro sale del plano de $\\vec V_p$ y $\\vec v_{\\infty,\\text{in}}$, así que ningún lado lo reproduce; el modelo plano usa el que más se le acerca, ${SIDE_NAMES[side]}.`;
 }
 
 /** One preset per encounter, V2 first, each in the order of the voyage. */

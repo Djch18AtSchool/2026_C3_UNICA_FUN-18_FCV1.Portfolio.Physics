@@ -4,9 +4,10 @@ import type { Encounter } from '../../../lib/data/voyager';
 import { formatNumber } from '../../../lib/format';
 import type { PlanarFlybyResult } from '../../../lib/physics';
 import { LINE_WIDTH } from '../../charts/chartTheme';
+import InlineMath from '../../lab/InlineMath';
 import { transportTimeValue } from '../../lab/transportTime';
 import FlybyComparison from './FlybyComparison';
-import { lapseFactorText, signed } from './flybyFormat';
+import { lapseFactorText, signed, unitTex } from './flybyFormat';
 import type { FlybyDisplay } from './flybyLabSettings';
 import type { FlybyHyperbola, FlybyState } from './flybyOrbit';
 import type { RpWarning } from './flybyScene';
@@ -79,8 +80,9 @@ function LegendKey({ color, dashed, shape = 'arrow' }: LegendKeyProps) {
 
 function warningText(warning: RpWarning, unit: string): string {
   if (warning === 'below')
-    return `La sonda no puede pasar por debajo de la superficie: r_p no puede bajar de 1 ${unit}.`;
-  if (warning === 'above') return `El laboratorio llega hasta 100 ${unit}: r_p se queda ahí.`;
+    return `La sonda no puede pasar por debajo de la superficie: $r_p$ no puede bajar de 1 ${unitTex(unit)}.`;
+  if (warning === 'above')
+    return `El laboratorio llega hasta 100 ${unitTex(unit)}: $r_p$ se queda ahí.`;
   return '';
 }
 
@@ -94,9 +96,9 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
   const kms = (value: number) => formatNumber(value, { precision: decimals, unit: 'km/s' });
   const token = planet.token;
   const clock = [
-    `t − t_p = ${signed(tau / SECONDS_PER_HOUR, 1, 'h')}`,
-    `r = ${formatNumber(probe.r / planet.radiusKm, { precision: 2, unit })}`,
-    `|v_rel| = ${kms(probe.speed)}`,
+    `$t - t_p$ = ${signed(tau / SECONDS_PER_HOUR, 1, 'h')}`,
+    `$r$ = ${formatNumber(probe.r / planet.radiusKm, { precision: 2, unit: unitTex(unit) })}`,
+    `$|\\vec v_\\text{rel}|$ = ${kms(probe.speed)}`,
   ].join(' · ');
 
   return (
@@ -117,7 +119,7 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
             data-testid="flyby-clock"
             className="m-0 px-3 font-mono text-xs tabular-nums text-fg-muted sm:px-0"
           >
-            {clock}
+            <InlineMath text={clock} />
           </p>
         </div>
         <div className="flex flex-col gap-1">
@@ -131,7 +133,9 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
             decimals={decimals}
           />
           <p className="m-0 px-3 font-mono text-xs tabular-nums text-fg-muted sm:px-0">
-            {`Δ|v| = ${signed(result.vOut - result.vIn, decimals, 'km/s')}`}
+            <InlineMath
+              text={`$\\Delta|\\vec v|$ = ${signed(result.vOut - result.vIn, decimals, 'km/s')}`}
+            />
           </p>
         </div>
       </div>
@@ -141,15 +145,21 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
       >
         <li className="m-0 flex items-center gap-2">
           <LegendKey color={`var(${token})`} />
-          {`V_p: ${planet.name} respecto al Sol`}
+          <span>
+            <InlineMath text={`$\\vec V_p$: ${planet.name} respecto al Sol`} />
+          </span>
         </li>
         <li className="m-0 flex items-center gap-2">
           <LegendKey color={VINF_COLOR} dashed />
-          v∞,in y v∞,out: la sonda respecto al planeta, lejos de él
+          <span>
+            <InlineMath text="$\vec v_{\infty,\text{in}}$ y $\vec v_{\infty,\text{out}}$: la sonda respecto al planeta, lejos de él" />
+          </span>
         </li>
         <li className="m-0 flex items-center gap-2">
           <LegendKey color={PROBE_COLOR} shape="dot" />
-          Sonda, su recorrido y v_rel
+          <span>
+            <InlineMath text="Sonda, su recorrido y $\vec v_\text{rel}$" />
+          </span>
         </li>
         <li className="m-0 flex items-center gap-2">
           <LegendKey color={TRACK_COLOR} shape="line" />
@@ -172,7 +182,7 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
         data-testid="flyby-rp-warning"
         className="m-0 text-sm font-medium empty:hidden"
       >
-        {warningText(props.warning, unit)}
+        <InlineMath text={warningText(props.warning, unit)} />
       </p>
       <FlybyComparison encounter={props.encounter} result={result} decimals={decimals} />
     </div>

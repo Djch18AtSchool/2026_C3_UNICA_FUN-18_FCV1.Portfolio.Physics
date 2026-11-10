@@ -7,10 +7,12 @@
 import type { JSX } from 'react';
 import { PLANETS, type PlanetId } from '../../../lib/data/planets';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString, mathTextWidth } from '../../../lib/mathNotation';
 import { TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
-import { fitCentre, monoTextWidth, type Domain, type Scale } from '../../lab/plotScales';
+import InlineMath from '../../lab/InlineMath';
+import { fitCentre, type Domain, type Scale } from '../../lab/plotScales';
 import SvgPlot from '../../lab/SvgPlot';
 import { signed } from './flybyFormat';
 import { clearSpot, segmentsOf, type Box, type Segment } from '../../lab/labelClearance';
@@ -202,7 +204,7 @@ function VisVivaPlot(): JSX.Element {
           },
           {
             id: 'escape',
-            label: 'Escape, √(2GM☉/r): ε = 0',
+            label: 'Escape, $\\sqrt{2GM_\\odot/r}$: ε = 0',
             points: figure.escapeCurve,
             color: SUN_COLOR,
             dashed: true,
@@ -211,7 +213,9 @@ function VisVivaPlot(): JSX.Element {
         xDomain={VIS_VIVA_DOMAIN.x}
         yDomain={VIS_VIVA_DOMAIN.y}
         overlay={overlay}
-        ariaLabel={`Rapidez de la Voyager 2 respecto al Sol frente a su distancia al Sol. Antes de Júpiter los datos siguen vis-viva con ε = ${energy(figure.boundEnergy)}, una órbita ligada: solo con el Sol la rapidez bajaría a ${speedText(figure.aphelion.y)} en el afelio, a ${formatNumber(figure.aphelion.x, { precision: 2, unit: 'UA' })}, y la sonda volvería. Entre Júpiter y Saturno siguen vis-viva con ε = ${energy(figure.afterEnergy)}, por encima de la rapidez de escape.`}
+        ariaLabel={mathTextToString(
+          `Rapidez de la Voyager 2 respecto al Sol frente a su distancia al Sol. Antes de Júpiter los datos siguen vis-viva con ε = ${energy(figure.boundEnergy)}, una órbita ligada: solo con el Sol la rapidez bajaría a ${speedText(figure.aphelion.y)} en el afelio, a ${formatNumber(figure.aphelion.x, { precision: 2, unit: 'UA' })}, y la sonda volvería. Entre Júpiter y Saturno siguen vis-viva con ε = ${energy(figure.afterEnergy)}, por encima de la rapidez de escape.`,
+        )}
       />
     </div>
   );
@@ -224,6 +228,9 @@ function arc(centre: Point, radius: number, a: number, b: number): Point[] {
     return { x: centre.x + radius * Math.cos(angle), y: centre.y + radius * Math.sin(angle) };
   });
 }
+
+/** The tags of the two v∞ arrows, in the MathText notation: a vector with its subscript. */
+const VINF_TAG = 'vec v_∞';
 
 /**
  * Where a "v∞" tag goes: the nearest spot beside its arrow (either side, along the arrow, a
@@ -241,7 +248,7 @@ function vInfTagSpot(from: Point, to: Point, lines: readonly Segment[], area: Bo
     TAG_ALONG.flatMap((t) => [at(t, 1, distance), at(t, -1, distance)]),
   );
   const size = {
-    width: monoTextWidth('v∞', LABEL_SIZE) + 2 * TAG_PAD_PX,
+    width: mathTextWidth(VINF_TAG, LABEL_SIZE, 'mono') + 2 * TAG_PAD_PX,
     height: LABEL_SIZE + 2 * TAG_PAD_PX,
   };
   return clearSpot(candidates, size, lines, area) ?? at(0.5, 1, TAG_DISTANCES_PX[0]);
@@ -301,10 +308,10 @@ function HyperbolaPlot(): JSX.Element {
         {/* Between Jupiter and periapsis there is room for the symbol only; the value goes to the
             bottom-right corner, which the incoming asymptote leaves empty. */}
         <Label at={px({ x: figure.rpRadii / 2, y: 0 })} dx={0} dy={-6} anchor="middle">
-          rₚ
+          r_p
         </Label>
         <Label at={{ x: x.range[1], y: y.range[0] }} dx={-8} dy={-10} anchor="end">
-          {`rₚ = ${formatNumber(figure.rpRadii, { precision: 2 })} R_J`}
+          {`r_p = ${formatNumber(figure.rpRadii, { precision: 2 })} R_J`}
         </Label>
         <Arrow from={px(figure.inArrow.from)} to={px(figure.inArrow.to)} color={TEXT_COLOR} />
         <Arrow from={px(figure.outArrow.from)} to={px(figure.outArrow.to)} color={TEXT_COLOR} />
@@ -312,7 +319,7 @@ function HyperbolaPlot(): JSX.Element {
           const at = vInfTagSpot(px(arrow.from), px(arrow.to), lines, area);
           return (
             <Label key={arrow.from.x} at={at} dx={0} dy={TAG_BASELINE_DROP} anchor="middle">
-              v∞
+              {VINF_TAG}
             </Label>
           );
         })}
@@ -326,7 +333,7 @@ function HyperbolaPlot(): JSX.Element {
             x: round(
               fitCentre(
                 x.toPx(center.x),
-                monoTextWidth(deltaText, LABEL_SIZE),
+                mathTextWidth(deltaText, LABEL_SIZE, 'mono'),
                 x.range[0],
                 x.range[1],
               ),
@@ -358,14 +365,14 @@ function HyperbolaPlot(): JSX.Element {
         },
         {
           id: 'vinf',
-          label: `Flechas v∞ al entrar y al salir: ${speedText(figure.vInf)} las dos`,
+          label: `Flechas $\\vec v_\\infty$ al entrar y al salir: ${speedText(figure.vInf)} las dos`,
           points: [],
           color: TEXT_COLOR,
           legendKey: 'arrow',
         },
         {
           id: 'asintotas',
-          label: 'Asíntotas: direcciones de v∞ al entrar y al salir',
+          label: 'Asíntotas: direcciones de $\\vec v_\\infty$ al entrar y al salir',
           points: asymptotes,
           color: TICK_COLOR,
           dashed: true,
@@ -378,16 +385,19 @@ function HyperbolaPlot(): JSX.Element {
       yDomain={{ min: -extentY, max: extentY }}
       equalAspect
       overlay={overlay}
-      ariaLabel={`Trayectoria de la Voyager 2 en el marco de Júpiter, a escala, en radios de Júpiter (R_J): una hipérbola con rₚ = ${formatNumber(figure.rpKm, { precision: 0, unit: 'km' })} (${formatNumber(figure.rpRadii, { precision: 2 })} R_J), v∞ = ${speedText(figure.vInf)} y e = ${eText}. Entra y sale con la misma rapidez v∞; solo cambia la dirección, que gira δ = ${degrees(figure.deltaDeg)}.`}
+      ariaLabel={mathTextToString(
+        `Trayectoria de la Voyager 2 en el marco de Júpiter, a escala, en radios de Júpiter (R_J): una hipérbola con r_p = ${formatNumber(figure.rpKm, { precision: 0, unit: 'km' })} (${formatNumber(figure.rpRadii, { precision: 2 })} R_J), v_∞ = ${speedText(figure.vInf)} y e = ${eText}. Entra y sale con la misma rapidez v_∞; solo cambia la dirección, que gira δ = ${degrees(figure.deltaDeg)}.`,
+      )}
     />
   );
 }
 
 function triangleDescription(t: VelocityTriangle, name: string): string {
-  const base = `Triángulo de velocidades de la Voyager 2 en ${name}: V_p = ${speedText(t.Vp)} y v∞ = ${speedText(t.vInf)}; v∞ forma ${degrees(t.thetaInDeg)} con V_p antes y ${degrees(t.thetaOutDeg)} después, así que |v| = |V_p + v∞| pasa de ${speedText(t.vIn)} a ${speedText(t.vOut)}: ${signed(t.jump, SPEED_PRECISION, 'km/s')}.`;
-  return t.isPlanar
+  const base = `Triángulo de velocidades de la Voyager 2 en ${name}: V_p = ${speedText(t.Vp)} y v_∞ = ${speedText(t.vInf)}; vec v_∞ forma ${degrees(t.thetaInDeg)} con vec V_p antes y ${degrees(t.thetaOutDeg)} después, así que |vec v| = |vec V_p + vec v_∞| pasa de ${speedText(t.vIn)} a ${speedText(t.vOut)}: ${signed(t.jump, SPEED_PRECISION, 'km/s')}.`;
+  const text = t.isPlanar
     ? base
-    : `${base} Es un giro fuera del plano: el dibujo conserva los ángulos de v∞ con V_p, no el giro δ = ${degrees(t.deltaDeg)}.`;
+    : `${base} Es un giro fuera del plano: el dibujo conserva los ángulos de vec v_∞ con vec V_p, no el giro δ = ${degrees(t.deltaDeg)}.`;
+  return mathTextToString(text);
 }
 
 const TRIANGLE_PLANETS: readonly PlanetId[] = ['jupiter', 'neptune'];
@@ -433,7 +443,7 @@ function TrianglePlot({
     const tipLabel = (tip: Point, value: number) => {
       const text = speedNumber(value);
       const at = {
-        x: fitCentre(px(tip).x, monoTextWidth(text, LABEL_SIZE), x.range[0], x.range[1]),
+        x: fitCentre(px(tip).x, mathTextWidth(text, LABEL_SIZE, 'mono'), x.range[0], x.range[1]),
         y: px(tip).y,
       };
       return (
@@ -460,21 +470,22 @@ function TrianglePlot({
   return (
     <SvgPlot
       title={`${name} (V2): ${signed(t.jump, SPEED_PRECISION, 'km/s')}`}
-      xLabel="vₓ"
+      xLabel="v_x"
       xUnit="km/s"
       yLabel="v_y"
       yUnit="km/s"
       series={[
-        { id: `vp-${t.planet}`, label: `V_p de ${name}`, points: [], color },
+        { id: `vp-${t.planet}`, label: `$\\vec V_p$ de ${name}`, points: [], color },
         {
           id: `vinf-${t.planet}`,
-          label: 'v∞ antes (discontinua) y después',
+          label: '$\\vec v_\\infty$ antes (discontinua) y después',
           points: [],
           color: TICK_COLOR,
         },
         {
           id: `v-${t.planet}`,
-          label: 'v = V_p + v∞ respecto al Sol, antes (discontinua) y después',
+          label:
+            '$\\vec v = \\vec V_p + \\vec v_\\infty$ respecto al Sol, antes (discontinua) y después',
           points: [],
           color: TEXT_COLOR,
         },
@@ -492,11 +503,11 @@ function TrianglePlot({
 function triangleNote(t: VelocityTriangle): string {
   const speeds = `|v| respecto al Sol: ${speedText(t.vIn)} antes y ${speedText(t.vOut)} después.`;
   if (!t.isPlanar) {
-    return `${speeds} Giro fuera del plano: el dibujo conserva los ángulos de v∞ con V_p (${degrees(t.thetaInDeg)} y ${degrees(t.thetaOutDeg)}), no el giro δ = ${degrees(t.deltaDeg)}.`;
+    return `${speeds} Giro fuera del plano: el dibujo conserva los ángulos de $\\vec v_\\infty$ con $\\vec V_p$ (${degrees(t.thetaInDeg)} y ${degrees(t.thetaOutDeg)}), no el giro δ = ${degrees(t.deltaDeg)}.`;
   }
   if (t.planet === 'jupiter') {
-    const recoil = `${formatScientific(jupiterRecoil(), 1)}\u202fm/s`;
-    return `${speeds} El momento se conserva (m Δv = −M ΔV_p): Júpiter retrocede ${recoil}.`;
+    const recoil = `$${formatScientific(jupiterRecoil(), 1)}$\u202fm/s`;
+    return `${speeds} El momento se conserva ($m\\,\\Delta\\vec v = -M\\,\\Delta\\vec V_p$): Júpiter retrocede ${recoil}.`;
   }
   return speeds;
 }
@@ -517,7 +528,9 @@ function Triangles(): JSX.Element {
           className="flex min-w-0 flex-col gap-2"
         >
           <TrianglePlot triangle={triangle} domain={domain} />
-          <p className="text-xs text-fg-muted">{triangleNote(triangle)}</p>
+          <p className="text-xs text-fg-muted">
+            <InlineMath text={triangleNote(triangle)} />
+          </p>
         </div>
       ))}
     </div>

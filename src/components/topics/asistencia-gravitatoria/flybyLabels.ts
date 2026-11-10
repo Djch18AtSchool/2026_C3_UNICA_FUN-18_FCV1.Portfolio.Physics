@@ -12,7 +12,7 @@ import {
   type Size,
 } from '../../lab/labelClearance';
 import { LABEL_SIZE } from '../../lab/OverlayMarks';
-import { monoTextWidth } from '../../lab/plotScales';
+import { mathTextWidth } from '../../../lib/mathNotation';
 
 /** Room around a label's glyphs, px: a stroke or an arrowhead never grazes them. */
 const LABEL_PAD = 2;
@@ -32,10 +32,10 @@ const grow = (box: Box, by: number): Box => ({
   bottom: box.bottom + by,
 });
 
-/** The padded box size of a Label's text. */
+/** The padded box size of a Label's text (MathText notation, measured as drawn). */
 export function labelSize(text: string): Size {
   return {
-    width: monoTextWidth(text, LABEL_SIZE) + 2 * LABEL_PAD,
+    width: mathTextWidth(text, LABEL_SIZE, 'mono') + 2 * LABEL_PAD,
     height: LABEL_SIZE + 2 * LABEL_PAD,
   };
 }

@@ -2,6 +2,9 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { stubResizeObserver } from '../../lab/svgPlotTestKit';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
+import { svgText } from '../../../test-svg-text';
 import VoyagerSpeedChart, { VOYAGER_CHART_SOURCE } from './VoyagerSpeedChart';
 
 const NNBSP = '\u202f';
@@ -58,9 +61,11 @@ describe('VoyagerSpeedChart', () => {
   });
 
   test('a legend names every line; the footnote explains Δ|v| and leaves the source to the Figure', () => {
-    render(<VoyagerSpeedChart />);
+    const { container } = render(<VoyagerSpeedChart />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
+    expect(plexViolations(container)).toEqual([]);
+    expect(mathSourceText(legend)).toContain('V2, $\\sqrt{2GM_\\odot/r}$');
     expect(legend).toHaveTextContent('Voyager 2');
     expect(legend).toHaveTextContent('Voyager 1');
     expect(legend).toHaveTextContent('Rapidez de escape');
@@ -116,7 +121,11 @@ describe('VoyagerSpeedChart', () => {
     expect(container.querySelector('[data-panel="distance"]')).toBeNull();
     expect(screen.getByText(`Pico: 26,87 km/s`)).toBeInTheDocument();
     expect(screen.getByText(`+10,2 km/s`)).toBeInTheDocument();
-    expect(screen.getByText('t − t_MA (d)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('t − tMA (d)'))).toHaveAttribute(
+      'data-notation',
+      't − t_{MA} (d)',
+    );
+    expect(plexViolations(container)).toEqual([]);
     expect(screen.getByTestId('voyager-detail-numbers')).toHaveTextContent(
       /antes 9,\d\d\skm\/s, después 19,\d\d\skm\/s; salto neto \+10,2\skm\/s/,
     );

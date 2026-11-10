@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import type { Encounter } from '../../../lib/data/voyager';
 import { formatNumber } from '../../../lib/format';
 import type { PlanarFlybyResult } from '../../../lib/physics';
+import InlineMath from '../../lab/InlineMath';
 import { signed } from './flybyFormat';
 
 export interface FlybyComparisonProps {
@@ -16,7 +17,7 @@ const IN_PLANE = 'El modelo plano reproduce el dato.';
 const DATA_NOTE =
   'Dato: cónicas empalmadas de la trayectoria de diseño de la misión, publicada por JPL Horizons.';
 const EDITED =
-  'Con r_p o el lado cambiados, el dato de la Voyager ya no aplica: las lecturas son las del modelo plano.';
+  'Con $r_p$ o el lado cambiados, el dato de la Voyager ya no aplica: las lecturas son las del modelo plano.';
 
 const CELL = 'px-2 py-1 text-right font-mono tabular-nums';
 
@@ -30,7 +31,13 @@ export default function FlybyComparison({
   result,
   decimals,
 }: FlybyComparisonProps): JSX.Element {
-  if (!encounter) return <p className="m-0 text-sm text-fg-muted">{EDITED}</p>;
+  if (!encounter) {
+    return (
+      <p className="m-0 text-sm text-fg-muted">
+        <InlineMath text={EDITED} />
+      </p>
+    );
+  }
 
   const kms = (value: number) => formatNumber(value, { precision: decimals, unit: 'km/s' });
   const rows = [

@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
 import FlybyLab, { FLYBY_LAPSE } from './FlybyLab';
 
 const FOOTNOTE = 'Modelo plano de cónicas empalmadas.';
@@ -54,8 +56,9 @@ const ALL_READOUTS = [
   DELTA_V,
 ];
 
-const rpField = () => screen.getByRole('textbox', { name: /^Máxima aproximación r_p/ });
-const rpSlider = () => screen.getByRole('slider', { name: /^Máxima aproximación r_p/ });
+/** The r_p field and range, named in words from the label «Máxima aproximación $r_p$». */
+const rpField = () => screen.getByRole('textbox', { name: 'Máxima aproximación r sub p' });
+const rpSlider = () => screen.getByRole('slider', { name: 'Máxima aproximación r sub p' });
 const handle = () => screen.getByTestId('periapsis-handle');
 const lab = () => screen.getByTestId('flyby-lab');
 const timeline = () => screen.getByRole('slider', { name: 'Línea de tiempo' });
@@ -105,15 +108,28 @@ describe('FlybyLab', () => {
     resetSettingsForTests();
   });
 
-  test('no rendered text or accessible name carries the combining arrow U+20D7', () => {
+  test('no text outside KaTeX or accessible name carries the combining arrow U+20D7', () => {
     const { container } = renderLab();
     const names = [...container.querySelectorAll('[aria-label], [aria-description], [title]')]
       .flatMap((el) => NAME_ATTRIBUTES.map((attribute) => el.getAttribute(attribute) ?? ''))
       .join(' ');
 
-    expect(container.textContent).not.toContain(COMBINING_ARROW);
+    expect(mathSourceText(container)).not.toContain(COMBINING_ARROW);
     expect(names).not.toContain(COMBINING_ARROW);
   });
+
+  test.each(['v2-jupiter', 'v2-neptune'])(
+    '%s: every character outside KaTeX is one IBM Plex draws',
+    async (id) => {
+      const user = userEvent.setup();
+      const { container } = renderLab();
+      const name = id === 'v2-jupiter' ? /^V2 · Júpiter/ : /^V2 · Neptuno/;
+      await user.click(screen.getByRole('button', { name }));
+      await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+
+      expect(plexViolations(container)).toEqual([]);
+    },
+  );
 
   test('the transport reads each pass in its own unit: days at Jupiter, hours at Neptune', async () => {
     const user = userEvent.setup();
@@ -227,7 +243,7 @@ describe('FlybyLab', () => {
 
     expect(rpField()).toHaveValue('1');
     expect(handle()).toHaveAttribute('aria-valuenow', '1');
-    expect(warning()).toHaveTextContent(/no puede bajar de 1 R_J/);
+    expect(mathSourceText(warning())).toMatch(/no puede bajar de 1 \$R_\\mathrm\{J\}\$/);
     expect(readout(TURN)).toBe('151,1°');
   });
 
@@ -237,7 +253,7 @@ describe('FlybyLab', () => {
     dragHandleTo(centre('flyby-planet'));
 
     expect(handle()).toHaveAttribute('aria-valuenow', '1');
-    expect(warning()).toHaveTextContent(/no puede bajar de 1 R_J/);
+    expect(mathSourceText(warning())).toMatch(/no puede bajar de 1 \$R_\\mathrm\{J\}\$/);
     for (const label of ALL_READOUTS) {
       expect(readout(label)).not.toMatch(/NaN|—/);
     }
@@ -265,7 +281,7 @@ describe('FlybyLab', () => {
     expect(knob).toHaveAttribute('role', 'slider');
     expect(knob).toHaveAttribute('aria-valuemin', '1');
     expect(knob).toHaveAttribute('aria-valuemax', '100');
-    expect(plain(knob.getAttribute('aria-valuetext'))).toBe('r_p = 10,09 R_J (721 375 km)');
+    expect(plain(knob.getAttribute('aria-valuetext'))).toBe('r sub p = 10,09 R sub J (721 375 km)');
 
     knob.focus();
     await user.keyboard('{ArrowRight}');
@@ -284,7 +300,7 @@ describe('FlybyLab', () => {
     fireEvent.change(rpSlider(), { target: { value: '500' } });
 
     expect(rpField()).toHaveValue('10');
-    expect(plain(rpSlider().getAttribute('aria-valuetext'))).toBe('10,00 R_J (714 920 km)');
+    expect(plain(rpSlider().getAttribute('aria-valuetext'))).toBe('10,00 R sub J (714 920 km)');
   });
 
   test('V2 at Neptune is out of the plane: labelled, with the planar result beside the data', async () => {
@@ -314,7 +330,7 @@ describe('FlybyLab', () => {
 
     expect(distance(centre('flyby-probe'))).toBeCloseTo(distance(knobCentre()), 1);
     expect(start).toBeGreaterThan(distance(knobCentre()));
-    expect(plain(screen.getByTestId('flyby-clock').textContent)).toMatch(/t − t_p = 0,0 h/);
+    expect(plain(mathSourceText(screen.getByTestId('flyby-clock')))).toMatch(/\$t - t_p\$ = 0,0 h/);
   });
 
   test('states the time lapse on the canvas', () => {
@@ -365,7 +381,7 @@ describe('FlybyLab', () => {
 
     expect(lab()).toHaveAttribute('data-playing', 'false');
     expect(timeline()).toHaveValue('500');
-    expect(plain(screen.getByTestId('flyby-clock').textContent)).toMatch(/t − t_p = 0,0 h/);
+    expect(plain(mathSourceText(screen.getByTestId('flyby-clock')))).toMatch(/\$t - t_p\$ = 0,0 h/);
   });
 
   test('the drawer offers playback speeds and hides the planet-frame vectors', async () => {
@@ -380,9 +396,15 @@ describe('FlybyLab', () => {
     const speed = within(dialog).getByRole('combobox', { name: 'Velocidad' });
     expect(within(speed).getByRole('option', { name: '4×' })).toBeInTheDocument();
     await user.click(
-      within(dialog).getByRole('switch', { name: 'Vectores v∞ y v_rel en el marco del planeta' }),
+      within(dialog).getByRole('switch', {
+        name: 'Vectores vector v sub infinito y vector v sub rel en el marco del planeta',
+      }),
     );
-    await user.click(within(dialog).getByRole('switch', { name: 'Círculo |v∞| en el triángulo' }));
+    await user.click(
+      within(dialog).getByRole('switch', {
+        name: 'Círculo módulo de vector v sub infinito en el triángulo',
+      }),
+    );
 
     expect(
       screen.getByTestId('flyby-planet-frame').querySelector('[data-vector="vinf-in"]'),

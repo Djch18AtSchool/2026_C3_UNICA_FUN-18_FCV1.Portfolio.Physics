@@ -82,7 +82,7 @@ related: ['coeficiente-restitucion', 'ruedas-reaccion', 'gravedad-artificial']
 classRefs:
   - module: 'Módulo 4'
     topic: 'Tema 01 · Ley de Gravitación Universal'
-    note: 'F = Gm₁m₂/r² y la superposición de fuerzas: la (9.1) con el Sol y la suma de la (9.4).'
+    note: '$F = G m_1 m_2/r^2$ y la superposición de fuerzas: la (9.1) con el Sol y la suma de la (9.4).'
   - module: 'Módulo 4'
     topic: 'Tema 03 · Energía Potencial Gravitatoria'
     note: 'U = −GMm/r, rapidez de escape y E > 0 hiperbólica, con la Voyager 1 como ejemplo: la (9.1) y la curva de escape de la figura 9.4.'
@@ -151,7 +151,7 @@ Antes de Júpiter, <Equation inline latex="\varepsilon < 0" />: órbita ligada, 
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Rapidez de la Voyager 2 respecto al Sol frente a su distancia r. Los puntos son datos cada 20 días; las curvas son vis-viva con la energía de antes de Júpiter (discontinua gris), que se detiene en el afelio, y con la de después, que sigue de largo. La discontinua ámbar es la rapidez de escape √(2GM☉/r)."
+  caption="Rapidez de la Voyager 2 respecto al Sol frente a su distancia r. Los puntos son datos cada 20 días; las curvas son vis-viva con la energía de antes de Júpiter (discontinua gris), que se detiene en el afelio, y con la de después, que sigue de largo. La discontinua ámbar es la rapidez de escape $\sqrt{2GM_\odot/r}$."
   source={{
     text: 'Curvas calculadas por el autor con la ecuación (9.1); datos de NASA/JPL Horizons (fuente 1)',
   }}
@@ -195,9 +195,9 @@ La V2 en Júpiter: <Equation inline latex="v_\infty \approx 7{,}62\ \mathrm{km/s
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="La Voyager 2 en el marco de Júpiter, a escala en radios de Júpiter. Las flechas v∞ de entrada y de salida miden lo mismo; entre sus asíntotas, el giro δ = 97,5°. En la tabla 9.2, v∞ baja de 7,639 a 7,579 km/s: las cónicas que publica Horizons se construyeron para coincidir también con encuentros con lunas."
+  caption="La Voyager 2 en el marco de Júpiter, a escala en radios de Júpiter. Las flechas $\vec v_\infty$ de entrada y de salida miden lo mismo; entre sus asíntotas, el giro δ = 97,5°. En la tabla 9.2, $v_\infty$ baja de 7,639 a 7,579 km/s: las cónicas que publica Horizons se construyeron para coincidir también con encuentros con lunas."
   source={{
-    text: 'Hipérbola calculada por el autor con la ecuación (9.2); v∞ y rₚ de NASA/JPL Horizons (fuente 1)',
+    text: 'Hipérbola calculada por el autor con la ecuación (9.2); $v_\\infty$ y $r_p$ de NASA/JPL Horizons (fuente 1)',
   }}
 >
   <FlybyFigure variant="hiperbola" client:visible />
@@ -218,7 +218,7 @@ Respecto al Sol, la velocidad es la del planeta más la relativa. Girar <Equatio
     { symbol: '\\vec V_p', meaning: 'velocidad del planeta respecto al Sol', unit: 'km/s' },
     {
       symbol: '\\vec v_\\text{rel}',
-      meaning: 'velocidad de la sonda respecto al planeta; lejos de él mide v∞',
+      meaning: 'velocidad de la sonda respecto al planeta; lejos de él mide $v_\\infty$',
       unit: 'km/s',
     },
     { symbol: 'm,\\ M', meaning: 'masas de la sonda (721,9 kg) y del planeta', unit: 'kg' },
@@ -244,7 +244,7 @@ En Júpiter, <Equation inline latex="|\Delta\vec v| = 11{,}45\ \mathrm{km/s}" />
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Triángulos de velocidades en el marco del Sol, a la misma escala: la suma vectorial v = Vₚ + v∞ antes y después del giro. En Júpiter v∞ sale mucho más alineada con Vₚ y la sonda gana 9,91 km/s (por cónicas); en Neptuno, que la V2 sobrevoló por encima del polo norte, v∞ se aparta de Vₚ y la sonda pierde 2,13 km/s."
+  caption="Triángulos de velocidades en el marco del Sol, a la misma escala: la suma vectorial $\vec v = \vec V_p + \vec v_\infty$ antes y después del giro. En Júpiter $\vec v_\infty$ sale mucho más alineada con $\vec V_p$ y la sonda gana 9,91 km/s (por cónicas); en Neptuno, que la V2 sobrevoló por encima del polo norte, $\vec v_\infty$ se aparta de $\vec V_p$ y la sonda pierde 2,13 km/s."
   source={{
     text: 'Triángulos calculados por el autor con la ecuación (9.3); velocidades de NASA/JPL Horizons (fuente 1) y paso sobre el polo norte de Neptuno según NASA (fuente 7)',
   }}
@@ -289,7 +289,7 @@ Sin la suma, la (9.4) es la (9.1), y cerca de Júpiter, la (9.2). El último té
 
 <Figure
   type="visualizacion"
-  caption="Rapidez de la Voyager 2 respecto al Sol, y la de la Voyager 1, más tenue, hasta 1981: cada marca da el salto del encuentro, y la zona sombreada, donde la rapidez supera la de escape √(2GM☉/r), empieza en Júpiter. La línea punteada es la órbita sin Júpiter, que habría vuelto."
+  caption="Rapidez de la Voyager 2 respecto al Sol, y la de la Voyager 1, más tenue, hasta 1981: cada marca da el salto del encuentro, y la zona sombreada, donde la rapidez supera la de escape $\sqrt{2GM_\odot/r}$, empieza en Júpiter. La línea punteada es la órbita sin Júpiter, que habría vuelto."
   source={{ text: VOYAGER_CHART_SOURCE, url: 'https://ssd.jpl.nasa.gov/horizons/' }}
 >
   <VoyagerSpeedChart client:visible />
@@ -302,7 +302,7 @@ Tras Neptuno, con <Equation inline latex="\varepsilon \approx 110\ \mathrm{km^2/
 <Figure
   type="simulacion"
   showBadge={false}
-  caption="Laboratorio del sobrevuelo con las ecuaciones (9.2) y (9.3): hipérbola en el marco del planeta, triángulo de velocidades en el del Sol. Para la V2 en Júpiter la ganancia es máxima cerca de 3 radios, con v∞ paralela a Vₚ y |v| = 20,37 km/s; más cerca se gana menos. Por delante, a 20 radios, saldría frenada, a 6,76 km/s."
+  caption="Laboratorio del sobrevuelo con las ecuaciones (9.2) y (9.3): hipérbola en el marco del planeta, triángulo de velocidades en el del Sol. Para la V2 en Júpiter la ganancia es máxima cerca de 3 radios, con $\vec v_\infty$ paralela a $\vec V_p$ y $|\vec v|$ = 20,37 km/s; más cerca se gana menos. Por delante, a 20 radios, saldría frenada, a 6,76 km/s."
   source={{ text: 'Simulación del autor sobre src/lib/physics/gravitation.ts' }}
 >
   <FlybyLab

@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString } from '../../../lib/mathNotation';
 import type { PlanarFlybyResult } from '../../../lib/physics';
 import { TICK_COLOR } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
@@ -36,6 +37,8 @@ const ARC_SAMPLES = 12;
 /** Extra distances (px) tried for δ once the spots next to its arc are taken. */
 const DELTA_GAPS = [0, 8, 16, 24];
 const VP_LABEL_DROP = 16;
+/** The planet's velocity under its arrow, in the MathText notation. */
+const VP_LABEL = 'vec V_p';
 const ORIGIN_RADIUS = 3;
 const DEG = 180 / Math.PI;
 
@@ -96,11 +99,11 @@ export default function SunFrame({
   const [beforeLabel, afterLabel, deltaLabel] = placeLabels(
     [
       {
-        text: 'v antes',
+        text: 'vec v antes',
         spots: (size) => spotsAround(inTip, unit(planetTip, inTip), size, LABEL_GAP),
       },
       {
-        text: 'v después',
+        text: 'vec v después',
         spots: (size) => spotsAround(outTip, unit(planetTip, outTip), size, LABEL_GAP),
       },
       {
@@ -113,12 +116,14 @@ export default function SunFrame({
       },
     ],
     [...arrows, ...segmentsOf(arc)],
-    [textBox(vpLabel, 'V_p', LABEL_SIZE, 'middle')],
+    [textBox(vpLabel, VP_LABEL, LABEL_SIZE, 'middle')],
     { width, height },
   );
   const planetColor = `var(${planetToken})`;
   const kms = (value: number) => formatNumber(value, { precision: decimals, unit: 'km/s' });
-  const description = `Triángulo de velocidades en el marco del Sol: V_p ${kms(Vp)}; v∞ ${kms(hyperbola.vInf)} girada δ = ${formatNumber(hyperbola.delta * DEG, { precision: 1, unit: '°' })}; v antes ${kms(result.vIn)}; v después ${kms(result.vOut)}; Δ|v| = ${signed(result.vOut - result.vIn, decimals, 'km/s')}.`;
+  const description = mathTextToString(
+    `Triángulo de velocidades en el marco del Sol: vec V_p ${kms(Vp)}; vec v_∞ ${kms(hyperbola.vInf)} girada δ = ${formatNumber(hyperbola.delta * DEG, { precision: 1, unit: '°' })}; v antes ${kms(result.vIn)}; v después ${kms(result.vOut)}; Δ|v| = ${signed(result.vOut - result.vIn, decimals, 'km/s')}.`,
+  );
 
   return (
     <div ref={wrapperRef} className="w-full">
@@ -156,7 +161,7 @@ export default function SunFrame({
           <Arrow from={origin} to={planetTip} color={planetColor} />
           <circle cx={origin.x} cy={origin.y} r={ORIGIN_RADIUS} fill={VINF_COLOR} />
           <Label at={vpLabel} dx={0} dy={0} anchor="middle">
-            V_p
+            {VP_LABEL}
           </Label>
           {[beforeLabel, afterLabel].map((label) => (
             <Label key={label.text} at={label.at} dx={0} dy={LABEL_BASELINE_DROP} anchor="middle">

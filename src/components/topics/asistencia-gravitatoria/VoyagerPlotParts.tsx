@@ -17,6 +17,8 @@ import {
   TICK_FONT_FAMILY,
   TICK_FONT_SIZE,
 } from '../../charts/chartTheme';
+import InlineMath from '../../lab/InlineMath';
+import MathText from '../../lab/MathText';
 import { fitCentre, monoTextWidth, type Scale } from '../../lab/plotScales';
 import type { PlotArea } from '../../lab/SvgPlotCursor';
 import type { AxisTick } from './dateAxis';
@@ -228,16 +230,15 @@ export function YAxis({
           </text>
         ))}
       </g>
-      <text
+      <MathText
+        source={title}
         x={Y_TITLE_X}
         y={middle}
         fill={TEXT_COLOR}
         fontSize={TITLE_SIZE}
-        textAnchor="middle"
+        anchor="middle"
         transform={`rotate(-90 ${Y_TITLE_X} ${middle})`}
-      >
-        {title}
-      </text>
+      />
     </g>
   );
 }
@@ -296,15 +297,14 @@ export function XAxis({
                   ],
             )}
           </g>
-          <text
+          <MathText
+            source={title}
             x={(area.left + area.right) / 2}
             y={area.bottom + X_TITLE_OFFSET}
             fill={TEXT_COLOR}
             fontSize={TITLE_SIZE}
-            textAnchor="middle"
-          >
-            {title}
-          </text>
+            anchor="middle"
+          />
         </>
       ) : null}
     </g>
@@ -346,7 +346,9 @@ export function Legend({ specs }: { specs: readonly LineSpec[] }): JSX.Element {
       {specs.map((spec) => (
         <li key={spec.id} className="flex items-center gap-2 text-fg">
           <LegendKey spec={spec} />
-          {spec.label}
+          <span>
+            <InlineMath text={spec.label} />
+          </span>
         </li>
       ))}
     </ul>

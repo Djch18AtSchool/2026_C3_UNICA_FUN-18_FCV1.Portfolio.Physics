@@ -134,12 +134,12 @@ describe('jupiterRecoil', () => {
       Math.abs(recoilSpeed(VOYAGER_MASS_KG, PLANETS.jupiter.massKg, deltaV)) * 1000,
     );
     expect(jupiterRecoil()).toBeCloseTo(4.35e-21, 23);
-    expect(formatScientific(jupiterRecoil(), 1)).toBe('4,4·10⁻²¹');
+    expect(formatScientific(jupiterRecoil(), 1)).toBe('4{,}4 \\cdot 10^{-21}');
   });
 
-  test('formatScientific writes positive and negative exponents with superscripts', () => {
-    expect(formatScientific(1.89819e27, 2)).toBe('1,90·10²⁷');
-    expect(formatScientific(-0.00123, 1)).toBe('−1,2·10⁻³');
+  test('formatScientific writes TeX for InlineMath: decimal comma, real exponent, minus', () => {
+    expect(formatScientific(1.89819e27, 2)).toBe('1{,}90 \\cdot 10^{27}');
+    expect(formatScientific(-0.00123, 1)).toBe('-1{,}2 \\cdot 10^{-3}');
     expect(formatScientific(0, 1)).toBe('0');
   });
 });

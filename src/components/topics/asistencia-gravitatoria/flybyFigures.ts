@@ -15,7 +15,6 @@ import {
   specificEnergy,
   visVivaSpeed,
 } from '../../../lib/physics';
-import { MINUS } from './flybyFormat';
 import { flybyHyperbola, sampleTrack } from './flybyOrbit';
 import { MISSION, v2Encounter, valueAt, type ChartPoint } from './voyagerChartData';
 
@@ -37,7 +36,6 @@ const PATH_EXTENT_RADII = 60;
 const PATH_SAMPLES = 121;
 /** Length of the v∞ arrows in Paso 2, in planet radii. */
 const ARROW_RADII = 18;
-const SUPERSCRIPTS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
 
 const linspace = (from: number, to: number, count: number) =>
   Array.from({ length: count }, (_, i) => from + ((to - from) * i) / (count - 1));
@@ -232,10 +230,10 @@ export function jupiterRecoil(): number {
   return Math.abs(recoilSpeed(VOYAGER_MASS_KG, PLANETS.jupiter.massKg, deltaV)) * M_PER_KM;
 }
 
-const superscript = (n: number) =>
-  `${n < 0 ? '⁻' : ''}${[...String(Math.abs(n))].map((d) => SUPERSCRIPTS[Number(d)]).join('')}`;
-
-/** '4,4·10⁻²¹': a mantissa with `digits` decimals (comma) times a power of ten. */
+/**
+ * '4{,}4 \cdot 10^{-21}': TeX for InlineMath ($…$), a mantissa with `digits` decimals (decimal
+ * comma, braced so KaTeX does not space it) times a power of ten with a real superscript.
+ */
 export function formatScientific(value: number, digits: number): string {
   if (value === 0) return '0';
   const magnitude = Math.abs(value);
@@ -245,6 +243,7 @@ export function formatScientific(value: number, digits: number): string {
     exponent += 1;
     mantissa /= 10;
   }
-  const sign = value < 0 ? MINUS : '';
-  return `${sign}${formatNumber(mantissa, { precision: digits })}·10${superscript(exponent)}`;
+  const sign = value < 0 ? '-' : '';
+  const digitsText = formatNumber(mantissa, { precision: digits }).replace(',', '{,}');
+  return `${sign}${digitsText} \\cdot 10^{${exponent}}`;
 }
