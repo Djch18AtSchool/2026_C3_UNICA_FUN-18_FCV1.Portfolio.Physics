@@ -26,6 +26,8 @@ const NEAR_END = '995';
 /** Longest the last 0,5 % of playback may take to reach the end. */
 const PLAYBACK_TIMEOUT_MS = 3000;
 const STILL_AT_END_MS = 500;
+/** Sub-pixel rounding of a box against its min-height. */
+const LAYOUT_SLACK_PX = 1;
 /** A visible space at the chips' 12 px: a dropped one leaves ~0 px between formula and «=». */
 const MIN_SPACE_PX = 2;
 /** The FIBA preset's e, the centre of 0,758–0,776. */
@@ -257,13 +259,17 @@ test.describe('laboratorio', () => {
     const gaps = await motor.locator('li:has(.katex)').evaluateAll((items) =>
       items.map((item) => {
         const formula = item.querySelector('.inline-math');
+        if (!formula) return Number.NaN;
+        // The first text after the formula's box (not inside it) that holds an «=».
         const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
-        let node = walker.nextNode();
-        while (node && !(formula?.compareDocumentPosition(node) ?? 0)) node = walker.nextNode();
-        while (node && (formula?.contains(node) || !node.textContent?.includes('='))) {
-          node = walker.nextNode();
+        let node: Node | null = null;
+        for (let next = walker.nextNode(); next && !node; next = walker.nextNode()) {
+          const isAfter =
+            formula.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING &&
+            !formula.contains(next);
+          if (isAfter && next.textContent?.includes('=')) node = next;
         }
-        if (!formula || !node) return Number.NaN;
+        if (!node) return Number.NaN;
         const range = document.createRange();
         const at = node.textContent?.indexOf('=') ?? 0;
         range.setStart(node, at);
@@ -275,6 +281,29 @@ test.describe('laboratorio', () => {
     // Δt, the floor's e and β: every chip with a formula has an «=» after it.
     expect(gaps).toHaveLength(3);
     for (const gap of gaps) expect(gap).toBeGreaterThanOrEqual(MIN_SPACE_PX);
+  });
+
+  test('a 360 px cada ficha «Motor» es una línea y ninguna sale de las notas del lienzo', async ({
+    page,
+  }) => {
+    await page.setViewportSize(PHONE);
+    const notes = page.locator(`${LAB} [data-lab-canvas-notes]`);
+    const chips = notes.getByRole('list', { name: 'Motor' }).getByRole('listitem');
+    await expect(chips).toHaveCount(5);
+
+    const area = await notes.boundingBox();
+    for (const chip of await chips.all()) {
+      // One line: the chip keeps its min-height; a line broken after the formula makes it taller.
+      const { height, minHeight } = await chip.evaluate((node) => ({
+        height: node.getBoundingClientRect().height,
+        minHeight: parseFloat(getComputedStyle(node).minHeight),
+      }));
+      const box = await chip.boundingBox();
+      expect(height, await chip.innerText()).toBeLessThanOrEqual(minHeight + LAYOUT_SLACK_PX);
+      expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(
+        (area?.x ?? 0) + (area?.width ?? 0),
+      );
+    }
   });
 
   test('el laboratorio ocupa el ancho de la columna de lectura', async ({ page }) => {
