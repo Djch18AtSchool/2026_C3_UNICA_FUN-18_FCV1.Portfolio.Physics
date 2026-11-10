@@ -86,16 +86,16 @@ Los nueve laboratorios usan `LabShell` (`src/components/lab/LabShell.tsx`). Uno 
   levels={{
     params: <>…</>,               // nivel 1: los campos físicos, siempre a la vista
     scenario: <LabPresets … />,   // nivel 2 (opcional): modo y preajustes
-    display: localSettings,       // nivel 3: el cajón del engranaje; `chip` → ficha junto al engranaje
+    display: displayOptions,      // nivel 3: SettingOption[] del cajón; `chip` → ficha junto al engranaje
   }}
   canvasNotes={<…Notes />}        // opcional: lo que lee el lienzo (leyenda, cámara rápida, tablas)
-  notes={{ usage, leftOut }}      // «Cómo se usa» y «Qué deja fuera el modelo», cerrados al final
+  notes={{ usage: [...], leftOut: [...] }} // string[]: «Cómo se usa» y «Qué deja fuera el modelo», cerrados al final
 >
   <…Scene />                      // el lienzo
 </LabShell>
 ```
 
-- **Dos columnas** (variante `lab-split:` de `global.css`: ventana `lg` y laboratorio de 42 rem): escenario y panel de 20 rem, cada uno pegajoso en su celda; el panel que desborda tiene scroll propio y es una región con nombre. En una columna: lienzo, reproducción, notas del lienzo, niveles, lecturas, desplegables. Nada del laboratorio decide columnas con `sm:`/`md:`/`lg:`.
+- **Dos columnas** (variante `lab-split:` de `global.css`: ventana `lg` y laboratorio de 42 rem): el escenario y, a su derecha, el panel de 20 rem, cada uno pegajoso en su celda; el panel que desborda tiene scroll propio y es una región con nombre. En una columna: lienzo, reproducción, notas del lienzo, niveles, lecturas, desplegables. Nada del laboratorio decide columnas con `sm:`/`md:`/`lg:`.
 - **`LabPresets`**: hasta cuatro preajustes son fichas; más, un `<select>` (con `groups` si se agrupan, y `optionLabel` en texto plano para un nombre con `$…$`). Debajo, una línea con la nota (una oración: `presetNotes.test.ts`) y «Fuente:», enlazada si hay `sourceUrl` (una página, no un archivo que se descarga). `basedOnId` deja la nota del último preajuste tras una edición, con «Partí de…».
 - **`StatusChips`**: fichas de solo lectura para un estado que informa el laboratorio (el «Motor» del Tema 7), no para un ajuste.
 - **Fichas de ajustes**: una opción del nivel 3 con `chip` se ve junto al engranaje (`settingChips.ts`): un interruptor solo si está activo, un selector con su opción, un rango con su valor.
