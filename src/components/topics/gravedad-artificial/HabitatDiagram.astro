@@ -123,18 +123,19 @@ const vArrow = arrow(
 );
 // The 1 g case the consigna asks for (table 3.1): right-aligned under v = ω r, clear of the
 // apparent-gravity arrow (x ≤ 142) and above Detail A (y = 430), also at the phone font size.
-const ONE_G_NOTE = { x: 408, y: 386, lineHeight: 17 } as const;
+const ONE_G_NOTE = { x: 408, y: 382, lineHeight: 20 } as const;
 const ONE_G_CASES = ['2 RPM → r = 223,6 m', '1 RPM → r = 894,6 m'] as const;
 /**
  * Text sizes in viewBox units, the same at every width and the only place they are set (the CSS
  * below carries colors and families, never sizes): MathText offsets a script by its own font size,
  * so a media query that resized the text would misplace every subscript. The drawing shrinks to
  * ~0,69× on a 375 px phone, so each size reaches at least 11 px there (16 units) and a subscript
- * (75 %) at least 9 px; the notes of the detail are hidden on a phone, and the 1 g note stays.
+ * (75 %) at least 9 px, which takes 18 units: labels at 20 and equations at 24, on the 4-unit
+ * grid; the notes of the detail are hidden on a phone, and the 1 g note stays.
  */
 const TITLE_SIZE = 16;
-const LABEL_SIZE = 19;
-const EQ_SIZE = 22;
+const LABEL_SIZE = 20;
+const EQ_SIZE = 24;
 const NOTE_SIZE = 14;
 const NOTE_KEY_SIZE = 16;
 // The 1 g note's equation (a_c = g) is set at LABEL_SIZE: its subscript must still reach 9 px.
