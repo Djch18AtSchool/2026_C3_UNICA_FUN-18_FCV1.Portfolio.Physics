@@ -36,7 +36,7 @@ describe('dron-reparto tables', () => {
       'Llegada, x (m)',
       'Llegada, y (m)',
       'Longitud d (m)',
-      'Rumbo θ (°)',
+      'Rumbo $\\theta$ (°)',
       '$a_x$ al arrancar (m/s²)',
       '$a_y$ al arrancar (m/s²)',
       'Crucero, $d - 2d_a$ (m)',

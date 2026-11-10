@@ -134,10 +134,14 @@ export default function RouteMapLab(props: RouteMapLabProps): JSX.Element {
         {showVectors ? (
           <>
             <LegendItem color={VELOCITY_COLOR} isArrow>
-              <InlineMath text={`Velocidad $\\vec v$: ${scaleText('m/s', velocityScale)}`} />
+              <span>
+                <InlineMath text={`Velocidad $\\vec v$: ${scaleText('m/s', velocityScale)}`} />
+              </span>
             </LegendItem>
             <LegendItem color={ACCEL_COLOR} isArrow>
-              <InlineMath text={`Aceleración $\\vec a$: ${scaleText('m/s²', accelScale)}`} />
+              <span>
+                <InlineMath text={`Aceleración $\\vec a$: ${scaleText('m/s²', accelScale)}`} />
+              </span>
             </LegendItem>
           </>
         ) : null}

@@ -79,7 +79,7 @@ const TRAMOS: DataTableSpec = {
     { key: 'x', label: 'Llegada, x', unit: 'm', align: 'num', precision: 0 },
     { key: 'y', label: 'Llegada, y', unit: 'm', align: 'num', precision: 0 },
     { key: 'd', label: 'Longitud d', unit: 'm', align: 'num', precision: 1 },
-    { key: 'theta', label: 'Rumbo θ', unit: '°', align: 'num', precision: 1 },
+    { key: 'theta', label: 'Rumbo $\\theta$', unit: '°', align: 'num', precision: 1 },
     { key: 'ax', label: '$a_x$ al arrancar', unit: 'm/s²', align: 'num', precision: 2 },
     { key: 'ay', label: '$a_y$ al arrancar', unit: 'm/s²', align: 'num', precision: 2 },
     { key: 'cruise', label: 'Crucero, $d - 2d_a$', unit: 'm', align: 'num', precision: 1 },
