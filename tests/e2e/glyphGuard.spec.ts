@@ -49,10 +49,16 @@ test.describe('la guardia de glifos se activa', () => {
   test('(c) una medida que no vio nada falla: raíz vacía, ausente u oculta', async ({ page }) => {
     const cdp = await openFontSession(page);
     await page.evaluate(() =>
-      document.body.insertAdjacentHTML('beforeend', '<div id="empty"></div>'),
+      document.body.insertAdjacentHTML(
+        'beforeend',
+        '<div id="empty"></div><div id="hidden-root" hidden><p>Texto que nadie ve.</p></div>' +
+          '<div id="invisible-root" style="visibility: hidden"><p>Texto con caja que nadie ve.</p></div>',
+      ),
     );
 
-    for (const root of ['#empty', '#no-existe']) {
+    // A hidden root has text, but nothing drawn: its characters are checked, its fonts cannot be.
+    // Hidden by `hidden` it has no box; by `visibility: hidden` it keeps one.
+    for (const root of ['#empty', '#no-existe', '#hidden-root', '#invisible-root']) {
       const report = await measureGlyphs(page, cdp, root);
       expect(report.probes).toBe(0);
       expect(describeReport(report, root).join('\n')).toMatch(/nada medido/);
