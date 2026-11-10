@@ -10,7 +10,10 @@ function speedLabel(speed: number): string {
   return `${String(speed).replace('.', ',')}×`;
 }
 
-/** "Velocidad" (a select over `speeds`) and "Repetir", both read from and written to the clock. */
+/**
+ * "Velocidad" (a select over `speeds`) and "Repetir", both read from and written to the clock. In
+ * a tiered LabShell the speed always has a chip («1×») and "Repetir" one while it is on.
+ */
 export function clockSettings(
   clock: SimClock,
   speeds: readonly number[] = DEFAULT_SPEEDS,
@@ -19,6 +22,7 @@ export function clockSettings(
     {
       key: 'speed',
       label: 'Velocidad',
+      chip: 'Velocidad',
       kind: 'select',
       value: String(clock.state.speed),
       options: speeds.map((speed) => ({ value: String(speed), label: speedLabel(speed) })),
@@ -27,6 +31,7 @@ export function clockSettings(
     {
       key: 'loop',
       label: 'Repetir',
+      chip: 'repetir',
       kind: 'toggle',
       value: clock.state.loop,
       onChange: clock.setLoop,

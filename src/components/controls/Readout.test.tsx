@@ -40,6 +40,31 @@ describe('Readout', () => {
   });
 });
 
+describe('Readout as a cell of the tiered lab panel', () => {
+  afterEach(cleanup);
+
+  test('stacks the label over the value, keeping label first and value last', () => {
+    const { container } = render(
+      <Readout label="Período T" value={2} unit="s" precision={2} layout="cell" />,
+    );
+    const row = container.querySelector('[data-readout]') as HTMLElement;
+
+    expect(row).toHaveAttribute('data-layout', 'cell');
+    expect(row).toHaveClass('flex-col');
+    expect(row.firstElementChild).toHaveTextContent('Período T');
+    expect(row.lastElementChild?.textContent).toBe('2,00\u202fs');
+    expect(row.lastElementChild).toHaveClass('font-mono');
+  });
+
+  test('a row is the default: label and value side by side', () => {
+    const { container } = render(<Readout label="Período T" value={2} unit="s" />);
+    const row = container.querySelector('[data-readout]') as HTMLElement;
+
+    expect(row).toHaveAttribute('data-layout', 'row');
+    expect(row).not.toHaveClass('flex-col');
+  });
+});
+
 describe('Readout with KaTeX in its label', () => {
   afterEach(cleanup);
 

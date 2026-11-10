@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { fakeClock as fakeSimClock } from '../../test-fake-clock';
 import { clockSettings, DEFAULT_SPEEDS } from './clockSettings';
+import { settingChips } from './settingChips';
 
 const fakeClock = (speed = 1, loop = false) => fakeSimClock({ speed, loop }, 10);
 
@@ -37,6 +38,16 @@ describe('clockSettings', () => {
     expect(speed.kind === 'select' && speed.options.map(({ label }) => label)).toEqual([
       '1×',
       '8×',
+    ]);
+  });
+
+  test('both carry a chip: the speed always, «repetir» while it is on', () => {
+    expect(settingChips(clockSettings(fakeClock(0.5, true)))).toEqual([
+      { key: 'speed', text: '0,5×', name: 'Velocidad 0,5×' },
+      { key: 'loop', text: 'repetir', name: 'repetir' },
+    ]);
+    expect(settingChips(clockSettings(fakeClock(1, false))).map(({ text }) => text)).toEqual([
+      '1×',
     ]);
   });
 });

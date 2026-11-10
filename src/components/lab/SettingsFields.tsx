@@ -53,7 +53,8 @@ export interface SelectFieldProps {
   /** Plain text, with KaTeX inline between `$…$`. The option labels are plain text: a native <option> takes no markup. */
   label: string;
   value: string;
-  options: readonly { value: string; label: string }[];
+  /** A disabled option shows a state that cannot be chosen (LabPresets' «Personalizado»). */
+  options: readonly { value: string; label: string; disabled?: boolean }[];
   onChange(value: string): void;
 }
 
@@ -78,7 +79,7 @@ export function SelectField({
           className={SELECT}
         >
           {options.map((option) => (
-            <option key={option.value} value={option.value}>
+            <option key={option.value} value={option.value} disabled={option.disabled}>
               {option.label}
             </option>
           ))}

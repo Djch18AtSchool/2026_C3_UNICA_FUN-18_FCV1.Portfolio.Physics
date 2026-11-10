@@ -13,19 +13,28 @@ import { ICON_BUTTON } from './iconButton';
 import LocalSettingsTab from './LocalSettingsTab';
 import { lockPageScroll } from './scrollLock';
 
+/** What every option of the drawer's "Este simulador" tab has, whatever its kind. */
+interface SettingBase {
+  key: string;
+  /** Plain text, with KaTeX inline between `$…$`. */
+  label: string;
+  /**
+   * Short name for the chip row next to the gear of a tiered LabShell (settingChips.ts); without
+   * it the option has no chip. A toggle shows it while on («estela»), a select shows its choice
+   * named by it («1×», said «Velocidad 1×»), a range shows it with the value («escala 1,50 ×»).
+   */
+  chip?: string;
+}
+
 export type SettingOption =
-  | { key: string; label: string; kind: 'toggle'; value: boolean; onChange(v: boolean): void }
-  | {
-      key: string;
-      label: string;
+  | (SettingBase & { kind: 'toggle'; value: boolean; onChange(v: boolean): void })
+  | (SettingBase & {
       kind: 'select';
       value: string;
       options: { value: string; label: string }[];
       onChange(v: string): void;
-    }
-  | {
-      key: string;
-      label: string;
+    })
+  | (SettingBase & {
       kind: 'range';
       value: number;
       min: number;
@@ -33,7 +42,7 @@ export type SettingOption =
       step: number;
       unit?: string;
       onChange(v: number): void;
-    };
+    });
 
 export interface SettingsDrawerProps {
   open: boolean;

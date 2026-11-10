@@ -2,22 +2,30 @@ import { formatNumber } from '../../lib/format';
 import InlineMath from '../lab/InlineMath';
 import { useGlobalSettings } from '../lab/useGlobalSettings';
 
+/** A row (label and value side by side) or a cell of the tiered lab panel's two narrow columns. */
+export type ReadoutLayout = 'row' | 'cell';
+
 export interface ReadoutProps {
   /** Plain text, with KaTeX inline between `$…$` (InlineMath). */
   label: string;
   value: number;
   unit: string;
   precision?: number;
+  /** 'row' by default; 'cell' stacks the label over the value. */
+  layout?: ReadoutLayout;
 }
 
-export default function Readout({ label, value, unit, precision }: ReadoutProps) {
+const LAYOUT_CLASS: Readonly<Record<ReadoutLayout, string>> = {
+  row: 'flex items-baseline justify-between gap-3 border-b border-dotted border-border pb-1.5',
+  cell: 'flex min-w-0 flex-col gap-1 border-b border-dotted border-border pb-2',
+};
+
+/** A labelled value: the label is always the first child and the value the last (test kits). */
+export default function Readout({ label, value, unit, precision, layout = 'row' }: ReadoutProps) {
   const { decimals } = useGlobalSettings();
   const resolvedPrecision = precision ?? decimals;
   return (
-    <div
-      data-readout=""
-      className="flex items-baseline justify-between gap-3 border-b border-dotted border-border pb-1.5"
-    >
+    <div data-readout="" data-layout={layout} className={LAYOUT_CLASS[layout]}>
       <span className="text-sm text-fg-muted">
         <InlineMath text={label} />
       </span>

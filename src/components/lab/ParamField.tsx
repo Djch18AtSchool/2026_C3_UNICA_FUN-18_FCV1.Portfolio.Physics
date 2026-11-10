@@ -40,7 +40,7 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 /** Decimal places of a number as written (0.25 → 2, 1e-3 → 3). */
-function decimalsOf(value: number): number {
+export function decimalsOf(value: number): number {
   const [mantissa, exponent = '0'] = String(value).split('e');
   const fraction = mantissa.split('.')[1]?.length ?? 0;
   return Math.max(0, fraction - Number(exponent));
