@@ -7,6 +7,14 @@ const JUMP_PAGE = './temas/salto-personaje/';
 const JUMP_LAB = 'jump-lab';
 const LABS = TOPIC_PAGES.map(({ path, labTestId }) => ({ path, testId: labTestId }));
 const SETTINGS_TITLE = /^Ajustes: /;
+/** The stage and the panel of a tiered lab stick 4rem under the window's top (the topic bar). */
+const STICKY_TOP_PX = 64;
+/** Rounding of a sticky offset in rem at the site's root size. */
+const STICKY_SLACK_PX = 6;
+const SCROLL_INTO_LAB_PX = 300;
+const STACKED = 'diseño apilado: lo migra B3.2';
+/** The first physical control of a lab: the first field of its «Parámetros». */
+const FIRST_CONTROL = ':is(input, select, textarea, [role="slider"], [role="radio"])';
 const WHEEL_PX = 400;
 /** LabShell's READOUT_ANNOUNCE_DELAY_MS: readouts are spoken once still for this long. */
 const READOUT_SETTLE_MS = 750;
@@ -126,5 +134,76 @@ for (const { path, testId } of LABS) {
       const ring = handle.locator('circle[stroke="var(--accent)"]');
       await expect(ring, name).toHaveCSS('opacity', '1');
     }
+  });
+}
+
+const isTiered = async (lab: Locator) => (await lab.getAttribute('data-lab-shell')) === 'tiered';
+
+/** Scrolls the page so the lab's top sits `below` px under the window's top. */
+async function scrollLabTo(lab: Locator, below: number): Promise<void> {
+  await lab.evaluate(
+    (node, offset) =>
+      window.scrollTo(0, node.getBoundingClientRect().top + window.scrollY - offset),
+    below,
+  );
+}
+
+for (const { path, testId } of LABS) {
+  test.describe(`${testId} por niveles`, () => {
+    test('a 1 280 × 800 el primer control físico queda en la primera pantalla, junto al lienzo', async ({
+      page,
+    }) => {
+      const lab = await openLab(page, path, testId);
+      test.skip(!(await isTiered(lab)), STACKED);
+      await scrollLabTo(lab, STICKY_TOP_PX);
+
+      const params = lab.getByRole('region', { name: 'Parámetros' });
+      const control = await params.locator(FIRST_CONTROL).first().boundingBox();
+      const canvas = await lab.locator('[data-lab-canvas]').boundingBox();
+      if (!control || !canvas) throw new Error('sin control o sin lienzo');
+      expect(control.y + control.height).toBeLessThanOrEqual(DESKTOP.height);
+      expect(control.x).toBeGreaterThanOrEqual(canvas.x + canvas.width);
+    });
+
+    test('al bajar, el panel queda bajo la barra del tema, nunca más alto que la ventana, y la reproducción a la vista', async ({
+      page,
+    }) => {
+      const lab = await openLab(page, path, testId);
+      test.skip(!(await isTiered(lab)), STACKED);
+      await scrollLabTo(lab, -SCROLL_INTO_LAB_PX);
+
+      const panel = await lab.locator('[data-lab-panel]').boundingBox();
+      if (!panel) throw new Error('sin panel');
+      expect(Math.abs(panel.y - STICKY_TOP_PX)).toBeLessThanOrEqual(STICKY_SLACK_PX);
+      expect(panel.y + panel.height).toBeLessThanOrEqual(DESKTOP.height);
+      const transport = lab.locator('[data-lab-transport]');
+      if ((await transport.count()) > 0) {
+        const bar = await transport.boundingBox();
+        expect(bar && bar.y >= 0 && bar.y + bar.height <= DESKTOP.height).toBe(true);
+      }
+    });
+
+    test('las fichas abren los ajustes y les devuelven el foco; tras la reproducción el Tab va a «Parámetros»', async ({
+      page,
+    }) => {
+      const lab = await openLab(page, path, testId);
+      test.skip(!(await isTiered(lab)), STACKED);
+      const chip = lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button').first();
+
+      await chip.click();
+      await expect(page.getByRole('dialog', { name: SETTINGS_TITLE })).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(chip).toBeFocused();
+
+      const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
+      if ((await timeline.count()) === 0) return;
+      await timeline.focus();
+      await page.keyboard.press('Tab');
+      await expect(
+        lab
+          .getByRole('region', { name: 'Parámetros' })
+          .getByRole('button', { name: 'Restablecer' }),
+      ).toBeFocused();
+    });
   });
 }

@@ -107,7 +107,23 @@ const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
   ],
 };
 
-/** The presets of a lab, as steps: buttons of the Presets control, or the options of its select. */
+/** Steps that choose each option of a select, by value. */
+async function optionSteps(select: Locator): Promise<[string, StateStep][]> {
+  const values = await select
+    .locator('option:not([disabled])')
+    .evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value));
+  return values.map((value): [string, StateStep] => [
+    `preajuste ${value}`,
+    async () => {
+      await select.selectOption(value);
+    },
+  ]);
+}
+
+/**
+ * The presets of a lab, as steps: the chips of the Presets or LabPresets group, the options of
+ * LabPresets' select (more than four presets) or of Tema 7's own select.
+ */
 async function presetSteps(lab: Locator): Promise<[string, StateStep][]> {
   const buttons = lab.getByRole('group', { name: 'Valores de referencia' }).getByRole('button');
   const count = await buttons.count();
@@ -119,17 +135,24 @@ async function presetSteps(lab: Locator): Promise<[string, StateStep][]> {
       }),
     );
   }
-  const select = lab.locator('#bounce-preset');
-  if ((await select.count()) === 0) return [];
-  const values = await select
-    .locator('option:not([disabled])')
-    .evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value));
-  return values.map((value): [string, StateStep] => [
-    `preajuste ${value}`,
-    async () => {
-      await select.selectOption(value);
-    },
-  ]);
+  for (const selector of ['[data-lab-presets="select"] select', '#bounce-preset']) {
+    const select = lab.locator(selector);
+    if ((await select.count()) > 0) return optionSteps(select);
+  }
+  return [];
+}
+
+/** A tiered lab's two disclosures, opened: their text is measured drawn, not only as characters. */
+const notesOpen: StateStep = async (_page, lab) => {
+  const summaries = lab.locator('details[data-lab-note] > summary');
+  for (const summary of await summaries.all()) await summary.click();
+  await expect(lab.locator('details[data-lab-note]:not([open])')).toHaveCount(0);
+};
+
+/** States every lab of the shell's tiered layout has, beyond its own. */
+async function shellStates(lab: Locator): Promise<[string, StateStep][]> {
+  const hasNotes = (await lab.locator('details[data-lab-note]').count()) > 0;
+  return hasNotes ? [['«Cómo se usa» y «Qué deja fuera el modelo» abiertos', notesOpen]] : [];
 }
 
 for (const colorScheme of SCHEMES) {
@@ -159,15 +182,23 @@ for (const colorScheme of SCHEMES) {
             const presets = await presetSteps(lab);
             // A renamed group or select must fail the guard, not silently empty it.
             if (slug !== LAB_WITHOUT_PRESETS) requireStates(`${slug} (preajustes)`, presets);
-            const states = requireStates(slug, [...presets, ...(EXTRA_STATES[slug] ?? [])]);
+            const states = requireStates(slug, [
+              ...presets,
+              ...(EXTRA_STATES[slug] ?? []),
+              ...(await shellStates(lab)),
+            ]);
             for (const [state, step] of states) {
               await step(page, lab);
               await measure(state, root);
             }
             await settingsOpen(page, lab);
-            // Every tab of the drawer, not only the one that opens.
+            // Every tab of the drawer, not only the one that opens; a renamed tab role fails here.
             const dialog = page.getByRole('dialog');
-            for (const tab of await dialog.getByRole('tab').all()) {
+            const tabs = requireStates(
+              `${slug} (pestañas del cajón)`,
+              await dialog.getByRole('tab').all(),
+            );
+            for (const tab of tabs) {
               await tab.click();
               await measure(`ajustes, pestaña «${(await tab.textContent())?.trim()}»`);
             }
