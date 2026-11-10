@@ -45,21 +45,21 @@ export const REGEN_PRESETS: Preset<RegenLabState>[] = [
     name: 'Model 3 · ciudad (UDDS)',
     values: { vehicle: 'model3', cycle: 'udds', ...SITE_MODEL },
     sourceLabel: MODEL3_SOURCE,
-    note: 'Modelo del sitio: η = 0,80 constante, P_máx = 239 kW (el motor de FASTSim) y f(v) activo. En el UDDS la potencia de frenado no pasa de 33,2 kW, así que el límite no actúa.',
+    note: 'Modelo del sitio: $\\eta$ = 0,80 constante, $P_\\text{máx}$ = 239 kW (el motor de FASTSim) y $f(v)$ activo. En el UDDS la potencia de frenado no pasa de 33,2 kW, así que el límite no actúa.',
   },
   {
     id: 'model3-hwfet',
     name: 'Model 3 · carretera (HWFET)',
     values: { vehicle: 'model3', cycle: 'hwfet', ...SITE_MODEL },
     sourceLabel: MODEL3_SOURCE,
-    note: 'En carretera frena sobre todo el aire: menos de la mitad del ΔK quitado pasa por los frenos.',
+    note: 'En carretera frena sobre todo el aire: menos de la mitad del $\\Delta K$ quitado pasa por los frenos.',
   },
   {
     id: 'model3-us06',
     name: 'Model 3 · agresivo (US06)',
     values: { vehicle: 'model3', cycle: 'us06', ...SITE_MODEL },
     sourceLabel: MODEL3_SOURCE,
-    note: 'Frenadas de hasta 70,8 kW y 0,31 g. Prueba bajar P_máx a 30 kW: ahí el límite sí importa.',
+    note: 'Frenadas de hasta 70,8 kW y 0,31 g. Prueba bajar $P_\\text{máx}$ a 30 kW: ahí el límite sí importa.',
   },
   {
     id: 'cold-battery',
@@ -73,7 +73,7 @@ export const REGEN_PRESETS: Preset<RegenLabState>[] = [
     name: 'Nissan LEAF 2025 · ciudad',
     values: { vehicle: 'leaf', cycle: 'udds', ...SITE_MODEL },
     sourceLabel: 'EPA, vehículo KWB115',
-    note: 'Mismos η y P_máx que el Model 3 (en el UDDS el límite no actúa). Es más liviano, pero su C es mayor: pierde más en el aire y le queda menos para frenar.',
+    note: 'Mismos $\\eta$ y $P_\\text{máx}$ que el Model 3 (en el UDDS el límite no actúa). Es más liviano, pero su C es mayor: pierde más en el aire y le queda menos para frenar.',
   },
 ];
 

@@ -3,6 +3,7 @@ import { DRIVE_CYCLES } from '../../../lib/data/driveCycles';
 import { MODEL3_LR_RWD_2025 } from '../../../lib/data/evModels';
 import { formatNumber } from '../../../lib/format';
 import { cycleBalance, DEFAULT_REGEN } from '../../../lib/physics/energy';
+import { mathTextToString } from '../../../lib/mathNotation';
 import { regenModelText } from '../../../lib/physics/regenModelText';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import { PlotPoints, type PlotPoint } from '../../lab/PlotPoints';
@@ -80,14 +81,16 @@ function KineticFigure(): JSX.Element {
         series={[
           {
             id: 'k',
-            label: 'Energía cinética K = ½ m v²',
+            label: 'Energía cinética $K = \\tfrac12 m v^2$',
             points: figure.k,
             color: KINETIC_COLOR,
           },
           { id: 'frenadas', label: 'Frenadas: K baja', points: figure.drops, color: STATE_COLOR },
         ]}
         overlay={(scales) => <PlotPoints points={[label]} scales={scales} />}
-        ariaLabel={`K(t) del auto, de ${formatNumber(CAR.m, { precision: 2, unit: 'kg' })}, en los primeros 200 s del UDDS: K baja en ${figure.events.length} desaceleraciones; la mayor, de ${largest.tStart} a ${largest.tEnd} s, desde ${formatNumber(toKmh(largest.vStart), { precision: 0, unit: 'km/h' })} hasta detenerse, quita ${kj(largest.drop)}.`}
+        ariaLabel={mathTextToString(
+          `K(t) del auto, de ${formatNumber(CAR.m, { precision: 2, unit: 'kg' })}, en los primeros 200 s del UDDS: K baja en ${figure.events.length} desaceleraciones; la mayor, de ${largest.tStart} a ${largest.tEnd} s, desde ${formatNumber(toKmh(largest.vStart), { precision: 0, unit: 'km/h' })} hasta detenerse, quita ${kj(largest.drop)}.`,
+        )}
       />
     </div>
   );
@@ -104,7 +107,7 @@ function RoadLoadFigure(): JSX.Element {
     id: 'cruce',
     x: crossover,
     y: A,
-    label: `Cv² = A a ${formatNumber(crossover, { precision: 1, unit: 'm/s' })}`,
+    label: `Cv^2 = A a ${formatNumber(crossover, { precision: 1, unit: 'm/s' })}`,
     anchor: 'end',
   };
   return (
@@ -120,34 +123,36 @@ function RoadLoadFigure(): JSX.Element {
         series={[
           {
             id: 'total',
-            label: 'F_RL = A + Bv + Cv²',
+            label: '$F_\\text{RL} = A + Bv + Cv^2$',
             points: terms.total,
             color: STATE_COLOR,
           },
           {
             id: 'rodadura',
-            label: `A = ${formatNumber(A, { precision: 2, unit: 'N' })} (rodadura)`,
+            label: `$A$ = ${formatNumber(A, { precision: 2, unit: 'N' })} (rodadura)`,
             points: terms.rolling,
             color: 'var(--chart-5)',
             dashed: true,
           },
           {
             id: 'lineal',
-            label: `Bv, B = ${formatNumber(B, { precision: 4, unit: 'N·s/m' })}`,
+            label: `$Bv$, $B$ = ${formatNumber(B, { precision: 4, unit: 'N·s/m' })}`,
             points: terms.linear,
             color: 'var(--fg-muted)',
             dashed: true,
           },
           {
             id: 'aire',
-            label: `Cv², C = ${formatNumber(C, { precision: 5, unit: 'N·s²/m²' })} (aire)`,
+            label: `$Cv^2$, $C$ = ${formatNumber(C, { precision: 5, unit: 'N·s²/m²' })} (aire)`,
             points: terms.aero,
             color: 'var(--chart-1)',
             dashed: true,
           },
         ]}
         overlay={(scales) => <PlotPoints points={[point]} scales={scales} />}
-        ariaLabel={`Con los coeficientes de la EPA del Model 3, F_RL vale ${newtons(A)} en reposo y ${newtons(atTop.y)} a ${formatNumber(atTop.x, { precision: 0, unit: 'm/s' })}; el término del aire, Cv², supera al constante, A, desde ${formatNumber(crossover, { precision: 1, unit: 'm/s' })}.`}
+        ariaLabel={mathTextToString(
+          `Con los coeficientes de la EPA del Model 3, F_RL vale ${newtons(A)} en reposo y ${newtons(atTop.y)} a ${formatNumber(atTop.x, { precision: 0, unit: 'm/s' })}; el término del aire, Cv², supera al constante, A, desde ${formatNumber(crossover, { precision: 1, unit: 'm/s' })}.`,
+        )}
       />
     </div>
   );
@@ -201,32 +206,32 @@ function BrakingFigure(): JSX.Element {
         series={[
           {
             id: 'friccion',
-            label: 'Calor de fricción: P_freno − P_regen',
+            label: 'Calor de fricción: $P_\\text{freno} - P_\\text{regen}$',
             points: stop.brake,
             color: energyColor('eFriction'),
           },
           {
             id: 'perdidas',
-            label: 'Pérdidas de conversión: (1 − η) P_regen',
+            label: 'Pérdidas de conversión: $(1 - \\eta) P_\\text{regen}$',
             points: stop.regen,
             color: energyColor('eConversionLoss'),
           },
           {
             id: 'bateria',
-            label: 'A la batería: η P_regen',
+            label: 'A la batería: $\\eta P_\\text{regen}$',
             points: stop.battery,
             color: energyColor('eBattery'),
           },
           {
             id: 'sin-fv',
-            label: 'A la batería sin f(v), contraste',
+            label: 'A la batería sin $f(v)$, contraste',
             points: noFade.battery,
             color: energyColor('eBattery'),
             dashed: true,
           },
           {
             id: 'freno',
-            label: 'Borde superior: P_freno, frenado en las ruedas',
+            label: 'Borde superior: $P_\\text{freno}$, frenado en las ruedas',
             points: stop.brake,
             color: energyColor('eBrake'),
           },
@@ -243,7 +248,9 @@ function BrakingFigure(): JSX.Element {
             ))}
           </g>
         )}
-        ariaLabel={`Frenada de ${tStart} a ${tEnd} s del UDDS, desde ${formatNumber(toKmh(steps[event.start].v), { precision: 0, unit: 'km/h' })}: ${kj(brake)} de frenado en las ruedas; ${kj(battery)} llegan a la batería, ${kj(losses)} se pierden en la conversión y ${kj(friction)} los disipa la fricción, sobre todo al final, cuando f(v) apaga la regeneración a baja velocidad. Sin f(v) la batería recibiría ${kj(noFade.energies.battery)} y no habría fricción.`}
+        ariaLabel={mathTextToString(
+          `Frenada de ${tStart} a ${tEnd} s del UDDS, desde ${formatNumber(toKmh(steps[event.start].v), { precision: 0, unit: 'km/h' })}: ${kj(brake)} de frenado en las ruedas; ${kj(battery)} llegan a la batería, ${kj(losses)} se pierden en la conversión y ${kj(friction)} los disipa la fricción, sobre todo al final, cuando f(v) apaga la regeneración a baja velocidad. Sin f(v) la batería recibiría ${kj(noFade.energies.battery)} y no habría fricción.`,
+        )}
       />
     </div>
   );

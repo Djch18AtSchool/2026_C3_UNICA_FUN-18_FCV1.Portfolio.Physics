@@ -3,6 +3,9 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { DEFAULT_REGEN } from '../../../lib/physics/energy';
 import { regenModelText } from '../../../lib/physics/regenModelText';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
+import { svgText } from '../../../test-svg-text';
 import RegenFigure from './RegenFigure';
 
 const strokeOf = (container: HTMLElement, id: string) =>
@@ -36,7 +39,7 @@ describe('RegenFigure', () => {
     const { container } = render(<RegenFigure variant="energia-cinetica" />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
-    expect(legend).toHaveTextContent('Energía cinética K = ½ m v²');
+    expect(mathSourceText(legend)).toContain('Energía cinética $K = \\tfrac12 m v^2$');
     expect(legend).toHaveTextContent('Frenadas: K baja');
     expect(screen.getByText('Tiempo t (s)')).toBeInTheDocument();
     expect(screen.getByText('Energía cinética K (kJ)')).toBeInTheDocument();
@@ -46,35 +49,51 @@ describe('RegenFigure', () => {
     expect(screen.getByRole('img', { name: /202\skJ/ })).toBeInTheDocument();
   });
 
+  test.each(['energia-cinetica', 'carga-carretera', 'frenada'] as const)(
+    '%s: every character outside KaTeX is one IBM Plex draws',
+    (variant) => {
+      const { container } = render(<RegenFigure variant={variant} />);
+
+      expect(plexViolations(container)).toEqual([]);
+    },
+  );
+
+  test('carga-carretera: the figure name says F_RL in words', () => {
+    render(<RegenFigure variant="carga-carretera" />);
+
+    expect(screen.getByRole('img', { name: /F sub RL vale 120\sN en reposo/ })).toBeInTheDocument();
+  });
+
   test('carga-carretera: F_RL(v) and its three terms with the EPA coefficients', () => {
     const { container } = render(<RegenFigure variant="carga-carretera" />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
     for (const name of [
-      'F_RL = A + Bv + Cv²',
-      'A = 120,19 N (rodadura)',
-      'Bv, B = 2,8587 N·s/m',
-      'Cv², C = 0,27155 N·s²/m² (aire)',
+      '$F_\\text{RL} = A + Bv + Cv^2$',
+      '$A$ = 120,19 N (rodadura)',
+      '$Bv$, $B$ = 2,8587 N·s/m',
+      '$Cv^2$, $C$ = 0,27155 N·s²/m² (aire)',
     ]) {
-      expect(legend).toHaveTextContent(name);
+      expect(mathSourceText(legend).replace(/\s+/g, ' ')).toContain(name);
     }
     expect(strokeOf(container, 'total')).toBe('var(--fg)');
     expect(strokeOf(container, 'lineal')).not.toBe('var(--chart-6)');
     expect(screen.getByText('Velocidad v (m/s)')).toBeInTheDocument();
-    expect(screen.getByText('Cv² = A a 21,0 m/s')).toBeInTheDocument();
+    expect(screen.getByText(svgText('Cv2 = A a 21,0 m/s'))).toBeInTheDocument();
   });
 
   test('frenada: the largest UDDS stop with the site model, P_freno as the outer edge', () => {
     const { container } = render(<RegenFigure variant="frenada" />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
-    const title = container.querySelector('figcaption')?.textContent?.replace(/\s+/g, ' ');
+    const title = mathSourceText(container.querySelector('figcaption')).replace(/\s+/g, ' ');
     expect(title).toContain(regenModelText(DEFAULT_REGEN).replace(/\s+/g, ' '));
-    expect(legend).toHaveTextContent('Calor de fricción: P_freno − P_regen');
-    expect(legend).toHaveTextContent('Pérdidas de conversión: (1 − η) P_regen');
-    expect(legend).toHaveTextContent('A la batería: η P_regen');
-    expect(legend).toHaveTextContent('Borde superior: P_freno, frenado en las ruedas');
-    expect(legend).toHaveTextContent('A la batería sin f(v), contraste');
+    const source = mathSourceText(legend);
+    expect(source).toContain('Calor de fricción: $P_\\text{freno} - P_\\text{regen}$');
+    expect(source).toContain('Pérdidas de conversión: $(1 - \\eta) P_\\text{regen}$');
+    expect(source).toContain('A la batería: $\\eta P_\\text{regen}$');
+    expect(source).toContain('Borde superior: $P_\\text{freno}$, frenado en las ruedas');
+    expect(source).toContain('A la batería sin $f(v)$, contraste');
     expect(strokeOf(container, 'bateria')).toBe('var(--chart-3)');
     expect(strokeOf(container, 'perdidas')).toBe('var(--chart-6)');
     expect(strokeOf(container, 'friccion')).toBe('var(--chart-2)');

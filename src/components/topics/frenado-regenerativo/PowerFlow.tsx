@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
+import MathText from '../../lab/MathText';
 import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { flowWidth, FLOW_COLORS, W_PER_KW, type FlowLink } from './regenScene';
 
@@ -109,16 +110,14 @@ function Link({ flow, from, to, y }: LinkProps): JSX.Element {
         points={`${end},${y} ${shaftEnd},${y - half} ${shaftEnd},${y + half}`}
         fill={color}
       />
-      <text
+      <MathText
+        source={flow.isLowerBound ? `≥ ${power}` : power}
         x={(from + to) / 2}
         y={y - NODE_RADIUS - LABEL_RISE}
-        textAnchor="middle"
-        fontFamily={TICK_FONT_FAMILY}
+        anchor="middle"
         fontSize={LABEL_SIZE}
         fill={TEXT_COLOR}
-      >
-        {flow.isLowerBound ? `≥ ${power}` : power}
-      </text>
+      />
     </g>
   );
 }

@@ -1,5 +1,6 @@
 import type { CSSProperties, JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
+import InlineMath from '../../lab/InlineMath';
 import {
   BRAKE_PARTS,
   ENERGY_SERIES,
@@ -90,7 +91,9 @@ export default function EnergyBars({ at, axisMax }: EnergyBarsProps): JSX.Elemen
               data-energy={series.key}
               className="m-0 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-sm sm:grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)_auto]"
             >
-              <span>{series.label}</span>
+              <span>
+                <InlineMath text={series.label} />
+              </span>
               <span
                 aria-hidden="true"
                 className="col-span-2 row-start-2 h-3 overflow-hidden rounded-[2px] bg-grid sm:col-span-1 sm:col-start-2 sm:row-start-1"

@@ -98,10 +98,10 @@ describe('frenado-regenerativo tables', () => {
     expect(rows[0]).toEqual([
       'Ciclo',
       'Tracción en las ruedas (kWh)',
-      'ΔK quitado al desacelerar (kWh)',
+      '$\\Delta K$ quitado al desacelerar (kWh)',
       'Frenado en las ruedas (kWh)',
       'A la batería (kWh)',
-      'Pérdidas de conversión (1 − η) (kWh)',
+      'Pérdidas de conversión $(1 - \\eta)$ (kWh)',
       'Calor de fricción (kWh)',
       'Batería / tracción (%)',
       'Potencia de frenado máx. (kW)',

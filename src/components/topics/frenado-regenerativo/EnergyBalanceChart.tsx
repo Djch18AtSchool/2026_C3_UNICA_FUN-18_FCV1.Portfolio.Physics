@@ -3,6 +3,7 @@ import { DRIVE_CYCLES } from '../../../lib/data/driveCycles';
 import { MODEL3_LR_RWD_2025 } from '../../../lib/data/evModels';
 import { formatNumber } from '../../../lib/format';
 import { cycleBalance, DEFAULT_REGEN, type BalanceStep } from '../../../lib/physics/energy';
+import { mathAriaLabel } from '../../../lib/inlineMath';
 import { regenModelText } from '../../../lib/physics/regenModelText';
 import Readout from '../../controls/Readout';
 import { useElementWidth } from '../../hooks/useElementWidth';
@@ -56,9 +57,12 @@ function stepAt(steps: readonly BalanceStep[], t: number): BalanceStep {
   return steps[after === -1 ? steps.length - 1 : Math.max(0, after - 1)];
 }
 
+/** The label of an energy as a screen reader says it: its $…$ in words. */
+const spokenLabel = ({ label }: EnergySeries) => mathAriaLabel(label) ?? label;
+
 /** What the screen reader hears once the cursor stops: t, v, the six energies, the dissipated sum and the share. */
 function readoutSummary(step: BalanceStep, energies: readonly EnergySeries[]): string {
-  const values = energies.map((e) => `${e.label.toLowerCase()} ${kwh(step[e.key])}`);
+  const values = energies.map((e) => `${spokenLabel(e).toLowerCase()} ${kwh(step[e.key])}`);
   return [
     `t = ${seconds(step.t)}`,
     `v = ${kmh(step.v)}`,
@@ -90,7 +94,7 @@ export default function EnergyBalanceChart({
   const label = (x: number) => `t = ${seconds(x)}`;
   const topSpeed = Math.max(...drive.samples.map((s) => s.v));
   const totalsText = energies
-    .map((e) => `${e.label.toLowerCase()} ${kwh(steps[steps.length - 1][e.key])}`)
+    .map((e) => `${spokenLabel(e).toLowerCase()} ${kwh(steps[steps.length - 1][e.key])}`)
     .join(', ');
 
   return (

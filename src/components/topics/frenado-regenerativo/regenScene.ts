@@ -220,7 +220,7 @@ export const ENERGY_SERIES: readonly EnergySeriesSpec[] = [
   { key: 'eBattery', label: 'A la batería', color: 'var(--chart-3)' },
   {
     key: 'eConversionLoss',
-    label: 'Pérdidas de conversión (1\u00a0−\u00a0η)',
+    label: 'Pérdidas de conversión $(1 - \\eta)$',
     color: 'var(--chart-6)',
   },
   { key: 'eFriction', label: 'Calor de fricción', color: 'var(--chart-2)' },

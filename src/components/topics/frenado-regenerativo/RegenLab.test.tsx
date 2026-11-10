@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
 import RegenLab, { TIME_LAPSE } from './RegenLab';
 
 const FOOTNOTE = 'La reproducción va 20 veces más rápida que el ciclo.';
@@ -26,13 +28,16 @@ function renderLab() {
 
 /** The value text of a LabShell readout row, normalised to plain spaces. */
 function readout(label: string): string {
-  const row = screen.getByText(label, { selector: 'span' }).parentElement as HTMLElement;
+  const row = [...document.querySelectorAll('[data-readout]')].find(
+    (candidate) => mathSourceText(candidate.firstElementChild) === label,
+  );
+  if (!row) throw new Error(`No readout labelled «${label}»`);
   return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
 
-const BATTERY = 'Energía a la batería E_batería';
-const FRICTION = 'Calor de fricción E_fricción';
-const LOSS = 'Pérdidas de conversión E_conversión';
+const BATTERY = 'Energía a la batería $E_\\text{batería}$';
+const FRICTION = 'Calor de fricción $E_\\text{fricción}$';
+const LOSS = 'Pérdidas de conversión $E_\\text{conversión}$';
 const RECOVERED = 'Recuperado, % de la tracción';
 const POWER = 'Potencia en las ruedas P';
 const SPEED = 'Velocidad v';
@@ -115,11 +120,23 @@ describe('RegenLab', () => {
     expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
   });
 
+  test('every character outside KaTeX is one IBM Plex draws, at the start, with zero regeneration and in the settings', async () => {
+    const user = userEvent.setup();
+    const { container } = renderLab();
+    expect(plexViolations(container)).toEqual([]);
+
+    fireEvent.change(etaSlider(), { target: { value: '0' } });
+    expect(plexViolations(container)).toEqual([]);
+
+    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+    expect(plexViolations(container)).toEqual([]);
+  });
+
   test('the hint ties "no friction without f(v)" to the default 239 kW cap, not to any P_máx', () => {
     const { container } = renderLab();
 
-    expect((container.textContent ?? '').replace(/\s+/g, ' ')).toContain(
-      'f(v) apaga la regeneración cerca de detenerse; sin él, con el tope de 239 kW, la fricción no haría falta en estos ciclos.',
+    expect(mathSourceText(container).replace(/\s+/g, ' ')).toContain(
+      '$f(v)$ apaga la regeneración cerca de detenerse; sin él, con el tope de 239 kW, la fricción no haría falta en estos ciclos.',
     );
   });
 
@@ -223,7 +240,7 @@ describe('RegenLab', () => {
     // All the motor takes, 0,806 kWh, is lost converting.
     expect(readout(LOSS)).toBe('0,806 kWh');
     expect(lab().textContent).not.toMatch(/NaN|Infinity/);
-    expect(screen.getByRole('note')).toHaveTextContent(/η = 0/);
+    expect(mathSourceText(screen.getByRole('note'))).toMatch(/\$\\eta\$ = 0/);
     expect(preset(/^Model 3 · ciudad/)).toHaveAttribute('aria-pressed', 'false');
   });
 
@@ -240,7 +257,7 @@ describe('RegenLab', () => {
     expect(readout(FRICTION)).toBe('0,869 kWh');
     expect(readout(LOSS)).toBe('0,000 kWh');
     expect(readout(RECOVERED)).toBe('0,0 %');
-    expect(screen.getByRole('note')).toHaveTextContent(/P_máx = 0/);
+    expect(mathSourceText(screen.getByRole('note'))).toMatch(/\$P_\\text\{máx\}\$ = 0/);
     expect(lab().textContent).not.toMatch(/NaN|Infinity/);
   });
 
@@ -366,10 +383,12 @@ describe('RegenLab', () => {
       'Carga en carretera',
       'Frenado en las ruedas',
       'A la batería',
-      'Pérdidas de conversión (1 − η)',
+      'Pérdidas de conversión $(1 - \\eta)$',
       'Calor de fricción',
     ]) {
-      expect(within(bars).getByText(name)).toBeInTheDocument();
+      expect(
+        [...bars.querySelectorAll('li > span:first-child')].map((label) => mathSourceText(label)),
+      ).toContain(name);
     }
     const battery = () => bars.querySelector('[data-energy="eBattery"]') as HTMLElement;
     expect(battery()).toHaveTextContent(/0,032\skWh/);

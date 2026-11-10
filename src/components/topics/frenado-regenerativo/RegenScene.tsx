@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { LINE_WIDTH, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import InlineMath from '../../lab/InlineMath';
 import PowerFlow, { NODE_RADIUS } from './PowerFlow';
 import {
   drivePhase,
@@ -43,7 +44,6 @@ const NOTE_SIZE = 12;
 const KEY_WIDTH = 26;
 const KEY_HEIGHT = 12;
 /** Keeps "(1 − η)" on one line. */
-const NBSP = '\u00a0';
 
 const PHASE_COLORS: Readonly<Record<DrivePhase, string>> = {
   stopped: TICK_COLOR,
@@ -162,11 +162,7 @@ export default function RegenScene(props: RegenSceneProps): JSX.Element {
         ))}
       </ul>
       <p className="m-0 text-sm text-fg-muted">
-        El grosor es proporcional a |P|: 20 kW = 5 px. Al regenerar, la diferencia de grosor entre
-        el enlace del motor y el de la batería son las pérdidas de conversión (1{NBSP}−{NBSP}η). El
-        aro verde en las ruedas indica que frena el motor y el naranja, que frenan las pastillas. Al
-        traccionar, el modelo solo calcula la potencia en las ruedas: la batería entrega al menos
-        eso (≥).
+        <InlineMath text="El grosor es proporcional a |P|: 20 kW = 5 px. Al regenerar, la diferencia de grosor entre el enlace del motor y el de la batería son las pérdidas de conversión $(1 - \eta)$. El aro verde en las ruedas indica que frena el motor y el naranja, que frenan las pastillas. Al traccionar, el modelo solo calcula la potencia en las ruedas: la batería entrega al menos eso $(\ge)$." />
       </p>
     </div>
   );

@@ -69,7 +69,7 @@ related: ['llantas-f1', 'dron-reparto', 'coeficiente-restitucion']
 classRefs:
   - module: 'Módulo 2'
     topic: 'Tema 03 · Trabajo y cinética · Concepto 05 · Teorema trabajo–energía'
-    note: 'W_neto = ΔK y su ejemplo «Distancia de frenado»: es la (6.1).'
+    note: '$W_\text{neto} = \Delta K$ y su ejemplo «Distancia de frenado»: es la (6.1).'
   - module: 'Módulo 2'
     topic: 'Tema 04 · Energía mecánica · Concepto 05 · Trabajo no conservativo y balance de energía'
     note: 'Lo que la fricción quita se vuelve energía interna. Extensión: potencia, rendimiento y batería no se vieron.'
@@ -179,7 +179,7 @@ Solo con <Equation inline latex="P_\text{rueda} < 0" /> hay que frenar: <Equatio
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Fuerza de carga en carretera del Model 3 y sus tres términos, con los coeficientes objetivo de la EPA. Desde 21,0 m/s el término del aire, Cv², supera al constante, A."
+  caption="Fuerza de carga en carretera del Model 3 y sus tres términos, con los coeficientes objetivo de la EPA. Desde 21,0 m/s el término del aire, $Cv^2$, supera al constante, $A$."
   source={{
     text: 'Curvas calculadas por el autor con la ecuación (6.2); coeficientes objetivo del Test Car List 2025 de la EPA (fuente 2)',
   }}
@@ -229,9 +229,9 @@ En el UDDS, con frenadas de hasta 33,2 kW bajo un tope de 239 kW, la (6.3) sin f
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Potencia en la frenada del UDDS que más energía quita en las ruedas (de 381 a 397 s, desde 59 km/h: 224 kJ). El borde superior es P_freno; debajo se apilan lo que llega a la batería, las pérdidas de conversión y el calor de fricción, que aparece al final, cuando f(v) apaga la regeneración. La línea discontinua es lo que recibiría la batería sin f(v)."
+  caption="Potencia en la frenada del UDDS que más energía quita en las ruedas (de 381 a 397 s, desde 59 km/h: 224 kJ). El borde superior es $P_\text{freno}$; debajo se apilan lo que llega a la batería, las pérdidas de conversión y el calor de fricción, que aparece al final, cuando $f(v)$ apaga la regeneración. La línea discontinua es lo que recibiría la batería sin $f(v)$."
   source={{
-    text: 'Potencias calculadas por el autor con la ecuación (6.3); η de Boretti (fuente 6), tope de 239 kW del motor del Model 3 RWD 2022 de FASTSim (fuente 3), que tomo para el 2025, y f(v) de FASTSim 2 (fuente 4)',
+    text: 'Potencias calculadas por el autor con la ecuación (6.3); $\\eta$ de Boretti (fuente 6), tope de 239 kW del motor del Model 3 RWD 2022 de FASTSim (fuente 3), que tomo para el 2025, y $f(v)$ de FASTSim 2 (fuente 4)',
   }}
 >
   <RegenFigure variant="frenada" client:visible />
@@ -277,12 +277,12 @@ La (6.4) divide entre la tracción, no entre el frenado, repartido sin resto ent
 <Figure
   type="simulacion"
   showBadge={false}
-  caption="Laboratorio del balance con las ecuaciones (6.2) a (6.4): el auto recorre el ciclo y el flujo de potencia une batería, motor, ruedas y frenos, con grosor proporcional a |P|. Cambia η y P_máx o elige un preajuste: con la batería fría o llena, a 10 kW, solo llegan 0,448 kWh en el UDDS."
+  caption="Laboratorio del balance con las ecuaciones (6.2) a (6.4): el auto recorre el ciclo y el flujo de potencia une batería, motor, ruedas y frenos, con grosor proporcional a |P|. Cambia $\eta$ y $P_\text{máx}$ o elige un preajuste: con la batería fría o llena, a 10 kW, solo llegan 0,448 kWh en el UDDS."
   source={{ text: 'Simulación del autor sobre src/lib/physics/energy.ts' }}
 >
   <RegenLab
     client:visible
-    footnote={`La reproducción va ${TIME_LAPSE} veces más rápida que el ciclo real: los ${formatNumber(DRIVE_CYCLES.udds.samples[DRIVE_CYCLES.udds.samples.length - 1].t, { precision: 0, unit: 's' })} del UDDS duran ${formatNumber(DRIVE_CYCLES.udds.samples[DRIVE_CYCLES.udds.samples.length - 1].t / TIME_LAPSE, { precision: 1, unit: 's' })} a 1×; la lectura t va en segundos reales. Lo que el modelo deja fuera: pendiente, viento, temperatura y estado de carga de la batería (salvo a través de P_máx) y la inercia de las ruedas aparte de la ETW; η es constante, y los 10 kW son un escenario, no una medición. f(v) se evalúa a la rapidez al final de cada segundo; FASTSim 2 usa la rapidez media (con ella el UDDS daría 41,2 %). El tope por omisión, 239 kW, es el del motor del Model 3 RWD 2022 de FASTSim, que tomo para el 2025.`}
+    footnote={`La reproducción va ${TIME_LAPSE} veces más rápida que el ciclo real: los ${formatNumber(DRIVE_CYCLES.udds.samples[DRIVE_CYCLES.udds.samples.length - 1].t, { precision: 0, unit: 's' })} del UDDS duran ${formatNumber(DRIVE_CYCLES.udds.samples[DRIVE_CYCLES.udds.samples.length - 1].t / TIME_LAPSE, { precision: 1, unit: 's' })} a 1×; la lectura t va en segundos reales. Lo que el modelo deja fuera: pendiente, viento, temperatura y estado de carga de la batería (salvo a través de $P_\\text{máx}$) y la inercia de las ruedas aparte de la ETW; $\\eta$ es constante, y los 10 kW son un escenario, no una medición. $f(v)$ se evalúa a la rapidez al final de cada segundo; FASTSim 2 usa la rapidez media (con ella el UDDS daría 41,2 %). El tope por omisión, 239 kW, es el del motor del Model 3 RWD 2022 de FASTSim, que tomo para el 2025.`}
   />
 </Figure>
 

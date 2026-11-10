@@ -17,13 +17,28 @@ const NEAR_END = '995';
 const PLAYBACK_TIMEOUT_MS = 3000;
 const STILL_AT_END_MS = 500;
 const SCROLL_STEP_PX = 600;
-const BATTERY = 'Energía a la batería E_batería';
+const BATTERY = 'Energía a la batería $E_\\text{batería}$';
 const BLENDED = 'Frenando con el motor y con fricción';
 
-/** The value text of a LabShell readout row. */
+/**
+ * The value text of the LabShell readout row whose label, as its author wrote it (each KaTeX
+ * formula back to `$tex$`), is `label`.
+ */
 async function readoutText(page: Page, label: string): Promise<string> {
-  const row = page.locator(LAB).locator('div', { has: page.getByText(label, { exact: true }) });
-  return ((await row.last().locator('span').last().textContent()) ?? '').trim();
+  return page.locator(LAB).evaluate((lab, wanted) => {
+    const source = (element: Element): string => {
+      const copy = element.cloneNode(true) as Element;
+      for (const katex of copy.querySelectorAll('.katex')) {
+        katex.replaceWith(`$${katex.querySelector('annotation')?.textContent ?? ''}$`);
+      }
+      return copy.textContent ?? '';
+    };
+    const row = [...lab.querySelectorAll('[data-readout]')].find(
+      (candidate) => source(candidate.firstElementChild as Element) === wanted,
+    );
+    if (!row) throw new Error(`No readout labelled «${wanted}»`);
+    return (row.lastElementChild?.textContent ?? '').trim();
+  }, label);
 }
 
 /** Islands hydrate with client:visible: walk the page so every one renders. */
@@ -141,10 +156,7 @@ test.describe('laboratorio', () => {
   test('cambiar η cambia la energía que llega a la batería', async ({ page }) => {
     const before = await readoutText(page, BATTERY);
 
-    await setRange(
-      page.locator(LAB).getByRole('slider', { name: 'Rendimiento rueda → batería η', exact: true }),
-      '0.5',
-    );
+    await setRange(page.locator(LAB).getByRole('slider', { name: /^Rendimiento rueda/ }), '0.5');
 
     await expect.poll(() => readoutText(page, BATTERY)).not.toBe(before);
   });

@@ -67,16 +67,22 @@ function cycleRow(id: CycleId) {
 
 const CYCLES: DataTableSpec = {
   id: 'frenado-regenerativo-ciclos',
-  caption: `Balance de energía del ${MODEL3_LR_RWD_2025.name} en tres ciclos de la EPA con el modelo del sitio (${regenModelText(DEFAULT_REGEN)}). El frenado en las ruedas se reparte en batería, pérdidas de conversión (1 − η) y calor de fricción; la fracción recuperada es la energía devuelta a la batería dividida entre la energía de tracción en las ruedas, no entre la de frenado.`,
+  caption: `Balance de energía del ${MODEL3_LR_RWD_2025.name} en tres ciclos de la EPA con el modelo del sitio (${regenModelText(DEFAULT_REGEN)}). El frenado en las ruedas se reparte en batería, pérdidas de conversión $(1 - \\eta)$ y calor de fricción; la fracción recuperada es la energía devuelta a la batería dividida entre la energía de tracción en las ruedas, no entre la de frenado.`,
   columns: [
     { key: 'ciclo', label: 'Ciclo', align: 'text' },
     { key: 'traccion', label: 'Tracción en las ruedas', unit: 'kWh', align: 'num', precision: 3 },
-    { key: 'deltaK', label: 'ΔK quitado al desacelerar', unit: 'kWh', align: 'num', precision: 3 },
+    {
+      key: 'deltaK',
+      label: '$\\Delta K$ quitado al desacelerar',
+      unit: 'kWh',
+      align: 'num',
+      precision: 3,
+    },
     { key: 'frenado', label: 'Frenado en las ruedas', unit: 'kWh', align: 'num', precision: 3 },
     { key: 'bateria', label: 'A la batería', unit: 'kWh', align: 'num', precision: 3 },
     {
       key: 'perdidas',
-      label: 'Pérdidas de conversión (1 − η)',
+      label: 'Pérdidas de conversión $(1 - \\eta)$',
       unit: 'kWh',
       align: 'num',
       precision: 3,

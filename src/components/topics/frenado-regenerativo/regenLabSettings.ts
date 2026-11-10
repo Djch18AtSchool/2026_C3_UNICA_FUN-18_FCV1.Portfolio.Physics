@@ -49,7 +49,7 @@ export function regenLocalSettings({
     },
     {
       key: 'lowSpeedFade',
-      label: 'Desvanecimiento a baja velocidad f(v)',
+      label: 'Desvanecimiento a baja velocidad $f(v)$',
       kind: 'toggle',
       value: lowSpeedFade,
       onChange: onFadeChange,

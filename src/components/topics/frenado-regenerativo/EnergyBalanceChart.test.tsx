@@ -2,13 +2,18 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../../lib/settingsStore';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
 import { cursorX } from '../../lab/svgPlotTestKit';
 import EnergyBalanceChart from './EnergyBalanceChart';
 import { ENERGY_SERIES } from './regenScene';
 
 const readout = () => screen.getByTestId('energy-balance-readout');
+const collapse = (text: string) => text.replace(/\s+/g, ' ');
 const readoutValue = (label: string) =>
-  within(readout()).getByText(label).nextElementSibling?.textContent?.replace(/\s+/g, ' ');
+  [...readout().querySelectorAll('[data-readout]')]
+    .find((row) => collapse(mathSourceText(row.firstElementChild)) === label)
+    ?.lastElementChild?.textContent?.replace(/\s+/g, ' ');
 /** "0,161 kWh" → 0.161 */
 const readoutNumber = (label: string) =>
   Number(readoutValue(label)?.split(' ')[0].replace(',', '.'));
@@ -35,6 +40,12 @@ describe('EnergyBalanceChart', () => {
     expect(screen.getAllByText('Tiempo t (s)')).toHaveLength(2);
   });
 
+  test('every character outside KaTeX is one IBM Plex draws', () => {
+    const { container } = render(<EnergyBalanceChart />);
+
+    expect(plexViolations(container)).toEqual([]);
+  });
+
   test('names the six energies of the lab in a visible legend, the losses apart from braking', () => {
     const { container } = render(<EnergyBalanceChart cycle="udds" />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
@@ -44,7 +55,7 @@ describe('EnergyBalanceChart', () => {
     expect(
       within(legend)
         .getAllByRole('listitem')
-        .map((item) => item.textContent),
+        .map((item) => mathSourceText(item)),
     ).toEqual(ENERGY_SERIES.map((s) => s.label));
     expect(stroke('eConversionLoss')).toBe('var(--chart-6)');
     expect(stroke('eConversionLoss')).not.toBe(stroke('eBrake'));

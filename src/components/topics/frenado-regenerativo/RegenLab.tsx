@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
 import { DRIVE_CYCLES, type CycleId } from '../../../lib/data/driveCycles';
 import { cycleBalance } from '../../../lib/physics/energy';
 import Presets from '../../controls/Presets';
+import InlineMath from '../../lab/InlineMath';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
@@ -51,10 +52,10 @@ const OPENING_TIME = peakBrakeTime(balanceFor(INITIAL_REGEN_STATE).steps);
 /** Why nothing reaches the battery, when a parameter switches regeneration off. */
 function zeroRegenNote({ eta, pMaxKw }: RegenLabState): string | null {
   if (pMaxKw === 0) {
-    return 'Con P_máx = 0 el motor no regenera: toda la energía de frenado se va en calor en los frenos de fricción.';
+    return 'Con $P_\\text{máx}$ = 0 el motor no regenera: toda la energía de frenado se va en calor en los frenos de fricción.';
   }
   if (eta === 0) {
-    return 'Con η = 0 el motor frena, pero nada llega a la batería: todo lo que recoge se pierde en el motor y la transmisión.';
+    return 'Con $\\eta$ = 0 el motor frena, pero nada llega a la batería: todo lo que recoge se pierde en el motor y la transmisión.';
   }
   return null;
 }
@@ -105,21 +106,21 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
     { id: 'p', label: 'Potencia en las ruedas P', value: at.pWheel / W_PER_KW, unit: 'kW' },
     {
       id: 'battery',
-      label: 'Energía a la batería E_batería',
+      label: 'Energía a la batería $E_\\text{batería}$',
       value: at.eBattery / J_PER_KWH,
       unit: 'kWh',
       precision: ENERGY_PRECISION,
     },
     {
       id: 'loss',
-      label: 'Pérdidas de conversión E_conversión',
+      label: 'Pérdidas de conversión $E_\\text{conversión}$',
       value: at.eConversionLoss / J_PER_KWH,
       unit: 'kWh',
       precision: ENERGY_PRECISION,
     },
     {
       id: 'friction',
-      label: 'Calor de fricción E_fricción',
+      label: 'Calor de fricción $E_\\text{fricción}$',
       value: at.eFriction / J_PER_KWH,
       unit: 'kWh',
       precision: ENERGY_PRECISION,
@@ -139,7 +140,7 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
       <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
         <ParamField
           id="regen-eta"
-          label="Rendimiento rueda → batería η"
+          label="Rendimiento rueda $\to$ batería $\eta$"
           unit=""
           {...ETA_RANGE}
           value={state.eta}
@@ -147,7 +148,7 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
         />
         <ParamField
           id="regen-pmax"
-          label="Potencia máxima de regeneración P_máx"
+          label="Potencia máxima de regeneración $P_\text{máx}$"
           unit="kW"
           {...P_MAX_RANGE}
           value={state.pMaxKw}
@@ -156,7 +157,7 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
       </div>
       {note ? (
         <p role="note" className="m-0 border-l-2 border-accent pl-3 text-sm">
-          {note}
+          <InlineMath text={note} />
         </p>
       ) : null}
       <Presets
@@ -165,11 +166,9 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
         onSelect={(preset) => update(preset.values)}
       />
       <p className="m-0 text-sm text-fg-muted">
-        η es el rendimiento de la rueda a la batería: Boretti midió del 70 al 80 % en un Leaf 2012 y
-        del 72 al 87 % en uno 2013. f(v) apaga la regeneración cerca de detenerse; sin él, con el
-        tope de {DEFAULT_P_MAX_KW} kW, la fricción no haría falta en estos ciclos. Arrastra el
-        cursor de la gráfica de energía, o enfócalo y muévelo con las flechas (1 % del ciclo; con
-        Mayús, 10 %). El ciclo y f(v) se eligen en los ajustes del engranaje.
+        <InlineMath
+          text={`$\\eta$ es el rendimiento de la rueda a la batería: Boretti midió del 70 al 80 % en un Leaf 2012 y del 72 al 87 % en uno 2013. $f(v)$ apaga la regeneración cerca de detenerse; sin él, con el tope de ${DEFAULT_P_MAX_KW} kW, la fricción no haría falta en estos ciclos. Arrastra el cursor de la gráfica de energía, o enfócalo y muévelo con las flechas (1 % del ciclo; con Mayús, 10 %). El ciclo y $f(v)$ se eligen en los ajustes del engranaje.`}
+        />
       </p>
     </>
   );
