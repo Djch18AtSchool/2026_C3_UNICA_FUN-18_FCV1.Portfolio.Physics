@@ -50,14 +50,24 @@ export default function TexSeed({ formulas }: TexSeedProps): JSX.Element {
   );
 }
 
-/** Takes the server's seeds from the page; a missing or damaged one is skipped (KaTeX loads). */
+/** The entries of a parsed seed that are formula → HTML strings; nothing for any other shape. */
+function seedEntries(parsed: unknown): Record<string, string> {
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
+  return Object.fromEntries(
+    Object.entries(parsed).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string',
+    ),
+  );
+}
+
+/**
+ * Takes the server's seeds from the page. A seed that does not parse, is not an object, or holds
+ * something other than strings is ignored for what it holds (KaTeX then typesets those formulas).
+ */
 export function readTexSeed(root: ParentNode = document): void {
   for (const script of root.querySelectorAll(SEED_SELECTOR)) {
     try {
-      const entries: unknown = JSON.parse(script.textContent || '{}');
-      if (typeof entries === 'object' && entries !== null) {
-        seedTexHtml(entries as Record<string, string>);
-      }
+      seedTexHtml(seedEntries(JSON.parse(script.textContent || '{}')));
     } catch {
       // A seed that does not parse only means the formulas are typeset in the browser instead.
     }

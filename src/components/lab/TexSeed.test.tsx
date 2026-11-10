@@ -3,7 +3,12 @@ import { act, cleanup, render } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import InlineMath from './InlineMath';
-import { loadTexRenderer, resetTexRendererForTests, setTexImporterForTests } from './texRenderer';
+import {
+  loadTexRenderer,
+  resetTexRendererForTests,
+  setTexImporterForTests,
+  typesetNow,
+} from './texRenderer';
 import TexSeed, { formulasOf, readTexSeed } from './TexSeed';
 
 /** The HTML a server sends for the seed: rendered with KaTeX at hand. */
@@ -69,11 +74,42 @@ describe('TexSeed', () => {
     expect(importer).toHaveBeenCalledOnce();
   });
 
-  test('reading a page without a seed, or with a broken one, changes nothing', () => {
-    document.body.innerHTML = '<script type="application/json" data-tex-seed>{not json</script>';
+  test.each([
+    ['JSON that does not parse', '{not json'],
+    ['a list', '["v_x"]'],
+    ['a string', '"v_x"'],
+    ['null', 'null'],
+  ])(
+    'a seed that is %s seeds nothing, and the formula is typeset in the browser',
+    async (_, body) => {
+      document.body.innerHTML = `<script type="application/json" data-tex-seed>${body}</script>`;
+      const importer = vi.fn(() => import('../../lib/texHtml'));
+      setTexImporterForTests(importer);
 
-    expect(() => readTexSeed()).not.toThrow();
+      readTexSeed();
+
+      expect(typesetNow('v_x')).toBeUndefined();
+      render(<InlineMath text="$v_x$" />);
+      await act(async () => {});
+      expect(importer).toHaveBeenCalledOnce();
+    },
+  );
+
+  test('only the entries whose HTML is a string are used', () => {
+    document.body.innerHTML =
+      '<script type="application/json" data-tex-seed>{"a":"<b>a</b>","b":7,"c":null,"d":{"x":1}}</script>';
+
+    readTexSeed();
+
+    expect(typesetNow('a')).toBe('<b>a</b>');
+    for (const tex of ['b', 'c', 'd']) expect(typesetNow(tex)).toBeUndefined();
+  });
+
+  test('a page or a root without a seed seeds nothing', () => {
     readTexSeed(document.createElement('div'));
+    readTexSeed();
+
+    expect(typesetNow('v_x')).toBeUndefined();
   });
 
   test('without KaTeX at hand the client writes nothing, so the server markup stays', async () => {
