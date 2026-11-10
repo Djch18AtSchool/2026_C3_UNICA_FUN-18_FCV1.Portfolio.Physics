@@ -137,6 +137,7 @@ const LABEL_SIZE = 19;
 const EQ_SIZE = 22;
 const NOTE_SIZE = 14;
 const NOTE_KEY_SIZE = 16;
+// The 1 g note's equation (a_c = g) is set at LABEL_SIZE: its subscript must still reach 9 px.
 
 // ---- Detail A: head and feet ----
 const DETAIL = { x: 12, y: 430, width: 396, height: 186 } as const;
@@ -339,7 +340,7 @@ const headArrow = arrow(
     source="a_c = g"
     x={ONE_G_NOTE.x}
     y={ONE_G_NOTE.y}
-    fontSize={NOTE_KEY_SIZE}
+    fontSize={LABEL_SIZE}
     anchor="end"
     className="hd-note hd-note-key"
   />

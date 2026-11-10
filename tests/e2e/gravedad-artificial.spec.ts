@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { measureGlyphs, openFontSession } from './glyphKit';
+import { describeReport, measureGlyphs, openFontSession } from './glyphKit';
 import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/gravedad-artificial/';
@@ -158,7 +158,8 @@ test.describe('página', () => {
     // declared family hides and the fonts really used reveal.
     const report = await measureGlyphs(page, cdp, '[data-testid="habitat-diagram"]');
 
-    expect(report).toEqual({ uncovered: [], rawNotation: [], fonts: [] });
+    expect(describeReport(report, '[data-testid="habitat-diagram"]')).toEqual([]);
+    expect(report.probes).toBeGreaterThan(20);
     expect(
       await page.getByTestId('habitat-diagram').locator('text[data-notation]').count(),
     ).toBeGreaterThan(0);
