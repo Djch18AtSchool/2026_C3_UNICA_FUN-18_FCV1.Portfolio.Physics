@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { setRange, waitForIsland } from './helpers';
+import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/dron-reparto/';
 const LAB = '[data-testid="drone-lab"]';
@@ -11,11 +11,8 @@ const NEAR_END = '995';
 const PLAYBACK_TIMEOUT_MS = 3000;
 const STILL_AT_END_MS = 500;
 
-/** The value text of a LabShell readout row. */
-async function readoutText(page: Page, label: string): Promise<string> {
-  const row = page.locator(LAB).locator('div', { has: page.getByText(label, { exact: true }) });
-  return ((await row.last().locator('span').last().textContent()) ?? '').trim();
-}
+/** The value text of the readout row of the lab labelled exactly `label` (helpers.ts). */
+const readoutText = (page: Page, label: string) => readReadout(page, LAB, label);
 
 /** Centre of a handle's visible knob, in page coordinates. */
 async function knobCentre(page: Page, testId: string): Promise<{ x: number; y: number }> {
@@ -110,17 +107,24 @@ test('una parada se mueve con las flechas del teclado', async ({ page }) => {
 
 test('las gráficas de perfiles siguen presentes y su marcador sigue a t', async ({ page }) => {
   const profiles = page.getByTestId('drone-profiles');
-  // The titles of the velocity and acceleration charts hold KaTeX subscripts (v_x, a_y).
+  // Each chart title as its author wrote it, KaTeX formulas included.
+  const titles = await profiles.locator('figcaption').evaluateAll((captions) =>
+    captions.map((caption) => {
+      const copy = caption.cloneNode(true) as Element;
+      for (const katex of copy.querySelectorAll('.katex')) {
+        katex.replaceWith('$' + (katex.querySelector('annotation')?.textContent ?? '') + '$');
+      }
+      return (copy.textContent ?? '').trim().replace(/\s+/g, ' ');
+    }),
+  );
   for (const title of [
-    /^Posición: x\(t\) y y\(t\)$/,
-    /^Velocidad: /,
-    /^Aceleración: /,
-    /^Distancia recorrida frente a \|Δr\| desde el depósito$/,
+    'Posición: x(t) y y(t)',
+    'Velocidad: $v_x(t)$, $v_y(t)$ y |v|(t)',
+    'Aceleración: $a_x(t)$, $a_y(t)$ y |a|(t)',
+    'Distancia recorrida frente a |Δr| desde el depósito',
   ]) {
-    await expect(profiles.locator('figcaption').filter({ hasText: title })).toBeVisible();
+    expect(titles).toContain(title);
   }
-  // Four named charts (SvgPlot images), each with its t axis in seconds and the delivery bands.
-  await expect(profiles.getByRole('img')).toHaveCount(4);
   await expect(profiles.getByRole('img', { name: /^Posición del dron/ })).toBeVisible();
   await expect(profiles.getByText('t (s)', { exact: true })).toHaveCount(4);
   for (const axis of ['Posición (m)', 'Velocidad (m/s)', 'Aceleración (m/s²)', 'Longitud (m)']) {

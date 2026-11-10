@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { setRange, waitForIsland } from './helpers';
+import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/frenado-regenerativo/';
 const TITLE = 'Frenado regenerativo en un vehículo eléctrico';
@@ -20,26 +20,8 @@ const SCROLL_STEP_PX = 600;
 const BATTERY = 'Energía a la batería $E_\\text{batería}$';
 const BLENDED = 'Frenando con el motor y con fricción';
 
-/**
- * The value text of the LabShell readout row whose label, as its author wrote it (each KaTeX
- * formula back to `$tex$`), is `label`.
- */
-async function readoutText(page: Page, label: string): Promise<string> {
-  return page.locator(LAB).evaluate((lab, wanted) => {
-    const source = (element: Element): string => {
-      const copy = element.cloneNode(true) as Element;
-      for (const katex of copy.querySelectorAll('.katex')) {
-        katex.replaceWith(`$${katex.querySelector('annotation')?.textContent ?? ''}$`);
-      }
-      return copy.textContent ?? '';
-    };
-    const row = [...lab.querySelectorAll('[data-readout]')].find(
-      (candidate) => source(candidate.firstElementChild as Element) === wanted,
-    );
-    if (!row) throw new Error(`No readout labelled «${wanted}»`);
-    return (row.lastElementChild?.textContent ?? '').trim();
-  }, label);
-}
+/** The value text of the readout row of the lab labelled exactly `label` (helpers.ts). */
+const readoutText = (page: Page, label: string) => readReadout(page, LAB, label);
 
 /** Islands hydrate with client:visible: walk the page so every one renders. */
 async function hydrateAllIslands(page: Page): Promise<void> {

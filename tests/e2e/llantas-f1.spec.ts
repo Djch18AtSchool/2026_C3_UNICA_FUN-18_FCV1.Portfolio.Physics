@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { setRange, waitForIsland } from './helpers';
+import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/llantas-f1/';
 const LAB = '[data-testid="tyre-lab"]';
@@ -9,26 +9,8 @@ const MIN_WIDTH_SHARE = 0.9;
 const LOAD_CURSOR = 'Carga vertical F sub z';
 const TEMPERATURE_CURSOR = 'Temperatura T';
 
-/**
- * The value text of the LabShell readout row whose label, as its author wrote it (each KaTeX
- * formula back to `$tex$`), is `label`.
- */
-async function readoutText(page: Page, label: string): Promise<string> {
-  return page.locator(LAB).evaluate((lab, wanted) => {
-    const source = (element: Element): string => {
-      const copy = element.cloneNode(true) as Element;
-      for (const katex of copy.querySelectorAll('.katex')) {
-        katex.replaceWith(`$${katex.querySelector('annotation')?.textContent ?? ''}$`);
-      }
-      return copy.textContent ?? '';
-    };
-    const row = [...lab.querySelectorAll('[data-readout]')].find(
-      (candidate) => source(candidate.firstElementChild as Element) === wanted,
-    );
-    if (!row) throw new Error(`No readout labelled «${wanted}»`);
-    return (row.lastElementChild?.textContent ?? '').trim();
-  }, label);
-}
+/** The value text of the readout row of the lab labelled exactly `label` (helpers.ts). */
+const readoutText = (page: Page, label: string) => readReadout(page, LAB, label);
 
 /** Centre of a plot cursor's visible knob, in page coordinates. */
 async function knobCentre(page: Page, name: string): Promise<{ x: number; y: number }> {

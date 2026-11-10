@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { waitForIsland } from './helpers';
+import { readoutText as readReadout, waitForIsland } from './helpers';
 import { stubYouTube, THUMBNAIL } from './youtubeStub';
 
 const PAGE = './temas/control-haptico/';
@@ -16,11 +16,8 @@ const MIN_WIDTH_SHARE = 0.9;
 const RELEASE_BOUND_MS = 3000;
 const AT_REST = '0,0 mm';
 
-/** The value text of a LabShell readout row, with plain spaces. */
-async function readoutText(page: Page, label: string): Promise<string> {
-  const row = page.locator(LAB).locator('div', { has: page.getByText(label, { exact: true }) });
-  return ((await row.last().locator('span').last().textContent()) ?? '').trim().replace(/\s/g, ' ');
-}
+/** The value text of the readout row of the lab labelled exactly `label` (helpers.ts). */
+const readoutText = (page: Page, label: string) => readReadout(page, LAB, label);
 
 /** Centre of the lever's knob, in page coordinates. */
 async function knobCentre(page: Page): Promise<{ x: number; y: number }> {

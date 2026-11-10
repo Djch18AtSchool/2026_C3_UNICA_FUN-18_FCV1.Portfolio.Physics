@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { setRange, waitForIsland } from './helpers';
+import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/coeficiente-restitucion/';
 const TITLE =
@@ -26,7 +26,7 @@ const FIBA_E = 0.767;
 
 const E_SLIDER = 'Coeficiente de restitución e';
 /** The readouts' plain text (their formulas, $\sqrt{h_1/h_0}$ and $h_1$, are KaTeX). */
-const MEASURED_E = 'e medido';
+const MEASURED_E = String.raw`e medido $\sqrt{h_1/h_0}$ (motor)`;
 const FIRST_REBOUND = 'Primer rebote';
 /** The ITF drop the lab opens on (h_0 = 2,54 m). */
 const ITF_DROP_M = 2.54;
@@ -44,11 +44,8 @@ function parseSpanish(text: string): number {
   );
 }
 
-/** The value text of a LabShell readout row. */
-async function readoutText(page: Page, label: string): Promise<string> {
-  const row = page.locator(LAB).locator('[data-readout]', { hasText: label });
-  return ((await row.locator('span').last().textContent()) ?? '').trim();
-}
+/** The value text of the readout row of the lab labelled exactly `label` (helpers.ts). */
+const readoutText = (page: Page, label: string) => readReadout(page, LAB, label);
 
 const readoutValue = async (page: Page, label: string) =>
   parseSpanish(await readoutText(page, label));

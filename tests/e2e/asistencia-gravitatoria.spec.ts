@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { waitForIsland } from './helpers';
+import { readoutText as readReadout, waitForIsland } from './helpers';
 
 const PAGE = './temas/asistencia-gravitatoria/';
 const TITLE = 'Asistencia gravitatoria: cómo la Voyager ganó velocidad sin gastar combustible';
@@ -17,11 +17,8 @@ const DELTA = 'Ángulo de giro δ';
 /** The chart's source sentence (VOYAGER_CHART_SOURCE): printed once, by the Figure, never twice. */
 const SOURCE_SENTENCE = 'trayectoria de diseño reconstruida hasta el 29 de agosto de 1989';
 
-/** The value text of a LabShell readout row. */
-async function readoutText(page: Page, label: string): Promise<string> {
-  const row = page.locator(LAB).locator('div', { has: page.getByText(label, { exact: true }) });
-  return ((await row.last().locator('span').last().textContent()) ?? '').trim();
-}
+/** The value text of the readout row of the lab labelled exactly `label` (helpers.ts). */
+const readoutText = (page: Page, label: string) => readReadout(page, LAB, label);
 
 /** Islands hydrate with client:visible: walk the page so every one renders. */
 async function hydrateAllIslands(page: Page): Promise<void> {

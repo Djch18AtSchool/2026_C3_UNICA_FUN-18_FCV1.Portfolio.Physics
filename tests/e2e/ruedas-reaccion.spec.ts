@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { uncoveredChars } from '../../src/lib/typography';
-import { setRange, waitForIsland } from './helpers';
+import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/ruedas-reaccion/';
 const TITLE = 'Ruedas de reacción: cómo un satélite se gira sin empujarse contra nada';
@@ -13,7 +13,7 @@ const TABLE_IDS = [
   'ruedas-reaccion-misiones',
 ];
 /** The readout's plain text (its ω_w is KaTeX). */
-const PEAK_OMEGA = 'máxima de la maniobra';
+const PEAK_OMEGA = String.raw`$\omega_w$ máxima de la maniobra`;
 const DIAGRAM_TEXTS = ['(8.1)', '(8.2)', '(8.3)', '(8.4)', '485 vueltas', 'la nave deriva'];
 const PHONE = { width: 360, height: 800 };
 const THEMES = ['light', 'dark'] as const;
@@ -26,11 +26,8 @@ const PLAYBACK_TIMEOUT_MS = 3000;
 const STILL_AT_END_MS = 500;
 const SCROLL_STEP_PX = 600;
 
-/** The value text of a LabShell readout row. */
-async function readoutText(page: Page, label: string): Promise<string> {
-  const row = page.locator(LAB).locator('[data-readout]', { hasText: label });
-  return ((await row.locator('span').last().textContent()) ?? '').trim();
-}
+/** The value text of the readout row of the lab labelled exactly `label` (helpers.ts). */
+const readoutText = (page: Page, label: string) => readReadout(page, LAB, label);
 
 async function openLab(page: Page): Promise<void> {
   await page.goto(PAGE);
