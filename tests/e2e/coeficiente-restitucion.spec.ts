@@ -25,9 +25,9 @@ const STILL_AT_END_MS = 500;
 const FIBA_E = 0.767;
 
 const E_SLIDER = 'Coeficiente de restitución e';
-/** The readouts' plain text (their formulas, $\sqrt{h_1/h_0}$ and $h_1$, are KaTeX). */
+/** The readout labels as written (their formulas, $\sqrt{h_1/h_0}$ and $h_1$, are KaTeX). */
 const MEASURED_E = String.raw`e medido $\sqrt{h_1/h_0}$ (motor)`;
-const FIRST_REBOUND = 'Primer rebote';
+const FIRST_REBOUND = String.raw`Primer rebote $h_1$ (motor)`;
 /** The ITF drop the lab opens on (h_0 = 2,54 m). */
 const ITF_DROP_M = 2.54;
 /** The engine (Δt = 1/240 s) measures e = √(h_1/h_0) within a couple of hundredths of the ideal. */
