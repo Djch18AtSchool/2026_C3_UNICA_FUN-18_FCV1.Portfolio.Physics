@@ -147,7 +147,7 @@ Por la (1.2), un salto <Equation inline latex="\Delta\vec v" /> en un instante d
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Componentes vₓ y v_y de la velocidad si el dron vuela la ruta declarada a 10 m/s constantes, con las entregas de 20 s: cambian de golpe al arrancar y al llegar a cada vértice (líneas discontinuas), donde a = dv/dt sería infinita."
+  caption="Componentes $v_x$ y $v_y$ de la velocidad si el dron vuela la ruta declarada a 10 m/s constantes, con las entregas de 20 s: cambian de golpe al arrancar y al llegar a cada vértice (líneas discontinuas), donde a = dv/dt sería infinita."
   source={{ text: 'Curvas calculadas por el autor con la ecuación (1.1) sobre la ruta declarada' }}
 >
   <DroneFigure variant="saltos" client:visible />
@@ -193,7 +193,7 @@ Con aceleración constante en cada fase vale <Equation inline latex="\vec r = \v
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Rapidez en el primer tramo (632,5 m): el perfil trapezoidal con los límites de ArduPilot frente a la rapidez constante, que tardaría 63,2 s a costa de los saltos de la figura 1.2. La gráfica marca tₐ y T; la tabla 1.1 da el crucero y la duración de cada tramo, y la 1.2 pone estos límites junto a los de PX4."
+  caption="Rapidez en el primer tramo (632,5 m): el perfil trapezoidal con los límites de ArduPilot frente a la rapidez constante, que tardaría 63,2 s a costa de los saltos de la figura 1.2. La gráfica marca $t_a$ y T; la tabla 1.1 da el crucero y la duración de cada tramo, y la 1.2 pone estos límites junto a los de PX4."
   source={{
     text: 'Curva calculada por el autor con la ecuación (1.3) y los límites de ArduPilot Copter 4.6.3 (fuente 2)',
   }}
@@ -250,7 +250,7 @@ Con <Equation inline latex="\hat u" /> constante, derivar la (1.4) da <Equation 
 >
   <DroneLab
     client:visible
-    footnote={`Lo que el modelo deja fuera: la aceleración salta de 0 a 2,5 m/s² en un instante (las curvas S limitan el jerk); el dron se detiene y gira en cada vértice, cosa que un autopiloto real no necesita en un punto de paso; y no hay viento. Datos: las ecuaciones (1.3) y (1.4) cada 0,1 s, 3 876 muestras; derivar las posiciones con diferencias centrales reproduce vₓ y v_y con un error menor que 1 mm/s salvo en los instantes en que a cambia de valor (unos 5 mm/s sobre el JSON publicado, redondeado al milímetro); la gráfica muestrea cada 0,5 s: donde x(t) sube en recta, vₓ es constante; donde se curva, vₓ va en rampa y aₓ es un escalón, que el muestreo dibuja como una rampa corta. Una ruta editada se genera en el navegador con el mismo código; la reproducción va ${TIME_LAPSE} veces más rápida que el vuelo.`}
+    footnote={`Lo que el modelo deja fuera: la aceleración salta de 0 a 2,5 m/s² en un instante (las curvas S limitan el jerk); el dron se detiene y gira en cada vértice, cosa que un autopiloto real no necesita en un punto de paso; y no hay viento. Datos: las ecuaciones (1.3) y (1.4) cada 0,1 s, 3 876 muestras; derivar las posiciones con diferencias centrales reproduce $v_x$ y $v_y$ con un error menor que 1 mm/s salvo en los instantes en que a cambia de valor (unos 5 mm/s sobre el JSON publicado, redondeado al milímetro); la gráfica muestrea cada 0,5 s: donde x(t) sube en recta, $v_x$ es constante; donde se curva, $v_x$ va en rampa y $a_x$ es un escalón, que el muestreo dibuja como una rampa corta. Una ruta editada se genera en el navegador con el mismo código; la reproducción va ${TIME_LAPSE} veces más rápida que el vuelo.`}
   />
 </Figure>
 

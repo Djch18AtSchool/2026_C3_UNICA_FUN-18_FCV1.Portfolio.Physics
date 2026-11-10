@@ -180,7 +180,7 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
       <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
         <ParamField
           id="drone-vmax"
-          label="Rapidez máxima vₘₐₓ"
+          label="Rapidez máxima $v_\text{máx}$"
           unit="m/s"
           {...V_MAX_RANGE}
           value={limits.vMax}
@@ -188,7 +188,7 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
         />
         <ParamField
           id="drone-amax"
-          label="Aceleración máxima aₘₐₓ"
+          label="Aceleración máxima $a_\text{máx}$"
           unit="m/s²"
           {...A_MAX_RANGE}
           value={limits.aMax}

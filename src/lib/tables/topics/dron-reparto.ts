@@ -34,7 +34,7 @@ const LEGS = stops.slice(1).map((to, i) => {
 });
 
 const legRows = LEGS.map(({ from, to, d, theta, profile, cruise }) => ({
-  tramo: `${from.name} → ${to.name}`,
+  tramo: `De ${from.name} a ${to.name}`,
   x: to.x,
   y: to.y,
   d,
@@ -73,16 +73,16 @@ const triangularText = isAnyTriangular
 
 const TRAMOS: DataTableSpec = {
   id: 'dron-reparto-tramos',
-  caption: `Tramos de la ruta declarada con el perfil del paso 3, v_máx = ${number(vMax, 0, 'm/s')} y a_máx = ${number(aMax, 1, 'm/s²')}: punto de llegada, longitud, rumbo, componentes de la aceleración al arrancar, crucero y duración. Con aceleración y frenado a a_máx, ${triangularText}; con las entregas, la ruta toma ${number(routeDuration(DRONE_ROUTE), 1, 's')}.`,
+  caption: `Tramos de la ruta declarada con el perfil del paso 3, $v_\\text{máx}$ = ${number(vMax, 0, 'm/s')} y $a_\\text{máx}$ = ${number(aMax, 1, 'm/s²')}: punto de llegada, longitud, rumbo, componentes de la aceleración al arrancar, crucero y duración. Con aceleración y frenado a $a_\\text{máx}$, ${triangularText}; con las entregas, la ruta toma ${number(routeDuration(DRONE_ROUTE), 1, 's')}.`,
   columns: [
     { key: 'tramo', label: 'Tramo', align: 'text' },
     { key: 'x', label: 'Llegada, x', unit: 'm', align: 'num', precision: 0 },
     { key: 'y', label: 'Llegada, y', unit: 'm', align: 'num', precision: 0 },
     { key: 'd', label: 'Longitud d', unit: 'm', align: 'num', precision: 1 },
     { key: 'theta', label: 'Rumbo θ', unit: '°', align: 'num', precision: 1 },
-    { key: 'ax', label: 'aₓ al arrancar', unit: 'm/s²', align: 'num', precision: 2 },
-    { key: 'ay', label: 'a_y al arrancar', unit: 'm/s²', align: 'num', precision: 2 },
-    { key: 'cruise', label: 'Crucero, d − 2d_a', unit: 'm', align: 'num', precision: 1 },
+    { key: 'ax', label: '$a_x$ al arrancar', unit: 'm/s²', align: 'num', precision: 2 },
+    { key: 'ay', label: '$a_y$ al arrancar', unit: 'm/s²', align: 'num', precision: 2 },
+    { key: 'cruise', label: 'Crucero, $d - 2d_a$', unit: 'm', align: 'num', precision: 1 },
     { key: 'T', label: 'Duración T', unit: 's', align: 'num', precision: 1 },
     { key: 'dwell', label: 'Entrega al llegar', unit: 's', align: 'num', precision: 0 },
   ],

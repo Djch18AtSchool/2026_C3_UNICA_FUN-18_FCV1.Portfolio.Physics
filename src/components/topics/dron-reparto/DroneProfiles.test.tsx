@@ -3,6 +3,7 @@ import { act, cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { DRONE_ROUTE, generateRoute } from '../../../lib/data/droneRoute';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
+import { mathSourceText } from '../../../test-inline-math';
 import { EXACT_TEXT } from '../../../test-exact-text';
 import DroneProfiles, { buildProfiles } from './DroneProfiles';
 import { chartStep } from './droneScene';
@@ -25,11 +26,12 @@ const T_AT_A = 70;
 const T_BETWEEN = 116.23;
 const TITLES = [
   'Posición: x(t) y y(t)',
-  'Velocidad: vx(t), vy(t) y |v|(t)',
-  'Aceleración: ax(t), ay(t) y |a|(t)',
+  'Velocidad: $v_x(t)$, $v_y(t)$ y |v|(t)',
+  'Aceleración: $a_x(t)$, $a_y(t)$ y |a|(t)',
   'Distancia recorrida frente a |Δr| desde el depósito',
 ];
 
+const plain = (text: string) => text.replace(/\s/g, ' ');
 const markerX = (element: Element) =>
   Number(/translate\(([-\d.]+)/.exec(element.getAttribute('transform') ?? '')?.[1]);
 
@@ -55,8 +57,8 @@ describe('buildProfiles', () => {
     expect(charts.map((chart) => chart.title)).toEqual(TITLES);
     expect(charts.map((chart) => chart.series.map((s) => s.label))).toEqual([
       ['x', 'y'],
-      ['vx', 'vy', '|v|'],
-      ['ax', 'ay', '|a|'],
+      ['$v_x$', '$v_y$', '|v|'],
+      ['$a_x$', '$a_y$', '|a|'],
       ['Distancia recorrida', '|Δr|'],
     ]);
     expect(charts[3].readingLabels).toEqual(['Distancia', '|Δr|']);
@@ -99,8 +101,8 @@ describe('buildProfiles', () => {
     );
     expect(bands.map((band) => band.label)).toEqual(['A', 'B', 'C']);
     expect(charts[0].ariaLabel).toContain('entregas en A, B, C');
-    expect(charts[1].ariaLabel).toContain('vmáx = 10,0 m/s');
-    expect(charts[2].ariaLabel).toContain('amáx = 2,5 m/s²');
+    expect(charts[1].ariaLabel).toContain('v sub máx = 10,0 m/s');
+    expect(charts[2].ariaLabel).toContain('a sub máx = 2,5 m/s²');
     expect(charts[3].ariaLabel).toMatch(/crece hasta 3 \d{3} m/);
   });
 });
@@ -118,7 +120,7 @@ describe('DroneProfiles', () => {
     renderProfiles(T_AT_A);
     const root = screen.getByTestId('drone-profiles');
 
-    for (const title of TITLES) expect(root).toHaveTextContent(title);
+    for (const title of TITLES) expect(mathSourceText(root)).toContain(title);
     expect(within(root).getAllByRole('img')).toHaveLength(4);
     expect(screen.getByRole('img', { name: /^Posición del dron frente al tiempo/ })).toBeVisible();
     expect(screen.getByRole('img', { name: /^Velocidad del dron/ })).toBeVisible();
@@ -171,7 +173,9 @@ describe('DroneProfiles', () => {
 
     const [position, velocity] = readings(root);
     expect(position).toHaveTextContent(`x ${expected.x.toFixed(2).replace('.', ',')} m`);
-    expect(velocity).toHaveTextContent(`vx ${expected.vx.toFixed(2).replace('.', ',')} m/s`);
+    expect(plain(mathSourceText(velocity))).toContain(
+      `$v_x$ ${expected.vx.toFixed(2).replace('.', ',')} m/s`,
+    );
   });
 
   test('the marker moves with t, clamped to the sampled flight, and the values follow the decimals setting', () => {

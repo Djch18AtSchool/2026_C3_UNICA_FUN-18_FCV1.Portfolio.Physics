@@ -1,6 +1,7 @@
 import { memo, useCallback, useMemo, type JSX } from 'react';
 import type { RouteDefinition, RouteSample } from '../../../lib/data/droneRoute';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString } from '../../../lib/mathNotation';
 import { CHART_COLORS } from '../../charts/chartTheme';
 import type { Domain } from '../../lab/plotScales';
 import SvgPlot, { type OverlayScales, type PlotBand, type PlotSeries } from '../../lab/SvgPlot';
@@ -119,7 +120,9 @@ function positionChart(flight: Flight): ProfileChart {
     yLabel: 'Posición',
     unit: 'm',
     yDomain: { min: 0, max: POSITION_AXIS_END_M },
-    ariaLabel: `Posición del dron frente al tiempo: componentes x e y en metros, de 0 a ${metres(POSITION_AXIS_END_M)}, ${flight.naming}.`,
+    ariaLabel: mathTextToString(
+      `Posición del dron frente al tiempo: componentes x e y en metros, de 0 a ${metres(POSITION_AXIS_END_M)}, ${flight.naming}.`,
+    ),
   };
   return chartOf(flight, spec, [
     { id: 'x', label: 'x', color: X_COMPONENT_COLOR, values: column(flight.samples, 'x') },
@@ -131,15 +134,17 @@ function velocityChart(flight: Flight): ProfileChart {
   const { samples, definition } = flight;
   const spec: ChartSpec = {
     id: 'velocidad',
-    title: 'Velocidad: vx(t), vy(t) y |v|(t)',
+    title: 'Velocidad: $v_x(t)$, $v_y(t)$ y |v|(t)',
     yLabel: 'Velocidad',
     unit: 'm/s',
     yDomain: symmetricDomain(definition.vMax),
-    ariaLabel: `Velocidad del dron frente al tiempo: componentes vx y vy y rapidez |v| en metros por segundo; |v| no pasa de vmáx = ${named(definition.vMax, 'm/s')} y cae a 0 en cada parada, ${flight.naming}.`,
+    ariaLabel: mathTextToString(
+      `Velocidad del dron frente al tiempo: componentes v_x y v_y y rapidez |v| en metros por segundo; |v| no pasa de v_máx = ${named(definition.vMax, 'm/s')} y cae a 0 en cada parada, ${flight.naming}.`,
+    ),
   };
   return chartOf(flight, spec, [
-    { id: 'vx', label: 'vx', color: X_COMPONENT_COLOR, values: column(samples, 'vx') },
-    { id: 'vy', label: 'vy', color: Y_COMPONENT_COLOR, values: column(samples, 'vy') },
+    { id: 'vx', label: '$v_x$', color: X_COMPONENT_COLOR, values: column(samples, 'vx') },
+    { id: 'vy', label: '$v_y$', color: Y_COMPONENT_COLOR, values: column(samples, 'vy') },
     { id: 'speed', label: '|v|', color: VELOCITY_COLOR, values: column(samples, 'speed') },
   ]);
 }
@@ -148,15 +153,17 @@ function accelerationChart(flight: Flight): ProfileChart {
   const { samples, definition } = flight;
   const spec: ChartSpec = {
     id: 'aceleracion',
-    title: 'Aceleración: ax(t), ay(t) y |a|(t)',
+    title: 'Aceleración: $a_x(t)$, $a_y(t)$ y |a|(t)',
     yLabel: 'Aceleración',
     unit: 'm/s²',
     yDomain: symmetricDomain(definition.aMax),
-    ariaLabel: `Aceleración del dron frente al tiempo: componentes ax y ay y módulo |a| en metros por segundo al cuadrado; |a| vale amáx = ${named(definition.aMax, 'm/s²')} al arrancar y al frenar y 0 en crucero y en las paradas, ${flight.naming}.`,
+    ariaLabel: mathTextToString(
+      `Aceleración del dron frente al tiempo: componentes a_x y a_y y módulo |a| en metros por segundo al cuadrado; |a| vale a_máx = ${named(definition.aMax, 'm/s²')} al arrancar y al frenar y 0 en crucero y en las paradas, ${flight.naming}.`,
+    ),
   };
   return chartOf(flight, spec, [
-    { id: 'ax', label: 'ax', color: X_COMPONENT_COLOR, values: column(samples, 'ax') },
-    { id: 'ay', label: 'ay', color: Y_COMPONENT_COLOR, values: column(samples, 'ay') },
+    { id: 'ax', label: '$a_x$', color: X_COMPONENT_COLOR, values: column(samples, 'ax') },
+    { id: 'ay', label: '$a_y$', color: Y_COMPONENT_COLOR, values: column(samples, 'ay') },
     { id: 'accel', label: '|a|', color: ACCEL_COLOR, values: column(samples, 'accel') },
   ]);
 }
@@ -170,7 +177,9 @@ function distanceChart(flight: Flight): ProfileChart {
     title: 'Distancia recorrida frente a |Δr| desde el depósito',
     yLabel: 'Longitud',
     unit: 'm',
-    ariaLabel: `Distancia recorrida y módulo del desplazamiento |Δr| desde el depósito frente al tiempo, en metros: la distancia crece hasta ${metres(travelled[travelled.length - 1])} y |Δr| vuelve a ${metres(displacement[displacement.length - 1])} al regresar, ${flight.naming}.`,
+    ariaLabel: mathTextToString(
+      `Distancia recorrida y módulo del desplazamiento |Δr| desde el depósito frente al tiempo, en metros: la distancia crece hasta ${metres(travelled[travelled.length - 1])} y |Δr| vuelve a ${metres(displacement[displacement.length - 1])} al regresar, ${flight.naming}.`,
+    ),
   };
   return chartOf(flight, spec, [
     {

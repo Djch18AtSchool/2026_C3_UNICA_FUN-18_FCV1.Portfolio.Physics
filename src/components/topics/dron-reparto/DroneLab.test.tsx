@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { resetSettingsForTests } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
+import { mathSourceText } from '../../../test-inline-math';
+import { plexViolations } from '../../../test-glyphs';
 import DroneLab from './DroneLab';
 
 const FOOTNOTE = 'Mi dron se detiene en cada vértice y no hay viento.';
@@ -122,8 +124,9 @@ describe('DroneLab', () => {
     await renderLab();
 
     const legend = screen.getByRole('list', { name: 'Leyenda del mapa' });
-    expect(legend).toHaveTextContent('Velocidad v: 1 m/s = 15 m');
-    expect(legend).toHaveTextContent('Aceleración a: 1 m/s² = 60 m');
+    const text = mathSourceText(legend).replace(/\s/g, ' ');
+    expect(text).toContain('Velocidad $\\vec v$: 1 m/s = 15 m');
+    expect(text).toContain('Aceleración $\\vec a$: 1 m/s² = 60 m');
   });
 
   test('dragging stop A marks the route as modified and changes its duration; Restablecer undoes it', async () => {
@@ -239,5 +242,13 @@ describe('DroneLab', () => {
     await user.click(within(dialog).getByRole('switch', { name: 'Vectores v y a' }));
     act(() => undefined);
     expect(document.querySelector('[data-vectors]')).toBeNull();
+  });
+
+  test('every character of the lab, the settings and the charts outside KaTeX is one IBM Plex draws', async () => {
+    const user = userEvent.setup();
+    await renderLab();
+    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+
+    expect(plexViolations(document.body)).toEqual([]);
   });
 });

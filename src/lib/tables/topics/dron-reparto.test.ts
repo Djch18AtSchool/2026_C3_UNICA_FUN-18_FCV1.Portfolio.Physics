@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { tableById } from '../index';
+import { uncoveredChars } from '../../typography';
 import { tableMarkdown } from '../markdown';
 import { TABLES } from './dron-reparto';
 
@@ -36,17 +37,17 @@ describe('dron-reparto tables', () => {
       'Llegada, y (m)',
       'Longitud d (m)',
       'Rumbo θ (°)',
-      'aₓ al arrancar (m/s²)',
-      'a_y al arrancar (m/s²)',
-      'Crucero, d − 2d_a (m)',
+      '$a_x$ al arrancar (m/s²)',
+      '$a_y$ al arrancar (m/s²)',
+      'Crucero, $d - 2d_a$ (m)',
       'Duración T (s)',
       'Entrega al llegar (s)',
     ]);
     expect(rows).toEqual([
-      ['Depósito → A', '600', '200', '632,5', '18,4', '2,37', '0,79', '592,5', '67,2', '20'],
-      ['A → B', '900', '800', '670,8', '63,4', '1,12', '2,24', '630,8', '71,1', '20'],
-      ['B → C', '300', '1 100', '670,8', '153,4', '−2,24', '1,12', '630,8', '71,1', '20'],
-      ['C → Depósito', '0', '0', '1 140,2', '−105,3', '−0,66', '−2,41', '1 100,2', '118,0', '0'],
+      ['De Depósito a A', '600', '200', '632,5', '18,4', '2,37', '0,79', '592,5', '67,2', '20'],
+      ['De A a B', '900', '800', '670,8', '63,4', '1,12', '2,24', '630,8', '71,1', '20'],
+      ['De B a C', '300', '1 100', '670,8', '153,4', '−2,24', '1,12', '630,8', '71,1', '20'],
+      ['De C a Depósito', '0', '0', '1 140,2', '−105,3', '−0,66', '−2,41', '1 100,2', '118,0', '0'],
       ['Suma de los tramos', '—', '—', '3 114,3', '—', '—', '—', '—', '327,4', '60'],
     ]);
   });
@@ -54,8 +55,8 @@ describe('dron-reparto tables', () => {
   test('tramos: the caption states the limits, that no leg is triangular and the 387,4 s total', () => {
     const caption = spaced(TABLES[0].caption);
 
-    expect(caption).toContain('v_máx = 10 m/s');
-    expect(caption).toContain('a_máx = 2,5 m/s²');
+    expect(caption).toContain('$v_\\text{máx}$ = 10 m/s');
+    expect(caption).toContain('$a_\\text{máx}$ = 2,5 m/s²');
     expect(caption).toContain('592,5 m de crucero');
     expect(caption).toContain('ningún tramo es triangular');
     expect(caption).toContain('387,4 s');
@@ -87,5 +88,18 @@ describe('dron-reparto tables', () => {
     expect(limits.caption).toContain('ArduPilot vuela con WP_SPD como rapidez horizontal máxima');
     expect(limits.source.text).toContain('fuentes 1, 2 y 3');
     expect(limits.source.text).toContain('fuente 5');
+  });
+
+  test('captions, headers and text cells leave IBM Plex only inside $…$ (KaTeX)', () => {
+    const outsideKatex = (text: string) => text.replace(/\$[^$]*\$/g, '');
+
+    for (const table of TABLES) {
+      const texts = [
+        table.caption,
+        ...table.columns.map((column) => column.label),
+        ...table.rows.flatMap((row) => table.columns.map((column) => String(row[column.key]))),
+      ];
+      expect(texts.flatMap((text) => uncoveredChars(outsideKatex(text), 'sans'))).toEqual([]);
+    }
   });
 });

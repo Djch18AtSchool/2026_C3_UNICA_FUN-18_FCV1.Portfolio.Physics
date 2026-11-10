@@ -13,6 +13,7 @@ import {
   TICK_FONT_FAMILY,
   TICK_FONT_SIZE,
 } from '../../charts/chartTheme';
+import InlineMath from '../../lab/InlineMath';
 import { monoTextWidth, type Scale } from '../../lab/plotScales';
 import type { PlotSeries } from '../../lab/SvgPlot';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
@@ -151,7 +152,9 @@ export function ProfileReading({
               strokeWidth={2}
             />
           </svg>
-          <dt className="text-fg-muted">{source.readingLabels[k]}</dt>{' '}
+          <dt className="text-fg-muted">
+            <InlineMath text={source.readingLabels[k]} />
+          </dt>{' '}
           <dd className="m-0 font-mono font-medium">
             {formatNumber(interpolateAt(times, source.values[k], at), {
               precision: decimals,

@@ -3,6 +3,8 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { monoTextWidth } from '../../lab/plotScales';
 import DroneFigure from './DroneFigure';
+import { mathSourceText } from '../../../test-inline-math';
+import { plexViolations } from '../../../test-glyphs';
 import { svgText } from '../../../test-svg-text';
 
 const strokeOf = (container: HTMLElement, id: string) =>
@@ -20,15 +22,19 @@ describe('DroneFigure', () => {
     expect(screen.getByText('x (este) (m)')).toBeInTheDocument();
     expect(strokeOf(container, 'ruta')).toBe('var(--chart-1)');
     expect(screen.getByText('B (900; 800)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('r'))).toBeInTheDocument();
+    expect(screen.getByText(svgText('v'))).toBeInTheDocument();
     expect(screen.getByText('x = 900 m')).toBeInTheDocument();
     expect(screen.getByText('y = 800 m')).toBeInTheDocument();
   });
 
-  test('jumps: vₓ and v_y step at eight instants, marked as infinite accelerations', () => {
+  test('jumps: v_x and v_y step at eight instants, marked as infinite accelerations', () => {
     const { container } = render(<DroneFigure variant="saltos" />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
     expect(legend).toHaveTextContent('Saltos de v: a = dv/dt infinita');
+    expect(mathSourceText(legend)).toContain('$v_x$');
+    expect(mathSourceText(legend)).toContain('$v_y$');
     expect(strokeOf(container, 'saltos')).toBe('var(--chart-4)');
     const spikes = container.querySelector('[data-series="saltos"]')?.getAttribute('d') ?? '';
     expect(spikes.match(/M/g)).toHaveLength(8);
@@ -41,7 +47,7 @@ describe('DroneFigure', () => {
     expect(strokeOf(container, 'trapecio')).toBe('var(--chart-3)');
     expect(screen.getByText(svgText(/^ta = 4,0\ss$/))).toBeInTheDocument();
     expect(screen.getByText(/T = 67,2\ss/)).toBeInTheDocument();
-    expect(screen.getByText(svgText(/^d\/vmax = 63,2\ss$/))).toBeInTheDocument();
+    expect(screen.getByText(svgText(/^d\/vmáx = 63,2\ss$/))).toBeInTheDocument();
   });
   test('route on a phone: the x component letter clears the depot label', () => {
     // The figure's plot is about 290 px wide on a 375 px phone.
@@ -66,4 +72,13 @@ describe('DroneFigure', () => {
     // Both sit on the same line below the x axis; the halos (2 px each side) must not touch.
     expect(letterLeft - depotRight).toBeGreaterThanOrEqual(8);
   });
+
+  test.each(['ruta', 'saltos', 'perfil'] as const)(
+    '%s: every character outside KaTeX is one IBM Plex draws',
+    (variant) => {
+      const { container } = render(<DroneFigure variant={variant} />);
+
+      expect(plexViolations(container)).toEqual([]);
+    },
+  );
 });

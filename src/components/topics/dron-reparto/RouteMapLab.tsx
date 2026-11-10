@@ -1,7 +1,9 @@
 import type { JSX, ReactNode } from 'react';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString } from '../../../lib/mathNotation';
 import type { RouteSample, RouteStop } from '../../../lib/data/droneRoute';
 import { LINE_WIDTH } from '../../charts/chartTheme';
+import InlineMath from '../../lab/InlineMath';
 import SvgPlot from '../../lab/SvgPlot';
 import type { Point } from '../../lab/OverlayMarks';
 import type { DragPoint } from '../../lab/useDrag';
@@ -87,7 +89,9 @@ const scaleText = (unit: string, metres: number) =>
 function describeMap(now: RouteSample, decimals: number): string {
   const n = (value: number, unit: string, precision = decimals) =>
     formatNumber(value, { precision, unit });
-  return `Mapa de la ruta en el plano x–y. En t = ${n(now.t, 's', 1)} el dron está en (${n(now.x, '', 0)}; ${n(now.y, '', 0)}) m con |v| = ${n(now.speed, 'm/s')} y |a| = ${n(now.accel, 'm/s²')}.`;
+  return mathTextToString(
+    `Mapa de la ruta en el plano x–y. En t = ${n(now.t, 's', 1)} el dron está en (${n(now.x, '', 0)}; ${n(now.y, '', 0)}) m con |v| = ${n(now.speed, 'm/s')} y |a| = ${n(now.accel, 'm/s²')}.`,
+  );
 }
 
 /**
@@ -130,10 +134,10 @@ export default function RouteMapLab(props: RouteMapLabProps): JSX.Element {
         {showVectors ? (
           <>
             <LegendItem color={VELOCITY_COLOR} isArrow>
-              {`Velocidad v: ${scaleText('m/s', velocityScale)}`}
+              <InlineMath text={`Velocidad $\\vec v$: ${scaleText('m/s', velocityScale)}`} />
             </LegendItem>
             <LegendItem color={ACCEL_COLOR} isArrow>
-              {`Aceleración a: ${scaleText('m/s²', accelScale)}`}
+              <InlineMath text={`Aceleración $\\vec a$: ${scaleText('m/s²', accelScale)}`} />
             </LegendItem>
           </>
         ) : null}

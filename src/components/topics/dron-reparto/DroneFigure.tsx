@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 import { DRONE_ROUTE } from '../../../lib/data/droneRoute';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString } from '../../../lib/mathNotation';
 import { CHART_COLORS, TEXT_COLOR } from '../../charts/chartTheme';
 import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
 import type { Scale } from '../../lab/plotScales';
@@ -91,10 +92,10 @@ function RouteMap(): JSX.Element {
           dy={-6}
           anchor="end"
         >
-          r
+          vec r
         </Label>
         <Arrow from={px(middle)} to={px(velocityTip)} color={VELOCITY_COLOR} />
-        <Label at={px(velocityTip)}>v</Label>
+        <Label at={px(velocityTip)}>vec v</Label>
         {stops.slice(0, -1).map((stop) => (
           <g key={stop.name}>
             <circle cx={px(stop).x} cy={px(stop).y} r={STOP_RADIUS} fill={TEXT_COLOR} />
@@ -128,7 +129,9 @@ function RouteMap(): JSX.Element {
       yDomain={{ min: Math.min(...ys) - MAP_PAD_BOTTOM_M, max: Math.max(...ys) + MAP_PAD_M }}
       equalAspect
       overlay={overlay}
-      ariaLabel={`Ruta depósito ${coords(depot)} → A ${coords(a)} → B ${coords(b)} → C ${coords(stops[3])} → depósito, en metros; el vector de posición de B tiene componentes x = ${b.x} m e y = ${b.y} m.`}
+      ariaLabel={mathTextToString(
+        `Ruta del depósito ${coords(depot)} a A ${coords(a)}, a B ${coords(b)}, a C ${coords(stops[3])} y de vuelta al depósito, en metros; el vector de posición de B, vec r, tiene componentes x = ${b.x} m e y = ${b.y} m.`,
+      )}
     />
   );
 }
@@ -157,12 +160,14 @@ function Jumps(): JSX.Element {
           color: ACCEL_COLOR,
           dashed: true,
         },
-        { id: 'vx', label: 'vₓ', points: flight.vx, color: CHART_COLORS[0] },
-        { id: 'vy', label: 'v_y', points: flight.vy, color: CHART_COLORS[1] },
+        { id: 'vx', label: '$v_x$', points: flight.vx, color: CHART_COLORS[0] },
+        { id: 'vy', label: '$v_y$', points: flight.vy, color: CHART_COLORS[1] },
       ]}
       xDomain={{ min: 0, max: flight.duration }}
       yDomain={{ min: -top, max: top }}
-      ariaLabel={`Componentes de la velocidad a rapidez constante: cambian de golpe en ${flight.jumps.length} instantes, al despegar y al llegar a cada vértice; la ruta dura ${seconds(flight.duration)}.`}
+      ariaLabel={mathTextToString(
+        `Componentes v_x y v_y de la velocidad a rapidez constante: cambian de golpe en ${flight.jumps.length} instantes, al despegar y al llegar a cada vértice; la ruta dura ${seconds(flight.duration)}.`,
+      )}
     />
   );
 }
@@ -174,10 +179,10 @@ function Profile(): JSX.Element {
   const overlay = ({ x, y }: Scales) => (
     <g className="pointer-events-none">
       <Label at={{ x: x.toPx(leg.tAccel), y: y.toPx(DRONE_ROUTE.vMax) }} dx={6} dy={18}>
-        {`tₐ = ${seconds(leg.tAccel)}`}
+        {`t_a = ${seconds(leg.tAccel)}`}
       </Label>
       <Label at={{ x: x.toPx(cruiseEnd), y: y.toPx(0) }} dx={-6} dy={-10} anchor="end">
-        {`d/vₘₐₓ = ${seconds(cruiseEnd)}`}
+        {`d/v_máx = ${seconds(cruiseEnd)}`}
       </Label>
       <Label
         at={{ x: x.toPx(leg.duration), y: y.toPx(DRONE_ROUTE.vMax) }}
@@ -191,7 +196,7 @@ function Profile(): JSX.Element {
   );
   return (
     <SvgPlot
-      title="Rapidez en el primer tramo, depósito → A"
+      title="Rapidez en el primer tramo, depósito $\to$ A"
       xLabel="t"
       xUnit="s"
       yLabel="|v|"
@@ -214,7 +219,9 @@ function Profile(): JSX.Element {
       xDomain={{ min: 0, max: leg.duration * LEG_X_ROOM }}
       yDomain={{ min: 0, max: DRONE_ROUTE.vMax * PROFILE_HEADROOM }}
       overlay={overlay}
-      ariaLabel={`Rapidez en el primer tramo de ${formatNumber(leg.distance, { precision: 1, unit: 'm' })}: el perfil trapezoidal sube hasta 10 m/s en ${seconds(leg.tAccel)}, mantiene el crucero y frena hasta detenerse en T = ${seconds(leg.duration)}; a rapidez constante bastarían ${seconds(cruiseEnd)}.`}
+      ariaLabel={mathTextToString(
+        `Rapidez en el primer tramo de ${formatNumber(leg.distance, { precision: 1, unit: 'm' })}: el perfil trapezoidal sube hasta 10 m/s en ${seconds(leg.tAccel)}, mantiene el crucero y frena hasta detenerse en T = ${seconds(leg.duration)}; a rapidez constante bastarían ${seconds(cruiseEnd)}.`,
+      )}
     />
   );
 }
