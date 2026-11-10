@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
+import { expectSameHeightAfterHydration, HYDRATION_WIDTHS } from './hydrationStability';
 
 const PAGE = './temas/llantas-f1/';
 const LAB = '[data-testid="tyre-lab"]';
@@ -187,7 +188,9 @@ test.describe('página', () => {
     await expect(figures.nth(1).getByText('Visualización de datos', { exact: true })).toHaveCount(
       1,
     );
-    await expect(figures.nth(1).getByTestId('lab-footnote')).toContainText('ilustrativ');
+    const leftOut = figures.nth(1).locator('details[data-lab-note="left-out"]');
+    await leftOut.locator('summary').click();
+    await expect(leftOut).toContainText('ilustrativ');
   });
 
   test('la página tiene cuatro pasos, cada uno con su "Por qué" y su figura', async ({ page }) => {
@@ -284,4 +287,12 @@ test.describe('con pantalla táctil', () => {
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(scrollBefore);
     expect(await readoutText(page, 'Fuerza lateral real $F_y$')).toBe(before);
   });
+});
+
+test.describe('hidratación', () => {
+  for (const width of HYDRATION_WIDTHS) {
+    test(`a ${width} px el laboratorio no cambia de altura al hidratarse`, async ({ browser }) => {
+      await expectSameHeightAfterHydration(browser, PAGE, LAB, width);
+    });
+  }
 });
