@@ -51,6 +51,16 @@ describe('HABITAT_PRESETS', () => {
     expect(solveHabitat(limit.values).gRatio).toBeCloseTo(1, 2);
   });
 
+  test('the SP-413 note says 895 m is the tube’s outermost point, with its 1,00 g and 93,7 m/s', () => {
+    // SP-413's torus: R = 830 m, tube radius 65 m; at 1 rpm, ω · 895 = 93.7 m/s.
+    const limit = presetById('limite-sp413');
+    expect(limit.note).toBe(
+      'Solo los radios mayores de 895 m dan 1 g por debajo de 1 RPM; es el punto más exterior del tubo del Toro de Stanford (830 + 65 m), con 1,00 g y un piso a 93,7 m/s.',
+    );
+    expect(830 + 65).toBe(limit.values.r);
+    expect(solveHabitat(limit.values).v).toBeCloseTo(93.7, 1);
+  });
+
   test('the small centrifuge gives 1 g at 10 m', () => {
     // ω = √(9.81/10) = 0.990 rad/s = 9.46 rpm.
     const centrifuge = presetById('centrifuga-pequena');

@@ -34,7 +34,7 @@ export const HABITAT_PRESETS: Preset<HabitatSettings>[] = [
     values: { r: 895, rpm: 1 },
     sourceLabel: 'NASA SP-413 (1977)',
     sourceUrl: SP413_URL,
-    note: 'Solo los radios mayores de 895 m dan 1 g por debajo de 1 RPM, el punto más exterior del tubo del Toro de Stanford (830 + 65 m): a 1 RPM, 1,00 g y un piso que se mueve a 93,7 m/s.',
+    note: 'Solo los radios mayores de 895 m dan 1 g por debajo de 1 RPM; es el punto más exterior del tubo del Toro de Stanford (830 + 65 m), con 1,00 g y un piso a 93,7 m/s.',
   },
   {
     id: 'centrifuga-pequena',
