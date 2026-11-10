@@ -3,7 +3,8 @@
  * label and the knob of a draggable handle (hit area, focus ring, visible dot).
  */
 import type { JSX } from 'react';
-import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_FAMILY } from '../charts/chartTheme';
+import { SURFACE_COLOR, TEXT_COLOR } from '../charts/chartTheme';
+import MathText from './MathText';
 
 export type Point = { x: number; y: number };
 
@@ -59,7 +60,10 @@ export function Arrow({
   );
 }
 
-/** Text up and to the right of `at` (or offset by dx, dy), in the text color with a surface halo. */
+/**
+ * Text up and to the right of `at` (or offset by dx, dy), in the text color with a surface halo.
+ * The text is in the MathText notation: "V_p", "v_∞", "vec v = vec V_p + vec v_∞".
+ */
 export function Label({
   at,
   children,
@@ -74,20 +78,16 @@ export function Label({
   anchor?: 'start' | 'middle' | 'end';
 }): JSX.Element {
   return (
-    <text
+    <MathText
+      source={children}
       x={at.x + dx}
       y={at.y + dy}
-      textAnchor={anchor}
+      anchor={anchor}
       fill={TEXT_COLOR}
-      fontFamily={TICK_FONT_FAMILY}
       fontSize={LABEL_SIZE}
-      stroke={SURFACE_COLOR}
-      strokeWidth={HALO_WIDTH}
-      paintOrder="stroke"
+      halo={{ color: SURFACE_COLOR, width: HALO_WIDTH }}
       className="pointer-events-none"
-    >
-      {children}
-    </text>
+    />
   );
 }
 

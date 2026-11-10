@@ -1,8 +1,10 @@
 import { useId, useRef, useState, type JSX, type ReactNode } from 'react';
 import { formatNumber } from '../../lib/format';
+import { inlineMathToSpeech } from '../../lib/inlineMath';
 import ControlPanel from '../controls/ControlPanel';
 import Readout from '../controls/Readout';
 import { ICON_BUTTON } from './iconButton';
+import InlineMath from './InlineMath';
 import SettingsDrawer, { type SettingOption } from './SettingsDrawer';
 import TransportBar from './TransportBar';
 import type { TransportTimeUnitChoice } from './transportTime';
@@ -40,12 +42,12 @@ export interface LabShellProps {
 /** Quiet time after the last readout change before it is announced (drags, playback). */
 export const READOUT_ANNOUNCE_DELAY_MS = 750;
 
-/** "Label: value unit; …", formatted as the readouts show it. */
+/** "Label: value unit; …", formatted as the readouts show it, with any $…$ said in words. */
 function readoutSummary(readouts: LabReadout[], decimals: number): string {
   return readouts
     .map(({ label, value, unit, precision }) => {
       const text = formatNumber(value, { precision: precision ?? decimals, unit });
-      return `${label}: ${text}`;
+      return `${inlineMathToSpeech(label)}: ${text}`;
     })
     .join('; ');
 }
@@ -156,7 +158,7 @@ export default function LabShell({
         {params}
         {footnote ? (
           <p data-testid="lab-footnote" className="m-0 text-xs text-fg-muted">
-            {footnote}
+            <InlineMath text={footnote} />
           </p>
         ) : null}
       </ControlPanel>

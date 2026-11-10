@@ -1,4 +1,5 @@
 import type { JSX } from 'react';
+import InlineMath from './InlineMath';
 import { withStableCallbacks } from './withStableCallbacks';
 
 /** Visible focus for a control whose native input is visually hidden behind a styled sibling. */
@@ -16,6 +17,7 @@ const SELECT_CHEVRON =
 
 export interface SwitchFieldProps {
   id: string;
+  /** Plain text, with KaTeX inline between `$…$` (InlineMath). */
   label: string;
   checked: boolean;
   onChange(checked: boolean): void;
@@ -25,7 +27,9 @@ export interface SwitchFieldProps {
 function SwitchFieldBase({ id, label, checked, onChange }: SwitchFieldProps): JSX.Element {
   return (
     <label htmlFor={id} className="flex min-h-11 cursor-pointer items-center justify-between gap-3">
-      <span className="text-sm font-medium">{label}</span>
+      <span className="text-sm font-medium">
+        <InlineMath text={label} />
+      </span>
       <input
         id={id}
         type="checkbox"
@@ -112,7 +116,7 @@ function SegmentedFieldBase<T extends string | number>({
   return (
     <div className="flex items-center justify-between gap-3">
       <span id={labelId} className="text-sm font-medium">
-        {label}
+        <InlineMath text={label} />
       </span>
       <div
         role="radiogroup"

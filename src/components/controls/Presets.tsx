@@ -1,4 +1,5 @@
 import type { Preset } from '../../lib/presets';
+import InlineMath from '../lab/InlineMath';
 import { withStableCallbacks } from '../lab/withStableCallbacks';
 
 export type { Preset };
@@ -44,7 +45,11 @@ function PresetsBase<T>({ presets, activeId, onSelect }: PresetsProps<T>) {
           );
         })}
       </div>
-      {active?.note ? <p className="text-sm text-fg-muted">{active.note}</p> : null}
+      {active?.note ? (
+        <p className="text-sm text-fg-muted">
+          <InlineMath text={active.note} />
+        </p>
+      ) : null}
     </div>
   );
 }

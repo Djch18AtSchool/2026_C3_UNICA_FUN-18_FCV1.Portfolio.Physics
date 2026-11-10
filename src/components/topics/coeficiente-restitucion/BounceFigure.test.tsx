@@ -10,6 +10,7 @@ import {
 } from '../../lab/labelClearance';
 import { monoTextWidth } from '../../lab/plotScales';
 import BounceFigure from './BounceFigure';
+import { svgText } from '../../../test-svg-text';
 
 /** BounceFigure's apex labels are 12 px. */
 const APEX_LABEL_SIZE = 12;
@@ -186,7 +187,7 @@ describe('BounceFigure', () => {
       expect(decades.map((text) => text.textContent)).toEqual(['0,1', '1', '10', '100']);
       expect(ys[0] - ys[1]).toBeCloseTo(ys[1] - ys[2], 6);
       expect(ys[1] - ys[2]).toBeCloseTo(ys[2] - ys[3], 6);
-      expect(screen.getByText('hₙ (cm, escala logarítmica)')).toBeInTheDocument();
+      expect(screen.getByText(svgText('hn (cm, escala logarítmica)'))).toBeInTheDocument();
       expect(screen.getByText('n (número de rebote)')).toBeInTheDocument();
     });
 

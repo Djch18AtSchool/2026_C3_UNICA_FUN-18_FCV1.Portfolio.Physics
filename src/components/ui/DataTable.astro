@@ -10,6 +10,7 @@
  * follow the global decimals setting.
  */
 import { tableById } from '../../lib/tables';
+import { inlineMathToHtml } from '../../lib/texHtml';
 import { columnHeader, formatCell } from '../../lib/tables/markdown';
 
 interface Props {
@@ -34,7 +35,7 @@ const minWidth = (ch: number | undefined) => (ch === undefined ? undefined : `mi
         <tr>
           {columns.map((column) => (
             <th scope="col" class={cellClass(column.align)} style={minWidth(column.minWidthCh)}>
-              {columnHeader(column)}
+              <Fragment set:html={inlineMathToHtml(columnHeader(column))} />
             </th>
           ))}
         </tr>
@@ -55,9 +56,7 @@ const minWidth = (ch: number | undefined) => (ch === undefined ? undefined : `mi
     </table>
   </div>
   <figcaption>
-    <span id={captionId} class="figure-caption">
-      {spec.caption}
-    </span>
+    <span id={captionId} class="figure-caption" set:html={inlineMathToHtml(spec.caption)} />
     <p class="figure-source">
       Fuente: {source.url ? <a href={source.url}>{source.text}</a> : source.text}
     </p>

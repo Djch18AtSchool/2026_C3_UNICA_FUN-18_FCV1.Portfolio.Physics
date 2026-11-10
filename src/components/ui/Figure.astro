@@ -10,14 +10,19 @@
  * `label` replaces the badge text while keeping the type's mark and color, e.g. for a supplementary
  * interactive figure that is not the topic's prescribed resource: label="Complemento interactivo".
  *
+ * The caption may hold KaTeX inline between `$…$`, typeset at build time (a JSX string attribute
+ * keeps backslashes as written): caption="La suma $\vec v = \vec V_p + \vec v_\infty$ antes…".
+ *
  * `showBadge={false}` drops the badge row for a resource that already shows its type, such as a
  * laboratory, whose LabShell header carries the same mark (one badge per figure).
  */
 import ResourceBadge from './ResourceBadge.astro';
+import { inlineMathToHtml } from '../../lib/texHtml';
 import type { ResourceType } from '../../consigna';
 
 interface Props {
   type: ResourceType;
+  /** Plain text, with KaTeX inline between `$…$`, typeset here at build time. */
   caption: string;
   source: { text: string; url?: string };
   id?: string;
@@ -45,9 +50,14 @@ if (!source?.text?.trim()) throw new Error('Figure: falta la fuente');
     <slot />
   </div>
   <figcaption>
-    <span class="figure-caption">{caption}</span>
+    <span class="figure-caption" set:html={inlineMathToHtml(caption)} />
     <p class="figure-source">
-      Fuente: {source.url ? <a href={source.url}>{source.text}</a> : source.text}
+      Fuente:{' '}
+      {source.url ? (
+        <a href={source.url} set:html={inlineMathToHtml(source.text)} />
+      ) : (
+        <Fragment set:html={inlineMathToHtml(source.text)} />
+      )}
     </p>
   </figcaption>
 </figure>

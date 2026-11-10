@@ -2,6 +2,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import TyreFigure from './TyreFigure';
+import { svgText } from '../../../test-svg-text';
 
 const strokeOf = (container: HTMLElement, id: string) =>
   container.querySelector(`[data-series="${id}"]`)?.getAttribute('stroke');
@@ -37,8 +38,8 @@ describe('TyreFigure', () => {
     expect(legend).toHaveTextContent('Fricción sobre la caja f');
     expect(legend).toHaveTextContent('Límite estático μ_s n');
     expect(strokeOf(container, 'limite')).toBe('var(--chart-2)');
-    expect(screen.getByText('f_s,máx = 39,2 N')).toBeInTheDocument();
-    expect(screen.getByText('f_k = 29,4 N')).toBeInTheDocument();
+    expect(screen.getByText(svgText('fs,máx = 39,2 N'))).toBeInTheDocument();
+    expect(screen.getByText(svgText('fk = 29,4 N'))).toBeInTheDocument();
     expect(screen.getByText('Fuerza aplicada F (N)')).toBeInTheDocument();
   });
 
@@ -53,7 +54,7 @@ describe('TyreFigure', () => {
     expect(strokeOf(container, 'real')).toBe('var(--chart-2)');
     expect(screen.getByText('6 400 N a 4 000 N')).toBeInTheDocument();
     expect(screen.getByText('11 943 N')).toBeInTheDocument();
-    expect(screen.getByText('Carga vertical F_z (N)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('Carga vertical Fz (N)'))).toBeInTheDocument();
   });
 
   test('temperature: the C3 window band and the cold and hot readings', () => {
@@ -117,7 +118,7 @@ describe('TyreFigure', () => {
 
     expect(screen.getByTestId('tyre-figure-pacejka')).toBeInTheDocument();
     expect(strokeOf(container, 'pacejka')).toBe('var(--chart-1)');
-    expect(screen.getByText('Pico: x ≈ 0,18; y = 1,00')).toBeInTheDocument();
+    expect(screen.getByText(svgText('Pico: x ≈ 0,18; y = 1,00'))).toBeInTheDocument();
     expect(screen.getByText('x = 1: y = 0,91')).toBeInTheDocument();
     expect(screen.getByText('Deslizamiento x (adimensional)')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /0,18/ })).toBeInTheDocument();
@@ -143,7 +144,7 @@ describe('TyreFigure', () => {
 
     expect(label).toHaveTextContent(/^6\s400\sN$/);
     expect(label).toHaveAttribute('text-anchor', 'start');
-    expect(screen.getByText('Fuerza lateral máx. F_y (N)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('Fuerza lateral máx. Fy (N)'))).toBeInTheDocument();
   });
 
   test('on a phone-width plot the figure gets taller', () => {

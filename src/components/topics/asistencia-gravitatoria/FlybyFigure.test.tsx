@@ -3,6 +3,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { monoTextWidth } from '../../lab/plotScales';
 import FlybyFigure from './FlybyFigure';
+import { svgText } from '../../../test-svg-text';
 import { segmentHitsBox, type Segment } from '../../lab/labelClearance';
 
 /** OverlayMarks' Label: 13 px mono text; its box runs about 10 px above the baseline and 3 below. */
@@ -143,9 +144,9 @@ describe('FlybyFigure', () => {
     expect(screen.getByRole('list', { name: 'Leyenda' })).toHaveTextContent(
       'hipérbola con e = 1,330',
     );
-    expect(screen.getByText('δ = 97,5°')).toBeInTheDocument();
-    expect(screen.getByText(`rₚ = 10,09 R_J`)).toBeInTheDocument();
-    expect(screen.getAllByText('v∞')).toHaveLength(2);
+    expect(screen.getByText(svgText('δ = 97,5°'))).toBeInTheDocument();
+    expect(screen.getByText(svgText('rp = 10,09 RJ'))).toBeInTheDocument();
+    expect(screen.getAllByText(svgText('v∞'))).toHaveLength(2);
     expect(screen.getByRole('list', { name: 'Leyenda' })).toHaveTextContent(
       'v∞ al entrar y al salir: 7,62 km/s',
     );
@@ -210,7 +211,7 @@ describe('FlybyFigure', () => {
         container.querySelector('[data-series="trayectoria"]')?.getAttribute('d') ?? '',
       );
       const rpLabels = [...overlay.querySelectorAll('text')].filter((t) =>
-        t.textContent?.startsWith('rₚ'),
+        t.textContent?.startsWith('rp'),
       );
 
       expect(path.length).toBeGreaterThan(100);

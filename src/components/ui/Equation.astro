@@ -7,10 +7,12 @@
  *     symbols={[{ symbol: 'v_0', meaning: 'velocidad inicial', unit: 'm/s' }]} />
  */
 import katex from 'katex';
+import { inlineMathToHtml } from '../../lib/texHtml';
 
 interface EquationSymbol {
   /** LaTeX of the symbol, e.g. "v_0". */
   symbol: string;
+  /** Plain text, with KaTeX inline between `$…$`. */
   meaning: string;
   unit?: string;
 }
@@ -46,7 +48,7 @@ function toHtml(tex: string, displayMode: boolean): string {
             <div>
               <dt set:html={toHtml(symbol, false)} />
               <dd>
-                {meaning}
+                <Fragment set:html={inlineMathToHtml(meaning)} />
                 {unit && <span class="equation-unit">({unit})</span>}
               </dd>
             </div>

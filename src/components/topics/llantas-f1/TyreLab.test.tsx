@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { resetSettingsForTests } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
 import TyreLab from './TyreLab';
+import { svgText } from '../../../test-svg-text';
 
 const FOOTNOTE = 'Parámetros ilustrativos, no medidos.';
 
@@ -172,7 +173,7 @@ describe('TyreLab', () => {
     renderLab();
 
     expect(screen.getByText('Temperatura T (°C)')).toBeInTheDocument();
-    expect(screen.getByText('Carga vertical F_z (N)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('Carga vertical Fz (N)'))).toBeInTheDocument();
     const legend = screen.getByRole('list', { name: 'Leyenda' });
     expect(legend).toHaveTextContent('Modelo lineal F = μ₀ f(T) F_z');
     expect(legend).toHaveTextContent('Con sensibilidad a la carga, F = μ(F_z) f(T) F_z');

@@ -18,6 +18,7 @@
     "data:drone": "tsx scripts/generate-drone-route.ts",
     "data:cycles": "tsx scripts/generate-drive-cycles.ts",
     "data:voyager": "tsx scripts/generate-voyager-speed.ts",
+    "data:fonts": "tsx scripts/font-data.ts && prettier --write src/lib/plexCoverage.ts src/lib/glyphAdvances.ts",
     "measure:labs": "tsx scripts/measure-labs.ts"
   },
   "dependencies": {

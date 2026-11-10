@@ -1,7 +1,9 @@
 import { formatNumber } from '../../lib/format';
+import InlineMath from '../lab/InlineMath';
 import { useGlobalSettings } from '../lab/useGlobalSettings';
 
 export interface ReadoutProps {
+  /** Plain text, with KaTeX inline between `$…$` (InlineMath). */
   label: string;
   value: number;
   unit: string;
@@ -16,7 +18,9 @@ export default function Readout({ label, value, unit, precision }: ReadoutProps)
       data-readout=""
       className="flex items-baseline justify-between gap-3 border-b border-dotted border-border pb-1.5"
     >
-      <span className="text-sm text-fg-muted">{label}</span>
+      <span className="text-sm text-fg-muted">
+        <InlineMath text={label} />
+      </span>
       <span className="font-mono text-base font-medium tabular-nums">
         {formatNumber(value, { precision: resolvedPrecision, unit })}
       </span>

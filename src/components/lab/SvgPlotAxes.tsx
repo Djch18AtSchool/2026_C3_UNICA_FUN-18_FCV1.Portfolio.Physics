@@ -8,6 +8,7 @@ import {
 } from '../charts/chartTheme';
 import { trimTrailingZeros } from '../charts/chartScale';
 import { fitCentre, monoTextWidth, niceTicks, tickDecimals, type Scale } from './plotScales';
+import MathText from './MathText';
 import type { PlotArea } from './SvgPlotCursor';
 
 /** Viewbox pixels between ticks: about six on a 720-wide x axis, five on a 375-tall y axis. */
@@ -86,6 +87,7 @@ export function PlotGrid({ ticks, x, y, area }: GridProps) {
 }
 
 interface AxesProps extends GridProps {
+  /** Axis titles in the MathText notation ("v_y (km/s)"). */
   xTitle: string;
   yTitle: string;
   tickFontSize: number;
@@ -168,30 +170,32 @@ export function PlotAxes({
         ))}
       </g>
       <g fill={TEXT_COLOR} fontSize={titleFontSize}>
-        <text
+        <MathText
+          source={xTitle}
           x={(area.left + area.right) / 2}
           y={area.bottom + (compact ? COMPACT_X_TITLE_OFFSET : X_TITLE_OFFSET)}
-          textAnchor="middle"
-        >
-          {xTitle}
-        </text>
+          fontSize={titleFontSize}
+          fill={TEXT_COLOR}
+          anchor="middle"
+        />
         {compact ? (
-          <text
+          <MathText
+            source={yTitle}
             x={COMPACT_Y_TITLE_X}
             y={area.top - COMPACT_Y_TITLE_RISE - compactTitleLift}
-            textAnchor="start"
-          >
-            {yTitle}
-          </text>
+            fontSize={titleFontSize}
+            fill={TEXT_COLOR}
+          />
         ) : (
-          <text
+          <MathText
+            source={yTitle}
             x={Y_TITLE_X}
             y={middleY}
-            textAnchor="middle"
+            fontSize={titleFontSize}
+            fill={TEXT_COLOR}
+            anchor="middle"
             transform={`rotate(-90 ${Y_TITLE_X} ${middleY})`}
-          >
-            {yTitle}
-          </text>
+          />
         )}
       </g>
     </g>

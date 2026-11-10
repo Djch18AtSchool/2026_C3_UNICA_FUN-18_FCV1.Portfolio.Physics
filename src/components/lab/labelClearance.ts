@@ -3,7 +3,7 @@
  * asymptotes), overlaps no other text and stays inside the plot: the first clear candidate wins.
  * Also builds those candidates (around a point, beside a segment). Pixels throughout. Pure.
  */
-import { monoTextWidth } from './plotScales';
+import { mathTextWidth } from '../../lib/mathNotation';
 
 export interface Point {
   x: number;
@@ -46,14 +46,17 @@ export function boxesOverlap(a: Box, b: Box): boolean {
   return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
 }
 
-/** The box of a monospace text drawn at `at` (its baseline) with an SVG text-anchor. */
+/**
+ * The box of a monospace label drawn at `at` (its baseline) with an SVG text-anchor; the text is
+ * in the MathText notation, so "V_p" is measured as drawn (V and a 75 % p), not as three cells.
+ */
 export function textBox(
   at: Point,
   text: string,
   fontSize: number,
   anchor: 'start' | 'middle' | 'end',
 ): Box {
-  const width = monoTextWidth(text, fontSize);
+  const width = mathTextWidth(text, fontSize, 'mono');
   const left = anchor === 'start' ? at.x : anchor === 'middle' ? at.x - width / 2 : at.x - width;
   return {
     left,

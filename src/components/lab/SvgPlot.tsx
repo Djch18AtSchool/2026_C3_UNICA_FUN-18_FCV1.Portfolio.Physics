@@ -13,10 +13,12 @@ import { axisTicks, PlotAxes, PlotGrid, yTickLabelChars } from './SvgPlotAxes';
 import SvgPlotCursor, { type PlotArea } from './SvgPlotCursor';
 import { Bands, Marker } from './SvgPlotMarks';
 import { useElementWidth } from '../hooks/useElementWidth';
+import InlineMath from './InlineMath';
 import { useGlobalSettings } from './useGlobalSettings';
 
 export interface PlotSeries {
   id: string;
+  /** The legend text: plain, with KaTeX inline between `$…$` (InlineMath). */
   label: string;
   points: { x: number; y: number }[];
   color?: string;
@@ -59,6 +61,7 @@ export interface PlotMarker {
 }
 export interface SvgPlotProps {
   title: string;
+  /** Axis symbols and units in the MathText notation: "v_y", "km/s", "r_p". */
   xLabel: string;
   xUnit: string;
   yLabel: string;
@@ -292,7 +295,9 @@ function Legend({ series }: { series: PlotSeries[] }) {
       {series.map((s, index) => (
         <li key={s.id} className="flex items-center gap-2 text-fg">
           <LegendKey series={s} color={seriesColor(s, index)} />
-          {s.label}
+          <span>
+            <InlineMath text={s.label} />
+          </span>
         </li>
       ))}
     </ul>

@@ -3,6 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { monoTextWidth } from '../../lab/plotScales';
 import DroneFigure from './DroneFigure';
+import { svgText } from '../../../test-svg-text';
 
 const strokeOf = (container: HTMLElement, id: string) =>
   container.querySelector(`[data-series="${id}"]`)?.getAttribute('stroke');
@@ -38,9 +39,9 @@ describe('DroneFigure', () => {
     const { container } = render(<DroneFigure variant="perfil" />);
 
     expect(strokeOf(container, 'trapecio')).toBe('var(--chart-3)');
-    expect(screen.getByText(/tₐ = 4,0\ss/)).toBeInTheDocument();
+    expect(screen.getByText(svgText(/^ta = 4,0\ss$/))).toBeInTheDocument();
     expect(screen.getByText(/T = 67,2\ss/)).toBeInTheDocument();
-    expect(screen.getByText(/d\/vₘₐₓ = 63,2\ss/)).toBeInTheDocument();
+    expect(screen.getByText(svgText(/^d\/vmax = 63,2\ss$/))).toBeInTheDocument();
   });
   test('route on a phone: the x component letter clears the depot label', () => {
     // The figure's plot is about 290 px wide on a 375 px phone.

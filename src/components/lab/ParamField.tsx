@@ -1,10 +1,12 @@
 import { useState, type JSX, type ReactNode } from 'react';
 import { formatNumber, MINUS_SIGN } from '../../lib/format';
+import InlineMath from './InlineMath';
 import { useGlobalSettings } from './useGlobalSettings';
 import { withStableCallbacks } from './withStableCallbacks';
 
 export interface ParamFieldProps {
   id: string;
+  /** A string may hold KaTeX inline between `$…$` (InlineMath). */
   label: ReactNode;
   unit: string;
   min: number;
@@ -95,7 +97,7 @@ function ParamField({
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between gap-3">
         <label id={labelId} htmlFor={id} className="text-sm font-medium">
-          {label}
+          {typeof label === 'string' ? <InlineMath text={label} /> : label}
         </label>
         <span className="flex items-center gap-1.5">
           <input

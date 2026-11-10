@@ -9,6 +9,7 @@ import type { ClassRef } from '../../content/topicSchema';
 import { resolveRelated } from '../../lib/related';
 import { SECTION_HEADINGS } from '../../lib/sectionHeadings';
 import { topicUrl } from '../../lib/url';
+import { inlineMathToHtml } from '../../lib/texHtml';
 
 interface Props {
   related: string[];
@@ -45,7 +46,7 @@ const heading = SECTION_HEADINGS.Connections;
           {classRefs.map(({ module, topic, note }) => (
             <li class="margin-note">
               <span class="connections-number">{module}</span> · {topic}
-              {note && <span class="connections-note">{note}</span>}
+              {note && <span class="connections-note" set:html={inlineMathToHtml(note)} />}
             </li>
           ))}
         </ul>
