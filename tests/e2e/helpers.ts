@@ -9,10 +9,15 @@ export async function setRange(slider: Locator, value: string): Promise<void> {
   await slider.dispatchEvent('change');
 }
 
-/** The transport's reading at the start of a run, before any seek took: «t = 0,000 s», «t = 0 s». */
-const AT_START = /^t = 0(,0+)?\D/;
+/**
+ * The transport's reading at the very start of a run, before any seek took: «t = 0,000 s» or
+ * «t = 0 s», not «t = 0,5 s» (the unit follows after a space, U+202F or a plain one).
+ */
+const AT_START = /^t = 0(,0+)?\s/u;
 /** How long one seek may take to show in the transport before it is sent again. */
 const SEEK_SETTLE_MS = 1000;
+/** How long a seek may keep failing before the test says so (a few resends, not the whole test). */
+const SEEK_GIVE_UP_MS = 10_000;
 
 /**
  * Seeks the transport's timeline and waits until the clock took it. An island can drop the first
@@ -26,12 +31,29 @@ export async function seekTimeline(timeline: Locator, value: string): Promise<vo
       timeout: SEEK_SETTLE_MS,
     });
     await expect(timeline).toHaveValue(value, { timeout: SEEK_SETTLE_MS });
-  }).toPass();
+  }).toPass({ timeout: SEEK_GIVE_UP_MS });
 }
 
-/** Wait until the React island that contains `inner` has hydrated (Astro drops its `ssr` flag). */
+/**
+ * Wait until the React island that contains `inner` has hydrated. Astro drops the island's `ssr`
+ * flag as it starts hydrating, before React has rendered anything: an event fired then is lost and
+ * hydration puts the control back. React tags a host element with its fiber when it completes it,
+ * the outermost one last, and commits right after; so the island's outermost element carrying a
+ * fiber means the whole island is React's and listening.
+ */
 export async function waitForIsland(page: Page, inner: string): Promise<void> {
-  await page.locator(`astro-island:has(${inner}):not([ssr])`).waitFor({ state: 'attached' });
+  const island = page.locator(`astro-island:has(${inner}):not([ssr])`);
+  await island.waitFor({ state: 'attached' });
+  await expect
+    .poll(
+      () =>
+        island.first().evaluate((node) => {
+          const root = node.querySelector(':scope > :not(template, script, style, astro-slot)');
+          return root !== null && Object.keys(root).some((key) => key.startsWith('__reactFiber'));
+        }),
+      { message: `la isla de ${inner} hidratada por React` },
+    )
+    .toBe(true);
 }
 
 /** Islands hydrate with client:visible: walk the page so every one renders, then back to the top. */
