@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import ChartFrame from '../charts/ChartFrame';
 import { CHART_COLORS, DASH_PATTERN, LINE_WIDTH, TICK_FONT_SIZE } from '../charts/chartTheme';
 import type { FrameStore } from './frameStore';
@@ -339,35 +339,11 @@ function Legend({ series }: { series: PlotSeries[] }) {
   );
 }
 
-/**
- * The lab plotter: an SVG whose viewBox follows its container's measured width (720 until
- * measured), so text and handles keep their CSS-pixel size on phones. The figure itself is one
- * role="img" layer; the overlay and the cursor live in a stacked layer with the same viewBox so
- * the slider stays reachable by assistive technology (an img's children are presentational).
- */
-export default function SvgPlot(props: SvgPlotProps) {
-  const {
-    title,
-    xLabel,
-    xUnit,
-    yLabel,
-    yUnit,
-    series,
-    bands = [],
-    cursor,
-    marker,
-    overlay,
-  } = props;
-  const settings = useGlobalSettings();
-  const showGrid = props.showGrid ?? settings.grid;
-  const clipBase = `svgplot-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
-  const [wrapperRef, measuredWidth, isMeasured] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
-  const { x, y, area, width, height, compact, titleLift } = computeLayout(props, measuredWidth);
-  const ticks = axisTicks(x, y);
-  const viewBox = `0 0 ${width} ${height}`;
-  // Measured, the viewBox has the container's width and the svg its natural height.
-  const reserve = isMeasured ? { className: 'h-auto' } : heightReserve(props);
-  const clipRect = (id: string, bleed = 0) => (
+type PlotLayout = ReturnType<typeof computeLayout>;
+
+/** A clip to the plot area, grown by `bleed` px on every side. */
+function ClipRect({ id, area, bleed = 0 }: { id: string; area: PlotArea; bleed?: number }) {
+  return (
     <defs>
       <clipPath id={id}>
         <rect
@@ -379,82 +355,159 @@ export default function SvgPlot(props: SvgPlotProps) {
       </clipPath>
     </defs>
   );
+}
 
+interface LayerProps {
+  props: SvgPlotProps;
+  layout: PlotLayout;
+  viewBox: string;
+  /** Prefix of this plot's clip ids (unique in the page). */
+  clipBase: string;
+}
+
+/** The series, clipped to the plot area. */
+function SeriesPaths({
+  series,
+  layout,
+  clipPath,
+}: {
+  series: PlotSeries[];
+  layout: PlotLayout;
+  clipPath: string;
+}) {
   return (
-    <ChartFrame title={title} testId={props.testId}>
-      {series.length >= MIN_SERIES_FOR_LEGEND ? <Legend series={series} /> : null}
+    <g
+      clipPath={clipPath}
+      fill="none"
+      strokeWidth={LINE_WIDTH}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {series.map((s, index) => (
+        <path
+          key={s.id}
+          data-series={s.id}
+          d={seriesPath(s.points, layout.x, layout.y)}
+          stroke={seriesColor(s, index)}
+          strokeDasharray={s.dashed ? DASH_PATTERN : undefined}
+        />
+      ))}
+    </g>
+  );
+}
+
+/** The figure: one role="img" svg with grid, bands, axes, series and marker. */
+function FigureLayer({
+  props,
+  layout,
+  viewBox,
+  clipBase,
+  showGrid,
+  reserve,
+}: LayerProps & { showGrid: boolean; reserve: HeightReserve }) {
+  const { x, y, area, width, compact, titleLift } = layout;
+  const ticks = axisTicks(x, y);
+  return (
+    <svg
+      role="img"
+      aria-label={props.ariaLabel}
+      viewBox={viewBox}
+      width="100%"
+      className={`block ${reserve.className}`}
+      style={reserve.style}
+    >
+      <ClipRect id={`${clipBase}-plot`} area={area} />
+      {showGrid ? <PlotGrid ticks={ticks} x={x} y={y} area={area} /> : null}
+      <Bands bands={props.bands ?? []} x={x} area={area} width={width} />
+      <PlotAxes
+        ticks={ticks}
+        x={x}
+        y={y}
+        area={area}
+        xTitle={`${props.xLabel} (${props.xUnit})`}
+        yTitle={`${props.yLabel} (${props.yUnit})`}
+        tickFontSize={TICK_SIZE}
+        compact={compact}
+        compactTitleLift={titleLift}
+        titleFontSize={TITLE_SIZE}
+        viewWidth={width}
+      />
+      <SeriesPaths series={props.series} layout={layout} clipPath={`url(#${clipBase}-plot)`} />
+      {props.marker ? <Marker marker={props.marker} x={x} y={y} /> : null}
+    </svg>
+  );
+}
+
+/** Over the figure, with the same viewBox: the overlay and the cursor, reachable by assistive tech. */
+function InteractiveLayer({
+  props,
+  layout,
+  viewBox,
+  clipBase,
+  decimals,
+}: LayerProps & { decimals: number }) {
+  const { x, y, area } = layout;
+  const { overlay, cursor, overlayBleed } = props;
+  return (
+    <svg
+      role="presentation"
+      viewBox={viewBox}
+      className="pointer-events-none absolute inset-0 block h-full w-full"
+    >
+      <ClipRect id={`${clipBase}-overlay`} area={area} bleed={overlayBleed} />
+      {overlayBleed ? <ClipRect id={`${clipBase}-overlay-plot`} area={area} /> : null}
+      {overlay ? (
+        <g clipPath={`url(#${clipBase}-overlay)`} className="pointer-events-auto">
+          {overlay({
+            x,
+            y,
+            plotClipPath: overlayBleed ? `url(#${clipBase}-overlay-plot)` : undefined,
+          })}
+        </g>
+      ) : null}
+      {cursor ? (
+        <SvgPlotCursor
+          cursor={cursor}
+          x={x}
+          area={area}
+          xLabel={props.xLabel}
+          xUnit={props.xUnit}
+          decimals={decimals}
+          fontSize={NOTE_SIZE}
+        />
+      ) : null}
+    </svg>
+  );
+}
+
+/** Measured, the viewBox has the container's width and the svg its natural height. */
+const MEASURED: HeightReserve = { className: 'h-auto' };
+
+/**
+ * The lab plotter: an SVG whose viewBox follows its container's measured width (720 until
+ * measured, with its final height reserved in CSS), so text and handles keep their CSS-pixel
+ * size on phones. The figure itself is one role="img" layer; the overlay and the cursor live in a
+ * stacked layer with the same viewBox so the slider stays reachable by assistive technology (an
+ * img's children are presentational).
+ */
+export default function SvgPlot(props: SvgPlotProps) {
+  const settings = useGlobalSettings();
+  const clipBase = `svgplot-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  const [wrapperRef, measuredWidth, isMeasured] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
+  // The reserve the server and the first render share, computed once: until the plot measures.
+  const [reserve] = useState(() => heightReserve(props));
+  const layout = computeLayout(props, measuredWidth);
+  const layer = { props, layout, viewBox: `0 0 ${layout.width} ${layout.height}`, clipBase };
+  return (
+    <ChartFrame title={props.title} testId={props.testId}>
+      {props.series.length >= MIN_SERIES_FOR_LEGEND ? <Legend series={props.series} /> : null}
       <div ref={wrapperRef} className="@container/plot relative w-full min-w-0">
-        <svg
-          role="img"
-          aria-label={props.ariaLabel}
-          viewBox={viewBox}
-          width="100%"
-          className={`block ${reserve.className}`}
-          style={reserve.style}
-        >
-          {clipRect(`${clipBase}-plot`)}
-          {showGrid ? <PlotGrid ticks={ticks} x={x} y={y} area={area} /> : null}
-          <Bands bands={bands} x={x} area={area} width={width} />
-          <PlotAxes
-            ticks={ticks}
-            x={x}
-            y={y}
-            area={area}
-            xTitle={`${xLabel} (${xUnit})`}
-            yTitle={`${yLabel} (${yUnit})`}
-            tickFontSize={TICK_SIZE}
-            compact={compact}
-            compactTitleLift={titleLift}
-            titleFontSize={TITLE_SIZE}
-            viewWidth={width}
-          />
-          <g
-            clipPath={`url(#${clipBase}-plot)`}
-            fill="none"
-            strokeWidth={LINE_WIDTH}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            {series.map((s, index) => (
-              <path
-                key={s.id}
-                data-series={s.id}
-                d={seriesPath(s.points, x, y)}
-                stroke={seriesColor(s, index)}
-                strokeDasharray={s.dashed ? DASH_PATTERN : undefined}
-              />
-            ))}
-          </g>
-          {marker ? <Marker marker={marker} x={x} y={y} /> : null}
-        </svg>
-        <svg
-          role="presentation"
-          viewBox={viewBox}
-          className="pointer-events-none absolute inset-0 block h-full w-full"
-        >
-          {clipRect(`${clipBase}-overlay`, props.overlayBleed)}
-          {props.overlayBleed ? clipRect(`${clipBase}-overlay-plot`) : null}
-          {overlay ? (
-            <g clipPath={`url(#${clipBase}-overlay)`} className="pointer-events-auto">
-              {overlay({
-                x,
-                y,
-                plotClipPath: props.overlayBleed ? `url(#${clipBase}-overlay-plot)` : undefined,
-              })}
-            </g>
-          ) : null}
-          {cursor ? (
-            <SvgPlotCursor
-              cursor={cursor}
-              x={x}
-              area={area}
-              xLabel={xLabel}
-              xUnit={xUnit}
-              decimals={settings.decimals}
-              fontSize={NOTE_SIZE}
-            />
-          ) : null}
-        </svg>
+        <FigureLayer
+          {...layer}
+          showGrid={props.showGrid ?? settings.grid}
+          reserve={isMeasured ? MEASURED : reserve}
+        />
+        <InteractiveLayer {...layer} decimals={settings.decimals} />
       </div>
     </ChartFrame>
   );

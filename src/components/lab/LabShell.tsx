@@ -194,6 +194,28 @@ function Panel({ levels, readouts, onReset }: PanelProps): JSX.Element {
   );
 }
 
+/** The stage, in its cell: the canvas, then the transport when the lab has a clock. */
+function Stage({
+  clock,
+  timeUnit,
+  children,
+}: Pick<LabShellProps, 'clock' | 'timeUnit' | 'children'>): JSX.Element {
+  return (
+    <div className={STAGE_CELL}>
+      <div data-lab-stage="" className={STAGE}>
+        <div data-lab-canvas="" className={CANVAS}>
+          {children}
+        </div>
+        {clock ? (
+          <div data-lab-transport="" className={TRANSPORT}>
+            <TransportBar clock={clock} timeUnit={timeUnit} />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export default function LabShell({
   title,
   clock,
@@ -218,18 +240,9 @@ export default function LabShell({
     >
       <Header title={title} drawer={drawer} display={levels.display} />
       <div data-lab-columns="" className={COLUMNS}>
-        <div className={STAGE_CELL}>
-          <div data-lab-stage="" className={STAGE}>
-            <div data-lab-canvas="" className={CANVAS}>
-              {children}
-            </div>
-            {clock ? (
-              <div data-lab-transport="" className={TRANSPORT}>
-                <TransportBar clock={clock} timeUnit={timeUnit} />
-              </div>
-            ) : null}
-          </div>
-        </div>
+        <Stage clock={clock} timeUnit={timeUnit}>
+          {children}
+        </Stage>
         {canvasNotes ? (
           <div data-lab-canvas-notes="" className={CANVAS_NOTES}>
             {canvasNotes}

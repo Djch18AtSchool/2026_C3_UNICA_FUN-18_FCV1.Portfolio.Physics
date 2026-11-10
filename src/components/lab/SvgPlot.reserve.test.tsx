@@ -96,6 +96,15 @@ describe('SvgPlot reserves its own height until it measures', () => {
     expect(PLOT_ASPECT).toEqual({ compact: 1.25, wide: 1.6 });
   });
 
+  test('the reserve is the first render’s: it is computed once, not on every render until measured', () => {
+    vi.stubGlobal('ResizeObserver', undefined);
+    const { rerender } = render(<SvgPlot {...PROPS} aspectRatio={2} />);
+    rerender(<SvgPlot {...PROPS} aspectRatio={{ compact: 1.1, wide: 1.5 }} />);
+
+    const svg = screen.getByRole('img') as unknown as SVGSVGElement;
+    expect(svg.style.getPropertyValue('--plot-aspect-compact')).toBe('2');
+  });
+
   test('measured, the box drops the reserve and takes the drawing’s natural height', () => {
     stubResizeObserver(400);
     render(<SvgPlot {...PROPS} />);
