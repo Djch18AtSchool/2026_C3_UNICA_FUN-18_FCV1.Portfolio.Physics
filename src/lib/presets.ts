@@ -1,4 +1,4 @@
-/** A named set of control values with its source, shown as a button by the Presets control. */
+/** A named set of control values with its source, offered by LabPresets (chips or a select). */
 export interface Preset<T> {
   id: string;
   name: string;

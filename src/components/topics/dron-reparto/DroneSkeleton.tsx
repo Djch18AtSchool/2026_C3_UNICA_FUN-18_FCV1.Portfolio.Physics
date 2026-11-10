@@ -23,7 +23,7 @@ const STATUS_TEXT: Record<DroneSkeletonProps['status'], string> = {
   loading: 'Cargando los datos de la ruta…',
   error: 'No se pudieron cargar los datos de la ruta. Recarga la página para intentarlo de nuevo.',
 };
-/** The lab's card, as TieredLabShell draws it (its ROOT and COLUMNS): same classes, same gaps. */
+/** The lab's card, as LabShell draws it (its ROOT and COLUMNS): same classes, same gaps. */
 const CARD =
   '@container/lab flex flex-col gap-4 rounded-base border border-border bg-bg-elevated p-4 in-[.figure-frame]:border-0';
 const COLUMNS = 'flex flex-col gap-6 lab-split:grid lab-split:grid-cols-[minmax(0,1fr)_20rem]';

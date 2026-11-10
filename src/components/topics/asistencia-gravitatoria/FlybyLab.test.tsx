@@ -280,7 +280,6 @@ describe('FlybyLab', () => {
     expect(mathSourceText(usage)).toContain('$r_p$ y el lado son tuyos.');
     expect(usage).toHaveTextContent(USAGE);
     expect(leftOut).toHaveTextContent(LEFT_OUT);
-    expect(screen.queryByTestId('lab-footnote')).toBeNull();
   });
 
   test('the preset shows the planar model next to the Horizons value, both labelled', () => {

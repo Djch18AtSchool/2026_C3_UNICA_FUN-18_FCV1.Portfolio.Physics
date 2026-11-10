@@ -188,7 +188,6 @@ describe('TriggerLab', () => {
     expect(usage).toHaveTextContent('«Repetir retorno»');
     expect(usage).not.toHaveTextContent('engranaje');
     expect(mathSourceText(leftOut)).toContain(LEFT_OUT);
-    expect(screen.queryByTestId('lab-footnote')).toBeNull();
   });
 
   test('without the MDX text there is no empty «Qué deja fuera el modelo»', () => {

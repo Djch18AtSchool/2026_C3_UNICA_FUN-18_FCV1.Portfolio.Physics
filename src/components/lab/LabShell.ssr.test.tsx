@@ -10,10 +10,12 @@ describe('LabShell on the server', () => {
       <LabShell
         title="Laboratorio"
         readouts={[{ id: 'range', label: 'Alcance', value: 2, unit: 'm' }]}
-        params={null}
-        localSettings={[
-          { key: 'trail', label: 'Rastro', kind: 'toggle', value: true, onChange: () => {} },
-        ]}
+        levels={{
+          params: null,
+          display: [
+            { key: 'trail', label: 'Rastro', kind: 'toggle', value: true, onChange: () => {} },
+          ],
+        }}
         onReset={() => {}}
         testId="lab"
       >
@@ -26,7 +28,7 @@ describe('LabShell on the server', () => {
     expect(html).toMatch(/<dialog(?![^>]*\sopen)[^>]*>/);
   });
 
-  test('the tiered layout renders its levels, chips and closed disclosures on the server', () => {
+  test('renders its levels, chips and closed disclosures on the server', () => {
     const html = renderToString(
       <LabShell
         title="Laboratorio"

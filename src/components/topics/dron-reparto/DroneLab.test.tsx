@@ -93,7 +93,6 @@ describe('DroneLab', () => {
     expect(screen.getByText(/crucero \(a = 0\)/)).toBeInTheDocument();
     expect(readout('Rapidez |v|')).toBe('10,00 m/s');
     expect(modifiedNote()).toBeNull();
-    expect(screen.queryByTestId('lab-footnote')).toBeNull();
     expect(screen.getByTestId('drone-profiles')).toBeInTheDocument();
   });
 

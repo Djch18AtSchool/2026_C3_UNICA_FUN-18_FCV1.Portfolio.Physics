@@ -405,7 +405,7 @@ for (const { path, testId } of LABS) {
       });
       expect(
         Math.abs(room - bar.height),
-        `--lab-transport-room (global.css) = ${room} px, la reproducción pegada (TieredLabShell TRANSPORT) = ${bar.height} px`,
+        `--lab-transport-room (global.css) = ${room} px, la reproducción pegada (LabShell TRANSPORT) = ${bar.height} px`,
       ).toBeLessThanOrEqual(TRANSPORT_ROOM_SLACK_PX);
     });
 

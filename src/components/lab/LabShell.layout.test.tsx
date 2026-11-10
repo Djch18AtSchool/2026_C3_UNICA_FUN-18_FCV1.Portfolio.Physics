@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../lib/settingsStore';
 import { installDialogPolyfill } from '../../test-dialog';
 import { fakeClock } from '../../test-fake-clock';
-import LabShell, { READOUT_ANNOUNCE_DELAY_MS, type TieredLabShellProps } from './LabShell';
+import LabShell, { READOUT_ANNOUNCE_DELAY_MS, type LabShellProps } from './LabShell';
 import type { SettingOption } from './SettingsDrawer';
 
 const display = (trail = true): SettingOption[] => [
@@ -29,7 +29,7 @@ const display = (trail = true): SettingOption[] => [
   },
 ];
 
-function tieredProps(overrides: Partial<TieredLabShellProps> = {}): TieredLabShellProps {
+function tieredProps(overrides: Partial<LabShellProps> = {}): LabShellProps {
   return {
     title: 'Laboratorio del sobrevuelo',
     readouts: [
@@ -49,7 +49,7 @@ function tieredProps(overrides: Partial<TieredLabShellProps> = {}): TieredLabShe
   };
 }
 
-const renderTiered = (overrides: Partial<TieredLabShellProps> = {}) =>
+const renderTiered = (overrides: Partial<LabShellProps> = {}) =>
   render(<LabShell {...tieredProps(overrides)} />);
 
 const gear = () => screen.getByRole('button', { name: 'Ajustes del simulador' });
@@ -64,7 +64,7 @@ function expectInOrder(nodes: readonly Node[]): void {
   });
 }
 
-describe('LabShell with levels (tiered)', () => {
+describe('LabShell layout: levels, stage and panel', () => {
   let uninstall: () => void;
   beforeEach(() => {
     uninstall = installDialogPolyfill();
@@ -304,12 +304,6 @@ describe('LabShell with levels (tiered)', () => {
     expect(bare.container.querySelector('details')).toBeNull();
   });
 
-  test('no footnote paragraph: the notes replace it', () => {
-    renderTiered();
-
-    expect(screen.queryByTestId('lab-footnote')).toBeNull();
-  });
-
   test('data-playing mirrors the clock and the transport sits in the stage', () => {
     const { rerender } = renderTiered({ clock: fakeClock({ playing: true }) });
     expect(screen.getByTestId('flyby-lab')).toHaveAttribute('data-playing', 'true');
@@ -322,22 +316,5 @@ describe('LabShell with levels (tiered)', () => {
     renderTiered();
 
     expect(screen.queryByRole('group', { name: 'Reproducción' })).toBeNull();
-  });
-
-  test('announces the settled readouts as the stacked layout did', () => {
-    vi.useFakeTimers();
-    const shell = (value: number) => (
-      <LabShell
-        {...tieredProps({
-          readouts: [{ id: 'e', label: 'Excentricidad e', value, unit: '', precision: 3 }],
-        })}
-      />
-    );
-    const { rerender } = render(shell(1));
-
-    rerender(shell(1.5));
-    act(() => vi.advanceTimersByTime(READOUT_ANNOUNCE_DELAY_MS));
-
-    expect(screen.getByTestId('readout-announcer').textContent).toBe('Excentricidad e: 1,500');
   });
 });

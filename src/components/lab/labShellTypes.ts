@@ -1,4 +1,4 @@
-/** The props of LabShell: the tiered contract (B3) and, until each lab migrates, the stacked one. */
+/** The props of LabShell: the frame, the three levels, the canvas notes and the notes. */
 import type { ReactNode } from 'react';
 import type { LabNotesContent } from './LabNotes';
 import type { SettingOption } from './SettingsDrawer';
@@ -15,8 +15,7 @@ export interface LabReadout {
   precision?: number;
 }
 
-/** What both layouts share: the frame, the clock, the readouts and the reset. */
-interface LabShellBaseProps {
+export interface LabShellProps {
   title: string;
   clock?: SimClock;
   /**
@@ -27,8 +26,17 @@ interface LabShellBaseProps {
   readouts: LabReadout[];
   onReset(): void;
   testId: string;
-  /** The canvas: everything the lab draws. */
+  /** The canvas: everything the lab draws (and what is dragged or pressed on it), nothing else. */
   children: ReactNode;
+  levels: LabLevels;
+  /**
+   * What reads the canvas without being a control (a legend, the stated time lapse, a model
+   * versus data table): right after the transport in one column, under both columns at the card's
+   * full width in two. No controls here: in two columns focus would jump down and back up.
+   */
+  canvasNotes?: ReactNode;
+  /** «Cómo se usa» and «Qué deja fuera el modelo», closed disclosures at the end of the card. */
+  notes?: LabNotesContent;
 }
 
 /** The three levels of a laboratory (auditoría §12.1). */
@@ -43,32 +51,3 @@ export interface LabLevels {
    */
   display: SettingOption[];
 }
-
-/** The tiered layout: canvas and transport beside the levels (from lg, in a 42rem lab). */
-export interface TieredLabShellProps extends LabShellBaseProps {
-  levels: LabLevels;
-  /**
-   * What reads the canvas without being a control (a legend, the stated time lapse, a model
-   * versus data table): right after the transport in one column, under both columns at the card's
-   * full width in two. No controls here: in two columns focus would jump down and back up.
-   */
-  canvasNotes?: ReactNode;
-  /** «Cómo se usa» and «Qué deja fuera el modelo», closed disclosures at the end of the card. */
-  notes?: LabNotesContent;
-  params?: never;
-  localSettings?: never;
-  footnote?: never;
-}
-
-/** The stacked v2 layout, kept for the laboratories that have not moved to `levels` yet. */
-export interface StackedLabShellProps extends LabShellBaseProps {
-  params: ReactNode;
-  localSettings: SettingOption[];
-  /** Printed at the end of the parameters card, with KaTeX inline between `$…$`. */
-  footnote?: string;
-  levels?: never;
-  canvasNotes?: never;
-  notes?: never;
-}
-
-export type LabShellProps = TieredLabShellProps | StackedLabShellProps;

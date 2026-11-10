@@ -126,7 +126,6 @@ describe('TyreLab', () => {
     expect(usage).toHaveTextContent('con las flechas');
     expect(usage).not.toHaveTextContent('engranaje');
     expect(leftOut).toHaveTextContent(LEFT_OUT);
-    expect(screen.queryByTestId('lab-footnote')).toBeNull();
   });
 
   test('without the MDX text there is no empty «Qué deja fuera el modelo»', () => {

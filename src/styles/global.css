@@ -6,7 +6,7 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 /*
- * A tiered laboratory in two columns (TieredLabShell): a window with the topic bar (lg, which is
+ * A tiered laboratory in two columns (LabShell): a window with the topic bar (lg, which is
  * also when its figure frame stops scrolling, content.css) and a lab at least 42rem wide. Below
  * either, at 200 % zoom too, the lab is one column and nothing in it sticks.
  */
@@ -57,7 +57,7 @@
  * Lengths the topic bar and the tiered laboratories share: the bar's height (TopicStickyBar), the
  * clearance below it where keyboard focus, #anchors and the labs' sticky columns stop, and the
  * room a transport pinned to the window's bottom takes, kept free under a focused canvas control:
- * a copy of TieredLabShell's TRANSPORT (TransportBar's 44 px buttons, 2 × 12 px padding, 1 px
+ * a copy of LabShell's TRANSPORT (TransportBar's 44 px buttons, 2 × 12 px padding, 1 px
  * rule). Change both together; lab-shell.spec.ts fails when they drift.
  */
 :root {
@@ -159,7 +159,7 @@
 }
 
 /*
- * Scroll cue for a column that scrolls on its own (TieredLabShell's panel), as .table-frame does
+ * Scroll cue for a column that scrolls on its own (LabShell's panel), as .table-frame does
  * sideways: a soft shadow on each edge that hides content, hidden by a cover in the surface color
  * while that edge is in view. Pure background: no layout shift, theme tokens.
  */

@@ -166,7 +166,6 @@ describe('HabitatLab', () => {
     expect(usage).toHaveTextContent('apaga «Fijar 1 g»');
     expect(usage).toHaveTextContent(USAGE);
     expect(leftOut).toHaveTextContent(LEFT_OUT);
-    expect(screen.queryByTestId('lab-footnote')).toBeNull();
   });
 
   test('without the MDX texts it still says how to use it, and drops the empty disclosure', () => {

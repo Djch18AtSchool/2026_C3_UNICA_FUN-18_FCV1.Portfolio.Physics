@@ -187,7 +187,6 @@ describe('RegenLab', () => {
     expect(usage).not.toHaveTextContent('Boretti');
     expect(leftOut).toHaveTextContent('Boretti midió del 70 al 80 % en un Leaf 2012');
     expect(leftOut).toHaveTextContent(LEFT_OUT);
-    expect(screen.queryByTestId('lab-footnote')).toBeNull();
   });
 
   test('without the MDX texts it still says how to use it and where η comes from', () => {

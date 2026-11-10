@@ -70,7 +70,6 @@ describe('JumpLab', () => {
     expect(readout('Alcance')).toBe('2,62 m');
     expect(screen.getByText(/^Referencia terrestre, g = 9,81/)).toBeInTheDocument();
     expect(screen.getByText(/^Celeste, g = 112,50/)).toBeInTheDocument();
-    expect(screen.queryByTestId('lab-footnote')).toBeNull();
   });
 
   test('dragging the launch-vector handle upwards raises v0 and the maximum height', () => {

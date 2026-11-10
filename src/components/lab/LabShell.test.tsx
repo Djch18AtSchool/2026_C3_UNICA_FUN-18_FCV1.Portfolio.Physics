@@ -6,19 +6,19 @@ import { resetSettingsForTests } from '../../lib/settingsStore';
 import { installDialogPolyfill } from '../../test-dialog';
 import { fakeClock } from '../../test-fake-clock';
 import { EXACT_TEXT } from '../../test-exact-text';
-import LabShell, { READOUT_ANNOUNCE_DELAY_MS, type StackedLabShellProps } from './LabShell';
+import LabShell, { READOUT_ANNOUNCE_DELAY_MS, type LabShellProps } from './LabShell';
 
-function shellProps(overrides: Partial<StackedLabShellProps> = {}): StackedLabShellProps {
+function shellProps(overrides: Partial<LabShellProps> = {}): LabShellProps {
   return {
     title: 'Laboratorio del salto',
     readouts: [
       { id: 'hMax', label: 'Altura máxima', value: 1.234, unit: 'm' },
       { id: 'tAir', label: 'Tiempo en el aire', value: 0.5, unit: 's' },
     ],
-    params: <p>parámetros del salto</p>,
-    localSettings: [
-      { key: 'trail', label: 'Rastro', kind: 'toggle', value: true, onChange: () => {} },
-    ],
+    levels: {
+      params: <p>parámetros del salto</p>,
+      display: [{ key: 'trail', label: 'Rastro', kind: 'toggle', value: true, onChange: () => {} }],
+    },
     onReset: () => {},
     testId: 'jump-lab',
     children: <svg data-testid="canvas" />,
@@ -26,7 +26,7 @@ function shellProps(overrides: Partial<StackedLabShellProps> = {}): StackedLabSh
   };
 }
 
-function renderShell(overrides: Partial<StackedLabShellProps> = {}) {
+function renderShell(overrides: Partial<LabShellProps> = {}) {
   return render(<LabShell {...shellProps(overrides)} />);
 }
 
@@ -149,8 +149,7 @@ describe('LabShell', () => {
         title="Laboratorio del salto"
         clock={fakeClock({ playing: false })}
         readouts={[]}
-        params={null}
-        localSettings={[]}
+        levels={{ params: null, display: [] }}
         onReset={() => {}}
         testId="jump-lab"
       >
@@ -172,40 +171,6 @@ describe('LabShell', () => {
     expect(timeline()).toHaveAttribute('aria-valuetext', 't = 116\u202Fs');
   });
 
-  test('lays out header, canvas, transport, readouts, params and footnote in that order', () => {
-    renderShell({ clock: fakeClock(), footnote: 'Modelo sin rozamiento del aire.' });
-    const sequence = [
-      screen.getByText('Laboratorio del salto'),
-      gear(),
-      screen.getByTestId('canvas'),
-      screen.getByRole('group', { name: 'Reproducción' }),
-      screen.getByText('Altura máxima'),
-      // The params block is the v1 ControlPanel: its header (with "Restablecer") comes first.
-      screen.getByRole('button', { name: 'Restablecer' }),
-      screen.getByText('parámetros del salto'),
-      screen.getByText('Modelo sin rozamiento del aire.'),
-    ];
-
-    sequence.slice(1).forEach((node, index) => {
-      const previous = sequence[index];
-      expect(
-        previous.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
-    });
-  });
-
-  test('the footnote sits inside the parameters card, within its padding', () => {
-    renderShell({ footnote: 'Modelo sin rozamiento del aire.' });
-
-    const card = screen.getByTestId('lab-footnote').closest('section') as HTMLElement;
-    expect(within(card).getByRole('button', { name: 'Restablecer' })).toBeInTheDocument();
-  });
-
-  test('renders no footnote unless one is given', () => {
-    renderShell();
-
-    expect(screen.queryByTestId('lab-footnote')).toBeNull();
-  });
   test('readouts are keyed by id, so two may share a label', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     renderShell({
