@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'vitest';
 import { solveHabitat } from '../physics';
-import { HABITAT_LIMITS, HABITAT_PRESETS, type HabitatSettings } from './habitatPresets';
+import { formatNumber } from '../format';
+import {
+  HABITAT_LIMITS,
+  HABITAT_PRESETS,
+  STANFORD_TORUS_SP413,
+  type HabitatSettings,
+} from './habitatPresets';
 
 const KEYS: (keyof HabitatSettings)[] = ['r', 'rpm'];
 
@@ -52,13 +58,16 @@ describe('HABITAT_PRESETS', () => {
   });
 
   test('the SP-413 note says 895 m is the tube’s outermost point, with its 1,00 g and 93,7 m/s', () => {
-    // SP-413's torus: R = 830 m, tube radius 65 m; at 1 rpm, ω · 895 = 93.7 m/s.
+    // The note's numbers, each from the data: SP-413's R and tube radius, their sum (the preset)
+    // and what the model gives there at 1 rpm.
+    const { R, tubeRadius } = STANFORD_TORUS_SP413;
     const limit = presetById('limite-sp413');
+    const { gRatio, v } = solveHabitat(limit.values);
+    expect(presetById('toro-stanford').values.r).toBe(R);
+    expect(limit.values.r).toBe(R + tubeRadius);
     expect(limit.note).toBe(
-      'Solo los radios mayores de 895 m dan 1 g por debajo de 1 RPM; es el punto más exterior del tubo del Toro de Stanford (830 + 65 m), con 1,00 g y un piso a 93,7 m/s.',
+      `Solo los radios mayores de ${limit.values.r} m dan 1 g por debajo de 1 RPM; es el punto más exterior del tubo del Toro de Stanford (${R} + ${tubeRadius} m), con ${formatNumber(gRatio, { precision: 2 })} g y un piso a ${formatNumber(v, { precision: 1 })} m/s.`,
     );
-    expect(830 + 65).toBe(limit.values.r);
-    expect(solveHabitat(limit.values).v).toBeCloseTo(93.7, 1);
   });
 
   test('the small centrifuge gives 1 g at 10 m', () => {

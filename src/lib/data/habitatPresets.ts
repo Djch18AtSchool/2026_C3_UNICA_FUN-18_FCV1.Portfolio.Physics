@@ -9,6 +9,11 @@ export interface HabitatSettings {
   rpm: number;
 }
 
+/** NASA SP-413's Stanford torus: its major radius R and the radius of its tube (m). */
+export const STANFORD_TORUS_SP413 = { R: 830, tubeRadius: 65 } as const;
+/** The outermost point of the tube, R + r: SP-413's limit for 1 g below 1 rpm. */
+const SP413_LIMIT_RADIUS = STANFORD_TORUS_SP413.R + STANFORD_TORUS_SP413.tubeRadius;
+
 /** Slider ranges; the radius slider moves in 5 m steps and the spin slider in 0,1 rpm steps. */
 export const HABITAT_LIMITS = { r: [5, 4000], rpm: [0.1, 10] } as const;
 
@@ -23,7 +28,7 @@ export const HABITAT_PRESETS: Preset<HabitatSettings>[] = [
   {
     id: 'toro-stanford',
     name: 'Toro de Stanford',
-    values: { r: 830, rpm: 1 },
+    values: { r: STANFORD_TORUS_SP413.R, rpm: 1 },
     sourceLabel: 'NASA SP-413 (1977)',
     sourceUrl: SP413_URL,
     note: 'Radio mayor de 830 m girando a 1 RPM, el límite de rotación que fija el estudio para las zonas habitadas: con g = 9,81 m/s² resulta 0,93 g, y SP-413 reporta 0,95 ± 0,05 g.',
@@ -31,7 +36,7 @@ export const HABITAT_PRESETS: Preset<HabitatSettings>[] = [
   {
     id: 'limite-sp413',
     name: 'Límite SP-413: 1 g a 1 RPM',
-    values: { r: 895, rpm: 1 },
+    values: { r: SP413_LIMIT_RADIUS, rpm: 1 },
     sourceLabel: 'NASA SP-413 (1977)',
     sourceUrl: SP413_URL,
     note: 'Solo los radios mayores de 895 m dan 1 g por debajo de 1 RPM; es el punto más exterior del tubo del Toro de Stanford (830 + 65 m), con 1,00 g y un piso a 93,7 m/s.',

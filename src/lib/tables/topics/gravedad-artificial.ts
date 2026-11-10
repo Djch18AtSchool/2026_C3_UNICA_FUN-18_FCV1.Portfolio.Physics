@@ -12,7 +12,12 @@ import {
   solveHabitat,
 } from '../../physics';
 import { COMFORT } from '../../data/comfortCriteria';
-import { HABITAT_PRESETS, SP413_URL, type HabitatSettings } from '../../data/habitatPresets';
+import {
+  HABITAT_PRESETS,
+  SP413_URL,
+  STANFORD_TORUS_SP413,
+  type HabitatSettings,
+} from '../../data/habitatPresets';
 import type { DataTableSpec } from '../types';
 
 const PERCENT = 100;
@@ -27,13 +32,10 @@ function presetValues(id: string): HabitatSettings {
 
 const TORUS = presetValues('toro-stanford');
 const SP413_LIMIT = presetValues('limite-sp413');
-/**
- * NASA SP-413: R = 830 m and r = 65 m; the outermost point of the tube, R + r = 895 m, is the
- * preset of the SP-413 limit, so the tube radius is the difference of the two presets.
- */
+/** NASA SP-413: R = 830 m and r = 65 m (habitatPresets.ts); R + r is the SP-413 limit's preset. */
 export const STANFORD_TORUS = {
   R: TORUS.r,
-  tubeRadius: SP413_LIMIT.r - TORUS.r,
+  tubeRadius: STANFORD_TORUS_SP413.tubeRadius,
   rpm: TORUS.rpm,
 } as const;
 
