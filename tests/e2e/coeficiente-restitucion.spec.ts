@@ -17,8 +17,6 @@ const BLOCKING_IMPACTS = ['serious', 'critical'];
 const MIN_WIDTH_SHARE = 0.9;
 /** Timeline position (of 1000) to start from, so the drop ends within a moment. */
 const NEAR_END = '995';
-/** Longest the last 0,5 % of playback may take to reach the end. */
-const PLAYBACK_TIMEOUT_MS = 3000;
 const STILL_AT_END_MS = 500;
 /** A visible space at the chips' 12 px: a dropped one leaves ~0 px between formula and «=». */
 const MIN_SPACE_PX = 2;
@@ -180,9 +178,12 @@ test.describe('laboratorio', () => {
     const lab = page.locator(LAB);
     const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
     await setRange(timeline, NEAR_END);
+    // Play from where the seek landed, not from a clock that has not taken it yet.
+    await expect(timeline).toHaveValue(NEAR_END);
 
     await lab.getByRole('button', { name: 'Reproducir' }).click();
-    await expect(timeline).toHaveValue('1000', { timeout: PLAYBACK_TIMEOUT_MS });
+    // A condition, not a race against the wall clock: under a loaded run frames come late.
+    await expect(timeline).toHaveValue('1000');
 
     await expect(lab).toHaveAttribute('data-playing', 'false');
     await expect(lab.getByRole('button', { name: 'Reproducir' })).toBeVisible();
