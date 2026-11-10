@@ -49,14 +49,14 @@ export const TYRE_PRESETS: Preset<TyreLabState>[] = [
     name: 'Llanta fría',
     values: { t: 60, fz: 8000, compound: 'C3' },
     sourceLabel: '60 °C · 8 000 N',
-    note: 'A 60 °C, μ cae a 1,11, un 39 % menos que en el óptimo, y las dos curvas de carga bajan con él.',
+    note: 'A 60 °C, $\\mu$ cae a 1,11, un 39 % menos que en el óptimo, y las dos curvas de carga bajan con él.',
   },
   {
     id: 'ligera',
     name: 'Carga ligera',
     values: { t: 120, fz: 2000, compound: 'C3' },
     sourceLabel: '120 °C · 2 000 N',
-    note: 'Bajo la carga de referencia, la ley de potencia da más que la recta: μ efectivo mayor que μ₀.',
+    note: 'Bajo la carga de referencia, la ley de potencia da más que la recta: $\\mu$ efectivo mayor que $\\mu_0$.',
   },
   {
     id: 'c4',

@@ -60,7 +60,7 @@ export function temperaturePlot(
     series: [
       {
         id: 'mu',
-        label: 'μ(T)',
+        label: '$\\mu(T)$',
         points: rows.map(({ t, mu }) => ({ x: t, y: mu })),
         color: MU_COLOR,
       },
@@ -87,7 +87,7 @@ export function gripCurveSeries(muPeak: number): PlotSeries {
   if (!(muPeak > 0)) throw new RangeError(`μ_pico debe ser positivo (recibido ${muPeak})`);
   return {
     id: GRIP_CURVE_SERIES_ID,
-    label: 'tcurve_F3soft.lut de MUR, multiplicador × μ_pico',
+    label: 'tcurve_F3soft.lut de MUR, multiplicador × $\\mu_\\text{pico}$',
     points: gripCurvePoints().map(({ t, multiplier }) => ({ x: t, y: multiplier * muPeak })),
     color: GRIP_CURVE_COLOR,
     dashed: true,
@@ -113,14 +113,14 @@ export function loadPlot(temperatureFactor?: number): PlotFrame {
     series: [
       {
         id: 'lineal',
-        label: `Modelo lineal F = μ₀${thermal} F_z`,
+        label: `Modelo lineal $F = \\mu_0${thermal} F_z$`,
         points: rows.map(({ fz, linear }) => ({ x: fz, y: linear })),
         color: LINEAR_COLOR,
         dashed: true,
       },
       {
         id: 'real',
-        label: `Con sensibilidad a la carga, F = μ(F_z)${thermal} F_z`,
+        label: `Con sensibilidad a la carga, $F = \\mu(F_z)${thermal} F_z$`,
         points: rows.map(({ fz, real }) => ({ x: fz, y: real })),
         color: REAL_COLOR,
       },

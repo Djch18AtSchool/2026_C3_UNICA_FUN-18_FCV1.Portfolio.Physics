@@ -2,6 +2,8 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import TyreFigure from './TyreFigure';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
 import { svgText } from '../../../test-svg-text';
 
 const strokeOf = (container: HTMLElement, id: string) =>
@@ -36,7 +38,7 @@ describe('TyreFigure', () => {
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
     expect(legend).toHaveTextContent('Fricción sobre la caja f');
-    expect(legend).toHaveTextContent('Límite estático μ_s n');
+    expect(mathSourceText(legend)).toContain('Límite estático $\\mu_s n$');
     expect(strokeOf(container, 'limite')).toBe('var(--chart-2)');
     expect(screen.getByText(svgText('fs,máx = 39,2 N'))).toBeInTheDocument();
     expect(screen.getByText(svgText('fk = 29,4 N'))).toBeInTheDocument();
@@ -47,9 +49,9 @@ describe('TyreFigure', () => {
     const { container } = render(<TyreFigure variant="carga" />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
-    expect(legend).toHaveTextContent('Modelo lineal F = μ₀ F_z');
-    expect(legend).toHaveTextContent('Con sensibilidad a la carga, F = μ(F_z) F_z');
-    expect(legend).not.toHaveTextContent('f(T)');
+    expect(mathSourceText(legend)).toContain('Modelo lineal $F = \\mu_0 F_z$');
+    expect(mathSourceText(legend)).toContain('Con sensibilidad a la carga, $F = \\mu(F_z) F_z$');
+    expect(mathSourceText(legend)).not.toContain('f(T)');
     expect(strokeOf(container, 'lineal')).toBe('var(--chart-1)');
     expect(strokeOf(container, 'real')).toBe('var(--chart-2)');
     expect(screen.getByText('6 400 N a 4 000 N')).toBeInTheDocument();
@@ -72,8 +74,10 @@ describe('TyreFigure', () => {
     const pairs = container.querySelectorAll('[data-point^="lut-"]');
     const guide = container.querySelector('[data-series="lut-mur"]');
 
-    expect(legend).toHaveTextContent('Modelo μ(T), ecuación (4.3)');
-    expect(legend).toHaveTextContent('tcurve_F3soft.lut de MUR, multiplicador × μ_pico');
+    expect(mathSourceText(legend)).toContain('Modelo $\\mu(T)$, ecuación (4.3)');
+    expect(mathSourceText(legend)).toContain(
+      'tcurve_F3soft.lut de MUR, multiplicador × $\\mu_\\text{pico}$',
+    );
     expect(pairs).toHaveLength(6);
     expect([...pairs].map((p) => p.getAttribute('data-point'))).toEqual([
       'lut-0',
@@ -89,7 +93,9 @@ describe('TyreFigure', () => {
     expect(strokeOf(container, 'mu')).toBe('var(--chart-1)');
     expect(guide).toHaveAttribute('stroke', 'var(--chart-2)');
     expect(guide).toHaveAttribute('stroke-dasharray');
-    expect(screen.getByRole('img', { name: /tcurve_F3soft\.lut/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: /tcurve_F3soft\.lut.*mu sub pico/ }),
+    ).toBeInTheDocument();
   });
 
   test('temperature: the plateau pairs sit at μ_pico, the 0 and 240 pairs at 0,8 of it on the plot edges', () => {
@@ -121,7 +127,22 @@ describe('TyreFigure', () => {
     expect(screen.getByText(svgText('Pico: x ≈ 0,18; y = 1,00'))).toBeInTheDocument();
     expect(screen.getByText('x = 1: y = 0,91')).toBeInTheDocument();
     expect(screen.getByText('Deslizamiento x (adimensional)')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: /0,18/ })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /en x aproximadamente 0,18/ })).toBeInTheDocument();
+  });
+
+  test.each(['caja', 'carga', 'temperatura', 'pacejka'] as const)(
+    '%s: every character outside KaTeX is one IBM Plex draws',
+    (variant) => {
+      const { container } = render(<TyreFigure variant={variant} />);
+
+      expect(plexViolations(container)).toEqual([]);
+    },
+  );
+
+  test('box: the figure name says the limit in words, not as notation', () => {
+    render(<TyreFigure variant="caja" />);
+
+    expect(screen.getByRole('img', { name: /el límite mu sub s n; entonces/ })).toBeInTheDocument();
   });
 
   test('on a phone the temperature readings shorten to their value, each on its own side', () => {

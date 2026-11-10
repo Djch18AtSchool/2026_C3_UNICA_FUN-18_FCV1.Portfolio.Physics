@@ -9,6 +9,7 @@ import { formatNumber } from '../../../lib/format';
 import { gripVsTemperature, magicFormula, magicFormulaPeak } from '../../../lib/physics';
 import { CHART_COLORS } from '../../charts/chartTheme';
 import SvgPlot from '../../lab/SvgPlot';
+import { mathTextToString } from '../../../lib/mathNotation';
 import { BOX, boxFriction } from './tyreLabModel';
 import { PlotPoints, type PlotPoint } from '../../lab/PlotPoints';
 import {
@@ -37,7 +38,7 @@ const DOUBLE_LOAD = 8000;
 const COLD = 60;
 const HOT = 160;
 /** With a second series the legend appears, so the bell says what it is. */
-const TEMPERATURE_MODEL_LABEL = 'Modelo μ(T), ecuación (4.3)';
+const TEMPERATURE_MODEL_LABEL = 'Modelo $\\mu(T)$, ecuación (4.3)';
 /** Slip from 0 to 1: the peak near 0,18 and the value 0,91 at x = 1 that the text quotes. */
 const SLIP_MAX = 1;
 const SLIP_SAMPLE_STEP = 0.005;
@@ -86,7 +87,7 @@ function BoxPlot(): JSX.Element {
           },
           {
             id: 'limite',
-            label: 'Límite estático μ_s n',
+            label: 'Límite estático $\\mu_s n$',
             points: [
               { x: 0, y: BOX.staticLimit },
               { x: PUSH_MAX, y: BOX.staticLimit },
@@ -96,7 +97,9 @@ function BoxPlot(): JSX.Element {
           },
         ]}
         overlay={(scales) => <PlotPoints points={points} scales={scales} />}
-        ariaLabel="La fricción estática iguala la fuerza aplicada hasta 39,2 N, el límite μ_s n; entonces la caja desliza y la fricción baja a la cinética, 29,4 N."
+        ariaLabel={mathTextToString(
+          'La fricción estática iguala la fuerza aplicada hasta 39,2 N, el límite μ_s n; entonces la caja desliza y la fricción baja a la cinética, 29,4 N.',
+        )}
       />
     </div>
   );
@@ -139,7 +142,9 @@ function LoadFigure(): JSX.Element {
         title="Fuerza lateral máxima frente a la carga vertical sobre la llanta"
         {...loadPlot()}
         overlay={(scales) => <PlotPoints points={points} scales={scales} />}
-        ariaLabel="El modelo lineal y el de sensibilidad a la carga se cruzan en 6 400 N a 4 000 N; a 8 000 N el lineal da 12 800 N y el real, 11 943 N."
+        ariaLabel={mathTextToString(
+          'El modelo lineal y el de sensibilidad a la carga se cruzan en 6 400 N a 4 000 N; a 8 000 N el lineal da 12 800 N y el real, 11 943 N.',
+        )}
       />
     </div>
   );
@@ -177,14 +182,16 @@ function TemperatureFigure(): JSX.Element {
     <div ref={ref} data-testid="tyre-figure-temperatura">
       <SvgPlot
         aspectRatio={aspectRatio}
-        title="Coeficiente de agarre μ en función de la temperatura de la banda de rodadura"
+        title="Coeficiente de agarre $\mu$ en función de la temperatura de la banda de rodadura"
         {...frame}
         series={[
           ...frame.series.map((s) => ({ ...s, label: TEMPERATURE_MODEL_LABEL })),
           fileSeries,
         ]}
         overlay={(scales) => <PlotPoints points={[...filePairs, ...readings]} scales={scales} />}
-        ariaLabel="El modelo μ(T) es una campana con pico de 1,8 a 120 °C; dentro de la ventana del C3, de 105 a 135 °C, no baja de 1,75; a 60 °C vale 1,11 y a 160 °C, 1,45. Seis pares de tcurve_F3soft.lut de MUR, multiplicados por μ_pico, valen 1,8 entre 75 y 100 y bajan a 1,44 en 0 y en 240."
+        ariaLabel={mathTextToString(
+          'El modelo μ(T) es una campana con pico de 1,8 a 120 °C; dentro de la ventana del C3, de 105 a 135 °C, no baja de 1,75; a 60 °C vale 1,11 y a 160 °C, 1,45. Seis pares de tcurve\\_F3soft.lut de MUR, multiplicados por μ_pico, valen 1,8 entre 75 y 100 y bajan a 1,44 en 0 y en 240.',
+        )}
       />
     </div>
   );
@@ -232,7 +239,9 @@ function PacejkaFigure(): JSX.Element {
           },
         ]}
         overlay={(scales) => <PlotPoints points={points} scales={scales} />}
-        ariaLabel={`La fuerza normalizada crece casi en recta, llega al pico, y = ${twoDecimals(peak.y)}, en x ≈ ${twoDecimals(peak.x)} y baja a ${twoDecimals(atEnd)} en x = ${SLIP_MAX}.`}
+        ariaLabel={mathTextToString(
+          `La fuerza normalizada crece casi en recta, llega al pico, y = ${twoDecimals(peak.y)}, en x ≈ ${twoDecimals(peak.x)} y baja a ${twoDecimals(atEnd)} en x = ${SLIP_MAX}.`,
+        )}
       />
     </div>
   );

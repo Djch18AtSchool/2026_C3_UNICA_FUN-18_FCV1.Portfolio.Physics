@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { resetSettingsForTests } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
 import TyreLab from './TyreLab';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
 import { svgText } from '../../../test-svg-text';
 
 const FOOTNOTE = 'Parámetros ilustrativos, no medidos.';
@@ -27,7 +29,10 @@ function renderLab() {
 
 /** The value text of a LabShell readout row, normalised to plain spaces. */
 function readout(label: string): string {
-  const row = screen.getByText(label, { selector: 'span' }).parentElement as HTMLElement;
+  const row = [...document.querySelectorAll('[data-readout]')].find(
+    (candidate) => mathSourceText(candidate.firstElementChild) === label,
+  );
+  if (!row) throw new Error(`No readout labelled «${label}»`);
   return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
 
@@ -52,10 +57,10 @@ describe('TyreLab', () => {
   test('opens at 120 °C and 4 000 N, where both models give 6 400 N', () => {
     renderLab();
 
-    expect(readout('Coeficiente de agarre μ(T)')).toBe('1,80');
-    expect(readout('Fuerza lateral lineal F_y')).toBe('6 400 N');
-    expect(readout('Fuerza lateral real F_y')).toBe('6 400 N');
-    expect(readout('Coeficiente efectivo μ')).toBe('1,60');
+    expect(readout('Coeficiente de agarre $\\mu(T)$')).toBe('1,80');
+    expect(readout('Fuerza lateral lineal $F_y$')).toBe('6 400 N');
+    expect(readout('Fuerza lateral real $F_y$')).toBe('6 400 N');
+    expect(readout('Coeficiente efectivo $\\mu$')).toBe('1,60');
     expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
   });
 
@@ -67,9 +72,9 @@ describe('TyreLab', () => {
     await user.keyboard('{PageUp}{PageUp}{PageUp}{PageUp}');
 
     expect(loadCursor()).toHaveAttribute('aria-valuenow', '8000');
-    expect(readout('Fuerza lateral real F_y')).toBe('11 943 N');
-    expect(readout('Fuerza lateral lineal F_y')).toBe('12 800 N');
-    expect(readout('Coeficiente efectivo μ')).toBe('1,49');
+    expect(readout('Fuerza lateral real $F_y$')).toBe('11 943 N');
+    expect(readout('Fuerza lateral lineal $F_y$')).toBe('12 800 N');
+    expect(readout('Coeficiente efectivo $\\mu$')).toBe('1,49');
     expect(loadField()).toHaveValue('8000');
   });
 
@@ -81,20 +86,20 @@ describe('TyreLab', () => {
     await user.click(within(presets).getByRole('button', { name: /^Llanta fría/ }));
     expect(temperatureField()).toHaveValue('60');
     expect(loadField()).toHaveValue('8000');
-    expect(readout('Coeficiente de agarre μ(T)')).toBe('1,11');
+    expect(readout('Coeficiente de agarre $\\mu(T)$')).toBe('1,11');
     expect(within(presets).getByRole('button', { name: /^Llanta fría/ })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
 
     await user.click(within(presets).getByRole('button', { name: /^Carga ligera/ }));
-    expect(readout('Fuerza lateral lineal F_y')).toBe('3 200 N');
-    expect(readout('Fuerza lateral real F_y')).toBe('3 430 N');
+    expect(readout('Fuerza lateral lineal $F_y$')).toBe('3 200 N');
+    expect(readout('Fuerza lateral real $F_y$')).toBe('3 430 N');
 
     await user.click(within(presets).getByRole('button', { name: /^Compuesto C4/ }));
     expect(screen.getByText('Ventana de trabajo C4 (2019)')).toBeInTheDocument();
-    expect(readout('Coeficiente de agarre μ(T)')).toBe('1,80');
-    expect(readout('Fuerza lateral real F_y')).toBe('11 943 N');
+    expect(readout('Coeficiente de agarre $\\mu(T)$')).toBe('1,80');
+    expect(readout('Fuerza lateral real $F_y$')).toBe('11 943 N');
 
     // Moving a cursor off the preset's values releases its button.
     temperatureCursor().focus();
@@ -117,12 +122,12 @@ describe('TyreLab', () => {
     expect(screen.getByText('Ventana de trabajo C4 (2019)')).toBeInTheDocument();
     expect(screen.queryByText('Ventana de trabajo C3 (2019)')).toBeNull();
     // 120 °C is the C4 window's upper edge: 97 % of the peak.
-    expect(readout('Coeficiente de agarre μ(T)')).toBe('1,75');
+    expect(readout('Coeficiente de agarre $\\mu(T)$')).toBe('1,75');
   });
 
   test('dragging the temperature cursor changes μ(T) and the temperature field', () => {
     renderLab();
-    const before = readout('Coeficiente de agarre μ(T)');
+    const before = readout('Coeficiente de agarre $\\mu(T)$');
     const knob = temperatureCursor().querySelectorAll('circle')[1] as SVGCircleElement;
     const x = Number(knob.getAttribute('cx'));
 
@@ -130,7 +135,7 @@ describe('TyreLab', () => {
     fireEvent.pointerMove(temperatureCursor(), { pointerId: 1, clientX: x - 200, clientY: 30 });
     fireEvent.pointerUp(temperatureCursor(), { pointerId: 1, clientX: x - 200, clientY: 30 });
 
-    expect(readout('Coeficiente de agarre μ(T)')).not.toBe(before);
+    expect(readout('Coeficiente de agarre $\\mu(T)$')).not.toBe(before);
     expect(Number(temperatureCursor().getAttribute('aria-valuenow'))).toBeLessThan(120);
     expect(Number.isInteger(Number(temperatureCursor().getAttribute('aria-valuenow')))).toBe(true);
     expect(temperatureField()).not.toHaveValue('120');
@@ -144,9 +149,9 @@ describe('TyreLab', () => {
     await user.type(temperatureField(), '60{Enter}');
 
     expect(temperatureCursor()).toHaveAttribute('aria-valuenow', '60');
-    expect(readout('Coeficiente de agarre μ(T)')).toBe('1,11');
-    expect(readout('Fuerza lateral lineal F_y')).toBe('3 931 N');
-    expect(readout('Fuerza lateral real F_y')).toBe('3 931 N');
+    expect(readout('Coeficiente de agarre $\\mu(T)$')).toBe('1,11');
+    expect(readout('Fuerza lateral lineal $F_y$')).toBe('3 931 N');
+    expect(readout('Fuerza lateral real $F_y$')).toBe('3 931 N');
   });
 
   test('the load field drives the load cursor', () => {
@@ -166,20 +171,43 @@ describe('TyreLab', () => {
     loadCursor().focus();
     await user.keyboard('{Home}');
 
-    expect(readout('Fuerza lateral real F_y')).toBe('0 N');
-    expect(readout('Coeficiente efectivo μ')).toBe('—');
+    expect(readout('Fuerza lateral real $F_y$')).toBe('0 N');
+    expect(readout('Coeficiente efectivo $\\mu$')).toBe('—');
   });
 
   test('two plots with °C and N axes, the load legend and no transport bar', () => {
     renderLab();
 
+    const titles = [...document.querySelectorAll('figcaption')].map((caption) =>
+      mathSourceText(caption),
+    );
+    expect(titles).toContain('Coeficiente de agarre $\\mu$ frente a la temperatura');
     expect(screen.getByText('Temperatura T (°C)')).toBeInTheDocument();
     expect(screen.getByText(svgText('Carga vertical Fz (N)'))).toBeInTheDocument();
     const legend = screen.getByRole('list', { name: 'Leyenda' });
-    expect(legend).toHaveTextContent('Modelo lineal F = μ₀ f(T) F_z');
-    expect(legend).toHaveTextContent('Con sensibilidad a la carga, F = μ(F_z) f(T) F_z');
+    expect(mathSourceText(legend)).toContain('Modelo lineal $F = \\mu_0 f(T) F_z$');
+    expect(mathSourceText(legend)).toContain(
+      'Con sensibilidad a la carga, $F = \\mu(F_z) f(T) F_z$',
+    );
     expect(screen.queryByRole('button', { name: 'Reproducir' })).toBeNull();
     expect(screen.queryByRole('slider', { name: 'Línea de tiempo' })).toBeNull();
+  });
+
+  test('every character outside KaTeX is one IBM Plex draws, with C3 and with C4', async () => {
+    const user = userEvent.setup();
+    const { container } = renderLab();
+    expect(plexViolations(container)).toEqual([]);
+
+    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+    await user.selectOptions(
+      within(screen.getByRole('dialog')).getByRole('combobox', { name: /^Compuesto/ }),
+      'C4',
+    );
+    await user.keyboard('{Escape}');
+    for (const preset of [/^Llanta fría/, /^Carga ligera/]) {
+      await user.click(screen.getByRole('button', { name: preset }));
+      expect(plexViolations(container)).toEqual([]);
+    }
   });
 
   test('Restablecer returns to 120 °C, 4 000 N and C3', async () => {
@@ -209,8 +237,8 @@ describe('TyreLab', () => {
     await user.click(within(dialog).getByRole('tab', { name: 'Global' }));
     await user.click(within(dialog).getByText('1', { exact: true }));
 
-    expect(readout('Coeficiente de agarre μ(T)')).toBe('1,8');
-    expect(readout('Coeficiente efectivo μ')).toBe('1,6');
-    expect(readout('Fuerza lateral real F_y')).toBe('6 400 N');
+    expect(readout('Coeficiente de agarre $\\mu(T)$')).toBe('1,8');
+    expect(readout('Coeficiente efectivo $\\mu$')).toBe('1,6');
+    expect(readout('Fuerza lateral real $F_y$')).toBe('6 400 N');
   });
 });

@@ -34,16 +34,22 @@ const twoDecimals = (value: number) => formatNumber(value, { precision: 2 });
 
 const LOAD: DataTableSpec = {
   id: 'llantas-f1-carga',
-  caption: `Fuerza lateral máxima de los dos modelos y μ efectivo en cuatro cargas. El μ efectivo de ${twoDecimals(loadPoint(ARTEFACT_LOAD_N).muEff)} a ${ARTEFACT_LOAD_N} N es un artefacto del modelo, no un agarre real: la ley de potencia sirve cerca de la carga de referencia y, cuando la carga tiende a cero, da un μ infinito.`,
+  caption: `Fuerza lateral máxima de los dos modelos y $\\mu$ efectivo en cuatro cargas. El $\\mu$ efectivo de ${twoDecimals(loadPoint(ARTEFACT_LOAD_N).muEff)} a ${ARTEFACT_LOAD_N} N es un artefacto del modelo, no un agarre real: la ley de potencia sirve cerca de la carga de referencia y, cuando la carga tiende a cero, da un $\\mu$ infinito.`,
   columns: [
-    { key: 'fz', label: 'Carga vertical F_z', unit: 'N', align: 'num', precision: 0 },
-    { key: 'linear', label: 'Modelo lineal, μ₀ F_z', unit: 'N', align: 'num', precision: 0 },
-    { key: 'real', label: 'Ecuación (4.2), μ(F_z) F_z', unit: 'N', align: 'num', precision: 0 },
-    { key: 'muEff', label: 'μ efectivo, μ(F_z)', align: 'num', precision: 2 },
+    { key: 'fz', label: 'Carga vertical $F_z$', unit: 'N', align: 'num', precision: 0 },
+    { key: 'linear', label: 'Modelo lineal, $\\mu_0 F_z$', unit: 'N', align: 'num', precision: 0 },
+    {
+      key: 'real',
+      label: 'Ecuación (4.2), $\\mu(F_z) F_z$',
+      unit: 'N',
+      align: 'num',
+      precision: 0,
+    },
+    { key: 'muEff', label: '$\\mu$ efectivo, $\\mu(F_z)$', align: 'num', precision: 2 },
   ],
   rows: LOADS_N.map((fz) => ({ fz, ...loadPoint(fz) })),
   source: {
-    text: `Cálculo propio con la ecuación (4.2) y parámetros ilustrativos, no medidos (μ₀ = ${formatNumber(mu0, { precision: 1 })}, F_z0 = ${formatNumber(fz0, { precision: 0 })} N y β = ${formatNumber(exponent, { precision: 1 })}); sensibilidad a la carga según Milliken y Milliken (1995), fuente 6`,
+    text: `Cálculo propio con la ecuación (4.2) y parámetros ilustrativos, no medidos ($\\mu_0$ = ${formatNumber(mu0, { precision: 1 })}, $F_{z0}$ = ${formatNumber(fz0, { precision: 0 })} N y $\\beta$ = ${formatNumber(exponent, { precision: 1 })}); sensibilidad a la carga según Milliken y Milliken (1995), fuente 6`,
   },
 };
 
@@ -53,10 +59,10 @@ const shareOfPeak = (t: number) => gripVsTemperature(C3_MODEL, t) / C3_MODEL.muP
 
 const TEMPERATURE: DataTableSpec = {
   id: 'llantas-f1-temperatura',
-  caption: `Agarre de la campana del C3, ecuación (4.3), en el óptimo, en los bordes de su ventana de 2019 y fuera de ella; dentro de la ventana μ no baja del ${formatNumber(shareOfPeak(C3_WINDOW.from) * PERCENT, { precision: 0 })} % del pico.`,
+  caption: `Agarre de la campana del C3, ecuación (4.3), en el óptimo, en los bordes de su ventana de 2019 y fuera de ella; dentro de la ventana $\\mu$ no baja del ${formatNumber(shareOfPeak(C3_WINDOW.from) * PERCENT, { precision: 0 })} % del pico.`,
   columns: [
     { key: 't', label: 'Temperatura T', unit: '°C', align: 'num', precision: 0 },
-    { key: 'mu', label: 'μ(T)', align: 'num', precision: 2 },
+    { key: 'mu', label: '$\\mu(T)$', align: 'num', precision: 2 },
     { key: 'loss', label: 'Pérdida respecto del pico', unit: '%', align: 'num', precision: 0 },
   ],
   rows: TEMPERATURES_C.map((t) => ({
@@ -65,7 +71,7 @@ const TEMPERATURE: DataTableSpec = {
     loss: (1 - shareOfPeak(t)) * PERCENT,
   })),
   source: {
-    text: `Cálculo propio con la ecuación (4.3) y parámetros ilustrativos (μ_pico = ${formatNumber(C3_MODEL.muPeak, { precision: 1 })}, T_ópt = ${C3_MODEL.tOpt} °C y w = ${formatNumber(C3_MODEL.widthAbove, { precision: 1 })} °C a cada lado); ventana del C3 de 2019, generación de 13 pulgadas, de ${C3_WINDOW.from} a ${C3_WINDOW.to} °C según Autosport (Noble, 2019), fuente 1; criterio del agarre máximo menos 3 % de Isola, fuente 2`,
+    text: `Cálculo propio con la ecuación (4.3) y parámetros ilustrativos ($\\mu_\\text{pico}$ = ${formatNumber(C3_MODEL.muPeak, { precision: 1 })}, $T_\\text{ópt}$ = ${C3_MODEL.tOpt} °C y $w$ = ${formatNumber(C3_MODEL.widthAbove, { precision: 1 })} °C a cada lado); ventana del C3 de 2019, generación de 13 pulgadas, de ${C3_WINDOW.from} a ${C3_WINDOW.to} °C según Autosport (Noble, 2019), fuente 1; criterio del agarre máximo menos 3 % de Isola, fuente 2`,
   },
 };
 

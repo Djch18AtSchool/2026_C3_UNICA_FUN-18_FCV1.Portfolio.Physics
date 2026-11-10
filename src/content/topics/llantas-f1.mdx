@@ -60,16 +60,16 @@ related: ['gravedad-artificial', 'control-haptico', 'frenado-regenerativo']
 classRefs:
   - module: 'Módulo 2'
     topic: 'Tema 02 · Fricción y resortes · Concepto 01 · Fricción estática'
-    note: '0 ≤ f_s ≤ μ_s N con μ_s constante: el modelo de partida que la llanta real deja de cumplir.'
+    note: '$0 \le f_s \le \mu_s N$ con $\mu_s$ constante: el modelo de partida que la llanta real deja de cumplir.'
   - module: 'Módulo 2'
     topic: 'Tema 02 · Fricción y resortes · Concepto 02 · Fricción cinética y detención'
-    note: 'f_k = μ_k N y la caja de 10 kg (39,2 N y 29,4 N); el pico y la caída de la Fórmula Mágica recuerdan el paso de μ_s a μ_k.'
+    note: '$f_k = \mu_k N$ y la caja de 10 kg (39,2 N y 29,4 N); el pico y la caída de la Fórmula Mágica recuerdan el paso de $\mu_s$ a $\mu_k$.'
   - module: 'Módulo 2'
     topic: 'Tema 02 · Fricción y resortes · Concepto 03 · Fuerzas en un plano inclinado'
     note: 'N = mg cos θ: la carga sobre una superficie no es siempre el peso, y en un auto cambia en cada curva.'
   - module: 'Módulo 2'
     topic: 'Tema 01 · Leyes de Newton · Concepto 07 · Fuerza normal y tensión'
-    note: 'La normal se calcula, no se sustituye por mg: es la carga vertical F_z de cada llanta.'
+    note: 'La normal se calcula, no se sustituye por mg: es la carga vertical $F_z$ de cada llanta.'
 updated: 2026-10-30
 ---
 
@@ -120,7 +120,7 @@ En clase, n fija cuánto se traban las superficies y μ solo depende de los mate
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Fricción sobre la caja de 10 kg de clase frente a la fuerza horizontal aplicada, con μ_s = 0,40, μ_k = 0,30 y n = m g = 98,1 N (g = 9,81 m/s²). La fricción estática iguala el empuje hasta f_s,máx = 0,40 · 98,1 N = 39,2 N; entonces la caja arranca y la fricción baja a f_k = 0,30 · 98,1 N = 29,4 N."
+  caption="Fricción sobre la caja de 10 kg de clase frente a la fuerza horizontal aplicada, con $\mu_s$ = 0,40, $\mu_k$ = 0,30 y n = m g = 98,1 N (g = 9,81 m/s²). La fricción estática iguala el empuje hasta $f_{s,\text{máx}}$ = 0,40 · 98,1 N = 39,2 N; entonces la caja arranca y la fricción baja a $f_k$ = 0,30 · 98,1 N = 29,4 N."
   source={{
     text: 'Gráfica del autor con la ecuación (4.1); ejemplo de la caja del Módulo 2 (Tema 02, concepto 02) y modelo de fricción de Serway y Jewett (2018), fuente 7',
   }}
@@ -166,9 +166,9 @@ Con β < 1, la (4.2) da <Equation inline latex="F_{y,\text{máx}} \propto F_z^{\
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Fuerza lateral máxima frente a la carga vertical: modelo lineal F = μ₀ F_z, con μ constante, frente a la ecuación (4.2). Se cruzan en la carga de referencia, F_z0 = 4 000 N; por encima, la (4.2) queda bajo la recta (tabla 4.1)."
+  caption="Fuerza lateral máxima frente a la carga vertical: modelo lineal $F = \mu_0 F_z$, con $\mu$ constante, frente a la ecuación (4.2). Se cruzan en la carga de referencia, $F_{z0}$ = 4 000 N; por encima, la (4.2) queda bajo la recta (tabla 4.1)."
   source={{
-    text: 'Curvas calculadas por el autor con la ecuación (4.2) y parámetros ilustrativos, no medidos (μ₀ = 1,6, carga de referencia de 4 000 N y β = 0,9). Sensibilidad a la carga según Milliken y Milliken (1995), fuente 6.',
+    text: 'Curvas calculadas por el autor con la ecuación (4.2) y parámetros ilustrativos, no medidos ($\\mu_0$ = 1,6, carga de referencia de 4 000 N y $\\beta$ = 0,9). Sensibilidad a la carga según Milliken y Milliken (1995), fuente 6.',
   }}
 >
   <TyreFigure variant="carga" client:visible />
@@ -221,9 +221,9 @@ Con el óptimo en el centro de la ventana del C3, <Equation inline latex="T_\tex
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Coeficiente de agarre frente a la temperatura de la banda: la campana de la ecuación (4.3), entre 0 y 240 °C, con la ventana de trabajo del compuesto C3 de 2019 sombreada entre 105 y 135 °C (tabla 4.2); con el óptimo en el centro, los dos anchos quedan iguales, y un lado caliente más estrecho pondría 135 °C fuera de la ventana. Los puntos son seis de los pares de tcurve_F3soft.lut, la tabla de temperatura del tyres.ini del equipo MUR (los mismos de la tabla 4.4), multiplicados por μ_pico para compartir el eje; la línea discontinua solo une esos seis. Ese es otro compuesto, con otra ventana: da todo su agarre entre 75 y 100 (sin unidad impresa; supongo °C), no en 105–135 °C, y a 0 y a 240 conserva el 80 %; sube, se mantiene y baja como la campana, pero cae mucho más despacio. Los rangos son de 2019 y no encontré los de los compuestos actuales."
+  caption="Coeficiente de agarre frente a la temperatura de la banda: la campana de la ecuación (4.3), entre 0 y 240 °C, con la ventana de trabajo del compuesto C3 de 2019 sombreada entre 105 y 135 °C (tabla 4.2); con el óptimo en el centro, los dos anchos quedan iguales, y un lado caliente más estrecho pondría 135 °C fuera de la ventana. Los puntos son seis de los pares de tcurve_F3soft.lut, la tabla de temperatura del tyres.ini del equipo MUR (los mismos de la tabla 4.4), multiplicados por $\mu_\text{pico}$ para compartir el eje; la línea discontinua solo une esos seis. Ese es otro compuesto, con otra ventana: da todo su agarre entre 75 y 100 (sin unidad impresa; supongo °C), no en 105–135 °C, y a 0 y a 240 conserva el 80 %; sube, se mantiene y baja como la campana, pero cae mucho más despacio. Los rangos son de 2019 y no encontré los de los compuestos actuales."
   source={{
-    text: 'Curva calculada por el autor con la ecuación (4.3) y parámetros ilustrativos (μ máximo de 1,8, del orden del DY_REF=1.80 de MUR, temperatura óptima de 120 °C y ancho de 60,8 °C a cada lado). Ventana del C3 de 2019, generación de 13 pulgadas, según la tabla de Autosport (Noble, 2019), fuente 1; criterio del agarre máximo menos 3 % de Isola, fuente 2; pares de tcurve_F3soft.lut, tabla de temperatura del tyres.ini del equipo MUR (Universidad de Melbourne), fuente 3.',
+    text: 'Curva calculada por el autor con la ecuación (4.3) y parámetros ilustrativos ($\\mu$ máximo de 1,8, del orden del DY_REF=1.80 de MUR, temperatura óptima de 120 °C y ancho de 60,8 °C a cada lado). Ventana del C3 de 2019, generación de 13 pulgadas, según la tabla de Autosport (Noble, 2019), fuente 1; criterio del agarre máximo menos 3 % de Isola, fuente 2; pares de tcurve_F3soft.lut, tabla de temperatura del tyres.ini del equipo MUR (Universidad de Melbourne), fuente 3.',
   }}
 >
   <TyreFigure variant="temperatura" client:visible />
@@ -271,7 +271,7 @@ Con <Equation inline latex="C > 1" />, al crecer x el argumento <Equation inline
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Ecuación (4.4) con B = 10, C = 1,9, D = 1 y E = 0,97: la fuerza normalizada crece casi en recta, llega al pico, y = 1, en x ≈ 0,18 y, al seguir deslizando, baja a 0,91 en x = 1."
+  caption="Ecuación (4.4) con B = 10, C = 1,9, D = 1 y E = 0,97: la fuerza normalizada crece casi en recta, llega al pico, y = 1, en $x \approx 0{,}18$ y, al seguir deslizando, baja a 0,91 en x = 1."
   source={{
     text: 'Curva calculada por el autor con la ecuación (4.4) y los valores de ejemplo de Edy (2016), fuente 5, típicos para fuerza longitudinal en asfalto seco; ilustrativos (para la lateral, la fuente solo da C = 1,3)',
   }}
@@ -281,14 +281,14 @@ Con <Equation inline latex="C > 1" />, al crecer x el argumento <Equation inline
 
 <Figure
   type="visualizacion"
-  caption="Laboratorio de la llanta con las ecuaciones (4.2) y (4.3): arrastra el cursor de temperatura para leer μ(T) sobre la ventana del compuesto elegido (C3 o C4, en los ajustes) y el de carga para leer la fuerza lateral máxima de los dos modelos y el μ efectivo; también se mueven con las flechas. Las curvas de carga se multiplican por f(T) = μ(T)/μ_pico, como hace con el agarre la tabla de temperatura del tyres.ini del equipo MUR (tablas 4.3 y 4.4): a 120 °C con el C3 son las de la figura 4.2, y a 8 000 N la real da 11 943 N."
+  caption="Laboratorio de la llanta con las ecuaciones (4.2) y (4.3): arrastra el cursor de temperatura para leer $\mu(T)$ sobre la ventana del compuesto elegido (C3 o C4, en los ajustes) y el de carga para leer la fuerza lateral máxima de los dos modelos y el $\mu$ efectivo; también se mueven con las flechas. Las curvas de carga se multiplican por $f(T) = \mu(T)/\mu_\text{pico}$, como hace con el agarre la tabla de temperatura del tyres.ini del equipo MUR (tablas 4.3 y 4.4): a 120 °C con el C3 son las de la figura 4.2, y a 8 000 N la real da 11 943 N."
   source={{
     text: 'Visualización del autor sobre src/lib/data/tyreModels.ts, con las ecuaciones (4.2) y (4.3) y parámetros ilustrativos; ventanas del C3 y el C4 de 2019 según Autosport (Noble, 2019), fuente 1; tyres.ini y tabla de temperatura del equipo MUR, fuente 3',
   }}
 >
   <TyreLab
     client:visible
-    footnote="Parámetros ilustrativos, no medidos: μ_pico = 1,8 en la campana y μ₀ = 1,6, F_z0 = 4 000 N y β = 0,9 en la carga; son dos modelos independientes, cada uno aísla un efecto, y aquí solo los acopla el factor f(T) que multiplica las dos curvas de carga. La campana del C4 es un supuesto del modelo, no un dato: se calibra con el mismo criterio que la del C3 (óptimo de 105 °C y el mismo ancho) y conserva μ_pico = 1,8. Deja fuera: el ángulo de deriva (la (4.2) da solo el pico de la (4.4)); el desgaste; la presión; la caída."
+    footnote="Parámetros ilustrativos, no medidos: $\mu_\text{pico}$ = 1,8 en la campana y $\mu_0$ = 1,6, $F_{z0}$ = 4 000 N y $\beta$ = 0,9 en la carga; son dos modelos independientes, cada uno aísla un efecto, y aquí solo los acopla el factor $f(T)$ que multiplica las dos curvas de carga. La campana del C4 es un supuesto del modelo, no un dato: se calibra con el mismo criterio que la del C3 (óptimo de 105 °C y el mismo ancho) y conserva $\mu_\text{pico}$ = 1,8. Deja fuera: el ángulo de deriva (la (4.2) da solo el pico de la (4.4)); el desgaste; la presión; la caída."
   />
 </Figure>
 

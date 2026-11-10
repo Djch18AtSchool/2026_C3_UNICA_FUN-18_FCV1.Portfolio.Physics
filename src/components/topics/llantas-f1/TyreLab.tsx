@@ -6,6 +6,7 @@ import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import type { SettingOption } from '../../lab/SettingsDrawer';
 import SvgPlot from '../../lab/SvgPlot';
+import { mathTextToString } from '../../../lib/mathNotation';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import {
   COMPOUNDS,
@@ -69,22 +70,22 @@ export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
   const onLoad = (fz: number) => setState((previous) => setLoad(previous, fz));
 
   const readouts: LabReadout[] = [
-    { id: 'mu', label: 'Coeficiente de agarre μ(T)', value: readings.mu, unit: '' },
+    { id: 'mu', label: 'Coeficiente de agarre $\\mu(T)$', value: readings.mu, unit: '' },
     {
       id: 'linear',
-      label: 'Fuerza lateral lineal F_y',
+      label: 'Fuerza lateral lineal $F_y$',
       value: readings.linear,
       unit: 'N',
       precision: FORCE_PRECISION,
     },
     {
       id: 'real',
-      label: 'Fuerza lateral real F_y',
+      label: 'Fuerza lateral real $F_y$',
       value: readings.real,
       unit: 'N',
       precision: FORCE_PRECISION,
     },
-    { id: 'muEff', label: 'Coeficiente efectivo μ', value: readings.muEff, unit: '' },
+    { id: 'muEff', label: 'Coeficiente efectivo $\\mu$', value: readings.muEff, unit: '' },
   ];
 
   const localSettings: SettingOption[] = [
@@ -113,7 +114,7 @@ export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
         />
         <ParamField
           id="tyre-fz"
-          label="Carga sobre la llanta F_z"
+          label="Carga sobre la llanta $F_z$"
           unit="N"
           min={LOAD_DOMAIN.min}
           max={LOAD_DOMAIN.max}
@@ -148,7 +149,7 @@ export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
         <div ref={temperatureAspect.ref} data-testid="tyre-temperature-plot">
           <SvgPlot
             aspectRatio={temperatureAspect.aspectRatio}
-            title="Coeficiente de agarre μ frente a la temperatura"
+            title="Coeficiente de agarre $\mu$ frente a la temperatura"
             {...temperaturePlot(state.compound)}
             cursor={{
               x: state.t,
@@ -156,7 +157,9 @@ export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
               label: (t) => `T = ${formatNumber(t, { precision: 0, unit: TEMPERATURE_AXIS.unit })}`,
             }}
             marker={{ x: state.t, y: readings.mu }}
-            ariaLabel={`μ(T) del compuesto ${state.compound}: a ${formatNumber(state.t, { precision: 0 })} °C, μ = ${formatNumber(readings.mu, { precision: decimals })}.`}
+            ariaLabel={mathTextToString(
+              `μ(T) del compuesto ${state.compound}: a ${formatNumber(state.t, { precision: 0 })} °C, μ = ${formatNumber(readings.mu, { precision: decimals })}.`,
+            )}
           />
         </div>
         <div ref={loadAspect.ref} data-testid="tyre-load-plot">
@@ -178,7 +181,9 @@ export default function TyreLab({ footnote }: TyreLabProps): JSX.Element {
                 ]}
               />
             )}
-            ariaLabel={`A ${formatNumber(state.fz, { precision: 0, unit: 'N' })}, el modelo lineal da ${formatNumber(readings.linear, { precision: 0, unit: 'N' })} y el de sensibilidad a la carga, ${formatNumber(readings.real, { precision: 0, unit: 'N' })}.`}
+            ariaLabel={mathTextToString(
+              `A ${formatNumber(state.fz, { precision: 0, unit: 'N' })}, el modelo lineal da ${formatNumber(readings.linear, { precision: 0, unit: 'N' })} y el de sensibilidad a la carga, ${formatNumber(readings.real, { precision: 0, unit: 'N' })}.`,
+            )}
           />
         </div>
       </div>

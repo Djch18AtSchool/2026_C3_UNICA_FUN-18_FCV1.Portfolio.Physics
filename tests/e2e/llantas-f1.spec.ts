@@ -9,10 +9,25 @@ const MIN_WIDTH_SHARE = 0.9;
 const LOAD_CURSOR = 'Carga vertical F sub z';
 const TEMPERATURE_CURSOR = 'Temperatura T';
 
-/** The value text of a LabShell readout row. */
+/**
+ * The value text of the LabShell readout row whose label, as its author wrote it (each KaTeX
+ * formula back to `$tex$`), is `label`.
+ */
 async function readoutText(page: Page, label: string): Promise<string> {
-  const row = page.locator(LAB).locator('div', { has: page.getByText(label, { exact: true }) });
-  return ((await row.last().locator('span').last().textContent()) ?? '').trim();
+  return page.locator(LAB).evaluate((lab, wanted) => {
+    const source = (element: Element): string => {
+      const copy = element.cloneNode(true) as Element;
+      for (const katex of copy.querySelectorAll('.katex')) {
+        katex.replaceWith(`$${katex.querySelector('annotation')?.textContent ?? ''}$`);
+      }
+      return copy.textContent ?? '';
+    };
+    const row = [...lab.querySelectorAll('[data-readout]')].find(
+      (candidate) => source(candidate.firstElementChild as Element) === wanted,
+    );
+    if (!row) throw new Error(`No readout labelled «${wanted}»`);
+    return (row.lastElementChild?.textContent ?? '').trim();
+  }, label);
 }
 
 /** Centre of a plot cursor's visible knob, in page coordinates. */
@@ -67,7 +82,7 @@ test.describe('laboratorio', () => {
     page,
   }) => {
     await centreLoadPlot(page);
-    const before = await readoutText(page, 'Fuerza lateral real F_y');
+    const before = await readoutText(page, 'Fuerza lateral real $F_y$');
     const { x, y } = await knobCentre(page, LOAD_CURSOR);
 
     await page.mouse.move(x, y);
@@ -76,7 +91,7 @@ test.describe('laboratorio', () => {
     await page.mouse.move(x + 120, y, { steps: 4 });
     await page.mouse.up();
 
-    await expect.poll(() => readoutText(page, 'Fuerza lateral real F_y')).not.toBe(before);
+    await expect.poll(() => readoutText(page, 'Fuerza lateral real $F_y$')).not.toBe(before);
     const fz = Number(
       await page
         .locator(LAB)
@@ -90,23 +105,23 @@ test.describe('laboratorio', () => {
     page,
   }) => {
     const cursor = page.locator(LAB).getByRole('slider', { name: TEMPERATURE_CURSOR, exact: true });
-    const before = await readoutText(page, 'Coeficiente de agarre μ(T)');
+    const before = await readoutText(page, 'Coeficiente de agarre $\\mu(T)$');
 
     await cursor.focus();
     await page.keyboard.press('Shift+ArrowLeft');
 
     await expect(cursor).toBeFocused();
-    await expect.poll(() => readoutText(page, 'Coeficiente de agarre μ(T)')).not.toBe(before);
+    await expect.poll(() => readoutText(page, 'Coeficiente de agarre $\\mu(T)$')).not.toBe(before);
     await setRange(page.getByRole('slider', { name: /^Temperatura de la banda/ }), '60');
     await expect(cursor).toHaveAttribute('aria-valuenow', '60');
-    await expect.poll(() => readoutText(page, 'Coeficiente de agarre μ(T)')).toBe('1,11');
+    await expect.poll(() => readoutText(page, 'Coeficiente de agarre $\\mu(T)$')).toBe('1,11');
   });
 
   test('llevar la carga a 8 000 N muestra 11 943 N', async ({ page }) => {
     await setRange(page.getByRole('slider', { name: /^Carga sobre la llanta/ }), '8000');
 
     await expect
-      .poll(async () => (await readoutText(page, 'Fuerza lateral real F_y')).replace(/\s/g, ' '))
+      .poll(async () => (await readoutText(page, 'Fuerza lateral real $F_y$')).replace(/\s/g, ' '))
       .toBe('11 943 N');
   });
 
@@ -114,14 +129,14 @@ test.describe('laboratorio', () => {
     const presets = page.locator(LAB).getByRole('group', { name: 'Valores de referencia' });
 
     await presets.getByRole('button', { name: /^Llanta fría/ }).click();
-    await expect.poll(() => readoutText(page, 'Coeficiente de agarre μ(T)')).toBe('1,11');
+    await expect.poll(() => readoutText(page, 'Coeficiente de agarre $\\mu(T)$')).toBe('1,11');
     await expect(presets.getByRole('button', { name: /^Llanta fría/ })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
     await presets.getByRole('button', { name: /^C3 en ventana/ }).click();
     await expect
-      .poll(async () => (await readoutText(page, 'Fuerza lateral real F_y')).replace(/\s/g, ' '))
+      .poll(async () => (await readoutText(page, 'Fuerza lateral real $F_y$')).replace(/\s/g, ' '))
       .toBe('11 943 N');
     await presets.getByRole('button', { name: /^Compuesto C4/ }).click();
     await expect(page.locator(LAB).getByText('Ventana de trabajo C4 (2019)')).toBeVisible();
@@ -151,10 +166,10 @@ test.describe('laboratorio', () => {
     await dialog.getByText('1', { exact: true }).click();
     await page.keyboard.press('Escape');
 
-    for (const label of ['Coeficiente de agarre μ(T)', 'Coeficiente efectivo μ']) {
+    for (const label of ['Coeficiente de agarre $\\mu(T)$', 'Coeficiente efectivo $\\mu$']) {
       expect(await readoutText(page, label)).toMatch(/^\d+,\d$/);
     }
-    expect(await readoutText(page, 'Fuerza lateral real F_y')).toMatch(/^\d[\d\s]*\sN$/);
+    expect(await readoutText(page, 'Fuerza lateral real $F_y$')).toMatch(/^\d[\d\s]*\sN$/);
   });
 
   test('el laboratorio ocupa el ancho de la columna de lectura', async ({ page }) => {
@@ -245,7 +260,7 @@ test.describe('con pantalla táctil', () => {
   }) => {
     await openLab(page);
     await centreLoadPlot(page);
-    const before = await readoutText(page, 'Fuerza lateral real F_y');
+    const before = await readoutText(page, 'Fuerza lateral real $F_y$');
     const { x, y } = await knobCentre(page, LOAD_CURSOR);
     const scrollBefore = await page.evaluate(() => window.scrollY);
     const cdp = await page.context().newCDPSession(page);
@@ -259,7 +274,7 @@ test.describe('con pantalla táctil', () => {
     }
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 
-    await expect.poll(() => readoutText(page, 'Fuerza lateral real F_y')).not.toBe(before);
+    await expect.poll(() => readoutText(page, 'Fuerza lateral real $F_y$')).not.toBe(before);
     expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore);
   });
   test('un deslizamiento vertical que empieza sobre la línea del cursor desplaza la página', async ({
@@ -267,7 +282,7 @@ test.describe('con pantalla táctil', () => {
   }) => {
     await openLab(page);
     await centreLoadPlot(page);
-    const before = await readoutText(page, 'Fuerza lateral real F_y');
+    const before = await readoutText(page, 'Fuerza lateral real $F_y$');
     const knob = await knobCentre(page, LOAD_CURSOR);
     // On the cursor line, well below the knob's touch target.
     const x = knob.x;
@@ -285,6 +300,6 @@ test.describe('con pantalla táctil', () => {
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(scrollBefore);
-    expect(await readoutText(page, 'Fuerza lateral real F_y')).toBe(before);
+    expect(await readoutText(page, 'Fuerza lateral real $F_y$')).toBe(before);
   });
 });

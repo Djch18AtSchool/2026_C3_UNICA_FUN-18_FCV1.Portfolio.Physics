@@ -35,10 +35,10 @@ describe('llantas-f1 tables', () => {
     const [header] = markdownRows(tableMarkdown(TABLES[0]));
 
     expect(header).toEqual([
-      'Carga vertical F_z (N)',
-      'Modelo lineal, μ₀ F_z (N)',
-      'Ecuación (4.2), μ(F_z) F_z (N)',
-      'μ efectivo, μ(F_z)',
+      'Carga vertical $F_z$ (N)',
+      'Modelo lineal, $\\mu_0 F_z$ (N)',
+      'Ecuación (4.2), $\\mu(F_z) F_z$ (N)',
+      '$\\mu$ efectivo, $\\mu(F_z)$',
     ]);
     expect(bodyRows(0)).toEqual([
       ['250', '400', '528', '2,11'],
@@ -51,10 +51,12 @@ describe('llantas-f1 tables', () => {
   test('carga: the caption keeps the 2,11 caveat and the source says the parameters are illustrative', () => {
     const { caption, source } = TABLES[0];
 
-    expect(caption).toContain('El μ efectivo de 2,11 a 250 N es un artefacto del modelo');
-    expect(caption).toContain('cuando la carga tiende a cero, da un μ infinito');
+    expect(caption).toContain('El $\\mu$ efectivo de 2,11 a 250 N es un artefacto del modelo');
+    expect(caption).toContain('cuando la carga tiende a cero, da un $\\mu$ infinito');
     expect(source.text).toContain('ilustrativos, no medidos');
-    expect(source.text.replace(/\s/g, ' ')).toContain('μ₀ = 1,6, F_z0 = 4 000 N y β = 0,9');
+    expect(source.text.replace(/\s/g, ' ')).toContain(
+      '$\\mu_0$ = 1,6, $F_{z0}$ = 4 000 N y $\\beta$ = 0,9',
+    );
     expect(source.text).toContain('Milliken');
   });
 
@@ -67,7 +69,7 @@ describe('llantas-f1 tables', () => {
       ['160', '1,45', '19'],
     ]);
     expect(TABLES[1].caption).toContain('no baja del 97 % del pico');
-    expect(TABLES[1].source.text).toContain('w = 60,8 °C');
+    expect(TABLES[1].source.text).toContain('$w$ = 60,8 °C');
     expect(TABLES[1].source.text).toContain('Autosport (Noble, 2019), fuente 1');
   });
 
