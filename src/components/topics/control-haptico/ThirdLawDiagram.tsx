@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
+import MathText from '../../lab/MathText';
 import { Arrow } from '../../lab/OverlayMarks';
 import { HOOKE_COLOR, PROFILE_COLOR } from './hapticPlots';
 
@@ -144,15 +145,14 @@ export default function ThirdLawDiagram(): JSX.Element {
           to={{ x: CONTACT_X, y: leverTop }}
           color={HOOKE_COLOR}
         />
-        <text
+        <MathText
+          source="F dedo→gatillo"
           x={PANEL / 2 + 10}
           y={leverTop - FORCE - 10}
-          textAnchor="middle"
+          anchor="middle"
+          fontSize={TEXT_SIZE}
           fill={TEXT_COLOR}
-          {...textStyle}
-        >
-          F dedo→gatillo
-        </text>
+        />
       </g>
 
       <Finger />
@@ -162,21 +162,26 @@ export default function ThirdLawDiagram(): JSX.Element {
           to={{ x: FINGER.x, y: FINGER.pad + 2 }}
           color={PROFILE_COLOR}
         />
-        <text
+        <MathText
+          source="F gatillo→dedo"
           x={FINGER.x}
           y={FINGER.pad + FORCE + 22}
-          textAnchor="middle"
+          anchor="middle"
+          fontSize={TEXT_SIZE}
           fill={TEXT_COLOR}
-          {...textStyle}
-        >
-          F gatillo→dedo
-        </text>
+        />
       </g>
 
       <g textAnchor="middle" {...textStyle}>
-        <text x={VIEW.width / 2} y={EQUATION_Y} fill={TEXT_COLOR} fontWeight={600}>
-          F gatillo→dedo = −F dedo→gatillo
-        </text>
+        <MathText
+          source="F gatillo→dedo = −F dedo→gatillo"
+          x={VIEW.width / 2}
+          y={EQUATION_Y}
+          anchor="middle"
+          fontSize={TEXT_SIZE}
+          fill={TEXT_COLOR}
+          fontWeight={600}
+        />
         <text x={VIEW.width / 2} y={NOTE_Y} fill={TICK_COLOR}>
           mismo módulo, cuerpos distintos
         </text>

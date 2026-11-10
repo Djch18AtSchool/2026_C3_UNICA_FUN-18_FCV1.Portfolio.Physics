@@ -39,12 +39,12 @@ const TRAVEL_LABEL = `${TRIGGER_TRAVEL_MM} mm`;
 
 const VIBRATION: DataTableSpec = {
   id: 'control-haptico-vibracion',
-  caption: `Fuerza sobre el dedo en tres puntos del recorrido. F₀ = ${newtons(VIBRATION_N)} N es un supuesto del modelo, igual a la fuerza del resorte a ${MID_MM} mm para poder compararlas.`,
+  caption: `Fuerza sobre el dedo en tres puntos del recorrido. $F_0$ = ${newtons(VIBRATION_N)} N es un supuesto del modelo, igual a la fuerza del resorte a ${MID_MM} mm para poder compararlas.`,
   columns: [
     { key: 'x', label: 'Desplazamiento x', unit: 'mm', align: 'num', precision: 0 },
     {
       key: 'vibration',
-      label: 'Vibración fija, amplitud F₀',
+      label: 'Vibración fija, amplitud $F_0$',
       unit: 'N',
       align: 'num',
       precision: 1,
@@ -63,7 +63,7 @@ const VIBRATION: DataTableSpec = {
     spring: triggerReadings(IDEAL_SPRING, x).hooke,
   })),
   source: {
-    text: `Cálculo propio con las ecuaciones (5.1) y (5.2); recorrido de ${TRAVEL_LABEL}, k y F₀ ilustrativos`,
+    text: `Cálculo propio con las ecuaciones (5.1) y (5.2); recorrido de ${TRAVEL_LABEL}, k y $F_0$ ilustrativos`,
   },
 };
 
@@ -119,13 +119,13 @@ const TRIGGER: DataTableSpec = {
   columns: [
     { key: 'preset', label: 'Preajuste', align: 'text' },
     { key: 'k', label: 'k', unit: 'N/m', align: 'num', precision: 0 },
-    { key: 'x0', label: 'x₀', unit: 'mm', align: 'num', precision: 0 },
+    { key: 'x0', label: '$x_0$', unit: 'mm', align: 'num', precision: 0 },
     { key: 'force', label: 'F al fondo', unit: 'N', align: 'num', precision: 1 },
     { key: 'work', label: 'Trabajo del dedo al fondo', unit: 'mJ', align: 'num', precision: 1 },
   ],
   rows: [IDEAL, LATE].map(triggerRow),
   source: {
-    text: `Cálculo propio con las ecuaciones (5.2) y (5.4) sobre src/lib/physics/spring.ts; recorrido supuesto de ${TRAVEL_LABEL}; k y x₀ ilustrativos`,
+    text: `Cálculo propio con las ecuaciones (5.2) y (5.4) sobre src/lib/physics/spring.ts; recorrido supuesto de ${TRAVEL_LABEL}; k y $x_0$ ilustrativos`,
   },
 };
 

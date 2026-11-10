@@ -61,7 +61,7 @@ const GRID_DECIMALS = 1;
 const DAMPING_RATIOS: Record<Damping, number> = { critica: 1, subamortiguada: 0.3 };
 
 export const DAMPING_OPTIONS: { value: Damping; label: string }[] = [
-  { value: 'critica', label: 'Crítica, c = 2√(k m)' },
+  { value: 'critica', label: 'Crítica, c = 2 raíz(k m)' },
   { value: 'subamortiguada', label: 'Subamortiguada, 0,3 del valor crítico' },
 ];
 

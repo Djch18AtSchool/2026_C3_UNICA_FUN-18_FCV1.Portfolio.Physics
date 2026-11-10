@@ -3,6 +3,7 @@ import { TRIGGER_TRAVEL_MM } from '../../../lib/data/triggerModel';
 import { formatNumber } from '../../../lib/format';
 import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import MathText from '../../lab/MathText';
 import { Arrow, ARROW_HEAD, Knob, Label, type Point } from '../../lab/OverlayMarks';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
@@ -135,14 +136,14 @@ function TravelArc({ pivot, radius, x0Mm }: { pivot: Point; radius: number; x0Mm
             stroke={PROFILE_COLOR}
             strokeWidth={2}
           />
-          <text
+          <MathText
+            source="x_0"
             x={polar(pivot, radius - X0_LABEL_GAP, x0Angle).x}
             y={polar(pivot, radius - X0_LABEL_GAP, x0Angle).y + 4}
+            fontSize={TEXT_SIZE}
             fill={TEXT_COLOR}
-            textAnchor="end"
-          >
-            x₀
-          </text>
+            anchor="end"
+          />
         </g>
       ) : null}
     </g>

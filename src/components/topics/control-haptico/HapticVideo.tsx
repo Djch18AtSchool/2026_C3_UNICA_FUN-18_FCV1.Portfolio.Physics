@@ -7,6 +7,7 @@ import {
   type EmbeddedVideo,
   type VideoMarker,
 } from '../../../lib/videoMarkers';
+import InlineMath from '../../lab/InlineMath';
 import { thumbnailUrl, watchUrl, type ThumbnailQuality } from '../../../lib/youtube';
 import { useYouTubePlayer, type YouTubePlayer } from './useYouTubePlayer';
 
@@ -190,7 +191,7 @@ function MarkerItem({ marker, videoId, playerId, isActive, onSeek }: MarkerItemP
         </a>
       )}
       <p data-testid="marker-analysis" className="m-0 text-sm">
-        {marker.analysis}
+        <InlineMath text={marker.analysis} />
       </p>
     </li>
   );

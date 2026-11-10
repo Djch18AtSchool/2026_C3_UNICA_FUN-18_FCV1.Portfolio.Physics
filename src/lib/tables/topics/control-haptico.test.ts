@@ -35,7 +35,7 @@ describe('control-haptico tables', () => {
 
     expect(header).toEqual([
       'Desplazamiento x (mm)',
-      'Vibración fija, amplitud F₀ (N)',
+      'Vibración fija, amplitud $F_0$ (N)',
       'Resorte de 400 N/m, k x (N)',
     ]);
     expect(rows).toEqual([
@@ -49,9 +49,9 @@ describe('control-haptico tables', () => {
     const { caption, source } = TABLES[0];
 
     expect(caption.replace(/\s/g, ' ')).toContain(
-      'F₀ = 1,6 N es un supuesto del modelo, igual a la fuerza del resorte a 4 mm',
+      '$F_0$ = 1,6 N es un supuesto del modelo, igual a la fuerza del resorte a 4 mm',
     );
-    expect(source.text).toContain('recorrido de 8 mm, k y F₀ ilustrativos');
+    expect(source.text).toContain('recorrido de 8 mm, k y $F_0$ ilustrativos');
   });
 
   test('energia: 1,6 N and 3,2 N, 12,8 mJ stored at the bottom and −12,8 mJ of work by the spring', () => {
@@ -81,7 +81,7 @@ describe('control-haptico tables', () => {
     expect(header).toEqual([
       'Preajuste',
       'k (N/m)',
-      'x₀ (mm)',
+      '$x_0$ (mm)',
       'F al fondo (N)',
       'Trabajo del dedo al fondo (mJ)',
     ]);

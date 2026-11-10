@@ -4,6 +4,7 @@ import { renderToString } from 'react-dom/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { EmbeddedVideo, VideoMarker } from '../../../lib/videoMarkers';
 import { YOUTUBE_EMBED_ORIGIN } from '../../../lib/youtube';
+import { mathSourceText } from '../../../test-inline-math';
 import HapticVideo from './HapticVideo';
 
 const VIDEO: EmbeddedVideo = {
@@ -86,6 +87,16 @@ describe('HapticVideo', () => {
     expect(within(screen.getByTestId('haptic-video-markers')).getAllByRole('button')).toHaveLength(
       3,
     );
+  });
+
+  test('an analysis with $…$ is typeset as KaTeX, in the server render too', () => {
+    const markers = [{ time: 138, title: 'Vibración', analysis: 'Amplitud $F_0$ constante.' }];
+    render(<HapticVideo video={VIDEO} markers={markers} />);
+
+    const analysis = screen.getByTestId('marker-analysis');
+    expect(analysis.querySelector('.katex')).not.toBeNull();
+    expect(mathSourceText(analysis)).toBe('Amplitud $F_0$ constante.');
+    expect(renderToString(<HapticVideo video={VIDEO} markers={markers} />)).toContain('katex');
   });
 
   test('the facade shows only the still, the title and the play control', () => {

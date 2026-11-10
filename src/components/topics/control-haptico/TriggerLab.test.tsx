@@ -2,10 +2,13 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
+import { TRIGGER_PRESETS } from '../../../lib/data/triggerPresets';
 import { installDialogPolyfill } from '../../../test-dialog';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
 import TriggerLab from './TriggerLab';
 
-const FOOTNOTE = 'Recorrido supuesto de 8 mm; k y x₀ ilustrativos.';
+const FOOTNOTE = 'Recorrido supuesto de 8 mm; k y $x_0$ ilustrativos.';
 const FRAME_MS = 16;
 const RELEASE_BOUND_MS = 3000;
 
@@ -117,8 +120,33 @@ describe('TriggerLab', () => {
     expect(lever()).toHaveAttribute('aria-valuemin', '0');
     expect(lever()).toHaveAttribute('aria-valuemax', '8');
     expect(screen.queryByRole('button', { name: 'Reproducir' })).toBeNull();
-    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
+    expect(mathSourceText(screen.getByTestId('lab-footnote'))).toContain(FOOTNOTE);
     expect(screen.getByText(/energía elástica del resorte ideal/i)).toBeInTheDocument();
+  });
+
+  test('every character outside KaTeX is one IBM Plex draws, in the lab, its settings and the notes', () => {
+    const { container } = renderLab();
+    // The preset buttons' second line (Presets.tsx, shared) is plain text still: reported, not here.
+    const presetSourceLabels = TRIGGER_PRESETS.map(({ sourceLabel }) => `«${sourceLabel}»`);
+    const ownViolations = () =>
+      plexViolations(container).filter(
+        (violation) => !presetSourceLabels.some((label) => violation.endsWith(label)),
+      );
+
+    expect(ownViolations()).toEqual([]);
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+    expect(ownViolations()).toEqual([]);
+  });
+
+  test('the notation is typeset: x₀ on the lever and in the field, U and W in the note', () => {
+    const { container } = renderLab();
+    fireEvent.click(screen.getByRole('button', { name: /^Resorte tardío/ }));
+
+    expect(mathSourceText(startField().closest('div'))).toContain('$x_0$');
+    expect(container.querySelector('[data-mark="x0"] [data-notation]')).not.toBeNull();
+    const note = mathSourceText(screen.getByText(/energía elástica del resorte ideal/i));
+    expect(note).toContain('$U = \\tfrac12 k x^2$');
+    expect(note).toContain('$W = \\tfrac12 k (x - x_0)^2$');
   });
 
   test('dragging the trigger to 8 mm shows F = 3,2 N and U = 12,8 mJ', () => {

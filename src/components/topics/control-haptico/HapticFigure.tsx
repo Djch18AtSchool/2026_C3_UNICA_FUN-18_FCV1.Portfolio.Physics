@@ -85,7 +85,7 @@ function VibrationPlot(): JSX.Element {
         series={[
           {
             id: 'vibracion',
-            label: 'Vibración fija, amplitud F₀',
+            label: 'Vibración fija, amplitud $F_0$',
             points: [
               { x: 0, y: VIBRATION_N },
               { x: BOTTOM_MM, y: VIBRATION_N },

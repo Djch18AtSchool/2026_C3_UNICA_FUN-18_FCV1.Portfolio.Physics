@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
 import HapticFigure from './HapticFigure';
 
 const strokeOf = (container: HTMLElement, id: string) =>
@@ -41,7 +43,7 @@ describe('HapticFigure', () => {
     const { container } = render(<HapticFigure variant="vibracion" />);
     const legend = screen.getByRole('list', { name: 'Leyenda' });
 
-    expect(legend).toHaveTextContent('Vibración fija, amplitud F₀');
+    expect(mathSourceText(legend)).toContain('Vibración fija, amplitud $F_0$');
     expect(legend).toHaveTextContent('Resorte de 400 N/m, F = k x');
     expect(strokeOf(container, 'vibracion')).toBe('var(--chart-3)');
     expect(strokeOf(container, 'hooke')).toBe('var(--chart-1)');
@@ -66,6 +68,23 @@ describe('HapticFigure', () => {
     render(<HapticFigure variant="hooke" />);
 
     expect(screen.getByText('U = 12,8 mJ')).toBeInTheDocument();
+  });
+
+  test.each(['vibracion', 'hooke', 'tercera-ley'] as const)(
+    '%s: every character outside KaTeX is one IBM Plex draws',
+    (variant) => {
+      const { container } = render(<HapticFigure variant={variant} />);
+
+      expect(plexViolations(container)).toEqual([]);
+    },
+  );
+
+  test('third law: the arrows of the labels are drawn, and the diagram reads in words', () => {
+    render(<HapticFigure variant="tercera-ley" />);
+    const diagram = screen.getByTestId('third-law-diagram');
+
+    expect(diagram.querySelectorAll('[data-notation]').length).toBeGreaterThanOrEqual(3);
+    expect(screen.getByRole('img', { name: /tercera ley/i })).toBeInTheDocument();
   });
 
   test('third law: two equal and opposite forces, each on its own body', () => {

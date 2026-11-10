@@ -4,6 +4,7 @@ import { formatNumber } from '../../../lib/format';
 import { motionReduced } from '../../../lib/settingsStore';
 import Presets from '../../controls/Presets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
+import InlineMath from '../../lab/InlineMath';
 import ParamField from '../../lab/ParamField';
 import type { SettingOption } from '../../lab/SettingsDrawer';
 import SvgPlot from '../../lab/SvgPlot';
@@ -133,7 +134,7 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
         />
         <ParamField
           id="trigger-x0"
-          label="Inicio de la resistencia x₀"
+          label="Inicio de la resistencia $x_0$"
           unit="mm"
           min={TRIGGER_LIMITS.start[0]}
           max={TRIGGER_LIMITS.start[1]}
@@ -221,11 +222,9 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
           />
         </div>
         <p className="m-0 text-sm text-fg-muted">
-          U = ½ k x² es la energía elástica del resorte ideal en el x actual; W = ½ k (x − x₀)², el
-          área bajo el perfil, es el trabajo del dedo contra el gatillo, que el actuador absorbe en
-          lugar de guardarlo. La flecha F es la fuerza del gatillo sobre el dedo, a escala; el aro
-          marca el resorte ideal en el mismo x.{' '}
-          {`Al soltarla, la palanca vuelve ${SLOW_MOTION} veces más lenta que el retorno calculado, para que se vea, y se detiene en el tope del reposo.`}
+          <InlineMath
+            text={`$U = \\tfrac12 k x^2$ es la energía elástica del resorte ideal en el x actual; $W = \\tfrac12 k (x - x_0)^2$, el área bajo el perfil, es el trabajo del dedo contra el gatillo, que el actuador absorbe en lugar de guardarlo. La flecha F es la fuerza del gatillo sobre el dedo, a escala; el aro marca el resorte ideal en el mismo x. Al soltarla, la palanca vuelve ${SLOW_MOTION} veces más lenta que el retorno calculado, para que se vea, y se detiene en el tope del reposo.`}
+          />
         </p>
       </div>
     </LabShell>
