@@ -38,6 +38,9 @@ const SITE_MODEL = {
 } as const;
 
 const MODEL3_SOURCE = 'EPA, vehículo 3R124-782214';
+/** The Test Car List the EPA values of each car come from (evModels.ts keeps the one address). */
+const MODEL3_URL = MODEL3_LR_RWD_2025.source.url;
+const LEAF_URL = LEAF_2025.source.url;
 
 export const REGEN_PRESETS: Preset<RegenLabState>[] = [
   {
@@ -45,13 +48,15 @@ export const REGEN_PRESETS: Preset<RegenLabState>[] = [
     name: 'Model 3 · ciudad (UDDS)',
     values: { vehicle: 'model3', cycle: 'udds', ...SITE_MODEL },
     sourceLabel: MODEL3_SOURCE,
-    note: 'Modelo del sitio: $\\eta$ = 0,80 constante, $P_\\text{máx}$ = 239 kW (el motor de FASTSim) y $f(v)$ activo. En el UDDS la potencia de frenado no pasa de 33,2 kW, así que el límite no actúa.',
+    sourceUrl: MODEL3_URL,
+    note: 'Modelo del sitio: $\\eta$ = 0,80 constante, $P_\\text{máx}$ = 239 kW (el motor de FASTSim) y $f(v)$ activo; en el UDDS la potencia de frenado no pasa de 33,2 kW, así que el límite no actúa.',
   },
   {
     id: 'model3-hwfet',
     name: 'Model 3 · carretera (HWFET)',
     values: { vehicle: 'model3', cycle: 'hwfet', ...SITE_MODEL },
     sourceLabel: MODEL3_SOURCE,
+    sourceUrl: MODEL3_URL,
     note: 'En carretera frena sobre todo el aire: menos de la mitad del $\\Delta K$ quitado pasa por los frenos.',
   },
   {
@@ -59,21 +64,25 @@ export const REGEN_PRESETS: Preset<RegenLabState>[] = [
     name: 'Model 3 · agresivo (US06)',
     values: { vehicle: 'model3', cycle: 'us06', ...SITE_MODEL },
     sourceLabel: MODEL3_SOURCE,
-    note: 'Frenadas de hasta 70,8 kW y 0,31 g. Prueba bajar $P_\\text{máx}$ a 30 kW: ahí el límite sí importa.',
+    sourceUrl: MODEL3_URL,
+    note: 'Frenadas de hasta 70,8 kW y 0,31 g; prueba bajar $P_\\text{máx}$ a 30 kW, donde el límite sí importa.',
   },
   {
     id: 'cold-battery',
     name: `Batería fría o llena ($P_\\text{máx}$ ${COLD_P_MAX_KW} kW)`,
+    // A native <option> cannot hold the formula (LabPresets shows five presets as a select).
+    optionLabel: `Batería fría o llena (Pmáx ${COLD_P_MAX_KW} kW)`,
     values: { vehicle: 'model3', cycle: 'udds', ...SITE_MODEL, pMaxKw: COLD_P_MAX_KW },
     sourceLabel: 'Model 3 · escenario',
-    note: 'Con la batería fría o casi llena admite menos corriente de carga. 10 kW es un escenario ilustrativo, no una medición: lo que pasa del límite lo disipan los frenos de fricción.',
+    note: 'Con la batería fría o casi llena admite menos corriente de carga: 10 kW es un escenario ilustrativo, no una medición, y lo que pasa del límite lo disipan los frenos de fricción.',
   },
   {
     id: 'leaf-udds',
     name: 'Nissan LEAF 2025 · ciudad',
     values: { vehicle: 'leaf', cycle: 'udds', ...SITE_MODEL },
     sourceLabel: 'EPA, vehículo KWB115',
-    note: 'Mismos $\\eta$ y $P_\\text{máx}$ que el Model 3 (en el UDDS el límite no actúa). Es más liviano, pero su C es mayor: pierde más en el aire y le queda menos para frenar.',
+    sourceUrl: LEAF_URL,
+    note: 'Mismos $\\eta$ y $P_\\text{máx}$ que el Model 3 (en el UDDS el límite no actúa); es más liviano, pero su C es mayor: pierde más en el aire y le queda menos para frenar.',
   },
 ];
 

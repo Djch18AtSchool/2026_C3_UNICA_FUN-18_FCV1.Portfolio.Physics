@@ -22,6 +22,30 @@ describe('regen presets', () => {
     for (const preset of REGEN_PRESETS) expect(presetIdFor(preset.values)).toBe(preset.id);
   });
 
+  test('five presets make a select, so the one with a formula has a plain option label and a source link', () => {
+    const cold = REGEN_PRESETS.find((preset) => preset.id === 'cold-battery');
+
+    expect(cold?.name).toContain('$');
+    expect(cold?.optionLabel).toBe('Batería fría o llena (Pmáx 10 kW)');
+    expect(cold?.optionLabel).not.toContain('$');
+    for (const preset of REGEN_PRESETS.filter(({ id }) => id !== 'cold-battery')) {
+      expect(preset.optionLabel).toBeUndefined();
+    }
+    expect(REGEN_PRESETS.map((preset) => preset.sourceUrl)).toEqual([
+      VEHICLES.model3.source.url,
+      VEHICLES.model3.source.url,
+      VEHICLES.model3.source.url,
+      undefined,
+      VEHICLES.leaf.source.url,
+    ]);
+  });
+
+  test('every note is one sentence for the one-line note under the choice', () => {
+    for (const { note } of REGEN_PRESETS) {
+      expect(note?.match(/[.!?](\s|$)/g)).toHaveLength(1);
+    }
+  });
+
   test('the lab opens on the site model: Model 3, UDDS, η 0,80, 239 kW, f(v) on', () => {
     expect(INITIAL_REGEN_STATE).toEqual({
       vehicle: 'model3',

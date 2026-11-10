@@ -28,7 +28,7 @@ export interface RegenLocalSettingsInput {
   clock: SimClock;
 }
 
-/** Ciclo, f(v), velocidad and repetir, in that order. */
+/** Ciclo, f(v), velocidad and repetir, in that order; the cycle and f(v) show as chips beside the gear. */
 export function regenLocalSettings({
   cycle,
   lowSpeedFade,
@@ -40,6 +40,7 @@ export function regenLocalSettings({
     {
       key: 'cycle',
       label: 'Ciclo de manejo (EPA)',
+      chip: 'Ciclo',
       kind: 'select',
       value: cycle,
       options: CYCLE_OPTIONS.map((option) => ({ ...option })),
@@ -50,6 +51,7 @@ export function regenLocalSettings({
     {
       key: 'lowSpeedFade',
       label: 'Desvanecimiento a baja velocidad $f(v)$',
+      chip: '$f(v)$',
       kind: 'toggle',
       value: lowSpeedFade,
       onChange: onFadeChange,

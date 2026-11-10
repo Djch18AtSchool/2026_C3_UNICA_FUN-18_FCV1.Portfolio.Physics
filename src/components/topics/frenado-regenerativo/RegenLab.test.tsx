@@ -9,7 +9,8 @@ import { mathSourceText } from '../../../test-inline-math';
 import RegenLab, { TIME_LAPSE } from './RegenLab';
 import { readout } from '../../../test-readout';
 
-const FOOTNOTE = 'La reproducción va 20 veces más rápida que el ciclo.';
+const USAGE = 'La reproducción va 20 veces más rápida que el ciclo.';
+const LEFT_OUT = 'Pendiente, viento y temperatura.';
 
 /** Identity CTM on every svg: client pixels are viewBox units, so DOM coordinates are pointer ones. */
 function mockIdentityCtm(): void {
@@ -22,7 +23,7 @@ function mockIdentityCtm(): void {
 }
 
 function renderLab() {
-  const view = render(<RegenLab footnote={FOOTNOTE} />);
+  const view = render(<RegenLab usage={USAGE} leftOut={LEFT_OUT} />);
   mockIdentityCtm();
   return view;
 }
@@ -40,10 +41,13 @@ const pMaxField = () => screen.getByRole('textbox', { name: /^Potencia máxima d
 const timeCursor = () => screen.getByRole('slider', { name: 'Tiempo' });
 const timeline = () => screen.getByRole('slider', { name: 'Línea de tiempo' });
 const timelineText = () => (timeline().getAttribute('aria-valuetext') ?? '').replace(/\s/g, ' ');
-const preset = (name: RegExp) =>
-  within(screen.getByRole('group', { name: 'Valores de referencia' })).getByRole('button', {
-    name,
-  });
+const presetSelect = () =>
+  screen.getByRole('combobox', { name: 'Valores de referencia' }) as HTMLSelectElement;
+/** The text of the option the select shows: «Personalizado» once an edit left every preset. */
+const presetShown = () => presetSelect().selectedOptions[0].textContent;
+async function choosePreset(user: ReturnType<typeof userEvent.setup>, name: RegExp) {
+  await user.selectOptions(presetSelect(), screen.getByRole('option', { name }));
+}
 const flow = (id: string) =>
   screen.getByTestId('regen-scene').querySelector(`[data-flow="${id}"]`) as SVGGElement;
 
@@ -108,8 +112,121 @@ describe('RegenLab', () => {
     expect(readout(LOSS)).toBe('0,008 kWh');
     expect(readout(FRICTION)).toBe('0,001 kWh');
     expect(readout(RECOVERED)).toBe('22,8 %');
-    expect(preset(/^Model 3 · ciudad \(UDDS\)/)).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
+    expect(presetShown()).toMatch(/^Model 3 · ciudad \(UDDS\)/);
+  });
+
+  test('the shell is the tiered one: η and P_máx in Parámetros, the five presets as a select in Escenario', () => {
+    const { container } = renderLab();
+    const region = (name: string) => screen.getByRole('region', { name });
+
+    expect(container.querySelector('[data-lab-shell="tiered"]')).not.toBeNull();
+    expect(region('Parámetros')).toContainElement(etaSlider());
+    expect(region('Parámetros')).toContainElement(pMaxField());
+    expect(region('Parámetros').innerHTML).not.toMatch(/\bsm:grid-cols/);
+    expect(region('Escenario')).toContainElement(presetSelect());
+    expect(within(presetSelect()).getAllByRole('option')).toHaveLength(5);
+    expect(region('Lecturas')).toContainElement(screen.getByText(SPEED));
+    expect(container.querySelector('[data-lab-transport]')).not.toBeNull();
+  });
+
+  test('the cold battery option is plain text in the select and typeset in the note chip name', async () => {
+    const user = userEvent.setup();
+    renderLab();
+
+    const option = screen.getByRole('option', { name: /^Batería fría o llena/ });
+    expect(option).toHaveTextContent('Batería fría o llena (Pmáx 10 kW)');
+    expect(option.textContent).not.toContain('$');
+    await choosePreset(user, /^Batería fría o llena/);
+    expect(screen.getByTestId('preset-note')).toHaveTextContent(/Con la batería fría o casi llena/);
+    expect(screen.getByTestId('preset-note')).toHaveTextContent('Fuente: Model 3 · escenario');
+  });
+
+  test('the Model 3 presets link the EPA list as their source', () => {
+    renderLab();
+
+    const note = screen.getByTestId('preset-note');
+    expect(note).toHaveTextContent('Fuente: EPA, vehículo 3R124-782214');
+    expect(within(note).getByRole('link', { name: 'EPA, vehículo 3R124-782214' })).toHaveAttribute(
+      'href',
+      expect.stringMatching(/^https:\/\/www\.epa\.gov\/.*25-testcar.*\.xlsx$/),
+    );
+  });
+
+  test('beside the gear, chips for the cycle, f(v) and the speed that follow the drawer', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const chips = () =>
+      within(screen.getByRole('group', { name: 'Ajustes activos' }))
+        .getAllByRole('button')
+        .map((chip) => chip.getAttribute('aria-label'));
+    expect(chips()).toEqual(['Ciclo UDDS · ciudad', 'f(v)', 'Velocidad 1×']);
+
+    await user.click(screen.getByRole('button', { name: 'Ciclo UDDS · ciudad' }));
+    const dialog = screen.getByRole('dialog');
+    await user.selectOptions(
+      within(dialog).getByRole('combobox', { name: 'Ciclo de manejo (EPA)' }),
+      'us06',
+    );
+    await user.click(within(dialog).getByRole('switch', { name: /^Desvanecimiento/ }));
+
+    expect(chips()).toEqual(['Ciclo US06 · agresivo', 'Velocidad 1×']);
+  });
+
+  test('how to use it says the cursor, f(v) and the time lapse; the source of η is in what the model leaves out', () => {
+    const { container } = renderLab();
+    const usage = container.querySelector<HTMLDetailsElement>('details[data-lab-note="usage"]')!;
+    const leftOut = container.querySelector<HTMLDetailsElement>(
+      'details[data-lab-note="left-out"]',
+    )!;
+
+    expect(usage.open || leftOut.open).toBe(false);
+    expect(usage).toHaveTextContent('Arrastra el cursor de la gráfica de energía');
+    expect(usage).toHaveTextContent('apaga la regeneración cerca de detenerse');
+    expect(usage).toHaveTextContent(USAGE);
+    expect(usage).not.toHaveTextContent('engranaje');
+    expect(usage).not.toHaveTextContent('Boretti');
+    expect(leftOut).toHaveTextContent('Boretti midió del 70 al 80 % en un Leaf 2012');
+    expect(leftOut).toHaveTextContent(LEFT_OUT);
+    expect(screen.queryByTestId('lab-footnote')).toBeNull();
+  });
+
+  test('without the MDX texts it still says how to use it and where η comes from', () => {
+    const { container } = render(<RegenLab />);
+
+    expect(container.querySelector('details[data-lab-note="usage"] p')).not.toBeNull();
+    expect(container.querySelector('details[data-lab-note="left-out"] p')).not.toBeNull();
+    expect(container.querySelectorAll('details[data-lab-note="left-out"] p')).toHaveLength(1);
+  });
+
+  test('the legend and the two explanations are canvas notes, with no controls, under the drawing', () => {
+    const { container } = renderLab();
+    const notes = container.querySelector('[data-lab-canvas-notes]') as HTMLElement;
+    const canvas = container.querySelector('[data-lab-canvas]') as HTMLElement;
+
+    expect(
+      within(notes).getByRole('list', { name: 'Leyenda del flujo de potencia' }),
+    ).toBeVisible();
+    expect(notes).toHaveTextContent('El grosor es proporcional a |P|');
+    expect(notes).toHaveTextContent('La barra del frenado en las ruedas se reparte');
+    expect(notes.querySelector('button, a, input, select, [tabindex]')).toBeNull();
+    expect(canvas.querySelector('[aria-label="Leyenda del flujo de potencia"]')).toBeNull();
+    expect(canvas).toHaveTextContent('Energías acumuladas hasta t');
+    expect(canvas).not.toHaveTextContent('El grosor es proporcional');
+  });
+
+  test('the drawings keep their height until they measure: fixed scene, CSS-reserved plot, bars by container', () => {
+    const { container } = renderLab();
+    const scene = screen.getByTestId('regen-scene').querySelector('svg')!;
+    const plot = screen.getByTestId('regen-energy-plot').parentElement!;
+
+    expect(Number(scene.getAttribute('height'))).toBeGreaterThan(0);
+    expect(scene.getAttribute('class')).not.toContain('h-auto');
+    expect(plot.className).toContain('@container');
+    expect(plot.className).toMatch(/\[&_svg\[role=img\]\]:aspect-\[5\/4\]/);
+    expect(plot.className).toMatch(/@\[30rem\]:\[&_svg\[role=img\]\]:aspect-\[8\/5\]/);
+    // The bars switch layout by the stage's width, not the window's.
+    expect(container.querySelector('[data-energy]')?.className).not.toMatch(/(^|\s)sm:/);
+    expect(container.querySelector('[data-energy]')?.className).toMatch(/@md:/);
   });
 
   test('every character outside KaTeX is one IBM Plex draws, at the start, with zero regeneration and in the settings', async () => {
@@ -184,11 +301,11 @@ describe('RegenLab', () => {
     const user = userEvent.setup();
     renderLab();
 
-    await user.click(preset(/^Batería fría o llena/));
+    await choosePreset(user, /^Batería fría o llena/);
     seekToEnd();
 
     expect(pMaxField()).toHaveValue('10');
-    expect(preset(/^Batería fría o llena/)).toHaveAttribute('aria-pressed', 'true');
+    expect(presetShown()).toMatch(/^Batería fría o llena/);
     expect(readout(BATTERY)).toBe('0,448 kWh');
     expect(readout(FRICTION)).toBe('0,308 kWh');
     expect(readout(RECOVERED)).toBe('28,1 %');
@@ -198,13 +315,13 @@ describe('RegenLab', () => {
     const user = userEvent.setup();
     renderLab();
 
-    await user.click(preset(/^Model 3 · carretera \(HWFET\)/));
+    await choosePreset(user, /^Model 3 · carretera \(HWFET\)/);
     expect(timelineText()).toBe('t = 0,0 s');
     seekToEnd();
     expect(timelineText()).toBe('t = 765,0 s');
     expect(readout(RECOVERED)).toBe('12,5 %');
 
-    await user.click(preset(/^Model 3 · agresivo \(US06\)/));
+    await choosePreset(user, /^Model 3 · agresivo \(US06\)/);
     seekToEnd();
     expect(readout(RECOVERED)).toBe('30,7 %');
   });
@@ -213,7 +330,7 @@ describe('RegenLab', () => {
     const user = userEvent.setup();
     renderLab();
 
-    await user.click(preset(/^Nissan LEAF 2025 · ciudad/));
+    await choosePreset(user, /^Nissan LEAF 2025 · ciudad/);
     seekToEnd();
 
     expect(readout(BATTERY)).toBe('0,555 kWh');
@@ -233,7 +350,7 @@ describe('RegenLab', () => {
     expect(readout(LOSS)).toBe('0,806 kWh');
     expect(lab().textContent).not.toMatch(/NaN|Infinity/);
     expect(mathSourceText(screen.getByRole('note'))).toMatch(/\$\\eta\$ = 0/);
-    expect(preset(/^Model 3 · ciudad/)).toHaveAttribute('aria-pressed', 'false');
+    expect(presetShown()).toBe('Personalizado');
   });
 
   test('P_máx = 0 sends all the braking to the friction brakes', async () => {
@@ -344,7 +461,7 @@ describe('RegenLab', () => {
 
     expect(timelineText()).toBe('t = 0,0 s');
     expect(screen.getByTestId('regen-scene')).toHaveTextContent(/16,51\skm/);
-    expect(preset(/^Model 3 · carretera/)).toHaveAttribute('aria-pressed', 'true');
+    expect(presetShown()).toMatch(/^Model 3 · carretera/);
   });
 
   test('turning f(v) off shows the simple model: 0,695 kWh and no friction at all in the UDDS', async () => {
@@ -363,7 +480,7 @@ describe('RegenLab', () => {
     expect(readout(BATTERY)).toBe('0,695 kWh');
     expect(readout(FRICTION)).toBe('0,000 kWh');
     expect(readout(RECOVERED)).toBe('43,5 %');
-    expect(preset(/^Model 3 · ciudad/)).toHaveAttribute('aria-pressed', 'false');
+    expect(presetShown()).toBe('Personalizado');
   });
 
   test('the cumulative bars follow t and name each energy', () => {
@@ -423,14 +540,14 @@ describe('RegenLab', () => {
   test('Restablecer returns to the Model 3 in the UDDS at t = 116 s', async () => {
     const user = userEvent.setup();
     renderLab();
-    await user.click(preset(/^Nissan LEAF/));
+    await choosePreset(user, /^Nissan LEAF/);
     fireEvent.change(etaSlider(), { target: { value: '0.5' } });
 
     await user.click(screen.getByRole('button', { name: 'Restablecer' }));
 
     expect(timelineText()).toBe('t = 116 s');
     expect(etaSlider()).toHaveValue('0.8');
-    expect(preset(/^Model 3 · ciudad/)).toHaveAttribute('aria-pressed', 'true');
+    expect(presetShown()).toMatch(/^Model 3 · ciudad/);
     expect(readout(POWER)).toBe('−33,20 kW');
   });
 

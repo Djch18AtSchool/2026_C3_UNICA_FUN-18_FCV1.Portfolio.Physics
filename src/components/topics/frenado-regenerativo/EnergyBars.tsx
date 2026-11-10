@@ -68,12 +68,12 @@ function BarFill({
 /**
  * The six energies accumulated up to t as horizontal bars on one kWh scale, each with its value,
  * in the colors of the plot and the power flow. The braking bar is drawn as its three parts, so
- * recovered + dissipated = braking at the wheels can be read off it.
+ * recovered + dissipated = braking at the wheels can be read off it (RegenNotes says so).
  */
 export default function EnergyBars({ at, axisMax }: EnergyBarsProps): JSX.Element {
   const scaleText = formatNumber(axisMax, { precision: 1, unit: 'kWh' });
   return (
-    <div className="flex flex-col gap-2">
+    <div className="@container flex flex-col gap-2">
       <p className="m-0 text-sm font-medium">
         Energías acumuladas hasta t{' '}
         <span className="font-normal text-fg-muted">(escala de 0 a {scaleText})</span>
@@ -85,32 +85,28 @@ export default function EnergyBars({ at, axisMax }: EnergyBarsProps): JSX.Elemen
         {ENERGY_SERIES.map((series) => {
           const kWh = at[series.key] / J_PER_KWH;
           return (
-            // On phones the label and value share a line above a full-width bar; from sm up, one row.
+            // In a narrow stage the label and value share a line above a full-width bar; from @md, one row.
             <li
               key={series.key}
               data-energy={series.key}
-              className="m-0 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-sm sm:grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)_auto]"
+              className="m-0 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-sm @md:grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)_auto]"
             >
               <span>
                 <InlineMath text={series.label} />
               </span>
               <span
                 aria-hidden="true"
-                className="col-span-2 row-start-2 h-3 overflow-hidden rounded-[2px] bg-grid sm:col-span-1 sm:col-start-2 sm:row-start-1"
+                className="col-span-2 row-start-2 h-3 overflow-hidden rounded-[2px] bg-grid @md:col-span-1 @md:col-start-2 @md:row-start-1"
               >
                 <BarFill series={series} at={at} axisMax={axisMax} />
               </span>
-              <span className="col-start-2 row-start-1 font-mono tabular-nums sm:col-start-3">
+              <span className="col-start-2 row-start-1 font-mono tabular-nums @md:col-start-3">
                 {formatNumber(kWh, { precision: ENERGY_PRECISION, unit: 'kWh' })}
               </span>
             </li>
           );
         })}
       </ul>
-      <p className="m-0 text-sm text-fg-muted">
-        La barra del frenado en las ruedas se reparte en lo que llega a la batería, las pérdidas de
-        conversión y el calor de fricción: lo disipado es la suma de las dos últimas.
-      </p>
     </div>
   );
 }

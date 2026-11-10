@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
 import { DRIVE_CYCLES, type CycleId } from '../../../lib/data/driveCycles';
 import { cycleBalance } from '../../../lib/physics/energy';
-import Presets from '../../controls/Presets';
 import InlineMath from '../../lab/InlineMath';
+import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
@@ -10,6 +10,7 @@ import { useSimClock } from '../../lab/useSimClock';
 import EnergyBars from './EnergyBars';
 import { regenLocalSettings } from './regenLabSettings';
 import RegenEnergyPlot from './RegenEnergyPlot';
+import RegenNotes from './RegenNotes';
 import {
   DEFAULT_P_MAX_KW,
   ETA_RANGE,
@@ -60,9 +61,19 @@ function zeroRegenNote({ eta, pMaxKw }: RegenLabState): string | null {
   return null;
 }
 
+/** «Cómo se usa»: the energy cursor and its keys, then what the f(v) setting does. */
+const CURSOR_HINT =
+  'Arrastra el cursor de la gráfica de energía, o enfócalo y muévelo con las flechas (1 % del ciclo; con Mayús, 10 %).';
+const FADE_HINT = `$f(v)$ apaga la regeneración cerca de detenerse; sin él, con el tope de ${DEFAULT_P_MAX_KW} kW, la fricción no haría falta en estos ciclos.`;
+/** «Qué deja fuera el modelo»: where η comes from, before the MDX's own caveats. */
+const ETA_SOURCE =
+  '$\\eta$ es el rendimiento de la rueda a la batería: Boretti midió del 70 al 80 % en un Leaf 2012 y del 72 al 87 % en uno 2013.';
+
 export interface RegenLabProps {
-  /** The model's caveats and the playback speed, written in the topic's MDX. */
-  footnote?: string;
+  /** «Cómo se usa», after the cursor and f(v) hints: the playback speed, from the topic's MDX. */
+  usage?: string;
+  /** «Qué deja fuera el modelo», after the source of η: the caveats, from the topic's MDX. */
+  leftOut?: string;
 }
 
 /**
@@ -72,7 +83,7 @@ export interface RegenLabProps {
  * f(v) (on by default, ruling R19) as local settings, five presets and the readouts v, P,
  * E_batería, the conversion loss, E_fricción and the share of the traction energy recovered.
  */
-export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
+export default function RegenLab({ usage, leftOut }: RegenLabProps): JSX.Element {
   const [state, setState] = useState<RegenLabState>(INITIAL_REGEN_STATE);
   const { decimals } = useGlobalSettings();
   const cycle = DRIVE_CYCLES[state.cycle];
@@ -137,43 +148,40 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
   const note = zeroRegenNote(state);
   const params = (
     <>
-      <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-        <ParamField
-          id="regen-eta"
-          label="Rendimiento rueda $\to$ batería $\eta$"
-          unit=""
-          {...ETA_RANGE}
-          value={state.eta}
-          onChange={(eta) => update({ ...state, eta })}
-        />
-        <ParamField
-          id="regen-pmax"
-          label="Potencia máxima de regeneración $P_\text{máx}$"
-          unit="kW"
-          {...P_MAX_RANGE}
-          value={state.pMaxKw}
-          onChange={(pMaxKw) => update({ ...state, pMaxKw })}
-        />
-      </div>
+      <ParamField
+        id="regen-eta"
+        label="Rendimiento rueda $\to$ batería $\eta$"
+        unit=""
+        {...ETA_RANGE}
+        value={state.eta}
+        onChange={(eta) => update({ ...state, eta })}
+      />
+      <ParamField
+        id="regen-pmax"
+        label="Potencia máxima de regeneración $P_\text{máx}$"
+        unit="kW"
+        {...P_MAX_RANGE}
+        value={state.pMaxKw}
+        onChange={(pMaxKw) => update({ ...state, pMaxKw })}
+      />
       {note ? (
         <p role="note" className="m-0 border-l-2 border-accent pl-3 text-sm">
           <InlineMath text={note} />
         </p>
       ) : null}
-      <Presets
-        presets={REGEN_PRESETS}
-        activeId={presetIdFor(state)}
-        onSelect={(preset) => update(preset.values)}
-      />
-      <p className="m-0 text-sm text-fg-muted">
-        <InlineMath
-          text={`$\\eta$ es el rendimiento de la rueda a la batería: Boretti midió del 70 al 80 % en un Leaf 2012 y del 72 al 87 % en uno 2013. $f(v)$ apaga la regeneración cerca de detenerse; sin él, con el tope de ${DEFAULT_P_MAX_KW} kW, la fricción no haría falta en estos ciclos. Arrastra el cursor de la gráfica de energía, o enfócalo y muévelo con las flechas (1 % del ciclo; con Mayús, 10 %). El ciclo y $f(v)$ se eligen en los ajustes del engranaje.`}
-        />
-      </p>
     </>
   );
 
-  const localSettings = regenLocalSettings({
+  const scenario = (
+    <LabPresets
+      id="regen-preset"
+      presets={REGEN_PRESETS}
+      activeId={presetIdFor(state)}
+      onSelect={(preset) => update(preset.values)}
+    />
+  );
+
+  const display = regenLocalSettings({
     cycle: state.cycle,
     lowSpeedFade: state.lowSpeedFade,
     onCycleChange: (next: CycleId) => update({ ...state, cycle: next }),
@@ -187,10 +195,13 @@ export default function RegenLab({ footnote }: RegenLabProps): JSX.Element {
       clock={clock}
       timeUnit="s"
       readouts={readouts}
-      params={params}
-      localSettings={localSettings}
+      levels={{ params, scenario, display }}
+      canvasNotes={<RegenNotes />}
+      notes={{
+        usage: [CURSOR_HINT, FADE_HINT, ...(usage ? [usage] : [])],
+        leftOut: [ETA_SOURCE, ...(leftOut ? [leftOut] : [])],
+      }}
       onReset={onReset}
-      footnote={footnote}
       testId="regen-lab"
     >
       <div className="flex flex-col gap-6">

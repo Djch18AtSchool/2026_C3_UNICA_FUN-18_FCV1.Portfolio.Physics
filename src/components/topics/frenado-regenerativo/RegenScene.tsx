@@ -1,8 +1,7 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
-import { LINE_WIDTH, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
+import { TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
-import InlineMath from '../../lab/InlineMath';
 import PowerFlow, { NODE_RADIUS } from './PowerFlow';
 import {
   drivePhase,
@@ -41,8 +40,6 @@ const FLOW_DROP = 84;
 /** Under the node row: the node names. */
 const FLOW_BOTTOM = 40;
 const NOTE_SIZE = 12;
-const KEY_WIDTH = 26;
-const KEY_HEIGHT = 12;
 const PHASE_COLORS: Readonly<Record<DrivePhase, string>> = {
   stopped: TICK_COLOR,
   coasting: TICK_COLOR,
@@ -74,36 +71,11 @@ function describeScene(
   return `${vehicleName} en el ciclo ${cycleName}, no a escala: ${PHASE_TEXT[drivePhase(at)].toLowerCase()} a ${n(at.v * KMH_PER_MS, 'km/h')}, ${n(at.distance / M_PER_KM, 'km')} de ${n(totalDistance / M_PER_KM, 'km')}. Flujo de potencia: ${flowText}.`;
 }
 
-function LegendKey({ color }: { color: string }): JSX.Element {
-  const mid = KEY_HEIGHT / 2;
-  return (
-    <svg width={KEY_WIDTH} height={KEY_HEIGHT} aria-hidden="true" className="shrink-0">
-      <line
-        x1="1"
-        y1={mid}
-        x2={KEY_WIDTH - 8}
-        y2={mid}
-        stroke={color}
-        strokeWidth={LINE_WIDTH + 2}
-      />
-      <polygon
-        points={`${KEY_WIDTH - 1},${mid} ${KEY_WIDTH - 9},1 ${KEY_WIDTH - 9},11`}
-        fill={color}
-      />
-    </svg>
-  );
-}
-
-const LEGEND: readonly { color: string; text: string }[] = [
-  { color: FLOW_COLORS.traction, text: 'Tracción: de la batería a las ruedas' },
-  { color: FLOW_COLORS.regen, text: 'Regeneración: de las ruedas a la batería' },
-  { color: FLOW_COLORS.friction, text: 'Calor de fricción en los frenos' },
-];
-
 /**
  * The regenerative-braking lab's canvas: the car on the cycle drawn as a road, what the wheels are
  * doing now, and the live power flow battery ↔ motor ↔ wheels → friction brakes with widths
- * proportional to |P|. The viewBox follows the measured width, so text keeps its pixel size.
+ * proportional to |P|. The viewBox follows the measured width, so text keeps its pixel size; the
+ * key to the colors and how to read the widths are canvas notes (RegenNotes).
  */
 export default function RegenScene(props: RegenSceneProps): JSX.Element {
   const { at, live, totalDistance, vehicleName, cycleName } = props;
@@ -130,7 +102,8 @@ export default function RegenScene(props: RegenSceneProps): JSX.Element {
         </p>
       </div>
       <div ref={wrapperRef} className="w-full">
-        <svg viewBox={`0 0 ${width} ${height}`} width="100%" className="block h-auto">
+        {/* The height is the drawing's own, whatever the width: the server draws it at 720 px. */}
+        <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} className="block">
           <g role="img" aria-label={describeScene(props, flows)}>
             {/* Between the km labels under the road. */}
             <text
@@ -148,20 +121,6 @@ export default function RegenScene(props: RegenSceneProps): JSX.Element {
           </g>
         </svg>
       </div>
-      <ul
-        aria-label="Leyenda del flujo de potencia"
-        className="m-0 flex list-none flex-wrap gap-x-5 gap-y-1 p-0 text-sm"
-      >
-        {LEGEND.map(({ color, text }) => (
-          <li key={text} className="m-0 flex items-center gap-2">
-            <LegendKey color={color} />
-            {text}
-          </li>
-        ))}
-      </ul>
-      <p className="m-0 text-sm text-fg-muted">
-        <InlineMath text="El grosor es proporcional a |P|: 20 kW = 5 px. Al regenerar, la diferencia de grosor entre el enlace del motor y el de la batería son las pérdidas de conversión $(1 - \eta)$. El aro verde en las ruedas indica que frena el motor y el naranja, que frenan las pastillas. Al traccionar, el modelo solo calcula la potencia en las ruedas: la batería entrega al menos eso $(\ge)$." />
-      </p>
     </div>
   );
 }
