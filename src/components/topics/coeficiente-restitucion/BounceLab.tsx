@@ -1,20 +1,18 @@
 import { useCallback, useEffect, useMemo, useState, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { G_EARTH } from '../../../lib/physics';
-import InlineMath from '../../lab/InlineMath';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { useSimClock } from '../../lab/useSimClock';
-import { bounceLocalSettings, combineName, MODE_OPTIONS, type LabMode } from './bounceLabSettings';
-import { BounceSummary, sceneNotes } from './BounceNotes';
+import { bounceLocalSettings, MODE_OPTIONS, type LabMode } from './bounceLabSettings';
+import BouncePresetPicker from './BouncePresetPicker';
+import BounceNotes, { sceneNotes } from './BounceNotes';
 import BouncePlots from './BouncePlots';
 import {
   BOUNCE_DEFAULTS,
   BOUNCE_LIMITS,
-  BOUNCE_PRESETS,
   DEFAULT_PRESET_ID,
-  PRESET_GROUPS,
   presetById,
   SPEED_FIT,
   type BounceSettings,
@@ -30,7 +28,12 @@ import {
   measuredRestitution,
   sceneTop,
 } from './bounceScene';
-import { CollisionParams, CollisionScene, collisionReadouts } from './CollisionMode';
+import {
+  CollisionNotes,
+  CollisionParams,
+  CollisionScene,
+  collisionReadouts,
+} from './CollisionMode';
 import {
   COLLISION_DEFAULTS,
   COLLISION_DURATION_S,
@@ -39,7 +42,9 @@ import {
 } from './collisionScene';
 
 const g = G_EARTH;
-const DRAG_HINT = String.raw`Arrastra la manija $h_0$ de la escena, o enfócala y muévela con las flechas (5 cm; con Mayús, 25 cm). El motor ($\Delta t$, subpasos, umbral, regla de combinación, e del suelo, Baumgarte y e(v)) se ajusta en el engranaje. Atajos, fuera de los campos: Espacio o K reproduce y pausa; R reinicia; «,» y «.» retroceden o avanzan un paso $\Delta t$ del motor.`;
+/** «Cómo se usa»: the drag and where the engine is set, then the keys that work in both modes. */
+const DRAG_HINT = String.raw`Arrastra la manija $h_0$ de la escena, o enfócala y muévela con las flechas (5 cm; con Mayús, 25 cm). El motor ($\Delta t$, subpasos, umbral, regla de combinación, e del suelo, Baumgarte y e(v)) se ajusta en el engranaje.`;
+const SHORTCUTS_HINT = String.raw`Atajos, fuera de los campos: Espacio o K reproduce y pausa; R reinicia; «,» y «.» retroceden o avanzan un paso $\Delta t$ del motor.`;
 /** Thousandths, so the FIBA (0,767) and FIFA (0,851) centres sit on the grid. */
 const E_STEP = 0.001;
 const H0_STEP = 0.01;
@@ -76,7 +81,7 @@ function ModeToggle({ mode, onChange }: { mode: LabMode; onChange(mode: LabMode)
           type="button"
           aria-pressed={mode === option.value}
           onClick={() => onChange(option.value)}
-          className="min-h-11 rounded-base border border-border px-3 text-sm font-medium transition-colors hover:border-fg-muted aria-pressed:border-accent aria-pressed:bg-accent/10"
+          className="min-h-10 rounded-base border border-border px-3 text-sm font-medium transition-colors hover:border-fg-muted aria-pressed:border-accent aria-pressed:bg-accent/10"
         >
           {option.label}
         </button>
@@ -108,58 +113,11 @@ function GainZone({ e }: { e: number }) {
   );
 }
 
-function PresetPicker({
-  state,
-  onSelect,
-}: {
-  state: BounceState;
-  onSelect(id: string): void;
-}): JSX.Element {
-  const based = presetById(state.basedOn);
-  const isModified = state.presetId === undefined;
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-        <label htmlFor="bounce-preset" className="text-sm font-medium">
-          Preajuste
-        </label>
-        <select
-          id="bounce-preset"
-          value={state.presetId ?? ''}
-          onChange={(event) => onSelect(event.target.value)}
-          className="min-h-11 max-w-full min-w-0 rounded-base border border-border bg-bg-elevated px-3 text-sm text-fg"
-        >
-          <option value="" disabled>
-            Personalizado
-          </option>
-          {PRESET_GROUPS.map(({ group, label }) => (
-            <optgroup key={group} label={label}>
-              {BOUNCE_PRESETS.filter((preset) => preset.group === group).map((preset) => (
-                <option key={preset.id} value={preset.id}>
-                  {preset.name}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-      </div>
-      <p data-testid="preset-note" className="m-0 text-sm text-fg-muted">
-        <InlineMath
-          text={`${isModified ? `Partí de «${based.name}» y cambié algún valor. ` : ''}${based.note ?? ''}`}
-        />
-        {based.sourceLabel ? (
-          <span className="mt-1 block text-xs">
-            <InlineMath text={`Fuente: ${based.sourceLabel}`} />
-          </span>
-        ) : null}
-      </p>
-    </div>
-  );
-}
-
 export interface BounceLabProps {
-  /** The model's caveats, written in the topic's MDX so they travel with its text. */
-  footnote?: string;
+  /** «Cómo se usa», after the drag and the keys: the playback speed, from the topic's MDX. */
+  usage?: string;
+  /** «Qué deja fuera el modelo», written in the topic's MDX so it travels with its text. */
+  leftOut?: string;
 }
 
 /**
@@ -169,7 +127,7 @@ export interface BounceLabProps {
  * controls, presets in two groups, synchronized y(t) and E(t) plots and the "Choque de dos
  * cuerpos" mode. Any change rewinds the clock: a new drop.
  */
-export default function BounceLab({ footnote }: BounceLabProps): JSX.Element {
+export default function BounceLab({ usage, leftOut }: BounceLabProps): JSX.Element {
   const [state, setState] = useState<BounceState>(INITIAL_STATE);
   const [mode, setMode] = useState<LabMode>('bounce');
   const [collision, setCollision] = useState<CollisionSettings>(COLLISION_DEFAULTS);
@@ -271,109 +229,101 @@ export default function BounceLab({ footnote }: BounceLabProps): JSX.Element {
     speed: clock.state.speed,
     decimals,
   });
-  const engineConfig = `Motor: $\\Delta t$ = 1/${settings.rate} s × ${settings.substeps} subpasos · umbral ${formatNumber(settings.threshold, { precision: 2, unit: 'm/s' })} · regla ${combineName(settings.combine)}, suelo e = ${formatNumber(settings.floorE, { precision: 2 })} · $\\beta$ = ${formatNumber(settings.baumgarte, { precision: 2 })}`;
-
   const bounceParams = (
     <>
-      <PresetPicker state={state} onSelect={choosePreset} />
-      <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-        {settings.speedDependent ? (
-          <p data-testid="speed-fit" className="m-0 text-sm">
-            {`e(v) = ${formatNumber(SPEED_FIT.e0, { precision: 2 })} − ${formatNumber(SPEED_FIT.k, { precision: 3 })}·|v| (s/m), recortado a [0, 1]: ajuste ilustrativo a Cross (1999). Desactívalo en los ajustes para volver a un e fijo.`}
-          </p>
-        ) : (
-          <div className="flex flex-col gap-1">
-            <ParamField
-              id="bounce-e"
-              label="Coeficiente de restitución e"
-              unit=""
-              min={E_MIN}
-              max={E_MAX}
-              step={E_STEP}
-              value={settings.e}
-              onChange={(e) => edit({ e })}
-            />
-            <GainZone e={settings.e} />
-          </div>
-        )}
-        <ParamField
-          id="bounce-h0"
-          label="Altura de suelta $h_0$"
-          unit="m"
-          min={H0_MIN}
-          max={H0_MAX}
-          step={H0_STEP}
-          value={settings.h0}
-          onChange={(h0) => edit({ h0 })}
-        />
-      </div>
-      <p className="m-0 text-sm text-fg-muted">
-        <InlineMath text={DRAG_HINT} />
-      </p>
+      {settings.speedDependent ? (
+        <p data-testid="speed-fit" className="m-0 text-sm">
+          {`e(v) = ${formatNumber(SPEED_FIT.e0, { precision: 2 })} − ${formatNumber(SPEED_FIT.k, { precision: 3 })}·|v| (s/m), recortado a [0, 1]: ajuste ilustrativo a Cross (1999). Desactívalo en los ajustes para volver a un e fijo.`}
+        </p>
+      ) : (
+        <div className="flex flex-col gap-1">
+          <ParamField
+            id="bounce-e"
+            label="Coeficiente de restitución e"
+            unit=""
+            min={E_MIN}
+            max={E_MAX}
+            step={E_STEP}
+            value={settings.e}
+            onChange={(e) => edit({ e })}
+          />
+          <GainZone e={settings.e} />
+        </div>
+      )}
+      <ParamField
+        id="bounce-h0"
+        label="Altura de suelta $h_0$"
+        unit="m"
+        min={H0_MIN}
+        max={H0_MAX}
+        step={H0_STEP}
+        value={settings.h0}
+        onChange={(h0) => edit({ h0 })}
+      />
     </>
   );
 
   const isBounce = mode === 'bounce';
+  const hints = isBounce ? [DRAG_HINT, SHORTCUTS_HINT] : [SHORTCUTS_HINT];
   return (
     <div className="flex flex-col gap-4" onKeyDown={onShortcut}>
       <LabShell
         title="Laboratorio del rebote"
         clock={clock}
         readouts={isBounce ? bounceReadouts : collisionReadouts(collision, outcome)}
-        params={
-          <>
-            <ModeToggle mode={mode} onChange={setMode} />
-            {isBounce ? (
-              bounceParams
-            ) : (
-              <CollisionParams
-                settings={collision}
-                outcome={outcome}
-                onChange={(patch) => setCollision((previous) => ({ ...previous, ...patch }))}
-              />
-            )}
-          </>
+        canvasNotes={
+          isBounce ? (
+            <BounceNotes settings={settings} model={model} notes={notes} decimals={decimals} />
+          ) : (
+            <CollisionNotes settings={collision} outcome={outcome} />
+          )
         }
-        localSettings={bounceLocalSettings({
-          mode,
-          onModeChange: setMode,
-          settings,
-          onSettingsChange: edit,
-          clock,
-        })}
+        levels={{
+          params: isBounce ? (
+            bounceParams
+          ) : (
+            <CollisionParams
+              settings={collision}
+              onChange={(patch) => setCollision((previous) => ({ ...previous, ...patch }))}
+            />
+          ),
+          scenario: (
+            <>
+              <ModeToggle mode={mode} onChange={setMode} />
+              {isBounce ? (
+                <BouncePresetPicker
+                  presetId={state.presetId}
+                  basedOn={state.basedOn}
+                  onSelect={choosePreset}
+                />
+              ) : null}
+            </>
+          ),
+          display: bounceLocalSettings({
+            mode,
+            onModeChange: setMode,
+            settings,
+            onSettingsChange: edit,
+            clock,
+          }),
+        }}
+        notes={{ usage: [...hints, ...(usage ? [usage] : [])], leftOut: leftOut ? [leftOut] : [] }}
         onReset={onReset}
-        footnote={footnote}
         testId="bounce-lab"
       >
         {isBounce ? (
-          <div className="flex flex-col gap-3">
-            <BounceScene
-              h0={settings.h0}
-              top={top}
-              ball={settings.ball}
-              ideal={ideal}
-              engine={{ y: engine.y, isResting: engine.resting }}
-              live={live}
-              engineSubtitle={`Δt\u00a0=\u00a01/${settings.rate}\u00a0s ×\u00a0${settings.substeps}`}
-              decimals={decimals}
-              onH0Change={(h0) => edit({ h0 })}
-              onH0DragPhase={onH0DragPhase}
-            />
-            <p data-testid="engine-config" className="m-0 px-3 text-xs text-fg-muted sm:px-0">
-              <InlineMath text={engineConfig} />
-            </p>
-            {notes.length > 0 ? (
-              <ul
-                data-testid="scene-notes"
-                className="m-0 flex list-disc flex-col gap-1 px-3 pl-8 text-sm sm:pr-0 sm:pl-5"
-              >
-                {notes.map((note) => (
-                  <li key={note}>{note}</li>
-                ))}
-              </ul>
-            ) : null}
-            <BounceSummary settings={settings} model={model} decimals={decimals} />
-          </div>
+          <BounceScene
+            h0={settings.h0}
+            top={top}
+            ball={settings.ball}
+            ideal={ideal}
+            engine={{ y: engine.y, isResting: engine.resting }}
+            live={live}
+            engineSubtitle={`Δt\u00a0=\u00a01/${settings.rate}\u00a0s ×\u00a0${settings.substeps}`}
+            decimals={decimals}
+            onH0Change={(h0) => edit({ h0 })}
+            onH0DragPhase={onH0DragPhase}
+          />
         ) : (
           <CollisionScene
             settings={collision}

@@ -28,8 +28,13 @@ const BALL_STROKE = 'var(--fg)';
 const SEAM_COLOR = 'var(--bg-elevated)';
 const HANDLE_COLOR = TEXT_COLOR;
 
-/** viewBox width before the container is measured (SSR, jsdom): the article column. */
-const FALLBACK_WIDTH = 720;
+/**
+ * The scene is never wider than this, which is also the viewBox width the server (and jsdom) draw
+ * before the container is measured: a compact scene (under COMPACT_WIDTH) of the same proportions
+ * as the hydrated one, so it keeps its height in the lab's stage (no layout shift).
+ */
+const MAX_WIDTH = 400;
+const FALLBACK_WIDTH = MAX_WIDTH;
 const COMPACT_WIDTH = 480;
 const HEIGHT = { compact: 300, wide: 340 } as const;
 const BALL_RADIUS = { compact: 9, wide: 11 } as const;
@@ -373,7 +378,11 @@ export default function BounceScene(props: BounceSceneProps): JSX.Element {
   const statusTop = floorY + STATUS_GAP + extraLines * STATUS_LINE;
 
   return (
-    <div ref={wrapperRef} className="w-full px-3 sm:px-0">
+    <div
+      ref={wrapperRef}
+      className="mx-auto w-full px-3 sm:px-0"
+      style={{ maxWidth: MAX_WIDTH, minHeight: HEIGHT.compact }}
+    >
       <svg
         data-testid="bounce-scene"
         viewBox={`0 0 ${width} ${geo.height}`}

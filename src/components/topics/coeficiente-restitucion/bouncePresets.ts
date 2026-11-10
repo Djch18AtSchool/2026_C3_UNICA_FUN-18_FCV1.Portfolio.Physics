@@ -115,7 +115,7 @@ function ballPreset(
     group: 'realista',
     values: { ...ENGINE_DEFAULTS, e, h0, ball: kind },
     sourceLabel: sourceOf(standard),
-    note: `${standard.standard}. De ahí ${range} (cálculo propio, e = $\\sqrt{h'/h}$ o $v'/v$); uso ${comma(e, E_DECIMALS)} con $h_0$ = ${comma(h0, 2)} m. El motor usa los valores por defecto de Box2D.`,
+    note: `${standard.standard}; de ahí ${range} (cálculo propio, e = $\\sqrt{h'/h}$ o $v'/v$), y uso ${comma(e, E_DECIMALS)} con $h_0$ = ${comma(h0, 2)} m.`,
   };
 }
 
@@ -136,7 +136,7 @@ const mixOver = (floorE: number) =>
   `suelo de ${comma(floorE, 1).replace(/,0$/, '')}: ${MIX_RULES.map(
     ({ rule, name }) => `${name} $\\to$ ${comma(combineRestitution(MIX_BALL, floorE, rule), 3)}`,
   ).join('; ')}`;
-const mixNote = `${mixOver(MIX_FLOOR)}. Sobre un ${mixOver(0)}`;
+const mixNote = `${mixOver(MIX_FLOOR)}, y sobre un ${mixOver(0)}`;
 
 /** Unity's default floor bounciness (0), and the pair it gives under "promedio" for e = 0,9. */
 const UNITY_E = 0.9;
@@ -179,7 +179,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       ball: 'tenis',
     },
     sourceLabel: 'Cross (1999), «Dynamic properties of tennis balls», Fig. 8',
-    note: 'e(v) = 0,79 − 0,009·|v|: ajuste lineal ilustrativo (cálculo propio) a la medida de Cross, que baja de $\\approx$ 0,76 a $\\approx$ 0,64 entre 4 y 17 m/s. A baja velocidad e sube, así que la serie de botes pequeños se alarga en vez de cortarse.',
+    note: 'e(v) = 0,79 − 0,009·|v|: ajuste lineal ilustrativo (cálculo propio) a la medida de Cross, que baja de $\\approx$ 0,76 a $\\approx$ 0,64 entre 4 y 17 m/s; a baja velocidad e sube, así que la serie de botes pequeños se alarga en vez de cortarse.',
   },
   {
     id: 'e-uno',
@@ -187,7 +187,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
     group: 'se-siente-mal',
     values: { ...ENGINE_DEFAULTS, e: 1, h0: DEFAULT_DROP, threshold: 0, ball: 'neutra' },
     sourceLabel: 'Box2D, documentación: «perfectly elastic»',
-    note: 'Choque perfectamente elástico: la pelota vuelve siempre a $h_0$ y no se detiene nunca, porque E no cambia. Ninguna pelota real lo hace.',
+    note: 'Choque perfectamente elástico: la pelota vuelve siempre a $h_0$ y no se detiene nunca, porque E no cambia; ninguna pelota real lo hace.',
   },
   {
     id: 'e-mayor-que-uno',
@@ -219,7 +219,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       ball: 'neutra',
     },
     sourceLabel: 'Physics.bounceThreshold de Unity (por defecto, 2)',
-    note: `Tomo de Unity solo el umbral de 2 m/s y la mezcla promedio, los valores por defecto de Unity 3D. El paso es el del laboratorio, 1/60 s con 4 subpasos, el paso fino de Box2D, y le doy al suelo el mismo e = ${comma(UNITY_E, 1)} que a la pelota: con el suelo en 0, el valor por defecto de Unity, el promedio daría ${comma(combineRestitution(UNITY_E, UNITY_DEFAULT_FLOOR, 'average'), 3)}; e quedaría a la mitad y la altura del rebote, a la cuarta parte. Tras ${UNITY_STOP} botes, el último de ${comma(UNITY_LAST_APEX_CM, 1)} cm, la pelota se para en seco.`,
+    note: `Tomo de Unity solo el umbral de 2 m/s y la mezcla promedio, los valores por defecto de Unity 3D (el paso, 1/60 s con 4 subpasos, es el fino de Box2D), y le doy al suelo el mismo e = ${comma(UNITY_E, 1)} que a la pelota: con el suelo en 0, el valor por defecto de Unity, el promedio daría ${comma(combineRestitution(UNITY_E, UNITY_DEFAULT_FLOOR, 'average'), 3)}; e quedaría a la mitad y la altura del rebote, a la cuarta parte; tras ${UNITY_STOP} botes, el último de ${comma(UNITY_LAST_APEX_CM, 1)} cm, la pelota se para en seco.`,
   },
   {
     id: 'mezcla',
@@ -234,7 +234,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       ball: 'neutra',
     },
     sourceLabel: 'Box2D, PhysX/Unity, Bullet y Godot (reglas por defecto)',
-    note: `Pelota de 0,85 sobre un suelo al que el motor da 0,5. Según la regla, el par queda así sobre un ${mixNote} (cálculo propio). Cambia la regla en los ajustes: e es del par, no de cada material.`,
+    note: `Pelota de 0,85 sobre un suelo al que el motor da 0,5: según la regla, el par queda así sobre un ${mixNote} (cálculo propio); cambia la regla en los ajustes: e es del par, no de cada material.`,
   },
   {
     id: 'pocos-fps',

@@ -148,7 +148,9 @@ test.describe('laboratorio', () => {
   test('carga un preajuste que se siente mal: el umbral de Unity para en seco tras 18,5 cm', async ({
     page,
   }) => {
-    await page.getByRole('combobox', { name: 'Preajuste' }).selectOption('umbral-unity');
+    await page
+      .getByRole('combobox', { name: 'Valores de referencia' })
+      .selectOption('umbral-unity');
 
     await expect(page.getByRole('slider', { name: E_SLIDER, exact: true })).toHaveValue('0.9');
     await expect(page.getByTestId('preset-note')).toContainText(
@@ -159,7 +161,9 @@ test.describe('laboratorio', () => {
   });
 
   test('carga un preajuste realista: el balón FIBA con e = 0,767', async ({ page }) => {
-    await page.getByRole('combobox', { name: 'Preajuste' }).selectOption('baloncesto-fiba');
+    await page
+      .getByRole('combobox', { name: 'Valores de referencia' })
+      .selectOption('baloncesto-fiba');
 
     await expect(page.getByRole('slider', { name: E_SLIDER, exact: true })).toHaveValue(
       String(FIBA_E),
@@ -203,15 +207,36 @@ test.describe('laboratorio', () => {
     await expect(gear).toBeFocused();
   });
 
-  test('la nota del laboratorio dice la velocidad de reproducción y lo que el modelo deja fuera', async ({
+  test('«Cómo se usa» dice la velocidad de reproducción y «Qué deja fuera el modelo» lo que el modelo omite', async ({
     page,
   }) => {
-    const footnote = page.locator(LAB).getByTestId('lab-footnote');
+    const lab = page.locator(LAB);
+    const usage = lab.locator('details[data-lab-note="usage"]');
+    const leftOut = lab.locator('details[data-lab-note="left-out"]');
 
-    await expect(footnote).toContainText('tiempo real');
-    await expect(footnote).toContainText('0,25×');
-    await expect(footnote).toContainText('arrastre del aire');
-    await expect(footnote).toContainText('giro');
+    await expect(usage).toContainText('tiempo real');
+    await expect(usage).toContainText('0,25×');
+    await expect(usage).toContainText('Atajos');
+    await expect(leftOut).toContainText('arrastre del aire');
+    await expect(leftOut).toContainText('giro');
+    await expect(leftOut).not.toContainText('Fuera del modelo');
+    await expect(usage).not.toHaveAttribute('open');
+    await usage.locator('summary').click();
+    await expect(usage).toHaveAttribute('open', '');
+  });
+
+  test('el motor se lee como fichas «Motor» bajo el lienzo, y un preajuste las cambia', async ({
+    page,
+  }) => {
+    const lab = page.locator(LAB);
+    const motor = lab.getByRole('list', { name: 'Motor' });
+    await expect(motor.getByRole('listitem')).toHaveCount(5);
+    await expect(motor).toContainText('1/60 s × 4 subpasos');
+
+    await page.getByRole('combobox', { name: 'Valores de referencia' }).selectOption('pocos-fps');
+
+    await expect(motor).toContainText('1/30 s × 1 subpasos');
+    await expect(motor).toContainText('β = 0,20');
   });
 
   test('el laboratorio ocupa el ancho de la columna de lectura', async ({ page }) => {

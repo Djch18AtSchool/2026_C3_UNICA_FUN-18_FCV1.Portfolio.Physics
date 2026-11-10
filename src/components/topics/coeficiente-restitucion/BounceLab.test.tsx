@@ -9,7 +9,11 @@ import { mathSourceText } from '../../../test-inline-math';
 import BounceLab from './BounceLab';
 import { readout } from '../../../test-readout';
 
-const FOOTNOTE = 'Desprecio el arrastre del aire.';
+const USAGE = 'A 1× la reproducción va en tiempo real.';
+const LEFT_OUT = 'Desprecio el arrastre del aire.';
+const usageNote = () => document.querySelector('details[data-lab-note="usage"]') as HTMLElement;
+const leftOutNote = () =>
+  document.querySelector('details[data-lab-note="left-out"]') as HTMLElement;
 /** Tests that sweep presets or the timeline render the lab dozens of times; room under load. */
 const HEAVY_TEST_TIMEOUT_MS = 20_000;
 
@@ -24,14 +28,15 @@ function mockIdentityCtm(): void {
 }
 
 function renderLab() {
-  const view = render(<BounceLab footnote={FOOTNOTE} />);
+  const view = render(<BounceLab usage={USAGE} leftOut={LEFT_OUT} />);
   mockIdentityCtm();
   return view;
 }
 
 const numberOf = (text: string) => Number(text.replace(/\s.*$/, '').replace(',', '.'));
 const timeline = () => screen.getByRole('slider', { name: 'Línea de tiempo' });
-const presetSelect = () => screen.getByRole('combobox', { name: 'Preajuste' }) as HTMLSelectElement;
+const presetSelect = () =>
+  screen.getByRole('combobox', { name: 'Valores de referencia' }) as HTMLSelectElement;
 const eRange = () => screen.getByRole('slider', { name: /^Coeficiente de restitución e/ });
 const gear = () => screen.getByRole('button', { name: 'Ajustes del simulador' });
 const ball = (which: 'ideal' | 'engine') => screen.getByTestId(`ball-${which}`);
@@ -61,7 +66,7 @@ describe('BounceLab', () => {
     vi.unstubAllGlobals();
   });
 
-  test('opens on the ITF tennis ball with both balls, the engine defaults and the footnote', () => {
+  test('opens on the ITF tennis ball with both balls, the engine defaults and the two disclosures', () => {
     renderLab();
 
     expect(presetSelect().value).toBe('tenis-itf');
@@ -73,7 +78,8 @@ describe('BounceLab', () => {
       '0,745',
     );
     expect(ball('ideal')).toHaveAttribute('data-ball', 'tenis');
-    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
+    expect(usageNote()).toHaveTextContent(USAGE);
+    expect(leftOutNote()).toHaveTextContent(LEFT_OUT);
   });
 
   test('the presets come in two groups: realistic bounces and ones that feel wrong', () => {
@@ -331,7 +337,7 @@ describe('BounceLab', () => {
     expect(note).toHaveTextContent(
       /umbral de 2 m\/s y la mezcla promedio, los valores por defecto de Unity 3D/,
     );
-    expect(note).toHaveTextContent(/1\/60 s con 4 subpasos, el paso fino de Box2D/);
+    expect(note).toHaveTextContent(/1\/60 s con 4 subpasos, es el fino de Box2D/);
     expect(note).toHaveTextContent(
       /con el suelo en 0, el valor por defecto de Unity, el promedio daría 0,450/,
     );

@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import InlineMath from '../../lab/InlineMath';
+import StatusChips, { type StatusChip } from '../../lab/StatusChips';
 import type { BallState } from '../../../lib/physics';
 import { combineName } from './bounceLabSettings';
 import type { BounceSettings } from './bouncePresets';
@@ -100,11 +101,58 @@ export function BounceSummary({ settings: s, model, decimals }: BounceSummaryPro
     ? `e(v) del ajuste ilustrativo, mezclado con el suelo (${n(s.floorE, 3)}) por ${combineName(s.combine)}`
     : `${combineName(s.combine)}(${n(s.e, 3)}; ${n(s.floorE, 3)}) = ${n(pairRestitution(s), 3)}`;
   return (
-    <dl data-testid="bounce-summary" className="m-0 flex flex-col gap-2 px-3 sm:px-0">
+    <dl data-testid="bounce-summary" className="m-0 flex flex-col gap-2">
       <Row term="T teórico, $t_0(1+e)/(1-e)$">{idealRow}</Row>
       <Row term="Motor de juego">{engineRow}</Row>
       <Row term="Umbral con eventos exactos">{predictionRow}</Row>
       <Row term="e del par en el motor">{pairRow}</Row>
     </dl>
+  );
+}
+
+/**
+ * «=» between no-break spaces: a chip is a flex box, which drops the ordinary space that follows a
+ * KaTeX formula, so «Δt = …» would read «Δt= …».
+ */
+const EQUALS = ' = ';
+
+/** The engine's configuration as read-only chips (what the drawer sets; the presets change it). */
+export function engineChips(s: BounceSettings): StatusChip[] {
+  return [
+    { id: 'step', text: `$\\Delta t$${EQUALS}1/${s.rate} s × ${s.substeps} subpasos` },
+    { id: 'threshold', text: `umbral ${n(s.threshold, 2, 'm/s')}` },
+    { id: 'rule', text: `regla ${combineName(s.combine)}` },
+    { id: 'floor', text: `suelo e = ${formatNumber(s.floorE, { precision: 2 })}` },
+    { id: 'baumgarte', text: `$\\beta$${EQUALS}${formatNumber(s.baumgarte, { precision: 2 })}` },
+  ];
+}
+
+export interface BounceNotesProps extends BounceSummaryProps {
+  /** What the scene shows that is not physics (sceneNotes), each said in words. */
+  notes: string[];
+}
+
+/**
+ * What reads the bounce canvas without being a control, in the lab's canvas notes: the engine's
+ * configuration, the notes on what is drawn and the four-row summary of the run.
+ */
+export default function BounceNotes({
+  settings,
+  model,
+  notes,
+  decimals,
+}: BounceNotesProps): JSX.Element {
+  return (
+    <div className="flex flex-col gap-3">
+      <StatusChips label="Motor" testId="engine-config" items={engineChips(settings)} />
+      {notes.length > 0 ? (
+        <ul data-testid="scene-notes" className="m-0 flex list-disc flex-col gap-1 pl-5 text-sm">
+          {notes.map((note) => (
+            <li key={note}>{note}</li>
+          ))}
+        </ul>
+      ) : null}
+      <BounceSummary settings={settings} model={model} decimals={decimals} />
+    </div>
   );
 }

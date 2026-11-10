@@ -105,3 +105,29 @@ describe('BounceScene column subtitles', () => {
     expect(lastLine).toBeDefined();
   });
 });
+
+describe('BounceScene before it measures its width (the server, and the lab stage on hydration)', () => {
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  test('draws the compact scene at the width it is capped to, so hydrating in the stage moves nothing', () => {
+    vi.stubGlobal('ResizeObserver', undefined);
+    render(<BounceScene {...PROPS} />);
+    const wrapper = screen.getByTestId('bounce-scene').parentElement as HTMLElement;
+
+    expect(viewBoxOf(screen.getByTestId('bounce-scene'))).toEqual([0, 0, 400, 300]);
+    expect(wrapper.style.maxWidth).toBe('400px');
+    expect(wrapper.style.minHeight).toBe('300px');
+  });
+
+  test('a stage narrower than the cap keeps the height of the drawing it will become', () => {
+    stubResizeObserver(360);
+    render(<BounceScene {...PROPS} />);
+    const wrapper = screen.getByTestId('bounce-scene').parentElement as HTMLElement;
+
+    expect(viewBoxOf(screen.getByTestId('bounce-scene'))[3]).toBeGreaterThanOrEqual(300);
+    expect(wrapper.style.minHeight).toBe('300px');
+  });
+});

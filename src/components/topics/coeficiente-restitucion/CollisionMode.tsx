@@ -290,22 +290,17 @@ export function CollisionScene(props: CollisionSceneProps): JSX.Element {
   );
 }
 
-export interface CollisionParamsProps {
-  settings: CollisionSettings;
-  outcome: CollisionOutcome;
-  onChange(patch: Partial<CollisionSettings>): void;
-}
-
 const LOSS_NOTE = String.raw`El momento lineal es el mismo antes y después para cualquier e; la energía cinética no: se pierde $\Delta K = \tfrac{1}{2}\mu\,(1 - e^2)\,v_\text{rel}^2$, con $\mu = m_1 m_2/(m_1 + m_2)$, así que $\Delta K/K_\text{rel} = 1 - e^2$. En las barras, el tramo punteado es $\Delta K$.`;
 const WALL_NOTE = String.raw`Con $m_2 \to \infty$ el cuerpo 2 es el piso: $v_1' = -e\,v_1$, el rebote de la pelota. El piso recibe el impulso sin moverse, así que el momento del cuerpo 1 solo no se conserva.`;
 const RECEDING_NOTE = String.raw`Con $v_1 \le v_2$ los cuerpos no se acercan: no hay choque y nada cambia.`;
 
-/** m_1, m_2, v_1, v_2 and e, the "m_2 → ∞" switch, and what the mode shows. */
-export function CollisionParams({
-  settings: s,
-  outcome,
-  onChange,
-}: CollisionParamsProps): JSX.Element {
+export interface CollisionParamsProps {
+  settings: CollisionSettings;
+  onChange(patch: Partial<CollisionSettings>): void;
+}
+
+/** m_1, m_2, v_1, v_2 and e, and the «m_2 → ∞» switch: the physical parameters of the mode. */
+export function CollisionParams({ settings: s, onChange }: CollisionParamsProps): JSX.Element {
   const field = (
     key: 'm1' | 'm2' | 'v1' | 'v2',
     label: string,
@@ -326,47 +321,56 @@ export function CollisionParams({
   );
   return (
     <>
-      <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-        {field('m1', 'Masa $m_1$', 'kg', [M_MIN, M_MAX], MASS_STEP)}
-        {s.isWall ? null : field('m2', 'Masa $m_2$', 'kg', [M_MIN, M_MAX], MASS_STEP)}
-        {field('v1', 'Velocidad $v_1$', 'm/s', [V_MIN, V_MAX], VELOCITY_STEP)}
-        {s.isWall ? null : field('v2', 'Velocidad $v_2$', 'm/s', [V_MIN, V_MAX], VELOCITY_STEP)}
-        <ParamField
-          id="collision-e"
-          label="Coeficiente de restitución e"
-          unit=""
-          min={E_MIN}
-          max={E_MAX}
-          step={E_STEP}
-          value={s.e}
-          onChange={(e) => onChange({ e })}
-        />
-      </div>
+      {field('m1', 'Masa $m_1$', 'kg', [M_MIN, M_MAX], MASS_STEP)}
+      {s.isWall ? null : field('m2', 'Masa $m_2$', 'kg', [M_MIN, M_MAX], MASS_STEP)}
+      {field('v1', 'Velocidad $v_1$', 'm/s', [V_MIN, V_MAX], VELOCITY_STEP)}
+      {s.isWall ? null : field('v2', 'Velocidad $v_2$', 'm/s', [V_MIN, V_MAX], VELOCITY_STEP)}
+      <ParamField
+        id="collision-e"
+        label="Coeficiente de restitución e"
+        unit=""
+        min={E_MIN}
+        max={E_MAX}
+        step={E_STEP}
+        value={s.e}
+        onChange={(e) => onChange({ e })}
+      />
       <SwitchField
         id="collision-wall"
         label={String.raw`Cuerpo 2 fijo ($m_2 \to \infty$, como el piso)`}
         checked={s.isWall}
         onChange={(isWall) => onChange({ isWall })}
       />
-      <ul
-        data-testid="collision-notes"
-        className="m-0 flex list-disc flex-col gap-1 pl-5 text-sm text-fg-muted"
-      >
-        <li>
-          <InlineMath text={LOSS_NOTE} />
-        </li>
-        {s.isWall ? (
-          <li>
-            <InlineMath text={WALL_NOTE} />
-          </li>
-        ) : null}
-        {outcome.isApproaching ? null : (
-          <li>
-            <InlineMath text={RECEDING_NOTE} />
-          </li>
-        )}
-      </ul>
     </>
+  );
+}
+
+export interface CollisionNotesProps {
+  settings: CollisionSettings;
+  outcome: CollisionOutcome;
+}
+
+/** What the mode shows, in the lab's canvas notes: the energy lost, the fixed body, no approach. */
+export function CollisionNotes({ settings: s, outcome }: CollisionNotesProps): JSX.Element {
+  return (
+    <ul
+      data-testid="collision-notes"
+      className="m-0 flex list-disc flex-col gap-1 pl-5 text-sm text-fg-muted"
+    >
+      <li>
+        <InlineMath text={LOSS_NOTE} />
+      </li>
+      {s.isWall ? (
+        <li>
+          <InlineMath text={WALL_NOTE} />
+        </li>
+      ) : null}
+      {outcome.isApproaching ? null : (
+        <li>
+          <InlineMath text={RECEDING_NOTE} />
+        </li>
+      )}
+    </ul>
   );
 }
 
