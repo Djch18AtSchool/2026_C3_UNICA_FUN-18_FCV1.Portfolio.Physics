@@ -5,7 +5,7 @@
  * never downloads KaTeX's JavaScript.
  */
 import katex from 'katex';
-import { escapeHtml, splitInlineMath } from './inlineMath';
+import { escapeHtml, groupInlineMath, NO_WRAP_CLASS } from './inlineMath';
 
 /** Inline KaTeX HTML (with MathML); a TeX error throws, as Equation.astro does. */
 export function texToHtml(tex: string): string {
@@ -16,9 +16,14 @@ export function texToHtml(tex: string): string {
   });
 }
 
-/** The text as HTML: plain parts escaped, $…$ parts typeset by KaTeX. */
+/** The text as HTML: plain parts escaped, $…$ parts typeset by KaTeX with their punctuation. */
 export function inlineMathToHtml(text: string): string {
-  return splitInlineMath(text)
-    .map((segment) => (segment.kind === 'math' ? texToHtml(segment.tex) : escapeHtml(segment.text)))
+  return groupInlineMath(text)
+    .map((group) => {
+      if (group.kind === 'text') return escapeHtml(group.text);
+      const math = texToHtml(group.tex);
+      if (group.after === '') return math;
+      return `<span class="${NO_WRAP_CLASS}">${math}${escapeHtml(group.after)}</span>`;
+    })
     .join('');
 }

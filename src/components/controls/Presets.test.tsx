@@ -44,3 +44,16 @@ describe('Presets', () => {
     expect(screen.queryByText('Valor medio')).not.toBeInTheDocument();
   });
 });
+
+describe('Presets note with KaTeX', () => {
+  afterEach(cleanup);
+
+  test('typesets the $…$ of the active preset’s note', () => {
+    const presets: Preset<{ g: number }>[] = [
+      { id: 'a', name: 'A', values: { g: 1 }, note: 'Fuera del plano de $\\vec V_p$.' },
+    ];
+    const { container } = render(<Presets presets={presets} activeId="a" onSelect={vi.fn()} />);
+
+    expect(container.querySelector('p .inline-math')).not.toBeNull();
+  });
+});

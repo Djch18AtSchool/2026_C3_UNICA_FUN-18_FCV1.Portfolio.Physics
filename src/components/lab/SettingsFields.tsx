@@ -1,4 +1,5 @@
 import type { JSX } from 'react';
+import { mathAriaLabel } from '../../lib/inlineMath';
 import InlineMath from './InlineMath';
 import { withStableCallbacks } from './withStableCallbacks';
 
@@ -34,6 +35,7 @@ function SwitchFieldBase({ id, label, checked, onChange }: SwitchFieldProps): JS
         id={id}
         type="checkbox"
         role="switch"
+        aria-label={mathAriaLabel(label)}
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
         className="peer sr-only"
@@ -120,7 +122,8 @@ function SegmentedFieldBase<T extends string | number>({
       </span>
       <div
         role="radiogroup"
-        aria-labelledby={labelId}
+        aria-labelledby={mathAriaLabel(label) ? undefined : labelId}
+        aria-label={mathAriaLabel(label)}
         className="flex gap-1 rounded-base border border-border p-1"
       >
         {options.map((option) => (

@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'vitest';
-import { hasInlineMath, inlineMathToSpeech, splitInlineMath, texToNotation } from './inlineMath';
+import {
+  groupInlineMath,
+  hasInlineMath,
+  inlineMathToSpeech,
+  mathAriaLabel,
+  splitInlineMath,
+  texToNotation,
+} from './inlineMath';
 import { inlineMathToHtml, texToHtml } from './texHtml';
 
 describe('splitInlineMath', () => {
@@ -91,5 +98,46 @@ describe('inlineMathToSpeech', () => {
 
   test('plain text comes back unchanged', () => {
     expect(inlineMathToSpeech('Ángulo de giro δ')).toBe('Ángulo de giro δ');
+  });
+});
+
+describe('mathAriaLabel', () => {
+  test('gives a spoken name only to a label with math', () => {
+    expect(mathAriaLabel('Máxima aproximación $r_p$')).toBe('Máxima aproximación r sub p');
+    expect(mathAriaLabel('Lado de paso')).toBeUndefined();
+  });
+});
+
+describe('groupInlineMath', () => {
+  test('binds the punctuation right after a formula to it, so a line never starts with it', () => {
+    expect(groupInlineMath('entre $a$ y $b$. Un $c$, otro $d$ fin')).toEqual([
+      { kind: 'text', text: 'entre ' },
+      { kind: 'math', tex: 'a', after: '' },
+      { kind: 'text', text: ' y ' },
+      { kind: 'math', tex: 'b', after: '.' },
+      { kind: 'text', text: ' Un ' },
+      { kind: 'math', tex: 'c', after: ',' },
+      { kind: 'text', text: ' otro ' },
+      { kind: 'math', tex: 'd', after: '' },
+      { kind: 'text', text: ' fin' },
+    ]);
+  });
+
+  test('takes only punctuation, never a following word', () => {
+    expect(groupInlineMath('($m$): sí; $x$km')).toEqual([
+      { kind: 'text', text: '(' },
+      { kind: 'math', tex: 'm', after: '):' },
+      { kind: 'text', text: ' sí; ' },
+      { kind: 'math', tex: 'x', after: '' },
+      { kind: 'text', text: 'km' },
+    ]);
+  });
+});
+
+describe('inlineMathToHtml binding', () => {
+  test('wraps a formula and its punctuation in a no-wrap span', () => {
+    expect(inlineMathToHtml('a $x$.')).toMatch(
+      /^a <span class="whitespace-nowrap"><span class="katex">.*<\/span>\.<\/span>$/,
+    );
   });
 });

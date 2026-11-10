@@ -94,3 +94,16 @@ describe('InlineMath', () => {
     container.remove();
   });
 });
+
+describe('InlineMath punctuation', () => {
+  afterEach(cleanup);
+
+  test('keeps the period after a formula on its line', async () => {
+    await loadTexRenderer();
+    const { container } = render(<InlineMath text="entre $\vec V_p$. Un" />);
+    const group = container.querySelector('.whitespace-nowrap');
+
+    expect(group?.querySelector('.katex')).not.toBeNull();
+    expect(group?.lastChild?.textContent).toBe('.');
+  });
+});

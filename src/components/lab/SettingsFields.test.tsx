@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { SelectField } from './SettingsFields';
+import { SegmentedField, SelectField, SwitchField } from './SettingsFields';
 
 const OPTIONS = [
   { value: 'rk4', label: 'RK4' },
@@ -49,5 +49,25 @@ describe('SelectField', () => {
     fireEvent.change(screen.getByLabelText('Integrador'), { target: { value: 'euler' } });
 
     expect(onChange).toHaveBeenCalledWith('euler');
+  });
+});
+
+describe('fields with KaTeX in their label', () => {
+  test('a switch and a segmented control are named in words', () => {
+    render(
+      <>
+        <SwitchField id="vec" label="Vectores $\vec v_\infty$" checked onChange={vi.fn()} />
+        <SegmentedField
+          id="side"
+          label="Lado de $\vec V_p$"
+          value="a"
+          options={['a', 'b']}
+          onChange={vi.fn()}
+        />
+      </>,
+    );
+
+    expect(screen.getByRole('switch', { name: 'Vectores vector v sub infinito' })).toBeChecked();
+    expect(screen.getByRole('radiogroup', { name: 'Lado de vector V sub p' })).toBeInTheDocument();
   });
 });

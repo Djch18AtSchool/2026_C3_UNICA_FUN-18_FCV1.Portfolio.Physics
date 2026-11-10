@@ -246,5 +246,21 @@ describe('LabShell', () => {
       act(() => vi.advanceTimersByTime(READOUT_ANNOUNCE_DELAY_MS));
       expect(announcer().textContent).toBe('Altura máxima: 3,00\u202fm');
     });
+
+    test('says a $…$ label in words, never as TeX', () => {
+      vi.useFakeTimers();
+      const shell = (value: number) => (
+        <LabShell
+          {...shellProps({
+            readouts: [{ id: 'dv', label: 'Cambio $|\\Delta\\vec v|$', value, unit: 'km/s' }],
+          })}
+        />
+      );
+      const { rerender } = render(shell(1));
+
+      rerender(shell(2));
+      act(() => vi.advanceTimersByTime(READOUT_ANNOUNCE_DELAY_MS));
+      expect(announcer().textContent).toBe('Cambio módulo de delta vector v: 2,00\u202fkm/s');
+    });
   });
 });

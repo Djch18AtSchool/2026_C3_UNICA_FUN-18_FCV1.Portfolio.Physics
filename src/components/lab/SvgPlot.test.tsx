@@ -363,3 +363,27 @@ describe('SvgPlot', () => {
     expect(container.querySelector('text[transform^="rotate(-90"]')).toHaveTextContent('y (m)');
   });
 });
+
+describe('SvgPlot notation', () => {
+  afterEach(cleanup);
+
+  test('legend labels typeset $…$; axis titles draw real subscripts', () => {
+    const { container } = render(
+      <SvgPlot
+        {...PROPS}
+        xLabel="v_x"
+        yLabel="v_y"
+        series={[
+          { id: 'a', label: '$\\vec V_p$ de Júpiter', points: [] },
+          { id: 'b', label: 'Otra', points: [] },
+        ]}
+      />,
+    );
+
+    expect(
+      screen.getByRole('list', { name: 'Leyenda' }).querySelector('.inline-math'),
+    ).not.toBeNull();
+    const subscripts = [...container.querySelectorAll('svg[role="img"] tspan[font-size="75.0%"]')];
+    expect(subscripts.map((tspan) => tspan.textContent)).toEqual(['x', 'y']);
+  });
+});

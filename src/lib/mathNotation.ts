@@ -183,13 +183,16 @@ const spokenChar = (char: string) => {
   return name === undefined ? char : ` ${name} `;
 };
 
-/** Collapses spaces and drops those that the padding of a name left before , ) or after (. */
+/**
+ * Collapses ASCII spaces (U+202F and U+00A0 of numbers stay) and drops those the padding of a
+ * name left before , ) or after (.
+ */
 const tidy = (text: string) =>
   text
-    .replace(/\s+/g, ' ')
-    .replace(/\s+([,;:.)\]])/g, '$1')
-    .replace(/([([])\s+/g, '$1')
-    .trim();
+    .replace(/[ \t\r\n]+/g, ' ')
+    .replace(/ ([,;:.)\]])/g, '$1')
+    .replace(/([([]) /g, '$1')
+    .replace(/^ | $/g, '');
 
 /** A script's content said aloud: commas get a pause, minus signs a word. */
 function spokenScript(script: 'sub' | 'sup', text: string): string {

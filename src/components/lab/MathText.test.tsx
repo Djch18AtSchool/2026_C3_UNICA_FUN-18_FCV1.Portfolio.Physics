@@ -2,7 +2,7 @@
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import { mathRuns } from '../../lib/mathNotation';
-import MathText, { mathMarks, type MathTextProps } from './MathText';
+import MathText, { marksTopEm, mathMarks, type MathTextProps } from './MathText';
 
 const BASE = { x: 100, y: 50, fontSize: 10 } as const;
 
@@ -167,5 +167,23 @@ describe('mathMarks', () => {
 
     expect(italic.from).toBeGreaterThan(upright.from);
     expect(sans.to - sans.from).toBeLessThan(upright.to - upright.from);
+  });
+});
+
+describe('MathText for layout and tests', () => {
+  afterEach(cleanup);
+
+  test('a label in notation keeps its source in data-notation; plain text does not', () => {
+    const notation = draw({ source: 'vec v_∞,in' });
+    const plain = draw({ source: 'Júpiter' });
+
+    expect(notation.querySelector('text')).toHaveAttribute('data-notation', 'vec v_∞,in');
+    expect(plain.querySelector('text')).not.toHaveAttribute('data-notation');
+  });
+
+  test('marksTopEm: how far above the baseline a drawn arrow reaches, in em', () => {
+    expect(marksTopEm('V_p')).toBe(0);
+    expect(marksTopEm('vec v')).toBeCloseTo(0.516 + 0.12 + 0.16);
+    expect(marksTopEm('vec V')).toBeGreaterThan(marksTopEm('vec v'));
   });
 });

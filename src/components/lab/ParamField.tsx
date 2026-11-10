@@ -1,5 +1,6 @@
 import { useState, type JSX, type ReactNode } from 'react';
 import { formatNumber, MINUS_SIGN } from '../../lib/format';
+import { mathAriaLabel } from '../../lib/inlineMath';
 import InlineMath from './InlineMath';
 import { useGlobalSettings } from './useGlobalSettings';
 import { withStableCallbacks } from './withStableCallbacks';
@@ -83,6 +84,8 @@ function ParamField({
   const labelId = `${id}-label`;
   const numberId = `${id}-number`;
   const unitId = `${id}-unit`;
+  /** A label with $…$ names both inputs in words (KaTeX's MathML would read unevenly). */
+  const spokenLabel = typeof label === 'string' ? mathAriaLabel(label) : undefined;
 
   const commitDraft = () => {
     if (draft === null) return;
@@ -105,7 +108,8 @@ function ParamField({
             type="text"
             inputMode="decimal"
             autoComplete="off"
-            aria-labelledby={labelId}
+            aria-labelledby={spokenLabel ? undefined : labelId}
+            aria-label={spokenLabel}
             aria-describedby={unit ? unitId : undefined}
             value={draft ?? toFieldText(value)}
             onChange={(event) => setDraft(event.target.value)}
@@ -129,6 +133,7 @@ function ParamField({
         max={max}
         step={step}
         value={value}
+        aria-label={spokenLabel}
         aria-valuetext={formatNumber(value, { precision: decimals, unit })}
         onChange={(event) => onChange(Number(event.target.value))}
         className="h-6 w-full cursor-pointer accent-accent"

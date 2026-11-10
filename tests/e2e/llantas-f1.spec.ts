@@ -52,8 +52,9 @@ test.describe('laboratorio', () => {
 
     await expect(lab.locator('svg[role="img"]')).toHaveCount(2);
     await expect(lab.getByText('Temperatura T (°C)')).toHaveCount(1);
-    await expect(lab.getByText('Carga vertical F_z (N)')).toHaveCount(1);
-    await expect(lab.getByText('Fuerza lateral máx. F_y (N)')).toHaveCount(1);
+    // The axis titles draw F_z and F_y with real subscripts (MathText): the text reads Fz, Fy.
+    await expect(lab.getByText('Carga vertical Fz (N)')).toHaveCount(1);
+    await expect(lab.getByText('Fuerza lateral máx. Fy (N)')).toHaveCount(1);
     await expect(lab.getByRole('button', { name: 'Reproducir' })).toHaveCount(0);
     await expect(lab.getByRole('slider', { name: 'Línea de tiempo' })).toHaveCount(0);
     const temperatureBox = await page.getByTestId('tyre-temperature-plot').boundingBox();

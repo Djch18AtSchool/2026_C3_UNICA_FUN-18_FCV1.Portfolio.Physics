@@ -4,6 +4,7 @@
  * Also builds those candidates (around a point, beside a segment). Pixels throughout. Pure.
  */
 import { mathTextWidth } from '../../lib/mathNotation';
+import { marksTopEm } from './MathText';
 
 export interface Point {
   x: number;
@@ -48,7 +49,8 @@ export function boxesOverlap(a: Box, b: Box): boolean {
 
 /**
  * The box of a monospace label drawn at `at` (its baseline) with an SVG text-anchor; the text is
- * in the MathText notation, so "V_p" is measured as drawn (V and a 75 % p), not as three cells.
+ * in the MathText notation, so "V_p" is measured as drawn (V and a 75 % p), not as three cells,
+ * and the box reaches up to a drawn vector arrow.
  */
 export function textBox(
   at: Point,
@@ -61,7 +63,7 @@ export function textBox(
   return {
     left,
     right: left + width,
-    top: at.y - ASCENT_EM * fontSize,
+    top: at.y - Math.max(ASCENT_EM, marksTopEm(text)) * fontSize,
     bottom: at.y + DESCENT_EM * fontSize,
   };
 }

@@ -39,3 +39,14 @@ describe('Readout', () => {
     expect(screen.getByText('5,100\u202fm', EXACT_TEXT)).toBeInTheDocument();
   });
 });
+
+describe('Readout with KaTeX in its label', () => {
+  afterEach(cleanup);
+
+  test('typesets the $…$ part of the label', () => {
+    const { container } = render(<Readout label="Cambio $|\Delta\vec v|$" value={1} unit="km/s" />);
+
+    expect(container.querySelector('[data-readout] .inline-math')).not.toBeNull();
+    expect(container.querySelector('[data-readout] span')?.firstChild?.textContent).toBe('Cambio ');
+  });
+});

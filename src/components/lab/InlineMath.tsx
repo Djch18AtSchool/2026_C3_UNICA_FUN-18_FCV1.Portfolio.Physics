@@ -12,7 +12,7 @@
  * shows once it arrives. The parsing lives in src/lib/inlineMath.ts, shared with Figure.astro.
  */
 import { useEffect, useRef, useState, type JSX } from 'react';
-import { escapeHtml, splitInlineMath } from '../../lib/inlineMath';
+import { escapeHtml, groupInlineMath, NO_WRAP_CLASS } from '../../lib/inlineMath';
 import { loadedTexRenderer, loadTexRenderer } from './texRenderer';
 
 export interface InlineMathProps {
@@ -63,12 +63,20 @@ function TexSpan({ tex }: { tex: string }): JSX.Element {
 }
 
 export default function InlineMath({ text }: InlineMathProps): JSX.Element {
-  const segments = splitInlineMath(text);
+  const groups = groupInlineMath(text);
   return (
     <>
-      {segments.map((segment, i) =>
-        segment.kind === 'text' ? segment.text : <TexSpan key={i} tex={segment.tex} />,
-      )}
+      {groups.map((group, i) => {
+        if (group.kind === 'text') return group.text;
+        if (group.after === '') return <TexSpan key={i} tex={group.tex} />;
+        // The punctuation after a formula stays on its line.
+        return (
+          <span key={i} className={NO_WRAP_CLASS}>
+            <TexSpan tex={group.tex} />
+            {group.after}
+          </span>
+        );
+      })}
     </>
   );
 }

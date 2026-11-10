@@ -268,3 +268,19 @@ describe('ParamField range hint', () => {
     expect(screen.getByText('1,00–30,00')).toBeInTheDocument();
   });
 });
+
+describe('ParamField with KaTeX in its label', () => {
+  afterEach(cleanup);
+
+  test('names both inputs in words and shows the math in the label', () => {
+    const { container } = render(
+      <ParamField {...BASE} label="Máxima aproximación $r_p$" value={10} onChange={vi.fn()} />,
+    );
+
+    expect(screen.getByRole('slider', { name: 'Máxima aproximación r sub p' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', { name: 'Máxima aproximación r sub p' }),
+    ).toBeInTheDocument();
+    expect(container.querySelector('label .inline-math')).not.toBeNull();
+  });
+});

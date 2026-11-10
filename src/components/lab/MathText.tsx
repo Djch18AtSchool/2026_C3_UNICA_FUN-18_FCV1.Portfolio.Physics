@@ -134,6 +134,21 @@ export function mathMarks(
   });
 }
 
+/**
+ * How far above the baseline the label's drawn arrows reach, in em of the label (0 without
+ * vectors), so a layout can keep the arrow clear of lines as well as the letters.
+ */
+export function marksTopEm(source: string): number {
+  const tops = mathRuns(source)
+    .filter((run) => run.mark === 'vector')
+    .map(
+      (run) =>
+        (letterTop(run.text, run.font) + ARROW_GAP_EM + ARROW_HEAD_EM) * runScale(run) -
+        SHIFT_EM[run.script],
+    );
+  return Math.max(0, ...tops);
+}
+
 const isPlain = (runs: readonly MathRun[]) =>
   runs.length <= 1 && runs.every((run) => run.script === 'base' && !run.font && !run.mark);
 
@@ -177,6 +192,7 @@ export default function MathText(props: MathTextProps): JSX.Element {
       fill={fill}
       transform={marks.length === 0 ? props.transform : undefined}
       className={marks.length === 0 ? props.className : undefined}
+      data-notation={plain ? undefined : source}
       {...haloProps}
     >
       {plain ? source : <RunSpans runs={runs} fontSize={fontSize} />}

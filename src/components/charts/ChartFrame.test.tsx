@@ -28,3 +28,18 @@ describe('ChartFrame', () => {
     expect(screen.queryByTestId('chart-footnote')).not.toBeInTheDocument();
   });
 });
+
+describe('ChartFrame with KaTeX', () => {
+  afterEach(cleanup);
+
+  test('typesets $…$ in the title and the footnote', () => {
+    const { container } = render(
+      <ChartFrame title="Rapidez $|\vec v|$" footnote="Escape $\sqrt{2GM/r}$">
+        <p>gráfica</p>
+      </ChartFrame>,
+    );
+
+    expect(container.querySelectorAll('.inline-math')).toHaveLength(2);
+    expect(screen.getByTestId('chart-footnote')).toHaveTextContent(/^Escape/);
+  });
+});

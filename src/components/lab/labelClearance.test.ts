@@ -175,3 +175,16 @@ describe('label spots', () => {
     }
   });
 });
+
+describe('textBox with the MathText notation', () => {
+  test('measures V_p as drawn and reaches up to a vector arrow', () => {
+    const plain = textBox({ x: 0, y: 20 }, 'Vp', 10, 'start');
+    const scripted = textBox({ x: 0, y: 20 }, 'V_p', 10, 'start');
+    const vector = textBox({ x: 0, y: 20 }, 'vec V_p', 10, 'start');
+
+    expect(scripted.right).toBeLessThan(plain.right);
+    expect(scripted.top).toBe(plain.top);
+    expect(vector.top).toBeLessThan(scripted.top);
+    expect(vector.right).toBeCloseTo(scripted.right);
+  });
+});

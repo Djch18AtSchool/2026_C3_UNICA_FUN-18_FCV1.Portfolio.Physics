@@ -35,6 +35,34 @@ export function splitInlineMath(text: string): InlineSegment[] {
   });
 }
 
+export type InlineGroup =
+  { kind: 'text'; text: string } | { kind: 'math'; tex: string; after: string };
+
+/** Punctuation that must stay on the line of the formula before it. */
+const TRAILING_PUNCTUATION = /^[.,;:!?)\]»%]+/;
+/** Class of the span that keeps a formula and its punctuation on one line (Tailwind). */
+export const NO_WRAP_CLASS = 'whitespace-nowrap';
+
+/**
+ * The segments with the punctuation right after each formula moved into it (`after`), so a
+ * renderer can keep them on one line: «… $\vec v_\infty$.» never wraps before the period.
+ */
+export function groupInlineMath(text: string): InlineGroup[] {
+  const segments = splitInlineMath(text);
+  return segments.flatMap((segment, i): InlineGroup[] => {
+    const previous = segments[i - 1];
+    if (segment.kind === 'math') {
+      const next = segments[i + 1];
+      const after = next?.kind === 'text' ? (TRAILING_PUNCTUATION.exec(next.text)?.[0] ?? '') : '';
+      return [{ kind: 'math', tex: segment.tex, after }];
+    }
+    const taken =
+      previous?.kind === 'math' ? (TRAILING_PUNCTUATION.exec(segment.text)?.[0] ?? '') : '';
+    const rest = segment.text.slice(taken.length);
+    return rest === '' ? [] : [{ kind: 'text', text: rest }];
+  });
+}
+
 export function hasInlineMath(text: string): boolean {
   return splitInlineMath(text).some((segment) => segment.kind === 'math');
 }
@@ -89,4 +117,13 @@ export function inlineMathToSpeech(text: string): string {
       segment.kind === 'text' ? segment.text : mathTextToString(texToNotation(segment.tex)),
     )
     .join('');
+}
+
+/**
+ * The aria-label of a control whose visible label holds $…$, said in words, so its name reads
+ * «Máxima aproximación r sub p» in every browser; undefined for a plain label (the label element
+ * names the control as usual).
+ */
+export function mathAriaLabel(text: string): string | undefined {
+  return hasInlineMath(text) ? inlineMathToSpeech(text) : undefined;
 }

@@ -153,3 +153,9 @@ describe('mathTextWidth', () => {
     expect(mathTextWidth('Ѐ', 10, 'sans')).toBeCloseTo(mathTextWidth('n', 10, 'sans'));
   });
 });
+
+describe('mathTextToString keeps number spacing', () => {
+  test('the narrow no-break space of formatNumber survives', () => {
+    expect(mathTextToString('r_p = 721 375 km')).toBe('r sub p = 721 375 km');
+  });
+});
