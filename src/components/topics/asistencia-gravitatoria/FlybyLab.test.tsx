@@ -7,6 +7,7 @@ import { installDialogPolyfill } from '../../../test-dialog';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
 import FlybyLab, { FLYBY_LAPSE } from './FlybyLab';
+import { readout } from '../../../test-readout';
 
 const FOOTNOTE = 'Modelo plano de cónicas empalmadas.';
 /** useSimClock under reduced motion: one step of duration/60 every 250 ms. */
@@ -34,12 +35,6 @@ function renderLab() {
 
 const plain = (text: string | null | undefined) => (text ?? '').replace(/\s/g, ' ');
 
-/** The value text of a LabShell readout row, normalised to plain spaces. */
-function readout(label: string): string {
-  const row = screen.getByText(label, { selector: 'span' }).parentElement as HTMLElement;
-  return plain(row.lastElementChild?.textContent);
-}
-
 /** A readout as a number (decimal comma, either minus sign). */
 /** The readout's leading number: a unit may follow after a space or, for °, attached (R39). */
 const readoutValue = (label: string) =>
@@ -50,7 +45,7 @@ const TURN = 'Ángulo de giro δ';
 const ALL_READOUTS = [
   'Excentricidad e',
   TURN,
-  'Cambio de velocidad |Δv|',
+  String.raw`Cambio de velocidad $|\Delta \vec v|$`,
   '|v| antes, marco del Sol',
   '|v| después, marco del Sol',
   DELTA_V,
