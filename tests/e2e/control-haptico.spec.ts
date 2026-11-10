@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readoutText as readReadout, waitForIsland } from './helpers';
+import { expectSameHeightAfterHydration, HYDRATION_WIDTHS } from './hydrationStability';
 import { stubYouTube, THUMBNAIL } from './youtubeStub';
 
 const PAGE = './temas/control-haptico/';
@@ -342,7 +343,9 @@ test.describe('página', () => {
     await expect(figures.nth(1).getByText('Simulación interactiva', { exact: true })).toHaveCount(
       0,
     );
-    await expect(figures.nth(1).getByTestId('lab-footnote')).toContainText('ilustrativ');
+    const leftOut = figures.nth(1).locator('details[data-lab-note="left-out"]');
+    await leftOut.locator('summary').click();
+    await expect(leftOut).toContainText('ilustrativ');
     await expect(figures.nth(1).locator('.figure-source')).toContainText('supuesto de 8 mm');
   });
 
@@ -418,4 +421,12 @@ test.describe('con pantalla táctil', () => {
       .poll(() => readoutText(page, 'Desplazamiento x'), { timeout: RELEASE_BOUND_MS })
       .toBe(AT_REST);
   });
+});
+
+test.describe('hidratación', () => {
+  for (const width of HYDRATION_WIDTHS) {
+    test(`a ${width} px el laboratorio no cambia de altura al hidratarse`, async ({ browser }) => {
+      await expectSameHeightAfterHydration(browser, PAGE, LAB, width);
+    });
+  }
 });
