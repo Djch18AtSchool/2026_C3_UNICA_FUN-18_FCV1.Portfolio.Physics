@@ -152,7 +152,50 @@ test('la figura del laboratorio muestra una sola vez "Simulación interactiva"',
   const figure = page.locator('section.step#paso-4 figure[data-type="simulacion"]');
 
   await expect(figure.getByText('Simulación interactiva', { exact: true })).toHaveCount(1);
-  await expect(figure.getByTestId('lab-footnote')).toContainText('0,34 s');
+  await expect(figure.locator('details[data-lab-note="left-out"]')).toContainText('0,34 s');
+});
+
+test('«Qué deja fuera el modelo» abre cerrado y suma la nota del integrador solo con Euler', async ({
+  page,
+}) => {
+  const lab = page.locator(LAB);
+  const leftOut = lab.locator('details[data-lab-note="left-out"]');
+  await expect(leftOut).not.toHaveAttribute('open');
+  await expect(leftOut.getByText(/topes de caída/)).toBeHidden();
+  await expect(leftOut).not.toContainText('Euler semi-implícito con paso fijo');
+
+  await leftOut.locator('summary').click();
+  await expect(leftOut.getByText(/topes de caída/)).toBeVisible();
+
+  await lab.getByRole('button', { name: 'Ajustes del simulador' }).click();
+  await page.getByRole('dialog').getByLabel('Integrador').selectOption('euler');
+  await page.keyboard.press('Escape');
+  await expect(leftOut).toContainText('Euler semi-implícito con paso fijo');
+});
+
+test('el laboratorio va por niveles: v₀ y g, los cuatro preajustes con su fuente enlazada y las fichas', async ({
+  page,
+}) => {
+  const lab = page.locator(LAB);
+  const params = lab.getByRole('region', { name: 'Parámetros' });
+  await expect(params.getByRole('slider', { name: /^Impulso de salto/ })).toBeVisible();
+  await expect(params.getByRole('slider', { name: 'Gravedad g' })).toBeVisible();
+  const scenario = lab.getByRole('region', { name: 'Escenario' });
+  await expect(
+    scenario.getByRole('group', { name: 'Valores de referencia' }).getByRole('button'),
+  ).toHaveCount(4);
+  await expect(scenario.getByTestId('preset-note').getByRole('link')).toHaveAttribute(
+    'href',
+    /NoelFB\/Celeste/,
+  );
+
+  await scenario.getByRole('button', { name: /^Luna/ }).click();
+
+  await expect(params.getByRole('slider', { name: 'Gravedad g' })).toHaveValue('1.62');
+  await expect(scenario.getByTestId('preset-note')).toContainText('Fuente: g lunar, 1,62 m/s²');
+  const chips = lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button');
+  await expect(chips).toHaveCount(6);
+  await expect(chips.first()).toHaveAccessibleName('referencia');
 });
 
 test.describe('con pantalla táctil', () => {

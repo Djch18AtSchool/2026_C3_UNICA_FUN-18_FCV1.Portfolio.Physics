@@ -19,10 +19,10 @@ function mockIdentityCtm(container: HTMLElement): void {
   }
 }
 
-const FOOTNOTE = 'Modelo: omite los topes de caída; Mario baja en unos 0,34 s, no en 0,29 s.';
+const LEFT_OUT = 'Modelo: omite los topes de caída; Mario baja en unos 0,34 s, no en 0,29 s.';
 
 function renderLab() {
-  const view = render(<JumpLab footnote={FOOTNOTE} />);
+  const view = render(<JumpLab leftOut={LEFT_OUT} />);
   mockIdentityCtm(view.container);
   return view;
 }
@@ -70,7 +70,7 @@ describe('JumpLab', () => {
     expect(readout('Alcance')).toBe('2,62 m');
     expect(screen.getByText(/^Referencia terrestre, g = 9,81/)).toBeInTheDocument();
     expect(screen.getByText(/^Celeste, g = 112,50/)).toBeInTheDocument();
-    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
+    expect(screen.queryByTestId('lab-footnote')).toBeNull();
   });
 
   test('dragging the launch-vector handle upwards raises v0 and the maximum height', () => {
@@ -193,7 +193,7 @@ describe('JumpLab', () => {
     expect(readout('Alcance')).toBe('2,620 m');
   });
 
-  test('the Euler integrator lowers the apex and says so in a footnote', async () => {
+  test('the Euler integrator lowers the apex and says so in «Qué deja fuera el modelo»', async () => {
     const user = userEvent.setup();
     const { container } = renderLab();
     await user.click(gear());
@@ -202,8 +202,99 @@ describe('JumpLab', () => {
     await user.selectOptions(within(dialog).getByLabelText('Integrador'), 'euler');
 
     expect(readout('Altura máxima')).toBe('0,71 m');
-    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(/Euler semi-implícito/);
-    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
+    const leftOut = container.querySelector('details[data-lab-note="left-out"]') as HTMLElement;
+    expect(leftOut).toHaveTextContent(/Euler semi-implícito/);
+    expect(leftOut).toHaveTextContent(LEFT_OUT);
+    // The integrator's line comes first, as it did when it led the footnote.
+    expect(leftOut.textContent?.indexOf('Euler semi-implícito')).toBeLessThan(
+      leftOut.textContent?.indexOf(LEFT_OUT) ?? 0,
+    );
+  });
+
+  test('the integrator is in the notes only while the Euler one is chosen', () => {
+    const { container } = renderLab();
+
+    expect(container.querySelector('details[data-lab-note="left-out"]')).not.toHaveTextContent(
+      'Euler semi-implícito',
+    );
+  });
+
+  test('lays out the three levels: v0, g and the clamp notice; four references; the readouts', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const region = (name: string) => screen.getByRole('region', { name });
+
+    expect(within(region('Parámetros')).getByRole('slider', { name: /Impulso de salto/ })).toBe(
+      v0Range(),
+    );
+    expect(within(region('Parámetros')).getByRole('slider', { name: /^Gravedad g/ })).toBeTruthy();
+    const group = within(region('Escenario')).getByRole('group', { name: 'Valores de referencia' });
+    expect(within(group).getAllByRole('button')).toHaveLength(4);
+    expect(within(region('Lecturas')).getByText('Alcance')).toBeInTheDocument();
+
+    // A design over the sliders' range: the notice sits with the parameters it clamps.
+    expect(screen.queryByTestId('clamp-note')).toBeNull();
+    const designer = screen.getByTestId('jump-designer');
+    await user.clear(within(designer).getByLabelText('Tiempo al ápice (s)'));
+    await user.type(within(designer).getByLabelText('Tiempo al ápice (s)'), '0,1');
+    await user.click(within(designer).getByRole('button', { name: 'Aplicar' }));
+    expect(within(region('Parámetros')).getByTestId('clamp-note')).toBeInTheDocument();
+  });
+
+  test('a preset has one line under the chips: its note and its source, linked when it has a page', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const note = screen.getByTestId('preset-note');
+    expect(note).toHaveTextContent('Fuente: Player.cs, Noel Berry (2018)');
+    expect(within(note).getByRole('link')).toHaveAttribute(
+      'href',
+      'https://github.com/NoelFB/Celeste/blob/master/Source/Player/Player.cs',
+    );
+
+    await user.click(screen.getByRole('button', { name: /^Tierra/ }));
+
+    expect(screen.getByTestId('preset-note')).toHaveTextContent('Fuente: g estándar, 9,81 m/s²');
+    expect(within(screen.getByTestId('preset-note')).queryByRole('link')).toBeNull();
+  });
+
+  test('beside the gear, one chip per setting that is on, and the fall multiplier and the integrator', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const chips = () =>
+      within(screen.getByRole('group', { name: 'Ajustes activos' }))
+        .getAllByRole('button')
+        .map((chip) => chip.getAttribute('aria-label')?.replace(/\s/g, ' '));
+    expect(chips()).toEqual([
+      'referencia',
+      'vector v',
+      'estela',
+      'caída 1,0 ×',
+      'Integrador Analítico',
+      'Velocidad 1×',
+    ]);
+
+    await user.click(screen.getByRole('button', { name: 'estela' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('switch', { name: 'Rastro' }));
+
+    expect(chips()).not.toContain('estela');
+  });
+
+  test('«Cómo se usa» is not drawn without a text, and «Qué deja fuera el modelo» waits closed', () => {
+    const { container } = renderLab();
+
+    const notes = [...container.querySelectorAll('details')];
+    expect(notes.map((details) => details.getAttribute('data-lab-note'))).toEqual(['left-out']);
+    expect(notes[0].open).toBe(false);
+  });
+
+  test('a usage text from the MDX opens its own disclosure before the caveats', () => {
+    const { container } = render(<JumpLab usage="Arrastra la punta." leftOut={LEFT_OUT} />);
+
+    const notes = [...container.querySelectorAll('details')];
+    expect(notes.map((details) => details.getAttribute('data-lab-note'))).toEqual([
+      'usage',
+      'left-out',
+    ]);
   });
 
   test('the local settings hide the Earth reference and change the fall multiplier', async () => {

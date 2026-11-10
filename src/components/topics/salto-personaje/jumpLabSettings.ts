@@ -54,21 +54,24 @@ export function jumpLocalSettings({
   const toggle = (
     key: 'showGhost' | 'showVelocity' | 'showTrail',
     label: string,
+    chip: string,
   ): SettingOption => ({
     key,
     label,
+    chip,
     kind: 'toggle',
     value: display[key],
     onChange: (value) => onDisplayChange({ ...display, [key]: value }),
   });
   const [kMin, kMax] = JUMP_LIMITS.fallMultiplier;
   return [
-    toggle('showGhost', 'Referencia terrestre'),
-    toggle('showVelocity', 'Vector velocidad'),
-    toggle('showTrail', 'Rastro'),
+    toggle('showGhost', 'Referencia terrestre', 'referencia'),
+    toggle('showVelocity', 'Vector velocidad', '$\\vec v$'),
+    toggle('showTrail', 'Rastro', 'estela'),
     {
       key: 'fallMultiplier',
       label: 'Multiplicador de caída',
+      chip: 'caída',
       kind: 'range',
       value: fallMultiplier,
       min: kMin,
@@ -80,6 +83,7 @@ export function jumpLocalSettings({
     {
       key: 'integrator',
       label: 'Integrador',
+      chip: 'Integrador',
       kind: 'select',
       value: display.integrator,
       options: INTEGRATOR_OPTIONS,

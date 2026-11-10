@@ -25,6 +25,11 @@ export const CELESTE_JUMP: JumpSettings = { v0: 13.1, g: 112.5, vx: 11.25, fallM
 /** The preset the simulator opens on, so the Earth ghost shows the contrast at load. */
 export const DEFAULT_JUMP_PRESET_ID = 'celeste';
 
+/** Where the Celeste and SMB sources can be read: the same pages as the topic's sources. */
+export const CELESTE_PLAYER_URL =
+  'https://github.com/NoelFB/Celeste/blob/master/Source/Player/Player.cs';
+export const SMB_DISASSEMBLY_URL = 'https://6502disassembly.com/nes-smb/SuperMarioBros.html';
+
 export const JUMP_PRESETS: Preset<JumpSettings>[] = [
   {
     id: 'tierra',
@@ -45,13 +50,15 @@ export const JUMP_PRESETS: Preset<JumpSettings>[] = [
     name: 'Celeste',
     values: CELESTE_JUMP,
     sourceLabel: 'Player.cs, Noel Berry (2018)',
-    note: 'Escala supuesta 8 px = 1 m (el ancho de la caja de colisión, o hitbox, de Madeline): Gravity 900 px/s² $\\to$ 112,5 m/s², JumpSpeed 105 px/s $\\to$ 13,1 m/s, MaxRun 90 px/s $\\to$ 11,25 m/s. No modela la prolongación del impulso (VarJumpTime 0,2 s) ni la media gravedad cerca del ápice.',
+    sourceUrl: CELESTE_PLAYER_URL,
+    note: 'Escala supuesta 8 px = 1 m (el ancho de la caja de colisión, o hitbox, de Madeline): Gravity 900 px/s² $\\to$ 112,5 m/s², JumpSpeed 105 px/s $\\to$ 13,1 m/s, MaxRun 90 px/s $\\to$ 11,25 m/s.',
   },
   {
     id: 'super-mario-bros',
     name: 'Super Mario Bros.',
     values: { v0: 15, g: 28.1, vx: 6, fallMultiplier: 3.5 },
     sourceLabel: 'Desensamblado de SMB (doppelganger)',
-    note: 'Escala supuesta 16 px = 1 m (un bloque) a 60 cuadros/s, salto parado: 4 px/cuadro $\\to$ 15 m/s; 0,125 px/cuadro² $\\to$ 28,1 m/s² mientras se sostiene A; desde el ápice, 0,4375 px/cuadro² (×3,5). Omite el tope de caída de 4 px/cuadro; $v_x$ = 6 m/s es ilustrativa.',
+    sourceUrl: SMB_DISASSEMBLY_URL,
+    note: 'Escala supuesta 16 px = 1 m (un bloque) a 60 cuadros/s, salto parado: 4 px/cuadro $\\to$ 15 m/s; 0,125 px/cuadro² $\\to$ 28,1 m/s² mientras se sostiene A; desde el ápice, 0,4375 px/cuadro² (×3,5); $v_x$ = 6 m/s es ilustrativa.',
   },
 ];

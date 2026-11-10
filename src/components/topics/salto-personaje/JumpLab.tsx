@@ -3,9 +3,9 @@ import { DEFAULT_JUMP_PRESET_ID, JUMP_PRESETS } from '../../../lib/data/jumpPres
 import { formatNumber } from '../../../lib/format';
 import { clampSettings } from '../../../lib/limits';
 import { G_EARTH } from '../../../lib/physics';
-import Presets, { type Preset } from '../../controls/Presets';
 import { snapTo } from '../../lab/dragMath';
 import InlineMath from '../../lab/InlineMath';
+import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import { KNOB_HIT_RADIUS } from '../../lab/OverlayMarks';
 import ParamField from '../../lab/ParamField';
@@ -44,7 +44,7 @@ const FIELD_NAMES: Record<JumpKey, string> = {
   fallMultiplier: 'multiplicador de caída',
 };
 
-const EULER_FOOTNOTE = `Integrador: Euler semi-implícito con paso fijo Δt = 1/${Math.round(1 / EULER_DT)} s; las lecturas salen de la trayectoria muestreada.`;
+const EULER_NOTE = `Integrador: Euler semi-implícito con paso fijo Δt = 1/${Math.round(1 / EULER_DT)} s; las lecturas salen de la trayectoria muestreada.`;
 
 interface JumpState {
   settings: JumpSettings;
@@ -78,11 +78,13 @@ function describePlot(live: JumpResult, ghost: JumpResult | undefined): string {
  * trajectory rewinds it. "Diseñar el salto" sits below, compact.
  */
 export interface JumpLabProps {
-  /** The model's caveats, written in the topic's MDX so they travel with its text. */
-  footnote?: string;
+  /** «Cómo se usa», written in the topic's MDX so it travels with its text. */
+  usage?: string;
+  /** «Qué deja fuera el modelo», after the integrator's line: the caveats, from the topic's MDX. */
+  leftOut?: string;
 }
 
-export default function JumpLab({ footnote }: JumpLabProps): JSX.Element {
+export default function JumpLab({ usage, leftOut }: JumpLabProps): JSX.Element {
   const [state, setState] = useState<JumpState>(INITIAL_STATE);
   const [display, setDisplay] = useState<JumpDisplay>(DEFAULT_DISPLAY);
   /** The plot window held still while the launch vector is dragged, so the handle maps stably. */
@@ -167,32 +169,25 @@ export default function JumpLab({ footnote }: JumpLabProps): JSX.Element {
 
   const params = (
     <>
-      <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-        <ParamField
-          id="jump-v0"
-          label="Impulso de salto $v_0$"
-          unit="m/s"
-          min={JUMP_LIMITS.v0[0]}
-          max={JUMP_LIMITS.v0[1]}
-          step={STEPS.v0}
-          value={settings.v0}
-          onChange={(value) => setField('v0', value)}
-        />
-        <ParamField
-          id="jump-g"
-          label="Gravedad g"
-          unit="m/s²"
-          min={JUMP_LIMITS.g[0]}
-          max={JUMP_LIMITS.g[1]}
-          step={STEPS.g}
-          value={settings.g}
-          onChange={(value) => setField('g', value)}
-        />
-      </div>
-      <Presets
-        presets={JUMP_PRESETS}
-        activeId={presetId}
-        onSelect={(preset: Preset<JumpSettings>) => applyValues(preset.values, preset.id)}
+      <ParamField
+        id="jump-v0"
+        label="Impulso de salto $v_0$"
+        unit="m/s"
+        min={JUMP_LIMITS.v0[0]}
+        max={JUMP_LIMITS.v0[1]}
+        step={STEPS.v0}
+        value={settings.v0}
+        onChange={(value) => setField('v0', value)}
+      />
+      <ParamField
+        id="jump-g"
+        label="Gravedad g"
+        unit="m/s²"
+        min={JUMP_LIMITS.g[0]}
+        max={JUMP_LIMITS.g[1]}
+        step={STEPS.g}
+        value={settings.g}
+        onChange={(value) => setField('g', value)}
       />
       {clamped.length > 0 ? (
         <p data-testid="clamp-note" role="status" className="m-0 text-sm">
@@ -204,20 +199,30 @@ export default function JumpLab({ footnote }: JumpLabProps): JSX.Element {
     </>
   );
 
+  const scenario = (
+    <LabPresets
+      id="jump-preset"
+      presets={JUMP_PRESETS}
+      activeId={presetId}
+      onSelect={(preset) => applyValues(preset.values, preset.id)}
+    />
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <LabShell
         title="Laboratorio del salto"
         clock={clock}
         readouts={readouts}
-        params={params}
-        localSettings={localSettings}
+        levels={{ params, scenario, display: localSettings }}
+        notes={{
+          usage: usage ? [usage] : [],
+          leftOut: [
+            ...(display.integrator === 'euler' ? [EULER_NOTE] : []),
+            ...(leftOut ? [leftOut] : []),
+          ],
+        }}
         onReset={() => setState(INITIAL_STATE)}
-        footnote={
-          display.integrator === 'euler'
-            ? [EULER_FOOTNOTE, footnote].filter(Boolean).join(' ')
-            : footnote
-        }
         testId="jump-lab"
       >
         <SvgPlot
