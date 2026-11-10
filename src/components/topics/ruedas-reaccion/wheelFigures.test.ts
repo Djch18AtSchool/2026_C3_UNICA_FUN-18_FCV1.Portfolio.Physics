@@ -69,9 +69,10 @@ describe('saturation (step 3)', () => {
     // 2,2847·10⁻⁷ N·m; research §6b writes 2,29 (rounded twice), the page prints the code's 2,28.
     expect(SATURATION.torque).toBeCloseTo(2.2847e-7, 11);
     expect(SATURATION.seconds).toBeCloseTo(2.19e5, -3);
-    expect(SATURATION.secondsLabel).toBe('2,19·10⁵ s');
+    expect(SATURATION.secondsLabel).toBe('2,19·10^5 s');
     expect(SATURATION.daysLabel).toBe('2,5 días');
-    expect(SATURATION.torqueLabel).toBe('2,28·10⁻⁷ N·m');
+    expect(SATURATION.torqueLabel).toBe('2,28·10^-7 N·m');
+    expect(SATURATION.torqueTex).toBe(String.raw`$2{,}28 \cdot 10^{-7}$ N·m`);
   });
 
   test('a 90° turn in 60 s uses 19 % of L_max', () => {
@@ -88,8 +89,8 @@ describe('diagram facts', () => {
 
   test('L_max, the disturbance and the magnetorquer torque are printed from the data', () => {
     expect(DIAGRAM_FACTS.LmaxLabel).toBe('0,050 N·m·s');
-    expect(DIAGRAM_FACTS.disturbanceLabel).toBe('2,28·10⁻⁷ N·m');
-    expect(DIAGRAM_FACTS.magnetorquerLabel).toBe('1,2·10⁻⁵ N·m');
+    expect(DIAGRAM_FACTS.disturbanceLabel).toBe('2,28·10^-7 N·m');
+    expect(DIAGRAM_FACTS.magnetorquerLabel).toBe('1,2·10^-5 N·m');
   });
 
   test('the magnetorquer torque is about 50 times the disturbance', () => {

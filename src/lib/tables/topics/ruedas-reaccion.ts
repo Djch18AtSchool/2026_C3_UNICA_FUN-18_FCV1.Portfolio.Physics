@@ -16,40 +16,56 @@ import { formatNumber } from '../../format';
 import { omegaToRpm, slewStateAt } from '../../physics';
 import type { DataTableSpec } from '../types';
 
-const SUPERSCRIPT: Readonly<Record<string, string>> = {
-  '-': '⁻',
-  '0': '⁰',
-  '1': '¹',
-  '2': '²',
-  '3': '³',
-  '4': '⁴',
-  '5': '⁵',
-  '6': '⁶',
-  '7': '⁷',
-  '8': '⁸',
-  '9': '⁹',
-};
-const MINUS = '−';
 const NOT_A_NUMBER = '—';
 const SIGNIFICANT_DIGITS = 3;
 
+interface ScientificParts {
+  isNegative: boolean;
+  /** The mantissa with a decimal comma ("2,29"). */
+  mantissa: string;
+  exponent: number;
+}
+
 /**
- * A number in scientific notation as the page writes it: "2,29·10⁻⁷", with a decimal comma, a
- * true minus sign and `digits` significant figures (a mantissa that rounds to 10 carries into the
- * exponent). 0 prints as "0" and a non-finite value as "—".
+ * `value` as a mantissa of `digits` significant figures (a mantissa that rounds to 10 carries into
+ * the exponent) and a power of ten; undefined for 0 and for non-finite values.
  */
-export function formatScientific(value: number, digits = SIGNIFICANT_DIGITS): string {
-  if (!Number.isFinite(value)) return NOT_A_NUMBER;
-  if (value === 0) return '0';
+function scientificParts(value: number, digits: number): ScientificParts | undefined {
+  if (!Number.isFinite(value) || value === 0) return undefined;
   const [mantissa, exponent] = Math.abs(value)
     .toExponential(digits - 1)
     .split('e');
-  const power = String(Number(exponent))
-    .split('')
-    .map((character) => SUPERSCRIPT[character])
-    .join('');
-  const sign = value < 0 ? MINUS : '';
-  return `${sign}${mantissa.replace('.', ',')}·10${power}`;
+  return {
+    isNegative: value < 0,
+    mantissa: mantissa.replace('.', ','),
+    exponent: Number(exponent),
+  };
+}
+
+const zeroOrDash = (value: number) => (Number.isFinite(value) ? '0' : NOT_A_NUMBER);
+
+/**
+ * A number in scientific notation as TeX for InlineMath ($…$): "2{,}29 \cdot 10^{-7}", with a
+ * decimal comma (braced, so KaTeX does not space it), a real exponent and a true minus sign.
+ * 0 prints as "0" and a non-finite value as "—".
+ */
+export function formatScientific(value: number, digits = SIGNIFICANT_DIGITS): string {
+  const parts = scientificParts(value, digits);
+  if (!parts) return zeroOrDash(value);
+  const sign = parts.isNegative ? '-' : '';
+  return `${sign}${parts.mantissa.replace(',', '{,}')} \\cdot 10^{${parts.exponent}}`;
+}
+
+/**
+ * The same number in the MathText notation of SVG labels and accessible names: "2,29·10^-7"
+ * (MathText draws the exponent and turns the hyphens into minus signs; mathTextToString reads
+ * it "10 a la menos 7").
+ */
+export function formatScientificNotation(value: number, digits = SIGNIFICANT_DIGITS): string {
+  const parts = scientificParts(value, digits);
+  if (!parts) return zeroOrDash(value);
+  const sign = parts.isNegative ? '−' : '';
+  return `${sign}${parts.mantissa}·10^${parts.exponent}`;
 }
 
 const RADIANS_TO_DEGREES = 180 / Math.PI;
@@ -93,6 +109,17 @@ const GRAMS_PER_KG = 1000;
 const MILLI = 1000;
 
 /**
+ * The rotor inertia in g·m² with `SIGNIFICANT_DIGITS` figures ("6,37", "0,0955"): a table cell
+ * cannot hold a power of ten (cells are not typeset with KaTeX), and the grams keep the
+ * datasheet's three figures exactly.
+ */
+function inertiaCell(inertiaKgM2: number): string {
+  const grams = inertiaKgM2 * GRAMS_PER_KG;
+  const decimals = Math.max(0, SIGNIFICANT_DIGITS - 1 - Math.floor(Math.log10(grams)));
+  return formatNumber(Number(grams.toPrecision(SIGNIFICANT_DIGITS)), { precision: decimals });
+}
+
+/**
  * How each datasheet prints L_max and the mass (research §4.1): VRW-D-4 "4,0 N·m·s" and
  * "2,5 kg"; RW400 "±0,050" and "375 g". The table repeats that precision and invents no digits.
  */
@@ -114,8 +141,8 @@ function wheelRow(wheel: ReactionWheel) {
     tauMax: wheel.tauMax * MILLI,
     rpmMax: wheel.rpmMax,
     mass: formatNumber(mass, { precision: printed.massDecimals, unit: printed.massIn }),
-    inertia: formatScientific(wheel.inertiaPrinted ?? wheel.inertiaDerived),
-    origin: isPrinted ? 'impresa en la hoja' : 'cálculo propio: L_máx/ω_máx',
+    inertia: inertiaCell(wheel.inertiaPrinted ?? wheel.inertiaDerived),
+    origin: isPrinted ? 'impresa en la hoja' : 'cálculo propio',
   };
 }
 
@@ -135,17 +162,29 @@ const citations = (ids: readonly WheelSourceId[]): string =>
 const ruedas: DataTableSpec = {
   id: 'ruedas-reaccion-ruedas',
   caption:
-    'Dos ruedas de reacción reales según sus hojas de datos: una grande y la de CubeSat del ejemplo. Solo la VRW-D-4 imprime la inercia del rotor; la de la RW400 la calculo como L_máx/ω_máx.',
+    'Dos ruedas de reacción reales según sus hojas de datos: una grande y la de CubeSat del ejemplo. Solo la VRW-D-4 imprime la inercia del rotor; la de la RW400 la calculo como $L_\\text{máx}/\\omega_\\text{máx}$.',
   columns: [
     { key: 'rueda', label: 'Rueda', align: 'text' },
-    // L_máx, mass and I_w are written per datasheet (PRINTED, formatScientific): `precision`
+    // L_máx, mass and I_w are written per datasheet (PRINTED, inertiaCell): `precision`
     // names the finest of them; the cells are strings, right-aligned as every number.
-    { key: 'Lmax', label: 'L_máx', unit: 'N·m·s', align: 'num', precision: 3 },
-    { key: 'tauMax', label: 'τ_máx', unit: 'mN·m', align: 'num', precision: 0 },
-    { key: 'rpmMax', label: 'ω_máx', unit: 'rpm', align: 'num', precision: 0 },
+    { key: 'Lmax', label: String.raw`$L_\text{máx}$`, unit: 'N·m·s', align: 'num', precision: 3 },
+    {
+      key: 'tauMax',
+      label: String.raw`$\tau_\text{máx}$`,
+      unit: 'mN·m',
+      align: 'num',
+      precision: 0,
+    },
+    {
+      key: 'rpmMax',
+      label: String.raw`$\omega_\text{máx}$`,
+      unit: 'rpm',
+      align: 'num',
+      precision: 0,
+    },
     { key: 'mass', label: 'Masa', align: 'num', precision: 1 },
-    { key: 'inertia', label: 'I_w', unit: 'kg·m²', align: 'num', precision: 2 },
-    { key: 'origin', label: 'Origen de I_w', align: 'text' },
+    { key: 'inertia', label: '$I_w$', unit: 'g·m²', align: 'num', precision: 2 },
+    { key: 'origin', label: 'Origen de $I_w$', align: 'text' },
   ],
   rows: [wheelRow(VRW_D_4), wheelRow(RW400)],
   source: {
@@ -153,21 +192,41 @@ const ruedas: DataTableSpec = {
   },
 };
 
-const slewSource = [
-  `Cálculo propio con la maniobra de reposo a reposo τ = 4 I_s θ/T², I_s = ${formatNumber(WORKED_SLEW.Is, { precision: 4 })} kg·m²`,
-  `(CubeSat 6U de 12 kg modelado como caja) e I_w = ${formatScientific(WORKED_SLEW.Iw)} kg·m² (RW400), con la rueda partiendo de 0 rpm`,
+/** The turn's formulas and inertias, in the caption (a source line is not typeset with KaTeX). */
+const SLEW_FORMULAS = [
+  String.raw`Torque $\tau = 4 I_s \theta/T^2$,`,
+  `con $I_s$ = ${formatNumber(WORKED_SLEW.Is, { precision: 4 })} kg·m² e $I_w$ = $${formatScientific(WORKED_SLEW.Iw)}$ kg·m².`,
 ].join(' ');
+const slewSource =
+  'Cálculo propio con la maniobra de reposo a reposo, con las inercias de la leyenda (CubeSat 6U de 12 kg modelado como caja y RW400), con la rueda partiendo de 0 rpm';
 
 const maniobra: DataTableSpec = {
   id: 'ruedas-reaccion-maniobra',
-  caption:
-    'Giro de 90° en 60 s, de reposo a reposo, del CubeSat 6U con la RW400. La nave acelera durante 30 s y frena otros 30; la rueda gira al revés y vuelve a 0 rpm al final.',
+  caption: `Giro de 90° en 60 s, de reposo a reposo, del CubeSat 6U con la RW400. La nave acelera durante 30 s y frena otros 30; la rueda gira al revés y vuelve a 0 rpm al final. ${SLEW_FORMULAS}`,
   columns: [
     { key: 't', label: 't', unit: 's', align: 'num', precision: 0 },
-    { key: 'omegaS', label: 'ω_s de la nave', unit: 'rad/s', align: 'num', precision: 4 },
-    { key: 'thetaS', label: 'θ_s de la nave', unit: '°', align: 'num', precision: 0 },
-    { key: 'omegaW', label: 'ω_w de la rueda', unit: 'rpm', align: 'num', precision: 0 },
-    { key: 'Lw', label: 'L_w de la rueda', unit: 'N·m·s', align: 'num', precision: 5 },
+    {
+      key: 'omegaS',
+      label: String.raw`$\omega_s$ de la nave`,
+      unit: 'rad/s',
+      align: 'num',
+      precision: 4,
+    },
+    {
+      key: 'thetaS',
+      label: String.raw`$\theta_s$ de la nave`,
+      unit: '°',
+      align: 'num',
+      precision: 0,
+    },
+    {
+      key: 'omegaW',
+      label: String.raw`$\omega_w$ de la rueda`,
+      unit: 'rpm',
+      align: 'num',
+      precision: 0,
+    },
+    { key: 'Lw', label: '$L_w$ de la rueda', unit: 'N·m·s', align: 'num', precision: 5 },
   ],
   rows: MANEUVER_TIMES.map((t) => ({ ...maneuverRow(t) })),
   source: { text: slewSource },

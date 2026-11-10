@@ -1,5 +1,6 @@
 import { useMemo, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString } from '../../../lib/mathNotation';
 import { TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
 import type { FrameStore } from '../../lab/frameStore';
 import SvgPlot, { type PlotSeries } from '../../lab/SvgPlot';
@@ -42,10 +43,10 @@ function maneuverPlot(settings: WheelSettings) {
   const peak = Math.max(...points.map((p) => Math.abs(p.y)));
   const yMax = Math.max(PERCENT, Math.ceil((peak * Y_HEADROOM) / Y_GRAIN) * Y_GRAIN) + Y_GRAIN;
   const series: PlotSeries[] = [
-    { id: 'lw', label: 'L_w de la rueda', points, color: TEXT_COLOR },
+    { id: 'lw', label: '$L_w$ de la rueda', points, color: TEXT_COLOR },
     {
       id: 'lmax',
-      label: '±L_máx',
+      label: String.raw`$\pm L_\text{máx}$`,
       points: [...level(PERCENT, settings.T), GAP, ...level(-PERCENT, settings.T)],
       color: LIMIT_COLOR,
       dashed: true,
@@ -66,11 +67,17 @@ function disturbancePlot(settings: WheelSettings) {
   const series: PlotSeries[] = [
     {
       id: 'lw',
-      label: 'L_w de la rueda',
+      label: '$L_w$ de la rueda',
       points: disturbanceSeries(settings.actuator),
       color: TEXT_COLOR,
     },
-    { id: 'lmax', label: 'L_máx', points: level(PERCENT, end), color: LIMIT_COLOR, dashed: true },
+    {
+      id: 'lmax',
+      label: String.raw`$L_\text{máx}$`,
+      points: level(PERCENT, end),
+      color: LIMIT_COLOR,
+      dashed: true,
+    },
     {
       id: 'umbral',
       label: 'Umbral de descarga, 80 %',
@@ -107,9 +114,11 @@ export default function WheelPlot({
   );
   const cursorText = (x: number) =>
     `t = ${formatNumber(x, { precision: CURSOR_PRECISION, unit: plot.xUnit })}`;
-  const ariaLabel = isManeuver
-    ? `L_w respecto de L_máx durante el giro: un triángulo que sube y vuelve a 0 en ${formatNumber(settings.T, { precision: 1, unit: 's' })}, con ±L_máx en rojo.`
-    : 'L_w respecto de L_máx durante tres días: rampas del gradiente de gravedad hasta el umbral del 80 % y caídas de la descarga, con L_máx en rojo.';
+  const ariaLabel = mathTextToString(
+    isManeuver
+      ? `L_w respecto de L_máx durante el giro: un triángulo que sube y vuelve a 0 en ${formatNumber(settings.T, { precision: 1, unit: 's' })}, con ±L_máx en rojo.`
+      : 'L_w respecto de L_máx durante tres días: rampas del gradiente de gravedad hasta el umbral del 80 % y caídas de la descarga, con L_máx en rojo.',
+  );
   return (
     <SvgPlot
       title="Momento de la rueda frente al tiempo"

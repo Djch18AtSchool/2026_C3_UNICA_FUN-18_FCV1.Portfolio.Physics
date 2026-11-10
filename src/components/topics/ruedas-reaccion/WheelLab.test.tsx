@@ -4,13 +4,33 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
+import { svgText } from '../../../test-svg-text';
 import { disturbanceTimeline, MIN_DUMP_PLAYBACK, playbackTimeAt } from './disturbanceTimeline';
 import WheelLab, { DAY_LAPSE } from './WheelLab';
 import type { DumpActuator } from './wheelLabModel';
 
 const FOOTNOTE = 'Rueda partiendo de 0 rpm; un eje.';
+/** The readout labels, as written (with `$…$` for KaTeX). */
+const OMEGA_PEAK = String.raw`$\omega_w$ máxima de la maniobra`;
+const SHARE = String.raw`Porcentaje de $L_\text{máx}$`;
+const THETA_S = String.raw`Ángulo de la nave $\theta_s$`;
+const OMEGA_W = String.raw`Velocidad de la rueda $\omega_w$`;
+const TORQUE = String.raw`Torque del motor sobre la rueda $\tau$`;
 /** The timeline maps [0, duration] onto 0..1000. */
 const TIMELINE_MAX = 1000;
+
+/** Text outside KaTeX that still holds a `$`: a formula that was never typeset. */
+function strayDollars(root: Element): string[] {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const found: string[] = [];
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const text = node.textContent ?? '';
+    if (text.includes('$') && !node.parentElement?.closest('.katex')) found.push(text.trim());
+  }
+  return found;
+}
 
 /** Identity CTM on every svg: client pixels are viewBox units, so DOM coordinates are pointer ones. */
 function mockIdentityCtm(): void {
@@ -30,7 +50,10 @@ function renderLab() {
 
 /** The value text of a LabShell readout row, normalised to plain spaces. */
 function readout(label: string): string {
-  const row = screen.getByText(label, { selector: 'span' }).parentElement as HTMLElement;
+  const row = [...document.querySelectorAll<HTMLElement>('[data-readout]')].find(
+    (candidate) => mathSourceText(candidate.firstElementChild) === label,
+  );
+  if (!row) throw new Error(`No readout labelled «${label}»`);
   return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
 /** The readout's leading number: a unit may follow after a space or, for °, attached (R39). */
@@ -39,7 +62,7 @@ const readoutNumber = (label: string) =>
 
 const handle = () => screen.getByTestId('target-handle');
 const lab = () => screen.getByTestId('wheel-lab');
-const thetaField = () => screen.getByRole('textbox', { name: /^Ángulo objetivo θ/ });
+const thetaField = () => screen.getByRole('textbox', { name: /^Ángulo objetivo theta/ });
 const durationField = () => screen.getByRole('textbox', { name: /^Duración de la maniobra T/ });
 const timeline = () => screen.getByRole('slider', { name: 'Línea de tiempo' });
 const timelineText = () => (timeline().getAttribute('aria-valuetext') ?? '').replace(/\s/g, ' ');
@@ -121,16 +144,16 @@ describe('WheelLab', () => {
     expect(preset(/^90° en 60 s/)).toHaveAttribute('aria-pressed', 'true');
     expect(handle()).toHaveAttribute('role', 'slider');
     expect(handle()).toHaveAttribute('aria-valuenow', '90');
-    expect(readout('ω_w máxima de la maniobra')).toBe('−969,54 rpm');
+    expect(readout(OMEGA_PEAK)).toBe('−969,54 rpm');
     expect(readout('Vueltas de la rueda')).toBe('0,0 vueltas');
-    expect(readout('Porcentaje de L_máx')).toBe('0,0 %');
+    expect(readout(SHARE)).toBe('0,0 %');
     expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
     expect(screen.queryByText(/la rueda no alcanza/i)).toBeNull();
   });
 
   test('the target handle takes the keyboard: arrows 1°, Shift 10°, and the peak ω_w follows', () => {
     renderLab();
-    const before = readout('ω_w máxima de la maniobra');
+    const before = readout(OMEGA_PEAK);
 
     handle().focus();
     fireEvent.keyDown(handle(), { key: 'ArrowRight' });
@@ -138,10 +161,12 @@ describe('WheelLab', () => {
     fireEvent.keyDown(handle(), { key: 'ArrowDown', shiftKey: true });
 
     expect(handle()).toHaveAttribute('aria-valuenow', '81');
-    expect(handle().getAttribute('aria-valuetext')?.replace(/\s/g, ' ')).toBe('θ objetivo = 81°');
+    expect(handle().getAttribute('aria-valuetext')?.replace(/\s/g, ' ')).toBe(
+      'theta objetivo = 81°',
+    );
     expect(thetaField()).toHaveValue('81');
-    expect(readout('ω_w máxima de la maniobra')).not.toBe(before);
-    expect(readoutNumber('ω_w máxima de la maniobra')).toBeCloseTo((-969.54 * 81) / 90, 1);
+    expect(readout(OMEGA_PEAK)).not.toBe(before);
+    expect(readoutNumber(OMEGA_PEAK)).toBeCloseTo((-969.54 * 81) / 90, 1);
   });
 
   test('dragging the target handle to 45° halves the peak ω_w', () => {
@@ -151,7 +176,7 @@ describe('WheelLab', () => {
     dragHandleTo({ x: c.x + 60, y: c.y - 60 });
 
     expect(handle()).toHaveAttribute('aria-valuenow', '45');
-    expect(readout('ω_w máxima de la maniobra')).toBe('−484,77 rpm');
+    expect(readout(OMEGA_PEAK)).toBe('−484,77 rpm');
     expect(preset(/^90° en 60 s/)).toHaveAttribute('aria-pressed', 'false');
   });
 
@@ -175,7 +200,7 @@ describe('WheelLab', () => {
     expect(screen.getByRole('status')).toBe(region);
     expect(region).toHaveTextContent(/la rueda no alcanza: se satura o le falta torque/i);
     expect(lab().textContent).not.toMatch(/NaN|Infinity/);
-    expect(readoutNumber('Porcentaje de L_máx')).toBeGreaterThan(100);
+    expect(readoutNumber(SHARE)).toBeGreaterThan(100);
     expect(screen.getByTestId('momentum-gauge')).toHaveAttribute('data-exceeds', 'true');
   });
 
@@ -183,11 +208,33 @@ describe('WheelLab', () => {
     renderLab();
     typeInto(durationField(), '8');
 
-    const text = lab().textContent ?? '';
-    expect(text).toContain('L_máx');
-    expect(text).toContain('τ_máx');
-    expect(text).toContain('T_mín');
+    const text = mathSourceText(lab());
+    expect(text).toContain(String.raw`$L_\text{máx}$`);
+    expect(text).toContain(String.raw`$\tau_\text{máx}$`);
+    expect(text).toContain(String.raw`$T_\text{mín}$`);
     expect(text).not.toMatch(/_(max|min)\b/);
+  });
+
+  test('every character outside KaTeX, in both modes, with the warning, the thruster and the settings, is one IBM Plex draws', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    expect(plexViolations(document.body), 'maniobra').toEqual([]);
+    expect(strayDollars(document.body), 'maniobra').toEqual([]);
+
+    typeInto(durationField(), '8');
+    expect(plexViolations(document.body), 'warning').toEqual([]);
+    expect(strayDollars(document.body), 'warning').toEqual([]);
+
+    await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
+    expect(plexViolations(document.body), 'magnetopar').toEqual([]);
+    await user.click(screen.getByRole('radio', { name: 'Propulsor' }));
+    await user.click(screen.getByRole('button', { name: 'Ir a la descarga' }));
+    expect(plexViolations(document.body), 'propulsor').toEqual([]);
+    expect(strayDollars(document.body), 'propulsor').toEqual([]);
+
+    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+    expect(plexViolations(document.body), 'settings').toEqual([]);
+    expect(strayDollars(document.body), 'settings').toEqual([]);
   });
 
   test('"El giro más rápido" sits just above T_min: no warning, about 96 % of L_max at T/2', async () => {
@@ -199,7 +246,7 @@ describe('WheelLab', () => {
 
     expect(durationField()).toHaveValue('12,1');
     expect(screen.queryByText(/la rueda no alcanza/i)).toBeNull();
-    expect(readoutNumber('Porcentaje de L_máx')).toBeCloseTo(96.2, 0);
+    expect(readoutNumber(SHARE)).toBeCloseTo(96.2, 0);
   });
 
   test('the disturbance fills the wheel to the 80 % threshold, then the magnetorquer dumps it', async () => {
@@ -211,17 +258,17 @@ describe('WheelLab', () => {
     expect(screen.queryByTestId('target-handle')).toBeNull();
 
     seekHours(48.5);
-    const full = readoutNumber('Porcentaje de L_máx');
-    const fullMomentum = readoutNumber('Momento angular de la rueda L_w');
+    const full = readoutNumber(SHARE);
+    const fullMomentum = readoutNumber('Momento angular de la rueda $L_w$');
     expect(full).toBeGreaterThan(79);
     expect(full).toBeLessThan(80);
-    expect(readout('Ángulo de la nave θ_s')).toBe('0,00°');
+    expect(readout(THETA_S)).toBe('0,00°');
 
     seekHours(49);
-    expect(readoutNumber('Porcentaje de L_máx')).toBeLessThan(full);
-    expect(readoutNumber('Momento angular de la rueda L_w')).toBeLessThan(fullMomentum);
+    expect(readoutNumber(SHARE)).toBeLessThan(full);
+    expect(readoutNumber('Momento angular de la rueda $L_w$')).toBeLessThan(fullMomentum);
     expect(screen.getByTestId('wheel-phase')).toHaveTextContent(/descargando/i);
-    expect(readoutNumber('Torque del motor sobre la rueda τ')).toBeLessThan(0);
+    expect(readoutNumber(TORQUE)).toBeLessThan(0);
 
     seekHours(50);
     expect(screen.getByTestId('wheel-phase')).toHaveTextContent(/acumulando/i);
@@ -236,10 +283,10 @@ describe('WheelLab', () => {
     await user.click(screen.getByRole('radio', { name: 'Propulsor' }));
     seekHours(49, 'propulsor');
 
-    expect(readoutNumber('Porcentaje de L_máx')).toBeLessThan(1);
+    expect(readoutNumber(SHARE)).toBeLessThan(1);
     expect(scene().querySelector('[data-actuator="propulsor"]')).toBeNull();
-    expect(screen.getByText(/supuesto ilustrativo/)).toHaveTextContent(
-      /τ_máx de la rueda \(8 mN·m\)/,
+    expect(mathSourceText(screen.getByTestId('wheel-lab'))).toMatch(
+      /\$\\tau_\\text\{máx\}\$ de la rueda \(8\smN·m\)/,
     );
   });
 
@@ -252,9 +299,9 @@ describe('WheelLab', () => {
     await user.click(screen.getByRole('button', { name: 'Ir a la descarga' }));
 
     expect(scene().querySelector('[data-actuator="propulsor"]')).not.toBeNull();
-    expect(within(scene()).getByText('τ = r × F')).toBeInTheDocument();
+    expect(within(scene()).getByText(svgText('τ = r × F'))).toBeInTheDocument();
     expect(screen.getByTestId('wheel-phase')).toHaveTextContent(/descargando con el propulsor/i);
-    expect(readoutNumber('Torque del motor sobre la rueda τ')).toBeLessThan(-7.99);
+    expect(readoutNumber(TORQUE)).toBeLessThan(-7.99);
     expect(readoutNumber('Tiempo en órbita')).toBeCloseTo(48.63, 1);
   });
 
@@ -293,8 +340,8 @@ describe('WheelLab', () => {
     expect(
       screen.getByText(/A 1×, 2 h de órbita por segundo \(un día en 12 s\)/),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(/2,28·10⁻⁷ N·m/).length).toBeGreaterThan(0);
-    expect(lab().textContent).not.toMatch(/2,3·10⁻⁷|2,29·10⁻⁷/);
+    expect(mathSourceText(lab())).toContain(String.raw`$2{,}28 \cdot 10^{-7}$ N·m`);
+    expect(mathSourceText(lab())).not.toMatch(/2\{,\}3 \\cdot|2\{,\}29 \\cdot/);
   });
 
   test('the time-lapse statement follows the speed setting: at 4×, 8 h of orbit per second', async () => {
@@ -343,7 +390,7 @@ describe('WheelLab', () => {
     fireEvent.keyDown(cursor, { key: 'ArrowRight', shiftKey: true });
 
     expect(timelineText()).toBe('t = 6,00 s');
-    expect(readoutNumber('Ángulo de la nave θ_s')).toBeCloseTo(1.8, 6);
+    expect(readoutNumber(THETA_S)).toBeCloseTo(1.8, 6);
   });
 
   test('with reduced motion playback steps every 250 ms and never asks for animation frames', async () => {
@@ -375,8 +422,8 @@ describe('WheelLab', () => {
 
     expect(lab()).toHaveAttribute('data-playing', 'false');
     expect(timelineText()).toBe('t = 5,000 s');
-    expect(readout('Ángulo de la nave θ_s')).toBe('90,00°');
-    expect(readout('Velocidad de la rueda ω_w')).toBe('0,00 rpm');
+    expect(readout(THETA_S)).toBe('90,00°');
+    expect(readout(OMEGA_W)).toBe('0,00 rpm');
   });
 
   test('the drawer opens from the keyboard, offers 8× and hides the plot, and Escape returns focus', async () => {
@@ -389,7 +436,7 @@ describe('WheelLab', () => {
     const dialog = screen.getByRole('dialog');
     const speed = within(dialog).getByRole('combobox', { name: 'Velocidad' });
     expect(within(speed).getByRole('option', { name: '8×' })).toBeInTheDocument();
-    await user.click(within(dialog).getByRole('switch', { name: 'Gráfica de L_w(t)' }));
+    await user.click(within(dialog).getByRole('switch', { name: 'Gráfica de L sub w(t)' }));
     await user.keyboard('{Escape}');
 
     expect(screen.queryByTestId('wheel-plot')).toBeNull();
@@ -403,11 +450,11 @@ describe('WheelLab', () => {
     await user.click(screen.getByRole('button', { name: 'Reproducir' }));
     expect(lab()).toHaveAttribute('data-playing', 'true');
 
-    fireEvent.change(screen.getByRole('slider', { name: /^Ángulo objetivo θ/ }), {
+    fireEvent.change(screen.getByRole('slider', { name: /^Ángulo objetivo theta/ }), {
       target: { value: '-30' },
     });
     expect(lab()).toHaveAttribute('data-playing', 'false');
-    expect(readoutNumber('ω_w máxima de la maniobra')).toBeGreaterThan(0);
+    expect(readoutNumber(OMEGA_PEAK)).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: 'Restablecer' }));
     expect(handle()).toHaveAttribute('aria-valuenow', '90');

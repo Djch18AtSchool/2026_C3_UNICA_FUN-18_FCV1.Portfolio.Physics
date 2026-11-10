@@ -65,26 +65,41 @@ function readoutsFor(
 ): LabReadout[] {
   const isManeuver = maneuver !== undefined;
   const common: LabReadout[] = [
-    { id: 'thetaS', label: 'Ángulo de la nave θ_s', value: live.thetaS, unit: '°' },
-    { id: 'omegaS', label: 'Velocidad angular de la nave ω_s', value: live.omegaS, unit: '°/s' },
-    { id: 'omegaW', label: 'Velocidad de la rueda ω_w', value: live.omegaW, unit: 'rpm' },
+    {
+      id: 'thetaS',
+      label: String.raw`Ángulo de la nave $\theta_s$`,
+      value: live.thetaS,
+      unit: '°',
+    },
+    {
+      id: 'omegaS',
+      label: String.raw`Velocidad angular de la nave $\omega_s$`,
+      value: live.omegaS,
+      unit: '°/s',
+    },
+    {
+      id: 'omegaW',
+      label: String.raw`Velocidad de la rueda $\omega_w$`,
+      value: live.omegaW,
+      unit: 'rpm',
+    },
     {
       id: 'Lw',
-      label: 'Momento angular de la rueda L_w',
+      label: 'Momento angular de la rueda $L_w$',
       value: live.Lw,
       unit: 'N·m·s',
       precision: PRECISION.Lw,
     },
     {
       id: 'torque',
-      label: 'Torque del motor sobre la rueda τ',
+      label: String.raw`Torque del motor sobre la rueda $\tau$`,
       value: live.torque * MILLI,
       unit: 'mN·m',
       precision: isManeuver ? PRECISION.maneuverTorque : PRECISION.disturbanceTorque,
     },
     {
       id: 'share',
-      label: 'Porcentaje de L_máx',
+      label: String.raw`Porcentaje de $L_\text{máx}$`,
       value: live.share * PERCENT,
       unit: '%',
       precision: PRECISION.percent,
@@ -98,7 +113,12 @@ function readoutsFor(
   }
   return [
     ...common,
-    { id: 'peak', label: 'ω_w máxima de la maniobra', value: maneuver.peakOmegaW, unit: 'rpm' },
+    {
+      id: 'peak',
+      label: String.raw`$\omega_w$ máxima de la maniobra`,
+      value: maneuver.peakOmegaW,
+      unit: 'rpm',
+    },
     {
       id: 'turns',
       label: 'Vueltas de la rueda',
@@ -183,7 +203,7 @@ export default function WheelLab({ footnote }: WheelLabProps): JSX.Element {
         <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
           <ParamField
             id="wheel-theta"
-            label="Ángulo objetivo θ"
+            label={String.raw`Ángulo objetivo $\theta$`}
             unit="°"
             min={WHEEL_LIMITS.thetaDeg[0]}
             max={WHEEL_LIMITS.thetaDeg[1]}

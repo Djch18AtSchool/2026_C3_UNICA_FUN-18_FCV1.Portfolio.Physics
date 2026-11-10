@@ -12,6 +12,17 @@ const FOOTNOTE = 'Desprecio el arrastre del aire.';
 /** Tests that sweep presets or the timeline render the lab dozens of times; room under load. */
 const HEAVY_TEST_TIMEOUT_MS = 20_000;
 
+/** Text outside KaTeX that still holds a `$`: a formula that was never typeset. */
+function strayDollars(root: Element): string[] {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const found: string[] = [];
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const text = node.textContent ?? '';
+    if (text.includes('$') && !node.parentElement?.closest('.katex')) found.push(text.trim());
+  }
+  return found;
+}
+
 /** Identity CTM on every svg: client pixels are viewBox units, so DOM coordinates are pointer ones. */
 function mockIdentityCtm(): void {
   for (const svg of document.querySelectorAll('svg')) {
@@ -254,9 +265,11 @@ describe('BounceLab', () => {
       for (const id of ids) {
         await user.selectOptions(presetSelect(), id);
         expect(plexViolations(document.body), id).toEqual([]);
+        expect(strayDollars(document.body), id).toEqual([]);
       }
       await user.click(gear());
       expect(plexViolations(document.body), 'settings').toEqual([]);
+      expect(strayDollars(document.body), 'settings').toEqual([]);
       await user.keyboard('{Escape}');
       await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
       expect(plexViolations(document.body), 'collision').toEqual([]);

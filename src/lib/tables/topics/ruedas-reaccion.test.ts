@@ -2,7 +2,17 @@ import { describe, expect, test } from 'vitest';
 import { MISSIONS } from '../../data/reactionWheels';
 import { formatCell } from '../markdown';
 import type { DataTableSpec } from '../types';
-import { formatScientific, MANEUVER_TIMES, maneuverRow, TABLES } from './ruedas-reaccion';
+import { uncoveredChars } from '../../typography';
+import {
+  formatScientific,
+  formatScientificNotation,
+  MANEUVER_TIMES,
+  maneuverRow,
+  TABLES,
+} from './ruedas-reaccion';
+
+/** What a text shows outside its `$…$` formulas, which KaTeX draws. */
+const outsideKatex = (text: string) => text.replace(/\$[^$]*\$/g, '');
 
 const table = (id: string): DataTableSpec => {
   const found = TABLES.find((candidate) => candidate.id === id);
@@ -17,22 +27,36 @@ const printed = (spec: DataTableSpec, index: number) =>
   );
 
 describe('formatScientific', () => {
-  test('writes a mantissa with comma decimals and a superscript power of ten', () => {
-    expect(formatScientific(6.37e-3)).toBe('6,37·10⁻³');
-    expect(formatScientific(9.549e-5)).toBe('9,55·10⁻⁵');
-    expect(formatScientific(218_340)).toBe('2,18·10⁵');
-    expect(formatScientific(1.2e-5, 2)).toBe('1,2·10⁻⁵');
+  test('writes TeX for InlineMath: a braced decimal comma and a real power of ten', () => {
+    expect(formatScientific(6.37e-3)).toBe('6{,}37 \\cdot 10^{-3}');
+    expect(formatScientific(9.549e-5)).toBe('9{,}55 \\cdot 10^{-5}');
+    expect(formatScientific(218_340)).toBe('2{,}18 \\cdot 10^{5}');
+    expect(formatScientific(1.2e-5, 2)).toBe('1{,}2 \\cdot 10^{-5}');
   });
 
-  test('carries a rounded mantissa into the exponent and keeps the sign as a minus', () => {
-    expect(formatScientific(9.996e-5)).toBe('1,00·10⁻⁴');
-    expect(formatScientific(-2.29e-7)).toBe('−2,29·10⁻⁷');
-    expect(formatScientific(4.5e12, 2)).toBe('4,5·10¹²');
+  test('carries a rounded mantissa into the exponent and keeps the sign', () => {
+    expect(formatScientific(9.996e-5)).toBe('1{,}00 \\cdot 10^{-4}');
+    expect(formatScientific(-2.29e-7)).toBe('-2{,}29 \\cdot 10^{-7}');
+    expect(formatScientific(4.5e12, 2)).toBe('4{,}5 \\cdot 10^{12}');
   });
 
   test('prints 0 and non-finite values without a power', () => {
     expect(formatScientific(0)).toBe('0');
     expect(formatScientific(Number.NaN)).toBe('—');
+  });
+});
+
+describe('formatScientificNotation', () => {
+  test('writes the MathText notation: comma decimals, ^ for the power, a hyphen MathText draws as a minus', () => {
+    expect(formatScientificNotation(6.37e-3)).toBe('6,37·10^-3');
+    expect(formatScientificNotation(218_340)).toBe('2,18·10^5');
+    expect(formatScientificNotation(-2.29e-7)).toBe('−2,29·10^-7');
+    expect(formatScientificNotation(1.2e-5, 2)).toBe('1,2·10^-5');
+  });
+
+  test('prints 0 and non-finite values without a power', () => {
+    expect(formatScientificNotation(0)).toBe('0');
+    expect(formatScientificNotation(Number.NaN)).toBe('—');
   });
 });
 
@@ -81,20 +105,20 @@ describe('ruedas-reaccion-ruedas', () => {
     expect(printed(spec, 1)).toMatchObject({ Lmax: '0,050', mass: '375\u202Fg' });
   });
 
-  test('prints the inertia the sheet gives, and marks the derived one as cálculo propio', () => {
-    expect(printed(spec, 0)).toMatchObject({ inertia: '6,37·10⁻³', origin: 'impresa en la hoja' });
-    expect(printed(spec, 1).inertia).toBe('9,55·10⁻⁵');
-    expect(printed(spec, 1).origin).toMatch(/^cálculo propio/);
+  test('prints the inertia in g·m² with the sheet’s three figures, no power of ten in a cell', () => {
+    expect(spec.columns.find((column) => column.key === 'inertia')?.unit).toBe('g·m²');
+    expect(printed(spec, 0)).toMatchObject({ inertia: '6,37', origin: 'impresa en la hoja' });
+    expect(printed(spec, 1)).toMatchObject({ inertia: '0,0955', origin: 'cálculo propio' });
     expect(printed(spec, 0).origin).not.toMatch(/cálculo propio/);
   });
 
-  test('labels the limits with accented subscripts: L_máx, τ_máx, ω_máx', () => {
+  test('labels the limits with real subscripts in KaTeX: L_máx, τ_máx, ω_máx', () => {
     expect(spec.columns.map((column) => column.label).slice(1, 4)).toEqual([
-      'L_máx',
-      'τ_máx',
-      'ω_máx',
+      String.raw`$L_\text{máx}$`,
+      String.raw`$\tau_\text{máx}$`,
+      String.raw`$\omega_\text{máx}$`,
     ]);
-    expect(printed(spec, 1).origin).toBe('cálculo propio: L_máx/ω_máx');
+    expect(spec.caption).toContain(String.raw`$L_\text{máx}/\omega_\text{máx}$`);
     expect(JSON.stringify(spec)).not.toMatch(/_(max|min)\b/);
   });
 
@@ -106,6 +130,13 @@ describe('ruedas-reaccion-ruedas', () => {
 
 describe('ruedas-reaccion-maniobra', () => {
   const spec = table('ruedas-reaccion-maniobra');
+
+  test('the caption holds the formulas and inertias, the source line none', () => {
+    expect(spec.caption).toContain(String.raw`$\tau = 4 I_s \theta/T^2$`);
+    expect(spec.caption).toContain('$I_s$ = 0,1852 kg·m²');
+    expect(spec.caption).toContain(String.raw`$I_w$ = $9{,}55 \cdot 10^{-5}$ kg·m²`);
+    expect(spec.source.text).not.toContain('$');
+  });
 
   test('has one row every 10 s from 0 to 60 s', () => {
     expect(MANEUVER_TIMES).toEqual([0, 10, 20, 30, 40, 50, 60]);
@@ -122,6 +153,25 @@ describe('ruedas-reaccion-maniobra', () => {
     });
     expect(printed(spec, 1)).toMatchObject({ thetaS: '5', omegaW: '−323' });
     expect(printed(spec, 6)).toMatchObject({ thetaS: '90', omegaW: '0', Lw: '0,00000' });
+  });
+});
+
+describe('every table', () => {
+  test('captions, headers, cells and sources leave IBM Plex only inside $…$ (KaTeX)', () => {
+    for (const spec of TABLES) {
+      const texts = [
+        spec.caption,
+        spec.source.text,
+        ...spec.columns.map((column) => column.label),
+        ...spec.rows.flatMap((row) =>
+          spec.columns.map((column) => formatCell(column, row[column.key])),
+        ),
+      ];
+      expect(
+        texts.flatMap((text) => uncoveredChars(outsideKatex(text), 'sans')),
+        spec.id,
+      ).toEqual([]);
+    }
   });
 });
 

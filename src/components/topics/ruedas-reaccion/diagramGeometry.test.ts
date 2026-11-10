@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { arrow, dipoleFieldLine, mathRuns, onEllipse, spinArc, SUB_DY } from './diagramGeometry';
+import { arrow, dipoleFieldLine, onEllipse, spinArc } from './diagramGeometry';
 
 const numbers = (text: string) => (text.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
 
@@ -57,23 +57,5 @@ describe('dipoleFieldLine', () => {
 
   test('refuses a line that does not reach past the surface', () => {
     expect(() => dipoleFieldLine({ x: 0, y: 0 }, 50, 100)).toThrow(RangeError);
-  });
-});
-
-describe('mathRuns', () => {
-  test('sets symbols italic, lowers their subscripts and raises the next run back', () => {
-    expect(mathRuns([{ symbol: 'L', sub: 'w' }, ' = ', { symbol: 'Δ', upright: true }])).toEqual([
-      { text: 'L', className: 'wd-math', dy: undefined },
-      { text: 'w', className: 'wd-math wd-sub', dy: 5 },
-      { text: ' = ', className: '', dy: -5 },
-      { text: 'Δ', className: '', dy: undefined },
-    ]);
-  });
-
-  test('sets descriptive subscripts (ext, max) upright, as textbooks do', () => {
-    expect(mathRuns([{ symbol: 'τ', sub: 'ext' }])).toEqual([
-      { text: 'τ', className: 'wd-math', dy: undefined },
-      { text: 'ext', className: 'wd-sub', dy: SUB_DY },
-    ]);
   });
 });

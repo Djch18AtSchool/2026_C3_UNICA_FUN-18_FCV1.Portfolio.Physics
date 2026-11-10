@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { uncoveredChars } from '../../src/lib/typography';
 import { setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/ruedas-reaccion/';
@@ -11,6 +12,8 @@ const TABLE_IDS = [
   'ruedas-reaccion-maniobra',
   'ruedas-reaccion-misiones',
 ];
+/** The readout's plain text (its ω_w is KaTeX). */
+const PEAK_OMEGA = 'máxima de la maniobra';
 const DIAGRAM_TEXTS = ['(8.1)', '(8.2)', '(8.3)', '(8.4)', '485 vueltas', 'la nave deriva'];
 const PHONE = { width: 360, height: 800 };
 const THEMES = ['light', 'dark'] as const;
@@ -25,8 +28,8 @@ const SCROLL_STEP_PX = 600;
 
 /** The value text of a LabShell readout row. */
 async function readoutText(page: Page, label: string): Promise<string> {
-  const row = page.locator(LAB).locator('div', { has: page.getByText(label, { exact: true }) });
-  return ((await row.last().locator('span').last().textContent()) ?? '').trim();
+  const row = page.locator(LAB).locator('[data-readout]', { hasText: label });
+  return ((await row.locator('span').last().textContent()) ?? '').trim();
 }
 
 async function openLab(page: Page): Promise<void> {
@@ -94,6 +97,31 @@ test.describe('página', () => {
     }
   });
 
+  test('el diagrama dibuja sus símbolos con MathText: nada cae a una tipografía de reserva', async ({
+    page,
+  }) => {
+    const diagram = page.getByTestId('wheel-diagram');
+    await expect(diagram).toBeVisible();
+
+    const texts = await diagram.locator('text, tspan').evaluateAll((nodes) =>
+      nodes.flatMap((node) => {
+        const own = [...node.childNodes]
+          .filter((child) => child.nodeType === Node.TEXT_NODE)
+          .map((child) => child.textContent ?? '')
+          .join('');
+        if (!own.trim()) return [];
+        const family = getComputedStyle(node).fontFamily;
+        return [{ text: own, isKatex: /KaTeX/.test(family.split(',')[0]) }];
+      }),
+    );
+
+    const outside = texts
+      .filter(({ isKatex }) => !isKatex)
+      .flatMap(({ text }) => uncoveredChars(text, 'sans'));
+    expect(outside).toEqual([]);
+    expect(texts.some(({ isKatex }) => isKatex)).toBe(true);
+  });
+
   test('en el detalle M, el rótulo «rueda» queda debajo del título, sin tocarlo', async ({
     page,
   }) => {
@@ -156,17 +184,19 @@ test.describe('laboratorio', () => {
     await openLab(page);
   });
 
-  test('la perilla del ángulo objetivo, con el teclado, cambia la ω_w máxima', async ({ page }) => {
+  test('la perilla del ángulo objetivo, con el teclado, cambia la velocidad máxima de la rueda', async ({
+    page,
+  }) => {
     const knob = page.locator(LAB).getByRole('slider', { name: 'Dial del ángulo objetivo' });
     await expect(knob).toHaveAttribute('aria-valuetext', /90/);
-    const before = await readoutText(page, 'ω_w máxima de la maniobra');
+    const before = await readoutText(page, PEAK_OMEGA);
 
     await knob.focus();
     await page.keyboard.press('Shift+ArrowDown');
 
     await expect(knob).toHaveAttribute('aria-valuetext', /80/);
     await expect(knob).toBeFocused();
-    await expect.poll(() => readoutText(page, 'ω_w máxima de la maniobra')).not.toBe(before);
+    await expect.poll(() => readoutText(page, PEAK_OMEGA)).not.toBe(before);
   });
 
   test('reproducir termina el giro, vuelve a "Reproducir" y no repite', async ({ page }) => {

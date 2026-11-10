@@ -1,7 +1,9 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
-import { arrow, mathRuns, spinArc, type MathPart, type Point } from './diagramGeometry';
+import { mathTextToString } from '../../../lib/mathNotation';
+import MathText from '../../lab/MathText';
+import { arrow, spinArc, type Point } from './diagramGeometry';
 import { DIAGRAM_FACTS, WHEEL_COLORS } from './wheelFigures';
 
 const VIEW = { width: 360, height: 300 } as const;
@@ -22,46 +24,33 @@ const TITLE_Y = 24;
 const BOTTOM_Y = 278;
 const TEXT_SIZE = 14;
 const MATH_SIZE = 16;
-/** Subscripts at the house ratio of the symbol (HabitatDiagram: 0,72). */
-const SUB_SIZE = '0.72em';
-const MATH_FONT = "KaTeX_Main, 'Times New Roman', serif";
+const HALO_WIDTH = 4;
 
 const textStyle = { fontFamily: TICK_FONT_FAMILY, fontSize: TEXT_SIZE, fill: TEXT_COLOR } as const;
-const halo = { stroke: SURFACE_COLOR, strokeWidth: 4, paintOrder: 'stroke' } as const;
+const HALO = { color: SURFACE_COLOR, width: HALO_WIDTH } as const;
 
-/** An equation from `mathRuns`: its `wd-math` runs italic, its `wd-sub` runs smaller. */
-function MathText({
+/** An equation or symbol of the sketch in the MathText notation, in the text color on a halo. */
+function Math({
+  source,
   x,
   y,
-  parts,
   anchor = 'start',
 }: {
+  source: string;
   x: number;
   y: number;
-  parts: readonly MathPart[];
   anchor?: 'start' | 'middle' | 'end';
 }): JSX.Element {
   return (
-    <text
+    <MathText
+      source={source}
       x={x}
       y={y}
-      textAnchor={anchor}
-      fontFamily={MATH_FONT}
+      anchor={anchor}
       fontSize={MATH_SIZE}
       fill={TEXT_COLOR}
-      {...halo}
-    >
-      {mathRuns(parts).map((run, index) => (
-        <tspan
-          key={index}
-          dy={run.dy}
-          fontStyle={run.className.includes('wd-math') ? 'italic' : undefined}
-          fontSize={run.className.includes('wd-sub') ? SUB_SIZE : undefined}
-        >
-          {run.text}
-        </tspan>
-      ))}
-    </text>
+      halo={HALO}
+    />
   );
 }
 
@@ -162,7 +151,7 @@ function TopView(): JSX.Element {
         to={-190}
         color={WHEEL_COLORS.wheel}
       />
-      <MathText x={TOP.x + 20} y={TOP.y - 46} parts={[{ symbol: 'ω', sub: 'w' }]} />
+      <Math x={TOP.x + 20} y={TOP.y - 46} source="ω_w" />
       <SpinArc
         name="nave"
         centre={TOP}
@@ -171,7 +160,7 @@ function TopView(): JSX.Element {
         to={70}
         color={WHEEL_COLORS.body}
       />
-      <MathText x={TOP.x - 82} y={TOP.y - 76} parts={[{ symbol: 'ω', sub: 's' }]} />
+      <Math x={TOP.x - 82} y={TOP.y - 76} source="ω_s" />
     </g>
   );
 }
@@ -207,33 +196,9 @@ function AxisView(): JSX.Element {
         color={WHEEL_COLORS.body}
       />
       <circle cx={AXIS_X} cy={ORIGIN_Y} r={3} fill={TEXT_COLOR} />
-      <MathText
-        x={AXIS_X + 12}
-        y={ORIGIN_Y - L_LENGTH + 14}
-        parts={[
-          { symbol: 'L', sub: 'w' },
-          ' = ',
-          { symbol: 'I', sub: 'w' },
-          ' ',
-          { symbol: 'ω', sub: 'w' },
-        ]}
-      />
-      <MathText
-        x={AXIS_X + 12}
-        y={ORIGIN_Y + 5}
-        parts={[{ symbol: 'L', sub: 's' }, ' + ', { symbol: 'L', sub: 'w' }, ' = 0']}
-      />
-      <MathText
-        x={AXIS_X + 12}
-        y={ORIGIN_Y + L_LENGTH - 6}
-        parts={[
-          { symbol: 'L', sub: 's' },
-          ' = ',
-          { symbol: 'I', sub: 's' },
-          ' ',
-          { symbol: 'ω', sub: 's' },
-        ]}
-      />
+      <Math x={AXIS_X + 12} y={ORIGIN_Y - L_LENGTH + 14} source="L_w = I_w ω_w" />
+      <Math x={AXIS_X + 12} y={ORIGIN_Y + 5} source="L_s + L_w = 0" />
+      <Math x={AXIS_X + 12} y={ORIGIN_Y + L_LENGTH - 6} source="L_s = I_s ω_s" />
     </g>
   );
 }
@@ -249,7 +214,9 @@ export default function ExchangeDiagram(): JSX.Element {
   return (
     <svg
       role="img"
-      aria-label={`Momento angular de la nave y de la rueda. Vista desde arriba: la rueda gira en sentido antihorario y la nave en sentido horario. Sobre el eje z: L_w hacia arriba y L_s hacia abajo, del mismo largo, de modo que L_s + L_w = 0. Con I_s/I_w ≈ ${ratio}, la rueda gira unas ${ratio} veces más rápido que la nave.`}
+      aria-label={mathTextToString(
+        `Momento angular de la nave y de la rueda. Vista desde arriba: la rueda gira en sentido antihorario y la nave en sentido horario. Sobre el eje z: L_w hacia arriba y L_s hacia abajo, del mismo largo, de modo que L_s + L_w = 0. Con I_s/I_w ≈ ${ratio}, la rueda gira unas ${ratio} veces más rápido que la nave.`,
+      )}
       viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
       width="100%"
       className="mx-auto block h-auto max-w-[30rem]"
@@ -264,26 +231,12 @@ export default function ExchangeDiagram(): JSX.Element {
       />
       <TopView />
       <AxisView />
-      <MathText
-        x={TOP.x}
-        y={BOTTOM_Y}
-        anchor="middle"
-        parts={[
-          { symbol: 'I', sub: 's' },
-          ' ',
-          { symbol: 'ω', sub: 's' },
-          ' + ',
-          { symbol: 'I', sub: 'w' },
-          ' ',
-          { symbol: 'ω', sub: 'w' },
-          ' = 0',
-        ]}
-      />
-      <MathText
+      <Math x={TOP.x} y={BOTTOM_Y} anchor="middle" source="I_s ω_s + I_w ω_w = 0" />
+      <Math
         x={(DIVIDER_X + VIEW.width) / 2}
         y={BOTTOM_Y}
         anchor="middle"
-        parts={[{ symbol: 'ω', sub: 'w' }, ` ≈ ${wheelPerBody} `, { symbol: 'ω', sub: 's' }]}
+        source={`ω_w ≈ ${wheelPerBody} ω_s`}
       />
     </svg>
   );

@@ -67,6 +67,11 @@ describe('BounceFigure', () => {
       const { container } = render(<BounceFigure variant={variant} />);
 
       expect(plexViolations(container)).toEqual([]);
+      const stray = [...container.querySelectorAll('*')]
+        .flatMap((element) => [...element.childNodes])
+        .filter((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.includes('$'))
+        .filter((node) => !node.parentElement?.closest('.katex'));
+      expect(stray.map((node) => node.textContent)).toEqual([]);
     },
   );
 

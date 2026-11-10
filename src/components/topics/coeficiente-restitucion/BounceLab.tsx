@@ -144,7 +144,9 @@ function PresetPicker({
         </select>
       </div>
       <p data-testid="preset-note" className="m-0 text-sm text-fg-muted">
-        {`${isModified ? `Partí de «${based.name}» y cambié algún valor. ` : ''}${based.note ?? ''}`}
+        <InlineMath
+          text={`${isModified ? `Partí de «${based.name}» y cambié algún valor. ` : ''}${based.note ?? ''}`}
+        />
         {based.sourceLabel ? (
           <span className="mt-1 block text-xs">{`Fuente: ${based.sourceLabel}`}</span>
         ) : null}

@@ -8,6 +8,7 @@ import { formatNumber } from '../../../lib/format';
 import { restToRestSlew, wheelMomentumAt, wheelTurnsForSlew } from '../../../lib/physics';
 import {
   formatScientific,
+  formatScientificNotation,
   maneuverRow,
   WORKED_SLEW,
 } from '../../../lib/tables/topics/ruedas-reaccion';
@@ -60,7 +61,9 @@ const SECONDS_PER_DAY = 86_400;
  * τ_gg,max = 2,2847·10⁻⁷ N·m, printed as the code gives it, 2,28·10⁻⁷ (research §6b's 2,29 is
  * 2,285 rounded twice; controller ruling R17).
  */
-const DISTURBANCE_LABEL = `${formatScientific(GRAVITY_GRADIENT_6U.torque)} N·m`;
+const DISTURBANCE_LABEL = `${formatScientificNotation(GRAVITY_GRADIENT_6U.torque)} N·m`;
+/** The same torque as TeX for the HTML legends (InlineMath): «$2{,}28 \cdot 10^{-7}$ N·m». */
+const DISTURBANCE_TEX = `$${formatScientific(GRAVITY_GRADIENT_6U.torque)}$ N·m`;
 const PERCENT = 100;
 const saturationSeconds = RW400.Lmax / GRAVITY_GRADIENT_6U.torque;
 const maneuverPeak = restToRestSlew(
@@ -79,8 +82,11 @@ export const SATURATION = {
   torque: GRAVITY_GRADIENT_6U.torque,
   seconds: saturationSeconds,
   days: saturationSeconds / SECONDS_PER_DAY,
+  /** In the MathText notation (SVG labels, accessible names). */
   torqueLabel: DISTURBANCE_LABEL,
-  secondsLabel: `${formatScientific(saturationSeconds)} s`,
+  /** With `$…$` for InlineMath (HTML legends). */
+  torqueTex: DISTURBANCE_TEX,
+  secondsLabel: `${formatScientificNotation(saturationSeconds)} s`,
   daysLabel: `${formatNumber(saturationSeconds / SECONDS_PER_DAY, { precision: 1 })} días`,
   maneuverPeak,
   maneuverShareLabel: `${formatNumber((maneuverPeak / RW400.Lmax) * PERCENT, { precision: 0 })} %`,
@@ -119,7 +125,7 @@ export const DIAGRAM_FACTS = {
   inertiaRatio: Math.round(WORKED_SLEW.Is / WORKED_SLEW.Iw / RATIO_STEP) * RATIO_STEP,
   LmaxLabel: `${formatNumber(RW400.Lmax, { precision: 3 })} N·m·s`,
   disturbanceLabel: DISTURBANCE_LABEL,
-  magnetorquerLabel: `${formatScientific(MAGNETORQUER_6U.torque, 2)} N·m`,
+  magnetorquerLabel: `${formatScientificNotation(MAGNETORQUER_6U.torque, 2)} N·m`,
   /** τ_MTQ/τ_ext to the nearest ten ("unas 50 veces", research §6c). */
   dumpRatio:
     Math.round(MAGNETORQUER_6U.torque / GRAVITY_GRADIENT_6U.torque / RATIO_STEP) * RATIO_STEP,

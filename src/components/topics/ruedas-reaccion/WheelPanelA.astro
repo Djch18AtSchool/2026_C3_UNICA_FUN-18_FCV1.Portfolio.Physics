@@ -7,7 +7,9 @@
  * +z), the body clockwise (ω_s and L_s down); the motor is accelerating the wheel, so τ on the
  * wheel turns with ω_w and −τ on the body against it. Styles live in WheelDiagram.astro.
  */
-import { arrow, mathRuns, onEllipse, spinArc, type MathPart } from './diagramGeometry';
+import MathText from '../../lab/MathText';
+import { arrow, onEllipse, spinArc } from './diagramGeometry';
+import { EQ_TEXT, LABEL_TEXT } from './diagramText';
 import { DIAGRAM_FACTS } from './wheelFigures';
 
 const VIEW = { width: 420, height: 784 } as const;
@@ -62,53 +64,20 @@ const motorBody = cylinder(AXIS_X, MOTOR.top, MOTOR.bottom, MOTOR.rx, MOTOR.ry);
 const rotorBody = cylinder(DM_X, ROTOR.cy, ROTOR.cy + ROTOR.thickness, ROTOR.rx, ROTOR.ry);
 const statorBody = cylinder(DM_X, STATOR.top, STATOR.bottom, STATOR.rx, STATOR.ry);
 
-const sub = (symbol: string, subscript: string): MathPart => ({ symbol, sub: subscript });
+/** The equations and symbols of the panel in the MathText notation. */
 const EQ = {
-  lw: [sub('L', 'w'), ' = ', sub('I', 'w'), ' ', sub('ω', 'w')],
-  ls: [sub('L', 's'), ' = ', sub('I', 's'), ' ', sub('ω', 's')],
-  sum: [sub('L', 's'), ' + ', sub('L', 'w'), ' = 0'],
-  conservation: [
-    sub('I', 's'),
-    ' ',
-    sub('ω', 's'),
-    ' + ',
-    sub('I', 'w'),
-    ' ',
-    sub('ω', 'w'),
-    ' = constante',
-  ],
-  angles: [sub('I', 's'), ' Δ', sub('θ', 's'), ' = −', sub('I', 'w'), ' Δ', sub('θ', 'w')],
-  wheelTorque: [
-    { symbol: 'τ' },
-    ' = d',
-    sub('L', 'w'),
-    '/d',
-    { symbol: 't' },
-    ' = ',
-    sub('I', 'w'),
-    ' ',
-    sub('α', 'w'),
-  ],
-  bodyTorque: [
-    '−',
-    { symbol: 'τ' },
-    ' = d',
-    sub('L', 's'),
-    '/d',
-    { symbol: 't' },
-    ' = ',
-    sub('I', 's'),
-    ' ',
-    sub('α', 's'),
-  ],
-  omegaW: [sub('ω', 'w')],
-  omegaS: [sub('ω', 's')],
-  tau: [{ symbol: 'τ' }],
-  minusTau: ['−', { symbol: 'τ' }],
-} satisfies Record<string, MathPart[]>;
-const runs = Object.fromEntries(
-  Object.entries(EQ).map(([key, parts]) => [key, mathRuns(parts)]),
-) as Record<keyof typeof EQ, ReturnType<typeof mathRuns>>;
+  lw: 'L_w = I_w ω_w',
+  ls: 'L_s = I_s ω_s',
+  sum: 'L_s + L_w = 0',
+  conservation: 'I_s ω_s + I_w ω_w = constante',
+  angles: 'I_s Δθ_s = −I_w Δθ_w',
+  wheelTorque: 'τ = dL_w/dt = I_w α_w',
+  bodyTorque: '−τ = dL_s/dt = I_s α_s',
+  omegaW: 'ω_w',
+  omegaS: 'ω_s',
+  tau: 'τ',
+  minusTau: '−τ',
+} as const;
 ---
 
 <svg
@@ -168,13 +137,7 @@ const runs = Object.fromEntries(
 
   <path class="wd-spin wd-wheel-spin" d={omegaW.d} />
   <polygon class="wd-wheel-fill" points={omegaW.head} />
-  <text class="wd-eq" x={WINDOW.right + 8} y={WHEEL.cy + 26}>
-    {runs.omegaW.map((run) => (
-      <tspan class={run.className} dy={run.dy}>
-        {run.text}
-      </tspan>
-    ))}
-  </text>
+  <MathText source={EQ.omegaW} x={WINDOW.right + 8} y={WHEEL.cy + 26} {...EQ_TEXT} />
 
   <circle class="wd-mark" {...motorMark} />
   <text class="wd-label wd-mark-label" x={motorMark.cx + motorMark.r + 4} y={motorMark.cy + 8}>
@@ -194,63 +157,33 @@ const runs = Object.fromEntries(
   <line class="wd-vector wd-wheel-stroke" x1={lw.x1} y1={lw.y1} x2={lw.x2} y2={lw.y2} />
   <polygon class="wd-wheel-fill" points={lw.head} />
   <circle class="wd-pierce" cx={TOP_CENTRE.x} cy={TOP_CENTRE.y} r="3" />
-  <text class="wd-eq" x={AXIS_X + 14} y={TOP_CENTRE.y - L_LENGTH / 2}>
-    {runs.lw.map((run) => (
-      <tspan class={run.className} dy={run.dy}>
-        {run.text}
-      </tspan>
-    ))}
-  </text>
+  <MathText source={EQ.lw} x={AXIS_X + 14} y={TOP_CENTRE.y - L_LENGTH / 2} {...EQ_TEXT} />
 
   <line class="wd-vector wd-body-stroke" x1={ls.x1} y1={ls.y1} x2={ls.x2} y2={ls.y2} />
   <polygon class="wd-body-fill" points={ls.head} />
-  <text class="wd-eq" x={AXIS_X + 14} y={lsStart + L_LENGTH - 16}>
-    {runs.ls.map((run) => (
-      <tspan class={run.className} dy={run.dy}>
-        {run.text}
-      </tspan>
-    ))}
-  </text>
+  <MathText source={EQ.ls} x={AXIS_X + 14} y={lsStart + L_LENGTH - 16} {...EQ_TEXT} />
 
   <path class="wd-spin wd-body-spin" d={omegaS.d} />
   <polygon class="wd-body-fill" points={omegaS.head} />
-  <text class="wd-eq" x={omegaSLabel.x - 6} y={omegaSLabel.y - 18} text-anchor="middle">
-    {runs.omegaS.map((run) => (
-      <tspan class={run.className} dy={run.dy}>
-        {run.text}
-      </tspan>
-    ))}
-  </text>
+  <MathText
+    source={EQ.omegaS}
+    x={omegaSLabel.x - 6}
+    y={omegaSLabel.y - 18}
+    anchor="middle"
+    {...EQ_TEXT}
+  />
 
-  <text class="wd-eq" x={BODY.right + 14} y={BODY.front + 26}>
-    {runs.sum.map((run) => (
-      <tspan class={run.className} dy={run.dy}>
-        {run.text}
-      </tspan>
-    ))}
-  </text>
+  <MathText source={EQ.sum} x={BODY.right + 14} y={BODY.front + 26} {...EQ_TEXT} />
   <text class="wd-note" x={BODY.right + 14} y={BODY.front + 48}>
     desde el reposo
   </text>
 
   <!-- Equation (8.1) and its integral, then the number of wheel turns. -->
-  <text class="wd-eq" x="16" y="436">
-    {runs.conservation.map((run) => (
-      <tspan class={run.className} dy={run.dy}>
-        {run.text}
-      </tspan>
-    ))}
-  </text>
+  <MathText source={EQ.conservation} x={16} y={436} {...EQ_TEXT} />
   <text class="wd-tag" x="404" y="436" text-anchor="end">
     (8.1)
   </text>
-  <text class="wd-eq" x="16" y="472">
-    {runs.angles.map((run) => (
-      <tspan class={run.className} dy={run.dy}>
-        {run.text}
-      </tspan>
-    ))}
-  </text>
+  <MathText source={EQ.angles} x={16} y={472} {...EQ_TEXT} />
   <text class="wd-label" x="16" y="508">
     La rueda da unas <tspan class="wd-strong">{DIAGRAM_FACTS.turns} vueltas</tspan>
   </text>
@@ -287,51 +220,23 @@ const runs = Object.fromEntries(
 
   <path class="wd-spin wd-torque-stroke" d={tauArc.d} />
   <polygon class="wd-torque-fill" points={tauArc.head} />
-  <text class="wd-eq" x={DM_X + 92} y={ROTOR.cy + 30}>
-    {runs.tau.map((run) => (
-      <tspan class={run.className} dy={run.dy}>
-        {run.text}
-      </tspan>
-    ))}
-  </text>
+  <MathText source={EQ.tau} x={DM_X + 92} y={ROTOR.cy + 30} {...EQ_TEXT} />
   <path class="wd-spin wd-torque-stroke" d={minusTauArc.d} />
   <polygon class="wd-torque-fill" points={minusTauArc.head} />
-  <text class="wd-eq" x={DM_X - 52} y={STATOR.top + 20} text-anchor="end">
-    {runs.minusTau.map((run) => (
-      <tspan class={run.className} dy={run.dy}>
-        {run.text}
-      </tspan>
-    ))}
-  </text>
+  <MathText source={EQ.minusTau} x={DM_X - 52} y={STATOR.top + 20} anchor="end" {...EQ_TEXT} />
 
   <text class="wd-label wd-strong" x="236" y="616">
     Tercera ley
   </text>
-  <text class="wd-label" x="236" y="640">
-    <tspan class="wd-math">τ</tspan> sobre la rueda,
-  </text>
-  <text class="wd-label" x="236" y="662">
-    −<tspan class="wd-math">τ</tspan> sobre la nave:
-  </text>
+  <MathText source="τ sobre la rueda," x={236} y={640} {...LABEL_TEXT} />
+  <MathText source="−τ sobre la nave:" x={236} y={662} {...LABEL_TEXT} />
   <text class="wd-label" x="236" y="684">
     acción y reacción
   </text>
 
-  <text class="wd-eq" x={DETAIL.x + 12} y="732">
-    {runs.wheelTorque.map((run) => (
-      <tspan class={run.className} dy={run.dy}>
-        {run.text}
-      </tspan>
-    ))}
-  </text>
+  <MathText source={EQ.wheelTorque} x={DETAIL.x + 12} y={732} {...EQ_TEXT} />
   <text class="wd-tag" x="396" y="732" text-anchor="end">
     (8.2)
   </text>
-  <text class="wd-eq" x={DETAIL.x + 12} y="760">
-    {runs.bodyTorque.map((run) => (
-      <tspan class={run.className} dy={run.dy}>
-        {run.text}
-      </tspan>
-    ))}
-  </text>
+  <MathText source={EQ.bodyTorque} x={DETAIL.x + 12} y={760} {...EQ_TEXT} />
 </svg>

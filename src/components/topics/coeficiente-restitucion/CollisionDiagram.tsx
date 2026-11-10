@@ -67,8 +67,8 @@ const KEY_GAP = 18;
 const LABEL_X = 2;
 const LABEL_SIZE = 12;
 const SMALL_SIZE = 11;
-/** The mass labels sit side by side over the balls of the first row (subscripts at 75 %: 9 px). */
-const MASS_SIZE = 12;
+/** The mass labels sit side by side over the balls of the first row (subscripts at 75 %: 8 px). */
+const MASS_SIZE = SMALL_SIZE;
 /** Ball radii scale as ∛m (same density): 12 px for 2 kg, 12/∛2 for 1 kg. */
 const BALL_1 = { id: 1, x: 78, r: 12 } as const;
 const BALL_2 = { id: 2, x: 146, r: 12 / Math.cbrt(2) } as const;

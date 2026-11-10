@@ -37,8 +37,8 @@ export function wheelLocalSettings({
     onChange: (value) => onDisplayChange({ ...display, [key]: value }),
   });
   return [
-    toggle('showArrows', 'Flechas de giro ω_s y ω_w'),
-    toggle('showPlot', 'Gráfica de L_w(t)'),
+    toggle('showArrows', String.raw`Flechas de giro $\omega_s$ y $\omega_w$`),
+    toggle('showPlot', 'Gráfica de $L_w(t)$'),
     ...clockSettings(clock, SPEEDS),
   ];
 }

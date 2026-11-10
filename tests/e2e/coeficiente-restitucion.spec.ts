@@ -25,11 +25,12 @@ const STILL_AT_END_MS = 500;
 const FIBA_E = 0.767;
 
 const E_SLIDER = 'Coeficiente de restitución e';
-const MEASURED_E = 'e medido √(h₁/h₀) (motor)';
-const FIRST_REBOUND = 'Primer rebote h₁ (motor)';
-/** The ITF drop the lab opens on (h₀ = 2,54 m). */
+/** The readouts' plain text (their formulas, $\sqrt{h_1/h_0}$ and $h_1$, are KaTeX). */
+const MEASURED_E = 'e medido';
+const FIRST_REBOUND = 'Primer rebote';
+/** The ITF drop the lab opens on (h_0 = 2,54 m). */
 const ITF_DROP_M = 2.54;
-/** The engine (Δt = 1/240 s) measures e = √(h₁/h₀) within a couple of hundredths of the ideal. */
+/** The engine (Δt = 1/240 s) measures e = √(h_1/h_0) within a couple of hundredths of the ideal. */
 const MEASURED_TOLERANCE = 0.02;
 const REBOUND_TOLERANCE_M = 0.03;
 
@@ -45,8 +46,8 @@ function parseSpanish(text: string): number {
 
 /** The value text of a LabShell readout row. */
 async function readoutText(page: Page, label: string): Promise<string> {
-  const row = page.locator(LAB).locator('div', { has: page.getByText(label, { exact: true }) });
-  return ((await row.last().locator('span').last().textContent()) ?? '').trim();
+  const row = page.locator(LAB).locator('[data-readout]', { hasText: label });
+  return ((await row.locator('span').last().textContent()) ?? '').trim();
 }
 
 const readoutValue = async (page: Page, label: string) =>
@@ -142,7 +143,7 @@ test.describe('laboratorio', () => {
     await openLab(page);
   });
 
-  test('mover e recalcula el rebote del motor: √(h₁/h₀) sigue a e y h₁ a e²h₀', async ({
+  test('mover e recalcula el rebote del motor: el e medido sigue a e y el primer rebote a e² por la altura de suelta', async ({
     page,
   }) => {
     const slider = page.getByRole('slider', { name: E_SLIDER, exact: true });

@@ -181,22 +181,22 @@ related: ['gravedad-artificial', 'asistencia-gravitatoria', 'control-haptico']
 classRefs:
   - module: 'Módulo 3'
     topic: 'Tema 03 · Torque y equilibrio · Concepto 02 · Momento de inercia'
-    note: 'I = Σ m r² respecto de un eje declarado: la I_s de la nave modelada como caja y la I_w del rotor.'
+    note: '$I = \sum m r^2$ respecto de un eje declarado: la $I_s$ de la nave modelada como caja y la $I_w$ del rotor.'
   - module: 'Módulo 3'
     topic: 'Tema 03 · Torque y equilibrio · Concepto 03 · Torque y brazo de palanca'
-    note: 'τ = r × F: el torque de un propulsor en la ecuación (8.4).'
+    note: '$\tau = r \times F$: el torque de un propulsor en la ecuación (8.4).'
   - module: 'Módulo 3'
     topic: 'Tema 03 · Torque y equilibrio · Concepto 04 · Dinámica rotacional de eje fijo'
-    note: 'Σ τ_ext,z = I α con I constante: la ecuación (8.2), para la rueda y para la nave.'
+    note: '$\sum \tau_{\text{ext},z} = I\alpha$ con $I$ constante: la ecuación (8.2), para la rueda y para la nave.'
   - module: 'Módulo 3'
     topic: 'Tema 04 · Momento angular · Concepto 02 · Momento angular de un cuerpo rígido'
-    note: 'L_z = I ω con I y ω respecto del mismo eje: cada término de la ecuación (8.1).'
+    note: '$L_z = I\omega$ con $I$ y $\omega$ respecto del mismo eje: cada término de la ecuación (8.1).'
   - module: 'Módulo 3'
     topic: 'Tema 04 · Momento angular · Concepto 03 · Torque y cambio de momento angular'
-    note: 'Σ τ_ext = dL/dt y ΔL = ∫ Σ τ_ext dt: la ecuación (8.3), la rueda que acumula el torque externo.'
+    note: '$\sum \tau_\text{ext} = dL/dt$ y $\Delta L = \int \sum \tau_\text{ext}\,dt$: la ecuación (8.3), la rueda que acumula el torque externo.'
   - module: 'Módulo 3'
     topic: 'Tema 04 · Momento angular · Concepto 04 · Conservación del momento angular'
-    note: 'Σ τ_ext,z = 0 ⇒ L_z constante, como en «Acercar dos masas al eje»: la ecuación (8.1).'
+    note: '$\sum \tau_{\text{ext},z} = 0 \Rightarrow L_z$ constante, como en «Acercar dos masas al eje»: la ecuación (8.1).'
 updated: 2026-10-30
 ---
 
@@ -290,7 +290,7 @@ El motor, entre rueda y nave, aplica <Equation inline latex="\tau" /> a la rueda
   symbols={[
     {
       symbol: '\\tau',
-      meaning: 'torque del motor sobre la rueda; sobre la nave actúa −τ',
+      meaning: 'torque del motor sobre la rueda; sobre la nave actúa $-\\tau$',
       unit: 'N·m',
     },
     {
@@ -377,9 +377,9 @@ Si parte vacía y <Equation inline latex="\tau_\text{ext}" /> es constante, se l
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Momento angular de la rueda desde vacía bajo el gradiente de gravedad máximo, constante, ecuación (8.3): una rampa que toca L_máx en unos 2,5 días, el peor caso. Desde ahí la rueda ya no absorbe en ese sentido y la nave deriva; la línea discontinua marca el 19 % que usa el giro de 90° en 60 s."
+  caption="Momento angular de la rueda desde vacía bajo el gradiente de gravedad máximo, constante, ecuación (8.3): una rampa que toca $L_\text{máx}$ en unos 2,5 días, el peor caso. Desde ahí la rueda ya no absorbe en ese sentido y la nave deriva; la línea discontinua marca el 19 % que usa el giro de 90° en 60 s."
   source={{
-    text: 'Recta calculada por el autor con la ecuación (8.3); torque de gradiente de gravedad (cálculo propio con la fórmula de NASA SP-8024, fuente 8) y L_máx de la RW400, tabla 8.1',
+    text: 'Recta calculada por el autor con la ecuación (8.3); torque de gradiente de gravedad (cálculo propio con la fórmula de NASA SP-8024, fuente 8) y $L_\\text{máx}$ de la RW400, tabla 8.1',
   }}
 >
   <WheelFigure variant="saturacion" client:visible />
@@ -423,7 +423,7 @@ Como <Equation inline latex="\vec m \times \vec B \perp \vec B" />, la parte de 
 
 <Figure
   type="diagrama"
-  caption="El satélite y su rueda con las ecuaciones (8.1) a (8.4). Panel A: el intercambio, L_w y L_s iguales y opuestos, y el motor con τ y −τ. Panel B: la rueda llena hasta L_máx por el gradiente de gravedad a 500 km, la nave que deriva y las dos descargas, con el campo terrestre y con un propulsor."
+  caption="El satélite y su rueda con las ecuaciones (8.1) a (8.4). Panel A: el intercambio, $L_w$ y $L_s$ iguales y opuestos, y el motor con $\tau$ y $-\tau$. Panel B: la rueda llena hasta $L_\text{máx}$ por el gradiente de gravedad a 500 km, la nave que deriva y las dos descargas, con el campo terrestre y con un propulsor."
   source={{
     text: 'Diagrama del autor con las ecuaciones (8.1) a (8.4); CubeSat 6U con la RW400 (tabla 8.1), gradiente de gravedad (cálculo propio con la fórmula de NASA SP-8024, fuente 8) y magnetopar de GomSpace (fuente 9)',
   }}
@@ -434,12 +434,12 @@ Como <Equation inline latex="\vec m \times \vec B \perp \vec B" />, la parte de 
 <Figure
   type="simulacion"
   showBadge={false}
-  caption="Laboratorio de la rueda, ecuaciones (8.1) a (8.4). En «Maniobra», la nave gira el ángulo del dial en T ≥ T_mín. En «Perturbación y descarga», el gradiente de gravedad llena la rueda al 80 % de L_máx (mi umbral) y un magnetopar o propulsor la vacía."
+  caption="Laboratorio de la rueda, ecuaciones (8.1) a (8.4). En «Maniobra», la nave gira el ángulo del dial en $T \ge T_\text{mín}$. En «Perturbación y descarga», el gradiente de gravedad llena la rueda al 80 % de $L_\text{máx}$ (mi umbral) y un magnetopar o propulsor la vacía."
   source={{ text: 'Simulación del autor sobre src/lib/physics/rotation.ts' }}
 >
   <WheelLab
     client:visible
-    footnote={`La maniobra corre en tiempo real. La perturbación va a cámara rápida: a 1×, ${DAY_LAPSE / SECONDS_PER_HOUR} h de órbita por segundo, un día en ${SECONDS_PER_DAY / DAY_LAPSE} s; cada descarga, que dura minutos con el magnetopar y segundos con el propulsor, se estira a ${MIN_DUMP_PLAYBACK} s de pantalla. Fuera del modelo: resuelve un solo eje; la rueda parte de 0 rpm y no tiene fricción, aunque las ruedas reales evitan pasar por 0 rpm; el gradiente de gravedad es constante en su máximo sobre el eje más desfavorable, una cota; el magnetopar tiene m perpendicular a B, su mejor caso; el torque del propulsor es un supuesto mío, el τ_máx de la rueda.`}
+    footnote={`La maniobra corre en tiempo real. La perturbación va a cámara rápida: a 1×, ${DAY_LAPSE / SECONDS_PER_HOUR} h de órbita por segundo, un día en ${SECONDS_PER_DAY / DAY_LAPSE} s; cada descarga, que dura minutos con el magnetopar y segundos con el propulsor, se estira a ${MIN_DUMP_PLAYBACK} s de pantalla. Fuera del modelo: resuelve un solo eje; la rueda parte de 0 rpm y no tiene fricción, aunque las ruedas reales evitan pasar por 0 rpm; el gradiente de gravedad es constante en su máximo sobre el eje más desfavorable, una cota; el magnetopar tiene m perpendicular a B, su mejor caso; el torque del propulsor es un supuesto mío, el $\\tau_\\text{máx}$ de la rueda.`}
   />
 </Figure>
 

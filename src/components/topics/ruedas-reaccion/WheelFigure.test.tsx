@@ -1,6 +1,9 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
+import { svgText } from '../../../test-svg-text';
 import WheelFigure from './WheelFigure';
 
 /** Length and unit direction of a vector drawn as <g data-vector> around one <line>. */
@@ -30,17 +33,18 @@ function stubWidth(width: number): void {
   );
 }
 
-/** Width of one character of the 12 px mono note font (as the plotter estimates it). */
-const NOTE_CHAR = 7.3;
+/** Width of one character of the 12 px mono note font. */
+const NOTE_CHAR = 7.2;
 /** SvgPlot's compact margins below 480 px. */
 const COMPACT = { right: 14, bottom: 50 } as const;
 
-/** Horizontal extent of a note's text from its anchor and its longest line. */
-function noteExtent(text: SVGTextElement) {
-  const x = Number(text.getAttribute('x'));
-  const lines = [...text.querySelectorAll('tspan')].map((tspan) => tspan.textContent ?? '');
+/** Horizontal extent of a note (a group of one MathText per line) from its anchor and longest line. */
+function noteExtent(note: Element) {
+  const texts = [...note.querySelectorAll('text')];
+  const x = Number(texts[0].getAttribute('x'));
+  const lines = texts.map((text) => text.getAttribute('data-notation') ?? text.textContent ?? '');
   const width = Math.max(...lines.map((line) => line.trim().length)) * NOTE_CHAR;
-  const anchor = text.getAttribute('text-anchor');
+  const anchor = texts[0].getAttribute('text-anchor');
   const left = anchor === 'end' ? x - width : anchor === 'middle' ? x - width / 2 : x;
   return { left, right: left + width, lines };
 }
@@ -68,8 +72,34 @@ describe('WheelFigure', () => {
     expect(figure.querySelector('[data-spin="nave"]')?.getAttribute('data-sense')).toBe('horario');
     expect(figure).toHaveTextContent('= 0');
     // The ratio prints as every number on the site: true minus and a U+202F thousands space.
-    expect(figure.textContent).toContain('≈ −1\u202f940');
+    expect(
+      within(figure).getByText(
+        svgText('ω_w ≈ −1\u202f940 ω_s'.replace('_w', 'w').replace('_s', 's')),
+      ),
+    ).toBeInTheDocument();
     expect(figure.getAttribute('aria-label')).toContain('unas 1\u202f940 veces');
+  });
+
+  test.each(['intercambio', 'maniobra', 'saturacion'] as const)(
+    '%s: every character outside KaTeX is one IBM Plex draws',
+    (variant) => {
+      const { container } = render(<WheelFigure variant={variant} />);
+
+      expect(plexViolations(container)).toEqual([]);
+      const stray = [...container.querySelectorAll('*')]
+        .flatMap((element) => [...element.childNodes])
+        .filter((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.includes('$'))
+        .filter((node) => !node.parentElement?.closest('.katex'));
+      expect(stray.map((node) => node.textContent)).toEqual([]);
+    },
+  );
+
+  test('exchange: the figure is named in words, not in notation', () => {
+    render(<WheelFigure variant="intercambio" />);
+    const name = screen.getByRole('img', { name: /momento angular/i }).getAttribute('aria-label');
+
+    expect(name).toContain('L sub w hacia arriba y L sub s hacia abajo');
+    expect(name).not.toMatch(/[_≈]/);
   });
 
   test('exchange: the wheel wears the wheel token and the body the body token', () => {
@@ -107,11 +137,16 @@ describe('WheelFigure', () => {
     expect(container.querySelector('[data-series="momento-rueda"]')?.getAttribute('stroke')).toBe(
       'var(--chart-4)',
     );
-    expect(legend).toHaveTextContent('L_máx = 0,050 N·m·s');
-    expect(legend).toHaveTextContent('19 %');
-    expect(container.querySelector('[data-note="saturacion"]')).toHaveTextContent(
-      '≈ 2,5 días en el peor caso',
+    expect(mathSourceText(legend)).toContain(String.raw`$L_\text{máx}$ = 0,050 N·m·s`);
+    expect(mathSourceText(legend)).toContain(
+      String.raw`$L_w$ con $\tau_\text{ext}$ = $2{,}28 \cdot 10^{-7}$ N·m constante`,
     );
+    expect(legend).toHaveTextContent('19 %');
+    const note = container.querySelector('[data-note="saturacion"]') as Element;
+    expect(
+      [...note.querySelectorAll('text')].map((text) => text.getAttribute('data-notation')),
+    ).toEqual(['≈ 2,5 días', null]);
+    expect(note).toHaveTextContent('≈ 2,5 díasen el peor caso');
   });
 
   test('on a phone the plots get taller than wide, so the saturation note keeps its headroom', () => {
@@ -135,11 +170,12 @@ describe('WheelFigure', () => {
     const { container } = render(<WheelFigure variant="maniobra" />);
 
     for (const id of ['theta-pico', 'omega-pico']) {
-      const text = container.querySelector(`[data-note="${id}"] text`) as SVGTextElement;
-      const svg = text.closest('svg') as SVGSVGElement;
+      const note = container.querySelector(`[data-note="${id}"] [data-lines]`) as SVGGElement;
+      const svg = note.closest('svg') as SVGSVGElement;
       const [, , width, height] = viewBoxOf(svg);
-      const { left, right, lines } = noteExtent(text);
-      const lastBaseline = Number(text.getAttribute('y')) + (lines.length - 1) * 15;
+      const { left, right, lines } = noteExtent(note);
+      const firstBaseline = Number(note.querySelector('text')?.getAttribute('y'));
+      const lastBaseline = firstBaseline + (lines.length - 1) * 15;
 
       expect(lines, id).toHaveLength(2);
       expect(left, id).toBeGreaterThanOrEqual(0);
@@ -152,12 +188,12 @@ describe('WheelFigure', () => {
     stubWidth(320);
     const { container } = render(<WheelFigure variant="saturacion" />);
     const band = container.querySelector('[data-band="saturada"]') as SVGRectElement;
-    const text = container.querySelector('[data-note="deriva"] text') as SVGTextElement;
+    const note = container.querySelector('[data-note="deriva"] [data-lines]') as SVGGElement;
     const bandLeft = Number(band.getAttribute('x'));
     const bandRight = bandLeft + Number(band.getAttribute('width'));
-    const { left, right } = noteExtent(text);
+    const { left, right } = noteExtent(note);
 
-    expect(text).toHaveTextContent('la nave deriva');
+    expect(note).toHaveTextContent(/la nave\s*deriva/);
     expect(left).toBeGreaterThanOrEqual(bandLeft);
     expect(right).toBeLessThanOrEqual(bandRight);
   });

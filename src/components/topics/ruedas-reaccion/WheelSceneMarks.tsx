@@ -1,6 +1,7 @@
 /** Marks drawn over the wheel scene: rate arcs and, in the disturbance mode, τ_ext and the dump. */
 import type { JSX } from 'react';
-import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
+import { TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
+import MathText from '../../lab/MathText';
 import { Arrow, Label } from '../../lab/OverlayMarks';
 import type { DumpActuator } from './wheelLabModel';
 import { arcPath, BODY_FOOTPRINT, polar, type Point } from './wheelScene';
@@ -181,15 +182,13 @@ export function DisturbanceMarks({
         label="τ_ext"
       />
       {dumping ? (
-        <text
+        <MathText
+          source={formula}
           x={FORMULA_INSET}
           y={2 * c.y - FORMULA_INSET}
-          fontFamily={TICK_FONT_FAMILY}
           fontSize={FORMULA_SIZE}
           fill={TEXT_COLOR}
-        >
-          {formula}
-        </text>
+        />
       ) : null}
       <DumpActuatorMark geometry={geometry} actuator={actuator} dumping={dumping} />
     </g>

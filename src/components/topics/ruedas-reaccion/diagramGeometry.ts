@@ -1,7 +1,7 @@
 /**
  * Geometry of the prescribed diagram (WheelDiagram.astro), in viewBox units with y down: straight
- * vectors, spin arcs on tilted circles (ellipses), Earth's dipole field lines and the runs of an
- * equation with italic symbols and subscripts.
+ * vectors, spin arcs on tilted circles (ellipses) and Earth's dipole field lines. The texts are
+ * MathText (diagramText.ts).
  */
 
 export interface Point {
@@ -99,41 +99,4 @@ export function dipoleFieldLine(centre: Point, L: number, R: number): string {
     return { x: centre.x + r * Math.sin(theta), y: centre.y - r * Math.cos(theta) };
   });
   return `M${pointList(points).replaceAll(' ', ' L')}`;
-}
-
-/** A piece of an equation: plain text, or an italic symbol with an optional subscript. */
-export type MathPart = string | { symbol: string; sub?: string; upright?: boolean };
-
-export interface MathRun {
-  text: string;
-  className: string;
-  dy?: number;
-}
-
-/** How far a subscript drops below the baseline (viewBox units). */
-export const SUB_DY = 5;
-
-/**
- * The <tspan> runs of an equation: symbols italic (unless `upright`), subscripts lowered by
- * SUB_DY and the next run raised back. A one-letter subscript naming a body (s, w) stays italic;
- * a descriptive word (ext, max) is upright, as textbooks set it. Classes: `wd-math` (italic),
- * `wd-sub` (subscript).
- */
-const subClass = (sub: string) => (sub.length > 1 ? 'wd-sub' : 'wd-math wd-sub');
-
-export function mathRuns(parts: readonly MathPart[]): MathRun[] {
-  let pending = 0;
-  return parts.flatMap((part) => {
-    const dy = pending || undefined;
-    if (typeof part === 'string') {
-      pending = 0;
-      return [{ text: part, className: '', dy }];
-    }
-    const symbolClass = part.upright ? '' : 'wd-math';
-    pending = part.sub ? -SUB_DY : 0;
-    const symbol: MathRun = { text: part.symbol, className: symbolClass, dy };
-    return part.sub
-      ? [symbol, { text: part.sub, className: subClass(part.sub), dy: SUB_DY }]
-      : [symbol];
-  });
 }

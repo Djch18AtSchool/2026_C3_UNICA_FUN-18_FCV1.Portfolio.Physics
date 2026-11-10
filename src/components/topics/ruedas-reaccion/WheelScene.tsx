@@ -1,5 +1,6 @@
 import type { JSX, KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString } from '../../../lib/mathNotation';
 import {
   AXIS_COLOR,
   SURFACE_COLOR,
@@ -288,7 +289,7 @@ function TargetHandle({
       aria-valuemin={TARGET_LIMITS[0]}
       aria-valuemax={TARGET_LIMITS[1]}
       aria-valuenow={targetDeg}
-      aria-valuetext={targetText(targetDeg)}
+      aria-valuetext={mathTextToString(targetText(targetDeg))}
       className="group cursor-grab outline-none active:cursor-grabbing"
       onKeyDown={onKeyDown}
       {...drag}
