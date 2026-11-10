@@ -254,6 +254,19 @@ describe('WheelLab', () => {
     expect(scene().getAttribute('viewBox')).toBe('0 0 400 400');
   });
 
+  test('the plot is at most 440 px wide with the phone aspect, so it hydrates at the height the server drew', () => {
+    renderLab();
+    const plot = screen.getByTestId('wheel-plot');
+    const wrapper = plot.parentElement as HTMLElement;
+    const [, , width, height] = (plot.querySelector('svg[role="img"]') as SVGElement)
+      .getAttribute('viewBox')!
+      .split(' ')
+      .map(Number);
+
+    expect(wrapper.style.maxWidth).toBe('440px');
+    expect(width / height).toBeCloseTo(1.25, 2);
+  });
+
   test('the target handle takes the keyboard: arrows 1°, Shift 10°, and the peak ω_w follows', () => {
     renderLab();
     const before = readout(OMEGA_PEAK);

@@ -21,6 +21,14 @@ const Y_HEADROOM = 1.1;
 const Y_GRAIN = 10;
 const CURSOR_PRECISION = 1;
 const GAP: SeriesPoint = { x: Number.NaN, y: Number.NaN };
+/**
+ * The plot is never wider than this (the dial's 400 px and the frame's padding) and always has the
+ * phone's 1,25 aspect, so the server draws it at the height it has once hydrated in the lab's
+ * stage: SvgPlot's server width (720) would otherwise draw it at 1,6, a shorter plot that grows
+ * when it measures its real width (a layout shift).
+ */
+const PLOT_MAX_WIDTH = 440;
+const PLOT_ASPECT_RATIO = 1.25;
 
 export interface WheelPlotProps {
   settings: WheelSettings;
@@ -120,23 +128,26 @@ export default function WheelPlot({
       : 'L_w respecto de L_máx durante tres días: rampas del gradiente de gravedad hasta el umbral del 80 % y caídas de la descarga, con L_máx en rojo.',
   );
   return (
-    <SvgPlot
-      title="Momento de la rueda frente al tiempo"
-      xLabel="t"
-      xUnit={plot.xUnit}
-      yLabel="L_w / L_máx"
-      yUnit="%"
-      series={plot.series}
-      xDomain={plot.xDomain}
-      yDomain={plot.yDomain}
-      cursor={{
-        x: plot.toX(t),
-        follow: { frame, toX: (playbackTime) => plot.toX(orbitTimeAt(playbackTime)) },
-        onChange: (x) => onSeek(plot.toT(x)),
-        label: cursorText,
-      }}
-      ariaLabel={ariaLabel}
-      testId="wheel-plot"
-    />
+    <div className="mx-auto w-full" style={{ maxWidth: PLOT_MAX_WIDTH }}>
+      <SvgPlot
+        aspectRatio={PLOT_ASPECT_RATIO}
+        title="Momento de la rueda frente al tiempo"
+        xLabel="t"
+        xUnit={plot.xUnit}
+        yLabel="L_w / L_máx"
+        yUnit="%"
+        series={plot.series}
+        xDomain={plot.xDomain}
+        yDomain={plot.yDomain}
+        cursor={{
+          x: plot.toX(t),
+          follow: { frame, toX: (playbackTime) => plot.toX(orbitTimeAt(playbackTime)) },
+          onChange: (x) => onSeek(plot.toT(x)),
+          label: cursorText,
+        }}
+        ariaLabel={ariaLabel}
+        testId="wheel-plot"
+      />
+    </div>
   );
 }
