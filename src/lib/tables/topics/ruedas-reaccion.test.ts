@@ -105,11 +105,16 @@ describe('ruedas-reaccion-ruedas', () => {
     expect(printed(spec, 1)).toMatchObject({ Lmax: '0,050', mass: '375\u202Fg' });
   });
 
-  test('prints the inertia in g·m² with the sheet’s three figures, no power of ten in a cell', () => {
-    expect(spec.columns.find((column) => column.key === 'inertia')?.unit).toBe('g·m²');
-    expect(printed(spec, 0)).toMatchObject({ inertia: '6,37', origin: 'impresa en la hoja' });
-    expect(printed(spec, 1)).toMatchObject({ inertia: '0,0955', origin: 'cálculo propio' });
-    expect(printed(spec, 0).origin).not.toMatch(/cálculo propio/);
+  test('prints the inertia in kg·m² with its power of ten, typeset in the cell', () => {
+    expect(spec.columns.find((column) => column.key === 'inertia')?.unit).toBe('kg·m²');
+    expect(printed(spec, 0)).toMatchObject({
+      inertia: String.raw`$6{,}37 \cdot 10^{-3}$`,
+      origin: 'impresa en la hoja',
+    });
+    expect(printed(spec, 1)).toMatchObject({
+      inertia: String.raw`$9{,}55 \cdot 10^{-5}$`,
+      origin: String.raw`cálculo propio: $L_\text{máx}/\omega_\text{máx}$`,
+    });
   });
 
   test('labels the limits with real subscripts in KaTeX: L_máx, τ_máx, ω_máx', () => {
@@ -131,11 +136,11 @@ describe('ruedas-reaccion-ruedas', () => {
 describe('ruedas-reaccion-maniobra', () => {
   const spec = table('ruedas-reaccion-maniobra');
 
-  test('the caption holds the formulas and inertias, the source line none', () => {
-    expect(spec.caption).toContain(String.raw`$\tau = 4 I_s \theta/T^2$`);
-    expect(spec.caption).toContain('$I_s$ = 0,1852 kg·m²');
-    expect(spec.caption).toContain(String.raw`$I_w$ = $9{,}55 \cdot 10^{-5}$ kg·m²`);
-    expect(spec.source.text).not.toContain('$');
+  test('the source line holds the formulas and inertias, typeset, as the datasheets give them', () => {
+    expect(spec.source.text).toContain(String.raw`$\tau = 4 I_s \theta/T^2$`);
+    expect(spec.source.text).toContain('$I_s$ = 0,1852 kg·m²');
+    expect(spec.source.text).toContain(String.raw`$I_w = 9{,}55 \cdot 10^{-5}$ kg·m²`);
+    expect(spec.caption).not.toContain('$');
   });
 
   test('has one row every 10 s from 0 to 60 s', () => {

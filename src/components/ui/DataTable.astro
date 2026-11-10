@@ -7,11 +7,13 @@
  *
  * The frame scrolls inside itself on phones; scrollRegion.ts (BaseLayout) makes it a labelled,
  * focusable region only while it overflows, and content.css shades the edge that hides columns. Numbers use the column's own precision: tables do not
- * follow the global decimals setting.
+ * follow the global decimals setting. Headers, cells, legend and source accept `$…$` (KaTeX);
+ * "Copiar Markdown" keeps each one as Markdown math, so it stays readable.
  */
 import { tableById } from '../../lib/tables';
 import { inlineMathToHtml } from '../../lib/texHtml';
 import { columnHeader, formatCell } from '../../lib/tables/markdown';
+import type { TableCell, TableColumn } from '../../lib/tables/types';
 
 interface Props {
   id: string;
@@ -21,6 +23,9 @@ const { columns, rows, source } = spec;
 const [firstColumn] = columns;
 const captionId = `${spec.id}-caption`;
 const cellClass = (align: 'text' | 'num') => (align === 'num' ? 'is-num' : undefined);
+/** A cell as HTML: plain text escaped, `$…$` typeset like the headers and the legend. */
+const cellHtml = (column: TableColumn, value: TableCell) =>
+  inlineMathToHtml(formatCell(column, value));
 const minWidth = (ch: number | undefined) => (ch === undefined ? undefined : `min-width: ${ch}ch`);
 ---
 
@@ -45,9 +50,9 @@ const minWidth = (ch: number | undefined) => (ch === undefined ? undefined : `mi
           <tr>
             {columns.map((column) =>
               column === firstColumn && column.align === 'text' ? (
-                <th scope="row">{formatCell(column, row[column.key])}</th>
+                <th scope="row" set:html={cellHtml(column, row[column.key])} />
               ) : (
-                <td class={cellClass(column.align)}>{formatCell(column, row[column.key])}</td>
+                <td class={cellClass(column.align)} set:html={cellHtml(column, row[column.key])} />
               ),
             )}
           </tr>
@@ -58,7 +63,12 @@ const minWidth = (ch: number | undefined) => (ch === undefined ? undefined : `mi
   <figcaption>
     <span id={captionId} class="figure-caption" set:html={inlineMathToHtml(spec.caption)} />
     <p class="figure-source">
-      Fuente: {source.url ? <a href={source.url}>{source.text}</a> : source.text}
+      Fuente:{' '}
+      {source.url ? (
+        <a href={source.url} set:html={inlineMathToHtml(source.text)} />
+      ) : (
+        <Fragment set:html={inlineMathToHtml(source.text)} />
+      )}
     </p>
   </figcaption>
 </figure>

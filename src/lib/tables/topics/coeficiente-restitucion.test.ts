@@ -75,7 +75,7 @@ describe('coeficiente-restitucion tables', () => {
         for (const source of ball.sources) expect(table.source.text).toContain(source.authors);
       }
       expect(table.source.text).toContain(
-        'Los rangos de e de las normas y el 0,49 del béisbol son cálculo propio, con las fórmulas de la leyenda de la tabla; el 0,86 de la superbola y el 0 de la plastilina son de Cross.',
+        String.raw`Los rangos de e de las normas y el 0,49 del béisbol son cálculo propio, con $e = \sqrt{h'/h}$ y $e = v_2/v_1$; el 0,86 de la superbola y el 0 de la plastilina son de Cross.`,
       );
       expect(table.source.text).not.toContain('Los valores de e son cálculo propio');
     });
@@ -123,14 +123,16 @@ describe('coeficiente-restitucion tables', () => {
     });
 
     test('each engine mixes the two e with its own rule', () => {
+      const MAX = String.raw`$\max(e_1, e_2)$`;
+      const AVERAGE = String.raw`$(e_1 + e_2)/2$`;
       expect(column(table, 'mezcla')).toEqual([
-        'El mayor de los dos',
-        'El promedio de los dos',
-        'El promedio de los dos',
-        'El mayor de los dos',
-        'El producto de los dos',
-        'El mayor de los dos',
-        'La suma, con tope en 1',
+        MAX,
+        AVERAGE,
+        AVERAGE,
+        MAX,
+        String.raw`$e_1 \cdot e_2$`,
+        MAX,
+        String.raw`$\min(e_1 + e_2, 1)$`,
       ]);
     });
 

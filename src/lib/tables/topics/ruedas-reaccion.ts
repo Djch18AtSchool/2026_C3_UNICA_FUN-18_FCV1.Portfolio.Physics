@@ -109,17 +109,6 @@ const GRAMS_PER_KG = 1000;
 const MILLI = 1000;
 
 /**
- * The rotor inertia in g·m² with `SIGNIFICANT_DIGITS` figures ("6,37", "0,0955"): a table cell
- * cannot hold a power of ten (cells are not typeset with KaTeX), and the grams keep the
- * datasheet's three figures exactly.
- */
-function inertiaCell(inertiaKgM2: number): string {
-  const grams = inertiaKgM2 * GRAMS_PER_KG;
-  const decimals = Math.max(0, SIGNIFICANT_DIGITS - 1 - Math.floor(Math.log10(grams)));
-  return formatNumber(Number(grams.toPrecision(SIGNIFICANT_DIGITS)), { precision: decimals });
-}
-
-/**
  * How each datasheet prints L_max and the mass (research §4.1): VRW-D-4 "4,0 N·m·s" and
  * "2,5 kg"; RW400 "±0,050" and "375 g". The table repeats that precision and invents no digits.
  */
@@ -141,8 +130,10 @@ function wheelRow(wheel: ReactionWheel) {
     tauMax: wheel.tauMax * MILLI,
     rpmMax: wheel.rpmMax,
     mass: formatNumber(mass, { precision: printed.massDecimals, unit: printed.massIn }),
-    inertia: inertiaCell(wheel.inertiaPrinted ?? wheel.inertiaDerived),
-    origin: isPrinted ? 'impresa en la hoja' : 'cálculo propio',
+    inertia: `$${formatScientific(wheel.inertiaPrinted ?? wheel.inertiaDerived)}$`,
+    origin: isPrinted
+      ? 'impresa en la hoja'
+      : String.raw`cálculo propio: $L_\text{máx}/\omega_\text{máx}$`,
   };
 }
 
@@ -165,7 +156,7 @@ const ruedas: DataTableSpec = {
     'Dos ruedas de reacción reales según sus hojas de datos: una grande y la de CubeSat del ejemplo. Solo la VRW-D-4 imprime la inercia del rotor; la de la RW400 la calculo como $L_\\text{máx}/\\omega_\\text{máx}$.',
   columns: [
     { key: 'rueda', label: 'Rueda', align: 'text' },
-    // L_máx, mass and I_w are written per datasheet (PRINTED, inertiaCell): `precision`
+    // L_máx, mass and I_w are written per datasheet (PRINTED, formatScientific): `precision`
     // names the finest of them; the cells are strings, right-aligned as every number.
     { key: 'Lmax', label: String.raw`$L_\text{máx}$`, unit: 'N·m·s', align: 'num', precision: 3 },
     {
@@ -183,7 +174,7 @@ const ruedas: DataTableSpec = {
       precision: 0,
     },
     { key: 'mass', label: 'Masa', align: 'num', precision: 1 },
-    { key: 'inertia', label: '$I_w$', unit: 'g·m²', align: 'num', precision: 2 },
+    { key: 'inertia', label: '$I_w$', unit: 'kg·m²', align: 'num', precision: 2 },
     { key: 'origin', label: 'Origen de $I_w$', align: 'text' },
   ],
   rows: [wheelRow(VRW_D_4), wheelRow(RW400)],
@@ -192,17 +183,16 @@ const ruedas: DataTableSpec = {
   },
 };
 
-/** The turn's formulas and inertias, in the caption (a source line is not typeset with KaTeX). */
-const SLEW_FORMULAS = [
-  String.raw`Torque $\tau = 4 I_s \theta/T^2$,`,
-  `con $I_s$ = ${formatNumber(WORKED_SLEW.Is, { precision: 4 })} kg·m² e $I_w$ = $${formatScientific(WORKED_SLEW.Iw)}$ kg·m².`,
+/** The turn's formulas and inertias, typeset (the source line accepts `$…$`, like the legend). */
+const slewSource = [
+  String.raw`Cálculo propio con la maniobra de reposo a reposo $\tau = 4 I_s \theta/T^2$, $I_s$ = ${formatNumber(WORKED_SLEW.Is, { precision: 4 })} kg·m²`,
+  `(CubeSat 6U de 12 kg modelado como caja) e $I_w = ${formatScientific(WORKED_SLEW.Iw)}$ kg·m² (RW400), con la rueda partiendo de 0 rpm`,
 ].join(' ');
-const slewSource =
-  'Cálculo propio con la maniobra de reposo a reposo, con las inercias de la leyenda (CubeSat 6U de 12 kg modelado como caja y RW400), con la rueda partiendo de 0 rpm';
 
 const maniobra: DataTableSpec = {
   id: 'ruedas-reaccion-maniobra',
-  caption: `Giro de 90° en 60 s, de reposo a reposo, del CubeSat 6U con la RW400. La nave acelera durante 30 s y frena otros 30; la rueda gira al revés y vuelve a 0 rpm al final. ${SLEW_FORMULAS}`,
+  caption:
+    'Giro de 90° en 60 s, de reposo a reposo, del CubeSat 6U con la RW400. La nave acelera durante 30 s y frena otros 30; la rueda gira al revés y vuelve a 0 rpm al final.',
   columns: [
     { key: 't', label: 't', unit: 's', align: 'num', precision: 0 },
     {

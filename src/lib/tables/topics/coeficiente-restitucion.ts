@@ -60,10 +60,10 @@ function sourceList(sources: readonly Source[]): string {
 }
 
 /**
- * Which e are ours: the drop-test ranges (√(h′/h)) and the baseball's v₂/v₁ from Cross's Table I;
+ * Which e are ours: the drop-test ranges ($\sqrt{h'/h}$) and the baseball's $v_2/v_1$ from Cross's Table I;
  * the superball's 0,86 and the plasticine's 0 are printed by Cross himself (research §3.4, §4).
  */
-const OWN_CALCULATION = `Los rangos de e de las normas y el ${restitutionCell(ballStandardById('beisbol'))} del béisbol son cálculo propio, con las fórmulas de la leyenda de la tabla; el ${restitutionCell(ballStandardById('superbola'))} de la superbola y el ${restitutionCell(ballStandardById('plastilina'))} de la plastilina son de Cross.`;
+const OWN_CALCULATION = `Los rangos de e de las normas y el ${restitutionCell(ballStandardById('beisbol'))} del béisbol son cálculo propio, con $e = \\sqrt{h'/h}$ y $e = v_2/v_1$; el ${restitutionCell(ballStandardById('superbola'))} de la superbola y el ${restitutionCell(ballStandardById('plastilina'))} de la plastilina son de Cross.`;
 
 const PELOTAS: DataTableSpec = {
   id: 'coeficiente-restitucion-pelotas',
@@ -87,11 +87,11 @@ const NOT_DOCUMENTED = 'No documentado';
 
 /** The rule as the formula it applies to the two materials' e. */
 const COMBINE_FORMULA: Record<EngineRestitutionRow['combine'], string> = {
-  max: 'El mayor de los dos',
-  average: 'El promedio de los dos',
-  min: 'El menor de los dos',
-  multiply: 'El producto de los dos',
-  sumClamped: 'La suma, con tope en 1',
+  max: String.raw`$\max(e_1, e_2)$`,
+  average: String.raw`$(e_1 + e_2)/2$`,
+  min: String.raw`$\min(e_1, e_2)$`,
+  multiply: String.raw`$e_1 \cdot e_2$`,
+  sumClamped: String.raw`$\min(e_1 + e_2, 1)$`,
   unknown: 'No documentada',
 };
 
