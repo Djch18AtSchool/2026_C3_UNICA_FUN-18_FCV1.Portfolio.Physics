@@ -75,6 +75,18 @@ describe('LabPresets', () => {
     expect(placeholder).toBeDisabled();
   });
 
+  test('an activeId that names no preset reads as «Personalizado», without a React warning', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    render(<LabPresets id="p" presets={MANY} activeId="desconocido" onSelect={vi.fn()} />);
+
+    const select = screen.getByRole('combobox', { name: 'Valores de referencia' });
+    expect(select).toHaveValue('');
+    expect(within(select).getByRole('option', { name: 'Personalizado' })).toBeDisabled();
+    expect(screen.queryByTestId('preset-note')).toBeNull();
+    expect(error).not.toHaveBeenCalled();
+    error.mockRestore();
+  });
+
   test('an option takes the preset’s plain optionLabel, since an <option> cannot hold KaTeX', () => {
     const withMath = [
       ...MANY.slice(1),

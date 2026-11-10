@@ -81,16 +81,18 @@ function PresetChips<T>({ presets, activeId, onSelect, label }: Omit<LabPresetsP
   );
 }
 
+/** The select's value is the active preset's id; any other activeId (or none) is «Personalizado». */
 function PresetSelect<T>({ id, presets, activeId, onSelect, label }: LabPresetsProps<T>) {
+  const value = presets.find((preset) => preset.id === activeId)?.id ?? '';
   const options = [
-    ...(activeId === undefined ? [{ value: '', label: MODIFIED_LABEL, disabled: true }] : []),
+    ...(value === '' ? [{ value: '', label: MODIFIED_LABEL, disabled: true }] : []),
     ...presets.map((preset) => ({ value: preset.id, label: optionText(preset) })),
   ];
   return (
     <SelectField
       id={id}
       label={label ?? PRESETS_LABEL}
-      value={activeId ?? ''}
+      value={value}
       options={options}
       onChange={(value) => {
         const chosen = presets.find((preset) => preset.id === value);
