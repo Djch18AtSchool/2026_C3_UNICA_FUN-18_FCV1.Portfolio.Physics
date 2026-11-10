@@ -6,6 +6,7 @@ import {
   type RouteSample,
 } from '../../../lib/data/droneRoute';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
+import TexSeed, { formulasOf, readTexSeed } from '../../lab/TexSeed';
 import type { Point } from '../../lab/OverlayMarks';
 import ParamField from '../../lab/ParamField';
 import type { DragPoint } from '../../lab/useDrag';
@@ -17,6 +18,7 @@ import {
   droneLocalSettings,
   type DroneDisplay,
 } from './droneLabSettings';
+import { DRONE_LAB_FORMULAS } from './droneLabFormulas';
 import DroneProfiles from './DroneProfiles';
 import { isDeclaredRoute, moveStop, sampleAt, tryGenerate } from './routeEdit';
 import RouteMapLab from './RouteMapLab';
@@ -71,10 +73,20 @@ async function loadDeclaredSamples(): Promise<RouteSample[]> {
   return typed.samples;
 }
 
-/** Holds the space of the lab and the charts while the dataset chunk loads. */
-function DroneSkeleton({ status }: { status: 'loading' | 'error' }): JSX.Element {
+/**
+ * Holds the space of the lab and the charts while the dataset chunk loads, and carries the typeset
+ * formulas of the labels that mount after it (TexSeed), so none of them waits for KaTeX.
+ */
+function DroneSkeleton({
+  status,
+  footnote,
+}: {
+  status: 'loading' | 'error';
+  footnote?: string;
+}): JSX.Element {
   return (
     <div data-testid="drone-lab-loading" className="flex flex-col gap-4">
+      <TexSeed formulas={[...DRONE_LAB_FORMULAS, ...formulasOf(footnote ?? '')]} />
       <p role="status" className="m-0 text-sm text-fg-muted">
         {STATUS_TEXT[status]}
       </p>
@@ -254,7 +266,11 @@ export default function DroneLab({ footnote }: DroneLabProps): JSX.Element {
   useEffect(() => {
     let isMounted = true;
     loadDeclaredSamples().then(
-      (samples) => isMounted && setState({ status: 'ready', samples }),
+      (samples) => {
+        if (!isMounted) return;
+        readTexSeed();
+        setState({ status: 'ready', samples });
+      },
       () => isMounted && setState({ status: 'error' }),
     );
     return () => {
@@ -265,6 +281,6 @@ export default function DroneLab({ footnote }: DroneLabProps): JSX.Element {
   return state.status === 'ready' ? (
     <DroneLabView declared={state.samples} footnote={footnote} />
   ) : (
-    <DroneSkeleton status={state.status} />
+    <DroneSkeleton status={state.status} footnote={footnote} />
   );
 }

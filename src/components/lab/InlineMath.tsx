@@ -13,7 +13,7 @@
  */
 import { useEffect, useRef, useState, type JSX } from 'react';
 import { escapeHtml, groupInlineMath, NO_WRAP_CLASS } from '../../lib/inlineMath';
-import { loadedTexRenderer, loadTexRenderer, reportTexError } from './texRenderer';
+import { loadTexRenderer, reportTexError, typesetNow } from './texRenderer';
 
 export interface InlineMathProps {
   text: string;
@@ -29,7 +29,7 @@ function TexSpan({ tex }: { tex: string }): JSX.Element {
   /** The formula the span's current markup shows (the server's, after hydration). */
   const shown = useRef<string | undefined>(undefined);
   // The renderer caches per formula, so a lab's 10 Hz re-renders do not typeset again.
-  const html = loaded?.tex === tex ? loaded.html : loadedTexRenderer()?.(tex);
+  const html = loaded?.tex === tex ? loaded.html : typesetNow(tex);
 
   useEffect(() => {
     if (html !== undefined) {

@@ -3,7 +3,8 @@
  * await, removed from the browser build because import.meta.env.SSR is false there), so the
  * HTML carries typeset math. In the browser KaTeX is loaded only when a formula must be rendered
  * there (a label that changed or mounted after hydration): hydrated spans keep the server's HTML.
- * Either way each formula is typeset once: a lab re-rendering at 10 Hz reads the cache.
+ * Either way each formula is typeset once: a lab re-rendering at 10 Hz reads the cache. A lab
+ * whose labels mount after its data arrives has the server seed their formulas (TexSeed.tsx).
  */
 export type TexRender = (tex: string) => string;
 type TexModule = { texToHtml: TexRender };
@@ -35,6 +36,19 @@ let importer: () => Promise<TexModule> = importTexModule;
 /** The renderer when already loaded (always on the server), else undefined. */
 export function loadedTexRenderer(): TexRender | undefined {
   return renderer;
+}
+
+/** Formulas the server typeset for a lab that mounts its labels late (TexSeed.tsx). */
+const seeded = new Map<string, string>();
+
+/** Adds server-typeset formulas, so those labels need no KaTeX in the browser. */
+export function seedTexHtml(entries: Readonly<Record<string, string>>): void {
+  for (const [tex, html] of Object.entries(entries)) seeded.set(tex, html);
+}
+
+/** The formula's HTML when it is at hand (seeded, or KaTeX already loaded), else undefined. */
+export function typesetNow(tex: string): string | undefined {
+  return seeded.get(tex) ?? renderer?.(tex);
 }
 
 /** Loads KaTeX once (a separate chunk in the browser) and returns the renderer. */
@@ -71,6 +85,7 @@ export function reportTexError(error: unknown): void {
 /** Tests only: forget the loaded renderer and its cache, as a fresh page would be. */
 export function resetTexRendererForTests(): void {
   renderer = undefined;
+  seeded.clear();
   loading = undefined;
 }
 

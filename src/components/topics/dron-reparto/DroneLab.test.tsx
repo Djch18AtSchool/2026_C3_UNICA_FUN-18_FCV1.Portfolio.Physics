@@ -6,7 +6,9 @@ import { resetSettingsForTests } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
 import { mathSourceText } from '../../../test-inline-math';
 import { plexViolations } from '../../../test-glyphs';
+import { formulasOf } from '../../lab/TexSeed';
 import DroneLab from './DroneLab';
+import { DRONE_LAB_FORMULAS } from './droneLabFormulas';
 
 const FOOTNOTE = 'Mi dron se detiene en cada vértice y no hay viento.';
 /**
@@ -250,5 +252,20 @@ describe('DroneLab', () => {
     await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
 
     expect(plexViolations(document.body)).toEqual([]);
+  });
+
+  test('every formula of the labels that mount after the data is one the skeleton seeds', async () => {
+    const user = userEvent.setup();
+    const footnote = 'El dron no frena en $t_a$ y la nota usa $v_x$.';
+    render(<DroneLab footnote={footnote} />);
+    await screen.findByTestId('drone-lab', {}, { timeout: LAB_READY_TIMEOUT_MS });
+    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+
+    const shown = formulasOf(mathSourceText(document.body));
+    const seeded = [...DRONE_LAB_FORMULAS, ...formulasOf(footnote)];
+
+    expect(shown).toContain('v_\\text{máx}');
+    expect(shown.filter((tex) => !seeded.includes(tex))).toEqual([]);
+    expect(DRONE_LAB_FORMULAS.filter((tex) => !shown.includes(tex))).toEqual([]);
   });
 });
