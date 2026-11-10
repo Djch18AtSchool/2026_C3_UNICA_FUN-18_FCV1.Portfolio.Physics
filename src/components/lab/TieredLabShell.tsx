@@ -23,9 +23,11 @@ import TransportBar from './TransportBar';
 /** Inside a figure the frame lends its border (content.css); alone the card draws its own. */
 const ROOT =
   '@container/lab flex flex-col gap-4 rounded-base border border-border bg-bg-elevated p-4 in-[.figure-frame]:border-0';
-/** Row 1: stage and panel cells; row 2: the canvas notes across both. */
-const COLUMNS =
-  'flex flex-col gap-6 lab-split:grid lab-split:grid-cols-[minmax(0,1fr)_20rem] lab-split:grid-rows-[auto_auto]';
+/**
+ * Row 1: stage and panel cells; the canvas notes, when there are any, open an implicit row 2 across
+ * both (an explicit empty row would still add its gap).
+ */
+const COLUMNS = 'flex flex-col gap-6 lab-split:grid lab-split:grid-cols-[minmax(0,1fr)_20rem]';
 /** Each cell spans row 1 only, so what sticks inside it never slides over the canvas notes. */
 const STAGE_CELL = 'min-w-0 lab-split:col-start-1 lab-split:row-start-1';
 const PANEL_CELL = 'min-w-0 lab-split:col-start-2 lab-split:row-start-1';
@@ -37,9 +39,19 @@ const STAGE = 'flex flex-col gap-4 lab-split:sticky lab-split:top-(--topic-bar-c
  */
 const PANEL =
   'flex flex-col gap-6 lab-split:sticky lab-split:top-[calc(var(--topic-bar-clearance)-0.25rem)] lab-split:-m-1 lab-split:max-h-[calc(100dvh-var(--topic-bar-clearance)-1rem)] lab-split:overflow-y-auto lab-split:p-1 lab-split:scroll-cue-y lab-split:[scrollbar-width:thin]';
-/** Over a stage taller than the window, the transport waits at the window's bottom. */
+/**
+ * Over a stage taller than the window, the transport waits at the window's bottom. Its height (the
+ * 44 px buttons of TransportBar, py-3 and the 1 px rule) is copied in --lab-transport-room
+ * (global.css): change both together (lab-shell.spec.ts fails when they drift).
+ */
 const TRANSPORT =
   'lab-split:sticky lab-split:bottom-0 lab-split:z-10 lab-split:border-t lab-split:border-border lab-split:bg-bg-elevated lab-split:py-3';
+/**
+ * On phones the canvas bleeds into the card's padding. In two columns, whatever in it takes focus
+ * keeps the pinned transport's room below it (WCAG 2.4.11): scroll-margin on its own descendants,
+ * so nothing is reserved where the transport cannot pin (one column, or below lg).
+ */
+const CANVAS = '-mx-3 sm:mx-0 lab-split:**:scroll-mb-[calc(var(--lab-transport-room)+0.5rem)]';
 const CHIP =
   'inline-flex min-h-8 items-center whitespace-nowrap rounded-base border border-border bg-bg px-2 text-xs font-medium text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
 const RESET =
@@ -179,8 +191,7 @@ export default function TieredLabShell({
       <div data-lab-columns="" className={COLUMNS}>
         <div className={STAGE_CELL}>
           <div data-lab-stage="" className={STAGE}>
-            {/* On phones the canvas bleeds into the card's padding so the plot keeps its width. */}
-            <div data-lab-canvas="" className="-mx-3 sm:mx-0">
+            <div data-lab-canvas="" className={CANVAS}>
               {children}
             </div>
             {clock ? (

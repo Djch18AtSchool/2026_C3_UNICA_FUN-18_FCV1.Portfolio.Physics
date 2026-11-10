@@ -56,8 +56,9 @@
 /*
  * Lengths the topic bar and the tiered laboratories share: the bar's height (TopicStickyBar), the
  * clearance below it where keyboard focus, #anchors and the labs' sticky columns stop, and the
- * room a transport pinned to the window's bottom takes (44 px buttons, 2 × 12 px padding, 1 px
- * rule) for scroll-padding-bottom.
+ * room a transport pinned to the window's bottom takes, kept free under a focused canvas control:
+ * a copy of TieredLabShell's TRANSPORT (TransportBar's 44 px buttons, 2 × 12 px padding, 1 px
+ * rule). Change both together; lab-shell.spec.ts fails when they drift.
  */
 :root {
   --topic-bar-height: 3rem;
@@ -165,8 +166,8 @@
 @utility scroll-cue-y {
   --scroll-cue: color-mix(in srgb, var(--fg) 22%, transparent);
   background:
-    linear-gradient(var(--bg-elevated) 40%, transparent) center top / 100% 2.5rem no-repeat local,
-    linear-gradient(transparent, var(--bg-elevated) 60%) center bottom / 100% 2.5rem no-repeat local,
+    linear-gradient(var(--bg-elevated) 40%, transparent) center top / 100% 2rem no-repeat local,
+    linear-gradient(transparent, var(--bg-elevated) 60%) center bottom / 100% 2rem no-repeat local,
     radial-gradient(farthest-side at 50% 0, var(--scroll-cue), transparent) center top / 100%
       0.75rem no-repeat scroll,
     radial-gradient(farthest-side at 50% 100%, var(--scroll-cue), transparent) center bottom / 100%

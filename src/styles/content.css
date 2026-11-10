@@ -201,8 +201,7 @@
    * A tiered laboratory is its own card (TieredLabShell): its frame lends it the whole width and
    * its border. From lg its stage and panel can stick to the window (the lab-split variant needs lg
    * too): a frame that scrolls would become their scroll container and pin them to itself, so from
-   * lg it does not scroll (the lab fits it), and keyboard focus stops above a transport pinned to
-   * the window's bottom (WCAG 2.4.11).
+   * lg it does not scroll (the lab fits it).
    */
   .figure-frame:has([data-lab-shell='tiered']) {
     padding: 0;
@@ -210,9 +209,6 @@
   @media (width >= 64rem) {
     .figure-frame:has([data-lab-shell='tiered']) {
       overflow: visible;
-    }
-    html:has([data-lab-shell='tiered'] [data-lab-transport]) {
-      scroll-padding-bottom: calc(var(--lab-transport-room) + 0.5rem);
     }
   }
   .content-figure > figcaption {
