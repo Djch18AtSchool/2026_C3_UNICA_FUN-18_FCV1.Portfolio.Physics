@@ -90,7 +90,7 @@ describe('DroneLab', () => {
     expect(readout('Duración de la ruta')).toBe(DECLARED_DURATION);
     // The opening seek is an effect after the first ready commit; wait for it rather than race it.
     await waitFor(() => expect(valueText(timeline())).toBe('t = 30,0 s'));
-    expect(screen.getByText(/crucero \(a = 0\)/)).toBeInTheDocument();
+    expect(mathSourceText(screen.getByTestId('drone-lab'))).toContain('crucero ($\\vec a = 0$)');
     expect(readout('Rapidez |v|')).toBe('10,00 m/s');
     expect(modifiedNote()).toBeNull();
     expect(screen.getByTestId('drone-profiles')).toBeInTheDocument();
@@ -116,7 +116,7 @@ describe('DroneLab', () => {
     const notes = container.querySelector('[data-lab-canvas-notes]') as HTMLElement;
 
     expect(within(notes).getByRole('list', { name: 'Leyenda del mapa' })).toBeInTheDocument();
-    expect(notes).toHaveTextContent('Fase: crucero (a = 0)');
+    expect(mathSourceText(notes)).toContain('Fase: crucero ($\\vec a = 0$)');
     expect(within(notes).getByRole('alert')).toBeEmptyDOMElement();
     expect(screen.getByTestId('route-map').closest('[data-lab-canvas]')).not.toContainElement(
       notes,
@@ -169,7 +169,9 @@ describe('DroneLab', () => {
     fireEvent.change(timeline(), { target: { value: '168' } });
 
     expect(valueText(timeline())).toMatch(/^t = 65,\d s$/);
-    expect(screen.getByText(/frenando \(a opuesta a v\)/)).toBeInTheDocument();
+    expect(mathSourceText(screen.getByTestId('drone-lab'))).toContain(
+      'frenando ($\\vec a$ opuesta a $\\vec v$)',
+    );
     expect(readout('Aceleración |a|')).toBe('2,50 m/s²');
   });
 
