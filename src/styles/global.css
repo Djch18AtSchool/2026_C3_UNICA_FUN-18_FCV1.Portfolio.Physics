@@ -5,6 +5,19 @@
 /* Dark utilities follow the data-theme attribute set by the head script, not the OS. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
+/*
+ * A tiered laboratory in two columns (TieredLabShell): a window with the topic bar (lg, which is
+ * also when its figure frame stops scrolling, content.css) and a lab at least 42rem wide. Below
+ * either, at 200 % zoom too, the lab is one column and nothing in it sticks.
+ */
+@custom-variant lab-split {
+  @media (width >= 64rem) {
+    @container lab (width >= 42rem) {
+      @slot;
+    }
+  }
+}
+
 /* Tokens switch per theme at runtime, so Tailwind must reference them, not copy them. */
 @theme inline {
   --color-bg: var(--bg);
@@ -38,6 +51,18 @@
 @theme {
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+/*
+ * Lengths the topic bar and the tiered laboratories share: the bar's height (TopicStickyBar), the
+ * clearance below it where keyboard focus, #anchors and the labs' sticky columns stop, and the
+ * room a transport pinned to the window's bottom takes (44 px buttons, 2 × 12 px padding, 1 px
+ * rule) for scroll-padding-bottom.
+ */
+:root {
+  --topic-bar-height: 3rem;
+  --topic-bar-clearance: calc(var(--topic-bar-height) + 1rem);
+  --lab-transport-room: calc(2.75rem + 2 * 0.75rem + 1px);
 }
 
 @layer base {

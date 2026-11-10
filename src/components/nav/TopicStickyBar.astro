@@ -66,7 +66,8 @@ const { class: className, number, phaseLabel, shortTitle, resourceType } = Astro
       align-items: center;
       justify-content: space-between;
       gap: 1.5rem;
-      padding-block: 0.625rem;
+      /* One height for the bar and everything that stops under it (global.css). */
+      height: var(--topic-bar-height);
       border-bottom: 1px solid var(--border);
       background-color: var(--bg);
       font-size: 0.875rem;
@@ -95,7 +96,7 @@ const { class: className, number, phaseLabel, shortTitle, resourceType } = Astro
 
     /* Keyboard focus and #fuente-n jumps land below the bar instead of under it. */
     :global(html:has(.topic-sticky)) {
-      scroll-padding-top: 4rem;
+      scroll-padding-top: var(--topic-bar-clearance);
     }
   }
 </style>

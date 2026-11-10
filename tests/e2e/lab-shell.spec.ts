@@ -7,17 +7,33 @@ const JUMP_PAGE = './temas/salto-personaje/';
 const JUMP_LAB = 'jump-lab';
 const LABS = TOPIC_PAGES.map(({ path, labTestId }) => ({ path, testId: labTestId }));
 const SETTINGS_TITLE = /^Ajustes: /;
-/** The stage and the panel of a tiered lab stick 4rem under the window's top (the topic bar). */
-const STICKY_TOP_PX = 64;
-/** Rounding of a sticky offset in rem at the site's root size. */
-const STICKY_SLACK_PX = 6;
-const SCROLL_INTO_LAB_PX = 300;
-const STACKED = 'diseño apilado: lo migra B3.2';
-/** The first physical control of a lab: the first field of its «Parámetros». */
-const FIRST_CONTROL = ':is(input, select, textarea, [role="slider"], [role="radio"])';
 const WHEEL_PX = 400;
 /** LabShell's READOUT_ANNOUNCE_DELAY_MS: readouts are spoken once still for this long. */
 const READOUT_SETTLE_MS = 750;
+/** Rounding of a sticky offset in rem at the site's root size. */
+const STICKY_SLACK_PX = 6;
+const SCROLL_INTO_LAB_PX = 300;
+/** The first physical control of a lab: the first field of its «Parámetros». */
+const FIRST_CONTROL = ':is(input, select, textarea, [role="slider"], [role="radio"])';
+/** What the Tab key reaches, in document order. */
+const TABBABLE =
+  ':is(a[href], button, input, select, textarea, summary, [tabindex]):not([tabindex="-1"]):not([disabled])';
+/**
+ * Labs already on the tiered shell (LabShell `levels`). A listed lab that renders stacked fails;
+ * the others are skipped by name. B3.2 does not edit this shared suite: the controller lists the
+ * nine labs here when it integrates their migration.
+ */
+const MIGRATED_LABS: ReadonlySet<string> = new Set(['flyby-lab']);
+/** Two columns: a desktop window wide enough for the topic bar and a 42rem lab. */
+const SPLIT_VIEWPORTS = [
+  { name: '1 280 × 800', size: { width: 1280, height: 800 } },
+  { name: '1 440 × 900', size: { width: 1440, height: 900 } },
+] as const;
+/** One column: below lg (no topic bar), and a 1 920 × 1 080 screen at 200 % zoom. */
+const ONE_COLUMN_VIEWPORTS = [
+  { name: '900 × 800', size: { width: 900, height: 800 } },
+  { name: '960 × 540 (1 920 × 1 080 al 200 %)', size: { width: 960, height: 540 } },
+] as const;
 
 test.use({ viewport: DESKTOP });
 
@@ -137,7 +153,12 @@ for (const { path, testId } of LABS) {
   });
 }
 
-const isTiered = async (lab: Locator) => (await lab.getAttribute('data-lab-shell')) === 'tiered';
+/** Opens a lab that must be on the tiered shell: a listed lab still stacked fails here. */
+async function openTiered(page: Page, path: string, testId: string): Promise<Locator> {
+  const lab = await openLab(page, path, testId);
+  await expect(lab, `${testId} está en MIGRATED_LABS`).toHaveAttribute('data-lab-shell', 'tiered');
+  return lab;
+}
 
 /** Scrolls the page so the lab's top sits `below` px under the window's top. */
 async function scrollLabTo(lab: Locator, below: number): Promise<void> {
@@ -148,46 +169,138 @@ async function scrollLabTo(lab: Locator, below: number): Promise<void> {
   );
 }
 
+/** The sticky offset the stage declares (its computed `top`, in px). */
+const stickyTop = (lab: Locator) =>
+  lab.locator('[data-lab-stage]').evaluate((node) => parseFloat(getComputedStyle(node).top));
+
+async function boxOf(locator: Locator) {
+  const box = await locator.boundingBox();
+  if (!box) throw new Error('sin caja');
+  return box;
+}
+
 for (const { path, testId } of LABS) {
   test.describe(`${testId} por niveles`, () => {
-    test('a 1 280 × 800 el primer control físico queda en la primera pantalla, junto al lienzo', async ({
+    test.skip(!MIGRATED_LABS.has(testId), 'lo migra B3.2');
+
+    for (const { name, size } of SPLIT_VIEWPORTS) {
+      test.describe(`a ${name}, en dos columnas`, () => {
+        test.use({ viewport: size });
+
+        test('el primer control físico queda en la primera pantalla, junto al lienzo', async ({
+          page,
+        }) => {
+          const lab = await openTiered(page, path, testId);
+          await scrollLabTo(lab, await stickyTop(lab));
+
+          const params = lab.getByRole('region', { name: 'Parámetros' });
+          const control = await boxOf(params.locator(FIRST_CONTROL).first());
+          const canvas = await boxOf(lab.locator('[data-lab-canvas]'));
+          expect(control.y + control.height).toBeLessThanOrEqual(size.height);
+          expect(control.x).toBeGreaterThanOrEqual(canvas.x + canvas.width);
+        });
+
+        test('al bajar, el panel queda bajo la barra del tema, nunca más alto que la ventana, y la reproducción a la vista', async ({
+          page,
+        }) => {
+          const lab = await openTiered(page, path, testId);
+          const top = await stickyTop(lab);
+          await scrollLabTo(lab, -SCROLL_INTO_LAB_PX);
+
+          const panel = await boxOf(lab.locator('[data-lab-panel]'));
+          const firstLevel = await boxOf(lab.getByRole('region', { name: 'Parámetros' }));
+          const bar = await boxOf(page.locator('[data-topic-sticky-bar]'));
+          expect(Math.abs(firstLevel.y - top)).toBeLessThanOrEqual(STICKY_SLACK_PX);
+          expect(panel.y).toBeGreaterThanOrEqual(bar.y + bar.height);
+          expect(panel.y + panel.height).toBeLessThanOrEqual(size.height);
+          const transport = lab.locator('[data-lab-transport]');
+          if ((await transport.count()) > 0) {
+            const box = await boxOf(transport);
+            expect(box.y >= 0 && box.y + box.height <= size.height).toBe(true);
+          }
+        });
+      });
+    }
+
+    test('a 1 280 × 800 el panel que desborda es una región con nombre y una parada del tabulador; si no, no', async ({
       page,
     }) => {
-      const lab = await openLab(page, path, testId);
-      test.skip(!(await isTiered(lab)), STACKED);
-      await scrollLabTo(lab, STICKY_TOP_PX);
+      await page.setViewportSize(SPLIT_VIEWPORTS[0].size);
+      const lab = await openTiered(page, path, testId);
+      const panel = lab.locator('[data-lab-panel]');
+      const overflows = await panel.evaluate((node) => node.scrollHeight > node.clientHeight + 1);
 
-      const params = lab.getByRole('region', { name: 'Parámetros' });
-      const control = await params.locator(FIRST_CONTROL).first().boundingBox();
-      const canvas = await lab.locator('[data-lab-canvas]').boundingBox();
-      if (!control || !canvas) throw new Error('sin control o sin lienzo');
-      expect(control.y + control.height).toBeLessThanOrEqual(DESKTOP.height);
-      expect(control.x).toBeGreaterThanOrEqual(canvas.x + canvas.width);
-    });
-
-    test('al bajar, el panel queda bajo la barra del tema, nunca más alto que la ventana, y la reproducción a la vista', async ({
-      page,
-    }) => {
-      const lab = await openLab(page, path, testId);
-      test.skip(!(await isTiered(lab)), STACKED);
-      await scrollLabTo(lab, -SCROLL_INTO_LAB_PX);
-
-      const panel = await lab.locator('[data-lab-panel]').boundingBox();
-      if (!panel) throw new Error('sin panel');
-      expect(Math.abs(panel.y - STICKY_TOP_PX)).toBeLessThanOrEqual(STICKY_SLACK_PX);
-      expect(panel.y + panel.height).toBeLessThanOrEqual(DESKTOP.height);
-      const transport = lab.locator('[data-lab-transport]');
-      if ((await transport.count()) > 0) {
-        const bar = await transport.boundingBox();
-        expect(bar && bar.y >= 0 && bar.y + bar.height <= DESKTOP.height).toBe(true);
+      if (overflows) {
+        await expect(panel).toHaveAttribute('tabindex', '0');
+        await expect(lab.getByRole('region', { name: 'Controles del laboratorio' })).toHaveCount(1);
+        await panel.focus();
+        const before = await panel.evaluate((node) => node.scrollTop);
+        await page.keyboard.press('PageDown');
+        await expect.poll(() => panel.evaluate((node) => node.scrollTop)).toBeGreaterThan(before);
+      } else {
+        await expect(panel).not.toHaveAttribute('tabindex');
+        await expect(panel).not.toHaveAttribute('role');
       }
     });
+
+    test('un control del lienzo enfocado con el teclado no queda tapado por la reproducción pegada abajo', async ({
+      page,
+    }) => {
+      await page.setViewportSize(SPLIT_VIEWPORTS[0].size);
+      const lab = await openTiered(page, path, testId);
+      const transport = lab.locator('[data-lab-transport]');
+      const canvasControls = lab.locator(`[data-lab-canvas] ${TABBABLE}`);
+      if ((await transport.count()) === 0 || (await canvasControls.count()) === 0) return;
+      const target = canvasControls.last();
+      // The control just under the window's bottom edge, where the pinned transport sits.
+      await target.evaluate((node) => {
+        const box = node.getBoundingClientRect();
+        window.scrollTo(0, window.scrollY + box.bottom - window.innerHeight + box.height / 2);
+      });
+      const index = await target.evaluate(
+        (node, selector) =>
+          [...(node.closest('[data-lab-shell]')?.querySelectorAll(selector) ?? [])].indexOf(node),
+        TABBABLE,
+      );
+      await lab
+        .locator(TABBABLE)
+        .nth(index - 1)
+        .evaluate((node) => (node as HTMLElement).focus({ preventScroll: true }));
+
+      await page.keyboard.press('Tab');
+
+      await expect(target).toBeFocused();
+      const control = await boxOf(target);
+      const bar = await boxOf(transport);
+      expect(control.y + control.height).toBeLessThanOrEqual(bar.y + 1);
+    });
+
+    for (const { name, size } of ONE_COLUMN_VIEWPORTS) {
+      test(`a ${name} va en una columna: nada pegajoso y el panel bajo el escenario`, async ({
+        page,
+      }) => {
+        await page.setViewportSize(size);
+        const lab = await openTiered(page, path, testId);
+        await scrollLabTo(lab, -SCROLL_INTO_LAB_PX);
+
+        const positions = await lab.evaluate((root) =>
+          ['[data-lab-stage]', '[data-lab-panel]', '[data-lab-transport]'].flatMap((selector) => {
+            const node = root.querySelector(selector);
+            return node ? [getComputedStyle(node).position] : [];
+          }),
+        );
+        expect(positions.every((position) => position === 'static')).toBe(true);
+        const stage = await boxOf(lab.locator('[data-lab-stage]'));
+        const panel = await boxOf(lab.locator('[data-lab-panel]'));
+        expect(panel.y).toBeGreaterThanOrEqual(stage.y + stage.height);
+        expect(Math.abs(panel.x - stage.x)).toBeLessThanOrEqual(STICKY_SLACK_PX);
+      });
+    }
 
     test('las fichas abren los ajustes y les devuelven el foco; tras la reproducción el Tab va a «Parámetros»', async ({
       page,
     }) => {
-      const lab = await openLab(page, path, testId);
-      test.skip(!(await isTiered(lab)), STACKED);
+      const lab = await openTiered(page, path, testId);
       const chip = lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button').first();
 
       await chip.click();
@@ -199,6 +312,11 @@ for (const { path, testId } of LABS) {
       if ((await timeline.count()) === 0) return;
       await timeline.focus();
       await page.keyboard.press('Tab');
+      // A panel that scrolls on its own is a tab stop of its own, before its first control.
+      if ((await lab.locator('[data-lab-panel][tabindex="0"]').count()) > 0) {
+        await expect(lab.locator('[data-lab-panel]')).toBeFocused();
+        await page.keyboard.press('Tab');
+      }
       await expect(
         lab
           .getByRole('region', { name: 'Parámetros' })

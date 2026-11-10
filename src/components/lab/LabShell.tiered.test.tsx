@@ -205,6 +205,69 @@ describe('LabShell with levels (tiered)', () => {
     ]);
   });
 
+  test('the disclosures sit under both columns, out of the scrolling panel, still last in order', () => {
+    const { container } = renderTiered({ clock: fakeClock() });
+
+    const panel = container.querySelector('[data-lab-panel]') as HTMLElement;
+    const columns = container.querySelector('[data-lab-columns]') as HTMLElement;
+    const notes = [...container.querySelectorAll('details')];
+    expect(notes).toHaveLength(2);
+    for (const details of notes) {
+      expect(panel).not.toContainElement(details);
+      expect(columns).not.toContainElement(details);
+      expect(
+        columns.compareDocumentPosition(details) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    }
+  });
+
+  test('canvas notes: after the transport in reading order, in their own cell under the columns', () => {
+    const { container } = renderTiered({
+      clock: fakeClock(),
+      canvasNotes: <ul aria-label="Leyenda del dibujo" />,
+    });
+
+    const notes = container.querySelector('[data-lab-canvas-notes]') as HTMLElement;
+    const stage = container.querySelector('[data-lab-stage]') as HTMLElement;
+    const panel = container.querySelector('[data-lab-panel]') as HTMLElement;
+    expect(within(notes).getByRole('list', { name: 'Leyenda del dibujo' })).toBeInTheDocument();
+    expect(stage).not.toContainElement(notes);
+    expectInOrder([screen.getByRole('group', { name: 'Reproducción' }), notes, panel]);
+    expect(notes.parentElement).toBe(container.querySelector('[data-lab-columns]'));
+  });
+
+  test('without canvas notes there is no empty cell', () => {
+    const { container } = renderTiered();
+
+    expect(container.querySelector('[data-lab-canvas-notes]')).toBeNull();
+  });
+
+  test('the panel is a named, focusable region only while its content overflows it', () => {
+    const observers: ResizeObserverCallback[] = [];
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: ResizeObserverCallback) {
+          observers.push(callback);
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    const { container } = renderTiered();
+    const panel = container.querySelector('[data-lab-panel]') as HTMLElement;
+    expect(panel).not.toHaveAttribute('tabindex');
+    expect(panel).not.toHaveAttribute('role');
+
+    Object.defineProperty(panel, 'scrollHeight', { configurable: true, value: 929 });
+    Object.defineProperty(panel, 'clientHeight', { configurable: true, value: 715 });
+    act(() => observers.forEach((callback) => callback([], {} as ResizeObserver)));
+
+    expect(screen.getByRole('region', { name: 'Controles del laboratorio' })).toBe(panel);
+    expect(panel).toHaveAttribute('tabindex', '0');
+    vi.unstubAllGlobals();
+  });
+
   test('the notes are two closed disclosures; without notes there are none', () => {
     const { container, unmount } = renderTiered();
     expect([...container.querySelectorAll('details')].map((details) => details.open)).toEqual([

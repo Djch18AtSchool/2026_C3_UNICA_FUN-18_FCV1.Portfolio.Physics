@@ -44,10 +44,16 @@ export interface LabLevels {
   display: SettingOption[];
 }
 
-/** The tiered layout: canvas and transport beside the levels from the lab's 42rem width. */
+/** The tiered layout: canvas and transport beside the levels (from lg, in a 42rem lab). */
 export interface TieredLabShellProps extends LabShellBaseProps {
   levels: LabLevels;
-  /** «Cómo se usa» and «Qué deja fuera el modelo», closed disclosures after the readouts. */
+  /**
+   * What reads the canvas without being a control (a legend, the stated time lapse, a model
+   * versus data table): right after the transport in one column, under both columns at the card's
+   * full width in two. No controls here: in two columns focus would jump down and back up.
+   */
+  canvasNotes?: ReactNode;
+  /** «Cómo se usa» and «Qué deja fuera el modelo», closed disclosures at the end of the card. */
   notes?: LabNotesContent;
   params?: never;
   localSettings?: never;
@@ -61,6 +67,7 @@ export interface StackedLabShellProps extends LabShellBaseProps {
   /** Printed at the end of the parameters card, with KaTeX inline between `$…$`. */
   footnote?: string;
   levels?: never;
+  canvasNotes?: never;
   notes?: never;
 }
 

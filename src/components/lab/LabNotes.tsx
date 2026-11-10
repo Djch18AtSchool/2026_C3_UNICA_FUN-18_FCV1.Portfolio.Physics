@@ -30,7 +30,7 @@ function Chevron(): JSX.Element {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      className="size-4 shrink-0 text-fg-muted group-open:rotate-180 motion-safe:transition-transform"
+      className="size-5 shrink-0 text-fg-muted group-open:rotate-180 motion-safe:transition-transform"
     >
       <path d="m4 6 4 4 4-4" />
     </svg>
