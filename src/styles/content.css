@@ -267,6 +267,11 @@
   .content-table tbody th[scope='row'] {
     font-weight: 500;
   }
+  /* A formula in a cell is one unit: KaTeX would break it after a "+" or "=" (min(e₁ + / e₂, 1)). */
+  .content-table td .katex-html {
+    display: inline-block;
+    white-space: nowrap;
+  }
   .content-table .is-num {
     text-align: right;
     font-variant-numeric: tabular-nums;
