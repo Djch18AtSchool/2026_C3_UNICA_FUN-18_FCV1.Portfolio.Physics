@@ -67,7 +67,11 @@ const KEY_GAP = 18;
 const LABEL_X = 2;
 const LABEL_SIZE = 12;
 const SMALL_SIZE = 12;
-/** The mass labels sit side by side over the balls of the first row (subscripts at 75 %: 9 px). */
+/**
+ * The mass labels sit over the balls of the first row, each pulled away from the other (m₁ ends
+ * at its ball's right edge, m₂ starts at its left edge): 12 px labels (subscripts at 75 %: 9 px)
+ * would touch if both were centred on balls 68 px apart.
+ */
 const MASS_SIZE = SMALL_SIZE;
 /** Ball radii scale as ∛m (same density): 12 px for 2 kg, 12/∛2 for 1 kg. */
 const BALL_1 = { id: 1, x: 78, r: 12 } as const;
@@ -142,9 +146,9 @@ function Balls({
           {isBefore ? (
             <MathText
               source={ball.mass}
-              x={ball.x}
+              x={ball.id === 1 ? ball.x + ball.r : ball.x - ball.r}
               y={middle - ball.r - MASS_LABEL_GAP}
-              anchor="middle"
+              anchor={ball.id === 1 ? 'end' : 'start'}
               fontSize={MASS_SIZE}
               fill={TEXT_COLOR}
             />
