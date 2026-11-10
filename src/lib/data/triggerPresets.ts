@@ -87,7 +87,7 @@ export const TRIGGER_PRESETS: Preset<TriggerPresetValues>[] = [
     id: 'subamortiguado',
     name: 'Subamortiguado',
     values: { k: EXAMPLE_K, x0Mm: 0, damping: 'subamortiguada' },
-    sourceLabel: 'supuesto del modelo, c = 0,3 del valor crítico',
+    sourceLabel: 'supuesto del modelo, $c$ = 0,3 del valor crítico',
     note: 'Con menos amortiguación la palanca vuelve antes y choca con el tope del reposo, que la detiene sin rebote.',
   },
 ];

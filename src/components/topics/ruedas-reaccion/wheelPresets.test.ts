@@ -26,6 +26,7 @@ describe('WHEEL_PRESETS', () => {
     expect(slow).toMatch(/0,32\smN·m/);
     expect(slow).toMatch(/19\s%/);
     expect(slow).toMatch(/485 vueltas/);
+    expect(slow).toMatch(/la nave gira a 3,0\s°\/s y la rueda va a −970\srpm/);
     expect(fast).toMatch(/12,1\ss por torque y 11,6\ss por momento/);
     expect(fast).toMatch(/99\s%.*96\s%/);
     expect(disturbance).toMatch(/48,6\sh/);

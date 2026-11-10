@@ -50,7 +50,7 @@ function slowNote(): string {
   const peak = maneuverReadings(DEFAULT_SETTINGS, DEFAULT_SETTINGS.T / 2);
   const end = maneuverReadings(DEFAULT_SETTINGS, DEFAULT_SETTINGS.T);
   const torque = plan.torqueShare * SPACECRAFT.tauMax * MILLI;
-  return `Giro de reposo a reposo del 6U ($I_s$ = ${n(SPACECRAFT.Is, 4, 'kg·m²')}) con la RW400: $\\tau$ = ${n(torque, 2, 'mN·m')}, el ${percent(plan.torqueShare)} de $\\tau_\\text{máx}$; a los ${n(DEFAULT_SETTINGS.T / 2, 0, 's')} la rueda va a ${n(peak.omegaW, 0, 'rpm')}, el ${percent(peak.share)} de $L_\\text{máx}$, y al final vuelve a 0 rpm tras ${n(Math.abs(end.turns), 0)} vueltas.`;
+  return `Giro de reposo a reposo del 6U ($I_s$ = ${n(SPACECRAFT.Is, 4, 'kg·m²')}) con la RW400: $\\tau$ = ${n(torque, 2, 'mN·m')}, el ${percent(plan.torqueShare)} de $\\tau_\\text{máx}$; a los ${n(DEFAULT_SETTINGS.T / 2, 0, 's')} la nave gira a ${n(peak.omegaS, 1, '°/s')} y la rueda va a ${n(peak.omegaW, 0, 'rpm')}, el ${percent(peak.share)} de $L_\\text{máx}$, y al final vuelve a 0 rpm tras ${n(Math.abs(end.turns), 0)} vueltas.`;
 }
 
 function fastestNote(): string {

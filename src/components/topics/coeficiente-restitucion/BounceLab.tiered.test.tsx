@@ -61,7 +61,7 @@ describe('BounceLab on the tiered shell', () => {
     expect(select.closest('[data-lab-presets]')).toHaveAttribute('data-lab-presets', 'select');
     expect(screen.getByTestId('preset-note')).toHaveTextContent(/^ITF Rules of Tennis 2026/);
     expect(mathSourceText(screen.getByTestId('preset-note'))).toMatch(
-      /uso 0,745 con \$h_0\$ = 2,54 m\. Fuente: ITF Rules/,
+      /uso 0,745 con \$h_0\$ = 2,54 m en el motor con los valores por defecto de Box2D\. Fuente: ITF Rules/,
     );
   });
 
@@ -94,7 +94,7 @@ describe('BounceLab on the tiered shell', () => {
       '$\\Delta t$ = 1/60 s × 4 subpasos',
       'umbral 1,00 m/s',
       'regla máx',
-      'suelo e = 0,00',
+      'suelo $e$ = 0,00',
       '$\\beta$ = 0,00',
     ]);
     expect(canvasNotes().querySelector(CONTROL)).toBeNull();
@@ -113,7 +113,7 @@ describe('BounceLab on the tiered shell', () => {
 
     expect(texts[0]).toBe('$\\Delta t$ = 1/120 s × 2 subpasos');
     expect(texts[2]).toBe('regla promedio');
-    expect(texts[3]).toBe('suelo e = 0,50');
+    expect(texts[3]).toBe('suelo $e$ = 0,50');
     expect(texts[4]).toBe('$\\beta$ = 0,20');
   });
 

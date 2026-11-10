@@ -27,15 +27,27 @@ describe('BOUNCE_PRESETS', () => {
 
   test('the ball presets keep the measured range and the e and h0 the lab uses', () => {
     expect(presetById('tenis-itf').note).toMatch(
-      /e entre 0,729 y 0,761 .*uso 0,745 con \$h_0\$ = 2,54 m\.$/,
+      /e entre 0,729 y 0,761 .*uso 0,745 con \$h_0\$ = 2,54 m en el motor/,
     );
-    expect(presetById('baloncesto-fiba').note).toMatch(/uso 0,767 con \$h_0\$ = 1,80 m\.$/);
+    expect(presetById('baloncesto-fiba').note).toMatch(
+      /uso 0,767 con \$h_0\$ = 1,80 m en el motor/,
+    );
     expect(presetById('superbola').note).toMatch(/e = 0,864 .*uso 0,860/);
   });
 
-  test('the ball notes no longer repeat the engine defaults, which the engine chips show', () => {
-    for (const { id, note } of BOUNCE_PRESETS.filter(({ id }) => id !== 'box2d')) {
-      expect(note, id).not.toMatch(/valores por defecto de Box2D/);
+  test('the ball notes say where the engine’s values come from: the chips show values, not origin', () => {
+    const balls = [
+      'tenis-itf',
+      'baloncesto-fiba',
+      'futbol-fifa',
+      'superbola',
+      'beisbol',
+      'plastilina',
+    ];
+    for (const id of balls) {
+      expect(presetById(id).note, id).toMatch(
+        /en el motor con los valores por defecto de Box2D\.$/,
+      );
     }
   });
 

@@ -115,7 +115,7 @@ function ballPreset(
     group: 'realista',
     values: { ...ENGINE_DEFAULTS, e, h0, ball: kind },
     sourceLabel: sourceOf(standard),
-    note: `${standard.standard}; de ahí ${range} (cálculo propio, e = $\\sqrt{h'/h}$ o $v'/v$), y uso ${comma(e, E_DECIMALS)} con $h_0$ = ${comma(h0, 2)} m.`,
+    note: `${standard.standard}; de ahí ${range} (cálculo propio, e = $\\sqrt{h'/h}$ o $v'/v$), y uso ${comma(e, E_DECIMALS)} con $h_0$ = ${comma(h0, 2)} m en el motor con los valores por defecto de Box2D.`,
   };
 }
 

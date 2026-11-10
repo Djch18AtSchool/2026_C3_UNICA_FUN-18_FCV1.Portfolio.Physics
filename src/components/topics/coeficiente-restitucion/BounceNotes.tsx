@@ -116,7 +116,7 @@ export function engineChips(s: BounceSettings): StatusChip[] {
     { id: 'step', text: `$\\Delta t$ = 1/${s.rate} s × ${s.substeps} subpasos` },
     { id: 'threshold', text: `umbral ${n(s.threshold, 2, 'm/s')}` },
     { id: 'rule', text: `regla ${combineName(s.combine)}` },
-    { id: 'floor', text: `suelo e = ${formatNumber(s.floorE, { precision: 2 })}` },
+    { id: 'floor', text: `suelo $e$ = ${formatNumber(s.floorE, { precision: 2 })}` },
     { id: 'baumgarte', text: `$\\beta$ = ${formatNumber(s.baumgarte, { precision: 2 })}` },
   ];
 }

@@ -37,7 +37,7 @@ const FREE_NOTE = 'Sin 1 g fijo, r y RPM son libres y la gravedad aparente es la
 
 /** «Cómo se usa»: the drag and its keys, then what a preset does to the lock. */
 const USAGE_HINT =
-  'Arrastra el manejador sobre la barra logarítmica, o enfócalo y muévelo con las flechas (1 % de la barra; con Mayús, 10 %). Un preajuste muestra el par (r, RPM) de su fuente y apaga «Fijar 1 g».';
+  'Arrastra el manejador sobre la barra logarítmica, o enfócalo y muévelo con las flechas (1 % de la barra; con Mayús, 10 %). Un preajuste muestra el par ($r$, RPM) de su fuente y apaga «Fijar 1 g».';
 
 export interface HabitatLabProps {
   /** «Cómo se usa», after the drag hint: the time lapse and the t readout, from the topic's MDX. */
