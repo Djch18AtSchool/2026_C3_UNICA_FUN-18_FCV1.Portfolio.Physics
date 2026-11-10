@@ -16,7 +16,7 @@ describe('regen presets', () => {
       'Model 3 · ciudad (UDDS)',
       'Model 3 · carretera (HWFET)',
       'Model 3 · agresivo (US06)',
-      'Batería fría o llena (P_máx 10 kW)',
+      'Batería fría o llena ($P_\\text{máx}$ 10 kW)',
       'Nissan LEAF 2025 · ciudad',
     ]);
     for (const preset of REGEN_PRESETS) expect(presetIdFor(preset.values)).toBe(preset.id);

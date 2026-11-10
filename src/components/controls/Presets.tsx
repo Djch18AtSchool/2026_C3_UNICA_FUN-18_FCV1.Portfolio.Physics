@@ -1,3 +1,4 @@
+import { mathAriaLabel } from '../../lib/inlineMath';
 import type { Preset } from '../../lib/presets';
 import InlineMath from '../lab/InlineMath';
 import { withStableCallbacks } from '../lab/withStableCallbacks';
@@ -15,6 +16,12 @@ const BUTTON_BASE =
 const BUTTON_ACTIVE = 'border-accent bg-accent/10';
 const BUTTON_IDLE = 'border-border bg-bg-elevated hover:border-fg-muted';
 
+/** A button with notation in its text is named in words; a plain one by its own text. */
+function spokenName<T>({ name, sourceLabel }: Preset<T>): string | undefined {
+  const text = sourceLabel ? `${name} ${sourceLabel}` : name;
+  return mathAriaLabel(text);
+}
+
 function PresetsBase<T>({ presets, activeId, onSelect }: PresetsProps<T>) {
   const active = presets.find((preset) => preset.id === activeId);
 
@@ -28,6 +35,7 @@ function PresetsBase<T>({ presets, activeId, onSelect }: PresetsProps<T>) {
               key={preset.id}
               type="button"
               aria-pressed={isActive}
+              aria-label={spokenName(preset)}
               onClick={() => onSelect(preset)}
               className={`${BUTTON_BASE} ${isActive ? BUTTON_ACTIVE : BUTTON_IDLE}`}
             >
@@ -36,10 +44,12 @@ function PresetsBase<T>({ presets, activeId, onSelect }: PresetsProps<T>) {
                   aria-hidden="true"
                   className={`size-2.5 rounded-[1px] border ${isActive ? 'border-accent bg-accent' : 'border-fg-muted'}`}
                 />
-                {preset.name}
+                <InlineMath text={preset.name} />
               </span>
               {preset.sourceLabel ? (
-                <span className="text-xs text-fg-muted">{preset.sourceLabel}</span>
+                <span className="text-xs text-fg-muted">
+                  <InlineMath text={preset.sourceLabel} />
+                </span>
               ) : null}
             </button>
           );

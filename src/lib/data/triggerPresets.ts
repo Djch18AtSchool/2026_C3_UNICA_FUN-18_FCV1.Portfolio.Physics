@@ -73,14 +73,14 @@ export const TRIGGER_PRESETS: Preset<TriggerPresetValues>[] = [
     id: 'ideal',
     name: 'Resorte ideal',
     values: { k: EXAMPLE_K, x0Mm: 0, damping: 'critica' },
-    sourceLabel: 'k = 400 N/m · x₀ = 0',
+    sourceLabel: 'k = 400 N/m · $x_0$ = 0',
     note: 'Al fondo, 3,2 N y 12,8 mJ: la ecuación (5.2) desde el reposo.',
   },
   {
     id: 'tardio',
     name: 'Resorte tardío',
     values: { k: EXAMPLE_K, x0Mm: 3, damping: 'critica' },
-    sourceLabel: 'k = 400 N/m · x₀ = 3 mm',
+    sourceLabel: 'k = 400 N/m · $x_0$ = 3 mm',
     note: 'El ejemplo del paso 4, con valores ilustrativos: la resistencia empieza a 3 mm y al fondo da 2,0 N y 5,0 mJ de trabajo del dedo.',
   },
   {

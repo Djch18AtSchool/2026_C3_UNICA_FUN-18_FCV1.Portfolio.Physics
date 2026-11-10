@@ -63,7 +63,7 @@ export const REGEN_PRESETS: Preset<RegenLabState>[] = [
   },
   {
     id: 'cold-battery',
-    name: `Batería fría o llena (P_máx ${COLD_P_MAX_KW} kW)`,
+    name: `Batería fría o llena ($P_\\text{máx}$ ${COLD_P_MAX_KW} kW)`,
     values: { vehicle: 'model3', cycle: 'udds', ...SITE_MODEL, pMaxKw: COLD_P_MAX_KW },
     sourceLabel: 'Model 3 · escenario',
     note: 'Con la batería fría o casi llena admite menos corriente de carga. 10 kW es un escenario ilustrativo, no una medición: lo que pasa del límite lo disipan los frenos de fricción.',

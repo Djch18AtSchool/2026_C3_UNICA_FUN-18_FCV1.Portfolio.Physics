@@ -76,7 +76,7 @@ export const WHEEL_PRESETS: Preset<WheelSettings>[] = [
   },
   {
     id: 'giro-mas-rapido',
-    name: 'El giro más rápido (unos 12 s)',
+    name: 'El giro más rápido ($\\approx$ 12 s)',
     values: { ...DEFAULT_SETTINGS, T: FASTEST_T },
     sourceLabel: 'Límites de la RW400 (cálculo propio)',
     note: fastestNote(),

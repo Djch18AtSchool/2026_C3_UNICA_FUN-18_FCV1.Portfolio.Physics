@@ -57,3 +57,43 @@ describe('Presets note with KaTeX', () => {
     expect(container.querySelector('p .inline-math')).not.toBeNull();
   });
 });
+
+describe('Presets name and source with KaTeX', () => {
+  afterEach(cleanup);
+
+  const PRESETS_WITH_MATH: Preset<{ k: number }>[] = [
+    {
+      id: 'late',
+      name: 'Batería ($P_\\text{máx}$ 10 kW)',
+      values: { k: 1 },
+      sourceLabel: 'k = 400 N/m · $x_0$ = 3 mm',
+    },
+    { id: 'plain', name: 'Plano', values: { k: 2 } },
+  ];
+
+  test('typesets the $…$ of the name and the source label', () => {
+    const { container } = render(
+      <Presets presets={PRESETS_WITH_MATH} activeId="plain" onSelect={vi.fn()} />,
+    );
+
+    const formulas = container.querySelectorAll('button .inline-math');
+    expect(formulas).toHaveLength(2);
+    expect(container.textContent).not.toContain('$');
+  });
+
+  test('names the button in words, not by the markup of KaTeX', () => {
+    render(<Presets presets={PRESETS_WITH_MATH} onSelect={vi.fn()} />);
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Batería (P sub máx 10 kW) k = 400 N/m · x sub 0 = 3 mm',
+      }),
+    ).toBeInTheDocument();
+  });
+
+  test('a preset without notation keeps its text as its name', () => {
+    render(<Presets presets={PRESETS_WITH_MATH} onSelect={vi.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'Plano' })).not.toHaveAttribute('aria-label');
+  });
+});

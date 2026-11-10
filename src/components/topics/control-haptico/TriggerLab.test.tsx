@@ -2,7 +2,6 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
-import { TRIGGER_PRESETS } from '../../../lib/data/triggerPresets';
 import { installDialogPolyfill } from '../../../test-dialog';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
@@ -126,16 +125,9 @@ describe('TriggerLab', () => {
 
   test('every character outside KaTeX is one IBM Plex draws, in the lab, its settings and the notes', () => {
     const { container } = renderLab();
-    // The preset buttons' second line (Presets.tsx, shared) is plain text still: reported, not here.
-    const presetSourceLabels = TRIGGER_PRESETS.map(({ sourceLabel }) => `«${sourceLabel}»`);
-    const ownViolations = () =>
-      plexViolations(container).filter(
-        (violation) => !presetSourceLabels.some((label) => violation.endsWith(label)),
-      );
-
-    expect(ownViolations()).toEqual([]);
+    expect(plexViolations(container)).toEqual([]);
     fireEvent.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
-    expect(ownViolations()).toEqual([]);
+    expect(plexViolations(container)).toEqual([]);
   });
 
   test('the notation is typeset: x₀ on the lever and in the field, U and W in the note', () => {
