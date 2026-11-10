@@ -109,6 +109,28 @@ describe('blocked localStorage', () => {
   });
 });
 
+describe('resetSettingsForTests', () => {
+  test('forgets a stored choice too: the next test starts from the defaults, whatever the order', () => {
+    // Arrange: a test that chose 3 decimals, which setSettings also stored.
+    const stored = new Map<string, string>();
+    vi.stubGlobal('window', {
+      localStorage: {
+        getItem: (key: string) => stored.get(key) ?? null,
+        setItem: (key: string, value: string) => stored.set(key, value),
+        removeItem: (key: string) => stored.delete(key),
+      },
+    });
+    setSettings({ decimals: 3 });
+
+    // Act: the afterEach of a test file, before any localStorage.clear().
+    resetSettingsForTests();
+
+    // Assert
+    expect(getSettings()).toEqual(DEFAULT_SETTINGS);
+    vi.unstubAllGlobals();
+  });
+});
+
 describe('motionReduced', () => {
   test('is true when motion is explicitly reduced', () => {
     expect(motionReduced({ ...DEFAULT_SETTINGS, motion: 'reduced' }, false)).toBe(true);

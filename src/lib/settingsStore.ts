@@ -103,7 +103,17 @@ export function motionReduced(s: GlobalSettings, mediaMatches: boolean): boolean
   return s.motion === 'reduced' || (s.motion === 'auto' && mediaMatches);
 }
 
-/** Test-only helper: resets the in-memory state and reloads it from storage. */
+/**
+ * Test-only helper: forgets the stored choice and resets the in-memory state to the defaults. It
+ * removes the stored key itself, so it does not depend on the caller clearing localStorage first
+ * (a reset that reloaded a choice left in storage leaked it into the next test).
+ */
 export function resetSettingsForTests(): void {
-  state = readSettings(currentStorage());
+  const storage = currentStorage();
+  try {
+    storage?.removeItem(SETTINGS_KEY);
+  } catch {
+    // Blocked storage keeps nothing to forget.
+  }
+  state = readSettings(storage);
 }
