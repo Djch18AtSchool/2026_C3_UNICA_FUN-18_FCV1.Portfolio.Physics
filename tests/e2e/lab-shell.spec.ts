@@ -26,8 +26,10 @@ const LAYOUT_SLACK_PX = 1;
 const TABBABLE =
   ':is(a[href], button, input, select, textarea, summary, [tabindex]):not([tabindex="-1"]):not([disabled])';
 /**
- * Every lab on the tiered shell (LabShell `levels`), listed by hand so the generic tests below run
- * against each one; a lab rendered on a topic page and missing here fails «cada laboratorio…».
+ * Every lab on the tiered shell (LabShell `levels`), listed by hand: a checklist kept beside
+ * topicPages.ts. The generic tests below open each topic page's lab (LABS); «… dibuja solo su
+ * laboratorio…» fails when a page renders a lab that is not its own, one that is not tiered, or
+ * one missing here.
  */
 const MIGRATED_LABS: ReadonlySet<string> = new Set([
   'drone-lab',
@@ -170,10 +172,10 @@ for (const { path, testId } of LABS) {
   });
 }
 
-/** Opens a lab that must be on the tiered shell: a listed lab still stacked fails here. */
+/** Opens a topic page's lab, which must be on the tiered shell. */
 async function openTiered(page: Page, path: string, testId: string): Promise<Locator> {
   const lab = await openLab(page, path, testId);
-  await expect(lab, `${testId} está en MIGRATED_LABS`).toHaveAttribute('data-lab-shell', 'tiered');
+  await expect(lab, `${testId} va por niveles`).toHaveAttribute('data-lab-shell', 'tiered');
   return lab;
 }
 
@@ -250,7 +252,7 @@ test.describe('guardias del cascarón por niveles, autocomprobadas', () => {
 });
 
 for (const { path, testId } of LABS) {
-  test(`cada laboratorio de ${path} va por niveles y está en MIGRATED_LABS`, async ({ page }) => {
+  test(`${path} dibuja solo su laboratorio, por niveles y en MIGRATED_LABS`, async ({ page }) => {
     await openLab(page, path, testId);
     const labs = await page.locator('[data-testid$="-lab"]').evaluateAll((nodes) =>
       nodes.map((node) => ({
@@ -259,7 +261,8 @@ for (const { path, testId } of LABS) {
       })),
     );
 
-    expect(labs.map((lab) => lab.testId)).toContain(testId);
+    // Only its own: a second lab on the page would get none of the generic tests below.
+    expect(labs.map((lab) => lab.testId)).toEqual([testId]);
     for (const { testId, shell } of labs) {
       expect(shell, `${testId}: data-lab-shell`).toBe('tiered');
       expect(MIGRATED_LABS.has(testId), `${testId} está en MIGRATED_LABS`).toBe(true);
