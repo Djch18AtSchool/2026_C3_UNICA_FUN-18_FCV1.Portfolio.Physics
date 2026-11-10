@@ -286,7 +286,7 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
           showArrows={display.showArrows}
           onTargetChange={(thetaDeg) => set('thetaDeg', thetaDeg)}
         />
-        <div>
+        <div className="px-3 sm:px-0">
           <MomentumGauge
             Lw={live.Lw}
             Lmax={SPACECRAFT.Lmax}
