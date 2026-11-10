@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
+import { hydrateAllIslands, readoutText as readReadout, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/frenado-regenerativo/';
 const TITLE = 'Frenado regenerativo en un vehículo eléctrico';
@@ -16,23 +16,11 @@ const NEAR_END = '995';
 /** Longest the last 0,5 % of the UDDS (≈ 0,34 s at 1×) may take to reach the end. */
 const PLAYBACK_TIMEOUT_MS = 3000;
 const STILL_AT_END_MS = 500;
-const SCROLL_STEP_PX = 600;
 const BATTERY = 'Energía a la batería $E_\\text{batería}$';
 const BLENDED = 'Frenando con el motor y con fricción';
 
 /** The value text of the readout row of the lab labelled exactly `label` (helpers.ts). */
 const readoutText = (page: Page, label: string) => readReadout(page, LAB, label);
-
-/** Islands hydrate with client:visible: walk the page so every one renders. */
-async function hydrateAllIslands(page: Page): Promise<void> {
-  const height = await page.evaluate(() => document.documentElement.scrollHeight);
-  for (let y = 0; y <= height; y += SCROLL_STEP_PX) {
-    await page.mouse.wheel(0, SCROLL_STEP_PX);
-  }
-  await page.waitForLoadState('networkidle');
-  await expect(page.locator('astro-island[ssr]')).toHaveCount(0);
-  await page.evaluate(() => window.scrollTo(0, 0));
-}
 
 async function openLab(page: Page): Promise<void> {
   await page.locator(LAB).scrollIntoViewIfNeeded();

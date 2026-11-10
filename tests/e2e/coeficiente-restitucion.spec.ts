@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
+import { hydrateAllIslands, readoutText as readReadout, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/coeficiente-restitucion/';
 const TITLE =
@@ -13,7 +13,6 @@ const VIEWPORTS = [
   { name: 'móvil', size: PHONE },
 ] as const;
 const BLOCKING_IMPACTS = ['serious', 'critical'];
-const SCROLL_STEP_PX = 600;
 /** The lab must fill the reading column (spec §6): at least this share of the article width. */
 const MIN_WIDTH_SHARE = 0.9;
 /** Timeline position (of 1000) to start from, so the drop ends within a moment. */
@@ -55,17 +54,6 @@ async function openLab(page: Page): Promise<void> {
   // The island hydrates with client:visible; bring it into view and wait for React.
   await page.locator(LAB).scrollIntoViewIfNeeded();
   await waitForIsland(page, LAB);
-}
-
-/** Islands hydrate with client:visible: walk the page so every one renders before a scan. */
-async function hydrateAllIslands(page: Page): Promise<void> {
-  const height = await page.evaluate(() => document.documentElement.scrollHeight);
-  for (let y = 0; y <= height; y += SCROLL_STEP_PX) {
-    await page.mouse.wheel(0, SCROLL_STEP_PX);
-  }
-  await page.waitForLoadState('networkidle');
-  await expect(page.locator('astro-island[ssr]')).toHaveCount(0);
-  await page.evaluate(() => window.scrollTo(0, 0));
 }
 
 const documentWidth = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth);

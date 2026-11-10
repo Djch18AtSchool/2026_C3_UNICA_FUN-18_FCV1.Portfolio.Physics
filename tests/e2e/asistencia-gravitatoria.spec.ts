@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { readoutText as readReadout, waitForIsland } from './helpers';
+import { hydrateAllIslands, readoutText as readReadout, waitForIsland } from './helpers';
 
 const PAGE = './temas/asistencia-gravitatoria/';
 const TITLE = 'Asistencia gravitatoria: cómo la Voyager ganó velocidad sin gastar combustible';
@@ -12,24 +12,12 @@ const BLOCKING_IMPACTS = ['serious', 'critical'];
 const STEP_COUNT = 4;
 const TABLE_IDS = ['asistencia-gravitatoria-constantes', 'asistencia-gravitatoria-encuentros'];
 const MIN_SOURCES = 8;
-const SCROLL_STEP_PX = 600;
 const DELTA = 'Ángulo de giro δ';
 /** The chart's source sentence (VOYAGER_CHART_SOURCE): printed once, by the Figure, never twice. */
 const SOURCE_SENTENCE = 'trayectoria de diseño reconstruida hasta el 29 de agosto de 1989';
 
 /** The value text of the readout row of the lab labelled exactly `label` (helpers.ts). */
 const readoutText = (page: Page, label: string) => readReadout(page, LAB, label);
-
-/** Islands hydrate with client:visible: walk the page so every one renders. */
-async function hydrateAllIslands(page: Page): Promise<void> {
-  const height = await page.evaluate(() => document.documentElement.scrollHeight);
-  for (let y = 0; y <= height; y += SCROLL_STEP_PX) {
-    await page.mouse.wheel(0, SCROLL_STEP_PX);
-  }
-  await page.waitForLoadState('networkidle');
-  await expect(page.locator('astro-island[ssr]')).toHaveCount(0);
-  await page.evaluate(() => window.scrollTo(0, 0));
-}
 
 async function open(page: Page, selector: string): Promise<void> {
   await page.locator(selector).scrollIntoViewIfNeeded();

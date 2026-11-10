@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { uncoveredChars } from '../../src/lib/typography';
-import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
+import { hydrateAllIslands, readoutText as readReadout, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/ruedas-reaccion/';
 const TITLE = 'Ruedas de reacción: cómo un satélite se gira sin empujarse contra nada';
@@ -24,7 +24,6 @@ const OVERFLOW_TOLERANCE_PX = 1;
 const NEAR_END = '995';
 const PLAYBACK_TIMEOUT_MS = 3000;
 const STILL_AT_END_MS = 500;
-const SCROLL_STEP_PX = 600;
 
 /** The value text of the readout row of the lab labelled exactly `label` (helpers.ts). */
 const readoutText = (page: Page, label: string) => readReadout(page, LAB, label);
@@ -34,17 +33,6 @@ async function openLab(page: Page): Promise<void> {
   // The island hydrates with client:visible; bring it into view and wait for React.
   await page.locator(LAB).scrollIntoViewIfNeeded();
   await waitForIsland(page, LAB);
-}
-
-/** Islands hydrate with client:visible: walk the page so every one renders before a scan. */
-async function hydrateAllIslands(page: Page): Promise<void> {
-  const height = await page.evaluate(() => document.documentElement.scrollHeight);
-  for (let y = 0; y <= height; y += SCROLL_STEP_PX) {
-    await page.mouse.wheel(0, SCROLL_STEP_PX);
-  }
-  await page.waitForLoadState('networkidle');
-  await expect(page.locator('astro-island[ssr]')).toHaveCount(0);
-  await page.evaluate(() => window.scrollTo(0, 0));
 }
 
 test.describe('página', () => {
