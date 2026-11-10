@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { hydrateAllIslands, readoutText as readReadout, setRange, waitForIsland } from './helpers';
+import { expectSameHeightAfterHydration, HYDRATION_WIDTHS } from './hydrationStability';
 
 const PAGE = './temas/frenado-regenerativo/';
 const TITLE = 'Frenado regenerativo en un vehículo eléctrico';
@@ -131,16 +132,27 @@ test.describe('laboratorio', () => {
     await expect.poll(() => readoutText(page, BATTERY)).not.toBe(before);
   });
 
-  test('la nota dice a qué velocidad va la reproducción y qué deja fuera el modelo', async ({
+  test('«Cómo se usa» dice a qué velocidad va la reproducción y «Qué deja fuera el modelo» lo que el modelo omite', async ({
     page,
   }) => {
-    const footnote = page.locator(LAB).getByTestId('lab-footnote');
+    const usage = page.locator(LAB).locator('details[data-lab-note="usage"]');
+    const leftOut = page.locator(LAB).locator('details[data-lab-note="left-out"]');
 
-    await expect(footnote).toContainText('20 veces');
-    for (const left of ['pendiente', 'viento', 'temperatura', 'carga']) {
-      await expect(footnote).toContainText(left);
+    await usage.locator('summary').click();
+    await expect(usage).toContainText('20 veces');
+    await leftOut.locator('summary').click();
+    for (const left of ['Pendiente', 'viento', 'temperatura', 'carga', 'Boretti']) {
+      await expect(leftOut).toContainText(left);
     }
   });
+});
+
+test.describe('hidratación', () => {
+  for (const width of HYDRATION_WIDTHS) {
+    test(`a ${width} px el laboratorio no cambia de altura al hidratarse`, async ({ browser }) => {
+      await expectSameHeightAfterHydration(browser, PAGE, LAB, width);
+    });
+  }
 });
 
 test.describe('a 360 px', () => {
@@ -156,9 +168,8 @@ test.describe('a 360 px', () => {
     const lab = page.locator(LAB);
 
     await lab
-      .getByRole('group', { name: 'Valores de referencia' })
-      .getByRole('button', { name: /^Batería fría o llena/ })
-      .click();
+      .getByRole('combobox', { name: 'Valores de referencia' })
+      .selectOption({ label: 'Batería fría o llena (Pmáx 10 kW)' });
 
     const regime = lab.getByTestId('regen-scene').getByText(BLENDED, { exact: true });
     await expect(regime).toBeVisible();
