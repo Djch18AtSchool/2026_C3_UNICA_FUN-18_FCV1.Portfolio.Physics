@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../lib/settingsStore';
 import { installDialogPolyfill } from '../../test-dialog';
 import { fakeClock } from '../../test-fake-clock';
-import LabShell, { READOUT_ANNOUNCE_DELAY_MS, type LabShellProps } from './LabShell';
+import LabShell, { type LabShellProps } from './LabShell';
 import type { SettingOption } from './SettingsDrawer';
 
 const display = (trail = true): SettingOption[] => [
