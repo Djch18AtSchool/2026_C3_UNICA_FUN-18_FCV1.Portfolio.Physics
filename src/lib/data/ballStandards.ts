@@ -159,7 +159,8 @@ export const BALL_STANDARDS: readonly BallStandard[] = [
     {
       id: 'superbola',
       name: 'Superbola',
-      standard: 'Cross (2002): bote vertical sobre madera dura, v_y1 = −4,13 m/s y v_y2 = 3,57 m/s',
+      standard:
+        'Cross (2002): bote vertical sobre madera dura, $v_{y1}$ = −4,13 m/s y $v_{y2}$ = 3,57 m/s',
       sources: [CROSS_SUPERBALL],
     },
     4.13,
