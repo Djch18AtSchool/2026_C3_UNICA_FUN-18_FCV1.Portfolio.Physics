@@ -53,6 +53,30 @@ describe('SelectField', () => {
 });
 
 describe('fields with KaTeX in their label', () => {
+  test('a select typesets its label and is named in words', () => {
+    const { container } = render(
+      <SelectField
+        id="step"
+        label="Paso del motor $\Delta t$"
+        value="rk4"
+        options={OPTIONS}
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('label .inline-math')).not.toBeNull();
+    expect(container.textContent).not.toContain('$');
+    expect(screen.getByRole('combobox', { name: 'Paso del motor delta t' })).toBeInTheDocument();
+  });
+
+  test('a select with a plain label keeps it as its name', () => {
+    render(
+      <SelectField id="s" label="Integrador" value="rk4" options={OPTIONS} onChange={vi.fn()} />,
+    );
+
+    expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-label');
+  });
+
   test('a switch and a segmented control are named in words', () => {
     render(
       <>

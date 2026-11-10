@@ -314,7 +314,7 @@ describe('BounceLab', () => {
     await user.keyboard('{Enter}');
     const dialog = screen.getByRole('dialog');
     await user.selectOptions(
-      within(dialog).getByRole('combobox', { name: 'Paso del motor Δt' }),
+      within(dialog).getByRole('combobox', { name: 'Paso del motor delta t' }),
       '30',
     );
     await user.keyboard('{Escape}');
@@ -341,7 +341,7 @@ describe('BounceLab', () => {
     await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Modo' }), 'collision');
 
     expect(screen.getByTestId('collision-scene')).toBeInTheDocument();
-    expect(within(dialog).queryByRole('combobox', { name: 'Paso del motor Δt' })).toBeNull();
+    expect(within(dialog).queryByRole('combobox', { name: 'Paso del motor delta t' })).toBeNull();
   });
 
   test('the Unity preset credits Unity only with the threshold and the rule, and says why the floor is 0,9', async () => {

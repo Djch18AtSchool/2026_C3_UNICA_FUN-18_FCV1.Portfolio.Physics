@@ -69,8 +69,7 @@ function engineOptions(
   return [
     {
       key: 'rate',
-      // A select's label is plain text (SelectField does not typeset `$…$`); Δ is in Plex Sans.
-      label: 'Paso del motor Δt',
+      label: 'Paso del motor $\\Delta t$',
       kind: 'select',
       value: String(settings.rate),
       options: STEP_RATES.map((rate) => ({ value: String(rate), label: `1/${rate} s` })),

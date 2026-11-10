@@ -50,6 +50,7 @@ export const SwitchField = withStableCallbacks(SwitchFieldBase);
 
 export interface SelectFieldProps {
   id: string;
+  /** Plain text, with KaTeX inline between `$…$`. The option labels are plain text: a native <option> takes no markup. */
   label: string;
   value: string;
   options: readonly { value: string; label: string }[];
@@ -66,12 +67,13 @@ export function SelectField({
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
       <label htmlFor={id} className="text-sm font-medium">
-        {label}
+        <InlineMath text={label} />
       </label>
       <div className="relative max-w-full min-w-0">
         <select
           id={id}
           value={value}
+          aria-label={mathAriaLabel(label)}
           onChange={(event) => onChange(event.target.value)}
           className={SELECT}
         >
