@@ -49,8 +49,8 @@ Los cuatro temas del Avance 2 siguen el mismo formato, cada uno con su laborator
 - `src/lib/data/`: modelos, datos copiados de una fuente y preajustes, con sus fuentes.
 - `src/lib/tables/`: el registro de tablas de datos: `index.ts` (registro y búsqueda por id), `types.ts`, `markdown.ts` (exportación para "Copiar Markdown") y una tabla por tema en `topics/<slug>.ts`. Es la única fuente de cada tabla para la página, el tiempo de lectura y "Copiar Markdown".
 - `src/components/ui/`: componentes de interfaz base, incluidos `Step.astro` y `Why.astro` (el modelo de contenido por pasos) y `DataTable.astro` (la tabla de datos, que lee el registro de `src/lib/tables/`).
-- `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `SettingsDrawer`, `ParamField`, `TransportBar`, `useSimClock`), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), los ajustes de reproducción comunes (`clockSettings`), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
-- `src/components/controls/`: controles interactivos (deslizadores, botones).
+- `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `LabPresets`, `LabNotes`, `StatusChips`, `LegendKey`, `SettingsDrawer`, `ParamField`, `TransportBar`, `useSimClock`; ver «Laboratorios por niveles»), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), los ajustes de reproducción comunes (`clockSettings`), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
+- `src/components/controls/`: `Readout` (una lectura) y `Slider`.
 - `src/components/charts/`: `ChartFrame` (el marco con título y nota de toda gráfica) y `chartTheme`/`chartScale` (tokens de color y tipografía, formato de marcas); las gráficas mismas son `SvgPlot`, en `src/components/lab/`.
 - `src/components/nav/`: navegación: barra lateral con búsqueda (`SidebarSearch`), `TopicTools`, el pie (identidad, icono de GitHub y botón de tema) y `BackToTop.astro`, el botón flotante "Volver arriba", que aparece al bajar y se detiene sobre el pie.
 - `src/components/hooks/`: hooks de React compartidos.
@@ -67,10 +67,46 @@ Todo símbolo del sitio se dibuja con una fuente que lo tiene: IBM Plex Sans, IB
 - **Pruebas unitarias** (`plexViolations`, `src/test-glyphs.ts`, en jsdom): los nueve laboratorios y las figuras de React de los temas (no las `.astro`: `HabitatDiagram`, `WheelDiagram`, tablas, ecuaciones y pies de figura quedan fuera) en sus estados de prueba. Comprueban que ningún texto fuera de KaTeX tenga un carácter que Plex no dibuja (`src/lib/typography.ts`, derivado de los archivos de las fuentes) y que no quede un `_`, `^` o `$` sin tipografiar. No ven qué fuente usó realmente el navegador.
 - **Guardia e2e** (`tests/e2e/glyphs.spec.ts`, Chromium): la portada y las nueve páginas de tema (1 280 y 360 px, claro y oscuro), con las mismas dos comprobaciones de caracteres sobre todo el texto (también el oculto, como las pestañas del cajón de ajustes) y, además, las fuentes que el navegador realmente usó (`CSS.getPlatformFontsForNode`): solo IBM Plex y `KaTeX_*`. Mide cada laboratorio al abrirse, tras cada preajuste, en sus estados condicionales (T1: ruta modificada; T8: medidor por encima del límite, etc.) y con cada pestaña del cajón abierta. `tests/e2e/glyphGuard.spec.ts` comprueba que la guardia falla si no midió nada, si un error de CDP no se pudo contar o si un laboratorio se queda sin estados.
 
-- **Texto de HTML** (leyendas, títulos, lecturas, parámetros, notas de preajuste, celdas y fuente de `DataTable`, atributos de `Figure`): escribe la fórmula entre `$…$` y se compone con KaTeX (`InlineMath` en React; `inlineMathToHtml` en Astro). `\$` es un signo de dólar literal; un `$` sin cerrar rompe la compilación. Los controles con `$…$` en su etiqueta (`ParamField`, `SwitchField`, `SelectField`, `SegmentedField`, `Presets`) llevan un `aria-label` hablado (`mathAriaLabel`: «r sub p»).
+- **Texto de HTML** (leyendas, títulos, lecturas, parámetros, notas de preajuste, celdas y fuente de `DataTable`, atributos de `Figure`): escribe la fórmula entre `$…$` y se compone con KaTeX (`InlineMath` en React; `inlineMathToHtml` en Astro). `\$` es un signo de dólar literal; un `$` sin cerrar rompe la compilación. Los controles con `$…$` en su etiqueta (`ParamField`, `SwitchField`, `SelectField`, `SegmentedField`, `LabPresets`) llevan un `aria-label` hablado (`mathAriaLabel`: «r sub p»).
 - **Texto dentro de un SVG**: `MathText` con la mininotación de `src/lib/mathNotation.ts`: `v_∞,in` (subíndice), `10^-7` (potencia), `vec v` (flecha dibujada sobre la letra) y `\_` o `\^` para el signo literal. Pasa la etiqueta completa, números y unidades incluidos, en un solo `MathText`, y escribe el nombre accesible de la figura con `mathTextToString` (dice «v sub infinito», «10 a la menos 7»).
-- **Los `<option>` nativos no admiten KaTeX** (ni ninguna marca): ahí va texto plano de Plex sin símbolos que Plex no tenga («Crítica, c = 2 raíz(k m)»). Un preajuste en botones (`Presets`) sí admite `$…$`; uno en un `<select>` (Tema 7) no.
+- **Los `<option>` nativos no admiten KaTeX** (ni ninguna marca): ahí va texto plano de Plex sin símbolos que Plex no tenga («Crítica, c = 2 raíz(k m)»). Un preajuste en fichas (`LabPresets`, hasta cuatro) sí admite `$…$`; en su `<select>` (más de cuatro) lleva un `optionLabel` en texto plano.
 - Un cambio en las fuentes de Plex se regenera con `pnpm run data:fonts` (la cobertura sale de los archivos de las fuentes, no de una lista escrita a mano).
+
+## Laboratorios por niveles
+
+Los nueve laboratorios usan `LabShell` (`src/components/lab/LabShell.tsx`). Uno nuevo (el del Tema 10, el día que llegue su consigna) declara sus niveles y el cascarón los coloca:
+
+```tsx
+<LabShell
+  title="Laboratorio del …"
+  testId="<algo>-lab"             // también en tests/e2e/topicPages.ts y en MIGRATED_LABS (lab-shell.spec.ts)
+  clock={clock}                   // opcional: sin reloj no hay reproducción
+  readouts={readouts}             // «Lecturas», en celdas de dos columnas
+  onReset={onReset}               // «Restablecer», junto a «Parámetros»
+  levels={{
+    params: <>…</>,               // nivel 1: los campos físicos, siempre a la vista
+    scenario: <LabPresets … />,   // nivel 2 (opcional): modo y preajustes
+    display: localSettings,       // nivel 3: el cajón del engranaje; `chip` → ficha junto al engranaje
+  }}
+  canvasNotes={<…Notes />}        // opcional: lo que lee el lienzo (leyenda, cámara rápida, tablas)
+  notes={{ usage, leftOut }}      // «Cómo se usa» y «Qué deja fuera el modelo», cerrados al final
+>
+  <…Scene />                      // el lienzo
+</LabShell>
+```
+
+- **Dos columnas** (variante `lab-split:` de `global.css`: ventana `lg` y laboratorio de 42 rem): escenario y panel de 20 rem, cada uno pegajoso en su celda; el panel que desborda tiene scroll propio y es una región con nombre. En una columna: lienzo, reproducción, notas del lienzo, niveles, lecturas, desplegables. Nada del laboratorio decide columnas con `sm:`/`md:`/`lg:`.
+- **`LabPresets`**: hasta cuatro preajustes son fichas; más, un `<select>` (con `groups` si se agrupan, y `optionLabel` en texto plano para un nombre con `$…$`). Debajo, una línea con la nota (una oración: `presetNotes.test.ts`) y «Fuente:», enlazada si hay `sourceUrl` (una página, no un archivo que se descarga). `basedOnId` deja la nota del último preajuste tras una edición, con «Partí de…».
+- **`StatusChips`**: fichas de solo lectura para un estado que informa el laboratorio (el «Motor» del Tema 7), no para un ajuste.
+- **Fichas de ajustes**: una opción del nivel 3 con `chip` se ve junto al engranaje (`settingChips.ts`): un interruptor solo si está activo, un selector con su opción, un rango con su valor.
+- **Notas**: un párrafo por cadena, o por bloque entre líneas en blanco dentro de una; `$…$` con KaTeX. Solo `usage` y `leftOut` del MDX cuentan en el tiempo de lectura.
+
+Reglas que dejaron los nueve laboratorios:
+
+- **El lienzo es solo el dibujo** y lo que se arrastra o se pulsa en él. Leyendas (`LegendItem`, `src/components/lab/LegendKey.tsx`), notas de cámara rápida, tablas y párrafos que leen el dibujo van a `canvasNotes`.
+- **`canvasNotes` sin controles**: en dos columnas el foco saltaría abajo y volvería arriba (`lab-shell.spec.ts` lo comprueba). Un botón como «Soltar el gatillo» va en el lienzo o en un nivel.
+- **Consultas de contenedor dentro del lienzo** (`@container` y `@lg:`…): a 1 280 px el escenario mide ~430 px aunque la ventana sea ancha. Lo que deba alinearse con el texto de la tarjeta usa `CANVAS_INSET` (`canvasInset.ts`), que sigue al sangrado del lienzo.
+- **SSR y alto reservado**: el servidor no conoce el ancho del escenario. `SvgPlot` reserva solo el alto que dibujará (`svgPlotReserve.ts`; `aspectRatio` admite un par `{ compact, wide }`); un dibujo propio que mide su ancho debe reservar su alto en CSS (como `HabitatScene`) o tener un alto fijo (como `BounceScene`). `lab-shell.spec.ts` compara la página sin JavaScript con la hidratada a 360, 540 y 1 280 px y falla si un dibujo cambia de alto o queda con bandas vacías.
 
 ## Comandos
 
