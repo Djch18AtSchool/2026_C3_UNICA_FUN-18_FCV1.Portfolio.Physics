@@ -1,4 +1,4 @@
-import type { JSX } from 'react';
+import { Fragment, type JSX } from 'react';
 import { RW400 } from '../../../lib/data/reactionWheels';
 import { mathTextToString, mathTextWidth } from '../../../lib/mathNotation';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
@@ -64,16 +64,19 @@ function NoteText({
   return (
     <g data-lines="">
       {lines.map((line, index) => (
-        <MathText
-          key={line}
-          source={line}
-          x={x}
-          y={y + index * NOTE_LINE}
-          anchor={anchor}
-          fontSize={NOTE_SIZE}
-          fill={TEXT_COLOR}
-          halo={HALO}
-        />
+        <Fragment key={line}>
+          {/* A space between the lines keeps the words apart for text extraction and copying. */}
+          {index > 0 ? ' ' : null}
+          <MathText
+            source={line}
+            x={x}
+            y={y + index * NOTE_LINE}
+            anchor={anchor}
+            fontSize={NOTE_SIZE}
+            fill={TEXT_COLOR}
+            halo={HALO}
+          />
+        </Fragment>
       ))}
     </g>
   );

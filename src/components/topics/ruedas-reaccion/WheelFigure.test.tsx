@@ -146,7 +146,7 @@ describe('WheelFigure', () => {
     expect(
       [...note.querySelectorAll('text')].map((text) => text.getAttribute('data-notation')),
     ).toEqual(['≈ 2,5 días', null]);
-    expect(note).toHaveTextContent('≈ 2,5 díasen el peor caso');
+    expect(note).toHaveTextContent('≈ 2,5 días en el peor caso');
   });
 
   test('on a phone the plots get taller than wide, so the saturation note keeps its headroom', () => {
@@ -193,7 +193,7 @@ describe('WheelFigure', () => {
     const bandRight = bandLeft + Number(band.getAttribute('width'));
     const { left, right } = noteExtent(note);
 
-    expect(note).toHaveTextContent(/la nave\s*deriva/);
+    expect(note).toHaveTextContent('la nave deriva');
     expect(left).toBeGreaterThanOrEqual(bandLeft);
     expect(right).toBeLessThanOrEqual(bandRight);
   });
