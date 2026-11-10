@@ -88,6 +88,7 @@ describe('rawNotationMarks', () => {
     expect(rawNotationMarks('src/contact_solver.c L383 y tcurve_F3soft.lut')).toEqual([]);
     expect(rawNotationMarks('del orden del DY_REF=1.80 y MPC_XY_VEL_MAX de MUR')).toEqual([]);
     expect(rawNotationMarks('researchrepository.wvu.edu/faculty_publications/2509')).toEqual([]);
+    expect(rawNotationMarks('http://www.x.com/gdc2016/GDC2016_Pittman.pdf')).toEqual([]);
   });
 
   test('a subscript starts from a single letter, so it is not taken for a name', () => {

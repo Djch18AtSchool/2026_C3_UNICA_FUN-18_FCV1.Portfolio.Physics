@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import {
   loadedTexRenderer,
   loadTexRenderer,
+  reportTexError,
   resetTexRendererForTests,
   seedTexHtml,
   typesetNow,
@@ -36,5 +37,31 @@ describe('typesetNow', () => {
     resetTexRendererForTests();
 
     expect(typesetNow('x^2')).toBeUndefined();
+  });
+});
+
+describe('reportTexError', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  test('goes to the page error handlers through reportError when the browser has it', () => {
+    const reportError = vi.fn();
+    vi.stubGlobal('reportError', reportError);
+    const failure = new Error('chunk failed');
+
+    reportTexError(failure);
+
+    expect(reportError).toHaveBeenCalledExactlyOnceWith(failure);
+  });
+
+  test('without reportError it rethrows from a microtask, so it is never swallowed', () => {
+    vi.stubGlobal('reportError', undefined);
+    const queued: (() => void)[] = [];
+    vi.stubGlobal('queueMicrotask', (task: () => void) => queued.push(task));
+    const failure = new Error('chunk failed');
+
+    reportTexError(failure);
+
+    expect(queued).toHaveLength(1);
+    expect(queued[0]).toThrow(failure);
   });
 });

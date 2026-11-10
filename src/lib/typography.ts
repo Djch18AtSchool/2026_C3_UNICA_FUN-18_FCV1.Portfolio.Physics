@@ -53,10 +53,10 @@ export const RAW_NOTATION_MARKS = ['_', '^', '$'] as const;
 
 /**
  * Real names that hold an underscore: files ("contact_solver.c", "tcurve_F3soft.lut"), constants
- * ("DY_REF", "MPC_XY_CRUISE"), identifiers in a URL ("faculty_publications"). Each part has two
+ * ("DY_REF", "MPC_XY_CRUISE"), and any web address, shown as the source's link text. Each part has two
  * characters or more; a subscript written raw ("F_z", "v_y1", "T_mín") starts from a single letter.
  */
-const LITERAL_NAME = /[A-Za-z]{2,}(?:_[A-Za-z0-9]{2,})+/g;
+const LITERAL_NAME = /https?:\/\/\S+|[A-Za-z]{2,}(?:_[A-Za-z0-9]{2,})+/g;
 
 /** The notation marks left in `text` once real names are set aside: a raw `F_z`, `10^-7` or `$`. */
 export function rawNotationMarks(text: string): string[] {

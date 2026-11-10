@@ -161,7 +161,7 @@ describe('mathTextToString keeps number spacing', () => {
   });
 });
 
-describe('review fixes', () => {
+describe('punctuation, empty scripts, moduli and the reach of drawn arrows', () => {
   test('a period, colon or semicolon followed by a space or the end ends a subscript', () => {
     const scripts = (source: string) =>
       parseNotation(source).flatMap((token) => (token.kind === 'script' ? [token.text] : []));

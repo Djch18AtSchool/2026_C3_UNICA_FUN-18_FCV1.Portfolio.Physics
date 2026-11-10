@@ -114,7 +114,7 @@ describe('InlineMath punctuation', () => {
   });
 });
 
-describe('InlineMath review fixes', () => {
+describe('InlineMath caching and load failures', () => {
   afterEach(() => {
     cleanup();
     setTexImporterForTests(undefined);

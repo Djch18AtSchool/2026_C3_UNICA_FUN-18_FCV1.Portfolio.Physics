@@ -267,7 +267,14 @@ export function mathTextWidth(source: string, fontSize: number, family: LabelFam
 }
 
 /** Baseline offsets of scripts, in em of the label (down is positive in SVG). */
-export const SHIFT_EM: Readonly<Record<Script, number>> = { base: 0, sub: 0.25, sup: -0.4 };
+/** Baseline shift of a subscript (down) and of a power (up), in em of the label. */
+export const SUB_SHIFT_EM = 0.25;
+export const SUP_SHIFT_EM = -0.4;
+export const SHIFT_EM: Readonly<Record<Script, number>> = {
+  base: 0,
+  sub: SUB_SHIFT_EM,
+  sup: SUP_SHIFT_EM,
+};
 /** Letters whose top is the x-height: a vector arrow sits lower over them. */
 const SHORT_LETTERS = 'acegmnopqrsuvwxyzαγεηικμνοπρστυφχψω';
 /** Drawn vector arrow: gap above the letter and head size, in em of its base letter. */
