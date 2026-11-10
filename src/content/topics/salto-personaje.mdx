@@ -106,7 +106,7 @@ La velocidad vertical se anula, <Equation inline latex="v_y = 0" />, en <Equatio
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Altura frente al tiempo de un lanzamiento vertical con v₀ = 13,1 m/s y g = 9,81 m/s²; el punto marca el ápice."
+  caption="Altura frente al tiempo de un lanzamiento vertical con $v_0$ = 13,1 m/s y g = 9,81 m/s²; el punto marca el ápice."
   source={{ text: 'Curva calculada por el autor con la ecuación (2.1)' }}
 >
   <JumpFigure variant="caida-libre" client:visible />
@@ -177,7 +177,7 @@ Es la (2.2) invertida; la diapositiva da g negativa, como componente con +y arri
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Subida hasta el ápice (tₕ, h) que pide cada diseño, con las constantes de la tabla 2.1. Un toque en Celeste sube 0,77 m en 0,12 s (0,76 m con el valor redondeado); sostenido, según mi cálculo, unos 28 px (3,5 m) en 0,36 s."
+  caption="Subida hasta el ápice ($t_h$, h) que pide cada diseño, con las constantes de la tabla 2.1. Un toque en Celeste sube 0,77 m en 0,12 s (0,76 m con el valor redondeado); sostenido, según mi cálculo, unos 28 px (3,5 m) en 0,36 s."
   source={{
     text: 'Curvas que calculé con la ecuación (2.1) y las constantes de la tabla 2.1',
   }}
@@ -220,12 +220,12 @@ La subida sigue la ecuación (2.2); solo la caída usa <Equation inline latex="k
 
 <Figure
   type="simulacion"
-  caption="Laboratorio del salto con las ecuaciones (2.1) a (2.4): arrastra la punta de v₀ para fijar v₀ y vₓ, o el punto de la curva para recorrer t; la curva discontinua es el mismo impulso con la gravedad terrestre, que puede salirse del gráfico, y «Diseñar el salto» aplica la ecuación (2.3)."
+  caption="Laboratorio del salto con las ecuaciones (2.1) a (2.4): arrastra la punta de $\vec v_0$ para fijar $v_0$ y $v_x$, o el punto de la curva para recorrer t; la curva discontinua es el mismo impulso con la gravedad terrestre, que puede salirse del gráfico, y «Diseñar el salto» aplica la ecuación (2.3)."
   source={{ text: 'Simulación del autor sobre src/lib/physics/projectile.ts' }}
 >
   <JumpLab
     client:visible
-    footnote="Lo que el modelo deja fuera: usa g al subir y k·g desde el ápice, sin la prolongación del impulso (0,2 s) ni la media gravedad de Celeste, sin el cambio de Mario al soltar A antes del ápice (el preajuste sostiene A toda la subida) y sin los topes de caída, 20 m/s en Celeste (MaxFall = 160 px/s) y 15 m/s en Mario (4 px/cuadro). Por ese tope, según mi cálculo, Mario tarda unos 0,34 s en bajar, no los 0,29 s del modelo. Con el integrador del motor (Euler semi-implícito), el ápice de Mario baja de 4,00 m a 3,75, 3,88 y ≈ 3,95 m a 30, 60 y 144 cuadros/s."
+    footnote="Lo que el modelo deja fuera: usa g al subir y k·g desde el ápice, sin la prolongación del impulso (0,2 s) ni la media gravedad de Celeste, sin el cambio de Mario al soltar A antes del ápice (el preajuste sostiene A toda la subida) y sin los topes de caída, 20 m/s en Celeste (MaxFall = 160 px/s) y 15 m/s en Mario (4 px/cuadro). Por ese tope, según mi cálculo, Mario tarda unos 0,34 s en bajar, no los 0,29 s del modelo. Con el integrador del motor (Euler semi-implícito), el ápice de Mario baja de 4,00 m a 3,75, 3,88 y $\approx$ 3,95 m a 30, 60 y 144 cuadros/s."
   />
 </Figure>
 

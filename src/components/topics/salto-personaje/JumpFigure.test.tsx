@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { monoTextWidth } from '../../lab/plotScales';
+import { mathTextWidth } from '../../../lib/mathNotation';
+import { mathSourceText } from '../../../test-inline-math';
+import { plexViolations } from '../../../test-glyphs';
+import { svgText } from '../../../test-svg-text';
 import JumpFigure from './JumpFigure';
 
 const strokeOf = (container: HTMLElement, id: string) =>
@@ -43,6 +46,8 @@ describe('JumpFigure', () => {
     expect(container.querySelectorAll('[data-apex]')).toHaveLength(2);
     expect(screen.getByText(/h = 4,00 m/)).toBeInTheDocument();
     expect(screen.getByText(/h = 0,76 m/)).toBeInTheDocument();
+    expect(screen.getByText(svgText(/^th = 0,53\ss$/))).toBeInTheDocument();
+    expect(screen.getByText(svgText(/^th = 0,12\ss$/))).toBeInTheDocument();
   });
 
   // The figure's plot is about 290 px wide on a 375 px phone.
@@ -64,10 +69,10 @@ describe('JumpFigure', () => {
       const { container } = render(<JumpFigure variant="diseno" />);
       const [mario, celeste] = [...container.querySelectorAll('[data-apex]')];
       const guideX = Number(mario.querySelector('circle')?.getAttribute('cx'));
-      const text = celeste.querySelector('text') as SVGTextElement;
+      const [text, ...otherLines] = [...celeste.querySelectorAll('text')];
       const longest = Math.max(
-        ...[...text.querySelectorAll('tspan')].map((line) =>
-          monoTextWidth(line.textContent ?? '', 12),
+        ...[text, ...otherLines].map((line) =>
+          mathTextWidth(line.getAttribute('data-notation') ?? line.textContent ?? '', 12, 'mono'),
         ),
       );
 
@@ -75,6 +80,28 @@ describe('JumpFigure', () => {
       // …and still starts right of its own apex dot (radius 5).
       const apexX = Number(celeste.querySelector('circle')?.getAttribute('cx'));
       expect(Number(text.getAttribute('x'))).toBeGreaterThanOrEqual(apexX + 6);
+    },
+  );
+
+  test('the free-fall title and the designs legend write v_0 in KaTeX', () => {
+    const free = render(<JumpFigure variant="caida-libre" />);
+    expect(mathSourceText(free.container)).toContain('$v_0$ = 13,1 m/s');
+    cleanup();
+    const design = render(<JumpFigure variant="diseno" />);
+    expect(mathSourceText(screen.getByRole('list', { name: 'Leyenda' }))).toContain(
+      'Celeste: g = 112,5 m/s², $v_0$ = 13,1 m/s',
+    );
+    expect(design.container.querySelector('svg[role="img"]')?.getAttribute('aria-label')).toContain(
+      't sub h',
+    );
+  });
+
+  test.each(['caida-libre', 'gravedades', 'diseno'] as const)(
+    '%s: every character outside KaTeX is one IBM Plex draws',
+    (variant) => {
+      const { container } = render(<JumpFigure variant={variant} />);
+
+      expect(plexViolations(container)).toEqual([]);
     },
   );
 });

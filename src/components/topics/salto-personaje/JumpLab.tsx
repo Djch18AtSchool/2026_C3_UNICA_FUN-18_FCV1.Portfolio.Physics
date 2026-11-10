@@ -5,6 +5,7 @@ import { clampSettings } from '../../../lib/limits';
 import { G_EARTH } from '../../../lib/physics';
 import Presets, { type Preset } from '../../controls/Presets';
 import { snapTo } from '../../lab/dragMath';
+import InlineMath from '../../lab/InlineMath';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import { KNOB_HIT_RADIUS } from '../../lab/OverlayMarks';
 import ParamField from '../../lab/ParamField';
@@ -37,9 +38,9 @@ const SNAP_DECIMALS = 2;
 const EARTH_COLOR = worldForPreset('tierra').color;
 
 const FIELD_NAMES: Record<JumpKey, string> = {
-  v0: 'impulso v₀',
+  v0: 'impulso $v_0$',
   g: 'gravedad g',
-  vx: 'velocidad horizontal vₓ',
+  vx: 'velocidad horizontal $v_x$',
   fallMultiplier: 'multiplicador de caída',
 };
 
@@ -169,7 +170,7 @@ export default function JumpLab({ footnote }: JumpLabProps): JSX.Element {
       <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
         <ParamField
           id="jump-v0"
-          label="Impulso de salto v₀"
+          label="Impulso de salto $v_0$"
           unit="m/s"
           min={JUMP_LIMITS.v0[0]}
           max={JUMP_LIMITS.v0[1]}
@@ -195,7 +196,9 @@ export default function JumpLab({ footnote }: JumpLabProps): JSX.Element {
       />
       {clamped.length > 0 ? (
         <p data-testid="clamp-note" role="status" className="m-0 text-sm">
-          {`Valores ajustados al rango de los controles: ${clamped.map((key) => FIELD_NAMES[key]).join(', ')}.`}
+          <InlineMath
+            text={`Valores ajustados al rango de los controles: ${clamped.map((key) => FIELD_NAMES[key]).join(', ')}.`}
+          />
         </p>
       ) : null}
     </>

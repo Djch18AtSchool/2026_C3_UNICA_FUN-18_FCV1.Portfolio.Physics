@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { CELESTE_JUMP, JUMP_PRESETS } from '../../data/jumpPresets';
 import { tableById } from '../index';
+import { uncoveredChars } from '../../typography';
 import { tableMarkdown } from '../markdown';
 import { GAME_CONSTANTS, TABLES, toSi } from './salto-personaje';
 
@@ -74,5 +75,18 @@ describe('salto-personaje tables', () => {
     expect(table.source.text).toContain('Player.cs (fuente 1)');
     expect(table.source.text).toContain('Super Mario Bros. (fuente 3)');
     expect(table.source.text).toContain('escalas que supongo yo y que el código no fija');
+  });
+
+  test('captions, headers and text cells leave IBM Plex only inside $…$ (KaTeX)', () => {
+    const outsideKatex = (text: string) => text.replace(/\$[^$]*\$/g, '');
+
+    for (const table of TABLES) {
+      const texts = [
+        table.caption,
+        ...table.columns.map((column) => column.label),
+        ...table.rows.flatMap((row) => table.columns.map((column) => String(row[column.key]))),
+      ];
+      expect(texts.flatMap((text) => uncoveredChars(outsideKatex(text), 'sans'))).toEqual([]);
+    }
   });
 });

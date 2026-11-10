@@ -110,13 +110,14 @@ test('una parada se mueve con las flechas del teclado', async ({ page }) => {
 
 test('las gráficas de perfiles siguen presentes y su marcador sigue a t', async ({ page }) => {
   const profiles = page.getByTestId('drone-profiles');
+  // The titles of the velocity and acceleration charts hold KaTeX subscripts (v_x, a_y).
   for (const title of [
-    'Posición: x(t) y y(t)',
-    'Velocidad: vx(t), vy(t) y |v|(t)',
-    'Aceleración: ax(t), ay(t) y |a|(t)',
-    'Distancia recorrida frente a |Δr| desde el depósito',
+    /^Posición: x\(t\) y y\(t\)$/,
+    /^Velocidad: /,
+    /^Aceleración: /,
+    /^Distancia recorrida frente a \|Δr\| desde el depósito$/,
   ]) {
-    await expect(profiles.getByText(title, { exact: true })).toBeVisible();
+    await expect(profiles.locator('figcaption').filter({ hasText: title })).toBeVisible();
   }
   // Four named charts (SvgPlot images), each with its t axis in seconds and the delivery bands.
   await expect(profiles.getByRole('img')).toHaveCount(4);

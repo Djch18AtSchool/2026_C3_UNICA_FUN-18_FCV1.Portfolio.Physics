@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 import { designJump } from '../../../lib/physics';
 import { formatNumber } from '../../../lib/format';
+import InlineMath from '../../lab/InlineMath';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import type { JumpSettings } from './jumpModel';
 
@@ -51,7 +52,10 @@ export default function JumpDesigner({ current, onApply }: JumpDesignerProps) {
     >
       <h3 id={`${id}-title`} className="m-0 text-sm font-semibold">
         Diseñar el salto
-        <span className="font-normal text-fg-muted"> · altura y tiempo al ápice → g y v₀</span>
+        <span className="font-normal text-fg-muted">
+          {' '}
+          · <InlineMath text="altura y tiempo al ápice $\to$ g y $v_0$" />
+        </span>
       </h3>
       <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
         <label className="flex w-32 flex-col gap-1 text-sm font-medium">
@@ -83,8 +87,16 @@ export default function JumpDesigner({ current, onApply }: JumpDesignerProps) {
             data-testid="jump-designer-result"
             className="m-0 flex min-h-10 flex-wrap items-center gap-x-4 gap-y-1 font-mono text-sm tabular-nums"
           >
-            <span>{`g = 2h/tₕ² = ${formatNumber(derived.g, { precision: decimals, unit: 'm/s²' })}`}</span>
-            <span>{`v₀ = 2h/tₕ = ${formatNumber(derived.v0, { precision: decimals, unit: 'm/s' })}`}</span>
+            <span>
+              <InlineMath
+                text={`$g = 2h/t_h^2$ = ${formatNumber(derived.g, { precision: decimals, unit: 'm/s²' })}`}
+              />
+            </span>
+            <span>
+              <InlineMath
+                text={`$v_0 = 2h/t_h$ = ${formatNumber(derived.v0, { precision: decimals, unit: 'm/s' })}`}
+              />
+            </span>
           </p>
         ) : null}
         <button

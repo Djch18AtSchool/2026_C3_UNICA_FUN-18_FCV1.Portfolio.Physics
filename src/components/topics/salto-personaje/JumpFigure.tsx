@@ -1,9 +1,11 @@
 import type { JSX } from 'react';
 import { CELESTE_JUMP, JUMP_PRESETS } from '../../../lib/data/jumpPresets';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString, mathTextWidth } from '../../../lib/mathNotation';
 import { G_EARTH } from '../../../lib/physics';
-import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
-import { monoTextWidth, type Scale } from '../../lab/plotScales';
+import { SURFACE_COLOR, TEXT_COLOR } from '../../charts/chartTheme';
+import MathText from '../../lab/MathText';
+import type { Scale } from '../../lab/plotScales';
 import SvgPlot, { type PlotSeries } from '../../lab/SvgPlot';
 import { computeJump, type JumpResult, type JumpSettings } from './jumpModel';
 import { worldForPreset } from './jumpWorlds';
@@ -30,7 +32,7 @@ const s = (value: number) => formatNumber(value, { precision: PRECISION, unit: '
 /** Gravity as v1 writes it: 9,81, 28,1, 112,5 (no padding zeros). */
 const gravity = (g: number) => `${String(g).replace('.', ',')} m/s²`;
 
-/** A symmetric jump (k = 1, vₓ = 0) with this impulse and gravity. */
+/** A symmetric jump (k = 1, v_x = 0) with this impulse and gravity. */
 const verticalJump = (v0: number, g: number) => computeJump({ v0, g, vx: 0, fallMultiplier: 1 });
 const heightOverTime = (result: JumpResult) => result.points.map(({ t, y }) => ({ x: t, y }));
 const riseOnly = (result: JumpResult) =>
@@ -54,10 +56,12 @@ function FreeFall(): JSX.Element {
   return (
     <SvgPlot
       {...AXES}
-      title={`Lanzamiento vertical en la Tierra, v₀ = ${String(IMPULSE).replace('.', ',')} m/s`}
+      title={`Lanzamiento vertical en la Tierra, $v_0$ = ${String(IMPULSE).replace('.', ',')} m/s`}
       series={[seriesFor('tierra', 'Tierra', heightOverTime(earth))]}
       marker={{ x: earth.tApex, y: earth.hMax, label: 'ápice' }}
-      ariaLabel={`Altura y(t) con g = 9,81 m/s²: sube ${m(earth.hMax)} en ${s(earth.tApex)} y vuelve al suelo a los ${s(earth.tAir)}.`}
+      ariaLabel={mathTextToString(
+        `Altura y(t) con g = 9,81 m/s²: sube ${m(earth.hMax)} en ${s(earth.tApex)} y vuelve al suelo a los ${s(earth.tAir)}.`,
+      )}
     />
   );
 }
@@ -111,8 +115,8 @@ function Apex({
 }) {
   const cx = x.toPx(result.tApex);
   const cy = y.toPx(result.hMax);
-  const lines = [`h = ${m(result.hMax)}`, `tₕ = ${s(result.tApex)}`];
-  const width = Math.max(...lines.map((line) => monoTextWidth(line, LABEL_SIZE)));
+  const lines = [`h = ${m(result.hMax)}`, `t_h = ${s(result.tApex)}`];
+  const width = Math.max(...lines.map((line) => mathTextWidth(line, LABEL_SIZE, 'mono')));
   // On a narrow plot the label slides a little left to clear the limit, but never onto its point
   // (further left it would run into the steeper curve rising past it).
   const latestStart = labelLimit === undefined ? Infinity : labelLimit - LIMIT_GAP - width;
@@ -135,21 +139,17 @@ function Apex({
         stroke={SURFACE_COLOR}
         strokeWidth={2}
       />
-      <text
-        x={labelX}
-        y={firstLineY}
-        fill={TEXT_COLOR}
-        fontFamily={TICK_FONT_FAMILY}
-        fontSize={LABEL_SIZE}
-        stroke={SURFACE_COLOR}
-        strokeWidth={HALO_WIDTH}
-        paintOrder="stroke"
-      >
-        <tspan x={labelX}>{lines[0]}</tspan>
-        <tspan x={labelX} dy={LABEL_LINE}>
-          {lines[1]}
-        </tspan>
-      </text>
+      {lines.map((line, index) => (
+        <MathText
+          key={line}
+          source={line}
+          x={labelX}
+          y={firstLineY + index * LABEL_LINE}
+          fontSize={LABEL_SIZE}
+          fill={TEXT_COLOR}
+          halo={{ color: SURFACE_COLOR, width: HALO_WIDTH }}
+        />
+      ))}
     </g>
   );
 }
@@ -158,7 +158,7 @@ function Design(): JSX.Element {
   const celeste = verticalJump(CELESTE_JUMP.v0, CELESTE_JUMP.g);
   const mario = verticalJump(SMB.v0, SMB.g);
   const label = (id: string, settings: JumpSettings) =>
-    `${worldForPreset(id).name}: g = ${gravity(settings.g)}, v₀ = ${String(settings.v0).replace('.', ',')} m/s`;
+    `${worldForPreset(id).name}: g = ${gravity(settings.g)}, $v_0$ = ${String(settings.v0).replace('.', ',')} m/s`;
   return (
     <SvgPlot
       {...AXES}
@@ -175,7 +175,9 @@ function Design(): JSX.Element {
           <Apex result={celeste} x={x} y={y} labelLimit={x.toPx(mario.tApex)} />
         </>
       )}
-      ariaLabel={`Subida de Super Mario Bros. hasta h = ${m(mario.hMax)} en tₕ = ${s(mario.tApex)} y de Celeste hasta h = ${m(celeste.hMax)} en tₕ = ${s(celeste.tApex)}.`}
+      ariaLabel={mathTextToString(
+        `Subida de Super Mario Bros. hasta h = ${m(mario.hMax)} en t_h = ${s(mario.tApex)} y de Celeste hasta h = ${m(celeste.hMax)} en t_h = ${s(celeste.tApex)}.`,
+      )}
     />
   );
 }

@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
 import JumpLab from './JumpLab';
 
 /** Identity CTM on every svg: client pixels are viewBox units, so DOM coordinates are pointer ones. */
@@ -110,7 +112,7 @@ describe('JumpLab', () => {
     expect((v0Range() as HTMLInputElement).value).toBe('13.6');
     expect(screen.getByTestId('launch-handle')).toHaveAttribute(
       'aria-valuetext',
-      expect.stringMatching(/vₓ = 10,75/),
+      expect.stringMatching(/v sub x = 10,75/),
     );
   });
 
@@ -292,7 +294,7 @@ describe('JumpLab', () => {
     expect(within(designer).getByTestId('jump-designer-result')).toHaveTextContent(/2\s?000,00/);
     await user.click(apply);
 
-    expect(screen.getByTestId('clamp-note')).toHaveTextContent(/impulso v₀, gravedad g/);
+    expect(mathSourceText(screen.getByTestId('clamp-note'))).toContain('impulso $v_0$, gravedad g');
     expect((v0Range() as HTMLInputElement).value).toBe('25');
   });
   test('the knobs may bleed past the plot edge, but the trail and the vectors stay inside it', () => {
@@ -312,5 +314,23 @@ describe('JumpLab', () => {
       expect(clipRect(clipOf(container.querySelector(selector))), selector).toEqual(plotArea);
     }
     expect(clipRect(clipOf(screen.getByTestId('jump-marker')))).not.toEqual(plotArea);
+  });
+
+  test('every character of the lab, the designer and the settings outside KaTeX is one IBM Plex draws', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    await user.click(gear());
+
+    expect(plexViolations(document.body)).toEqual([]);
+  });
+
+  test('the launch handle says v_0 and v_x in words and the vectors carry drawn arrows', () => {
+    const { container } = renderLab();
+
+    expect(screen.getByTestId('launch-handle').getAttribute('aria-valuetext')).toMatch(
+      /^v sub 0 = .*, v sub x = /,
+    );
+    expect(container.querySelector('[data-notation="vec v_0"]')).not.toBeNull();
+    expect(container.querySelector('[data-velocity] [data-notation="vec v"]')).not.toBeNull();
   });
 });

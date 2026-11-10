@@ -1,5 +1,6 @@
 import { useRef, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
+import { mathTextToString } from '../../../lib/mathNotation';
 import { TEXT_COLOR } from '../../charts/chartTheme';
 import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Knob, Label, type Point } from '../../lab/OverlayMarks';
@@ -175,12 +176,12 @@ export default function JumpOverlay({
           <g data-velocity="" transform={translate(body)}>
             <Arrow from={ORIGIN} to={velocityTip} color={TEXT_COLOR} />
             <g transform={translate(velocityTip)}>
-              <Label at={ORIGIN}>v</Label>
+              <Label at={ORIGIN}>vec v</Label>
             </g>
           </g>
         ) : null}
         <Arrow from={origin} to={tip} color={LAUNCH_COLOR} />
-        <Label at={tip}>v₀</Label>
+        <Label at={tip}>vec v_0</Label>
       </g>
       <g
         data-testid="jump-marker"
@@ -208,7 +209,9 @@ export default function JumpOverlay({
         aria-valuemin={JUMP_LIMITS.v0[0]}
         aria-valuemax={JUMP_LIMITS.v0[1]}
         aria-valuenow={settings.v0}
-        aria-valuetext={`v₀ = ${format(settings.v0, 'm/s')}, vₓ = ${format(settings.vx, 'm/s')}`}
+        aria-valuetext={mathTextToString(
+          `v_0 = ${format(settings.v0, 'm/s')}, v_x = ${format(settings.vx, 'm/s')}`,
+        )}
         className="group cursor-move outline-none"
         onKeyDown={onLaunchKeyDown}
         {...launchDrag}
