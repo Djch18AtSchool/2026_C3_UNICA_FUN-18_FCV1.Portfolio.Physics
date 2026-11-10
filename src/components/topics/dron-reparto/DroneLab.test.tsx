@@ -19,6 +19,13 @@ const LEFT_OUT = 'Mi dron se detiene en cada vértice y no hay viento.';
  * timeout is the margin left for the render itself.
  */
 const LAB_READY_TIMEOUT_MS = 5_000;
+/** A state the lab reaches in an effect after a render (the opening seek, an edited route). */
+const SETTLE_TIMEOUT_MS = 3_000;
+/**
+ * Each test may wait for the lab, then for a settled state, then act: more than vitest's 5 s
+ * default, which equals the lab's own wait and left no room for the rest under coverage.
+ */
+const TEST_TIMEOUT_MS = LAB_READY_TIMEOUT_MS + 2 * SETTLE_TIMEOUT_MS + 5_000;
 
 // Load the dataset once, so the lab's own dynamic import resolves from the module cache.
 beforeAll(async () => {
@@ -69,7 +76,7 @@ const DECLARED_DURATION = '387,43 s';
 const modifiedNote = () => screen.queryByTestId('route-modified');
 const timeline = () => screen.getByRole('slider', { name: 'Línea de tiempo' });
 
-describe('DroneLab', () => {
+describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
   let uninstall: () => void;
   beforeEach(() => {
     uninstall = installDialogPolyfill();
@@ -89,7 +96,9 @@ describe('DroneLab', () => {
 
     expect(readout('Duración de la ruta')).toBe(DECLARED_DURATION);
     // The opening seek is an effect after the first ready commit; wait for it rather than race it.
-    await waitFor(() => expect(valueText(timeline())).toBe('t = 30,0 s'));
+    await waitFor(() => expect(valueText(timeline())).toBe('t = 30,0 s'), {
+      timeout: SETTLE_TIMEOUT_MS,
+    });
     expect(mathSourceText(screen.getByTestId('drone-lab'))).toContain('crucero ($\\vec a = 0$)');
     expect(readout('Rapidez |v|')).toBe('10,00 m/s');
     expect(modifiedNote()).toBeNull();
@@ -262,7 +271,7 @@ describe('DroneLab', () => {
 
     fireEvent.change(vMax, { target: { value: '5' } });
 
-    await screen.findByTestId('route-modified');
+    await screen.findByTestId('route-modified', {}, { timeout: SETTLE_TIMEOUT_MS });
     expect(
       Number(readout('Duración de la ruta').replace(',', '.').replace(' s', '')),
     ).toBeGreaterThan(600);
@@ -274,7 +283,7 @@ describe('DroneLab', () => {
 
     fireEvent.change(aMax, { target: { value: '1' } });
 
-    await screen.findByTestId('route-modified');
+    await screen.findByTestId('route-modified', {}, { timeout: SETTLE_TIMEOUT_MS });
     expect(
       Number(readout('Duración de la ruta').replace(',', '.').replace(' s', '')),
     ).toBeGreaterThan(400);

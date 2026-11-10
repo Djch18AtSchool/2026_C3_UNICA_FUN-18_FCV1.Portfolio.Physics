@@ -48,6 +48,11 @@ function renderMapAt(svgWidth: number) {
   );
 }
 
+/**
+ * These tests mount the route map with the whole declared route (some of them at several widths):
+ * under coverage that can near vitest's 5 s default, so they get their own.
+ */
+const MAP_RENDER_TIMEOUT_MS = 15_000;
 const PHONE_WIDTH = 246;
 const NARROWEST_WIDTH = 240;
 const WIDEST_COMPACT = 479;
@@ -55,7 +60,7 @@ const NARROWEST_WIDE = 480;
 const COLUMN_WIDTH = 561;
 const FULL_WIDTH = 725;
 
-describe('mapPlotHeight', () => {
+describe('mapPlotHeight', { timeout: MAP_RENDER_TIMEOUT_MS }, () => {
   test.each([
     NARROWEST_WIDTH,
     PHONE_WIDTH,
@@ -82,7 +87,7 @@ const resolveCss = (expression: string, container: number, rem: number) =>
 const figureHeight = (svgWidth: number, rem: number) =>
   mapPlotHeight(svgWidth) + resolveCss(MAP_FIGURE_CHROME, 0, rem);
 
-describe('the skeleton’s placeholder of the map figure', () => {
+describe('the skeleton’s placeholder of the map figure', { timeout: MAP_RENDER_TIMEOUT_MS }, () => {
   // The frame is in rem: check both the current 17 px root and phase C's 16 px.
   test.each([
     [300, 17],
