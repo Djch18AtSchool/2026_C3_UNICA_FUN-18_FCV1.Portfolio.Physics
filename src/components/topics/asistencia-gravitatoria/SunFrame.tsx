@@ -126,7 +126,9 @@ export default function SunFrame({
   );
 
   return (
-    <div ref={wrapperRef} className="w-full">
+    // Never wider than MAX_SIDE: the server draws at FALLBACK_WIDTH with the same proportions, so
+    // a frame in a wide column (the two-column lab's stage) keeps its height on hydration (no CLS).
+    <div ref={wrapperRef} className="w-full" style={{ maxWidth: MAX_SIDE }}>
       <svg
         data-testid="flyby-sun-frame"
         viewBox={`0 0 ${width} ${height}`}
