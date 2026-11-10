@@ -66,8 +66,8 @@ const ROW_MIDDLE = 34;
 const KEY_GAP = 18;
 const LABEL_X = 2;
 const LABEL_SIZE = 12;
-const SMALL_SIZE = 11;
-/** The mass labels sit side by side over the balls of the first row (subscripts at 75 %: 8 px). */
+const SMALL_SIZE = 12;
+/** The mass labels sit side by side over the balls of the first row (subscripts at 75 %: 9 px). */
 const MASS_SIZE = SMALL_SIZE;
 /** Ball radii scale as ∛m (same density): 12 px for 2 kg, 12/∛2 for 1 kg. */
 const BALL_1 = { id: 1, x: 78, r: 12 } as const;
@@ -89,7 +89,7 @@ const MASS_LABEL_GAP = 6;
 const KEY_SWATCH = 10;
 const KEY_TEXT_GAP = 4;
 const KEY_ITEM_GAP = 14;
-/** Advance of one character of the 11 px mono font. */
+/** Advance of one character of the 12 px mono font. */
 const SMALL_CHAR = SMALL_SIZE * 0.6;
 
 const textStyle = { fontFamily: TICK_FONT_FAMILY, fill: TEXT_COLOR } as const;

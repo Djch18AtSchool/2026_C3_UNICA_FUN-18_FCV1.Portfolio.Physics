@@ -43,8 +43,6 @@ const FLOW_BOTTOM = 40;
 const NOTE_SIZE = 12;
 const KEY_WIDTH = 26;
 const KEY_HEIGHT = 12;
-/** Keeps "(1 − η)" on one line. */
-
 const PHASE_COLORS: Readonly<Record<DrivePhase, string>> = {
   stopped: TICK_COLOR,
   coasting: TICK_COLOR,
