@@ -35,6 +35,13 @@ describe('LabNotes', () => {
     expect(mathSourceText(details(LEFT_OUT_TITLE).querySelector('p'))).toBe(LEFT_OUT[0]);
   });
 
+  test('a blank line inside a string starts a new paragraph (a long note written in the MDX)', () => {
+    render(<LabNotes leftOut={['Supuestos.\n\nEl resorte de retorno.\n\n\nLo que deja fuera.']} />);
+
+    const paragraphs = [...details(LEFT_OUT_TITLE).querySelectorAll('p')].map((p) => p.textContent);
+    expect(paragraphs).toEqual(['Supuestos.', 'El resorte de retorno.', 'Lo que deja fuera.']);
+  });
+
   test('the summary opens and closes its disclosure', async () => {
     const user = userEvent.setup();
     render(<LabNotes usage={USAGE} />);

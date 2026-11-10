@@ -10,9 +10,9 @@ export const USAGE_TITLE = 'Cómo se usa';
 export const LEFT_OUT_TITLE = 'Qué deja fuera el modelo';
 
 export interface LabNotesContent {
-  /** «Cómo se usa»: one paragraph per string. */
+  /** «Cómo se usa»: one paragraph per string, or per block between blank lines in one. */
   usage?: readonly string[];
-  /** «Qué deja fuera el modelo»: one paragraph per string. */
+  /** «Qué deja fuera el modelo»: one paragraph per string, or per block between blank lines. */
   leftOut?: readonly string[];
 }
 
@@ -63,8 +63,14 @@ function Disclosure({
   );
 }
 
+/** A blank line inside a string also ends a paragraph, so a long note can be written in one. */
+const PARAGRAPH_BREAK = /\n\s*\n/;
+
 const written = (paragraphs: readonly string[] = []) =>
-  paragraphs.filter((text) => text.trim() !== '');
+  paragraphs
+    .flatMap((text) => text.split(PARAGRAPH_BREAK))
+    .map((text) => text.trim())
+    .filter((text) => text !== '');
 
 export default function LabNotes({ usage, leftOut }: LabNotesContent): JSX.Element | null {
   const usageText = written(usage);
