@@ -10,6 +10,9 @@ export const HYDRATION_WIDTHS = [360, 540, 1280] as const;
 const HEIGHT_TOLERANCE_PX = 1;
 const VIEWPORT_HEIGHT = 800;
 
+/** The drawings of a lab's canvas: SvgPlot's plots and the scenes the labs draw themselves. */
+const DRAWINGS = '[data-lab-canvas] :is(svg[role=img], svg[data-testid])[viewBox]';
+
 /** Heights of the lab and of every drawing in its canvas, as laid out right now. */
 async function measureLab(page: Page, labSelector: string): Promise<number[]> {
   return page.locator(labSelector).evaluate((lab) => {
@@ -18,6 +21,28 @@ async function measureLab(page: Page, labSelector: string): Promise<number[]> {
     const drawings = canvas ? [...canvas.querySelectorAll('svg[role=img], svg[data-testid]')] : [];
     return [height(lab), ...(canvas ? [height(canvas)] : []), ...drawings.map(height)];
   });
+}
+
+/**
+ * What still keeps the lab from being the one React made: not hydrated yet (React has not
+ * claimed the lab's root), or a drawing that has not measured its width (its viewBox is not its
+ * box's width: the server's 720 px, or a plot still under SvgPlot's reserve). Empty once ready.
+ * Astro drops the island's `ssr` flag when it starts hydrating, before React commits and before
+ * any ResizeObserver reports, so waitForIsland alone is not enough to compare.
+ */
+async function notYetMeasured(page: Page, labSelector: string): Promise<string[]> {
+  return page.locator(labSelector).evaluate(
+    (lab, { drawings, slack }) => {
+      const isHydrated = Object.keys(lab).some((key) => key.startsWith('__reactFiber'));
+      const pending = [...lab.querySelectorAll(drawings)].flatMap((node, index) => {
+        const svg = node as SVGSVGElement;
+        const gap = Math.abs(svg.viewBox.baseVal.width - svg.getBoundingClientRect().width);
+        return gap > slack ? [`dibujo ${index} sin medir (${gap.toFixed(1)} px)`] : [];
+      });
+      return [...(isHydrated ? [] : ['sin hidratar']), ...pending];
+    },
+    { drawings: DRAWINGS, slack: HEIGHT_TOLERANCE_PX },
+  );
 }
 
 /**
@@ -46,6 +71,11 @@ export async function expectSameHeightAfterHydration(
   await page.locator(labSelector).scrollIntoViewIfNeeded();
   await waitForIsland(page, labSelector);
   await page.evaluate(() => document.fonts.ready);
+  await expect
+    .poll(() => notYetMeasured(page, labSelector), {
+      message: `${labSelector} a ${width} px: hidratado y con sus dibujos medidos`,
+    })
+    .toEqual([]);
   // Each height against the server's, unrounded, within the tolerance: [] once all agree.
   const drift = async () => {
     const hydrated = await measureLab(page, labSelector);
@@ -61,13 +91,18 @@ export async function expectSameHeightAfterHydration(
       message: `${labSelector} a ${width} px: alturas del laboratorio, el lienzo y sus dibujos`,
     })
     .toEqual([]);
-  expect(await letterboxed(page, labSelector), `${labSelector} a ${width} px`).toEqual([]);
+  await expect
+    .poll(() => letterboxed(page, labSelector), {
+      message: `${labSelector} a ${width} px: dibujos sin bandas vacías`,
+    })
+    .toEqual([]);
   await live.close();
 }
 
 /**
- * The hydrated drawings whose box has another shape than their viewBox: a height reserved in CSS
+ * The measured drawings whose box has another shape than their viewBox: a height forced in CSS
  * for one layout while React drew the other leaves empty bands above and below the drawing.
+ * (Measured, SvgPlot drops its reserve; this guards a wrapper that forces an aspect again.)
  */
 async function letterboxed(page: Page, labSelector: string): Promise<string[]> {
   return page.locator(labSelector).evaluate((lab, tolerance) => {
