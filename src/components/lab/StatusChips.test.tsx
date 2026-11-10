@@ -51,6 +51,14 @@ describe('StatusChips', () => {
     }
   });
 
+  test('a chip never breaks: «$\\Delta t$ = 1/60 s» stays on one line with its formula', () => {
+    render(<StatusChips label="Motor" items={ENGINE} />);
+
+    for (const item of screen.getAllByRole('listitem')) {
+      expect(item).toHaveClass('whitespace-nowrap');
+    }
+  });
+
   test('renders nothing without items', () => {
     const { container } = render(<StatusChips label="Motor" items={[]} />);
 

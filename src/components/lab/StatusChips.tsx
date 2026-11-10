@@ -24,7 +24,7 @@ export interface StatusChipsProps {
 }
 
 const CHIP =
-  'inline-flex min-h-8 items-center rounded-base border border-border bg-bg px-2 font-mono text-xs tabular-nums';
+  'inline-flex min-h-8 items-center whitespace-nowrap rounded-base border border-border bg-bg px-2 font-mono text-xs tabular-nums';
 
 export default function StatusChips({
   label,
