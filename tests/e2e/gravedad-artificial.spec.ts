@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { describeReport, measureGlyphs, openFontSession } from './glyphKit';
-import { readoutText as readReadout, setRange, waitForIsland } from './helpers';
+import { readoutText as readReadout, seekTimeline, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/gravedad-artificial/';
 const LAB = '[data-testid="habitat-lab"]';
@@ -42,7 +42,7 @@ test.describe('laboratorio', () => {
   test('una vuelta completa termina, vuelve a "Reproducir" y no repite', async ({ page }) => {
     const lab = page.locator(LAB);
     const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
-    await setRange(timeline, NEAR_END);
+    await seekTimeline(timeline, NEAR_END);
 
     await lab.getByRole('button', { name: 'Reproducir' }).click();
     await expect(timeline).toHaveValue('1000', { timeout: PLAYBACK_TIMEOUT_MS });

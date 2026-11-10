@@ -1,5 +1,11 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { mathSource, readoutText as readReadout, setRange, waitForIsland } from './helpers';
+import {
+  mathSource,
+  readoutText as readReadout,
+  seekTimeline,
+  setRange,
+  waitForIsland,
+} from './helpers';
 
 const PAGE = './temas/dron-reparto/';
 const LAB = '[data-testid="drone-lab"]';
@@ -50,7 +56,7 @@ test.beforeEach(async ({ page }) => {
 test('reproducir termina al final, vuelve a "Reproducir" y no repite', async ({ page }) => {
   const lab = page.locator(LAB);
   const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
-  await setRange(timeline, NEAR_END);
+  await seekTimeline(timeline, NEAR_END);
 
   await lab.getByRole('button', { name: 'Reproducir' }).click();
   await expect(timeline).toHaveValue('1000', { timeout: PLAYBACK_TIMEOUT_MS });

@@ -1,6 +1,12 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { hydrateAllIslands, readoutText as readReadout, setRange, waitForIsland } from './helpers';
+import {
+  hydrateAllIslands,
+  readoutText as readReadout,
+  seekTimeline,
+  setRange,
+  waitForIsland,
+} from './helpers';
 
 const PAGE = './temas/frenado-regenerativo/';
 const TITLE = 'Frenado regenerativo en un vehículo eléctrico';
@@ -109,7 +115,7 @@ test.describe('laboratorio', () => {
     const lab = page.locator(LAB);
     // Exact: the energy plot's cursor is "Tiempo", the transport's slider "Línea de tiempo".
     const timeline = lab.getByRole('slider', { name: 'Línea de tiempo', exact: true });
-    await setRange(timeline, NEAR_END);
+    await seekTimeline(timeline, NEAR_END);
 
     await lab.getByRole('button', { name: 'Reproducir', exact: true }).click();
     await expect(timeline).toHaveValue('1000', { timeout: PLAYBACK_TIMEOUT_MS });

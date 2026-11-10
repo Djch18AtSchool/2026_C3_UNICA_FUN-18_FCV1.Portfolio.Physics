@@ -9,6 +9,26 @@ export async function setRange(slider: Locator, value: string): Promise<void> {
   await slider.dispatchEvent('change');
 }
 
+/** The transport's reading at the start of a run, before any seek took: «t = 0,000 s», «t = 0 s». */
+const AT_START = /^t = 0(,0+)?\D/;
+/** How long one seek may take to show in the transport before it is sent again. */
+const SEEK_SETTLE_MS = 1000;
+
+/**
+ * Seeks the transport's timeline and waits until the clock took it. An island can drop the first
+ * input event (fired before React listens) and hydrate the slider back to 0, so the seek is sent
+ * again until the transport reads the new time.
+ */
+export async function seekTimeline(timeline: Locator, value: string): Promise<void> {
+  await expect(async () => {
+    await setRange(timeline, value);
+    await expect(timeline).not.toHaveAttribute('aria-valuetext', AT_START, {
+      timeout: SEEK_SETTLE_MS,
+    });
+    await expect(timeline).toHaveValue(value, { timeout: SEEK_SETTLE_MS });
+  }).toPass();
+}
+
 /** Wait until the React island that contains `inner` has hydrated (Astro drops its `ssr` flag). */
 export async function waitForIsland(page: Page, inner: string): Promise<void> {
   await page.locator(`astro-island:has(${inner}):not([ssr])`).waitFor({ state: 'attached' });

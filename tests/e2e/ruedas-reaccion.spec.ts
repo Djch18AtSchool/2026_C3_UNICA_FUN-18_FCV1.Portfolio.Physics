@@ -1,7 +1,12 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { uncoveredChars } from '../../src/lib/typography';
-import { hydrateAllIslands, readoutText as readReadout, setRange, waitForIsland } from './helpers';
+import {
+  hydrateAllIslands,
+  readoutText as readReadout,
+  seekTimeline,
+  waitForIsland,
+} from './helpers';
 
 const PAGE = './temas/ruedas-reaccion/';
 const TITLE = 'Ruedas de reacción: cómo un satélite se gira sin empujarse contra nada';
@@ -189,7 +194,7 @@ test.describe('laboratorio', () => {
   test('reproducir termina el giro, vuelve a "Reproducir" y no repite', async ({ page }) => {
     const lab = page.locator(LAB);
     const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
-    await setRange(timeline, NEAR_END);
+    await seekTimeline(timeline, NEAR_END);
 
     await lab.getByRole('button', { name: 'Reproducir' }).click();
     await expect(timeline).toHaveValue('1000', { timeout: PLAYBACK_TIMEOUT_MS });
