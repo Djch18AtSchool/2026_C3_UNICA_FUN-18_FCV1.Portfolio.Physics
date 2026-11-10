@@ -6,9 +6,9 @@
  * typeset formulas of the labels that mount after the data (TexSeed), so none waits for KaTeX.
  *
  * The places' heights are not on the 4/8 scale on purpose: each is the height of the loaded part
- * it stands for, measured in rem (they follow the root font size with the text), at each layout
- * the part changes height in (shots/b3-3/scripts/drone-parts.cjs measures both).
- * dron-reparto.spec.ts compares the two cards at 360, 900 and 1 280 px within 8 px.
+ * it stands for, measured in rem (they follow the root font size with the text), at each width
+ * the part changes height at (shots/b3-3/scripts/drone-parts.cjs measures both).
+ * dron-reparto.spec.ts compares the two cards at 360, 414, 540, 900 and 1 280 px within 8 px.
  */
 import type { CSSProperties, JSX } from 'react';
 import { CANVAS_BLEED } from '../../lab/canvasInset';
@@ -36,37 +36,51 @@ const PLACE = 'rounded-base border border-dashed border-border';
 const CHIP_PLACES = 3;
 
 /**
- * A place's height in each layout of the loaded lab, in rem: a phone's narrow card, a card from
- * 26 rem (the transport fits one line), from 34 rem (the canvas notes' legend fits one line) and
- * the two columns. A layout left out keeps the one before it.
+ * The widths of the card's content box (rem; the container query's width, the card less its 1 rem
+ * padding on each side) where a part of the loaded lab changes height, as its text rewraps: the
+ * canvas notes go from three lines to two (17,1) and to one (31,7), «Parámetros» loses a line of
+ * each field label (17,6 and 19,7), the transport fits one line (20,75). Measured on the loaded
+ * lab (shots/b3-3/scripts/drone-parts.cjs); text scales with the root, so rem holds at 16 px.
+ */
+const STEPS = ['s17-1', 's17-6', 's19-7', 's20-75', 's31-7'] as const;
+type Step = (typeof STEPS)[number];
+
+/**
+ * Tailwind needs the classes literal: each step reads its height from a custom property (named
+ * with hyphens: Tailwind reads an underscore in an arbitrary value as a space).
+ */
+const PLACE_HEIGHT =
+  'h-(--place-narrow) @min-[17.1rem]/lab:h-(--place-s17-1) @min-[17.6rem]/lab:h-(--place-s17-6) @min-[19.7rem]/lab:h-(--place-s19-7) @min-[20.75rem]/lab:h-(--place-s20-75) @min-[31.7rem]/lab:h-(--place-s31-7) lab-split:h-(--place-split)';
+
+/**
+ * A place's height in rem: on a phone's narrow card, from each step where it changes (a step left
+ * out keeps the height before it) and in two columns (the last step's when left out).
  */
 interface PlaceHeights {
   narrow: number;
-  from26?: number;
-  from34?: number;
+  from?: Partial<Record<Step, number>>;
   split?: number;
 }
 
-/** Tailwind needs the classes literal: each layout reads its height from a custom property. */
-const PLACE_HEIGHT =
-  'h-(--place-narrow) @min-[26rem]/lab:h-(--place-26) @min-[34rem]/lab:h-(--place-34) lab-split:h-(--place-split)';
-
-function placeStyle({ narrow, from26 = narrow, from34 = from26, split = from34 }: PlaceHeights) {
-  return {
-    '--place-narrow': `${narrow}rem`,
-    '--place-26': `${from26}rem`,
-    '--place-34': `${from34}rem`,
-    '--place-split': `${split}rem`,
-  } as CSSProperties;
+function placeStyle({ narrow, from = {}, split }: PlaceHeights): CSSProperties {
+  const heights = STEPS.reduce<readonly number[]>(
+    (sofar, step) => [...sofar, from[step] ?? sofar.at(-1) ?? narrow],
+    [],
+  );
+  return Object.fromEntries([
+    ['--place-narrow', `${narrow}rem`],
+    ...STEPS.map((step, index) => [`--place-${step}`, `${heights[index]}rem`]),
+    ['--place-split', `${split ?? heights.at(-1) ?? narrow}rem`],
+  ]) as CSSProperties;
 }
 
-/** The transport: two lines on a phone, one from 26 rem, and pinned with its padding in two columns. */
-const TRANSPORT: PlaceHeights = { narrow: 4.75, from26: 2.75, split: 4.3 };
+/** The transport: two lines on a phone, one from 20,75 rem, and pinned with its padding in two columns. */
+const TRANSPORT: PlaceHeights = { narrow: 4.75, from: { 's20-75': 2.75 }, split: 4.3 };
 /** «Parámetros» with v_máx and a_máx, and «Lecturas» with its four cells. */
-const PARAMS: PlaceHeights = { narrow: 16.75, from26: 16 };
+const PARAMS: PlaceHeights = { narrow: 16.75, from: { 's17-6': 16.4, 's19-7': 16 } };
 const READOUTS: PlaceHeights = { narrow: 15 };
 /** The canvas notes: legend, phase and route notes, from three lines down to one. */
-const NOTES: PlaceHeights = { narrow: 6.25, from26: 4.75, from34: 3.25 };
+const NOTES: PlaceHeights = { narrow: 6.25, from: { 's17-1': 4.75, 's31-7': 3.25 } };
 /** Each closed disclosure: its summary line and the rule above it. */
 const DISCLOSURE: PlaceHeights = { narrow: 2.5625 };
 const DISCLOSURES = 2;

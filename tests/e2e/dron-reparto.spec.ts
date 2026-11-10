@@ -249,6 +249,12 @@ const SKELETON_SLACK_PX = 8;
 /** The map's height may move by this much while it mounts: rounding of a fractional width. */
 const MAP_GROWTH_SLACK_PX = 1;
 const PHONE = { width: 360, height: 800 } as const;
+/** A wide phone, and the 540 px window of the other labs' hydration check (map svg 334 and 460 px). */
+const WIDE_PHONE = { width: 414, height: 800 } as const;
+const SMALL_TABLET = { width: 540, height: 800 } as const;
+/** The map's svg at 478,5 px, just under SvgPlot's switch, and at 481,5 px, just past it. */
+const MAP_UNDER_SWITCH = { width: 559, height: 800 } as const;
+const MAP_PAST_SWITCH = { width: 562, height: 800 } as const;
 /** One column with the canvas notes on one line (the case the skeleton missed by 24 px). */
 const ONE_COLUMN = { width: 900, height: 800 } as const;
 const DESKTOP = { width: 1280, height: 800 } as const;
@@ -258,6 +264,10 @@ const heightOf = (locator: Locator) =>
 
 for (const [name, size] of [
   ['360 px', PHONE],
+  ['414 px', WIDE_PHONE],
+  ['540 px', SMALL_TABLET],
+  ['559 px', MAP_UNDER_SWITCH],
+  ['562 px', MAP_PAST_SWITCH],
   ['900 px', ONE_COLUMN],
   ['1 280 px', DESKTOP],
 ] as const) {
