@@ -84,9 +84,14 @@ describe('rawNotationMarks', () => {
     expect(rawNotationMarks(text)).toEqual(marks);
   });
 
-  test('lets real names pass: files with an extension and variables set with "="', () => {
+  test('lets real names pass: files, constants and identifiers in a URL', () => {
     expect(rawNotationMarks('src/contact_solver.c L383 y tcurve_F3soft.lut')).toEqual([]);
-    expect(rawNotationMarks('del orden del DY_REF=1.80 de MUR')).toEqual([]);
+    expect(rawNotationMarks('del orden del DY_REF=1.80 y MPC_XY_VEL_MAX de MUR')).toEqual([]);
+    expect(rawNotationMarks('researchrepository.wvu.edu/faculty_publications/2509')).toEqual([]);
+  });
+
+  test('a subscript starts from a single letter, so it is not taken for a name', () => {
+    expect(rawNotationMarks('v_y1 = 2 y T_mín')).toEqual(['_']);
   });
 
   test('a subscript at the end of a sentence is not a file name', () => {

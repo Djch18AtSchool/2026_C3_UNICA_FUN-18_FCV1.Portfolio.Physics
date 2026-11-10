@@ -52,11 +52,11 @@ export function uncoveredChars(text: string, family: PlexFamily = 'sans'): strin
 export const RAW_NOTATION_MARKS = ['_', '^', '$'] as const;
 
 /**
- * Real names that hold an underscore (files such as "contact_solver.c" or "tcurve_F3soft.lut",
- * a variable such as "DY_REF=1.80"): a file name ends in an extension, a variable is followed by
- * "=". A subscript written raw ("F_z", "v_y1") matches neither.
+ * Real names that hold an underscore: files ("contact_solver.c", "tcurve_F3soft.lut"), constants
+ * ("DY_REF", "MPC_XY_CRUISE"), identifiers in a URL ("faculty_publications"). Each part has two
+ * characters or more; a subscript written raw ("F_z", "v_y1", "T_mín") starts from a single letter.
  */
-const LITERAL_NAME = /[\w/.-]*_[\w/.-]*\.[A-Za-z0-9]+|[A-Za-z]+(?:_[A-Za-z]+)+(?==)/g;
+const LITERAL_NAME = /[A-Za-z]{2,}(?:_[A-Za-z0-9]{2,})+/g;
 
 /** The notation marks left in `text` once real names are set aside: a raw `F_z`, `10^-7` or `$`. */
 export function rawNotationMarks(text: string): string[] {
