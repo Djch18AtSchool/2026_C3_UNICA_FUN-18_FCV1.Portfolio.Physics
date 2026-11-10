@@ -6,6 +6,7 @@ import {
   TICK_COLOR,
   TICK_FONT_FAMILY,
 } from '../../charts/chartTheme';
+import { mathTextToString } from '../../../lib/mathNotation';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import type { Scale } from '../../lab/plotScales';
 import SvgPlot from '../../lab/SvgPlot';
@@ -219,7 +220,9 @@ function RadiusPlot(): JSX.Element {
         xDomain={RADIUS_DOMAIN.x}
         yDomain={RADIUS_DOMAIN.y}
         overlay={(scales) => <Points points={RADIUS_POINTS} scales={scales} />}
-        ariaLabel="a_c/g crece en proporción a r: a 2 RPM llega a 1 g en 223,6 m y a 1 RPM en 894,6 m; el Toro de Stanford, a 830 m y 1 RPM, queda en 0,93 g."
+        ariaLabel={mathTextToString(
+          'a_c/g crece en proporción a r: a 2 RPM llega a 1 g en 223,6 m y a 1 RPM en 894,6 m; el Toro de Stanford, a 830 m y 1 RPM, queda en 0,93 g.',
+        )}
       />
     </div>
   );

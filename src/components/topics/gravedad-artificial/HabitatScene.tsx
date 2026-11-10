@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { CHART_COLORS, LINE_WIDTH, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
+import InlineMath from '../../lab/InlineMath';
 import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
 import { useFrameTime } from '../../lab/useFrameTime';
@@ -320,11 +321,15 @@ export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
           <>
             <li className="m-0 flex items-center gap-2">
               <LegendKey color={AC_COLOR} />
-              Aceleración centrípeta a_c, hacia el eje
+              <span>
+                <InlineMath text="Aceleración centrípeta $a_c$, hacia el eje" />
+              </span>
             </li>
             <li className="m-0 flex items-center gap-2">
               <LegendKey color={GAP_COLOR} dashed />
-              Gravedad aparente g_ap = −a_c, hacia afuera
+              <span>
+                <InlineMath text="Gravedad aparente $g_\text{ap} = -a_c$, hacia afuera" />
+              </span>
             </li>
           </>
         ) : null}
@@ -335,9 +340,11 @@ export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
       </ul>
       {showVectors ? (
         <p className="m-0 text-sm text-fg-muted">
-          g_ap es lo que la persona siente en el marco del anillo, que gira: ninguna fuerza tira de
-          ella hacia afuera; es el piso el que la empuja hacia el eje. Flechas a escala hasta 1,5 g;
-          con doble trazo, más largas que lo dibujado.
+          <InlineMath
+            text={
+              '$g_\\text{ap}$ es lo que la persona siente en el marco del anillo, que gira: ninguna fuerza tira de ella hacia afuera; es el piso el que la empuja hacia el eje. Flechas a escala hasta 1,5 g; con doble trazo, más largas que lo dibujado.'
+            }
+          />
         </p>
       ) : null}
     </div>

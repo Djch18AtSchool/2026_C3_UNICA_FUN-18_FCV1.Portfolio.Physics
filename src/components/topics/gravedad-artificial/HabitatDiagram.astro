@@ -9,10 +9,18 @@
  * The ring turns counterclockwise on screen, so the floor under the person moves to the right.
  */
 
+import { mathTextToString } from '../../../lib/mathNotation';
+import MathText from '../../lab/MathText';
+
 interface Point {
   x: number;
   y: number;
 }
+
+/** What a screen reader hears: the notation says its symbols in words (a sub c, omega al cuadrado). */
+const DESCRIPTION = mathTextToString(
+  `Anillo de un hábitat espacial visto en ligera perspectiva, con tres rayos y el eje de giro horizontal que pasa por el cubo central. Una flecha curva marca el sentido de giro, antihorario, con la velocidad angular ω y la ecuación T = 2π/ω. El radio r va del eje al piso, que es el borde exterior del anillo. Una persona está de pie sobre ese borde con la cabeza hacia el eje. Junto a ella hay tres flechas: a su derecha, la aceleración centrípeta a_c, que apunta hacia el eje, con a_c = ω^2 r; a su izquierda, la gravedad aparente, que apunta hacia afuera con la misma magnitud; y bajo sus pies, la velocidad tangencial v, hacia la derecha, con v = ω r. El detalle A amplía a la persona de altura h: en los pies la aceleración es ω^2 r y en la cabeza, más cerca del eje, ω^2 (r − h), de donde Δa/a = h/r. Una nota da el caso de 1 g: a_c = g con 2 RPM pide r = 223,6 m y con 1 RPM, 894,6 m. Dibujo esquemático, no a escala; la diferencia entre cabeza y pies está exagerada.`,
+);
 
 const VIEW = { width: 420, height: 624 } as const;
 const CENTER: Point = { x: 170, y: 200 };
@@ -117,6 +125,8 @@ const vArrow = arrow(
 // apparent-gravity arrow (x ≤ 142) and above Detail A (y = 430), also at the phone font size.
 const ONE_G_NOTE = { x: 408, y: 386, lineHeight: 17 } as const;
 const ONE_G_CASES = ['2 RPM → r = 223,6 m', '1 RPM → r = 894,6 m'] as const;
+/** The notes are MathText (a React island-free component), so their CSS is global to the drawing. */
+const NOTE_SIZE = 13;
 
 // ---- Detail A: head and feet ----
 const DETAIL = { x: 12, y: 430, width: 396, height: 186 } as const;
@@ -171,19 +181,7 @@ const headArrow = arrow(
   xmlns="http://www.w3.org/2000/svg"
 >
   <title id="habitat-diagram-title">Hábitat giratorio: vectores y ecuaciones del movimiento circular</title>
-  <desc id="habitat-diagram-desc">
-    Anillo de un hábitat espacial visto en ligera perspectiva, con tres rayos y el eje de giro
-    horizontal que pasa por el cubo central. Una flecha curva marca el sentido de giro, antihorario,
-    con la velocidad angular ω y la ecuación T = 2π/ω. El radio r va del eje al piso, que es el
-    borde exterior del anillo. Una persona está de pie sobre ese borde con la cabeza hacia el eje.
-    Junto a ella hay tres flechas: a su derecha, la aceleración centrípeta a_c, que apunta hacia el
-    eje, con a_c = ω² r; a su izquierda, la gravedad aparente, que apunta hacia afuera con la misma
-    magnitud; y bajo sus pies, la velocidad tangencial v, hacia la derecha, con v = ω r. El detalle
-    A amplía a la persona de altura h: en los pies la aceleración es ω² r y en la cabeza, más cerca
-    del eje, ω² (r − h), de donde Δa/a = h/r. Una nota da el caso de 1 g: a_c = g con 2 RPM pide r =
-    223,6 m y con 1 RPM, 894,6 m. Dibujo esquemático, no a escala; la diferencia entre cabeza y pies
-    está exagerada.
-  </desc>
+  <desc id="habitat-diagram-desc">{DESCRIPTION}</desc>
 
   <!-- ===== Perspective view ===== -->
   <text class="hd-title" x="16" y="24">
@@ -295,14 +293,14 @@ const headArrow = arrow(
     <tspan class="hd-math">g</tspan>
   </text>
   {ONE_G_CASES.map((line, index) => (
-    <text
-      class="hd-note hd-note-key"
+    <MathText
+      source={line}
       x={ONE_G_NOTE.x}
       y={ONE_G_NOTE.y + ONE_G_NOTE.lineHeight * (index + 1)}
-      text-anchor="end"
-    >
-      {line}
-    </text>
+      fontSize={NOTE_SIZE}
+      anchor="end"
+      className="hd-note hd-note-key"
+    />
   ))}
 
   <!-- ===== Detail A ===== -->
@@ -374,12 +372,22 @@ const headArrow = arrow(
     Δ<tspan class="hd-math">a</tspan>/<tspan class="hd-math">a</tspan> ={' '}
     <tspan class="hd-math">h</tspan>/<tspan class="hd-math">r</tspan>
   </text>
-  <text class="hd-note" x="398" y={DETAIL.y + 106} text-anchor="end">
-    r = 223,6 m → 0,8 %
-  </text>
-  <text class="hd-note" x="398" y={DETAIL.y + 124} text-anchor="end">
-    r = 10 m → 18 %
-  </text>
+  <MathText
+    source="r = 223,6 m → 0,8 %"
+    x={398}
+    y={DETAIL.y + 106}
+    fontSize={NOTE_SIZE}
+    anchor="end"
+    className="hd-note"
+  />
+  <MathText
+    source="r = 10 m → 18 %"
+    x={398}
+    y={DETAIL.y + 124}
+    fontSize={NOTE_SIZE}
+    anchor="end"
+    className="hd-note"
+  />
 </svg>
 
 <style>
@@ -402,7 +410,7 @@ const headArrow = arrow(
   }
   .hd-label,
   .hd-eq,
-  .hd-note {
+  .habitat-diagram :global(.hd-note) {
     paint-order: stroke;
     stroke: var(--bg-elevated);
     stroke-width: 4px;
@@ -417,7 +425,7 @@ const headArrow = arrow(
     font-family: KaTeX_Main, 'Times New Roman', serif;
     font-size: 19px;
   }
-  .hd-note {
+  .habitat-diagram :global(.hd-note) {
     font-family: var(--font-mono);
     font-size: 13px;
     fill: var(--fg-muted);
@@ -460,10 +468,10 @@ const headArrow = arrow(
     .hd-sub {
       font-size: 16px;
     }
-    .hd-note {
+    .habitat-diagram :global(.hd-note) {
       display: none;
     }
-    .hd-note-key {
+    .habitat-diagram :global(.hd-note-key) {
       display: inline;
       font-size: 17px;
     }

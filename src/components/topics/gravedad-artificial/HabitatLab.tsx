@@ -2,6 +2,7 @@ import { useMemo, useState, type JSX } from 'react';
 import { HABITAT_LIMITS, HABITAT_PRESETS } from '../../../lib/data/habitatPresets';
 import { solveHabitat } from '../../../lib/physics';
 import Presets from '../../controls/Presets';
+import InlineMath from '../../lab/InlineMath';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import { SwitchField } from '../../lab/SettingsFields';
@@ -30,7 +31,7 @@ const RADIUS_STEP = 0.1;
 const PERCENT = 100;
 
 const comma = (value: number) => String(value).replace('.', ',');
-const LOCKED_NOTE = `Con 1 g fijo, mover un parámetro despeja el otro: r = g/ω² o ω = √(g/r), con g = 9,81 m/s². Para que ambos quepan en sus controles, el giro no baja de ${comma(LOCKED_LIMITS.rpm[0])} RPM ni el radio de ${comma(LOCKED_LIMITS.r[0])} m.`;
+const LOCKED_NOTE = `Con 1 g fijo, mover un parámetro despeja el otro: $r = g/\\omega^2$ o $\\omega = \\sqrt{g/r}$, con g = 9,81 m/s². Para que ambos quepan en sus controles, el giro no baja de ${comma(LOCKED_LIMITS.rpm[0])} RPM ni el radio de ${comma(LOCKED_LIMITS.r[0])} m.`;
 const FREE_NOTE = 'Sin 1 g fijo, r y RPM son libres y la gravedad aparente es la que resulte.';
 
 export interface HabitatLabProps {
@@ -68,7 +69,7 @@ export default function HabitatLab({ footnote }: HabitatLabProps): JSX.Element {
   const readouts: LabReadout[] = [
     { id: 'omega', label: 'Velocidad angular ω', value: solution.omega, unit: 'rad/s' },
     { id: 'v', label: 'Velocidad tangencial v', value: solution.v, unit: 'm/s' },
-    { id: 'gRatio', label: 'Gravedad aparente a_c/g', value: solution.gRatio, unit: 'g' },
+    { id: 'gRatio', label: 'Gravedad aparente $a_c/g$', value: solution.gRatio, unit: 'g' },
     { id: 'period', label: 'Período T', value: solution.period, unit: 's' },
     {
       id: 'gradient',
@@ -108,7 +109,9 @@ export default function HabitatLab({ footnote }: HabitatLabProps): JSX.Element {
         checked={isLocked}
         onChange={(checked) => update((previous) => setLocked(previous, checked))}
       />
-      <p className="m-0 text-sm text-fg-muted">{isLocked ? LOCKED_NOTE : FREE_NOTE}</p>
+      <p className="m-0 text-sm text-fg-muted">
+        <InlineMath text={isLocked ? LOCKED_NOTE : FREE_NOTE} />
+      </p>
       <Presets
         presets={HABITAT_PRESETS}
         activeId={presetId}

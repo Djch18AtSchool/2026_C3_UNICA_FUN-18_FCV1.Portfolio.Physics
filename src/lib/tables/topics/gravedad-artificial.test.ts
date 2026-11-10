@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { COMFORT } from '../../data/comfortCriteria';
 import { tableById } from '../index';
+import { uncoveredChars } from '../../typography';
 import { tableMarkdown } from '../markdown';
 import { HABITAT_PRESETS } from '../../data/habitatPresets';
 import { COMFORT_CRITERIA, STANFORD_TORUS, TABLES } from './gravedad-artificial';
@@ -41,11 +42,11 @@ describe('gravedad-artificial tables', () => {
       'Hábitat',
       'Radio r (m)',
       'Giro N (RPM)',
-      'ω (rad/s)',
+      '$\\omega$ (rad/s)',
       'Rapidez del piso v (m/s)',
       'Período T (s)',
-      'a_c (m/s²)',
-      'a_c/g',
+      '$a_c$ (m/s²)',
+      '$a_c/g$',
       'Gradiente h/r (%)',
     ]);
     expect(rows).toEqual([
@@ -154,5 +155,18 @@ describe('gravedad-artificial tables', () => {
     expect(caption).toContain('de 4 a 12 m');
     expect(caption).toContain('de 6 a 10 m/s');
     expect(TABLES[2].source.text).toContain('desde 2000; última revisión de 2018');
+  });
+
+  test('captions, headers and text cells leave IBM Plex only inside $…$ (KaTeX)', () => {
+    const outsideKatex = (text: string) => text.replace(/\$[^$]*\$/g, '');
+
+    for (const table of TABLES) {
+      const texts = [
+        table.caption,
+        ...table.columns.map((column) => column.label),
+        ...table.rows.flatMap((row) => table.columns.map((column) => String(row[column.key]))),
+      ];
+      expect(texts.flatMap((text) => uncoveredChars(outsideKatex(text), 'sans'))).toEqual([]);
+    }
   });
 });

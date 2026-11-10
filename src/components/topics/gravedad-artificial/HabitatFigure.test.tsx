@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import { plexViolations } from '../../../test-glyphs';
 import HabitatFigure from './HabitatFigure';
 
 const strokeOf = (container: HTMLElement, id: string) =>
@@ -98,4 +99,23 @@ describe('HabitatFigure', () => {
     expect(Number(text.getAttribute('x'))).toBeLessThan(320 - 'Toro de Stanford:'.length * 3.6);
     expect(text.querySelectorAll('tspan')).toHaveLength(2);
   });
+
+  test('the radius figure names a_c/g in words, never as a_c with an underscore', () => {
+    render(<HabitatFigure variant="radio" />);
+    const name = screen
+      .getByRole('img', { name: /crece en proporción/ })
+      .getAttribute('aria-label');
+
+    expect(name).toContain('a sub c/g crece en proporción a r');
+    expect(name).not.toContain('_');
+  });
+
+  test.each(['peso-aparente', 'radio', 'confort'] as const)(
+    '%s: every character outside KaTeX is one IBM Plex draws',
+    (variant) => {
+      const { container } = render(<HabitatFigure variant={variant} />);
+
+      expect(plexViolations(container)).toEqual([]);
+    },
+  );
 });

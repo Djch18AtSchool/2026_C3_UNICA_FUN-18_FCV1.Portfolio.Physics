@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
+import { plexViolations } from '../../../test-glyphs';
+import { mathSourceText } from '../../../test-inline-math';
 import HabitatLab from './HabitatLab';
 
 const FOOTNOTE = 'No calcula el efecto Coriolis.';
@@ -26,7 +28,10 @@ function renderLab() {
 
 /** The value text of a LabShell readout row, normalised to plain spaces. */
 function readout(label: string): string {
-  const row = screen.getByText(label, { selector: 'span' }).parentElement as HTMLElement;
+  const row = [...document.querySelectorAll('[data-readout]')].find(
+    (candidate) => mathSourceText(candidate.firstElementChild) === label,
+  );
+  if (!row) throw new Error(`no readout labelled ${label}`);
   return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
 
@@ -86,7 +91,7 @@ describe('HabitatLab', () => {
 
     expect(lockSwitch()).toBeChecked();
     expect(radiusField()).toHaveValue('894,6');
-    expect(readout('Gravedad aparente a_c/g')).toBe('1,00 g');
+    expect(readout('Gravedad aparente $a_c/g$')).toBe('1,00 g');
     expect(readout('Período T')).toBe('60,00 s');
     expect(handle()).toHaveAttribute('aria-valuenow', '894.6');
     expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
@@ -106,11 +111,11 @@ describe('HabitatLab', () => {
   test('with "fijar 1 g" off, dragging the radius handle changes a_c/g', () => {
     renderLab();
     fireEvent.click(lockSwitch());
-    const before = readout('Gravedad aparente a_c/g');
+    const before = readout('Gravedad aparente $a_c/g$');
 
     dragHandleBy(-120);
 
-    expect(readout('Gravedad aparente a_c/g')).not.toBe(before);
+    expect(readout('Gravedad aparente $a_c/g$')).not.toBe(before);
     expect(Number(handle().getAttribute('aria-valuenow'))).toBeLessThan(894.6);
     expect(Number(handle().getAttribute('aria-valuenow')) % 5).toBe(0);
     expect(rpmSlider()).toHaveValue('1');
@@ -121,7 +126,7 @@ describe('HabitatLab', () => {
 
     dragHandleBy(-120);
 
-    expect(readout('Gravedad aparente a_c/g')).toBe('1,00 g');
+    expect(readout('Gravedad aparente $a_c/g$')).toBe('1,00 g');
     expect(rpmSlider()).not.toHaveValue('1');
   });
 
@@ -152,7 +157,7 @@ describe('HabitatLab', () => {
 
     expect(lockSwitch()).not.toBeChecked();
     expect(radiusField()).toHaveValue('830');
-    expect(readout('Gravedad aparente a_c/g')).toBe('0,93 g');
+    expect(readout('Gravedad aparente $a_c/g$')).toBe('0,93 g');
     expect(screen.getByText(/0,95 ± 0,05 g/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /^Centrífuga pequeña/ }));
@@ -167,7 +172,7 @@ describe('HabitatLab', () => {
     await user.click(lockSwitch());
 
     expect(radiusField()).toHaveValue('894,6');
-    expect(readout('Gravedad aparente a_c/g')).toBe('1,00 g');
+    expect(readout('Gravedad aparente $a_c/g$')).toBe('1,00 g');
   });
 
   test('Restablecer returns to 1 rpm with "fijar 1 g" on', async () => {
@@ -186,8 +191,10 @@ describe('HabitatLab', () => {
     renderLab();
 
     const legend = screen.getByRole('list', { name: 'Leyenda del hábitat' });
-    expect(legend).toHaveTextContent('Aceleración centrípeta a_c');
-    expect(legend).toHaveTextContent('Gravedad aparente');
+    expect(mathSourceText(legend)).toContain('Aceleración centrípeta $a_c$, hacia el eje');
+    expect(mathSourceText(legend)).toContain(
+      'Gravedad aparente $g_\\text{ap} = -a_c$, hacia afuera',
+    );
     expect(screen.getByTestId('habitat-scene').querySelector('[data-vector="ac"]')).not.toBeNull();
     expect(screen.getByTestId('habitat-scene').querySelector('[data-vector="gap"]')).not.toBeNull();
     expect(screen.getByText('escala logarítmica')).toBeInTheDocument();
@@ -204,7 +211,7 @@ describe('HabitatLab', () => {
     expect(within(dialog).getByRole('switch', { name: 'Repetir' })).not.toBeChecked();
 
     await user.click(
-      within(dialog).getByRole('switch', { name: 'Vectores a_c y gravedad aparente' }),
+      within(dialog).getByRole('switch', { name: 'Vectores a sub c y gravedad aparente' }),
     );
 
     expect(screen.getByTestId('habitat-scene').querySelector('[data-vector="ac"]')).toBeNull();
@@ -218,7 +225,7 @@ describe('HabitatLab', () => {
     await user.type(radiusField(), '100{Enter}');
 
     expect(screen.getByRole('textbox', { name: /^Velocidad de giro/ })).toHaveValue('2,991');
-    expect(readout('Gravedad aparente a_c/g')).toBe('1,00 g');
+    expect(readout('Gravedad aparente $a_c/g$')).toBe('1,00 g');
   });
 
   test('the speed setting reaches the clock: one 100 ms frame at 8× advances 6 · 8 · 0,1 s', async () => {
@@ -272,5 +279,24 @@ describe('HabitatLab', () => {
     fireEvent.change(rpmSlider(), { target: { value: '3' } });
 
     expect(screen.getByTestId('habitat-lab')).toHaveAttribute('data-playing', 'false');
+  });
+
+  test('every character of the lab, its notes and the settings outside KaTeX is one IBM Plex draws', async () => {
+    const user = userEvent.setup();
+    renderLab();
+
+    expect(plexViolations(document.body)).toEqual([]);
+    await user.click(lockSwitch());
+    expect(plexViolations(document.body)).toEqual([]);
+    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+    expect(plexViolations(document.body)).toEqual([]);
+  });
+
+  test('the fixed-1-g note writes its two equations in KaTeX', () => {
+    renderLab();
+    const note = mathSourceText(screen.getByText(/Con 1 g fijo/));
+
+    expect(note).toContain('$r = g/\\omega^2$');
+    expect(note).toContain('$\\omega = \\sqrt{g/r}$');
   });
 });
