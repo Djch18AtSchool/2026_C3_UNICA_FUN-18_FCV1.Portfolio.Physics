@@ -123,7 +123,7 @@ describe('coeficiente-restitucion tables', () => {
     });
 
     test('each engine mixes the two e with its own rule', () => {
-      const MAX = String.raw`$\max(e_1, e_2)$`;
+      const MAX = String.raw`$\text{máx}(e_1, e_2)$`;
       const AVERAGE = String.raw`$(e_1 + e_2)/2$`;
       expect(column(table, 'mezcla')).toEqual([
         MAX,
@@ -132,7 +132,7 @@ describe('coeficiente-restitucion tables', () => {
         MAX,
         String.raw`$e_1 \cdot e_2$`,
         MAX,
-        String.raw`$\min(e_1 + e_2, 1)$`,
+        String.raw`$\text{mín}(e_1 + e_2, 1)$`,
       ]);
     });
 

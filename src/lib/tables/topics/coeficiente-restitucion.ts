@@ -87,11 +87,11 @@ const NOT_DOCUMENTED = 'No documentado';
 
 /** The rule as the formula it applies to the two materials' e. */
 const COMBINE_FORMULA: Record<EngineRestitutionRow['combine'], string> = {
-  max: String.raw`$\max(e_1, e_2)$`,
+  max: String.raw`$\text{máx}(e_1, e_2)$`,
   average: String.raw`$(e_1 + e_2)/2$`,
-  min: String.raw`$\min(e_1, e_2)$`,
+  min: String.raw`$\text{mín}(e_1, e_2)$`,
   multiply: String.raw`$e_1 \cdot e_2$`,
-  sumClamped: String.raw`$\min(e_1 + e_2, 1)$`,
+  sumClamped: String.raw`$\text{mín}(e_1 + e_2, 1)$`,
   unknown: 'No documentada',
 };
 

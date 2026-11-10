@@ -197,7 +197,7 @@ El motor pierde al convertir: Boretti reporta, de rueda a batería, del 70 al 80
 
 <Equation
   id="ec-frenado-regeneracion"
-  latex="\begin{gathered} P_\text{regen} = \min\big(f(v)\,P_\text{freno},\ P_\text{máx}\big) \\ E_\text{batería} = \sum \eta\,P_\text{regen}\,\Delta t, \qquad E_\text{fricción} = \sum \big(P_\text{freno} - P_\text{regen}\big)\,\Delta t \end{gathered}"
+  latex="\begin{gathered} P_\text{regen} = \text{mín}\big(f(v)\,P_\text{freno},\ P_\text{máx}\big) \\ E_\text{batería} = \sum \eta\,P_\text{regen}\,\Delta t, \qquad E_\text{fricción} = \sum \big(P_\text{freno} - P_\text{regen}\big)\,\Delta t \end{gathered}"
   symbols={[
     {
       symbol: 'f(v)',
@@ -245,7 +245,7 @@ El modelo mejorado suma la (6.3) segundo a segundo. De los 0,869 kWh que frenan 
 
 <Equation
   id="ec-frenado-balance"
-  latex="\begin{gathered} E_\text{tracción} = \sum \max\big(0,\ P_\text{rueda}\big)\,\Delta t, \qquad E_\text{disipada} = \sum (1 - \eta)\,P_\text{regen}\,\Delta t + E_\text{fricción} \\ \text{fracción recuperada} = \frac{E_\text{batería}}{E_\text{tracción}} \end{gathered}"
+  latex="\begin{gathered} E_\text{tracción} = \sum \text{máx}\big(0,\ P_\text{rueda}\big)\,\Delta t, \qquad E_\text{disipada} = \sum (1 - \eta)\,P_\text{regen}\,\Delta t + E_\text{fricción} \\ \text{fracción recuperada} = \frac{E_\text{batería}}{E_\text{tracción}} \end{gathered}"
 />
 
 <Why>
