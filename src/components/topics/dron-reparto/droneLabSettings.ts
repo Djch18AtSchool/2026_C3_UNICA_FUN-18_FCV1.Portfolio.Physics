@@ -33,15 +33,20 @@ export function droneLocalSettings({
   onDisplayChange,
   clock,
 }: DroneLocalSettingsInput): SettingOption[] {
-  const toggle = (key: 'showVectors' | 'showTrail', label: string): SettingOption => ({
+  const toggle = (
+    key: 'showVectors' | 'showTrail',
+    label: string,
+    chip: string,
+  ): SettingOption => ({
     key,
     label,
+    chip,
     kind: 'toggle',
     value: display[key],
     onChange: (value) => onDisplayChange({ ...display, [key]: value }),
   });
   return [
-    toggle('showVectors', 'Vectores v y a'),
+    toggle('showVectors', 'Vectores v y a', 'vectores'),
     {
       key: 'vectorScale',
       label: 'Escala de vectores',
@@ -51,7 +56,7 @@ export function droneLocalSettings({
       unit: 'm por m/s',
       onChange: (vectorScale) => onDisplayChange({ ...display, vectorScale }),
     },
-    toggle('showTrail', 'Rastro'),
+    toggle('showTrail', 'Rastro', 'rastro'),
     ...clockSettings(clock),
   ];
 }

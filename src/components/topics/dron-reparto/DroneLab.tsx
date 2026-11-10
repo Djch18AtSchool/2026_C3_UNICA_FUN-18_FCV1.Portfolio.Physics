@@ -6,7 +6,7 @@ import {
   type RouteSample,
 } from '../../../lib/data/droneRoute';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
-import TexSeed, { formulasOf, readTexSeed } from '../../lab/TexSeed';
+import { readTexSeed } from '../../lab/TexSeed';
 import type { Point } from '../../lab/OverlayMarks';
 import ParamField from '../../lab/ParamField';
 import type { DragPoint } from '../../lab/useDrag';
@@ -18,10 +18,11 @@ import {
   droneLocalSettings,
   type DroneDisplay,
 } from './droneLabSettings';
-import { DRONE_LAB_FORMULAS } from './droneLabFormulas';
 import DroneProfiles from './DroneProfiles';
+import DroneSkeleton from './DroneSkeleton';
 import { isDeclaredRoute, moveStop, sampleAt, tryGenerate } from './routeEdit';
 import RouteMapLab from './RouteMapLab';
+import RouteMapNotes from './RouteMapNotes';
 import type { StopIndex } from './RouteOverlay';
 
 /** The route lasts minutes: playback compresses it 20 times (387 s in about 19 s at 1×). */
@@ -56,11 +57,9 @@ const DECLARED_LIMITS: Limits = { vMax: DRONE_ROUTE.vMax, aMax: DRONE_ROUTE.aMax
 type LoadState =
   { status: 'loading' } | { status: 'error' } | { status: 'ready'; samples: RouteSample[] };
 
-const STATUS_TEXT: Record<Exclude<LoadState['status'], 'ready'>, string> = {
-  loading: 'Cargando los datos de la ruta…',
-  error: 'No se pudieron cargar los datos de la ruta. Recarga la página para intentarlo de nuevo.',
-};
-const CHART_COUNT = 4;
+/** «Cómo se usa»: the drag of the stops and its keys, before the MDX's text. */
+const DRAG_HINT =
+  'Arrastra las paradas A, B y C, o enfócalas y muévelas con las flechas (10 m; con Mayús, 100 m). La ruta se recalcula al soltar.';
 
 /**
  * The committed dataset (scripts/generate-drone-route.ts; 355 KB of JSON, about 43 KB gzipped)
@@ -73,42 +72,9 @@ async function loadDeclaredSamples(): Promise<RouteSample[]> {
   return typed.samples;
 }
 
-/**
- * Holds the space of the lab and the charts while the dataset chunk loads, and carries the typeset
- * formulas of the labels that mount after it (TexSeed), so none of them waits for KaTeX.
- */
-function DroneSkeleton({
-  status,
-  footnote,
-}: {
-  status: 'loading' | 'error';
-  footnote?: string;
-}): JSX.Element {
-  return (
-    <div data-testid="drone-lab-loading" className="flex flex-col gap-4">
-      <TexSeed formulas={[...DRONE_LAB_FORMULAS, ...formulasOf(footnote ?? '')]} />
-      <p role="status" className="m-0 text-sm text-fg-muted">
-        {STATUS_TEXT[status]}
-      </p>
-      <div aria-hidden="true" className="flex flex-col gap-4">
-        <div className="aspect-square rounded-base border border-dashed border-border" />
-        {Array.from({ length: CHART_COUNT }, (_, index) => (
-          <div
-            key={index}
-            className="aspect-[1.6] w-full max-w-[720px] rounded-base border border-dashed border-border"
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
+type DroneLabViewProps = DroneLabProps & { declared: RouteSample[] };
 
-interface DroneLabViewProps {
-  declared: RouteSample[];
-  footnote?: string;
-}
-
-function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
+function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Element {
   const initialRoute: ValidRoute = { def: DRONE_ROUTE, samples: declared };
   const [route, setRoute] = useState<ValidRoute>(initialRoute);
   const [limits, setLimits] = useState<Limits>(DECLARED_LIMITS);
@@ -189,28 +155,22 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
 
   const params = (
     <>
-      <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-        <ParamField
-          id="drone-vmax"
-          label="Rapidez máxima $v_\text{máx}$"
-          unit="m/s"
-          {...V_MAX_RANGE}
-          value={limits.vMax}
-          onChange={(vMax) => setLimits((previous) => ({ ...previous, vMax }))}
-        />
-        <ParamField
-          id="drone-amax"
-          label="Aceleración máxima $a_\text{máx}$"
-          unit="m/s²"
-          {...A_MAX_RANGE}
-          value={limits.aMax}
-          onChange={(aMax) => setLimits((previous) => ({ ...previous, aMax }))}
-        />
-      </div>
-      <p className="m-0 text-sm text-fg-muted">
-        Arrastra las paradas A, B y C, o enfócalas y muévelas con las flechas (10 m; con Mayús, 100
-        m). La ruta se recalcula al soltar.
-      </p>
+      <ParamField
+        id="drone-vmax"
+        label="Rapidez máxima $v_\text{máx}$"
+        unit="m/s"
+        {...V_MAX_RANGE}
+        value={limits.vMax}
+        onChange={(vMax) => setLimits((previous) => ({ ...previous, vMax }))}
+      />
+      <ParamField
+        id="drone-amax"
+        label="Aceleración máxima $a_\text{máx}$"
+        unit="m/s²"
+        {...A_MAX_RANGE}
+        value={limits.aMax}
+        onChange={(aMax) => setLimits((previous) => ({ ...previous, aMax }))}
+      />
     </>
   );
 
@@ -221,10 +181,22 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
         clock={clock}
         timeUnit="s"
         readouts={readouts}
-        params={params}
-        localSettings={droneLocalSettings({ display, onDisplayChange: setDisplay, clock })}
+        canvasNotes={
+          <RouteMapNotes
+            now={now}
+            showVectors={display.showVectors}
+            velocityScale={display.vectorScale}
+            accelScale={display.vectorScale * ACCEL_SCALE_FACTOR}
+            isModified={!isDeclaredRoute(route.def)}
+            error={error}
+          />
+        }
+        levels={{
+          params,
+          display: droneLocalSettings({ display, onDisplayChange: setDisplay, clock }),
+        }}
+        notes={{ usage: [DRAG_HINT, ...(usage ? [usage] : [])], leftOut: leftOut ? [leftOut] : [] }}
         onReset={onReset}
-        footnote={footnote}
         testId="drone-lab"
       >
         <RouteMapLab
@@ -238,8 +210,6 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
           velocityScale={display.vectorScale}
           accelScale={display.vectorScale * ACCEL_SCALE_FACTOR}
           decimals={decimals}
-          isModified={!isDeclaredRoute(route.def)}
-          error={error}
           onStopDrag={onStopDrag}
           onSeek={seek}
         />
@@ -250,8 +220,10 @@ function DroneLabView({ declared, footnote }: DroneLabViewProps): JSX.Element {
 }
 
 export interface DroneLabProps {
-  /** The model's caveats, written in the topic's MDX so they travel with its text. */
-  footnote?: string;
+  /** «Cómo se usa», after the drag hint: how the playback and an edited route work, from the MDX. */
+  usage?: string;
+  /** «Qué deja fuera el modelo» and the notes on the data, written in the topic's MDX. */
+  leftOut?: string;
 }
 
 /**
@@ -260,7 +232,7 @@ export interface DroneLabProps {
  * the four profile charts with a marker at t. The declared route comes from the committed
  * dataset, loaded lazily; an edited route is generated in the browser when a stop is dropped.
  */
-export default function DroneLab({ footnote }: DroneLabProps): JSX.Element {
+export default function DroneLab({ usage, leftOut }: DroneLabProps): JSX.Element {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
 
   useEffect(() => {
@@ -279,8 +251,8 @@ export default function DroneLab({ footnote }: DroneLabProps): JSX.Element {
   }, []);
 
   return state.status === 'ready' ? (
-    <DroneLabView declared={state.samples} footnote={footnote} />
+    <DroneLabView declared={state.samples} usage={usage} leftOut={leftOut} />
   ) : (
-    <DroneSkeleton status={state.status} footnote={footnote} />
+    <DroneSkeleton status={state.status} usage={usage} leftOut={leftOut} />
   );
 }

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { mathSource, readoutText as readReadout, setRange, waitForIsland } from './helpers';
 
 const PAGE = './temas/dron-reparto/';
@@ -151,7 +151,42 @@ test('la figura del laboratorio es una visualización con una sola insignia y fu
 
   await expect(figure.getByText('Visualización de datos', { exact: true })).toHaveCount(1);
   await expect(figure.locator('.figure-source')).toContainText('ArduPilot');
-  await expect(figure.getByTestId('lab-footnote')).toContainText('no hay viento');
+  await expect(figure.locator('details[data-lab-note="left-out"]')).toContainText('no hay viento');
+});
+
+test('«Cómo se usa» y «Qué deja fuera el modelo» abren cerrados y dicen el arrastre, la reproducción y los supuestos', async ({
+  page,
+}) => {
+  const lab = page.locator(LAB);
+  const usage = lab.locator('details[data-lab-note="usage"]');
+  const leftOut = lab.locator('details[data-lab-note="left-out"]');
+  await expect(usage).not.toHaveAttribute('open');
+  await expect(leftOut).not.toHaveAttribute('open');
+  await expect(usage.getByText(/20 veces más rápida/)).toBeHidden();
+
+  await usage.locator('summary').click();
+  await leftOut.locator('summary').press('Enter');
+
+  await expect(usage.getByText(/20 veces más rápida/)).toBeVisible();
+  await expect(usage).toContainText('Arrastra las paradas A, B y C');
+  for (const left of ['2,5 m/s²', 'vértice', 'viento', 'diferencias centrales']) {
+    await expect(leftOut).toContainText(left);
+  }
+});
+
+test('el laboratorio va por niveles, sin escenario: v_máx y a_máx, las lecturas y las fichas del cajón', async ({
+  page,
+}) => {
+  const lab = page.locator(LAB);
+  const params = lab.getByRole('region', { name: 'Parámetros' });
+  await expect(params.getByRole('slider', { name: /^Rapidez máxima/ })).toBeVisible();
+  await expect(params.getByRole('slider', { name: /^Aceleración máxima/ })).toBeVisible();
+  await expect(lab.getByRole('region', { name: 'Escenario' })).toHaveCount(0);
+  await expect(lab.getByRole('region', { name: 'Lecturas' })).toBeVisible();
+  const chips = lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button');
+  await expect(chips).toHaveCount(3);
+  await expect(chips.nth(0)).toHaveAccessibleName('vectores');
+  await expect(chips.nth(1)).toHaveAccessibleName('rastro');
 });
 
 test('la página tiene al menos tres pasos, cada uno con su "Por qué"', async ({ page }) => {
@@ -202,3 +237,59 @@ test.describe('con pantalla táctil', () => {
     expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore);
   });
 });
+
+/** The loaded lab's card and its skeleton may differ by this much (the notes' row wraps by a line). */
+const SKELETON_SLACK_PX = 32;
+/** The map's height may move by this much while it mounts: rounding of a fractional width. */
+const MAP_GROWTH_SLACK_PX = 1;
+const MOUNT_SETTLE_MS = 800;
+const PHONE = { width: 360, height: 800 } as const;
+const DESKTOP = { width: 1280, height: 800 } as const;
+
+const heightOf = (locator: Locator) =>
+  locator.evaluate((node) => node.getBoundingClientRect().height);
+
+for (const [name, size] of [
+  ['360 px', PHONE],
+  ['1 280 px', DESKTOP],
+] as const) {
+  test(`a ${name}, el esqueleto reserva la altura del laboratorio y el mapa no crece al montarse`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(size);
+    let release = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    // Hold the route data: the skeleton stays until the test lets the chunk through.
+    await page.route(/drone-route/, async (route) => {
+      await gate;
+      await route.continue();
+    });
+    await page.goto(PAGE);
+    const skeleton = page.getByTestId('drone-lab-loading');
+    await skeleton.scrollIntoViewIfNeeded();
+    const skeletonCard = await heightOf(skeleton.locator('[data-lab-shell="tiered"]'));
+    // The map's height the instant it enters the page: before SvgPlot has measured its width.
+    await page.evaluate(() => {
+      new MutationObserver((_records, observer) => {
+        const map = document.querySelector('[data-testid="route-map"]');
+        if (!map) return;
+        Object.assign(window, { mapAtMount: map.getBoundingClientRect().height });
+        observer.disconnect();
+      }).observe(document.body, { childList: true, subtree: true });
+    });
+
+    release();
+    await expect(page.locator(LAB)).toBeVisible();
+    const mapAtMount = await page.evaluate(
+      () => (window as unknown as { mapAtMount: number }).mapAtMount,
+    );
+    const labCard = await heightOf(page.locator(LAB));
+    await page.waitForTimeout(MOUNT_SETTLE_MS);
+    const mapSettled = await heightOf(page.getByTestId('route-map'));
+
+    expect(Math.abs(labCard - skeletonCard)).toBeLessThanOrEqual(SKELETON_SLACK_PX);
+    expect(Math.abs(mapSettled - mapAtMount)).toBeLessThanOrEqual(MAP_GROWTH_SLACK_PX);
+  });
+}

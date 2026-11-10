@@ -267,16 +267,16 @@ describe('JumpLab', () => {
     expect(chips()).toEqual([
       'referencia',
       'vector v',
-      'estela',
+      'rastro',
       'caída 1,0 ×',
       'Integrador Analítico',
       'Velocidad 1×',
     ]);
 
-    await user.click(screen.getByRole('button', { name: 'estela' }));
+    await user.click(screen.getByRole('button', { name: 'rastro' }));
     await user.click(within(screen.getByRole('dialog')).getByRole('switch', { name: 'Rastro' }));
 
-    expect(chips()).not.toContain('estela');
+    expect(chips()).not.toContain('rastro');
   });
 
   test('«Cómo se usa» is not drawn without a text, and «Qué deja fuera el modelo» waits closed', () => {

@@ -67,7 +67,7 @@ export function jumpLocalSettings({
   return [
     toggle('showGhost', 'Referencia terrestre', 'referencia'),
     toggle('showVelocity', 'Vector velocidad', '$\\vec v$'),
-    toggle('showTrail', 'Rastro', 'estela'),
+    toggle('showTrail', 'Rastro', 'rastro'),
     {
       key: 'fallMultiplier',
       label: 'Multiplicador de caída',

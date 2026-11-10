@@ -250,7 +250,8 @@ Con <Equation inline latex="\hat u" /> constante, derivar la (1.4) da <Equation 
 >
   <DroneLab
     client:visible
-    footnote={`Lo que el modelo deja fuera: la aceleración salta de 0 a 2,5 m/s² en un instante (las curvas S limitan el jerk); el dron se detiene y gira en cada vértice, cosa que un autopiloto real no necesita en un punto de paso; y no hay viento. Datos: las ecuaciones (1.3) y (1.4) cada 0,1 s, 3 876 muestras; derivar las posiciones con diferencias centrales reproduce $v_x$ y $v_y$ con un error menor que 1 mm/s salvo en los instantes en que a cambia de valor (unos 5 mm/s sobre el JSON publicado, redondeado al milímetro); la gráfica muestrea cada 0,5 s: donde x(t) sube en recta, $v_x$ es constante; donde se curva, $v_x$ va en rampa y $a_x$ es un escalón, que el muestreo dibuja como una rampa corta. Una ruta editada se genera en el navegador con el mismo código; la reproducción va ${TIME_LAPSE} veces más rápida que el vuelo.`}
+    usage={`Una ruta editada se genera en el navegador con el mismo código; la reproducción va ${TIME_LAPSE} veces más rápida que el vuelo.`}
+    leftOut="La aceleración salta de 0 a 2,5 m/s² en un instante (las curvas S limitan el jerk); el dron se detiene y gira en cada vértice, cosa que un autopiloto real no necesita en un punto de paso; y no hay viento. Datos: las ecuaciones (1.3) y (1.4) cada 0,1 s, 3 876 muestras; derivar las posiciones con diferencias centrales reproduce $v_x$ y $v_y$ con un error menor que 1 mm/s salvo en los instantes en que a cambia de valor (unos 5 mm/s sobre el JSON publicado, redondeado al milímetro); la gráfica muestrea cada 0,5 s: donde x(t) sube en recta, $v_x$ es constante; donde se curva, $v_x$ va en rampa y $a_x$ es un escalón, que el muestreo dibuja como una rampa corta."
   />
 </Figure>
 

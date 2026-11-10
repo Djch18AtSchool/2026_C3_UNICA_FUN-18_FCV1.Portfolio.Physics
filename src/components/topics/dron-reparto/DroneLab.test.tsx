@@ -11,7 +11,8 @@ import DroneLab from './DroneLab';
 import { DRONE_LAB_FORMULAS } from './droneLabFormulas';
 import { readout } from '../../../test-readout';
 
-const FOOTNOTE = 'Mi dron se detiene en cada vértice y no hay viento.';
+const USAGE = 'La reproducción va 20 veces más rápida que el vuelo.';
+const LEFT_OUT = 'Mi dron se detiene en cada vértice y no hay viento.';
 /**
  * The declared route is a large JSON the lab imports lazily; under coverage instrumentation the
  * first import can outlast findBy's 1 s default. The dataset is warmed in beforeAll, and this
@@ -36,7 +37,7 @@ function mockIdentityCtm(): void {
 
 /** Renders the lab and waits for the lazily loaded declared route. */
 async function renderLab() {
-  const view = render(<DroneLab footnote={FOOTNOTE} />);
+  const view = render(<DroneLab usage={USAGE} leftOut={LEFT_OUT} />);
   await screen.findByTestId('drone-lab', {}, { timeout: LAB_READY_TIMEOUT_MS });
   mockIdentityCtm();
   return view;
@@ -81,7 +82,7 @@ describe('DroneLab', () => {
   });
 
   test('announces the loading state, then opens on the declared route cruising on leg 1', async () => {
-    render(<DroneLab footnote={FOOTNOTE} />);
+    render(<DroneLab usage={USAGE} leftOut={LEFT_OUT} />);
     expect(screen.getByRole('status')).toHaveTextContent('Cargando los datos de la ruta…');
 
     await screen.findByTestId('drone-lab', {}, { timeout: LAB_READY_TIMEOUT_MS });
@@ -92,8 +93,74 @@ describe('DroneLab', () => {
     expect(screen.getByText(/crucero \(a = 0\)/)).toBeInTheDocument();
     expect(readout('Rapidez |v|')).toBe('10,00 m/s');
     expect(modifiedNote()).toBeNull();
-    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
+    expect(screen.queryByTestId('lab-footnote')).toBeNull();
     expect(screen.getByTestId('drone-profiles')).toBeInTheDocument();
+  });
+
+  test('lays out two levels, with no scenario: v_máx and a_máx, then the readouts', async () => {
+    const { container } = await renderLab();
+    const region = (name: string) => screen.getByRole('region', { name });
+
+    expect(
+      within(region('Parámetros')).getByRole('slider', { name: /Rapidez máxima/ }),
+    ).toBeTruthy();
+    expect(
+      within(region('Parámetros')).getByRole('slider', { name: /Aceleración máxima/ }),
+    ).toBeTruthy();
+    expect(screen.queryByRole('region', { name: 'Escenario' })).toBeNull();
+    expect(container.querySelector('[data-lab-level="scenario"]')).toBeNull();
+    expect(within(region('Lecturas')).getByText('Duración de la ruta')).toBeInTheDocument();
+  });
+
+  test('the legend, the phase and the notes on the route read the map, in the canvas notes', async () => {
+    const { container } = await renderLab();
+    const notes = container.querySelector('[data-lab-canvas-notes]') as HTMLElement;
+
+    expect(within(notes).getByRole('list', { name: 'Leyenda del mapa' })).toBeInTheDocument();
+    expect(notes).toHaveTextContent('Fase: crucero (a = 0)');
+    expect(within(notes).getByRole('alert')).toBeEmptyDOMElement();
+    expect(screen.getByTestId('route-map').closest('[data-lab-canvas]')).not.toContainElement(
+      notes,
+    );
+    dragBy('stop-A', 60, -40);
+    expect(within(notes).getByTestId('route-modified')).toBeInTheDocument();
+  });
+
+  test('beside the gear, the chips «vectores», «rastro» and «1×» follow the drawer', async () => {
+    const user = userEvent.setup();
+    await renderLab();
+    const chips = () =>
+      within(screen.getByRole('group', { name: 'Ajustes activos' }))
+        .getAllByRole('button')
+        .map((chip) => chip.textContent);
+    expect(chips()).toEqual(['vectores', 'rastro', '1×']);
+
+    await user.click(screen.getByRole('button', { name: 'rastro' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('switch', { name: 'Rastro' }));
+
+    expect(chips()).toEqual(['vectores', '1×']);
+  });
+
+  test('how to use it and what the model leaves out wait in two closed disclosures', async () => {
+    const { container } = await renderLab();
+    const [usage, leftOut] = [...container.querySelectorAll('details')];
+
+    expect(usage.open || leftOut.open).toBe(false);
+    expect(usage).toHaveTextContent('Arrastra las paradas A, B y C');
+    expect(usage).toHaveTextContent('La ruta se recalcula al soltar.');
+    expect(usage).toHaveTextContent(USAGE);
+    expect(leftOut).toHaveTextContent(LEFT_OUT);
+  });
+
+  test('the loading skeleton already has the stage and the panel, so the lab does not move the page', () => {
+    render(<DroneLab usage={USAGE} leftOut={LEFT_OUT} />);
+
+    const skeleton = screen.getByTestId('drone-lab-loading');
+    expect(skeleton.querySelector('[data-skeleton="stage"]')).not.toBeNull();
+    expect(skeleton.querySelector('[data-skeleton="panel"]')).not.toBeNull();
+    expect(within(skeleton).getByRole('status')).toHaveTextContent(
+      'Cargando los datos de la ruta…',
+    );
   });
 
   test('at t ≈ 65 s the drone brakes into A: |a| = 2,5 m/s² opposite to v', async () => {
@@ -251,13 +318,14 @@ describe('DroneLab', () => {
 
   test('every formula of the labels that mount after the data is one the skeleton seeds', async () => {
     const user = userEvent.setup();
-    const footnote = 'El dron no frena en $t_a$ y la nota usa $v_x$.';
-    render(<DroneLab footnote={footnote} />);
+    const usage = 'La reproducción va más rápida: $t_b$ y $v_y$.';
+    const leftOut = 'El dron no frena en $t_a$ y la nota usa $v_x$.';
+    render(<DroneLab usage={usage} leftOut={leftOut} />);
     await screen.findByTestId('drone-lab', {}, { timeout: LAB_READY_TIMEOUT_MS });
     await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
 
     const shown = formulasOf(mathSourceText(document.body));
-    const seeded = [...DRONE_LAB_FORMULAS, ...formulasOf(footnote)];
+    const seeded = [...DRONE_LAB_FORMULAS, ...formulasOf(usage), ...formulasOf(leftOut)];
 
     expect(shown).toContain('v_\\text{máx}');
     expect(shown.filter((tex) => !seeded.includes(tex))).toEqual([]);
