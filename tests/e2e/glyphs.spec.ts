@@ -147,12 +147,15 @@ const notesOpen: StateStep = async (_page, lab) => {
 };
 
 /**
- * States every lab of the shell's tiered layout has, beyond its own: its disclosures opened. A
- * tiered lab without them fails (a renamed data-lab-note must not drop the measure in silence);
- * a stacked lab has none.
+ * States every lab of the shell has, beyond its own: its disclosures opened. A lab without them
+ * fails (a renamed data-lab-note must not drop the measure in silence), and so does a lab that is
+ * not on the shell at all.
  */
 async function shellStates(slug: string, lab: Locator): Promise<[string, StateStep][]> {
-  if ((await lab.getAttribute('data-lab-shell')) !== 'tiered') return [];
+  await expect(lab, `${slug}: el laboratorio va en LabShell`).toHaveAttribute(
+    'data-lab-shell',
+    'tiered',
+  );
   const hasNotes = (await lab.locator('details[data-lab-note]').count()) > 0;
   const states: [string, StateStep][] = hasNotes
     ? [['«Cómo se usa» y «Qué deja fuera el modelo» abiertos', notesOpen]]

@@ -39,7 +39,6 @@ const OWN_SOURCE = 'cálculo propio con las ecuaciones (4.2) y (4.3)';
  * 11 943 N of figure 4.2), the cold tyre at 60 °C, a load below the reference and the C4 at its
  * optimum (its bell is a model assumption, as «Qué deja fuera el modelo» says).
  */
-
 export const TYRE_PRESETS: Preset<TyreLabState>[] = [
   {
     id: 'ventana',

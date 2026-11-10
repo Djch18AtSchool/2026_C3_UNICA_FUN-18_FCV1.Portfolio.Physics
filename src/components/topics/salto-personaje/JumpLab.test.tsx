@@ -204,7 +204,7 @@ describe('JumpLab', () => {
     const leftOut = container.querySelector('details[data-lab-note="left-out"]') as HTMLElement;
     expect(leftOut).toHaveTextContent(/Euler semi-implícito/);
     expect(leftOut).toHaveTextContent(LEFT_OUT);
-    // The integrator's line comes first, as it did when it led the footnote.
+    // The integrator's line comes first, before the MDX's own note.
     expect(leftOut.textContent?.indexOf('Euler semi-implícito')).toBeLessThan(
       leftOut.textContent?.indexOf(LEFT_OUT) ?? 0,
     );

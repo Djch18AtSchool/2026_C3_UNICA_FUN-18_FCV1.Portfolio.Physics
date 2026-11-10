@@ -56,7 +56,7 @@ describe('readingMinutes', () => {
 
   test('las leyendas, notas, fuentes y textos de las props que lee el lector suman palabras', () => {
     // Arrange: 100 prose words plus 200 words spread over reader-facing props; 1 figure.
-    const figure = `<Figure\n  type="visualizacion"\n  caption="${words(60)}"\n  source={{\n    text: '${words(30)}',\n  }}\n>\n  <Lab client:visible footnote="${words(40)}" />\n</Figure>`;
+    const figure = `<Figure\n  type="visualizacion"\n  caption="${words(60)}"\n  source={{\n    text: '${words(30)}',\n  }}\n>\n  <Lab client:visible leftOut="${words(40)}" />\n</Figure>`;
     const video = `<Video\n  markers={[\n    { time: 5, title: '${words(5)}', analysis:\n      "${words(45)}" },\n  ]}\n/>`;
     const equation = `<Equation latex="x" symbols={[{ symbol: 'k', meaning: '${words(15)}' }]} />`;
     const callout = `<Callout variant="clase" title="${words(5)}">\n\n${words(100)}\n\n</Callout>`;
@@ -87,8 +87,8 @@ describe('readingMinutes', () => {
   });
 
   test('una leyenda en plantilla cuenta sus palabras y cada constante como una', () => {
-    const body = '<Lab footnote={`La reproducción va ${TIME_LAPSE} veces más rápida`} />';
-    const twice = '<Lab footnote={`Va ${SCALE} veces: dura ${60 / SCALE} s`} />';
+    const body = '<Lab usage={`La reproducción va ${TIME_LAPSE} veces más rápida`} />';
+    const twice = '<Lab usage={`Va ${SCALE} veces: dura ${60 / SCALE} s`} />';
 
     expect(readingStats(body).propWords).toBe(7);
     // Each interpolation reads as one value, and its two "$" are not inline math.
