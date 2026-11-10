@@ -5,7 +5,7 @@ import { mathTextToString } from '../../../lib/mathNotation';
 import InlineMath from '../../lab/InlineMath';
 import { unitTex } from './flybyFormat';
 import { withStableCallbacks } from '../../lab/withStableCallbacks';
-import { RP_RANGE, rpToSlider, sliderToRp } from './flybyScene';
+import { RP_RANGE, rpToSlider, sliderToRp, type RpWarning } from './flybyScene';
 
 export interface RpFieldProps {
   /** r_p in planet radii. */
@@ -107,3 +107,30 @@ function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
 
 /** Memoized with stable callbacks: a playing lab's 10 Hz renders never reach its inputs. */
 export default withStableCallbacks(RpField);
+
+function warningText(warning: RpWarning, unit: string): string {
+  if (warning === 'below')
+    return `La sonda no puede pasar por debajo de la superficie: $r_p$ no puede bajar de 1 ${unitTex(unit)}.`;
+  if (warning === 'above')
+    return `El laboratorio llega hasta 100 ${unitTex(unit)}: $r_p$ se queda ahí.`;
+  return '';
+}
+
+/** Why r_p stopped at an end of its range, said as it appears (status); empty and hidden otherwise. */
+export function RpWarningNote({
+  warning,
+  unit,
+}: {
+  warning: RpWarning;
+  unit: string;
+}): JSX.Element {
+  return (
+    <p
+      role="status"
+      data-testid="flyby-rp-warning"
+      className="m-0 text-sm font-medium empty:hidden"
+    >
+      <InlineMath text={warningText(warning, unit)} />
+    </p>
+  );
+}

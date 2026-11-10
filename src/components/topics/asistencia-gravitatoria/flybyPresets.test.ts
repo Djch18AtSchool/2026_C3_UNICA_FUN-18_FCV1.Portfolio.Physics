@@ -55,7 +55,7 @@ describe('FLYBY_PRESETS', () => {
       'Máxima aproximación a 721\u202f375\u202fkm del centro (10,09 $R_\\mathrm{J}$), por detrás.',
     );
     expect(flybyPreset('v2-neptune').note).toMatch(
-      /^Máxima aproximación a 29\s\d{3}\skm del centro \(1,18 \$R_\\mathrm\{N\}\$\); el giro sale del plano y el modelo usa el lado más cercano, delante\.$/,
+      /^Máxima aproximación a 29\s\d{3}\skm del centro \(1,18 \$R_\\mathrm\{N\}\$\); el giro sale del plano y el modelo usa el lado cuyo resultado más se acerca al dato, delante\.$/,
     );
   });
 

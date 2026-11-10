@@ -199,6 +199,34 @@ test.describe('laboratorio a 1 280 × 800', () => {
 test.describe('laboratorio a 360 px', () => {
   test.use({ viewport: PHONE });
 
+  test('la llegada no parte un símbolo de su valor ni desborda', async ({ page }) => {
+    await page.goto(PAGE);
+    await open(page, LAB);
+    const arrival = page.locator(LAB).getByTestId('flyby-arrival');
+
+    const report = await arrival.evaluate((line) => {
+      const lineBox = line.getBoundingClientRect();
+      const pairs = [...line.querySelectorAll('.katex')].map((formula) => {
+        // From the formula to the comma or period that ends its value.
+        const text = formula.closest('.inline-math')?.nextSibling;
+        const range = document.createRange();
+        range.setStartBefore(formula);
+        const end = text?.textContent?.search(/[,.](\s|$)/) ?? -1;
+        if (text && end >= 0) range.setEnd(text, end);
+        else range.setEndAfter(formula);
+        const tops = [...range.getClientRects()].map((rect) => rect.top + rect.height / 2);
+        return Math.max(...tops) - Math.min(...tops);
+      });
+      return { pairs, overflow: line.scrollWidth - line.clientWidth, right: lineBox.right };
+    });
+
+    expect(report.pairs).toHaveLength(3);
+    // One line each: the middles of a pair's boxes are within half a line of each other.
+    for (const spread of report.pairs) expect(spread).toBeLessThan(10);
+    expect(report.overflow).toBeLessThanOrEqual(0);
+    expect(report.right).toBeLessThanOrEqual(PHONE.width);
+  });
+
   test('apila lienzo, reproducción, parámetros, escenario, lecturas y desplegables, en ese orden', async ({
     page,
   }) => {

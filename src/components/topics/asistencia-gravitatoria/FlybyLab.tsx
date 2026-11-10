@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import { PLANETS } from '../../../lib/data/planets';
 import { formatNumber } from '../../../lib/format';
 import { deltaVMagnitude, planarFlyby, type PassSide } from '../../../lib/physics';
@@ -19,8 +19,9 @@ import {
   type FlybySettings,
 } from './flybyPresets';
 import { clampRp, planetView, type RpWarning } from './flybyScene';
+import FlybyNotes from './FlybyNotes';
 import FlybyScene from './FlybyScene';
-import RpField from './RpField';
+import RpField, { RpWarningNote } from './RpField';
 
 /**
  * Time lapse of the flyby: at 1× every drawn pass plays in this many seconds, whatever the planet
@@ -35,6 +36,12 @@ const E_PRECISION = 3;
 const ANGLE_PRECISION = 1;
 
 const SIDE_BY_NAME: Record<string, PassSide> = { detrás: 'behind', delante: 'front' };
+/**
+ * «=» between no-break spaces, and each «symbol = value» of the arrival in a no-wrap span: a line
+ * may break after a KaTeX box even before a no-break space, so the span is what keeps them together.
+ */
+const EQUALS = '\u00a0=\u00a0';
+const NO_WRAP = 'whitespace-nowrap';
 
 /** «Cómo se usa»: the drag and its keys, then what a preset fixes and what the reader keeps. */
 const DRAG_HINT =
@@ -165,11 +172,20 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
   ];
 
   const kms = (value: number) => formatNumber(value, { precision: decimals, unit: 'km/s' });
-  const arrival = `Llegada: $V_p$ = ${kms(encounter.VpKms)}, $v_\\infty$ = ${kms(encounter.vInf)}, $\\theta_\\text{in}$ = ${formatNumber(encounter.thetaInDeg, { precision: 1, unit: '°' })}.`;
+  // Keyed by quantity, not by text: a new preset changes the values in place, not the nodes.
+  const arrival = [
+    { key: 'Vp', text: `$V_p$${EQUALS}${kms(encounter.VpKms)}` },
+    { key: 'vInf', text: `$v_\\infty$${EQUALS}${kms(encounter.vInf)}` },
+    {
+      key: 'thetaIn',
+      text: `$\\theta_\\text{in}$${EQUALS}${formatNumber(encounter.thetaInDeg, { precision: 1, unit: '°' })}`,
+    },
+  ];
 
   const params = (
     <>
       <RpField rp={rp} unit={unit} radiusKm={planet.radiusKm} onChange={requestRp} />
+      <RpWarningNote warning={warning} unit={unit} />
       <SegmentedField
         id="flyby-side"
         label="Lado de paso"
@@ -196,7 +212,16 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
         }
       />
       <p data-testid="flyby-arrival" className="m-0 text-sm text-fg-muted">
-        <InlineMath text={arrival} />
+        {'Llegada: '}
+        {arrival.map(({ key, text }, index) => (
+          <Fragment key={key}>
+            {index > 0 ? ' ' : null}
+            <span className={NO_WRAP}>
+              <InlineMath text={text} />
+              {index < arrival.length - 1 ? ',' : '.'}
+            </span>
+          </Fragment>
+        ))}
       </p>
     </>
   );
@@ -206,6 +231,16 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
       title="Laboratorio del sobrevuelo (modelo plano)"
       clock={clock}
       readouts={readouts}
+      canvasNotes={
+        <FlybyNotes
+          planet={planet}
+          result={result}
+          passSeconds={passSeconds}
+          playbackSeconds={FLYBY_LAPSE}
+          encounter={presetId ? encounter : undefined}
+          decimals={decimals}
+        />
+      }
       levels={{
         params,
         scenario,
@@ -228,12 +263,8 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
         tau={tau}
         probe={probe}
         live={live}
-        passSeconds={passSeconds}
-        playbackSeconds={FLYBY_LAPSE}
         display={display}
         decimals={decimals}
-        warning={warning}
-        encounter={presetId ? encounter : undefined}
         onRpRequest={requestRp}
       />
     </LabShell>

@@ -57,7 +57,7 @@ function note(e: Encounter, side: PassSide): string {
   const rp = formatNumber(e.rpKm / planet.radiusKm, { precision: RP_DECIMALS });
   const where = `Máxima aproximación a ${formatNumber(e.rpKm, { precision: 0, unit: 'km' })} del centro (${rp} ${unitTex(radiusUnit(e))})`;
   if (e.planarTurnReproduces) return `${where}, por ${SIDE_NAMES[side]}.`;
-  return `${where}; el giro sale del plano y el modelo usa el lado más cercano, ${SIDE_NAMES[side]}.`;
+  return `${where}; el giro sale del plano y el modelo usa el lado cuyo resultado más se acerca al dato, ${SIDE_NAMES[side]}.`;
 }
 
 /** «JPL Horizons, 1979-07-09 22:29 UT»: the source and the minute of closest approach. */

@@ -176,6 +176,27 @@ describe('FlybyLab', () => {
     expect(rpField()).toHaveValue('10,09');
   });
 
+  test('the stage keeps the two frames and their clocks; legend, lapse and data go under both columns', () => {
+    const { container } = renderLab();
+    const stage = container.querySelector('[data-lab-stage]') as HTMLElement;
+    const notes = container.querySelector('[data-lab-canvas-notes]') as HTMLElement;
+
+    expect(within(stage).getByTestId('flyby-planet-frame')).toBeInTheDocument();
+    expect(within(stage).getByTestId('flyby-sun-frame')).toBeInTheDocument();
+    expect(within(stage).getByTestId('flyby-clock')).toBeInTheDocument();
+    expect(within(notes).getByRole('list', { name: 'Leyenda del sobrevuelo' })).toBeInTheDocument();
+    expect(within(notes).getByTestId('flyby-lapse')).toBeInTheDocument();
+    expect(notes).toContainElement(comparison());
+    expect(stage).not.toContainElement(comparison());
+  });
+
+  test('the r_p warning speaks next to its field, in «Parámetros»', () => {
+    renderLab();
+
+    expect(region('Parámetros')).toContainElement(warning());
+    expect(warning()).toHaveAttribute('role', 'status');
+  });
+
   test('lays out the three levels: r_p and the side, then the encounter, then the readouts', () => {
     renderLab();
 
@@ -216,6 +237,9 @@ describe('FlybyLab', () => {
     expect(arrival()).toBe(
       'Llegada: $V_p$ = 12,75 km/s, $v_\\infty$ = 7,62 km/s, $\\theta_\\text{in}$ = 131,5°.',
     );
+    // Each symbol stays with its value: no-break spaces around «=», U+202F before the unit.
+    const raw = mathSourceText(screen.getByTestId('flyby-arrival'));
+    expect(raw.match(/\$\u00a0=\u00a0[\d,]+(\u202f\S+|°)/g)).toHaveLength(3);
     await choosePreset(user, 'V1 · Saturno');
     expect(arrival()).not.toContain('12,75');
   });
