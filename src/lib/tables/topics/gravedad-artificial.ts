@@ -12,7 +12,7 @@ import {
   solveHabitat,
 } from '../../physics';
 import { COMFORT } from '../../data/comfortCriteria';
-import { HABITAT_PRESETS, type HabitatSettings } from '../../data/habitatPresets';
+import { HABITAT_PRESETS, SP413_URL, type HabitatSettings } from '../../data/habitatPresets';
 import type { DataTableSpec } from '../types';
 
 const PERCENT = 100;
@@ -128,7 +128,7 @@ const TORO_TABLE: DataTableSpec = {
     { dato: 'Giro en las zonas de vivienda', valor: `no más de ${STANFORD_TORUS.rpm} RPM` },
     { dato: 'Gravedad que reporta', valor: `0,95 ± 0,05 g a ${STANFORD_TORUS.rpm} RPM` },
   ],
-  source: { text: 'NASA SP-413, fuente 1', url: 'https://ntrs.nasa.gov/citations/19770014162' },
+  source: { text: 'NASA SP-413, fuente 1', url: SP413_URL },
 };
 
 /** One author of SpinCalc's comfort table; null where the page gives no value ("?"). */

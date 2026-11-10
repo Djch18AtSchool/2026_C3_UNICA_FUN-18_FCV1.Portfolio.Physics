@@ -125,6 +125,25 @@ test.describe('laboratorio', () => {
     }
   });
 
+  test('el laboratorio va por niveles: N, r y «Fijar 1 g», luego los preajustes con su fuente enlazada', async ({
+    page,
+  }) => {
+    const lab = page.locator(LAB);
+    const params = lab.getByRole('region', { name: 'Parámetros' });
+    await expect(params.getByRole('slider', { name: /^Velocidad de giro/ })).toBeVisible();
+    await expect(params.getByRole('switch', { name: 'Fijar 1 g' })).toBeAttached();
+    const scenario = lab.getByRole('region', { name: 'Escenario' });
+    await scenario.getByRole('button', { name: /^Toro de Stanford/ }).click();
+
+    const note = lab.getByTestId('preset-note');
+    await expect(note).toContainText('0,95 ± 0,05 g');
+    await expect(note.getByRole('link', { name: /^NASA SP-413/ })).toHaveAttribute(
+      'href',
+      'https://ntrs.nasa.gov/citations/19770014162',
+    );
+    await expect(params.getByRole('switch', { name: 'Fijar 1 g' })).not.toBeChecked();
+  });
+
   test('el laboratorio ocupa el ancho de la columna de lectura', async ({ page }) => {
     const lab = await page.locator(LAB).boundingBox();
     const article = await page.locator('article').boundingBox();
@@ -181,7 +200,29 @@ test.describe('página', () => {
     await expect(figures.nth(1).getByText('Simulación interactiva', { exact: true })).toHaveCount(
       0,
     );
-    await expect(figures.nth(1).getByTestId('lab-footnote')).toContainText('Coriolis');
+    await expect(figures.nth(1).locator('details[data-lab-note="left-out"]')).toContainText(
+      'Coriolis',
+    );
+  });
+
+  test('«Cómo se usa» y «Qué deja fuera el modelo» abren cerrados y dicen el paso, el arrastre y los supuestos', async ({
+    page,
+  }) => {
+    const lab = page.locator(LAB);
+    const usage = lab.locator('details[data-lab-note="usage"]');
+    const leftOut = lab.locator('details[data-lab-note="left-out"]');
+    await expect(usage).not.toHaveAttribute('open');
+    await expect(leftOut).not.toHaveAttribute('open');
+    await expect(usage.getByText(/vuelta de 60 s dura 10 s a 1×/)).toBeHidden();
+
+    await usage.locator('summary').click();
+    await leftOut.locator('summary').press('Enter');
+
+    await expect(usage.getByText(/vuelta de 60 s dura 10 s a 1×/)).toBeVisible();
+    await expect(usage).toContainText('Arrastra el manejador sobre la barra logarítmica');
+    for (const left of ['9,81 m/s²', 'Coriolis', '130 m']) {
+      await expect(leftOut).toContainText(left);
+    }
   });
 
   test('la página tiene cuatro pasos, cada uno con su "Por qué" y su figura', async ({ page }) => {

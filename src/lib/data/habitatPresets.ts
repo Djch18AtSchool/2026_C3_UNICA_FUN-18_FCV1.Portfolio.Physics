@@ -1,5 +1,8 @@
 import type { Preset } from '../presets';
 
+/** NASA SP-413, the study of the Stanford torus: the same page as the topic's source 1. */
+export const SP413_URL = 'https://ntrs.nasa.gov/citations/19770014162';
+
 /** A rotating habitat described by its rim radius r (m) and its spin rate (rpm). */
 export interface HabitatSettings {
   r: number;
@@ -22,20 +25,22 @@ export const HABITAT_PRESETS: Preset<HabitatSettings>[] = [
     name: 'Toro de Stanford',
     values: { r: 830, rpm: 1 },
     sourceLabel: 'NASA SP-413 (1977)',
-    note: 'Radio mayor de 830 m girando a 1 RPM, el límite de rotación que fija el estudio para las zonas habitadas. Con g = 9,81 m/s² resulta 0,93 g; SP-413 reporta 0,95 ± 0,05 g y pide vivir entre 0,9 y 1 g.',
+    sourceUrl: SP413_URL,
+    note: 'Radio mayor de 830 m girando a 1 RPM, el límite de rotación que fija el estudio para las zonas habitadas: con g = 9,81 m/s² resulta 0,93 g, y SP-413 reporta 0,95 ± 0,05 g.',
   },
   {
     id: 'limite-sp413',
     name: 'Límite SP-413: 1 g a 1 RPM',
     values: { r: 895, rpm: 1 },
     sourceLabel: 'NASA SP-413 (1977)',
-    note: 'SP-413 recuerda que solo los radios mayores de 895 m dan 1 g por debajo de 1 RPM. Es el punto más exterior del tubo del Toro de Stanford (830 + 65 m): a 1 RPM, 1,00 g y un piso que se mueve a 93,7 m/s.',
+    sourceUrl: SP413_URL,
+    note: 'Solo los radios mayores de 895 m dan 1 g por debajo de 1 RPM, el punto más exterior del tubo del Toro de Stanford (830 + 65 m): a 1 RPM, 1,00 g y un piso que se mueve a 93,7 m/s.',
   },
   {
     id: 'centrifuga-pequena',
     name: 'Centrífuga pequeña',
     values: { r: 10, rpm: 9.46 },
-    sourceLabel: 'Caso ilustrativo del autor',
+    sourceLabel: 'caso ilustrativo del autor',
     note: 'Un radio de 10 m necesita 9,46 RPM para 1 g: la cabeza de una persona de 1,80 m siente un 18 % menos de aceleración que los pies, y la rotación supera los 6 RPM máximos de todos los criterios de confort que recopila Hall.',
   },
 ];

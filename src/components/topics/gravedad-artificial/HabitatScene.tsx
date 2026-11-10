@@ -2,7 +2,6 @@ import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { CHART_COLORS, LINE_WIDTH, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
-import InlineMath from '../../lab/InlineMath';
 import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
 import { useFrameTime } from '../../lab/useFrameTime';
@@ -13,7 +12,7 @@ import RadiusBar, { CAPTION_LINE, COMPACT_BAR } from './RadiusBar';
 /** a_c and apparent gravity wear the static diagram's colors: accent, and chart 2 dashed. */
 export const AC_COLOR = 'var(--accent)';
 export const GAP_COLOR = CHART_COLORS[1];
-const OMEGA_COLOR = CHART_COLORS[3];
+export const OMEGA_COLOR = CHART_COLORS[3];
 const RING_FILL = 'color-mix(in srgb, var(--fg) 7%, var(--bg-elevated))';
 const RING_STROKE = 'var(--fg)';
 const SPOKE_COLOR = 'var(--fg-muted)';
@@ -63,8 +62,6 @@ const NOTE_SIZE = 12;
 const DEG = Math.PI / 180;
 /** Decimals of the turn's angle attribute: a stable string per frame, a hundredth of a degree. */
 const ANGLE_DECIMALS = 2;
-const KEY_WIDTH = 26;
-const KEY_HEIGHT = 12;
 
 function onCircle(c: Point, radius: number, degrees: number): Point {
   return { x: c.x + radius * Math.cos(degrees * DEG), y: c.y + radius * Math.sin(degrees * DEG) };
@@ -231,26 +228,26 @@ function describeScene({ r, rpm, gRatio, decimals }: HabitatSceneProps): string 
   return `Anillo del hábitat, no a escala, de radio ${n(r, 'm', 1)} girando a ${n(rpm, 'RPM')}, con una persona de pie sobre el piso. La aceleración centrípeta apunta hacia el eje y la gravedad aparente hacia afuera, ambas de ${n(gRatio, 'g')}.`;
 }
 
-function LegendKey({ color, dashed }: { color: string; dashed?: boolean }): JSX.Element {
-  const mid = KEY_HEIGHT / 2;
-  return (
-    <svg width={KEY_WIDTH} height={KEY_HEIGHT} aria-hidden="true" className="shrink-0">
-      <line
-        x1="1"
-        y1={mid}
-        x2={KEY_WIDTH - 8}
-        y2={mid}
-        stroke={color}
-        strokeWidth={LINE_WIDTH}
-        strokeDasharray={dashed ? '6 3' : undefined}
-      />
-      <polygon
-        points={`${KEY_WIDTH - 1},${mid} ${KEY_WIDTH - 9},2 ${KEY_WIDTH - 9},10`}
-        fill={color}
-      />
-    </svg>
-  );
+/**
+ * The drawing's height for a measured width: the ring's square (at most MAX_RING_AREA), the bar
+ * under it and, on a phone, a second caption line.
+ */
+export function sceneHeight(width: number): number {
+  const barX1 = width - BAR_SIDE_PAD;
+  const captionRoom = barX1 - BAR_SIDE_PAD < COMPACT_BAR ? CAPTION_LINE : 0;
+  return Math.min(width, MAX_RING_AREA) + BAR_TOP_GAP + BAR_BOTTOM + captionRoom;
 }
+
+/** Below this width the bar is compact (COMPACT_BAR long) and carries the extra caption line. */
+const COMPACT_BELOW = COMPACT_BAR + 2 * BAR_SIDE_PAD;
+/** A step in CSS: a length times this, clamped, is 0 or a whole line within a hundredth of a px. */
+const STEP_SLOPE = 1000;
+/**
+ * sceneHeight written in CSS, from the width of the scene's own container (cqw), so the server
+ * reserves the height the browser will measure: the drawing is sized by its width and would
+ * otherwise grow when it hydrates (a layout shift on a phone). Keep the two in step.
+ */
+export const RESERVED_HEIGHT = `calc(min(100cqw, ${MAX_RING_AREA}px) + ${BAR_TOP_GAP + BAR_BOTTOM}px + clamp(0px, (${COMPACT_BELOW}px - 100cqw) * ${STEP_SLOPE}, ${CAPTION_LINE}px))`;
 
 /**
  * The habitat lab's canvas: the ring, not to scale, turning at the clock's angle with a person
@@ -270,16 +267,16 @@ export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
   const { c, ring } = geometry;
   const barY = side + BAR_TOP_GAP;
   const barX1 = width - BAR_SIDE_PAD;
-  const height = barY + BAR_BOTTOM + (barX1 - BAR_SIDE_PAD < COMPACT_BAR ? CAPTION_LINE : 0);
+  const height = sceneHeight(width);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div ref={wrapperRef} className="w-full">
+    <div className="@container w-full">
+      <div ref={wrapperRef} className="w-full" style={{ height: RESERVED_HEIGHT }}>
         <svg
           data-testid="habitat-scene"
           viewBox={`0 0 ${width} ${height}`}
           width="100%"
-          className="block h-auto overflow-visible"
+          className="block h-full w-full overflow-visible"
         >
           <g role="img" aria-label={describeScene(props)}>
             <text x={8} y={16} fontFamily={TICK_FONT_FAMILY} fontSize={NOTE_SIZE} fill={TICK_COLOR}>
@@ -313,40 +310,6 @@ export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
           <RadiusBar r={r} x0={BAR_SIDE_PAD} x1={barX1} y={barY} onRadiusChange={onRadiusChange} />
         </svg>
       </div>
-      <ul
-        aria-label="Leyenda del hábitat"
-        className="m-0 flex list-none flex-wrap gap-x-5 gap-y-1 p-0 text-sm"
-      >
-        {showVectors ? (
-          <>
-            <li className="m-0 flex items-center gap-2">
-              <LegendKey color={AC_COLOR} />
-              <span>
-                <InlineMath text="Aceleración centrípeta $a_c$, hacia el eje" />
-              </span>
-            </li>
-            <li className="m-0 flex items-center gap-2">
-              <LegendKey color={GAP_COLOR} dashed />
-              <span>
-                <InlineMath text="Gravedad aparente $g_\text{ap} = -a_c$, hacia afuera" />
-              </span>
-            </li>
-          </>
-        ) : null}
-        <li className="m-0 flex items-center gap-2">
-          <LegendKey color={OMEGA_COLOR} />
-          Sentido de giro ω
-        </li>
-      </ul>
-      {showVectors ? (
-        <p className="m-0 text-sm text-fg-muted">
-          <InlineMath
-            text={
-              '$g_\\text{ap}$ es lo que la persona siente en el marco del anillo, que gira: ninguna fuerza tira de ella hacia afuera; es el piso el que la empuja hacia el eje. Flechas a escala hasta 1,5 g; con doble trazo, más largas que lo dibujado.'
-            }
-          />
-        </p>
-      ) : null}
     </div>
   );
 }

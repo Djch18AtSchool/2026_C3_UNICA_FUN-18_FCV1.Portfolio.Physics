@@ -9,7 +9,8 @@ import { mathSourceText } from '../../../test-inline-math';
 import HabitatLab from './HabitatLab';
 import { readout } from '../../../test-readout';
 
-const FOOTNOTE = 'No calcula el efecto Coriolis.';
+const USAGE = 'La reproducción va 6 veces más rápida que el giro real.';
+const LEFT_OUT = 'No calcula el efecto Coriolis.';
 
 /** Identity CTM on every svg: client pixels are viewBox units, so DOM coordinates are pointer ones. */
 function mockIdentityCtm(): void {
@@ -22,7 +23,7 @@ function mockIdentityCtm(): void {
 }
 
 function renderLab() {
-  const view = render(<HabitatLab footnote={FOOTNOTE} />);
+  const view = render(<HabitatLab usage={USAGE} leftOut={LEFT_OUT} />);
   mockIdentityCtm();
   return view;
 }
@@ -86,7 +87,93 @@ describe('HabitatLab', () => {
     expect(readout('Gravedad aparente $a_c/g$')).toBe('1,00 g');
     expect(readout('Período T')).toBe('60,00 s');
     expect(handle()).toHaveAttribute('aria-valuenow', '894.6');
-    expect(screen.getByTestId('lab-footnote')).toHaveTextContent(FOOTNOTE);
+  });
+
+  test('lays out the three levels: N, r and the 1 g switch, then the presets, then the readouts', () => {
+    renderLab();
+    const region = (name: string) => screen.getByRole('region', { name });
+
+    expect(within(region('Parámetros')).getByRole('slider', { name: /^Velocidad de giro/ })).toBe(
+      rpmSlider(),
+    );
+    expect(within(region('Parámetros')).getByRole('textbox', { name: /^Radio del piso/ })).toBe(
+      radiusField(),
+    );
+    expect(within(region('Parámetros')).getByRole('switch', { name: 'Fijar 1 g' })).toBe(
+      lockSwitch(),
+    );
+    expect(within(region('Parámetros')).getByText(/Con 1 g fijo/)).toBeInTheDocument();
+    expect(
+      within(region('Escenario')).getByRole('group', { name: 'Valores de referencia' }),
+    ).toBeInTheDocument();
+    expect(within(region('Lecturas')).getByText('Período T')).toBeInTheDocument();
+  });
+
+  test('the legend and the note on the apparent gravity read the drawing, in the canvas notes', () => {
+    const { container } = renderLab();
+    const notes = container.querySelector('[data-lab-canvas-notes]') as HTMLElement;
+
+    expect(within(notes).getByRole('list', { name: 'Leyenda del hábitat' })).toBeInTheDocument();
+    expect(notes).toHaveTextContent('ninguna fuerza tira de ella hacia afuera');
+    expect(screen.getByTestId('habitat-scene').closest('[data-lab-canvas]')).not.toContainElement(
+      notes,
+    );
+  });
+
+  test('the presets are chips with one line under them: the note and its source as a link', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const group = screen.getByRole('group', { name: 'Valores de referencia' });
+    expect(within(group).getAllByRole('button')).toHaveLength(3);
+    expect(screen.queryByTestId('preset-note')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: /^Toro de Stanford/ }));
+
+    const note = screen.getByTestId('preset-note');
+    expect(note).toHaveTextContent(/0,95 ± 0,05 g/);
+    expect(note).toHaveTextContent('Fuente: NASA SP-413 (1977)');
+    expect(within(note).getByRole('link')).toHaveAttribute(
+      'href',
+      'https://ntrs.nasa.gov/citations/19770014162',
+    );
+  });
+
+  test('beside the gear, the chips «vectores» and «1×» follow the drawer', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const chips = () =>
+      within(screen.getByRole('group', { name: 'Ajustes activos' }))
+        .getAllByRole('button')
+        .map((chip) => chip.textContent);
+    expect(chips()).toEqual(['vectores', '1×']);
+
+    await user.click(screen.getByRole('button', { name: 'vectores' }));
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('switch', {
+        name: 'Vectores a sub c y gravedad aparente',
+      }),
+    );
+
+    expect(chips()).toEqual(['1×']);
+  });
+
+  test('how to use it and what the model leaves out wait in two closed disclosures', () => {
+    const { container } = renderLab();
+    const [usage, leftOut] = [...container.querySelectorAll('details')];
+
+    expect(usage.open || leftOut.open).toBe(false);
+    expect(usage).toHaveTextContent('Arrastra el manejador sobre la barra logarítmica');
+    expect(usage).toHaveTextContent('apaga «Fijar 1 g»');
+    expect(usage).toHaveTextContent(USAGE);
+    expect(leftOut).toHaveTextContent(LEFT_OUT);
+    expect(screen.queryByTestId('lab-footnote')).toBeNull();
+  });
+
+  test('without the MDX texts it still says how to use it, and drops the empty disclosure', () => {
+    const { container } = render(<HabitatLab />);
+
+    const notes = [...container.querySelectorAll('details')];
+    expect(notes.map((details) => details.getAttribute('data-lab-note'))).toEqual(['usage']);
   });
 
   test('with "fijar 1 g" on, 2 rpm shows a radius of 223,6 m', () => {

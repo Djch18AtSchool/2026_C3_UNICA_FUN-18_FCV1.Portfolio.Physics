@@ -1,8 +1,8 @@
 import { useMemo, useState, type JSX } from 'react';
 import { HABITAT_LIMITS, HABITAT_PRESETS } from '../../../lib/data/habitatPresets';
 import { solveHabitat } from '../../../lib/physics';
-import Presets from '../../controls/Presets';
 import InlineMath from '../../lab/InlineMath';
+import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import { SwitchField } from '../../lab/SettingsFields';
@@ -18,6 +18,7 @@ import {
   setRpm,
   type HabitatState,
 } from './habitatModel';
+import HabitatNotes from './HabitatNotes';
 import HabitatScene from './HabitatScene';
 
 /**
@@ -34,9 +35,15 @@ const comma = (value: number) => String(value).replace('.', ',');
 const LOCKED_NOTE = `Con 1 g fijo, mover un parámetro despeja el otro: $r = g/\\omega^2$ o $\\omega = \\sqrt{g/r}$, con g = 9,81 m/s². Para que ambos quepan en sus controles, el giro no baja de ${comma(LOCKED_LIMITS.rpm[0])} RPM ni el radio de ${comma(LOCKED_LIMITS.r[0])} m.`;
 const FREE_NOTE = 'Sin 1 g fijo, r y RPM son libres y la gravedad aparente es la que resulte.';
 
+/** «Cómo se usa»: the drag and its keys, then what a preset does to the lock. */
+const USAGE_HINT =
+  'Arrastra el manejador sobre la barra logarítmica, o enfócalo y muévelo con las flechas (1 % de la barra; con Mayús, 10 %). Un preajuste muestra el par (r, RPM) de su fuente y apaga «Fijar 1 g».';
+
 export interface HabitatLabProps {
-  /** The model's caveats, written in the topic's MDX so they travel with its text. */
-  footnote?: string;
+  /** «Cómo se usa», after the drag hint: the time lapse and the t readout, from the topic's MDX. */
+  usage?: string;
+  /** «Qué deja fuera el modelo», written in the topic's MDX so it travels with its text. */
+  leftOut?: string;
 }
 
 /**
@@ -45,7 +52,7 @@ export interface HabitatLabProps {
  * along a log bar, RPM and radius as main parameters, the "fijar 1 g" switch that solves one from
  * the other, the v1 presets and the readouts ω, v, a_c/g, T and the head-to-feet gradient.
  */
-export default function HabitatLab({ footnote }: HabitatLabProps): JSX.Element {
+export default function HabitatLab({ usage, leftOut }: HabitatLabProps): JSX.Element {
   const [state, setState] = useState<HabitatState>(INITIAL_HABITAT_STATE);
   const [display, setDisplay] = useState<HabitatDisplay>(DEFAULT_DISPLAY);
   const { decimals } = useGlobalSettings();
@@ -81,28 +88,26 @@ export default function HabitatLab({ footnote }: HabitatLabProps): JSX.Element {
 
   const params = (
     <>
-      <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-        <ParamField
-          id="habitat-rpm"
-          label="Velocidad de giro N"
-          unit="RPM"
-          min={HABITAT_LIMITS.rpm[0]}
-          max={HABITAT_LIMITS.rpm[1]}
-          step={RPM_STEP}
-          value={settings.rpm}
-          onChange={(rpm) => update((previous) => setRpm(previous, rpm))}
-        />
-        <ParamField
-          id="habitat-r"
-          label="Radio del piso r"
-          unit="m"
-          min={HABITAT_LIMITS.r[0]}
-          max={HABITAT_LIMITS.r[1]}
-          step={RADIUS_STEP}
-          value={settings.r}
-          onChange={(r) => update((previous) => setRadius(previous, r))}
-        />
-      </div>
+      <ParamField
+        id="habitat-rpm"
+        label="Velocidad de giro N"
+        unit="RPM"
+        min={HABITAT_LIMITS.rpm[0]}
+        max={HABITAT_LIMITS.rpm[1]}
+        step={RPM_STEP}
+        value={settings.rpm}
+        onChange={(rpm) => update((previous) => setRpm(previous, rpm))}
+      />
+      <ParamField
+        id="habitat-r"
+        label="Radio del piso r"
+        unit="m"
+        min={HABITAT_LIMITS.r[0]}
+        max={HABITAT_LIMITS.r[1]}
+        step={RADIUS_STEP}
+        value={settings.r}
+        onChange={(r) => update((previous) => setRadius(previous, r))}
+      />
       <SwitchField
         id="habitat-lock"
         label="Fijar 1 g"
@@ -112,17 +117,16 @@ export default function HabitatLab({ footnote }: HabitatLabProps): JSX.Element {
       <p className="m-0 text-sm text-fg-muted">
         <InlineMath text={isLocked ? LOCKED_NOTE : FREE_NOTE} />
       </p>
-      <Presets
-        presets={HABITAT_PRESETS}
-        activeId={presetId}
-        onSelect={(preset) => update(() => applyPreset(preset))}
-      />
-      <p className="m-0 text-sm text-fg-muted">
-        Arrastra el manejador sobre la barra logarítmica, o enfócalo y muévelo con las flechas (1 %
-        de la barra; con Mayús, 10 %). Un preajuste muestra el par (r, RPM) de su fuente y apaga
-        «Fijar 1 g».
-      </p>
     </>
+  );
+
+  const scenario = (
+    <LabPresets
+      id="habitat-preset"
+      presets={HABITAT_PRESETS}
+      activeId={presetId}
+      onSelect={(preset) => update(() => applyPreset(preset))}
+    />
   );
 
   return (
@@ -131,10 +135,17 @@ export default function HabitatLab({ footnote }: HabitatLabProps): JSX.Element {
       clock={clock}
       timeUnit="s"
       readouts={readouts}
-      params={params}
-      localSettings={habitatLocalSettings({ display, onDisplayChange: setDisplay, clock })}
+      canvasNotes={<HabitatNotes showVectors={display.showVectors} />}
+      levels={{
+        params,
+        scenario,
+        display: habitatLocalSettings({ display, onDisplayChange: setDisplay, clock }),
+      }}
+      notes={{
+        usage: [USAGE_HINT, ...(usage ? [usage] : [])],
+        leftOut: leftOut ? [leftOut] : [],
+      }}
       onReset={onReset}
-      footnote={footnote}
       testId="habitat-lab"
     >
       <HabitatScene

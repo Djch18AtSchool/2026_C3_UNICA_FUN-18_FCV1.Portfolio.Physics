@@ -32,6 +32,7 @@ export function habitatLocalSettings({
     {
       key: 'showVectors',
       label: 'Vectores $a_c$ y gravedad aparente',
+      chip: 'vectores',
       kind: 'toggle',
       value: display.showVectors,
       onChange: (showVectors) => onDisplayChange({ ...display, showVectors }),
