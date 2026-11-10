@@ -272,7 +272,8 @@ test.describe('laboratorio', () => {
       }),
     );
 
-    expect(gaps).toHaveLength(2);
+    // Δt, the floor's e and β: every chip with a formula has an «=» after it.
+    expect(gaps).toHaveLength(3);
     for (const gap of gaps) expect(gap).toBeGreaterThanOrEqual(MIN_SPACE_PX);
   });
 
