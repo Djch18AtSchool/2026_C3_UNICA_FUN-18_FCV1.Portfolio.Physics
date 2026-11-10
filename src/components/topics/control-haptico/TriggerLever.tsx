@@ -65,15 +65,30 @@ function polar(c: Point, radius: number, degrees: number): Point {
   return { x: c.x + radius * Math.cos(degrees * DEG), y: c.y + radius * Math.sin(degrees * DEG) };
 }
 
-/** The scene's geometry for a measured width: arm length, pivot and canvas height. */
-function sceneGeometry(width: number) {
-  const arm = Math.min(MAX_ARM, Math.max(MIN_ARM, width * ARM_SHARE));
+/** Rise of the lever's tip above its pivot at rest, and the room above the pivot, for an arm. */
+function verticalRoom(arm: number) {
   const rise = arm * Math.sin(Math.abs(REST_DEG) * DEG);
   const contactRise = CONTACT_SHARE * rise;
   // Above the pivot: the lever at rest, or the longest arrow on the pressed lever.
-  const above = Math.max(rise, MAX_ARROW - contactRise);
+  return { rise, above: Math.max(rise, MAX_ARROW - contactRise) };
+}
+
+/**
+ * The drawing is as tall as its longest arm needs, at every width: the server draws it at 720 px
+ * and a measured width would change its height (and move the page) when it hydrates. A shorter
+ * arm leaves a little air below the labels.
+ */
+const SCENE_HEIGHT = (() => {
+  const { rise, above } = verticalRoom(MAX_ARM);
+  return TOP_ROOM + above + rise + BOTTOM_ROOM;
+})();
+
+/** The scene's geometry for a measured width: arm length and pivot (the height does not move). */
+function sceneGeometry(width: number) {
+  const arm = Math.min(MAX_ARM, Math.max(MIN_ARM, width * ARM_SHARE));
+  const { above } = verticalRoom(arm);
   const pivot = { x: (width - arm) / 2 - PIVOT_SHIFT, y: TOP_ROOM + above };
-  return { arm, pivot, height: pivot.y + rise + BOTTOM_ROOM };
+  return { arm, pivot, height: SCENE_HEIGHT };
 }
 
 /** Hatched block behind the pivot: the controller's body, fixed. */
@@ -191,7 +206,8 @@ export default function TriggerLever({
         data-testid="trigger-lever"
         viewBox={`0 0 ${width} ${height}`}
         width="100%"
-        className="block h-auto overflow-visible"
+        height={height}
+        className="block overflow-visible"
       >
         <g
           role="img"

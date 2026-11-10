@@ -2,7 +2,7 @@ import { useState, type JSX } from 'react';
 import { TRIGGER_LIMITS } from '../../../lib/data/triggerModel';
 import { formatNumber } from '../../../lib/format';
 import { motionReduced } from '../../../lib/settingsStore';
-import Presets from '../../controls/Presets';
+import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import InlineMath from '../../lab/InlineMath';
 import ParamField from '../../lab/ParamField';
@@ -10,7 +10,7 @@ import type { SettingOption } from '../../lab/SettingsDrawer';
 import SvgPlot from '../../lab/SvgPlot';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { usePrefersReducedMotion } from '../../lab/useSimClock';
-import { HOOKE_COLOR, labPlot, usePlotAspect } from './hapticPlots';
+import { HOOKE_COLOR, labPlot, PLOT_BOX, usePlotAspect } from './hapticPlots';
 import TriggerLever from './TriggerLever';
 import {
   DAMPING_OPTIONS,
@@ -42,16 +42,21 @@ const K_STEP = 10;
 const X0_STEP = 0.5;
 /** The travel reads to 0,1 mm, the keyboard grain; the rest follow the global decimals. */
 const X_PRECISION = 1;
+/** The plot's two ratios; PLOT_BOX (hapticPlots.ts) reserves the same two in CSS: change them together. */
 const WIDE_ASPECT = 2;
 const COMPACT_ASPECT = 1.1;
 /** The ideal spring's point: a ring around the trigger's marker, so both read when they coincide. */
 const HOOKE_RING = 8;
 const ACTION_BUTTON =
-  'h-9 rounded-base border border-border bg-bg px-3 text-sm font-medium text-fg hover:border-accent disabled:cursor-not-allowed disabled:opacity-50';
+  'min-h-10 rounded-base border border-border bg-bg px-3 text-sm font-medium text-fg hover:border-accent disabled:cursor-not-allowed disabled:opacity-50';
+
+/** «Cómo se usa»: the lever and its keys, the two buttons under it and what a keyboard press does. */
+const USAGE =
+  'Arrastra la palanca y suéltala, o enfócala y muévela con las flechas (0,1 mm; con Mayús, 1 mm): con el teclado el gatillo queda apretado hasta «Soltar el gatillo». «Repetir retorno» vuelve a soltarlo desde el último punto.';
 
 export interface TriggerLabProps {
-  /** The model's caveats, written in the topic's MDX so they travel with its text. */
-  footnote?: string;
+  /** «Qué deja fuera el modelo», written in the topic's MDX so it travels with its text. */
+  leftOut?: string;
 }
 
 /**
@@ -61,7 +66,7 @@ export interface TriggerLabProps {
  * readouts x, F, U and W. Let go, the lever returns with the kernel's damped spring (critical or
  * underdamped, a local setting); "Repetir retorno" replays the last release from its start.
  */
-export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
+export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
   const [state, setState] = useState<TriggerLabState>(INITIAL_STATE);
   const settings = useGlobalSettings();
   const isReduced = motionReduced(settings, usePrefersReducedMotion());
@@ -108,10 +113,11 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
     { id: 'work', label: 'Trabajo del dedo W', value: readings.work, unit: 'mJ' },
   ];
 
-  const localSettings: SettingOption[] = [
+  const display: SettingOption[] = [
     {
       key: 'damping',
       label: 'Amortiguación al soltar',
+      chip: 'Amortiguación',
       kind: 'select',
       value: state.damping,
       options: DAMPING_OPTIONS,
@@ -121,37 +127,68 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
 
   const params = (
     <>
-      <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-        <ParamField
-          id="trigger-k"
-          label="Rigidez k"
-          unit="N/m"
-          min={TRIGGER_LIMITS.k[0]}
-          max={TRIGGER_LIMITS.k[1]}
-          step={K_STEP}
-          value={state.k}
-          onChange={(k) => setState((previous) => ({ ...previous, k }))}
-        />
-        <ParamField
-          id="trigger-x0"
-          label="Inicio de la resistencia $x_0$"
-          unit="mm"
-          min={TRIGGER_LIMITS.start[0]}
-          max={TRIGGER_LIMITS.start[1]}
-          step={X0_STEP}
-          value={state.x0Mm}
-          onChange={(x0Mm) => setState((previous) => ({ ...previous, x0Mm }))}
-        />
-      </div>
-      <Presets
-        presets={TRIGGER_PRESETS}
-        activeId={triggerPresetIdFor(state)}
-        onSelect={({ values }) => {
-          release.cancel();
-          setState((previous) => ({ ...previous, ...values }));
-        }}
+      <ParamField
+        id="trigger-k"
+        label="Rigidez k"
+        unit="N/m"
+        min={TRIGGER_LIMITS.k[0]}
+        max={TRIGGER_LIMITS.k[1]}
+        step={K_STEP}
+        value={state.k}
+        onChange={(k) => setState((previous) => ({ ...previous, k }))}
       />
-      <div className="flex flex-col items-start gap-2">
+      <ParamField
+        id="trigger-x0"
+        label="Inicio de la resistencia $x_0$"
+        unit="mm"
+        min={TRIGGER_LIMITS.start[0]}
+        max={TRIGGER_LIMITS.start[1]}
+        step={X0_STEP}
+        value={state.x0Mm}
+        onChange={(x0Mm) => setState((previous) => ({ ...previous, x0Mm }))}
+      />
+    </>
+  );
+
+  const scenario = (
+    <LabPresets
+      id="trigger-preset"
+      presets={TRIGGER_PRESETS}
+      activeId={triggerPresetIdFor(state)}
+      onSelect={({ values }) => {
+        release.cancel();
+        setState((previous) => ({ ...previous, ...values }));
+      }}
+    />
+  );
+
+  /** What reads the drawing, with no controls: the energies, the arrow, the ring and the slow motion. */
+  const canvasNotes = (
+    <p className="m-0 text-sm text-fg-muted">
+      <InlineMath
+        text={`$U = \\tfrac12 k x^2$ es la energía elástica del resorte ideal en el x actual; $W = \\tfrac12 k (x - x_0)^2$, el área bajo el perfil, es el trabajo del dedo contra el gatillo, que el actuador absorbe en lugar de guardarlo. La flecha F es la fuerza del gatillo sobre el dedo, a escala; el aro marca el resorte ideal en el mismo x. Al soltarla, la palanca vuelve ${SLOW_MOTION} veces más lenta que el retorno calculado, para que se vea, y se detiene en el tope del reposo.`}
+      />
+    </p>
+  );
+
+  return (
+    <LabShell
+      title="Laboratorio del gatillo"
+      readouts={readouts}
+      levels={{ params, scenario, display }}
+      canvasNotes={canvasNotes}
+      notes={{ usage: [USAGE], leftOut: leftOut ? [leftOut] : [] }}
+      onReset={onReset}
+      testId="trigger-lab"
+    >
+      <div className="flex flex-col gap-4">
+        <TriggerLever
+          xMm={state.xMm}
+          x0Mm={state.x0Mm}
+          forceN={readings.force}
+          onPress={press}
+          onRelease={letGo}
+        />
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
@@ -172,35 +209,7 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
             Repetir retorno
           </button>
         </div>
-        <p className="m-0 text-sm text-fg-muted">
-          Arrastra la palanca y suéltala, o enfócala y muévela con las flechas (0,1 mm; con Mayús, 1
-          mm): con el teclado el gatillo queda apretado hasta «Soltar el gatillo». «Repetir retorno»
-          vuelve a soltarlo desde el último punto. La amortiguación se elige en los ajustes del
-          engranaje.
-        </p>
-      </div>
-    </>
-  );
-
-  return (
-    <LabShell
-      title="Laboratorio del gatillo"
-      readouts={readouts}
-      params={params}
-      localSettings={localSettings}
-      onReset={onReset}
-      footnote={footnote}
-      testId="trigger-lab"
-    >
-      <div className="flex flex-col gap-4">
-        <TriggerLever
-          xMm={state.xMm}
-          x0Mm={state.x0Mm}
-          forceN={readings.force}
-          onPress={press}
-          onRelease={letGo}
-        />
-        <div ref={plotAspect.ref} data-testid="trigger-plot">
+        <div ref={plotAspect.ref} data-testid="trigger-plot" className={PLOT_BOX}>
           <SvgPlot
             aspectRatio={plotAspect.aspectRatio}
             title="Fuerza frente al desplazamiento del gatillo"
@@ -221,11 +230,6 @@ export default function TriggerLab({ footnote }: TriggerLabProps): JSX.Element {
             ariaLabel={`A ${formatNumber(state.xMm, { precision: X_PRECISION, unit: 'mm' })}, el gatillo empuja con ${formatNumber(readings.force, { precision: settings.decimals, unit: 'N' })} y el resorte ideal, con ${formatNumber(readings.hooke, { precision: settings.decimals, unit: 'N' })}.`}
           />
         </div>
-        <p className="m-0 text-sm text-fg-muted">
-          <InlineMath
-            text={`$U = \\tfrac12 k x^2$ es la energía elástica del resorte ideal en el x actual; $W = \\tfrac12 k (x - x_0)^2$, el área bajo el perfil, es el trabajo del dedo contra el gatillo, que el actuador absorbe en lugar de guardarlo. La flecha F es la fuerza del gatillo sobre el dedo, a escala; el aro marca el resorte ideal en el mismo x. Al soltarla, la palanca vuelve ${SLOW_MOTION} veces más lenta que el retorno calculado, para que se vea, y se detiene en el tope del reposo.`}
-          />
-        </p>
       </div>
     </LabShell>
   );
