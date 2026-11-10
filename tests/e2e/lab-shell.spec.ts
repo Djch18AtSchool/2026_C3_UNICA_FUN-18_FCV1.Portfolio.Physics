@@ -123,15 +123,16 @@ test('las lecturas se anuncian una vez quietas, no en cada pulsación', async ({
 
   const handle = lab.getByTestId('launch-handle');
   await handle.focus();
-  const pressedAt = Date.now();
+  // A monotonic clock: the wall clock (Date.now) can step back mid-test (seen under WSL).
+  const pressedAt = performance.now();
   await handle.press('ArrowUp');
   // One read, no retries: still inside the settle window, nothing has been announced yet.
   const early = (await announcer.textContent()) ?? '';
-  const readAfterMs = Date.now() - pressedAt;
+  const readAfterMs = performance.now() - pressedAt;
   if (readAfterMs < READOUT_SETTLE_MS) expect(early).toBe('');
 
   await expect.poll(async () => (await announcer.textContent()) ?? '').toContain('Altura máxima:');
-  expect(Date.now() - pressedAt).toBeGreaterThanOrEqual(READOUT_SETTLE_MS);
+  expect(performance.now() - pressedAt).toBeGreaterThanOrEqual(READOUT_SETTLE_MS);
 });
 
 for (const { path, testId } of LABS) {
