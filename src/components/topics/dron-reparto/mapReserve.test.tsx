@@ -135,7 +135,15 @@ describe('the skeleton’s placeholder of the map figure', () => {
     );
     const svg = container.querySelector('svg[role="img"]') as unknown as SVGSVGElement;
 
-    for (const svgWidth of [PHONE_WIDTH, 363, NARROWEST_WIDE, COLUMN_WIDTH]) {
+    for (const svgWidth of [
+      PHONE_WIDTH,
+      320,
+      363,
+      414,
+      WIDEST_COMPACT,
+      NARROWEST_WIDE,
+      COLUMN_WIDTH,
+    ]) {
       const layout = svgWidth >= NARROWEST_WIDE ? 'wide' : 'compact';
       const reserved = svg.style.getPropertyValue(`--plot-height-${layout}`);
       expect(resolveCss(reserved, svgWidth, 16)).toBeCloseTo(mapPlotHeight(svgWidth), 1);
