@@ -351,6 +351,16 @@ describe('FlybyLab', () => {
     expect(readout(TURN)).toBe('151,1°');
   });
 
+  test('r_p cannot pass 100 R_J: a typed 150 stays at 100 R_J and says so next to the field', async () => {
+    const user = userEvent.setup();
+    renderLab();
+
+    await typeRp(user, '150');
+
+    expect(rpField()).toHaveValue('100');
+    expect(mathSourceText(warning())).toMatch(/llega hasta 100 \$R_\\mathrm\{J\}\$/);
+  });
+
   test('dragging the periapsis handle into the planet clamps at 1 R_J; readouts stay numbers', () => {
     renderLab();
 
