@@ -30,6 +30,7 @@ describe('MODEL3_LR_RWD_2025', () => {
       testVehicleId: '3R124-782214',
       testId: 'RTSL10086702',
       url: 'https://www.epa.gov/system/files/documents/2026-01/25-testcar-2026-01-21.xlsx',
+      page: 'https://www.epa.gov/compliance-and-fuel-economy-data/data-cars-used-testing-fuel-economy',
       accessed: '2026-10-30',
     });
   });

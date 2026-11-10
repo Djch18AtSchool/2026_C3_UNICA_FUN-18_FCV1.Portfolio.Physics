@@ -31,13 +31,17 @@ describe('regen presets', () => {
     for (const preset of REGEN_PRESETS.filter(({ id }) => id !== 'cold-battery')) {
       expect(preset.optionLabel).toBeUndefined();
     }
+    // The source is the EPA's public page of the list (the topic's source), not its .xlsx file.
     expect(REGEN_PRESETS.map((preset) => preset.sourceUrl)).toEqual([
-      VEHICLES.model3.source.url,
-      VEHICLES.model3.source.url,
-      VEHICLES.model3.source.url,
+      VEHICLES.model3.source.page,
+      VEHICLES.model3.source.page,
+      VEHICLES.model3.source.page,
       undefined,
-      VEHICLES.leaf.source.url,
+      VEHICLES.leaf.source.page,
     ]);
+    expect(VEHICLES.model3.source.page).toBe(
+      'https://www.epa.gov/compliance-and-fuel-economy-data/data-cars-used-testing-fuel-economy',
+    );
   });
 
   test('every note is one sentence for the one-line note under the choice', () => {

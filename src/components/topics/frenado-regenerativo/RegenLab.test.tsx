@@ -141,14 +141,14 @@ describe('RegenLab', () => {
     expect(screen.getByTestId('preset-note')).toHaveTextContent('Fuente: Model 3 · escenario');
   });
 
-  test('the Model 3 presets link the EPA list as their source', () => {
+  test('the Model 3 presets link the EPA list’s public page as their source, not a download', () => {
     renderLab();
 
     const note = screen.getByTestId('preset-note');
     expect(note).toHaveTextContent('Fuente: EPA, vehículo 3R124-782214');
     expect(within(note).getByRole('link', { name: 'EPA, vehículo 3R124-782214' })).toHaveAttribute(
       'href',
-      expect.stringMatching(/^https:\/\/www\.epa\.gov\/.*25-testcar.*\.xlsx$/),
+      'https://www.epa.gov/compliance-and-fuel-economy-data/data-cars-used-testing-fuel-economy',
     );
   });
 

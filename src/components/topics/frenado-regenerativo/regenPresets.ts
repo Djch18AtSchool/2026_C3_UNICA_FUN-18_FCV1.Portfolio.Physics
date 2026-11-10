@@ -38,9 +38,9 @@ const SITE_MODEL = {
 } as const;
 
 const MODEL3_SOURCE = 'EPA, vehículo 3R124-782214';
-/** The Test Car List the EPA values of each car come from (evModels.ts keeps the one address). */
-const MODEL3_URL = MODEL3_LR_RWD_2025.source.url;
-const LEAF_URL = LEAF_2025.source.url;
+/** The public page of the Test Car List each car's EPA values come from (evModels.ts). */
+const MODEL3_URL = MODEL3_LR_RWD_2025.source.page;
+const LEAF_URL = LEAF_2025.source.page;
 
 export const REGEN_PRESETS: Preset<RegenLabState>[] = [
   {

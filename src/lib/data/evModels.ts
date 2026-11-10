@@ -13,7 +13,10 @@ export interface TestCarSource {
   list: string;
   testVehicleId: string;
   testId: string;
+  /** The list's data file (a download). */
   url: string;
+  /** The EPA's public page that publishes the list: the address to link a reader to. */
+  page: string;
   accessed: string;
 }
 
@@ -26,6 +29,9 @@ export interface EvModel extends Vehicle {
 const TEST_CAR_LIST = 'EPA, 2025 Test Car List Data (25-testcar-2026-01-21.xlsx)';
 const TEST_CAR_LIST_URL =
   'https://www.epa.gov/system/files/documents/2026-01/25-testcar-2026-01-21.xlsx';
+/** The topic's source epa-test-car-list-2025 (frenado-regenerativo.mdx). */
+const TEST_CAR_LIST_PAGE_URL =
+  'https://www.epa.gov/compliance-and-fuel-economy-data/data-cars-used-testing-fuel-economy';
 const ACCESSED = '2026-10-30';
 
 /**
@@ -43,7 +49,13 @@ function fromTestCarList(
     m: epa.etwLb * KG_PER_LB,
     roadLoad: roadLoadFromEpa(epa.aLbf, epa.bLbfPerMph, epa.cLbfPerMph2),
     epa,
-    source: { list: TEST_CAR_LIST, ...ids, url: TEST_CAR_LIST_URL, accessed: ACCESSED },
+    source: {
+      list: TEST_CAR_LIST,
+      ...ids,
+      url: TEST_CAR_LIST_URL,
+      page: TEST_CAR_LIST_PAGE_URL,
+      accessed: ACCESSED,
+    },
   };
 }
 
