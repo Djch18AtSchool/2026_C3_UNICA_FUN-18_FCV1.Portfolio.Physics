@@ -54,7 +54,7 @@ const SYMBOL_NAMES: Readonly<Record<string, string>> = {
   '≤': 'menor o igual que',
   '≥': 'mayor o igual que',
   '≠': 'distinto de',
-  '→': 'flecha',
+  '→': 'a',
   '←': 'flecha a la izquierda',
   '↔': 'flecha doble',
   '⇒': 'implica',

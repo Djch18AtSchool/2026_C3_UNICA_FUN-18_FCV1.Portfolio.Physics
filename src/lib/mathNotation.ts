@@ -209,6 +209,19 @@ function spokenScript(script: 'sub' | 'sup', text: string): string {
   return `${script === 'sub' ? ' sub ' : ' a la '}${tidy(words)}`;
 }
 
+const ARROW = '→';
+const INFINITY = '∞';
+
+/**
+ * An arrow said as Spanish says it: «tiende a» before ∞ (a limit, m₂ → ∞) and «a» between two
+ * states (rueda → batería), never the word «flecha».
+ */
+function spokenArrow(after: readonly MathToken[]): string {
+  const next = after.find((token) => token.kind !== 'char' || token.char.trim() !== '');
+  const isLimit = next?.kind === 'char' && next.char === INFINITY;
+  return isLimit ? ' tiende a ' : ' a ';
+}
+
 /**
  * The label as a screen reader should say it, in Spanish: «v sub infinito, in» for v_∞,in,
  * «10 a la menos 7», «vector V sub p», «módulo de delta v». Plain text comes back unchanged.
@@ -219,6 +232,7 @@ export function mathTextToString(source: string): string {
   const parts = tokens.map((token, i) => {
     if (token.kind === 'script') return spokenScript(token.script, token.text);
     if (token.kind === 'vector') return ` vector ${spokenChar(token.char)}`;
+    if (token.char === ARROW) return spokenArrow(tokens.slice(i + 1));
     if (token.char !== '|') return spokenChar(token.char);
     // Bars pair up: an odd one opens a modulus, an even one closes it.
     const opens = tokens.slice(0, i).filter(isBar).length % 2 === 0;

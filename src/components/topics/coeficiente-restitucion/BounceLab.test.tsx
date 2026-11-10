@@ -260,7 +260,7 @@ describe('BounceLab', () => {
       await user.keyboard('{Escape}');
       await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
       expect(plexViolations(document.body), 'collision').toEqual([]);
-      await user.click(screen.getByRole('switch', { name: /m sub 2 flecha infinito/ }));
+      await user.click(screen.getByRole('switch', { name: /m sub 2 tiende a infinito/ }));
       expect(plexViolations(document.body), 'wall').toEqual([]);
     },
     HEAVY_TEST_TIMEOUT_MS,
@@ -271,7 +271,7 @@ describe('BounceLab', () => {
     renderLab();
     await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
 
-    await user.click(screen.getByRole('switch', { name: /m sub 2 flecha infinito/ }));
+    await user.click(screen.getByRole('switch', { name: /m sub 2 tiende a infinito/ }));
 
     expect(readout("$v_1'$")).toBe('−2,00 m/s');
     expect(screen.getByTestId('collision-notes')).toHaveTextContent(/piso/);

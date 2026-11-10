@@ -187,3 +187,15 @@ describe('review fixes', () => {
     expect(marksTopEm('vec V')).toBeGreaterThan(marksTopEm('vec v'));
   });
 });
+
+describe('mathTextToString arrows', () => {
+  test.each([
+    ['m_2 → ∞', 'm sub 2 tiende a infinito'],
+    ['rueda → batería', 'rueda a batería'],
+    ['A → B', 'A a B'],
+    ['t → ∞ s', 't tiende a infinito s'],
+    ['x→ y', 'x a y'],
+  ])('says %s as «%s», never «flecha»', (source, spoken) => {
+    expect(mathTextToString(source)).toBe(spoken);
+  });
+});
