@@ -111,7 +111,10 @@ function Header({
                 onClick={(event) => drawer.open(event.currentTarget)}
                 className={CHIP}
               >
-                <InlineMath text={chip.text} />
+                {/* One inline run: as flex items, the text after a formula would lose its space. */}
+                <span>
+                  <InlineMath text={chip.text} />
+                </span>
               </button>
             ))}
           </div>

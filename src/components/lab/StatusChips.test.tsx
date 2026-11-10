@@ -40,6 +40,17 @@ describe('StatusChips', () => {
     expect(screen.getByRole('list', { name: 'Estado de omega' })).toBeInTheDocument();
   });
 
+  test('each chip holds one inline run, so the space after a formula is not dropped', () => {
+    // A flex container makes each text run its own item and trims the space that starts one:
+    // «$\Delta t$ = 1/60 s» would read «Δt= 1/60 s». One inline wrapper keeps the run whole.
+    render(<StatusChips label="Motor" items={ENGINE} />);
+
+    for (const item of screen.getAllByRole('listitem')) {
+      expect(item.childNodes).toHaveLength(1);
+      expect(item.firstElementChild?.tagName).toBe('SPAN');
+    }
+  });
+
   test('renders nothing without items', () => {
     const { container } = render(<StatusChips label="Motor" items={[]} />);
 

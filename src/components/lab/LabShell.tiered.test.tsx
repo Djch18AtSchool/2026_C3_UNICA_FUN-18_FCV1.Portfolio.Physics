@@ -99,6 +99,30 @@ describe('LabShell with levels (tiered)', () => {
     expectInOrder([screen.getByText('Laboratorio del sobrevuelo'), ...chips, gear()]);
   });
 
+  test('each chip holds one inline run, so the space after a formula is not dropped', () => {
+    // A chip is a flex box: as separate items, «$k$ 3,5» would lose the space after the formula.
+    const fall: SettingOption = {
+      key: 'fall',
+      label: 'Multiplicador de caída',
+      chip: '$k$',
+      kind: 'range',
+      value: 3.5,
+      min: 1,
+      max: 4,
+      step: 0.5,
+      onChange: () => {},
+    };
+    renderTiered({ levels: { params: null, display: [fall, ...display()] } });
+
+    const chips = within(screen.getByRole('group', { name: 'Ajustes activos' })).getAllByRole(
+      'button',
+    );
+    for (const chip of chips) {
+      expect(chip.childNodes).toHaveLength(1);
+      expect(chip.firstElementChild?.tagName).toBe('SPAN');
+    }
+  });
+
   test('a toggle switched off leaves the row; the row follows the settings it is given', () => {
     const { rerender } = renderTiered();
     expect(screen.getByRole('button', { name: 'estela' })).toBeInTheDocument();

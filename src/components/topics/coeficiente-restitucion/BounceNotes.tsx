@@ -110,20 +110,14 @@ export function BounceSummary({ settings: s, model, decimals }: BounceSummaryPro
   );
 }
 
-/**
- * «=» between no-break spaces: a chip is a flex box, which drops the ordinary space that follows a
- * KaTeX formula, so «Δt = …» would read «Δt= …».
- */
-const EQUALS = ' = ';
-
 /** The engine's configuration as read-only chips (what the drawer sets; the presets change it). */
 export function engineChips(s: BounceSettings): StatusChip[] {
   return [
-    { id: 'step', text: `$\\Delta t$${EQUALS}1/${s.rate} s × ${s.substeps} subpasos` },
+    { id: 'step', text: `$\\Delta t$ = 1/${s.rate} s × ${s.substeps} subpasos` },
     { id: 'threshold', text: `umbral ${n(s.threshold, 2, 'm/s')}` },
     { id: 'rule', text: `regla ${combineName(s.combine)}` },
     { id: 'floor', text: `suelo e = ${formatNumber(s.floorE, { precision: 2 })}` },
-    { id: 'baumgarte', text: `$\\beta$${EQUALS}${formatNumber(s.baumgarte, { precision: 2 })}` },
+    { id: 'baumgarte', text: `$\\beta$ = ${formatNumber(s.baumgarte, { precision: 2 })}` },
   ];
 }
 

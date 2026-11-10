@@ -40,7 +40,10 @@ export default function StatusChips({
       <ul aria-label={inlineMathToSpeech(label)} className="m-0 flex list-none flex-wrap gap-2 p-0">
         {items.map((item) => (
           <li key={item.id} className={CHIP}>
-            <InlineMath text={item.text} />
+            {/* One inline run: as flex items, the text after a formula would lose its space. */}
+            <span>
+              <InlineMath text={item.text} />
+            </span>
           </li>
         ))}
       </ul>

@@ -20,6 +20,8 @@ const NEAR_END = '995';
 /** Longest the last 0,5 % of playback may take to reach the end. */
 const PLAYBACK_TIMEOUT_MS = 3000;
 const STILL_AT_END_MS = 500;
+/** A visible space at the chips' 12 px: a dropped one leaves ~0 px between formula and «=». */
+const MIN_SPACE_PX = 2;
 /** The FIBA preset's e, the centre of 0,758–0,776. */
 const FIBA_E = 0.767;
 
@@ -237,6 +239,35 @@ test.describe('laboratorio', () => {
 
     await expect(motor).toContainText('1/30 s × 1 subpasos');
     await expect(motor).toContainText('β = 0,20');
+  });
+
+  test('en las fichas «Motor» el espacio tras una fórmula se ve: «Δt = …», no «Δt= …»', async ({
+    page,
+  }) => {
+    const motor = page.locator(LAB).getByRole('list', { name: 'Motor' });
+    await expect(motor.getByRole('listitem')).toHaveCount(5);
+
+    // From each formula's box to the «=» that follows it, as laid out.
+    const gaps = await motor.locator('li:has(.katex)').evaluateAll((items) =>
+      items.map((item) => {
+        const formula = item.querySelector('.inline-math');
+        const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+        let node = walker.nextNode();
+        while (node && !(formula?.compareDocumentPosition(node) ?? 0)) node = walker.nextNode();
+        while (node && (formula?.contains(node) || !node.textContent?.includes('='))) {
+          node = walker.nextNode();
+        }
+        if (!formula || !node) return Number.NaN;
+        const range = document.createRange();
+        const at = node.textContent?.indexOf('=') ?? 0;
+        range.setStart(node, at);
+        range.setEnd(node, at + 1);
+        return range.getBoundingClientRect().left - formula.getBoundingClientRect().right;
+      }),
+    );
+
+    expect(gaps).toHaveLength(2);
+    for (const gap of gaps) expect(gap).toBeGreaterThanOrEqual(MIN_SPACE_PX);
   });
 
   test('el laboratorio ocupa el ancho de la columna de lectura', async ({ page }) => {

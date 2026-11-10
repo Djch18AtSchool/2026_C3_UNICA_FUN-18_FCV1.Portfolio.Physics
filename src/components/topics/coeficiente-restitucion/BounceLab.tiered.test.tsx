@@ -111,10 +111,10 @@ describe('BounceLab on the tiered shell', () => {
       baumgarte: 0.2,
     }).map(({ text }) => text);
 
-    expect(texts[0]).toBe('$\\Delta t$\u00a0=\u00a01/120 s × 2 subpasos');
+    expect(texts[0]).toBe('$\\Delta t$ = 1/120 s × 2 subpasos');
     expect(texts[2]).toBe('regla promedio');
     expect(texts[3]).toBe('suelo e = 0,50');
-    expect(texts[4]).toBe('$\\beta$\u00a0=\u00a00,20');
+    expect(texts[4]).toBe('$\\beta$ = 0,20');
   });
 
   test('the canvas is the scene alone; the chips by the gear show 1× and e(v) once it is on', async () => {
