@@ -61,6 +61,8 @@ const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
         const field = lab.getByRole('textbox', { name: /^Duración de la maniobra T/ });
         await field.fill('8');
         await field.press('Enter');
+        // T = 8 s is below T_min: the warning is the sign that the field was committed.
+        await expect(lab.getByRole('status')).toContainText(/la rueda no alcanza/i);
         await setRange(
           lab.getByRole('slider', { name: 'Línea de tiempo' }),
           String(OVER_LIMIT_SHARE),
