@@ -10,6 +10,7 @@ import { svgText } from '../../../test-svg-text';
 import { disturbanceTimeline, MIN_DUMP_PLAYBACK, playbackTimeAt } from './disturbanceTimeline';
 import WheelLab, { DAY_LAPSE } from './WheelLab';
 import type { DumpActuator } from './wheelLabModel';
+import { readout } from '../../../test-readout';
 
 const FOOTNOTE = 'Rueda partiendo de 0 rpm; un eje.';
 /** The readout labels, as written (with `$…$` for KaTeX). */
@@ -37,14 +38,6 @@ function renderLab() {
   return view;
 }
 
-/** The value text of a LabShell readout row, normalised to plain spaces. */
-function readout(label: string): string {
-  const row = [...document.querySelectorAll<HTMLElement>('[data-readout]')].find(
-    (candidate) => mathSourceText(candidate.firstElementChild) === label,
-  );
-  if (!row) throw new Error(`No readout labelled «${label}»`);
-  return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
-}
 /** The readout's leading number: a unit may follow after a space or, for °, attached (R39). */
 const readoutNumber = (label: string) =>
   Number((/^[−\d,]+/.exec(readout(label))?.[0] ?? 'NaN').replace(',', '.').replace('−', '-'));

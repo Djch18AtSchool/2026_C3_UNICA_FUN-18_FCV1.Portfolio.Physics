@@ -9,6 +9,7 @@ import { plexViolations } from '../../../test-glyphs';
 import { formulasOf } from '../../lab/TexSeed';
 import DroneLab from './DroneLab';
 import { DRONE_LAB_FORMULAS } from './droneLabFormulas';
+import { readout } from '../../../test-readout';
 
 const FOOTNOTE = 'Mi dron se detiene en cada vértice y no hay viento.';
 /**
@@ -39,12 +40,6 @@ async function renderLab() {
   await screen.findByTestId('drone-lab', {}, { timeout: LAB_READY_TIMEOUT_MS });
   mockIdentityCtm();
   return view;
-}
-
-/** The value text of a LabShell readout row, normalised to plain spaces. */
-function readout(label: string): string {
-  const row = screen.getByText(label, { selector: 'span' }).parentElement as HTMLElement;
-  return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
 
 function knobCentre(testId: string): { x: number; y: number } {

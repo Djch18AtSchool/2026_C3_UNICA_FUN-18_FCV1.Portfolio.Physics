@@ -7,6 +7,7 @@ import { installDialogPolyfill } from '../../../test-dialog';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
 import BounceLab from './BounceLab';
+import { readout } from '../../../test-readout';
 
 const FOOTNOTE = 'Desprecio el arrastre del aire.';
 /** Tests that sweep presets or the timeline render the lab dozens of times; room under load. */
@@ -26,15 +27,6 @@ function renderLab() {
   const view = render(<BounceLab footnote={FOOTNOTE} />);
   mockIdentityCtm();
   return view;
-}
-
-/** The value text of a LabShell readout row, normalised to plain spaces. */
-function readout(label: string): string {
-  const row = [...document.querySelectorAll<HTMLElement>('[data-readout]')].find(
-    (candidate) => mathSourceText(candidate.firstElementChild) === label,
-  );
-  if (!row) throw new Error(`No readout labelled «${label}»`);
-  return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
 
 const numberOf = (text: string) => Number(text.replace(/\s.*$/, '').replace(',', '.'));

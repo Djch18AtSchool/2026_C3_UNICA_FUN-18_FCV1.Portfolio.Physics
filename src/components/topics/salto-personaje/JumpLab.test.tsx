@@ -7,6 +7,7 @@ import { installDialogPolyfill } from '../../../test-dialog';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
 import JumpLab from './JumpLab';
+import { readout } from '../../../test-readout';
 
 /** Identity CTM on every svg: client pixels are viewBox units, so DOM coordinates are pointer ones. */
 function mockIdentityCtm(container: HTMLElement): void {
@@ -24,12 +25,6 @@ function renderLab() {
   const view = render(<JumpLab footnote={FOOTNOTE} />);
   mockIdentityCtm(view.container);
   return view;
-}
-
-/** The value text of a LabShell readout row, normalised to plain spaces. */
-function readout(label: string): string {
-  const row = screen.getByText(label, { selector: 'span' }).parentElement as HTMLElement;
-  return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
 
 /** Centre of a draggable handle, read from its visible knob. */

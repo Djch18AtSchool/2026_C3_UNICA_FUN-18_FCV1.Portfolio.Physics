@@ -8,6 +8,7 @@ import TyreLab from './TyreLab';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
 import { svgText } from '../../../test-svg-text';
+import { readout } from '../../../test-readout';
 
 const FOOTNOTE = 'Parámetros ilustrativos, no medidos.';
 
@@ -25,15 +26,6 @@ function renderLab() {
   const view = render(<TyreLab footnote={FOOTNOTE} />);
   mockIdentityCtm();
   return view;
-}
-
-/** The value text of a LabShell readout row, normalised to plain spaces. */
-function readout(label: string): string {
-  const row = [...document.querySelectorAll('[data-readout]')].find(
-    (candidate) => mathSourceText(candidate.firstElementChild) === label,
-  );
-  if (!row) throw new Error(`No readout labelled «${label}»`);
-  return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
 
 const temperatureCursor = () => screen.getByRole('slider', { name: 'Temperatura T' });

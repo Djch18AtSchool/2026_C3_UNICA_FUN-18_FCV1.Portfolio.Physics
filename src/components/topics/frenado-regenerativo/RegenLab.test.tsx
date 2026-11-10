@@ -7,6 +7,7 @@ import { installDialogPolyfill } from '../../../test-dialog';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
 import RegenLab, { TIME_LAPSE } from './RegenLab';
+import { readout } from '../../../test-readout';
 
 const FOOTNOTE = 'La reproducción va 20 veces más rápida que el ciclo.';
 
@@ -24,15 +25,6 @@ function renderLab() {
   const view = render(<RegenLab footnote={FOOTNOTE} />);
   mockIdentityCtm();
   return view;
-}
-
-/** The value text of a LabShell readout row, normalised to plain spaces. */
-function readout(label: string): string {
-  const row = [...document.querySelectorAll('[data-readout]')].find(
-    (candidate) => mathSourceText(candidate.firstElementChild) === label,
-  );
-  if (!row) throw new Error(`No readout labelled «${label}»`);
-  return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
 
 const BATTERY = 'Energía a la batería $E_\\text{batería}$';

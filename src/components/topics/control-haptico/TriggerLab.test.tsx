@@ -6,6 +6,7 @@ import { installDialogPolyfill } from '../../../test-dialog';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
 import TriggerLab from './TriggerLab';
+import { readout } from '../../../test-readout';
 
 const FOOTNOTE = 'Recorrido supuesto de 8 mm; k y $x_0$ ilustrativos.';
 const FRAME_MS = 16;
@@ -49,12 +50,6 @@ function renderLab() {
   const view = render(<TriggerLab footnote={FOOTNOTE} />);
   mockIdentityCtm();
   return view;
-}
-
-/** The value text of a LabShell readout row, normalised to plain spaces. */
-function readout(label: string): string {
-  const row = screen.getByText(label, { selector: 'span' }).parentElement as HTMLElement;
-  return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
 
 const lever = () => screen.getByRole('slider', { name: 'Recorrido del gatillo x' });
