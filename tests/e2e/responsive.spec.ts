@@ -154,14 +154,15 @@ for (const { name, path, testId } of LABS) {
         const width = window.innerWidth;
         const out: string[] = [];
         const name = (node: Element) => (node.textContent ?? '').trim().slice(0, 40);
-        for (const row of root.querySelectorAll('[data-readout]')) {
+        for (const row of root.querySelectorAll<HTMLElement>('[data-readout]')) {
           const [label, value] = [...row.children].map((child) => child.getBoundingClientRect());
           const box = row.getBoundingClientRect();
-          if (
-            label.right > value.left + slack ||
-            value.right > box.right + slack ||
-            box.right > width
-          ) {
+          // A row puts the value after the label; a cell of the tiered panel, under it.
+          const overlaps =
+            row.dataset.layout === 'cell'
+              ? label.bottom > value.top + slack || label.right > box.right + slack
+              : label.right > value.left + slack;
+          if (overlaps || value.right > box.right + slack || box.right > width) {
             out.push(`lectura: ${name(row)}`);
           }
         }
