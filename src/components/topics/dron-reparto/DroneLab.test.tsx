@@ -42,10 +42,24 @@ function mockIdentityCtm(): void {
   }
 }
 
-/** Renders the lab and waits for the lazily loaded declared route. */
+/** The transport's reading once the lab has made its opening seek (to 30 s, cruising on leg 1). */
+const OPENING_TIME = /^t = 30,0\s+s$/;
+
+/**
+ * Renders the lab, waits for the lazily loaded declared route and for the opening seek, an effect
+ * after the first ready commit: a test that read the phase or the readouts before it raced it.
+ */
 async function renderLab() {
   const view = render(<DroneLab usage={USAGE} leftOut={LEFT_OUT} />);
   await screen.findByTestId('drone-lab', {}, { timeout: LAB_READY_TIMEOUT_MS });
+  await waitFor(
+    () =>
+      expect(screen.getByRole('slider', { name: 'Línea de tiempo' })).toHaveAttribute(
+        'aria-valuetext',
+        expect.stringMatching(OPENING_TIME),
+      ),
+    { timeout: SETTLE_TIMEOUT_MS },
+  );
   mockIdentityCtm();
   return view;
 }
