@@ -25,11 +25,20 @@ const LAYOUT_SLACK_PX = 1;
 const TABBABLE =
   ':is(a[href], button, input, select, textarea, summary, [tabindex]):not([tabindex="-1"]):not([disabled])';
 /**
- * Labs already on the tiered shell (LabShell `levels`). A listed lab that renders stacked fails;
- * the others are skipped by name. B3.2 does not edit this shared suite: the controller lists the
- * nine labs here when it integrates their migration.
+ * Every lab on the tiered shell (LabShell `levels`), listed by hand so the generic tests below run
+ * against each one; a lab rendered on a topic page and missing here fails «cada laboratorio…».
  */
-const MIGRATED_LABS: ReadonlySet<string> = new Set(['flyby-lab']);
+const MIGRATED_LABS: ReadonlySet<string> = new Set([
+  'drone-lab',
+  'jump-lab',
+  'habitat-lab',
+  'tyre-lab',
+  'trigger-lab',
+  'regen-lab',
+  'bounce-lab',
+  'wheel-lab',
+  'flyby-lab',
+]);
 /** Two columns: a desktop window wide enough for the topic bar and a 42rem lab. */
 const SPLIT_VIEWPORTS = [
   { name: '1 280 × 800', size: { width: 1280, height: 800 } },
@@ -240,9 +249,25 @@ test.describe('guardias del cascarón por niveles, autocomprobadas', () => {
 });
 
 for (const { path, testId } of LABS) {
-  test.describe(`${testId} por niveles`, () => {
-    test.skip(!MIGRATED_LABS.has(testId), 'lo migra B3.2');
+  test(`cada laboratorio de ${path} va por niveles y está en MIGRATED_LABS`, async ({ page }) => {
+    await openLab(page, path, testId);
+    const labs = await page.locator('[data-testid$="-lab"]').evaluateAll((nodes) =>
+      nodes.map((node) => ({
+        testId: node.getAttribute('data-testid') ?? '',
+        shell: node.getAttribute('data-lab-shell') ?? '',
+      })),
+    );
 
+    expect(labs.map((lab) => lab.testId)).toContain(testId);
+    for (const { testId, shell } of labs) {
+      expect(shell, `${testId}: data-lab-shell`).toBe('tiered');
+      expect(MIGRATED_LABS.has(testId), `${testId} está en MIGRATED_LABS`).toBe(true);
+    }
+  });
+}
+
+for (const { path, testId } of LABS) {
+  test.describe(`${testId} por niveles`, () => {
     for (const { name, size } of SPLIT_VIEWPORTS) {
       test.describe(`a ${name}, en dos columnas`, () => {
         test.use({ viewport: size });
@@ -276,9 +301,13 @@ for (const { path, testId } of LABS) {
             };
           });
           if (travel <= 0) {
-            // Nothing to travel: the columns are no taller than the panel, which fits the window.
-            const columns = await boxOf(lab.locator('[data-lab-columns]'));
-            expect(columns.height).toBeLessThanOrEqual(size.height - top);
+            // Nothing to travel: row 1 (the stage's and the panel's cells, not the canvas notes'
+            // row under both) is no taller than the panel, which fits the window.
+            const stageCell = await boxOf(lab.locator('[data-lab-stage]').locator('xpath=..'));
+            const panelCell = await boxOf(lab.locator('[data-lab-panel]').locator('xpath=..'));
+            expect(Math.max(stageCell.height, panelCell.height)).toBeLessThanOrEqual(
+              size.height - top,
+            );
             return;
           }
           await page.evaluate(
