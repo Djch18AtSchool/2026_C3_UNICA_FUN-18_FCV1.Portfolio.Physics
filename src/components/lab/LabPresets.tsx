@@ -38,7 +38,8 @@ const CHIP_BASE =
   'inline-flex min-h-10 items-center gap-2 whitespace-nowrap rounded-base border px-3 text-sm font-medium transition-colors';
 const CHIP_ACTIVE = 'border-accent bg-accent/10';
 const CHIP_IDLE = 'border-border bg-bg-elevated hover:border-fg-muted';
-const MARKER = 'size-2 rounded-[1px] border';
+/** A square mark, filled while its preset is active. */
+const MARKER = 'size-2 border';
 
 /** The chip's name as the two-line button had it: its name and source, in words. */
 const chipName = <T,>({ name, sourceLabel }: Preset<T>) =>

@@ -13,7 +13,7 @@ import Readout from '../controls/Readout';
 import InlineMath from './InlineMath';
 import LabNotes from './LabNotes';
 import { GearButton, ReadoutAnnouncer, useLabDrawer, type LabDrawer } from './labShellParts';
-import type { TieredLabShellProps } from './labShellTypes';
+import type { LabLevels, TieredLabShellProps } from './labShellTypes';
 import SettingsDrawer from './SettingsDrawer';
 import { settingChips } from './settingChips';
 import TransportBar from './TransportBar';
@@ -66,7 +66,7 @@ function Header({
   title,
   drawer,
   display,
-}: { title: string; drawer: LabDrawer } & Pick<TieredLabShellProps['levels'], 'display'>) {
+}: { title: string; drawer: LabDrawer } & Pick<LabLevels, 'display'>) {
   const chips = settingChips(display);
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
