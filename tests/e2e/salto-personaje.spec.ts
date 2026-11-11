@@ -110,12 +110,17 @@ test('arrastrar el vector con el escenario apoyado en el pie de su celda: el man
   await page.mouse.move(x, y);
   await page.mouse.down();
   await page.mouse.move(x, y - 30, { steps: 6 });
-  const moved = await knob.boundingBox();
-  await page.mouse.up();
 
-  // The knob went up with the pointer, about 30 px, not 30 px plus a jump of the stage.
-  const rise = y - ((moved?.y ?? 0) + (moved?.height ?? 0) / 2);
-  expect(Math.abs(rise - 30)).toBeLessThanOrEqual(KNOB_FOLLOW_SLACK_PX);
+  // The knob goes up with the pointer, about 30 px, not 30 px plus a jump of the stage: read
+  // once React has drawn the last move (a jump of the stage would last, so the wait hides none).
+  const rise = async () => {
+    const moved = await knob.boundingBox();
+    return y - ((moved?.y ?? 0) + (moved?.height ?? 0) / 2);
+  };
+  await expect
+    .poll(async () => Math.abs((await rise()) - 30), { message: 'el manejador sigue al puntero' })
+    .toBeLessThanOrEqual(KNOB_FOLLOW_SLACK_PX);
+  await page.mouse.up();
 });
 
 test('mover la gravedad recalcula la altura máxima', async ({ page }) => {
