@@ -493,13 +493,20 @@ for (const { path, testId } of LABS) {
 
       const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
       if ((await timeline.count()) === 0) return;
-      await timeline.focus();
+      // The lab's top under the topic bar: «Restablecer» is in view, so Tab must not move the page
+      // (a panel with a scroll of its own once dragged it ~60 px, the lab's header under the bar).
+      await scrollLabTo(lab, await stickyTop(page));
+      await timeline.evaluate((node) => (node as HTMLElement).focus({ preventScroll: true }));
+      const before = await page.evaluate(() => window.scrollY);
       await page.keyboard.press('Tab');
       await expect(
         lab
           .getByRole('region', { name: 'Parámetros' })
           .getByRole('button', { name: 'Restablecer' }),
       ).toBeFocused();
+      expect(Math.abs((await page.evaluate(() => window.scrollY)) - before)).toBeLessThanOrEqual(
+        LAYOUT_SLACK_PX,
+      );
     });
   });
 }
