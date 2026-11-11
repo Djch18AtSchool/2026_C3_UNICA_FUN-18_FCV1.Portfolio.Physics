@@ -60,6 +60,7 @@ export interface TriggerLabProps {
 /** Why a button cannot act yet, said under them while it applies. */
 const AT_REST_HINT = 'Con el gatillo suelto no hay nada que soltar: apriétalo primero.';
 const NO_RELEASE_HINT = '«Repetir retorno» se activa tras el primer retorno.';
+const HINT = `m-0 text-sm text-fg-muted ${CANVAS_INSET}`;
 
 interface ReleaseActionsProps {
   canRelease: boolean;
@@ -105,12 +106,21 @@ function ReleaseActions({
           Repetir retorno
         </button>
       </div>
-      {isAtRest || !hasReleased ? (
-        <p className={`m-0 text-sm text-fg-muted ${CANVAS_INSET}`}>
+      {/* The line keeps one height while its sentences come and go: both of them, invisible and
+          hidden from assistive tech, share its grid cell (the drawing below never moves). */}
+      <div className="grid">
+        <p className={`${HINT} [grid-area:1/1]`}>
           {isAtRest ? <span id={restId}>{AT_REST_HINT} </span> : null}
           {hasReleased ? null : <span id={repeatId}>{NO_RELEASE_HINT}</span>}
         </p>
-      ) : null}
+        <p
+          data-release-hint-reserve=""
+          aria-hidden="true"
+          className={`${HINT} invisible [grid-area:1/1]`}
+        >
+          {`${AT_REST_HINT} ${NO_RELEASE_HINT}`}
+        </p>
+      </div>
     </div>
   );
 }

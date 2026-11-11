@@ -460,3 +460,25 @@ for (const width of [1280, 360]) {
     }
   });
 }
+
+for (const width of [1280, 360]) {
+  test(`a ${width} px apretar y soltar el gatillo no cambia el alto del escenario`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto(PAGE);
+    await page.locator(LAB).scrollIntoViewIfNeeded();
+    await waitForIsland(page, LAB);
+    const stage = page.locator(`${LAB} [data-lab-stage]`);
+    const height = () => stage.evaluate((node) => node.getBoundingClientRect().height);
+    const atRest = await height();
+
+    const lever = page.getByRole('slider', { name: 'Recorrido del gatillo x' });
+    await lever.focus();
+    await page.keyboard.press('End');
+    await expect(page.getByRole('button', { name: 'Soltar el gatillo' })).toBeEnabled();
+
+    // The line that says why the buttons wait keeps its room (it held up to 21 px).
+    expect(Math.abs((await height()) - atRest)).toBeLessThanOrEqual(1);
+  });
+}

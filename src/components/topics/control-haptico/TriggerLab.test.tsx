@@ -280,6 +280,24 @@ describe('TriggerLab', () => {
     expect(releaseButton()).not.toHaveAccessibleDescription(/apriétalo primero/);
   });
 
+  test('the line under the buttons keeps its height when its sentences come and go', () => {
+    renderLab();
+    const reserve = () => document.querySelector('[data-release-hint-reserve]') as HTMLElement;
+
+    // Both sentences, invisible and hidden from assistive tech, hold the line's room at all times.
+    expect(reserve()).toHaveAttribute('aria-hidden', 'true');
+    expect(reserve()).toHaveClass('invisible');
+    expect(reserve().textContent).toContain('apriétalo primero');
+    expect(reserve().textContent).toContain('tras el primer retorno');
+
+    lever().focus();
+    fireEvent.keyDown(lever(), { key: 'ArrowRight' });
+    expect(reserve()).toBeInTheDocument();
+    expect(reserve().parentElement).toBe(
+      screen.getByText(/tras el primer retorno/, { selector: 'span' }).closest('p')?.parentElement,
+    );
+  });
+
   test('the keyboard presses and holds the trigger, and "Soltar el gatillo" releases it', () => {
     stubAnimationFrame();
     renderLab();
