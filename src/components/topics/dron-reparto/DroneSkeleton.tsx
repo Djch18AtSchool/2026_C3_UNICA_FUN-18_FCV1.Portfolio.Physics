@@ -7,12 +7,23 @@
  *
  * The places' heights are not on the 4/8 scale on purpose: each is the height of the loaded part
  * it stands for, measured in rem (they follow the root font size with the text), at each width
- * the part changes height at (shots/b3-3/scripts/drone-parts.cjs measures both).
- * dron-reparto.spec.ts compares the two cards at 360, 414, 540, 900 and 1 280 px within 8 px.
+ * the part changes height at. dron-reparto.spec.ts compares every place with its part (header,
+ * stage, panel, canvas notes, disclosures) at ten widths from 360 to 1 280 px, at today's 17 px
+ * root and at phase C's 16 px, within 8 px. To recalibrate after a text change, run it: each
+ * failing line names the part, the width and both heights; move the step or the height named.
  */
 import type { CSSProperties, JSX } from 'react';
 import { CANVAS_BLEED } from '../../lab/canvasInset';
 import { PLOT_ASPECT } from '../../lab/svgPlotReserve';
+import {
+  LAB_CANVAS_NOTES,
+  LAB_CARD,
+  LAB_COLUMNS,
+  LAB_PANEL,
+  LAB_PANEL_CELL,
+  LAB_PARAMS_LEVEL,
+  LAB_STAGE_CELL,
+} from '../../lab/labShellClasses';
 import TexSeed, { formulasOf } from '../../lab/TexSeed';
 import { DRONE_LAB_FORMULAS } from './droneLabFormulas';
 import { MAP_FIGURE_CLASS, MAP_FIGURE_STYLE } from './mapReserve';
@@ -28,10 +39,6 @@ const STATUS_TEXT: Record<DroneSkeletonProps['status'], string> = {
   loading: 'Cargando los datos de la ruta…',
   error: 'No se pudieron cargar los datos de la ruta. Recarga la página para intentarlo de nuevo.',
 };
-/** The lab's card, as LabShell draws it (its ROOT and COLUMNS): same classes, same gaps. */
-const CARD =
-  '@container/lab flex flex-col gap-4 rounded-base border border-border bg-bg-elevated p-4 in-[.figure-frame]:border-0';
-const COLUMNS = 'flex flex-col gap-6 lab-split:grid lab-split:grid-cols-[minmax(0,1fr)_20rem]';
 const PLACE = 'rounded-base border border-dashed border-border';
 const CHIP_PLACES = 3;
 
@@ -40,7 +47,7 @@ const CHIP_PLACES = 3;
  * padding on each side) where a part of the loaded lab changes height, as its text rewraps: the
  * canvas notes go from three lines to two (17,1) and to one (31,7), «Parámetros» loses a line of
  * each field label (17,6 and 19,7), the transport fits one line (20,75). Measured on the loaded
- * lab (shots/b3-3/scripts/drone-parts.cjs); text scales with the root, so rem holds at 16 px.
+ * lab at a 17 px root; the e2e checks them at 16 px too (phase C), where they hold.
  */
 const STEPS = ['s17-1', 's17-6', 's19-7', 's20-75', 's31-7'] as const;
 type Step = (typeof STEPS)[number];
@@ -124,10 +131,7 @@ function HeaderPlace(): JSX.Element {
 /** The map's place, which says the loading state, over the transport's. */
 function StagePlace({ status }: Pick<DroneSkeletonProps, 'status'>): JSX.Element {
   return (
-    <div
-      data-skeleton="stage"
-      className="flex min-w-0 flex-col gap-4 lab-split:col-start-1 lab-split:row-start-1"
-    >
+    <div data-skeleton="stage" className={`flex flex-col gap-4 ${LAB_STAGE_CELL}`}>
       <div style={MAP_FIGURE_STYLE} className={`@container ${CANVAS_BLEED}`}>
         <div className={`${MAP_FIGURE_CLASS} flex items-center justify-center p-4 ${PLACE}`}>
           <p role="status" className="m-0 text-center text-sm text-fg-muted">
@@ -140,16 +144,14 @@ function StagePlace({ status }: Pick<DroneSkeletonProps, 'status'>): JSX.Element
   );
 }
 
-/** The panel's two blocks, beside the stage in two columns. */
+/** The panel's two blocks, beside the stage in two columns, side by side in a wide panel. */
 function PanelPlace(): JSX.Element {
   return (
-    <div
-      data-skeleton="panel"
-      aria-hidden="true"
-      className="flex min-w-0 flex-col gap-6 lab-split:col-start-2 lab-split:row-start-1"
-    >
-      <Place heights={PARAMS} />
-      <Place heights={READOUTS} />
+    <div data-skeleton="panel" aria-hidden="true" className={LAB_PANEL_CELL}>
+      <div className={LAB_PANEL}>
+        <Place heights={PARAMS} className={LAB_PARAMS_LEVEL} />
+        <Place heights={READOUTS} />
+      </div>
     </div>
   );
 }
@@ -181,12 +183,12 @@ export default function DroneSkeleton({ status, usage, leftOut }: DroneSkeletonP
     <div data-testid="drone-lab-loading" className="flex flex-col gap-4">
       <TexSeed formulas={seeded} />
       {/* The attribute makes the figure's frame lend its width now, as it will to the lab. */}
-      <div data-lab-shell="tiered" className={CARD}>
+      <div data-lab-shell="tiered" className={LAB_CARD}>
         <HeaderPlace />
-        <div className={COLUMNS}>
+        <div className={LAB_COLUMNS}>
           <StagePlace status={status} />
           <PanelPlace />
-          <Place heights={NOTES} className="lab-split:col-span-2 lab-split:row-start-2" />
+          <Place heights={NOTES} className={LAB_CANVAS_NOTES} />
         </div>
         <div aria-hidden="true" className="flex flex-col">
           {Array.from({ length: DISCLOSURES }, (_, index) => (

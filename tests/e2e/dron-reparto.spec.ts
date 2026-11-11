@@ -244,66 +244,107 @@ test.describe('con pantalla táctil', () => {
   });
 });
 
-/** The loaded lab's card and its skeleton: the skeleton's places are measured in rem (≤ 2 px apart). */
+/** Each part of the loaded lab and its place in the skeleton: measured in rem (≤ 2 px apart). */
 const SKELETON_SLACK_PX = 8;
 /** The map's height may move by this much while it mounts: rounding of a fractional width. */
 const MAP_GROWTH_SLACK_PX = 1;
-const PHONE = { width: 360, height: 800 } as const;
-/** A wide phone, and the 540 px window of the other labs' hydration check (map svg 334 and 460 px). */
-const WIDE_PHONE = { width: 414, height: 800 } as const;
-const SMALL_TABLET = { width: 540, height: 800 } as const;
-/** The map's svg at 478,5 px, just under SvgPlot's switch, and at 481,5 px, just past it. */
-const MAP_UNDER_SWITCH = { width: 559, height: 800 } as const;
-const MAP_PAST_SWITCH = { width: 562, height: 800 } as const;
-/** One column with the canvas notes on one line (the case the skeleton missed by 24 px). */
-const ONE_COLUMN = { width: 900, height: 800 } as const;
-const DESKTOP = { width: 1280, height: 800 } as const;
+/**
+ * Windows where the skeleton is checked: phones (360–414 px: four of its five steps fall there),
+ * 540 (the other labs' hydration check), 559 and 562 (the map's svg at 478,5 and 481,5 px, around
+ * SvgPlot's switch), 900 (one column, the panel in two) and 1 280 (two columns).
+ */
+const SKELETON_WIDTHS = [360, 375, 390, 400, 414, 540, 559, 562, 900, 1280] as const;
+/** Phase C sets the root to 16 px (the site is at 17 today): the steps are in rem, check both. */
+const PHASE_C_ROOT_PX = 16;
+const PHASE_C_WIDTHS = [360, 390, 414, 900, 1280] as const;
+const VIEWPORT_HEIGHT = 800;
 
 const heightOf = (locator: Locator) =>
   locator.evaluate((node) => node.getBoundingClientRect().height);
 
-for (const [name, size] of [
-  ['360 px', PHONE],
-  ['414 px', WIDE_PHONE],
-  ['540 px', SMALL_TABLET],
-  ['559 px', MAP_UNDER_SWITCH],
-  ['562 px', MAP_PAST_SWITCH],
-  ['900 px', ONE_COLUMN],
-  ['1 280 px', DESKTOP],
-] as const) {
-  test(`a ${name}, el esqueleto reserva la altura del laboratorio y el mapa no crece al montarse`, async ({
+/** The heights of a card's parts: header, stage cell, panel cell, canvas notes, disclosures. */
+function cardParts(card: Locator, selectors: { stage: string; panel: string; notes: string }) {
+  return card.evaluate((root, parts) => {
+    const height = (node: Element | null | undefined) => node?.getBoundingClientRect().height ?? 0;
+    return {
+      card: height(root),
+      header: height(root.children[0]),
+      stage: height(root.querySelector(parts.stage)),
+      panel: height(root.querySelector(parts.panel)),
+      notes: height(root.querySelector(parts.notes)),
+      disclosures: height(root.children[2]),
+    };
+  }, selectors);
+}
+
+const SKELETON_PARTS = {
+  stage: '[data-skeleton="stage"]',
+  panel: '[data-skeleton="panel"]',
+  notes: ':scope > :nth-child(2) > :nth-child(3)',
+};
+const LAB_PARTS = {
+  stage: ':scope > :nth-child(2) > :nth-child(1)',
+  panel: ':scope > :nth-child(2) > :nth-child(2)',
+  notes: '[data-lab-canvas-notes]',
+};
+
+/** Loads Tema 1 holding its route data, measures the skeleton, then lets the lab in. */
+async function skeletonAgainstLab(page: Page, width: number, rootPx?: number) {
+  await page.setViewportSize({ width, height: VIEWPORT_HEIGHT });
+  if (rootPx !== undefined) {
+    await page.addInitScript((px) => {
+      document.documentElement.style.fontSize = `${px}px`;
+    }, rootPx);
+  }
+  let release = () => {};
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  // Hold the route data: the skeleton stays until the test lets the chunk through.
+  await page.route(/drone-route/, async (route) => {
+    await gate;
+    await route.continue();
+  });
+  await page.goto(PAGE);
+  const skeleton = page.getByTestId('drone-lab-loading');
+  await skeleton.scrollIntoViewIfNeeded();
+  await page.evaluate(() => document.fonts.ready);
+  const placeHeights = await cardParts(
+    skeleton.locator('[data-lab-shell="tiered"]'),
+    SKELETON_PARTS,
+  );
+  // The map's height the instant it enters the page: before SvgPlot has measured its width.
+  await page.evaluate(() => {
+    new MutationObserver((_records, observer) => {
+      const map = document.querySelector('[data-testid="route-map"]');
+      if (!map) return;
+      Object.assign(window, { mapAtMount: map.getBoundingClientRect().height });
+      observer.disconnect();
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+  release();
+  await expect(page.locator(LAB)).toBeVisible();
+  const mapAtMount = await page.evaluate(
+    () => (window as unknown as { mapAtMount: number }).mapAtMount,
+  );
+  const partHeights = await cardParts(page.locator(LAB), LAB_PARTS);
+  return { placeHeights, partHeights, mapAtMount };
+}
+
+/** The parts whose place differs from them by more than the slack, said. */
+function partsApart(places: Record<string, number>, parts: Record<string, number>): string[] {
+  return Object.keys(places).flatMap((key) =>
+    Math.abs(places[key] - parts[key]) > SKELETON_SLACK_PX
+      ? [`${key}: esqueleto ${places[key].toFixed(1)} px, laboratorio ${parts[key].toFixed(1)} px`]
+      : [],
+  );
+}
+
+for (const width of SKELETON_WIDTHS) {
+  test(`a ${width} px, cada lugar del esqueleto mide lo que su parte del laboratorio y el mapa no crece al montarse`, async ({
     page,
   }) => {
-    await page.setViewportSize(size);
-    let release = () => {};
-    const gate = new Promise<void>((resolve) => {
-      release = resolve;
-    });
-    // Hold the route data: the skeleton stays until the test lets the chunk through.
-    await page.route(/drone-route/, async (route) => {
-      await gate;
-      await route.continue();
-    });
-    await page.goto(PAGE);
-    const skeleton = page.getByTestId('drone-lab-loading');
-    await skeleton.scrollIntoViewIfNeeded();
-    const skeletonCard = await heightOf(skeleton.locator('[data-lab-shell="tiered"]'));
-    // The map's height the instant it enters the page: before SvgPlot has measured its width.
-    await page.evaluate(() => {
-      new MutationObserver((_records, observer) => {
-        const map = document.querySelector('[data-testid="route-map"]');
-        if (!map) return;
-        Object.assign(window, { mapAtMount: map.getBoundingClientRect().height });
-        observer.disconnect();
-      }).observe(document.body, { childList: true, subtree: true });
-    });
-
-    release();
-    await expect(page.locator(LAB)).toBeVisible();
-    const mapAtMount = await page.evaluate(
-      () => (window as unknown as { mapAtMount: number }).mapAtMount,
-    );
-    const labCard = await heightOf(page.locator(LAB));
+    const { placeHeights, partHeights, mapAtMount } = await skeletonAgainstLab(page, width);
     // Settled once SvgPlot has measured: its viewBox then has the map's own width.
     const map = page.getByTestId('route-map').locator('svg[role="img"]');
     await expect
@@ -316,7 +357,17 @@ for (const [name, size] of [
       .toBeLessThanOrEqual(1);
     const mapSettled = await heightOf(page.getByTestId('route-map'));
 
-    expect(Math.abs(labCard - skeletonCard)).toBeLessThanOrEqual(SKELETON_SLACK_PX);
+    expect(partsApart(placeHeights, partHeights)).toEqual([]);
     expect(Math.abs(mapSettled - mapAtMount)).toBeLessThanOrEqual(MAP_GROWTH_SLACK_PX);
+  });
+}
+
+for (const width of PHASE_C_WIDTHS) {
+  test(`con la raíz de la fase C (16 px), a ${width} px, el esqueleto sigue midiendo lo que el laboratorio`, async ({
+    page,
+  }) => {
+    const { placeHeights, partHeights } = await skeletonAgainstLab(page, width, PHASE_C_ROOT_PX);
+
+    expect(partsApart(placeHeights, partHeights)).toEqual([]);
   });
 }
