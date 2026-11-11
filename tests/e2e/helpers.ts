@@ -121,3 +121,18 @@ export async function readoutText(page: Page, labSelector: string, label: string
   }
   throw new Error(`No readout labelled «${label}»; there are ${known.join(', ')}`);
 }
+
+/**
+ * A CSS length («var(--lab-transport-room)», «42rem») in px as it resolves inside `host`: a
+ * custom property overridden there (a lab's stage) reads as the host's, not the root's.
+ */
+export async function cssLengthPxIn(host: Locator, length: string): Promise<number> {
+  return host.evaluate((node, value) => {
+    const probe = document.createElement('div');
+    probe.style.height = value;
+    node.append(probe);
+    const height = probe.getBoundingClientRect().height;
+    probe.remove();
+    return height;
+  }, length);
+}

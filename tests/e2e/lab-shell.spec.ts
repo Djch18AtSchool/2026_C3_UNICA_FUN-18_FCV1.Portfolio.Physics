@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { waitForIsland } from './helpers';
+import { cssLengthPxIn, waitForIsland } from './helpers';
 import {
   compareHydrated,
   drawingWidths,
@@ -487,7 +487,11 @@ for (const { path, testId } of LABS) {
       const bar = await boxOf(transport);
       expect(control.y + control.height).toBeLessThanOrEqual(bar.y + 1);
       // The scroll padding reserves --lab-transport-room: it must stay the transport's height.
-      const room = await cssLengthPx(page, 'var(--lab-transport-room)');
+      // Read on the stage, which overrides it for a transport with events (two rows).
+      const room = await cssLengthPxIn(
+        lab.locator('[data-lab-stage]'),
+        'var(--lab-transport-room)',
+      );
       expect(
         Math.abs(room - bar.height),
         `--lab-transport-room (global.css) = ${room} px, la reproducción pegada (LabShell TRANSPORT) = ${bar.height} px`,
