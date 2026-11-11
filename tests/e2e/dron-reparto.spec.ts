@@ -291,11 +291,6 @@ const LAB_PARTS = {
 /** Loads Tema 1 holding its route data, measures the skeleton, then lets the lab in. */
 async function skeletonAgainstLab(page: Page, width: number, rootPx?: number) {
   await page.setViewportSize({ width, height: VIEWPORT_HEIGHT });
-  if (rootPx !== undefined) {
-    await page.addInitScript((px) => {
-      document.documentElement.style.fontSize = `${px}px`;
-    }, rootPx);
-  }
   let release = () => {};
   const gate = new Promise<void>((resolve) => {
     release = resolve;
@@ -306,6 +301,12 @@ async function skeletonAgainstLab(page: Page, width: number, rootPx?: number) {
     await route.continue();
   });
   await page.goto(PAGE);
+  if (rootPx !== undefined) {
+    // Phase C's root, set on the loaded page (an init script runs before <html> exists).
+    await page.addStyleTag({ content: `html { font-size: ${rootPx}px !important; }` });
+    const applied = await page.evaluate(() => getComputedStyle(document.documentElement).fontSize);
+    expect(applied, 'la raíz de la página').toBe(`${rootPx}px`);
+  }
   const skeleton = page.getByTestId('drone-lab-loading');
   await skeleton.scrollIntoViewIfNeeded();
   await page.evaluate(() => document.fonts.ready);
