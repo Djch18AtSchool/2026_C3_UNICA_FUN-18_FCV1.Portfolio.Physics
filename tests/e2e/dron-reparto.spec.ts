@@ -502,14 +502,15 @@ const SKELETON_SLACK_PX = 2;
 /** The map's height may move by this much while it mounts: rounding of a fractional width. */
 const MAP_GROWTH_SLACK_PX = 1;
 /**
- * Windows where the skeleton is checked, at the site's 16 px root: both sides of each of its five
- * steps (336, 360, 374, 385 and 562 px; see DroneSkeleton), the phones between, 540 (the other labs'
- * hydration check), 559, 561 and 562 (around SvgPlot's switch to its wide drawing, and the last step),
- * 900 (one column, the panel in two) and 1 280 (two columns). The page is at its 16 px root:
- * nothing forces it here.
+ * Windows where the skeleton is checked, at the site's 16 px root: both sides of each of its six
+ * steps (330, 336, 355, 406 and 562 px in one column, 1 070 in two; see DroneSkeleton), the phones
+ * between (360, 375, 390), 414, 540 (the other labs' hydration check), 559 (SvgPlot's switch to its
+ * wide drawing), 900 (one column, the panel in two), 1 058 (two columns from there) and 1 280. The
+ * page is at its 16 px root: nothing forces it here.
  */
 const SKELETON_WIDTHS = [
-  360, 373, 374, 375, 384, 385, 390, 400, 414, 540, 559, 561, 562, 900, 1280,
+  329, 330, 335, 336, 354, 355, 360, 375, 390, 405, 406, 414, 540, 559, 561, 562, 900, 1058, 1069,
+  1070, 1280,
 ] as const;
 const VIEWPORT_HEIGHT = 800;
 
