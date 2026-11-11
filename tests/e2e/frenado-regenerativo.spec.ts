@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import {
   hydrateAllIslands,
   readoutText as readReadout,
@@ -17,10 +17,17 @@ const THEMES = ['light', 'dark'] as const;
 const BLOCKING_IMPACTS = ['serious', 'critical'];
 const STEP_COUNT = 4;
 const TABLE_IDS = ['frenado-regenerativo-vehiculo', 'frenado-regenerativo-ciclos'] as const;
-/** Timeline position (of 1000) to start from, so the cycle ends within a second at 1×. */
+/** Timeline position (of 1000) to start from, so the run ends within a second at 1×. */
 const NEAR_END = '995';
-/** Longest the last 0,5 % of the UDDS (≈ 0,34 s at 1×) may take to reach the end. */
+/** Longest the last 0,5 % of a run (0,13 s of the stretch, ≈ 0,34 s of the UDDS) may take. */
 const PLAYBACK_TIMEOUT_MS = 3000;
+/** The stretch «Tramo» plays (figure 6.3's braking), the UDDS's length and its stops. */
+const STRETCH = { start: 376, end: 402 };
+const UDDS_S = 1369;
+const UDDS_STOPS = 17;
+/** Half a pixel of rounding either way when comparing drawn positions. */
+const PX_SLACK = 1;
+const VIEW_CYCLE = 'Ciclo completo';
 const STILL_AT_END_MS = 500;
 const BATTERY = 'Energía a la batería $E_\\text{batería}$';
 const BLENDED = 'Frenando con el motor y con fricción';
@@ -32,6 +39,11 @@ async function openLab(page: Page): Promise<void> {
   await page.locator(LAB).scrollIntoViewIfNeeded();
   await waitForIsland(page, LAB);
 }
+
+const timelineOf = (lab: Locator) =>
+  lab.getByRole('slider', { name: 'Línea de tiempo', exact: true });
+const badgeOf = (lab: Locator) => lab.locator('[data-lab-canvas] [data-time-scale-badge]');
+const marksOf = (lab: Locator) => lab.locator('[data-transport-marks] [data-transport-mark]');
 
 test.describe('página', () => {
   test.beforeEach(async ({ page }) => {
@@ -111,22 +123,119 @@ test.describe('laboratorio', () => {
     await openLab(page);
   });
 
-  test('el ciclo termina, vuelve a "Reproducir" y no repite', async ({ page }) => {
-    const lab = page.locator(LAB);
-    // Exact: the energy plot's cursor is "Tiempo", the transport's slider "Línea de tiempo".
-    const timeline = lab.getByRole('slider', { name: 'Línea de tiempo', exact: true });
-    await seekTimeline(timeline, NEAR_END);
-
-    await lab.getByRole('button', { name: 'Reproducir', exact: true }).click();
-    await expect(timeline).toHaveValue('1000', { timeout: PLAYBACK_TIMEOUT_MS });
-
-    await expect(lab).toHaveAttribute('data-playing', 'false');
-    await expect(lab.getByRole('button', { name: 'Reproducir', exact: true })).toBeVisible();
+  for (const [view, end] of [
+    ['Tramo', /^t = 26,00\s?s$/u],
     // The UDDS lasts 1369 s; the thousands are grouped with a narrow no-break space.
-    await expect(timeline).toHaveAttribute('aria-valuetext', /^t = 1\s?369\s?s$/);
-    await page.waitForTimeout(STILL_AT_END_MS);
-    await expect(timeline).toHaveValue('1000');
-    await expect(lab).toHaveAttribute('data-playing', 'false');
+    [VIEW_CYCLE, /^t = 1\s?369\s?s$/u],
+  ] as const) {
+    test(`en «${view}» la reproducción termina, vuelve a "Reproducir" y no repite`, async ({
+      page,
+    }) => {
+      const lab = page.locator(LAB);
+      if (view === VIEW_CYCLE) await lab.getByText(VIEW_CYCLE, { exact: true }).click();
+      // Exact: the energy plot's cursor is "Tiempo", the transport's slider "Línea de tiempo".
+      const timeline = timelineOf(lab);
+      await seekTimeline(timeline, NEAR_END);
+
+      await lab.getByRole('button', { name: 'Reproducir', exact: true }).click();
+      await expect(timeline).toHaveValue('1000', { timeout: PLAYBACK_TIMEOUT_MS });
+
+      await expect(lab).toHaveAttribute('data-playing', 'false');
+      await expect(lab.getByRole('button', { name: 'Reproducir', exact: true })).toBeVisible();
+      await expect(timeline).toHaveAttribute('aria-valuetext', end);
+      await page.waitForTimeout(STILL_AT_END_MS);
+      await expect(timeline).toHaveValue('1000');
+      await expect(lab).toHaveAttribute('data-playing', 'false');
+    });
+  }
+
+  test('abre en «Tramo» a velocidad real: «×1» sobre el dibujo y la detención del tramo en la línea', async ({
+    page,
+  }) => {
+    const lab = page.locator(LAB);
+
+    await expect(lab.getByRole('radio', { name: 'Tramo: una frenada' })).toBeChecked();
+    await expect(badgeOf(lab)).toHaveText(/^×1\s*velocidad real$/u);
+    await expect(lab.locator('[data-time-scale-words]')).toHaveText(
+      'Escala de tiempo: velocidad real',
+    );
+    await expect(marksOf(lab)).toHaveCount(1);
+    await expect(timelineOf(lab)).toHaveAttribute('aria-valuetext', /^t = 0,00\s?s$/u);
+  });
+
+  test('«Evento siguiente» y «anterior», con el teclado, en las dos vistas', async ({ page }) => {
+    const lab = page.locator(LAB);
+    const next = lab.getByRole('button', { name: 'Evento siguiente' });
+    const previous = lab.getByRole('button', { name: 'Evento anterior' });
+
+    await next.focus();
+    await page.keyboard.press('Enter');
+    await expect(timelineOf(lab)).toHaveAttribute(
+      'aria-valuetext',
+      /^t = 21,00\s?s · Detención 3 de 17$/u,
+    );
+    await expect(lab.getByRole('status').filter({ hasText: 'Detención' })).toHaveText(
+      /^Detención 3 de 17 · t = 21,00\s?s$/u,
+    );
+    await expect(next).toHaveAttribute('aria-disabled', 'true');
+    await expect(next).toBeFocused();
+
+    // The view by keyboard: its radios take the arrows, and the instant (397 s) is kept.
+    await lab.getByRole('radio', { name: 'Tramo: una frenada' }).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(lab.getByRole('radio', { name: VIEW_CYCLE })).toBeChecked();
+    await expect(badgeOf(lab)).toHaveText(/^×20\s*cámara rápida$/u);
+    await expect(marksOf(lab)).toHaveCount(UDDS_STOPS);
+    await expect(timelineOf(lab)).toHaveAttribute(
+      'aria-valuetext',
+      /^t = 397\s?s · Detención 3 de 17$/u,
+    );
+
+    await next.focus();
+    await page.keyboard.press('Enter');
+    await expect(timelineOf(lab)).toHaveAttribute('aria-valuetext', /Detención 4 de 17$/u);
+    await page.keyboard.press('Shift+Tab');
+    await expect(previous).toBeFocused();
+    await page.keyboard.press('Space');
+    await page.keyboard.press('Space');
+    await expect(timelineOf(lab)).toHaveAttribute(
+      'aria-valuetext',
+      /^t = 333\s?s · Detención 2 de 17$/u,
+    );
+  });
+
+  test('el minimapa sitúa el tramo en el ciclo y marca las 17 detenciones', async ({ page }) => {
+    const lab = page.locator(LAB);
+    const minimap = lab.getByTestId('regen-minimap');
+    const svg = minimap.locator('svg');
+    const band = minimap.locator('[data-stretch]');
+
+    await expect(minimap.locator('[data-stop]')).toHaveCount(UDDS_STOPS);
+    const box = (await svg.boundingBox())!;
+    const bandBox = (await band.boundingBox())!;
+    const xOf = (t: number) => box.x + 1 + (t / UDDS_S) * (box.width - 2);
+    expect(
+      Math.abs(bandBox.x + bandBox.width / 2 - (xOf(STRETCH.start) + xOf(STRETCH.end)) / 2),
+    ).toBeLessThanOrEqual(PX_SLACK);
+    await expect(svg).toHaveAttribute('aria-label', /el tramo va de 376 a 402\s?s\.$/u);
+
+    await lab.getByText(VIEW_CYCLE, { exact: true }).click();
+    await expect(band).toHaveCount(0);
+    await expect(minimap.locator('[data-playhead]')).toHaveCount(1);
+  });
+
+  test('sin JavaScript ya se ven la escala y el minimapa, con su alto final', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
+    await page.goto(PAGE);
+    const lab = page.locator(LAB);
+
+    await expect(badgeOf(lab)).toHaveText(/^×1\s*velocidad real$/u);
+    const svg = lab.getByTestId('regen-minimap').locator('svg');
+    expect((await svg.boundingBox())?.height).toBe(48);
+    await context.close();
   });
 
   test('cambiar η cambia la energía que llega a la batería', async ({ page }) => {
@@ -144,7 +253,9 @@ test.describe('laboratorio', () => {
     const leftOut = page.locator(LAB).locator('details[data-lab-note="left-out"]');
 
     await usage.locator('summary').click();
-    await expect(usage).toContainText('20 veces');
+    await expect(usage).toContainText('En «Tramo» la reproducción va a velocidad real');
+    await expect(usage).toContainText('La escala la dice la insignia sobre el dibujo.');
+    await expect(usage).not.toContainText('veces más rápida');
     await leftOut.locator('summary').click();
     for (const left of ['Pendiente', 'viento', 'temperatura', 'carga', 'Boretti']) {
       await expect(leftOut).toContainText(left);
@@ -167,6 +278,8 @@ test.describe('a 360 px', () => {
     await lab
       .getByRole('combobox', { name: 'Valores de referencia' })
       .selectOption({ label: 'Batería fría o llena (Pmáx 10 kW)' });
+    // 389 s of the UDDS, mid-braking at 23 kW, over the 10 kW cap.
+    await seekTimeline(timelineOf(lab), '500');
 
     const regime = lab.getByTestId('regen-scene').getByText(BLENDED, { exact: true });
     await expect(regime).toBeVisible();
