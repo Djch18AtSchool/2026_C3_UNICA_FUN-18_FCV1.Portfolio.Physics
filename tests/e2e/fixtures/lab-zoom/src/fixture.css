@@ -1,0 +1,3 @@
+/* The site's styles, with the site's components as Tailwind sources (this root is not the site's). */
+@import '../../../../../src/styles/global.css';
+@source '../../../../../src';

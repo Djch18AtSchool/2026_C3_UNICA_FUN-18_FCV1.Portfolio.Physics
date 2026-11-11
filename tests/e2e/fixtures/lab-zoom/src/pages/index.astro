@@ -1,0 +1,38 @@
+---
+/**
+ * Test page for the shared zoom pieces (tests/e2e/zoom-pan.spec.ts): a lab whose canvas zooms and
+ * pans (useZoomPan), with its buttons (ZoomControls), its scale bar (ScaleBar) and a draggable
+ * handle. ?theme=dark switches the theme. Never part of the site.
+ *
+ * The width is frozen like lab-time's (867 px with 18 px sides): this page only tries the pieces;
+ * the labs that use them are checked on their own pages.
+ */
+import '@fontsource/ibm-plex-sans/400.css';
+import '@fontsource/ibm-plex-sans/500.css';
+import '@fontsource/ibm-plex-sans/600.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import 'katex/dist/katex.min.css';
+import '../fixture.css';
+import ZoomLabFixture from '../ZoomLabFixture';
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Piezas de zoom (prueba)</title>
+    <script is:inline>
+      document.documentElement.dataset.theme =
+        new URLSearchParams(location.search).get('theme') === 'dark' ? 'dark' : 'light';
+    </script>
+  </head>
+  <body class="bg-bg text-fg">
+    <main class="mx-auto w-full max-w-[867px] px-[18px] py-8">
+      <ZoomLabFixture client:load />
+      <p data-testid="after-lab" class="h-[1600px] pt-8 text-sm text-fg-muted">
+        Texto después del laboratorio, para que la página se desplace.
+      </p>
+    </main>
+  </body>
+</html>
