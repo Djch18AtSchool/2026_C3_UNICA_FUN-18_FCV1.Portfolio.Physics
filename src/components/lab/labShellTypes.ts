@@ -29,6 +29,12 @@ export interface LabShellProps {
    * siguiente» and the event named while the time stands on it (TransportBar, transportMarkers.ts).
    */
   markers?: readonly TransportMarker[];
+  /**
+   * Where the clock's t = 0 stands in the lab's own time (s), for the transport's reading only
+   * (TransportBar): a view on a clock of its own («Tramo») reads t in the time of the whole run,
+   * while the timeline, the markers and seek stay on the clock.
+   */
+  timeOrigin?: number;
   readouts: LabReadout[];
   onReset(): void;
   testId: string;

@@ -200,8 +200,9 @@ function Stage({
   clock,
   timeUnit,
   markers,
+  timeOrigin,
   children,
-}: Pick<LabShellProps, 'clock' | 'timeUnit' | 'markers' | 'children'>): JSX.Element {
+}: Pick<LabShellProps, 'clock' | 'timeUnit' | 'markers' | 'timeOrigin' | 'children'>): JSX.Element {
   const [ref, fits] = useFitsInWindow<HTMLDivElement>(`var(${LAB_STAGE_TOP})`);
   return (
     <div className={LAB_STAGE_CELL}>
@@ -216,7 +217,12 @@ function Stage({
         </div>
         {clock ? (
           <div data-lab-transport="" className={TRANSPORT}>
-            <TransportBar clock={clock} timeUnit={timeUnit} markers={markers} />
+            <TransportBar
+              clock={clock}
+              timeUnit={timeUnit}
+              markers={markers}
+              timeOrigin={timeOrigin}
+            />
           </div>
         ) : null}
       </div>
@@ -229,6 +235,7 @@ export default function LabShell({
   clock,
   timeUnit,
   markers,
+  timeOrigin,
   readouts,
   levels,
   canvasNotes,
@@ -249,7 +256,7 @@ export default function LabShell({
     >
       <Header title={title} drawer={drawer} display={levels.display} />
       <div data-lab-columns="" className={LAB_COLUMNS}>
-        <Stage clock={clock} timeUnit={timeUnit} markers={markers}>
+        <Stage clock={clock} timeUnit={timeUnit} markers={markers} timeOrigin={timeOrigin}>
           {children}
         </Stage>
         <div className={LAB_PANEL_CELL}>

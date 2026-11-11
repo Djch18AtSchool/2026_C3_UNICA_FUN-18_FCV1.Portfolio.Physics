@@ -182,6 +182,15 @@ describe('LabShell', () => {
     expect(screen.getByRole('button', { name: 'Evento siguiente' })).toBeInTheDocument();
   });
 
+  test('passes its timeOrigin to the transport, which reads t from there', () => {
+    renderShell({ clock: fakeClock({ duration: 26, t: 13 }), timeUnit: 's', timeOrigin: 376 });
+
+    expect(screen.getByRole('slider', { name: 'Línea de tiempo' })).toHaveAttribute(
+      'aria-valuetext',
+      't = 389,00\u202Fs',
+    );
+  });
+
   test('markers that none fall in the run leave the plain transport', () => {
     const { container } = renderShell({
       clock: fakeClock({ duration: 10 }),

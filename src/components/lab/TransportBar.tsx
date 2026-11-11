@@ -24,6 +24,13 @@ export interface TransportBarProps {
    * plain one.
    */
   markers?: readonly TransportMarker[];
+  /**
+   * Where the clock's t = 0 stands in the lab's own time (s), for the reading only: the t
+   * readout, aria-valuetext and the event announcements say origin + t, while the timeline, the
+   * markers and seek stay on the clock. A «Tramo» view with a clock of its own reads the cycle's
+   * time this way. 0 (default), or any value that is not a finite number, shifts nothing.
+   */
+  timeOrigin?: number;
 }
 
 const NO_MARKERS: readonly TransportMarker[] = [];
@@ -133,18 +140,22 @@ function Timeline({ clock, valueText, className }: TimelineProps): JSX.Element {
  * the readout (TransportEvents.tsx).
  *
  * The thumb follows the live time (Timeline), while the text and aria-valuetext read the settled
- * time the clock syncs CLOCK_SYNC_HZ times a second.
+ * time the clock syncs CLOCK_SYNC_HZ times a second, shifted by `timeOrigin` when the lab gives one.
  */
 export default function TransportBar({
   clock,
   timeUnit = 'auto',
   markers = NO_MARKERS,
+  timeOrigin = 0,
 }: TransportBarProps): JSX.Element | null {
   const { t, duration, playing } = clock.state;
   const events = useMemo(() => normalizeMarkers(markers, duration), [markers, duration]);
   if (duration === 0) return null;
 
-  const timeText = transportTimeText(t, duration, timeUnit);
+  const origin = Number.isFinite(timeOrigin) ? timeOrigin : 0;
+  // The unit and its decimals come from the run's duration; only the time read is shifted.
+  const timeTextOf = (time: number) => transportTimeText(origin + time, duration, timeUnit);
+  const timeText = timeTextOf(t);
   const tolerance = markerTolerance(duration);
   const event = markersText(events, markersAt(events, t, tolerance));
   const valueText = event === undefined ? timeText : `${timeText} · ${event}`;
@@ -178,7 +189,7 @@ export default function TransportBar({
         tolerance={tolerance}
         eventText={event}
         timeText={timeText}
-        timeTextOf={(time) => transportTimeText(time, duration, timeUnit)}
+        timeTextOf={timeTextOf}
       />
     </div>
   );
