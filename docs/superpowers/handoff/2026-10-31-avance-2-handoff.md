@@ -562,6 +562,10 @@ atribución (`git log --format=%B 6dc690b..HEAD | grep -ci 'co-authored\|claude-
   locales, sin `fetch`; ese commit ya incluía B1a, B1b y el plan) y la `main` local sigue en
   `c9a773d`. La integración (`git push origin fase-b:main`, avance rápido) espera la puerta
   completa del controlador sobre `c26520a` y el CI en verde (FB-R26).
+- **Puerta del controlador sobre `c26520a` (2026-11-11, antes de integrar):** `pnpm run check` sin errores,
+  avisos ni sugerencias; 193 archivos y 2 646 pruebas unitarias en verde; cobertura 98,98 % de sentencias y
+  94,64 % de ramas; `pnpm run build` con 11 páginas; e2e 756 pasan (7,7 min, `--workers=2`, puerto 4322).
+  El commit `69c35e9` que añadió esta sección solo toca documentación.
 - **Puerta del implementador sobre `c26520a`** (`task-B4.3-report.md`, ronda final 2):
   `pnpm run check` sin errores, avisos ni sugerencias; 2 646 pruebas unitarias en 193 archivos;
   cobertura 98,98 % de sentencias y 94,64 % de ramas; `pnpm run build` en verde; e2e 756 pasan,
