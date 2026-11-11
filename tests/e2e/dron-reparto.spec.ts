@@ -498,19 +498,19 @@ test.describe('con pantalla táctil', () => {
 });
 
 /** Each part of the loaded lab and its place in the skeleton: measured in rem (≤ 2 px apart). */
-const SKELETON_SLACK_PX = 8;
+const SKELETON_SLACK_PX = 2;
 /** The map's height may move by this much while it mounts: rounding of a fractional width. */
 const MAP_GROWTH_SLACK_PX = 1;
 /**
- * Windows where the skeleton is checked: phones (360–417 px: four of its five steps fall there; 394
- * and 417 are where the transport's second row changes at a 16 px and a 17 px root),
- * 540 (the other labs' hydration check), 559 and 562 (the map's svg at 478,5 and 481,5 px, around
- * SvgPlot's switch), 900 (one column, the panel in two) and 1 280 (two columns).
+ * Windows where the skeleton is checked, at the site's 16 px root: both sides of each of its five
+ * steps (336, 360, 374, 385 and 562 px; see DroneSkeleton), the phones between, 540 (the other labs'
+ * hydration check), 559, 561 and 562 (around SvgPlot's switch to its wide drawing, and the last step),
+ * 900 (one column, the panel in two) and 1 280 (two columns). The page is at its 16 px root:
+ * nothing forces it here.
  */
-const SKELETON_WIDTHS = [360, 375, 390, 394, 400, 414, 417, 540, 559, 562, 900, 1280] as const;
-/** Phase C sets the root to 16 px (the site is at 17 today): the steps are in rem, check both. */
-const PHASE_C_ROOT_PX = 16;
-const PHASE_C_WIDTHS = [360, 390, 414, 900, 1280] as const;
+const SKELETON_WIDTHS = [
+  360, 373, 374, 375, 384, 385, 390, 400, 414, 540, 559, 561, 562, 900, 1280,
+] as const;
 const VIEWPORT_HEIGHT = 800;
 
 const heightOf = (locator: Locator) =>
@@ -543,7 +543,7 @@ const LAB_PARTS = {
 };
 
 /** Loads Tema 1 holding its route data, measures the skeleton, then lets the lab in. */
-async function skeletonAgainstLab(page: Page, width: number, rootPx?: number) {
+async function skeletonAgainstLab(page: Page, width: number) {
   await page.setViewportSize({ width, height: VIEWPORT_HEIGHT });
   let release = () => {};
   const gate = new Promise<void>((resolve) => {
@@ -555,12 +555,6 @@ async function skeletonAgainstLab(page: Page, width: number, rootPx?: number) {
     await route.continue();
   });
   await page.goto(PAGE);
-  if (rootPx !== undefined) {
-    // Phase C's root, set on the loaded page (an init script runs before <html> exists).
-    await page.addStyleTag({ content: `html { font-size: ${rootPx}px !important; }` });
-    const applied = await page.evaluate(() => getComputedStyle(document.documentElement).fontSize);
-    expect(applied, 'la raíz de la página').toBe(`${rootPx}px`);
-  }
   const skeleton = page.getByTestId('drone-lab-loading');
   await skeleton.scrollIntoViewIfNeeded();
   await page.evaluate(() => document.fonts.ready);
@@ -614,15 +608,5 @@ for (const width of SKELETON_WIDTHS) {
 
     expect(partsApart(placeHeights, partHeights)).toEqual([]);
     expect(Math.abs(mapSettled - mapAtMount)).toBeLessThanOrEqual(MAP_GROWTH_SLACK_PX);
-  });
-}
-
-for (const width of PHASE_C_WIDTHS) {
-  test(`con la raíz de la fase C (16 px), a ${width} px, el esqueleto sigue midiendo lo que el laboratorio`, async ({
-    page,
-  }) => {
-    const { placeHeights, partHeights } = await skeletonAgainstLab(page, width, PHASE_C_ROOT_PX);
-
-    expect(partsApart(placeHeights, partHeights)).toEqual([]);
   });
 }

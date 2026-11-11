@@ -8,9 +8,17 @@
  * The places' heights are not on the 4/8 scale on purpose: each is the height of the loaded part
  * it stands for, measured in rem (they follow the root font size with the text), at each width
  * the part changes height at. dron-reparto.spec.ts compares every place with its part (header,
- * stage, panel, canvas notes, disclosures) at ten widths from 360 to 1 280 px, at today's 17 px
- * root and at phase C's 16 px, within 8 px. To recalibrate after a text change, run it: each
- * failing line names the part, the width and both heights; move the step or the height named.
+ * stage, panel, canvas notes, disclosures) at fifteen widths from 360 to 1 280 px, on both sides
+ * of every step below, within 8 px.
+ *
+ * To recalibrate after a text or root-size change: run that spec; each failing line names the part,
+ * the width and both heights. Then, on the built site (`pnpm run build`, `astro preview`), load
+ * Tema 1 and sweep the window width 1 px at a time (the lab is already loaded: a resize only
+ * reflows it), logging each width where the height of the transport (the second child of the
+ * stage), the panel's three blocks, the canvas notes or a disclosure changes. A step is the card's
+ * content width there (the window less 66 px under two columns) in rem: refine it by setting the
+ * card's own width in fractions of a px, so the skeleton and the lab change together. Each height
+ * is the loaded part's, in rem. Move the step (STEPS and PLACE_HEIGHT) or the height named.
  */
 import type { CSSProperties, JSX } from 'react';
 import { CANVAS_BLEED } from '../../lab/canvasInset';
@@ -45,14 +53,13 @@ const CHIP_PLACES = 3;
 /**
  * The widths of the card's content box (rem; the container query's width, the card less its 1 rem
  * padding on each side) where a part of the loaded lab changes height, as its text rewraps: the
- * canvas notes go from three lines to two (17,1) and to one (31,7), «Parámetros» loses a line of
- * each field label (17,6 and 19,7), the transport's second row stops wrapping the time reading
- * onto a third line (19,55). Measured on the loaded lab at a 17 px root; the e2e checks them at
- * 16 px too (phase C), where they hold. The transport's step, in window widths: at a 16 px root the
- * lab and the skeleton change together at 394 px; at 17 px the lab changes at 417 px and the
- * skeleton at 418 (a 1 px band where it is a line taller); the e2e checks both widths.
+ * canvas notes go from three lines to two (16,85) and to one (30,975), «Parámetros» loses a line
+ * of each field label (18,365 and 19,9275), the transport's second row stops wrapping the time
+ * reading onto a third line (19,25). Measured on the loaded lab at the site's 16 px root, to a
+ * hundredth of a px; in window widths they are 336, 360, 374, 385 and 562 px, and the e2e checks
+ * each of them and the width before it.
  */
-const STEPS = ['s17-1', 's17-6', 's19-55', 's19-7', 's31-7'] as const;
+const STEPS = ['s16-85', 's18-365', 's19-25', 's19-9275', 's30-975'] as const;
 type Step = (typeof STEPS)[number];
 
 /**
@@ -60,7 +67,7 @@ type Step = (typeof STEPS)[number];
  * with hyphens: Tailwind reads an underscore in an arbitrary value as a space).
  */
 const PLACE_HEIGHT =
-  'h-(--place-narrow) @min-[17.1rem]/lab:h-(--place-s17-1) @min-[17.6rem]/lab:h-(--place-s17-6) @min-[19.55rem]/lab:h-(--place-s19-55) @min-[19.7rem]/lab:h-(--place-s19-7) @min-[31.7rem]/lab:h-(--place-s31-7) lab-split:h-(--place-split)';
+  'h-(--place-narrow) @min-[16.85rem]/lab:h-(--place-s16-85) @min-[18.365rem]/lab:h-(--place-s18-365) @min-[19.25rem]/lab:h-(--place-s19-25) @min-[19.9275rem]/lab:h-(--place-s19-9275) @min-[30.975rem]/lab:h-(--place-s30-975) lab-split:h-(--place-split)';
 
 /**
  * A place's height in rem: on a phone's narrow card, from each step where it changes (a step left
@@ -85,16 +92,16 @@ function placeStyle({ narrow, from = {}, split }: PlaceHeights): CSSProperties {
 }
 
 /**
- * The transport with events: two rows (the time reading on a third line on a phone, up to 19,55
+ * The transport with events: two rows (the time reading on a third line on a phone, up to 19,25
  * rem), and pinned with its padding in two columns.
  */
-const TRANSPORT: PlaceHeights = { narrow: 8.25, from: { 's19-55': 6.25 }, split: 7.8125 };
+const TRANSPORT: PlaceHeights = { narrow: 8.25, from: { 's19-25': 6.25 }, split: 7.8125 };
 /** «Parámetros» with v_máx and a_máx, «Escenario» with the view and the leg, and «Lecturas». */
-const PARAMS: PlaceHeights = { narrow: 16.75, from: { 's17-6': 16.4, 's19-7': 16 } };
+const PARAMS: PlaceHeights = { narrow: 16.73, from: { 's18-365': 16.39, 's19-9275': 16.0625 } };
 const SCENARIO: PlaceHeights = { narrow: 15.1875 };
 const READOUTS: PlaceHeights = { narrow: 15 };
 /** The canvas notes: legend, phase and route notes, from three lines down to one. */
-const NOTES: PlaceHeights = { narrow: 6.25, from: { 's17-1': 4.75, 's31-7': 3.25 } };
+const NOTES: PlaceHeights = { narrow: 6.31, from: { 's16-85': 4.81, 's30-975': 3.29 } };
 /** Each closed disclosure: its summary line and the rule above it. */
 const DISCLOSURE: PlaceHeights = { narrow: 2.5625 };
 const DISCLOSURES = 2;
