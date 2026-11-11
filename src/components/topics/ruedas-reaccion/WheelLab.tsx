@@ -1,9 +1,11 @@
 import { useCallback, useMemo, useState, type JSX } from 'react';
+import { formatNumber } from '../../../lib/format';
 import { CANVAS_INSET } from '../../lab/canvasInset';
 import ChoiceField from '../../lab/ChoiceField';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
+import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { useSimClock } from '../../lab/useSimClock';
 import {
   disturbanceTimeline,
@@ -140,6 +142,58 @@ function readoutsFor(
 }
 
 /**
+ * The disturbance's transport reading: hours of orbit at the global decimals, as «Tiempo en
+ * órbita» says them, for a clock that counts playback seconds (stretched over the dumps).
+ */
+const orbitHoursText =
+  (toOrbitTime: (playbackTime: number) => number, decimals: number) => (playbackTime: number) =>
+    `t = ${formatNumber(toOrbitTime(playbackTime) / SECONDS_PER_HOUR, { precision: decimals, unit: 'h' })}`;
+
+interface WheelParamsProps {
+  settings: WheelSettings;
+  set<K extends keyof WheelSettings>(key: K, value: WheelSettings[K]): void;
+}
+
+/** Level 1: θ and T in the maneuver; the dump actuator in the disturbance. */
+function WheelParams({ settings, set }: WheelParamsProps): JSX.Element {
+  if (settings.mode !== 'maniobra') {
+    return (
+      <ChoiceField
+        id="wheel-actuator"
+        label="Descarga con"
+        value={settings.actuator}
+        options={ACTUATOR_OPTIONS}
+        onChange={(actuator) => set('actuator', actuator)}
+      />
+    );
+  }
+  return (
+    <>
+      <ParamField
+        id="wheel-theta"
+        label={String.raw`Ángulo objetivo $\theta$`}
+        unit="°"
+        min={WHEEL_LIMITS.thetaDeg[0]}
+        max={WHEEL_LIMITS.thetaDeg[1]}
+        step={THETA_STEP}
+        value={settings.thetaDeg}
+        onChange={(thetaDeg) => set('thetaDeg', thetaDeg)}
+      />
+      <ParamField
+        id="wheel-T"
+        label="Duración de la maniobra T"
+        unit="s"
+        min={WHEEL_LIMITS.T[0]}
+        max={WHEEL_LIMITS.T[1]}
+        step={T_STEP}
+        value={settings.T}
+        onChange={(T) => set('T', T)}
+      />
+    </>
+  );
+}
+
+/**
  * Tema 8's laboratory on LabShell: the 6U CubeSat with the RW400 seen along its slew axis.
  * "Maniobra" turns the body rest to rest by a dragged target θ in T seconds, in real time, with
  * the warning when T < T_min; "Perturbación y descarga" holds the body still for three days of
@@ -162,6 +216,7 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
     [isManeuver, warp],
   );
   const t = toOrbitTime(clock.state.t);
+  const { decimals } = useGlobalSettings();
   const timeScale = useWheelTimeScale(clock, isManeuver, warp);
   const seekOrbit = (orbitTime: number) =>
     clock.seek(isManeuver ? orbitTime : playbackTimeAt(warp, orbitTime));
@@ -201,38 +256,7 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
     setDisplay(DEFAULT_DISPLAY);
   };
 
-  const params = isManeuver ? (
-    <>
-      <ParamField
-        id="wheel-theta"
-        label={String.raw`Ángulo objetivo $\theta$`}
-        unit="°"
-        min={WHEEL_LIMITS.thetaDeg[0]}
-        max={WHEEL_LIMITS.thetaDeg[1]}
-        step={THETA_STEP}
-        value={settings.thetaDeg}
-        onChange={(thetaDeg) => set('thetaDeg', thetaDeg)}
-      />
-      <ParamField
-        id="wheel-T"
-        label="Duración de la maniobra T"
-        unit="s"
-        min={WHEEL_LIMITS.T[0]}
-        max={WHEEL_LIMITS.T[1]}
-        step={T_STEP}
-        value={settings.T}
-        onChange={(T) => set('T', T)}
-      />
-    </>
-  ) : (
-    <ChoiceField
-      id="wheel-actuator"
-      label="Descarga con"
-      value={settings.actuator}
-      options={ACTUATOR_OPTIONS}
-      onChange={(actuator) => set('actuator', actuator)}
-    />
-  );
+  const params = <WheelParams settings={settings} set={set} />;
 
   const scenario = (
     <>
@@ -257,6 +281,7 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
       title="Laboratorio de la rueda de reacción"
       clock={clock}
       timeUnit="s"
+      formatTime={isManeuver ? undefined : orbitHoursText(toOrbitTime, decimals)}
       readouts={readoutsFor(t, live, maneuver)}
       canvasNotes={
         <WheelNotes settings={settings} feasibility={feasibility} speed={clock.state.speed} />

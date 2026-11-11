@@ -496,6 +496,26 @@ describe('WheelLab', () => {
     ).toBeInTheDocument();
   });
 
+  test('in the disturbance the transport reads hours of orbit, as the readout, not playback seconds', async () => {
+    const user = userEvent.setup();
+    render(<WheelLab />);
+    await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
+
+    seekHours(22.5);
+
+    const hours = readout('Tiempo en órbita');
+    expect(hours).toMatch(/^22,\d{2} h$/);
+    expect(timelineText()).toBe(`t = ${hours}`);
+  });
+
+  test('in the maneuver the transport keeps its seconds', () => {
+    render(<WheelLab />);
+
+    fireEvent.change(timeline(), { target: { value: '500' } });
+
+    expect(timelineText()).toBe('t = 30,00 s');
+  });
+
   test('the plot cursor scrubs the clock from the keyboard', () => {
     renderLab();
     const cursor = within(screen.getByTestId('wheel-plot')).getByRole('slider');

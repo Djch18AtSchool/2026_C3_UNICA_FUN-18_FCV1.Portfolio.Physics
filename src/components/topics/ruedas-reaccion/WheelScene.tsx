@@ -115,8 +115,6 @@ type Geometry = SceneGeometry;
 
 interface ScaleBadgeProps {
   factor: number;
-  mode: WheelMode;
-  width: number;
   side: number;
 }
 
@@ -379,19 +377,18 @@ function describeScene(props: WheelSceneProps): string {
 const BADGE_LINE_GAP = 16;
 
 /**
- * The scale the canvas declares, in the bottom corner the mode leaves free: bottom-left in the
- * maneuver (the target's text is at the right), bottom-right in the disturbance (the actuator's
- * law is at the left). Drawing only: the scene's description says it in words, and the lab's one
- * live region stays the warning's.
+ * The scale the canvas declares, in the same corner in both modes, bottom-left, so the eye finds
+ * it again after a mode switch: the target's text and the dump's law go bottom-right. Drawing
+ * only: the scene's description says it in words, and the lab's one live region stays the
+ * warning's.
  */
-function ScaleBadge({ factor, mode, width, side }: ScaleBadgeProps): JSX.Element {
-  const isManeuver = mode === 'maniobra';
+function ScaleBadge({ factor, side }: ScaleBadgeProps): JSX.Element {
   return (
     <TimeScaleBadgeSvg
       factor={factor}
-      x={isManeuver ? TEXT_INSET : width - TEXT_INSET}
+      x={TEXT_INSET}
       y={side - TEXT_INSET - BADGE_LINE_GAP}
-      anchor={isManeuver ? 'start' : 'end'}
+      anchor="start"
     />
   );
 }
@@ -439,7 +436,7 @@ export default function WheelScene(props: WheelSceneProps): JSX.Element {
               dumping={props.dumping}
             />
           )}
-          <ScaleBadge factor={props.timeScale} mode={mode} width={width} side={side} />
+          <ScaleBadge factor={props.timeScale} side={side} />
         </g>
         {isManeuver ? (
           <g data-testid="wheel-dial" data-cx={c.x} data-cy={c.y}>

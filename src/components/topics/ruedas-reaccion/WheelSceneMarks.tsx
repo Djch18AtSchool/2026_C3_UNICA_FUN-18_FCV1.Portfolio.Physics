@@ -182,13 +182,17 @@ export function DisturbanceMarks({
         label="τ_ext"
       />
       {dumping ? (
-        <MathText
-          source={formula}
-          x={FORMULA_INSET}
-          y={2 * c.y - FORMULA_INSET}
-          fontSize={FORMULA_SIZE}
-          fill={TEXT_COLOR}
-        />
+        // Bottom-right: the time-scale badge holds the bottom-left corner in both modes.
+        <g data-dump-law="">
+          <MathText
+            source={formula}
+            x={2 * c.x - FORMULA_INSET}
+            y={2 * c.y - FORMULA_INSET}
+            fontSize={FORMULA_SIZE}
+            fill={TEXT_COLOR}
+            anchor="end"
+          />
+        </g>
       ) : null}
       <DumpActuatorMark geometry={geometry} actuator={actuator} dumping={dumping} />
     </g>

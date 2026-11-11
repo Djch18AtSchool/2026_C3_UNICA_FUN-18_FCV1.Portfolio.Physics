@@ -49,14 +49,28 @@ describe('the time scale on the wheel lab canvas', () => {
     expect(badge()).toHaveAttribute('aria-hidden', 'true');
   });
 
-  test('the disturbance declares ×7 200 on a fill, at the bottom-right, clear of the field label', async () => {
+  test('the disturbance declares ×7 200 on a fill in the same corner, bottom-left: the eye finds it again', async () => {
     const user = userEvent.setup();
     render(<WheelLab />);
+    const maneuverX = badge().querySelector('text')?.getAttribute('x');
 
     await disturbance(user);
 
     expect(badgeWords()).toBe('×7 200cámara rápida');
-    expect(badgeAnchor()).toBe('end');
+    expect(badgeAnchor()).toBe('start');
+    expect(badge().querySelector('text')?.getAttribute('x')).toBe(maneuverX);
+  });
+
+  test('while a dump acts, its law moves to the bottom-right, out of the badge’s corner', async () => {
+    const user = userEvent.setup();
+    render(<WheelLab />);
+    await disturbance(user);
+
+    await user.click(screen.getByRole('button', { name: 'Ir a la descarga' }));
+
+    const law = scene().querySelector('[data-dump-law]');
+    expect(law).not.toBeNull();
+    expect(law?.querySelector('text')?.getAttribute('text-anchor')).toBe('end');
   });
 
   test('while a dump plays stretched the factor drops: ×1 700 with the magnetorquer, ×2,5 with the thruster', async () => {

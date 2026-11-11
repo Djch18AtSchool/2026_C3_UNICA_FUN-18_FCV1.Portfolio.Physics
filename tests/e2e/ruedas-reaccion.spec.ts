@@ -325,7 +325,7 @@ test.describe('escala de tiempo en el lienzo', () => {
     });
   }
 
-  test('la maniobra lo dice en la esquina izquierda y la perturbación en la derecha, bajo el dibujo', async ({
+  test('la maniobra y la perturbación lo dicen en la misma esquina, abajo a la izquierda', async ({
     page,
   }) => {
     const lab = await openScene(page);
@@ -345,8 +345,26 @@ test.describe('escala de tiempo en el lienzo', () => {
     const disturbance = await place();
 
     expect(maneuver.left).toBeLessThan(maneuver.right);
-    expect(disturbance.right).toBeLessThan(disturbance.left);
+    expect(disturbance.left).toBeLessThan(disturbance.right);
+    // The same corner: the factor starts at the same x (its width may differ with the digits).
+    expect(Math.abs(disturbance.left - maneuver.left)).toBeLessThanOrEqual(1);
     for (const edge of [maneuver.bottom, disturbance.bottom]) expect(edge).toBeLessThan(16);
+  });
+
+  test('en la perturbación la reproducción dice horas de órbita, las mismas que la lectura', async ({
+    page,
+  }) => {
+    const lab = await openScene(page);
+    await lab.getByRole('radio', { name: 'Perturbación y descarga' }).check({ force: true });
+    const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
+
+    await seekTimeline(timeline, '420');
+
+    const hours = await readoutText(page, 'Tiempo en órbita');
+    expect(hours).toMatch(/^\d+,\d{2}\sh$/u);
+    // The readout helper writes the narrow no-break space as a plain one.
+    const same = new RegExp(`^t = ${hours.replace(/\s/gu, '\\s')}$`, 'u');
+    await expect(timeline).toHaveAttribute('aria-valuetext', same);
   });
 
   test('sigue habiendo una sola región status en el laboratorio: la escala va en la descripción del dibujo', async ({
