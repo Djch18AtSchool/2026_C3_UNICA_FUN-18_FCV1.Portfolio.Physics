@@ -389,6 +389,8 @@ test.describe('escala de tiempo y máxima aproximación', () => {
         const isCurrent = (await presets.inputValue()) === value;
         await presets.selectOption(value);
         if (!isCurrent) await expect(arrival).not.toHaveText(before ?? '');
+        // The badge the clearance is measured on is there and says a factor and its word.
+        await expect(lab.locator(BADGE)).toHaveText(/^×[\d\s,]+cámara (rápida|lenta)$/u);
         for (const rp of [undefined, ...RP_LIMITS]) {
           if (rp) {
             await field.fill(rp);

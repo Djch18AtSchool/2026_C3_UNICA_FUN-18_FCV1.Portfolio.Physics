@@ -3,9 +3,10 @@
  * seeks to t = t_p (the clock stops there, as for any seek) and a status region that says what is
  * there. The region is a node renewed on every press, so a second press says the same text again.
  * It empties once playback starts, the time leaves t_p or an edit changes what it said (a new r_p
- * or encounter): a line with old figures is never read, nor is a new one announced unasked.
+ * or encounter), and stays empty until the next press: a line with old figures is never read, nor
+ * is one announced unasked (not even on coming back to the same t_p or r_p).
  */
-import { useState, type JSX } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { CANVAS_INSET } from '../../lab/canvasInset';
 import { markerTolerance } from '../../lab/transportMarkers';
 import type { SimClock } from '../../lab/useSimClock';
@@ -28,11 +29,18 @@ export default function PeriapsisJump({
   periapsisT,
   summary,
 }: PeriapsisJumpProps): JSX.Element {
-  /** The press count and what was said then: an edit that changes `summary` leaves it stale. */
+  /**
+   * The press count and what that press said; `said` is emptied for good as soon as it stops being
+   * true (playback, the time away from t_p, an edit of what it said), so only a new press speaks,
+   * never a return to the same t_p or the same r_p.
+   */
   const [pressed, setPressed] = useState<{ count: number; said: string }>({ count: 0, said: '' });
   const { t, playing, duration } = clock.state;
   const isAtPeriapsis = !playing && Math.abs(t - periapsisT) <= markerTolerance(duration);
-  const isSpoken = pressed.count > 0 && pressed.said === summary && isAtPeriapsis;
+  const isSpoken = pressed.said !== '' && pressed.said === summary && isAtPeriapsis;
+  useEffect(() => {
+    if (pressed.said !== '' && !isSpoken) setPressed(({ count }) => ({ count, said: '' }));
+  }, [pressed.said, isSpoken]);
   const jump = () => {
     clock.seek(periapsisT);
     setPressed(({ count }) => ({ count: count + 1, said: summary }));

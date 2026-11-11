@@ -159,6 +159,23 @@ describe('the flyby lab: its time scale and its closest approach', () => {
       expect(within(lab()).queryByText(SAID)).toBeNull();
     });
 
+    test('stays quiet when an edit returns to the r_p it said: only a press speaks', async () => {
+      const user = userEvent.setup();
+      render(<FlybyLab />);
+      const rp = () => screen.getByRole('textbox', { name: 'Máxima aproximación r sub p' });
+      const original = (rp() as HTMLInputElement).value;
+      await user.click(goButton());
+      expect(within(lab()).queryByText(SAID)).not.toBeNull();
+
+      for (const value of ['3', original]) {
+        await user.clear(rp());
+        await user.type(rp(), `${value}{Enter}`);
+      }
+
+      expect((rp() as HTMLInputElement).value).toBe(original);
+      expect(within(lab()).queryByText(SAID)).toBeNull();
+    });
+
     test('goes quiet when playback starts', async () => {
       vi.useFakeTimers();
       setSettings({ motion: 'reduced' });
