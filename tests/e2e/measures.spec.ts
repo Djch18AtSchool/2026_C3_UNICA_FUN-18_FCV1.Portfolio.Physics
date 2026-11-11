@@ -14,6 +14,11 @@ const STEP_FLOW_PX = 48;
 const SECTION_FLOW_PX = 64;
 const WHY_LABEL_PX = 12;
 const WHY_LABEL_GAP_PX = 8;
+/** content.css widens an equation's padding (and the gap to its number) from 40 rem. */
+const EQUATION_WIDE_FROM_PX = 640;
+/** Tema 6's work–energy equation: 0,5 px wider than its box at 375 px with a 16 px gap. */
+const SNUG_EQUATION = { path: './temas/frenado-regenerativo/', id: 'ec-frenado-trabajo' };
+const SNUG_EQUATION_WIDTH_PX = 375;
 /** Sub-pixel slack for layout rounding. */
 const ROUNDING_PX = 1;
 const VIEWPORTS = [
@@ -111,6 +116,21 @@ for (const viewport of VIEWPORTS) {
       expect(rules.row.slice(0, 2)).toEqual(['1px', 'solid']);
     });
 
+    test('el número de una ecuación queda a la distancia de su relleno: 12 px en el móvil, 16 desde 40 rem', async ({
+      page,
+    }) => {
+      await page.goto(TOPIC_PAGES[1].path);
+      const spacing = await page
+        .locator('.equation')
+        .first()
+        .evaluate((equation) => {
+          const style = getComputedStyle(equation);
+          return { gap: style.columnGap, padding: style.paddingRight };
+        });
+      expect(spacing.gap).toBe(spacing.padding);
+      expect(spacing.gap).toBe(`${viewport.width < EQUATION_WIDE_FROM_PX ? 12 : 16}px`);
+    });
+
     for (const { number, path } of TOPIC_PAGES) {
       test(`tema ${number}: Why sin borde, etiqueta en mono de 12 px, 24 px entre partes y 8 px hasta el texto`, async ({
         page,
@@ -138,3 +158,16 @@ for (const viewport of VIEWPORTS) {
     }
   });
 }
+
+test(`a ${SNUG_EQUATION_WIDTH_PX} px la ecuación del trabajo del tema 6 cabe sin desplazarse`, async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: SNUG_EQUATION_WIDTH_PX, height: 800 });
+  await page.goto(SNUG_EQUATION.path);
+  await page.evaluate(() => document.fonts.ready);
+  const math = page.locator(`#${SNUG_EQUATION.id} .equation-math`);
+  const overflow = await math.evaluate((node) => node.scrollWidth - node.clientWidth);
+  expect(overflow).toBe(0);
+  // Without an overflow it is not a scroll region: no tab stop of its own.
+  await expect(math).not.toHaveAttribute('tabindex');
+});
