@@ -232,7 +232,7 @@ describe('WheelLab', () => {
     const canvas = document.querySelector('[data-lab-canvas]') as HTMLElement;
 
     expect(notes).toHaveTextContent(/Magnetopar:/);
-    expect(notes).toHaveTextContent(/A cámara rápida/);
+    expect(notes).toHaveTextContent(/va a cámara rápida/);
     expect(notes.querySelector('button')).toBeNull();
     expect(within(canvas).getByRole('button', { name: 'Ir a la descarga' })).toBeVisible();
     expect(within(canvas).getByTestId('wheel-phase')).toHaveTextContent(/acumulando/i);

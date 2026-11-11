@@ -113,12 +113,14 @@ describe('the time scale on the wheel lab canvas', () => {
     expect(plexViolations(badge())).toEqual([]);
   });
 
-  test('the canvas note that explains the lapse points to the factor on the drawing', async () => {
+  test('the canvas note that explains the lapse says the drawing states the factor', async () => {
     const user = userEvent.setup();
     render(<WheelLab />);
     await disturbance(user);
 
     const notes = document.querySelector('[data-lab-canvas-notes]') as HTMLElement;
-    expect(notes).toHaveTextContent(/A cámara rápida; el factor va sobre el dibujo/);
+    expect(notes).toHaveTextContent(
+      /La perturbación va a cámara rápida y el dibujo dice el factor\. A 1×, 2 h de órbita por segundo/,
+    );
   });
 });

@@ -10,9 +10,9 @@ import {
   firstDumpPlayback,
   orbitTimeAt,
   playbackTimeAt,
-  wheelTimeScale,
 } from './disturbanceTimeline';
 import MomentumGauge from './MomentumGauge';
+import { useWheelTimeScale } from './useWheelTimeScale';
 import { DEFAULT_DISPLAY, wheelLocalSettings, type WheelDisplay } from './wheelLabSettings';
 import {
   disturbanceReadings,
@@ -162,12 +162,7 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
     [isManeuver, warp],
   );
   const t = toOrbitTime(clock.state.t);
-  const timeScale = wheelTimeScale({
-    isManeuver,
-    warp,
-    playbackTime: clock.state.t,
-    clockRate: clock.rate,
-  });
+  const timeScale = useWheelTimeScale(clock, isManeuver, warp);
   const seekOrbit = (orbitTime: number) =>
     clock.seek(isManeuver ? orbitTime : playbackTimeAt(warp, orbitTime));
   const maneuver = isManeuver ? maneuverReadings(settings, t) : undefined;
