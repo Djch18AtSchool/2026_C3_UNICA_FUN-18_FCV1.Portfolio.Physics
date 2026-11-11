@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
+import { useEffect, useMemo, useState, type JSX } from 'react';
 import {
-  DRONE_ROUTE,
   routeDuration,
   type RouteDefinition,
   type RouteSample,
@@ -20,35 +19,21 @@ import {
 } from './droneLabSettings';
 import DroneProfiles from './DroneProfiles';
 import DroneSkeleton from './DroneSkeleton';
-import { isDeclaredRoute, moveStop, sampleAt, tryGenerate } from './routeEdit';
+import { isDeclaredRoute } from './routeEdit';
 import RouteMapLab from './RouteMapLab';
 import RouteMapNotes from './RouteMapNotes';
 import type { StopIndex } from './RouteOverlay';
 import RouteViewFields from './RouteViewFields';
-import { localTime } from './routeView';
-import { useRouteView } from './useRouteView';
+import { useEditableRoute, type Limits } from './useEditableRoute';
+import { useRouteView, useViewFlight } from './useRouteView';
 
 /** Ranges of the main parameters (spec §8.3). */
 const V_MAX_RANGE = { min: 1, max: 15, step: 0.5 } as const;
 const A_MAX_RANGE = { min: 0.5, max: 5, step: 0.1 } as const;
-/** A generation slower than one frame debounces the next parameter change by PARAM_DEBOUNCE_MS. */
-const FRAME_BUDGET_MS = 16;
-const PARAM_DEBOUNCE_MS = 150;
-
 interface DroneDataset {
   definition: RouteDefinition;
   samples: RouteSample[];
 }
-
-/** The last route that could be flown, with its samples. */
-interface ValidRoute {
-  def: RouteDefinition;
-  samples: RouteSample[];
-}
-
-type Limits = Pick<RouteDefinition, 'vMax' | 'aMax'>;
-
-const DECLARED_LIMITS: Limits = { vMax: DRONE_ROUTE.vMax, aMax: DRONE_ROUTE.aMax };
 
 type LoadState =
   { status: 'loading' } | { status: 'error' } | { status: 'ready'; samples: RouteSample[] };
@@ -113,86 +98,28 @@ function DroneParams({
 type DroneLabViewProps = DroneLabProps & { declared: RouteSample[] };
 
 function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Element {
-  const initialRoute: ValidRoute = { def: DRONE_ROUTE, samples: declared };
-  const [route, setRoute] = useState<ValidRoute>(initialRoute);
-  const [limits, setLimits] = useState<Limits>(DECLARED_LIMITS);
-  const [preview, setPreview] = useState<{ index: StopIndex; at: Point } | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const editing = useEditableRoute(declared);
+  const { route, limits, error, shownStops } = editing;
   const [display, setDisplay] = useState<DroneDisplay>(DEFAULT_DISPLAY);
-  /** How long the last generation took (ms), to decide whether parameter changes debounce. */
-  const costRef = useRef(0);
   const { decimals } = useGlobalSettings();
 
   const duration = useMemo(() => routeDuration(route.def), [route.def]);
   /** The clock plays one view of the route: a leg at real speed, or the whole route faster. */
   const routeView = useRouteView(route.def);
   const { clock, span, routeTime } = routeView;
-  const { seek, pause } = clock;
-
-  /** Adopts the candidate if it can be flown; otherwise keeps the last valid route and says why. */
-  const commit = (candidate: RouteDefinition) => {
-    if (isDeclaredRoute(candidate)) {
-      setRoute({ def: candidate, samples: declared });
-      setError(null);
-      return;
-    }
-    const started = performance.now();
-    const result = tryGenerate(candidate);
-    costRef.current = performance.now() - started;
-    if (!result.ok) {
-      setError(result.error);
-      return;
-    }
-    setRoute({ def: candidate, samples: result.samples });
-    setError(null);
-  };
-  const commitRef = useRef(commit);
-  commitRef.current = commit;
-
-  useEffect(() => {
-    if (limits.vMax === route.def.vMax && limits.aMax === route.def.aMax) return;
-    const delay = costRef.current > FRAME_BUDGET_MS ? PARAM_DEBOUNCE_MS : 0;
-    const id = setTimeout(() => commitRef.current({ ...route.def, ...limits }), delay);
-    return () => clearTimeout(id);
-  }, [limits, route.def]);
+  const { pause } = clock;
 
   const onStopDrag = (index: StopIndex, at: Point, phase: DragPoint['phase']) => {
     // Any edit, by pointer or by arrow key, pauses playback like a timeline drag.
     pause();
-    if (phase !== 'end') {
-      setPreview({ index, at });
-      return;
-    }
-    setPreview(null);
-    commit(moveStop(route.def, index, at.x, at.y));
+    editing.dragStop(index, at, phase === 'end');
   };
-
   const onReset = () => {
-    setRoute(initialRoute);
-    setLimits(DECLARED_LIMITS);
-    setPreview(null);
-    setError(null);
+    editing.reset();
+    routeView.reset();
   };
 
-  const shownStops = preview
-    ? moveStop(route.def, preview.index, preview.at.x, preview.at.y).stops
-    : route.def.stops;
-  const now = sampleAt(route.samples, routeTime);
-  /** The flight at a time of the clock, which starts where the view's span starts on the route. */
-  const flightSampleAt = useCallback(
-    (t: number) => sampleAt(route.samples, span.start + t),
-    [route.samples, span.start],
-  );
-  const timeRange = useMemo(
-    () => ({ from: span.start, to: span.start + span.duration }),
-    [span.start, span.duration],
-  );
-  /** The map and its drone speak route time; the clock speaks the span's. */
-  const seekRoute = (t: number) => seek(localTime(span, t));
-  const live = useMemo(
-    () => ({ frame: clock.frame, sampleAt: flightSampleAt }),
-    [clock.frame, flightSampleAt],
-  );
+  const { now, live, timeRange, seekRoute } = useViewFlight(route.samples, routeView);
 
   return (
     <div className="flex flex-col gap-4">
@@ -213,12 +140,11 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
           />
         }
         levels={{
-          params: <DroneParams limits={limits} onChange={setLimits} />,
+          params: <DroneParams limits={limits} onChange={editing.setLimits} />,
           scenario: (
             <RouteViewFields
               selection={routeView.selection}
               schedule={routeView.schedule}
-              span={span}
               onView={routeView.setView}
               onLeg={routeView.setLeg}
             />
@@ -247,7 +173,7 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
           <TimeScaleBadge clock={clock} />
         </div>
       </LabShell>
-      <DroneProfiles samples={route.samples} definition={route.def} t={clock.state.t} />
+      <DroneProfiles samples={route.samples} definition={route.def} t={routeTime} />
     </div>
   );
 }

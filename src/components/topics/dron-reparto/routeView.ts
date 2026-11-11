@@ -62,8 +62,8 @@ const arrivalMark = (t: number, to: RouteStop): TransportMarker => ({
  * the acceleration, the start of braking, an arrival) an instant between two samples reads a
  * blend of both sides, such as 2 m/s² at a stop. So an event is placed on the sample that follows
  * it (a step at most later than the model's instant), and a leg starts on the one before its
- * departure (the drone at rest, in its dwell); none goes past the route's own end. Without a
- * `step` the instants are the model's.
+ * departure (the drone at rest, in its dwell). The route's clock ends on the last sample, the
+ * first at rest at the depot. Without a `step` the instants are the model's.
  */
 function gridAfter(t: number, step: number): number {
   if (!(step > 0)) return t;
@@ -77,16 +77,13 @@ function gridBefore(t: number, step: number): number {
 
 /** «Ruta»: the departure from the depot and the arrival at every stop, on the route's clock. */
 function routeSpan(schedule: readonly LegSchedule[], step: number): ViewSpan {
-  const duration = schedule[schedule.length - 1].end;
   return {
     start: 0,
-    duration,
+    duration: gridAfter(schedule[schedule.length - 1].end, step),
     timeScale: ROUTE_TIME_LAPSE,
     markers: [
       departureMark(0, schedule[0].from),
-      ...schedule.map((leg) =>
-        arrivalMark(Math.min(gridAfter(leg.arrival, step), duration), leg.to),
-      ),
+      ...schedule.map((leg) => arrivalMark(gridAfter(leg.arrival, step), leg.to)),
     ],
   };
 }
@@ -96,9 +93,9 @@ function routeSpan(schedule: readonly LegSchedule[], step: number): ViewSpan {
  * the start), with the instants the acceleration ends and the braking starts between the two
  * stops.
  */
-function legSpan(leg: LegSchedule, step: number, routeEnd: number): ViewSpan {
+function legSpan(leg: LegSchedule, step: number): ViewSpan {
   const start = gridBefore(leg.departure, step);
-  const on = (t: number) => Math.min(gridAfter(t, step), routeEnd) - start;
+  const on = (t: number) => gridAfter(t, step) - start;
   const duration = on(leg.arrival);
   return {
     start,
@@ -120,8 +117,7 @@ export function viewSpan(
   step = 0,
 ): ViewSpan {
   if (view === 'ruta') return routeSpan(schedule, step);
-  const routeEnd = schedule[schedule.length - 1].end;
-  return legSpan(schedule[Math.min(Math.max(leg, 0), schedule.length - 1)], step, routeEnd);
+  return legSpan(schedule[Math.min(Math.max(leg, 0), schedule.length - 1)], step);
 }
 
 /** The leg the drone is on at route time t: during a dwell, the one that just arrived. */
@@ -146,8 +142,12 @@ export function legOptionLabel({ from, to }: LegSchedule): string {
   return `${lead.toUpperCase()}${rest.join('')}`;
 }
 
-/** What the selected view covers, in the route's own seconds: the clock the laboratory runs. */
-export function viewNote(span: ViewSpan, { view }: ViewSelection): string {
-  if (view === 'ruta') return `La ruta entera dura ${seconds(span.duration)}.`;
-  return `Sale en t = ${seconds(span.start)} de la ruta y dura ${seconds(span.duration)}.`;
+/**
+ * What the selected view covers, in the model's own seconds (the same ones as table 1.1 and the
+ * figure of step 2): when the leg departs and how long it flies, not the clock window it plays in.
+ */
+export function viewNote(schedule: readonly LegSchedule[], { view, leg }: ViewSelection): string {
+  if (view === 'ruta') return `La ruta entera dura ${seconds(schedule[schedule.length - 1].end)}.`;
+  const { departure, arrival } = schedule[Math.min(Math.max(leg, 0), schedule.length - 1)];
+  return `Sale en t = ${seconds(departure)} de la ruta y dura ${seconds(arrival - departure)}.`;
 }

@@ -366,7 +366,7 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
       expect(marks()).toBe(4);
       expect(badge()).toBe('×1 velocidad real');
       expect(screen.getByTestId('drone-view-note')).toHaveTextContent(
-        'Sale en t = 0,0 s de la ruta y dura 67,3 s.',
+        'Sale en t = 0,0 s de la ruta y dura 67,2 s.',
       );
       expect(screen.getByTestId('route-map').closest('.relative')).toContainElement(
         document.querySelector('[data-time-scale-badge]') as HTMLElement,
@@ -483,6 +483,49 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
       expect(readout('Instante en la ruta')).toBe('158,40 s');
       await userEvent.keyboard('{Home}');
       expect(readout('Instante en la ruta')).toBe('87,20 s');
+    });
+
+    test.each(['1', '2', '3'])(
+      'in leg %s the profile charts read the same instant of the route as the readouts',
+      async (leg) => {
+        await renderLab();
+
+        fireEvent.change(screen.getByRole('combobox', { name: 'Tramo mostrado' }), {
+          target: { value: leg },
+        });
+
+        const reading = document.querySelector('[data-profile-reading]') as HTMLElement;
+        const x = readout('Posición x').replace(' m', '');
+        const y = readout('Posición y').replace(' m', '');
+        expect(reading).toHaveTextContent(`x ${x} m`);
+        expect(reading).toHaveTextContent(`y ${y} m`);
+        const markerT = document
+          .querySelector('[data-profile-marker]')
+          ?.getAttribute('data-marker-t');
+        expect(Number(markerT)).toBeCloseTo(
+          Number(readout('Instante en la ruta').replace(',', '.').replace(' s', '')),
+          1,
+        );
+      },
+    );
+
+    test('the drone marker reads t on the same origin as the timeline in «Tramo»', async () => {
+      await renderLab();
+      fireEvent.change(screen.getByRole('combobox', { name: 'Tramo mostrado' }), {
+        target: { value: '2' },
+      });
+
+      expect(valueText(screen.getByTestId('drone-marker'))).toBe(valueText(timeline()));
+    });
+
+    test('«Restablecer» brings back the default view, the first leg cruising', async () => {
+      await renderLab();
+      await choose('Ruta');
+      await userEvent.click(screen.getByRole('button', { name: 'Restablecer' }));
+
+      expect(screen.getByRole('radio', { name: 'Tramo' })).toBeChecked();
+      expect(screen.getByRole('combobox', { name: 'Tramo mostrado' })).toHaveValue('0');
+      expect(valueText(timeline())).toBe('t = 30,00 s');
     });
 
     test('an edited route moves the marks with it: the model, not a list, says when it arrives', async () => {

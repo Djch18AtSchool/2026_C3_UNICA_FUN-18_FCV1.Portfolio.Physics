@@ -4,13 +4,16 @@
  * clock's duration and time lapse; the drone must not jump, so the route time it was at is carried
  * across, and a leg selected by hand opens cruising.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   routeSchedule,
   type LegSchedule,
   type RouteDefinition,
+  type RouteSample,
 } from '../../../lib/data/droneRoute';
 import { useSimClock, type SimClock } from '../../lab/useSimClock';
+import { sampleAt } from './routeEdit';
+import type { LiveFlight, TimeRange } from './RouteOverlay';
 import {
   DEFAULT_SELECTION,
   legAtTime,
@@ -34,13 +37,18 @@ export interface RouteViewState {
   setView(view: RouteView): void;
   /** Selects the leg of «Tramo»; the drone opens it cruising. */
   setLeg(leg: number): void;
+  /** Back to the default view, the first leg cruising, as the lab opens. */
+  reset(): void;
 }
 
 /** The clock and the view over `definition`'s route; opens on «Tramo», cruising on leg 1. */
 export function useRouteView(definition: RouteDefinition): RouteViewState {
   const schedule = useMemo(() => routeSchedule(definition), [definition]);
   const [selection, setSelection] = useState<ViewSelection>(DEFAULT_SELECTION);
-  const span = useMemo(() => viewSpan(schedule, selection, definition.dt), [schedule, selection]);
+  const span = useMemo(
+    () => viewSpan(schedule, selection, definition.dt),
+    [schedule, selection, definition.dt],
+  );
   const clock = useSimClock(span.duration, { timeScale: span.timeScale });
   const { seek } = clock;
   /**
@@ -68,6 +76,12 @@ export function useRouteView(definition: RouteDefinition): RouteViewState {
     setSelection({ view: 'tramo', leg });
   };
 
+  const reset = () => {
+    pendingSeek.current = openingTime(viewSpan(schedule, DEFAULT_SELECTION, definition.dt));
+    // A new object, so the effect that takes the pending seek runs even from the default view.
+    setSelection({ ...DEFAULT_SELECTION });
+  };
+
   return {
     selection,
     schedule,
@@ -76,5 +90,40 @@ export function useRouteView(definition: RouteDefinition): RouteViewState {
     routeTime: span.start + clock.state.t,
     setView,
     setLeg,
+    reset,
+  };
+}
+
+export interface ViewFlight {
+  /** The flight at the settled route time (the readouts, the phase). */
+  now: RouteSample;
+  /** The flight at any time of the clock, for what moves every frame. */
+  live: LiveFlight;
+  /** The route times the clock covers: what the drone can be dragged over. */
+  timeRange: TimeRange;
+  /** Seeks a route time (the map and its drone speak the route's), held inside the view. */
+  seekRoute(t: number): void;
+}
+
+/** The flight of `samples` as the view's clock plays it: the clock's time starts at `span.start`. */
+export function useViewFlight(
+  samples: RouteSample[],
+  { clock, span, routeTime }: RouteViewState,
+): ViewFlight {
+  const { frame, seek } = clock;
+  const sampleOnClock = useCallback(
+    (t: number) => sampleAt(samples, span.start + t),
+    [samples, span.start],
+  );
+  const live = useMemo(() => ({ frame, sampleAt: sampleOnClock }), [frame, sampleOnClock]);
+  const timeRange = useMemo(
+    () => ({ from: span.start, to: span.start + span.duration }),
+    [span.start, span.duration],
+  );
+  return {
+    now: sampleAt(samples, routeTime),
+    live,
+    timeRange,
+    seekRoute: (t) => seek(localTime(span, t)),
   };
 }

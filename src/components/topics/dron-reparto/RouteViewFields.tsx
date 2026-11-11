@@ -7,19 +7,11 @@ import type { JSX } from 'react';
 import type { LegSchedule } from '../../../lib/data/droneRoute';
 import ChoiceField from '../../lab/ChoiceField';
 import { SelectField } from '../../lab/SettingsFields';
-import {
-  legOptionLabel,
-  viewNote,
-  type RouteView,
-  type ViewSelection,
-  type ViewSpan,
-} from './routeView';
+import { legOptionLabel, viewNote, type RouteView, type ViewSelection } from './routeView';
 
 export interface RouteViewFieldsProps {
   selection: ViewSelection;
   schedule: readonly LegSchedule[];
-  /** The span the clock plays: the note says its start and its length. */
-  span: ViewSpan;
   onView(view: RouteView): void;
   onLeg(leg: number): void;
 }
@@ -32,7 +24,6 @@ const VIEW_OPTIONS = [
 export default function RouteViewFields({
   selection,
   schedule,
-  span,
   onView,
   onLeg,
 }: RouteViewFieldsProps): JSX.Element {
@@ -59,7 +50,7 @@ export default function RouteViewFields({
         />
       ) : null}
       <p data-testid="drone-view-note" className="m-0 text-sm text-fg-muted">
-        {viewNote(span, selection)}
+        {viewNote(schedule, selection)}
       </p>
     </>
   );

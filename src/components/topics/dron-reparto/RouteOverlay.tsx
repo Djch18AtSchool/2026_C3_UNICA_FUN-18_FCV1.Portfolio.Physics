@@ -301,7 +301,8 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
         aria-valuemin={timeRange.from}
         aria-valuemax={timeRange.to}
         aria-valuenow={now.t}
-        aria-valuetext={`t = ${formatNumber(now.t, { precision: decimals, unit: 's' })}`}
+        // Read on the timeline's own origin (0 at the start of the view), as the transport says it.
+        aria-valuetext={`t = ${formatNumber(now.t - timeRange.from, { precision: decimals, unit: 's' })}`}
         className="group cursor-grab outline-none"
         onKeyDown={onDroneKeyDown}
         {...droneDrag}

@@ -50,7 +50,10 @@ function expectAtRestOn(
 describe('viewSpan · Ruta', () => {
   test('plays the whole route, from 0 s, at the route time lapse', () => {
     expect(RUTA.start).toBe(0);
-    expect(RUTA.duration).toBe(routeDuration(DRONE_ROUTE));
+    // The clock ends on the flight's last sample, the first at rest at the depot.
+    expect(RUTA.duration).toBe(SAMPLES.at(-1)?.t);
+    expect(RUTA.duration).toBeGreaterThanOrEqual(routeDuration(DRONE_ROUTE));
+    expect(RUTA.duration).toBeLessThan(routeDuration(DRONE_ROUTE) + STEP);
     expect(RUTA.timeScale).toBe(ROUTE_TIME_LAPSE);
     expect(ROUTE_TIME_LAPSE).toBe(4);
   });
@@ -68,7 +71,7 @@ describe('viewSpan · Ruta', () => {
   test('every mark is the first sample of the flight at rest on a stop of the route model', () => {
     const stops = DRONE_ROUTE.stops;
     expect(RUTA.markers).toHaveLength(stops.length);
-    RUTA.markers.slice(0, -1).forEach((marker, i) => {
+    RUTA.markers.forEach((marker, i) => {
       const arrival = i === 0 ? 0 : SCHEDULE[i - 1].arrival;
 
       expect(isOnGrid(marker.t), marker.label).toBe(true);
@@ -78,8 +81,9 @@ describe('viewSpan · Ruta', () => {
     });
   });
 
-  test('the arrival at the depot, the end of the route, is its last instant', () => {
+  test('the arrival at the depot is the last sample: the drone at rest there, with no blended reading', () => {
     expect(RUTA.markers.at(-1)?.t).toBe(RUTA.duration);
+    expectAtRestOn(RUTA.duration, DRONE_ROUTE.stops[0], 'llegada al depósito');
   });
 
   test('all the marks survive normalization and are reachable one by one with the transport', () => {
@@ -135,10 +139,7 @@ describe('viewSpan · Tramo', () => {
       const span = viewSpan(SCHEDULE, { view: 'tramo', leg: index }, STEP);
 
       expectAtRestOn(span.start, leg.from, `salida ${index}`, index > 0);
-      // The last arrival is the route's own end (off the grid): the lab already reads it there.
-      if (index < SCHEDULE.length - 1) {
-        expectAtRestOn(span.start + span.duration, leg.to, `llegada ${index}`);
-      }
+      expectAtRestOn(span.start + span.duration, leg.to, `llegada ${index}`);
     });
   });
 
@@ -165,7 +166,7 @@ describe('viewSpan · Tramo', () => {
     expect(normalizeMarkers(span.markers, span.duration)).toHaveLength(4);
   });
 
-  test('the last leg ends where the route ends, not on the sample after it', () => {
+  test('the last leg ends on the last sample of the route, where the route clock ends', () => {
     const last = viewSpan(SCHEDULE, { view: 'tramo', leg: 3 }, STEP);
 
     expect(last.start + last.duration).toBeCloseTo(RUTA.duration, 9);
@@ -231,17 +232,19 @@ describe('legOptionLabel and viewNote', () => {
     ]);
   });
 
-  test('Tramo says when the leg departs on the route and how long it lasts: the clock the lab runs', () => {
-    const selection = { view: 'tramo', leg: 1 } as const;
-    const note = viewNote(viewSpan(SCHEDULE, selection, STEP), selection).replace(/\s/g, ' ');
+  test.each([
+    [0, 'Sale en t = 0,0 s de la ruta y dura 67,2 s.'],
+    [1, 'Sale en t = 87,2 s de la ruta y dura 71,1 s.'],
+    [2, 'Sale en t = 178,3 s de la ruta y dura 71,1 s.'],
+    [3, 'Sale en t = 269,4 s de la ruta y dura 118,0 s.'],
+  ])('Tramo %i says the flight time of the model, as table 1.1 and the figure do', (leg, text) => {
+    const note = viewNote(SCHEDULE, { view: 'tramo', leg }).replace(/\s/g, ' ');
 
-    expect(note).toBe('Sale en t = 87,2 s de la ruta y dura 71,2 s.');
+    expect(note).toBe(text);
   });
 
   test('Ruta says how long the whole route lasts', () => {
-    const selection = { view: 'ruta', leg: 0 } as const;
-
-    expect(viewNote(viewSpan(SCHEDULE, selection, STEP), selection).replace(/\s/g, ' ')).toBe(
+    expect(viewNote(SCHEDULE, { view: 'ruta', leg: 0 }).replace(/\s/g, ' ')).toBe(
       'La ruta entera dura 387,4 s.',
     );
   });
