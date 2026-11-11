@@ -24,7 +24,7 @@ import {
   type JumpResult,
   type JumpSettings,
 } from './jumpModel';
-import JumpOverlay, { type LaunchSpeeds } from './JumpOverlay';
+import JumpOverlay, { type LaunchSpeeds, V0_KEY_STEP, VX_KEY_STEP } from './JumpOverlay';
 import { launchLengthPerMs, sceneDomains } from './jumpScene';
 import { worldForGravity, worldForPreset } from './jumpWorlds';
 
@@ -34,6 +34,12 @@ type Domains = { x: Domain; y: Domain };
 /** Slider steps; a dragged handle snaps to them too, so the fields never show float noise. */
 const STEPS: Record<JumpKey, number> = { v0: 0.1, g: 0.01, vx: 0.05, fallMultiplier: 0.1 };
 const SNAP_DECIMALS = 2;
+/** A key step in m/s with exactly its own decimals: «0,5 m/s», «0,25 m/s». */
+const stepText = (step: number) =>
+  formatNumber(step, { precision: String(step).split('.')[1]?.length ?? 0, unit: 'm/s' });
+/** «Cómo se usa»: the two handles on the plot, by pointer and by keys (JumpOverlay's steps). */
+const DRAG_HINT = `Arrastra la punta del vector de lanzamiento $\\vec v_0$, o enfócala y muévela con las flechas: arriba y abajo cambian $v_0$ (${stepText(V0_KEY_STEP)}) y los lados, $v_x$ (${stepText(VX_KEY_STEP)}). El punto sobre la curva recorre el salto: arrástralo, o enfócalo y usa las flechas, Inicio y Fin.`;
+
 /** The Earth reference wears Tierra's conventional color, dashed. */
 const EARTH_COLOR = worldForPreset('tierra').color;
 
@@ -216,7 +222,7 @@ export default function JumpLab({ usage, leftOut }: JumpLabProps): JSX.Element {
         readouts={readouts}
         levels={{ params, scenario, display: localSettings }}
         notes={{
-          usage: usage ? [usage] : [],
+          usage: [DRAG_HINT, ...(usage ? [usage] : [])],
           leftOut: [
             ...(display.integrator === 'euler' ? [EULER_NOTE] : []),
             ...(leftOut ? [leftOut] : []),

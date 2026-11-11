@@ -43,8 +43,8 @@ const LAUNCH_COLOR = TEXT_COLOR;
 const TRAIL_WIDTH = 7;
 const TRAIL_OPACITY = 0.3;
 /** Arrow keys move the handle by these amounts (m/s); the marker by t_air / MARKER_KEY_STEPS. */
-const V0_KEY_STEP = 0.5;
-const VX_KEY_STEP = 0.25;
+export const V0_KEY_STEP = 0.5;
+export const VX_KEY_STEP = 0.25;
 const MARKER_KEY_STEPS = 40;
 const ORIGIN: Point = { x: 0, y: 0 };
 /** Decimals of the moving groups' translations: a stable attribute string per frame. */

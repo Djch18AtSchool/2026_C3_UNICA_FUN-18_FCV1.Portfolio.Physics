@@ -299,22 +299,29 @@ describe('JumpLab', () => {
     expect(chips()).toContain('Integrador Euler semi-implícito');
   });
 
-  test('«Cómo se usa» is not drawn without a text, and «Qué deja fuera el modelo» waits closed', () => {
+  test('«Cómo se usa» says how to move both handles, by pointer and by keys; both disclosures wait closed', () => {
     const { container } = renderLab();
-
-    const notes = [...container.querySelectorAll('details')];
-    expect(notes.map((details) => details.getAttribute('data-lab-note'))).toEqual(['left-out']);
-    expect(notes[0].open).toBe(false);
-  });
-
-  test('a usage text from the MDX opens its own disclosure before the caveats', () => {
-    const { container } = render(<JumpLab usage="Arrastra la punta." leftOut={LEFT_OUT} />);
 
     const notes = [...container.querySelectorAll('details')];
     expect(notes.map((details) => details.getAttribute('data-lab-note'))).toEqual([
       'usage',
       'left-out',
     ]);
+    expect(notes.every((details) => !details.open)).toBe(true);
+    const usage = mathSourceText(notes[0]);
+    expect(usage).toContain('vector de lanzamiento');
+    expect(usage).toContain('flechas');
+    expect(usage).toContain('Inicio y Fin');
+    expect(usage.replace(/\s/g, ' ')).toMatch(/\$v_0\$ \(0,5 m\/s\).*\$v_x\$ \(0,25 m\/s\)/);
+  });
+
+  test('a usage text from the MDX follows the lab’s own, in the same disclosure', () => {
+    const { container } = render(<JumpLab usage="Una nota del tema." leftOut={LEFT_OUT} />);
+
+    const usage = container.querySelector('details[data-lab-note="usage"]') as HTMLElement;
+    const paragraphs = [...usage.querySelectorAll('p')].map((p) => p.textContent);
+    expect(paragraphs.at(-1)).toBe('Una nota del tema.');
+    expect(paragraphs).toHaveLength(2);
   });
 
   test('the local settings hide the Earth reference and change the fall multiplier', async () => {
