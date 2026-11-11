@@ -195,12 +195,13 @@ function Panel({ levels, readouts, onReset }: PanelProps): JSX.Element {
   );
 }
 
-/** The stage, in its cell: the canvas, then the transport when the lab has a clock. */
+/** What LabShell passes on to the transport: the clock and how it is read. */
 type TransportProps = Pick<
   LabShellProps,
   'clock' | 'timeUnit' | 'markers' | 'timeOrigin' | 'formatTime'
 >;
 
+/** The stage, in its cell: the canvas, then the transport when the lab has a clock. */
 function Stage({
   clock,
   children,

@@ -172,6 +172,12 @@ function useEventNavigation({ clock, markers, tolerance, timeTextOf }: EventRowP
   return { announcement, isEnabled, goTo };
 }
 
+/** What the row's event text is: the event the time is on, the next one, or nothing ('' ). */
+function eventKind(eventText: string | undefined, nextText: string | undefined): string {
+  if (eventText !== undefined) return 'at';
+  return nextText === undefined ? '' : 'next';
+}
+
 /**
  * «Evento anterior», «Evento siguiente», the event the settled time stands on (a visual copy of
  * the timeline's aria-valuetext) or, between events, the next one in a muted tone (what the marks
@@ -201,8 +207,9 @@ export function EventRow(props: EventRowProps): JSX.Element {
       {button('previous', 'Evento anterior', <EventIcon direction="previous" />)}
       {button('next', 'Evento siguiente', <EventIcon direction="next" />)}
       <span
-        data-transport-event={eventText === undefined ? (nextText ? 'next' : '') : 'at'}
+        data-transport-event={eventKind(eventText, nextText)}
         aria-hidden="true"
+        title={eventText ?? nextText}
         className={`line-clamp-2 min-w-24 flex-1 text-xs ${eventText === undefined ? 'text-fg-muted' : 'text-fg'}`}
       >
         {eventText ?? nextText}

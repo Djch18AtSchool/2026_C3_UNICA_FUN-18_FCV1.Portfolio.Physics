@@ -37,9 +37,14 @@ export interface LabShellProps {
    */
   timeOrigin?: number;
   /**
-   * The lab's own reading of the transport's time (s, shifted by `timeOrigin`): its readout,
-   * aria-valuetext and event announcements (TransportBar). For a clock that does not count seconds
-   * of the phenomenon (Tema 8's disturbance: playback seconds, read as hours of orbit).
+   * The lab's own text of the transport's time: it receives the time already shifted by
+   * `timeOrigin` (s) and writes the readout, the timeline's aria-valuetext, the event
+   * announcements and the «Siguiente: …» line (TransportBar). Reading only: the timeline, the
+   * markers and seek stay on the clock. An empty text falls back to «t = …» in `timeUnit`. For a
+   * clock that does not count seconds of the phenomenon (Tema 8's disturbance reads hours of
+   * orbit) or for a lab that fixes its decimals (Tema 1 reads the route's time at the global
+   * decimals, as its readout, charts and drone). Neighbouring positions of the timeline may then
+   * read alike.
    */
   formatTime?: TransportTimeFormat;
   readouts: LabReadout[];

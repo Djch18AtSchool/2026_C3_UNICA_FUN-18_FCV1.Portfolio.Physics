@@ -105,6 +105,8 @@ describe('TransportBar next event', () => {
     expect(text).toHaveAttribute('data-transport-event', 'next');
     expect(text).toHaveAttribute('aria-hidden', 'true');
     expect(text).toHaveClass('text-fg-muted');
+    // Its whole text as a tooltip, for a narrow row that cuts it with «…».
+    expect(text).toHaveAttribute('title', 'Siguiente: Descarga · t = 30,000\u202Fs');
   });
 
   test('on the event, the row names it in the full ink; after the last, nothing', () => {
@@ -120,6 +122,8 @@ describe('TransportBar next event', () => {
       <TransportBar clock={fakeClock({ duration: PLAYBACK, t: 35 })} markers={DUMP} />,
     );
     expect(eventText(after.container)).toBeEmptyDOMElement();
+    expect(eventText(after.container)).not.toHaveAttribute('title');
+    expect(eventText(after.container)).toHaveAttribute('data-transport-event', '');
   });
 
   test('the event buttons draw a mark on a track, not ⏮ ⏭', () => {
