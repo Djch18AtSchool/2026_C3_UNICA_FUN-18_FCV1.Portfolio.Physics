@@ -18,7 +18,7 @@ const groups = groupByPhase(entries);
 
 <BaseLayout title="Portafolio de evidencias de Física I">
   <section aria-labelledby="titulo-portada" class="border-b border-border pb-12">
-    <h1 id="titulo-portada" class="max-w-[16ch] text-[2.5rem] sm:text-5xl">
+    <h1 id="titulo-portada" class="max-w-[16ch] text-4xl">
       Portafolio de evidencias de Física&nbsp;I
     </h1>
     <p class="measure mt-6 text-lg leading-relaxed">
@@ -28,23 +28,23 @@ const groups = groupByPhase(entries);
     </p>
 
     <dl class="mt-8 flex flex-col gap-3 text-sm sm:max-w-md" data-testid="cover-meta">
-      <div class="flex flex-col gap-0.5">
+      <div class="flex flex-col gap-1">
         <dt class="text-xs text-fg-muted">Autor</dt>
         <dd>{AUTHOR}</dd>
       </div>
-      <div class="flex flex-col gap-0.5">
+      <div class="flex flex-col gap-1">
         <dt class="text-xs text-fg-muted">Universidad</dt>
         <dd>{COURSE.university}</dd>
       </div>
-      <div class="flex flex-col gap-0.5">
+      <div class="flex flex-col gap-1">
         <dt class="text-xs text-fg-muted">Curso</dt>
         <dd>{COURSE.name}</dd>
       </div>
-      <div class="flex flex-col gap-0.5">
+      <div class="flex flex-col gap-1">
         <dt class="text-xs text-fg-muted">Docente</dt>
         <dd>{COURSE.professor}</dd>
       </div>
-      <div class="flex flex-col gap-0.5">
+      <div class="flex flex-col gap-1">
         <dt class="text-xs text-fg-muted">Última actualización</dt>
         <dd>
           <time datetime={LAST_UPDATE_ISO}>{LAST_UPDATE_LABEL}</time>
@@ -54,14 +54,14 @@ const groups = groupByPhase(entries);
 
     <a
       href={REPO_URL}
-      class="mt-6 inline-flex items-center gap-2 rounded-base border border-border bg-bg-elevated px-3.5 py-2 text-sm font-medium text-fg no-underline transition-colors hover:border-fg-muted"
+      class="mt-6 inline-flex items-center gap-2 rounded-base border border-border bg-bg-elevated px-4 py-2 text-sm font-medium text-fg no-underline transition-colors hover:border-fg-muted"
     >
       <GithubIcon variant="outline" />
       Ver repositorio
     </a>
   </section>
 
-  <div class="mt-12 flex flex-col gap-14">
+  <div class="mt-12 flex flex-col gap-12">
     {groups.map((group) => (
       <section
         id={`fase-${group.phase}`}
@@ -69,12 +69,12 @@ const groups = groupByPhase(entries);
         aria-labelledby={`fase-${group.phase}-titulo`}
         class="scroll-mt-8"
       >
-        <div class="flex flex-col items-start gap-x-4 gap-y-2 border-b-[3px] border-double border-border pb-2 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-col items-start gap-x-4 gap-y-2 border-b-(length:--rule-double-width) border-double border-border pb-2 sm:flex-row sm:items-center sm:justify-between">
           <h2 id={`fase-${group.phase}-titulo`}>{group.label}</h2>
           {group.isFuture && (
             <span
               data-testid="upcoming-phase"
-              class="inline-flex shrink-0 items-center rounded-base border border-dashed border-fg-muted px-1.5 py-px text-xs leading-5 whitespace-nowrap text-fg-muted"
+              class="inline-flex shrink-0 items-center rounded-base border border-dashed border-fg-muted px-2 py-px text-xs leading-5 whitespace-nowrap text-fg-muted"
             >
               Se publica con su consigna
             </span>
