@@ -179,6 +179,86 @@ describe('TransportBar with markers', () => {
     expect(screen.getByText(`t = 312${NNBSP}s`, EXACT_TEXT)).toBeInTheDocument();
   });
 
+  test('pressing again on the same event says it again', () => {
+    render(<LiveBar />);
+    fireEvent.click(next());
+    const first = announcer().firstElementChild;
+
+    fireEvent.change(timeline(), { target: { value: '0' } });
+    fireEvent.click(next());
+
+    expect(announcer()).toHaveTextContent(`Detención 1 de 3 · t = 120${NNBSP}s`, {
+      normalizeWhitespace: false,
+    });
+    // A new node in the live region: screen readers speak an addition, even of the same text.
+    expect(announcer().firstElementChild).not.toBe(first);
+  });
+
+  test('at an end, a press says there is no further event and which one is the last', () => {
+    render(<LiveBar />);
+    for (let i = 0; i < STOPS.length; i += 1) fireEvent.click(next());
+
+    fireEvent.click(next());
+
+    expect(announcer()).toHaveTextContent(
+      `No hay evento siguiente; el último es Detención 3 de 3 · t = 500${NNBSP}s`,
+      { normalizeWhitespace: false },
+    );
+  });
+
+  test('before the first event, «Evento anterior» says which one is the first', () => {
+    render(<LiveBar />);
+
+    fireEvent.click(previous());
+
+    expect(announcer()).toHaveTextContent(
+      `No hay evento anterior; el primero es Detención 1 de 3 · t = 120${NNBSP}s`,
+      { normalizeWhitespace: false },
+    );
+  });
+
+  test('the announcement is cleared once the time leaves its event (drag or play)', () => {
+    render(<LiveBar />);
+    fireEvent.click(next());
+    expect(announcer()).not.toBeEmptyDOMElement();
+
+    fireEvent.change(timeline(), { target: { value: '500' } });
+
+    expect(announcer()).toBeEmptyDOMElement();
+  });
+
+  test('the announcement is cleared when playback starts', () => {
+    render(<LiveBar />);
+    fireEvent.click(next());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
+
+    expect(announcer()).toBeEmptyDOMElement();
+  });
+
+  test('the event buttons carry a tooltip with their name', () => {
+    render(<LiveBar />);
+
+    expect(previous()).toHaveAttribute('title', 'Evento anterior');
+    expect(next()).toHaveAttribute('title', 'Evento siguiente');
+  });
+
+  test('the marks are borders, which forced colors keep, and lie under the range', () => {
+    const { container } = render(
+      <LiveBar markers={[...STOPS, { t: 900, label: 'Pico', kind: 'peak' }]} />,
+    );
+    const layer = container.querySelector('[data-transport-marks]');
+
+    // The range comes after the marks: it paints over them and takes a click on one.
+    expect(layer?.nextElementSibling).toBe(timeline());
+    expect(timeline()).toHaveClass('h-10');
+    expect(timeline()).not.toHaveClass('h-6');
+    for (const mark of marks(container)) {
+      expect(mark.className).toMatch(/\bborder-/u);
+      expect(mark.className).not.toMatch(/\bbg-/u);
+    }
+  });
+
   test('every character it prints is one IBM Plex draws', () => {
     const { container } = render(<LiveBar />);
 

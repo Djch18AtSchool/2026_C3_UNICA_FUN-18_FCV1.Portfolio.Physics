@@ -16,6 +16,14 @@ export interface TransportMarker {
   readonly kind?: TransportMarkerKind;
 }
 
+declare const NORMALIZED: unique symbol;
+/**
+ * A list that came out of normalizeMarkers: in range, sorted by time, without duplicates. The
+ * helpers below take only this (a plain array does not type-check): «next» is the first later
+ * marker only in a sorted list.
+ */
+export type NormalizedMarkers = readonly TransportMarker[] & { readonly [NORMALIZED]: true };
+
 /**
  * Half a timeline step (s): a time this close to a marker shows on the marker's thumb position,
  * so it counts as standing on it (no button returns the marker the thumb is on). 0 for a run
@@ -37,17 +45,20 @@ const isSame = (a: TransportMarker, b: TransportMarker) =>
 export function normalizeMarkers(
   markers: readonly TransportMarker[],
   duration: number,
-): readonly TransportMarker[] {
+): NormalizedMarkers {
   const valid = markers.filter(
     ({ t, label }) => Number.isFinite(t) && t >= 0 && t <= duration && label.trim() !== '',
   );
   const sorted = valid.toSorted((a, b) => a.t - b.t);
-  return sorted.filter((marker, i) => sorted.findIndex((other) => isSame(other, marker)) === i);
+  const unique = sorted.filter(
+    (marker, i) => sorted.findIndex((other) => isSame(other, marker)) === i,
+  );
+  return unique as readonly TransportMarker[] as NormalizedMarkers;
 }
 
 /** Time of the first marker after t (beyond the tolerance), or undefined past the last one. */
 export function nextMarkerTime(
-  markers: readonly TransportMarker[],
+  markers: NormalizedMarkers,
   t: number,
   tolerance: number,
 ): number | undefined {
@@ -56,7 +67,7 @@ export function nextMarkerTime(
 
 /** Time of the last marker before t (beyond the tolerance), or undefined before the first one. */
 export function previousMarkerTime(
-  markers: readonly TransportMarker[],
+  markers: NormalizedMarkers,
   t: number,
   tolerance: number,
 ): number | undefined {
@@ -65,7 +76,7 @@ export function previousMarkerTime(
 
 /** The markers t stands on (within the tolerance), in order: several when they are tied. */
 export function markersAt(
-  markers: readonly TransportMarker[],
+  markers: NormalizedMarkers,
   t: number,
   tolerance: number,
 ): readonly TransportMarker[] {
@@ -76,7 +87,7 @@ export function markersAt(
  * A marker's name, numbered among the markers that share its label: «Detención 5 de 17»; a label
  * that appears once reads alone («Máxima aproximación»), and so does a marker not in the list.
  */
-export function markerName(markers: readonly TransportMarker[], marker: TransportMarker): string {
+export function markerName(markers: NormalizedMarkers, marker: TransportMarker): string {
   const namesakes = markers.filter((other) => other.label === marker.label);
   const index = namesakes.indexOf(marker);
   if (index < 0 || namesakes.length < 2) return marker.label;
@@ -85,7 +96,7 @@ export function markerName(markers: readonly TransportMarker[], marker: Transpor
 
 /** The names of `at` (markers of the list) joined by « · », or undefined when there is none. */
 export function markersText(
-  markers: readonly TransportMarker[],
+  markers: NormalizedMarkers,
   at: readonly TransportMarker[],
 ): string | undefined {
   if (at.length === 0) return undefined;

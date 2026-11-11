@@ -1,6 +1,6 @@
 import { useMemo, useRef, type JSX } from 'react';
 import { ICON_BUTTON } from './iconButton';
-import { EventRow, TIMELINE_WITH_MARKS, TimelineMarks } from './TransportEvents';
+import { EventRow, RANGE_WITH_MARKS, TIMELINE_WITH_MARKS, TimelineMarks } from './TransportEvents';
 import {
   markersAt,
   markersText,
@@ -121,7 +121,7 @@ function Timeline({ clock, valueText, className }: TimelineProps): JSX.Element {
       aria-valuetext={valueText}
       // seek pauses, so scrubbing never fights a running clock.
       onChange={(event) => clock.seek((Number(event.target.value) / RANGE_MAX) * duration)}
-      className={`h-6 cursor-pointer accent-accent ${className}`}
+      className={`cursor-pointer accent-accent ${className}`}
     />
   );
 }
@@ -158,7 +158,7 @@ export default function TransportBar({
     return (
       <div {...rootProps} className="flex flex-wrap items-center gap-3">
         <TransportButtons clock={clock} />
-        <Timeline clock={clock} valueText={valueText} className="min-w-32 flex-1" />
+        <Timeline clock={clock} valueText={valueText} className="h-6 min-w-32 flex-1" />
         <span className="font-mono text-sm tabular-nums">{timeText}</span>
       </div>
     );
@@ -168,14 +168,15 @@ export default function TransportBar({
       <div className="flex items-center gap-3">
         <TransportButtons clock={clock} />
         <div className={TIMELINE_WITH_MARKS}>
-          <Timeline clock={clock} valueText={valueText} className="block w-full" />
           <TimelineMarks markers={events} duration={duration} />
+          <Timeline clock={clock} valueText={valueText} className={RANGE_WITH_MARKS} />
         </div>
       </div>
       <EventRow
         clock={clock}
         markers={events}
         tolerance={tolerance}
+        eventText={event}
         timeText={timeText}
         timeTextOf={(time) => transportTimeText(time, duration, timeUnit)}
       />

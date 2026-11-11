@@ -11,11 +11,15 @@ import {
 } from './transportMarkers';
 
 const UDDS = 1369;
-const STOPS: readonly TransportMarker[] = [
-  { t: 120, label: 'Detención' },
-  { t: 312, label: 'Detención' },
-  { t: 500, label: 'Detención' },
-];
+const STOPS = normalizeMarkers(
+  [
+    { t: 120, label: 'Detención' },
+    { t: 312, label: 'Detención' },
+    { t: 500, label: 'Detención' },
+  ],
+  UDDS,
+);
+const NONE = normalizeMarkers([], UDDS);
 
 describe('markerTolerance', () => {
   test('is half a timeline step: a time within it shows on the same thumb position', () => {
@@ -137,7 +141,7 @@ describe('nextMarkerTime and previousMarkerTime', () => {
   });
 
   test('from the start, a marker at t = 0 is the current one, not the next', () => {
-    const fromZero = [{ t: 0, label: 'Salida' }, ...STOPS];
+    const fromZero = normalizeMarkers([{ t: 0, label: 'Salida' }, ...STOPS], UDDS);
 
     expect(nextMarkerTime(fromZero, 0, tolerance)).toBe(120);
   });
@@ -152,8 +156,8 @@ describe('nextMarkerTime and previousMarkerTime', () => {
   });
 
   test('no markers: nothing before or after', () => {
-    expect(nextMarkerTime([], 10, tolerance)).toBeUndefined();
-    expect(previousMarkerTime([], 10, tolerance)).toBeUndefined();
+    expect(nextMarkerTime(NONE, 10, tolerance)).toBeUndefined();
+    expect(previousMarkerTime(NONE, 10, tolerance)).toBeUndefined();
   });
 });
 
@@ -186,18 +190,24 @@ describe('markerName', () => {
   });
 
   test('a label that appears once reads alone, without «1 de 1»', () => {
-    const markers = [...STOPS, { t: 900, label: 'Máxima aproximación', kind: 'peak' }];
+    const markers = normalizeMarkers(
+      [...STOPS, { t: 900, label: 'Máxima aproximación', kind: 'peak' }],
+      UDDS,
+    );
 
     expect(markerName(markers, markers[3])).toBe('Máxima aproximación');
   });
 
   test('counts each label on its own when labels are mixed', () => {
-    const mixed: readonly TransportMarker[] = [
-      { t: 1, label: 'Parada' },
-      { t: 2, label: 'Despegue' },
-      { t: 3, label: 'Parada' },
-      { t: 4, label: 'Despegue' },
-    ];
+    const mixed = normalizeMarkers(
+      [
+        { t: 1, label: 'Parada' },
+        { t: 2, label: 'Despegue' },
+        { t: 3, label: 'Parada' },
+        { t: 4, label: 'Despegue' },
+      ],
+      UDDS,
+    );
 
     expect(mixed.map((marker) => markerName(mixed, marker))).toEqual([
       'Parada 1 de 2',
@@ -223,5 +233,16 @@ describe('markersText', () => {
 
   test('is undefined when there is no marker', () => {
     expect(markersText(STOPS, [])).toBeUndefined();
+  });
+
+  test('the helpers only take a normalized list (a plain array does not type-check)', () => {
+    const plain: readonly TransportMarker[] = [
+      { t: 500, label: 'B' },
+      { t: 100, label: 'A' },
+    ];
+
+    // @ts-expect-error: an unsorted plain array would make «next» the first larger, not the next.
+    expect(nextMarkerTime(plain, 0, 0)).toBe(500);
+    expect(nextMarkerTime(normalizeMarkers(plain, UDDS), 0, 0)).toBe(100);
   });
 });

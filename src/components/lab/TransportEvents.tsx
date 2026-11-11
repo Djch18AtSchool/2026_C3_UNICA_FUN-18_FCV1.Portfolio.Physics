@@ -1,31 +1,39 @@
 /**
- * TransportBar's events (`markers`): the marks on its timeline and the row under it with «Evento
- * anterior / siguiente», the event the time stands on and the t readout. See transportMarkers.ts.
+ * TransportBar's events (`markers`): the marks under its timeline and the row under it with
+ * «Evento anterior / siguiente», the event the time stands on and the t readout. See
+ * transportMarkers.ts.
  */
-import { useState, type CSSProperties, type JSX } from 'react';
+import { useEffect, useState, type CSSProperties, type JSX } from 'react';
 import { ICON_BUTTON } from './iconButton';
 import {
   markersAt,
   markersText,
   nextMarkerTime,
   previousMarkerTime,
+  type NormalizedMarkers,
   type TransportMarker,
 } from './transportMarkers';
 import type { SimClock } from './useSimClock';
 
 /**
  * A mark sits under the thumb's centre at its time: the native thumb is 16 px wide and travels
- * from 8 px to (width − 8 px), whatever the root size. `--mark-at` is the time over the duration.
- * The marks fill a strip under the range (MARKS_STRIP), clear of the track and the thumb.
+ * from 8 px to (width − 8 px), whatever the root size (an assumption: README, «Escala de tiempo y
+ * eventos»). `--mark-at` is the time over the duration. The marks are borders, not fills, so
+ * forced colors keep them.
  */
 const MARK = 'absolute inset-y-0 left-[calc(8px+(100%-16px)*var(--mark-at))] -translate-x-1/2';
 /** A stop is a thin tick of the muted ink; a peak, a wider one of the full ink. */
 const MARK_KIND: Readonly<Record<'stop' | 'peak', string>> = {
-  stop: 'w-0.5 bg-fg-muted',
-  peak: 'w-1 rounded-sm bg-fg',
+  stop: 'w-0.5 border-l-2 border-fg-muted',
+  peak: 'w-1 border-x-2 border-fg',
 };
-/** The timeline's cell with events: the range, then 8 px under it the strip of marks. */
-export const TIMELINE_WITH_MARKS = 'relative min-w-32 flex-1 py-2';
+/**
+ * The timeline's cell with events: the 8 px strip of marks at the bottom, and the range over the
+ * whole cell (40 px, its track and thumb centred), painted after the marks: a click on a mark
+ * lands on the range there, as on any point of it.
+ */
+export const TIMELINE_WITH_MARKS = 'relative min-w-32 flex-1';
+export const RANGE_WITH_MARKS = 'relative block h-10 w-full';
 const MARKS_STRIP = 'pointer-events-none absolute inset-x-0 bottom-0 h-2';
 /** The event buttons: the icon button, dimmed and inert (yet focusable) at the ends. */
 const EVENT_BUTTON = `${ICON_BUTTON} aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:hover:border-border aria-disabled:hover:text-fg-muted`;
@@ -33,7 +41,7 @@ const EVENT_BUTTON = `${ICON_BUTTON} aria-disabled:cursor-not-allowed aria-disab
 const markKind = (kind: TransportMarker['kind']) => (kind === 'peak' ? 'peak' : 'stop');
 
 export interface TimelineMarksProps {
-  markers: readonly TransportMarker[];
+  markers: NormalizedMarkers;
   duration: number;
 }
 
@@ -70,11 +78,38 @@ function NextIcon() {
   );
 }
 
+/** What the status region says, the time it is about and a counter that renews its node. */
+interface Announcement {
+  text: string;
+  at: number;
+  count: number;
+}
+
+type Direction = 'previous' | 'next';
+
+/** «No hay evento siguiente; el último es Detención 17 de 17 · t = 1 360 s». */
+function noFurtherEvent(
+  direction: Direction,
+  markers: NormalizedMarkers,
+  tolerance: number,
+  timeTextOf: (t: number) => string,
+): string {
+  const end = direction === 'next' ? markers[markers.length - 1] : markers[0];
+  const name = markersText(markers, markersAt(markers, end.t, tolerance));
+  const lead =
+    direction === 'next'
+      ? 'No hay evento siguiente; el último es'
+      : 'No hay evento anterior; el primero es';
+  return `${lead} ${name} · ${timeTextOf(end.t)}`;
+}
+
 export interface EventRowProps {
   clock: SimClock;
-  markers: readonly TransportMarker[];
+  markers: NormalizedMarkers;
   /** Half a timeline step (s): see markerTolerance. */
   tolerance: number;
+  /** The event the settled time stands on, as TransportBar names it (undefined between events). */
+  eventText: string | undefined;
   /** The t readout of the settled time («t = 312 s»). */
   timeText: string;
   /** «t = …» of any time, in the run's unit. */
@@ -82,62 +117,74 @@ export interface EventRowProps {
 }
 
 /**
- * «Evento anterior», «Evento siguiente», the event the settled time stands on (a visual copy of
- * what the timeline's aria-valuetext says) and the t readout; a button seeks from the live time
- * and its target is said in a status region. At the ends a button is aria-disabled, not disabled,
- * so it keeps the focus.
+ * The status region's text: set on a press (a new node each time, so the same text is spoken
+ * again), cleared once playback starts or the time leaves the moment it spoke about.
  */
-export function EventRow({
-  clock,
-  markers,
-  tolerance,
-  timeText,
-  timeTextOf,
-}: EventRowProps): JSX.Element {
-  const [announcement, setAnnouncement] = useState('');
+function useEventAnnouncement(clock: SimClock, tolerance: number) {
+  const [announcement, setAnnouncement] = useState<Announcement | undefined>(undefined);
+  const { t, playing } = clock.state;
+  const isStale =
+    announcement !== undefined && (playing || Math.abs(t - announcement.at) > tolerance);
+  useEffect(() => {
+    if (isStale) setAnnouncement(undefined);
+  }, [isStale]);
+  const announce = (text: string, at: number) =>
+    setAnnouncement((last) => ({ text, at, count: (last?.count ?? 0) + 1 }));
+  return { announcement: isStale ? undefined : announcement, announce };
+}
+
+/**
+ * «Evento anterior», «Evento siguiente», the event the settled time stands on (a visual copy of
+ * the timeline's aria-valuetext) and the t readout. A button seeks from the live time to the
+ * neighbouring event and says it; at an end it is aria-disabled (it keeps the focus) and says
+ * which event is the last or the first.
+ */
+export function EventRow(props: EventRowProps): JSX.Element {
+  const { clock, markers, tolerance, eventText, timeText, timeTextOf } = props;
+  const { announcement, announce } = useEventAnnouncement(clock, tolerance);
   const { t } = clock.state;
-  const hasPrevious = previousMarkerTime(markers, t, tolerance) !== undefined;
-  const hasNext = nextMarkerTime(markers, t, tolerance) !== undefined;
-  const goTo = (isEnabled: boolean, find: typeof nextMarkerTime) => {
-    if (!isEnabled) return;
-    const target = find(markers, clock.frame.get(), tolerance);
-    if (target === undefined) return;
+  const finders = { previous: previousMarkerTime, next: nextMarkerTime } as const;
+  const isEnabled = (direction: Direction) =>
+    finders[direction](markers, t, tolerance) !== undefined;
+  const goTo = (direction: Direction) => {
+    const target = isEnabled(direction)
+      ? finders[direction](markers, clock.frame.get(), tolerance)
+      : undefined;
+    if (target === undefined) {
+      announce(noFurtherEvent(direction, markers, tolerance, timeTextOf), t);
+      return;
+    }
     clock.seek(target);
-    setAnnouncement(
-      `${markersText(markers, markersAt(markers, target, tolerance))} · ${timeTextOf(target)}`,
-    );
+    const name = markersText(markers, markersAt(markers, target, tolerance));
+    announce(`${name} · ${timeTextOf(target)}`, target);
   };
+  const button = (direction: Direction, label: string, icon: JSX.Element) => (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      aria-disabled={!isEnabled(direction)}
+      onClick={() => goTo(direction)}
+      className={EVENT_BUTTON}
+    >
+      {icon}
+    </button>
+  );
 
   return (
-    <div className="flex items-center gap-3">
-      <button
-        type="button"
-        aria-label="Evento anterior"
-        aria-disabled={!hasPrevious}
-        onClick={() => goTo(hasPrevious, previousMarkerTime)}
-        className={EVENT_BUTTON}
-      >
-        <PreviousIcon />
-      </button>
-      <button
-        type="button"
-        aria-label="Evento siguiente"
-        aria-disabled={!hasNext}
-        onClick={() => goTo(hasNext, nextMarkerTime)}
-        className={EVENT_BUTTON}
-      >
-        <NextIcon />
-      </button>
+    <div className="flex flex-wrap items-center gap-3">
+      {button('previous', 'Evento anterior', <PreviousIcon />)}
+      {button('next', 'Evento siguiente', <NextIcon />)}
       <span
         data-transport-event=""
         aria-hidden="true"
-        className="min-w-0 flex-1 text-xs text-fg-muted"
+        className="min-w-24 flex-1 text-xs text-fg-muted"
       >
-        {markersText(markers, markersAt(markers, t, tolerance))}
+        {eventText}
       </span>
       <span className="font-mono text-sm tabular-nums">{timeText}</span>
       <p role="status" className="sr-only">
-        {announcement}
+        {announcement ? <span key={announcement.count}>{announcement.text}</span> : null}
       </p>
     </div>
   );
