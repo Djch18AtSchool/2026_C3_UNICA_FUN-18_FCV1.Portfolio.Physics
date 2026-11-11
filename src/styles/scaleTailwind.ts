@@ -3,9 +3,17 @@
  * `lab-split:`) are breakpoints and states, never lengths, so only the utility after the last
  * one is read. Only length utilities count: spacing, sizes, text sizes, line heights, radii and
  * borders; fractions (`w-1/2`), keywords (`h-full`, `top-auto`), variables (`h-(--x)`) and
- * relative units inside brackets (`max-h-[85dvh]`) are out of scope.
+ * relative units inside brackets (`max-h-[85dvh]`) are out of scope. A bracketed length in em is
+ * off the scale; `text-*` reads its line-height modifier (`text-sm/6`, `text-sm/[22px]`); an
+ * arbitrary property (`[margin-top:5px]`) is read as the CSS declaration it is.
  */
-import { isOnScale, lengthLiterals, TAILWIND_STEP_PX, type ScaleRule } from './scaleRules';
+import {
+  cssValueViolations,
+  isOnScale,
+  lengthLiterals,
+  TAILWIND_STEP_PX,
+  type ScaleRule,
+} from './scaleRules';
 
 export interface ClassViolation {
   rule: ScaleRule;
@@ -157,18 +165,44 @@ function stripVariants(token: string): string {
 interface Measure {
   px: number;
   hairline: boolean;
+  /** Written in em: it follows the local size, so it is off the scale (scaleRules.ts). */
+  relative?: boolean;
+  /** A named icon or icon-button size (CONTROL_CLASSES), which may be 20, 40 or 44. */
+  control?: boolean;
 }
+
+/** The only classes that may measure 20 (icons), 40 or 44 (icon buttons and controls). */
+const CONTROL_CLASSES = new Set(
+  ['size', 'w', 'h', 'min-w', 'min-h'].flatMap((prefix) =>
+    ['5', '10', '11']
+      .filter((step) => step !== '5' || !prefix.startsWith('min'))
+      .map((step) => `${prefix}-${step}`),
+  ),
+);
 
 function bracketed(value: string, rule: ScaleRule): Measure[] | undefined {
   if (!value.startsWith('[') || !value.endsWith(']')) return undefined;
-  return lengthLiterals(value.slice(1, -1).replaceAll('_', ' '), rule).map(({ px }) => ({
+  return lengthLiterals(value.slice(1, -1).replaceAll('_', ' '), rule).map(({ px, unit }) => ({
     px,
     hairline: true,
+    relative: unit === 'em',
   }));
 }
 
 function named(table: Readonly<Record<string, number>>, value: string): Measure[] | undefined {
   return value in table ? [{ px: table[value], hairline: false }] : undefined;
+}
+
+function step(utility: Utility, value: string): Measure[] | undefined {
+  if (value === 'px') return [{ px: 1, hairline: true }];
+  if (STEP.test(value)) {
+    const px = Number(value) * TAILWIND_STEP_PX;
+    const control = CONTROL_CLASSES.has(`${utility.prefix}-${value}`);
+    return [{ px, hairline: RULE_BOXES.has(utility.prefix), control }];
+  }
+  return utility.rule === 'size' && utility.prefix !== 'h' && utility.prefix !== 'min-h'
+    ? named(CONTAINER_NAMED_PX, value)
+    : undefined;
 }
 
 /** The lengths a utility's value stands for; undefined when it is not one this utility reads. */
@@ -177,14 +211,7 @@ function measure(utility: Utility, value: string): Measure[] | undefined {
   if (inBrackets) return inBrackets;
   switch (utility.kind) {
     case 'step':
-      if (value === 'px') return [{ px: 1, hairline: true }];
-      if (STEP.test(value)) {
-        const px = Number(value) * TAILWIND_STEP_PX;
-        return [{ px, hairline: RULE_BOXES.has(utility.prefix) }];
-      }
-      return utility.rule === 'size' && utility.prefix !== 'h' && utility.prefix !== 'min-h'
-        ? named(CONTAINER_NAMED_PX, value)
-        : undefined;
+      return step(utility, value);
     case 'leading':
       return STEP.test(value)
         ? [{ px: Number(value) * TAILWIND_STEP_PX, hairline: false }]
@@ -201,18 +228,67 @@ function measure(utility: Utility, value: string): Measure[] | undefined {
   }
 }
 
+const isOff = (rule: ScaleRule, measures: readonly Measure[]): boolean =>
+  measures.some(
+    ({ px, hairline, relative, control }) =>
+      relative === true || !isOnScale(rule, px, hairline, control),
+  );
+
+/** `text-sm/6`, `text-sm/[22px]`: the size and the line height after the last top-level `/`. */
+function splitModifier(value: string): [string, string | undefined] {
+  let depth = 0;
+  for (let index = value.length - 1; index >= 0; index -= 1) {
+    const char = value[index];
+    if (char === ']' || char === ')') depth += 1;
+    else if (char === '[' || char === '(') depth -= 1;
+    else if (char === '/' && depth === 0) return [value.slice(0, index), value.slice(index + 1)];
+  }
+  return [value, undefined];
+}
+
+const LEADING: Utility = { prefix: 'leading', rule: 'leading', kind: 'leading' };
+
+/** A text size and its optional line-height modifier; undefined when the base is not a size. */
+function checkText(
+  utility: Utility,
+  value: string,
+  text: string,
+): ClassViolation | null | undefined {
+  const [base, modifier] = splitModifier(value);
+  const size = measure(utility, base);
+  if (size === undefined) return undefined;
+  if (isOff('text', size)) return { rule: 'text', value: text };
+  const leading = modifier === undefined ? undefined : measure(LEADING, modifier);
+  return leading && isOff('leading', leading) ? { rule: 'leading', value: text } : null;
+}
+
+/** `[margin-top:5px]`: a CSS declaration in a class; undefined when the class is not one. */
+function checkArbitraryProperty(text: string): ClassViolation | null | undefined {
+  const match = /^\[(--[\w-]+|[a-z-]+):(.+)\]$/.exec(text);
+  if (!match) return undefined;
+  const [violation] = cssValueViolations(match[1], match[2].replaceAll('_', ' '));
+  return violation ? { rule: violation.rule, value: text } : null;
+}
+
 /** The class's violation of the scale, if it is a length utility off the scale. */
 export function checkClass(token: string): ClassViolation | undefined {
   const utilityText = stripVariants(token);
+  const arbitrary = checkArbitraryProperty(utilityText);
+  if (arbitrary !== undefined) return arbitrary ?? undefined;
   const unsigned = utilityText.replace(/^-/, '');
   for (const utility of UTILITIES) {
     const { prefix } = utility;
     const isBare = unsigned === prefix;
     if (!isBare && !unsigned.startsWith(`${prefix}-`)) continue;
-    const measures = measure(utility, isBare ? '' : unsigned.slice(prefix.length + 1));
+    const value = isBare ? '' : unsigned.slice(prefix.length + 1);
+    if (utility.kind === 'text') {
+      const text = checkText(utility, value, utilityText);
+      if (text === undefined) continue;
+      return text ?? undefined;
+    }
+    const measures = measure(utility, value);
     if (measures === undefined) continue;
-    const isOff = measures.some(({ px, hairline }) => !isOnScale(utility.rule, px, hairline));
-    return isOff ? { rule: utility.rule, value: utilityText } : undefined;
+    return isOff(utility.rule, measures) ? { rule: utility.rule, value: utilityText } : undefined;
   }
   return undefined;
 }

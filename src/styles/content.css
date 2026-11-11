@@ -19,15 +19,15 @@
     max-width: 70ch;
   }
   :where(.topic-body) :where(p, ul, ol, blockquote, pre, .katex-display) {
-    margin-block: 1em;
+    margin-block: var(--space-4);
   }
   :where(.topic-body) :where(ul) {
     list-style: disc;
-    padding-left: 1.5em;
+    padding-left: var(--space-6);
   }
   :where(.topic-body) :where(ol) {
     list-style: decimal;
-    padding-left: 1.5em;
+    padding-left: var(--space-6);
   }
   :where(.topic-body) :where(li + li) {
     margin-top: var(--space-2);
@@ -173,6 +173,7 @@
     margin-top: var(--space-3);
     padding-top: var(--space-3);
     border-top: var(--rule);
+    --text-code: var(--text-aux-small);
     font-size: var(--text-aux);
   }
   .equation-legend-lead {
@@ -193,7 +194,7 @@
   .equation-unit {
     margin-left: var(--space-1);
     font-family: var(--font-mono);
-    font-size: 0.875em;
+    font-size: var(--text-aux-small);
     color: var(--fg-muted);
   }
 
@@ -230,6 +231,7 @@
     }
   }
   .content-figure > figcaption {
+    --text-code: var(--text-aux-small);
     max-width: 70ch;
     margin-top: var(--space-3);
     font-size: var(--text-aux);
@@ -241,6 +243,7 @@
     font-weight: 500;
   }
   .figure-source {
+    --text-code: var(--text-aux-small);
     margin-top: var(--space-1);
     font-size: var(--text-aux);
     color: var(--fg-muted);
@@ -261,7 +264,7 @@
     --table-surface: var(--bg);
     --table-cue: color-mix(in srgb, var(--fg) 22%, transparent);
     --table-cue-width: var(--space-4);
-    --table-cover-width: 2.5rem;
+    --table-cover-width: var(--space-8);
     overflow-x: auto;
     scrollbar-width: thin;
     border: 1px solid var(--border);
@@ -279,6 +282,7 @@
   }
   .content-table table {
     width: 100%;
+    --text-code: var(--text-aux-small);
     border-collapse: collapse;
     font-size: var(--text-aux);
     line-height: 1.4;
@@ -310,6 +314,7 @@
     white-space: nowrap;
   }
   .content-table > figcaption {
+    --text-code: var(--text-aux-small);
     max-width: 70ch;
     margin-top: var(--space-3);
     font-size: var(--text-aux);
@@ -362,7 +367,7 @@
   }
   .source-url {
     font-family: var(--font-mono);
-    font-size: 0.875em;
+    font-size: var(--text-aux);
   }
   .source-accessed {
     color: var(--fg-muted);
@@ -407,6 +412,7 @@
   /* ---- Callout: a remark in the margin ---- */
 
   .callout {
+    --text-code: var(--text-aux-small);
     max-width: 70ch;
     margin-block: var(--flow);
     padding: var(--space-3) var(--space-4);

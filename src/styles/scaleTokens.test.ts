@@ -58,10 +58,14 @@ describe('scale.css', () => {
     expect(['--flow', '--flow-step', '--flow-section'].map(px)).toEqual([24, 48, 64]);
   });
 
-  test('one separator stroke: 1 px solid in the border color', () => {
+  test('one separator stroke: 1 px solid in the border color, 2 px under a table header', () => {
     expect(scale.get('--rule')).toBe('var(--rule-width) solid var(--rule-color)');
     expect(px('--rule-width')).toBe(1);
     expect(scale.get('--rule-color')).toBe('var(--border)');
+  });
+
+  test('inline code: 14 px in the reading text', () => {
+    expect(px('--text-code')).toBe(14);
   });
 
   test('radii 4 and 8, borders 1 and 2, icons 20, icon buttons 40 and 44', () => {

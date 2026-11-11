@@ -65,6 +65,7 @@
   },
   "src/components/nav/TopicCard.astro": {
     "border border-l-[3px]": 1,
+    "size grid-cols-[2.5rem_minmax(0,1fr)]": 1,
     "size max-w-[38rem]": 1,
     "spacing gap-1.5": 1
   },

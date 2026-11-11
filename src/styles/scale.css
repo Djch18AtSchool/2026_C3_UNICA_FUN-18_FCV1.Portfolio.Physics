@@ -17,6 +17,8 @@
   --text-h4: 1.125rem;
   --text-aux: 0.875rem;
   --text-aux-small: 0.75rem;
+  /* Inline code: 14 px in the reading text; auxiliary text (captions, tables) sets it to 12. */
+  --text-code: var(--text-aux);
   --leading-body: 1.6;
   --leading-title: 1.2;
   --leading-aux: 1.5;

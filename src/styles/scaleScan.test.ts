@@ -71,6 +71,51 @@ describe('Tailwind classes', () => {
     );
   });
 
+  test('20, 40 and 44 only through the named icon and icon-button classes', () => {
+    expect(tsx('w-5 h-5 w-11 h-11 min-w-10 min-w-11 h-10')).toEqual([]);
+    expect(tsx('max-w-10 max-h-11 min-w-5 h-[40px] size-[20px] min-h-[2.75rem]')).toEqual([
+      'size max-w-10',
+      'size max-h-11',
+      'size min-w-5',
+      'size h-[40px]',
+      'size size-[20px]',
+      'size min-h-[2.75rem]',
+    ]);
+    expect(keys('a.css', '.a { width: 2.5rem; min-height: 44px; }')).toEqual([
+      'size width: 2.5rem',
+      'size min-height: 44px',
+    ]);
+  });
+
+  test('a class list across lines: attribute values and templates', () => {
+    // B2: a JSX attribute string may cross lines (Prettier does not join it).
+    expect(keys('a.tsx', '<div\n  className="flex gap-2\n    mt-7"\n/>')).toEqual(['spacing mt-7']);
+    // B1: in Astro the quotes keep pairing after a multiline class, so the next one is still seen.
+    expect(keys('a.astro', '<div class="flex\n  mt-7">\n  <p class="px-5">x</p>\n</div>')).toEqual([
+      'spacing mt-7',
+      'spacing px-5',
+    ]);
+    expect(keys('a.mdx', "<div className='gap-2\n  pt-10' />")).toEqual(['spacing pt-10']);
+    expect(keys('a.tsx', 'cn(\n  "gap-2",\n  `mt-7\n   px-5`,\n)')).toEqual([
+      'spacing mt-7',
+      'spacing px-5',
+    ]);
+    expect(
+      scanSource('a.tsx', '<div\n  className="gap-2\n    mt-7"\n/>').map(({ line }) => line),
+    ).toEqual([3]);
+  });
+
+  test('arbitrary properties and the line-height modifier', () => {
+    expect(
+      tsx('[margin-top:5px] [--x:1rem] text-sm/6 text-sm/[20px] [mask-type:luminance]'),
+    ).toEqual(['spacing [margin-top:5px]']);
+    expect(tsx('text-sm/[22px] text-xs/7.5 text-[15px]/6')).toEqual([
+      'leading text-sm/[22px]',
+      'leading text-xs/7.5',
+      'text text-[15px]/6',
+    ]);
+  });
+
   test('reads every length in an arbitrary value, calc() of the scale and own variables included', () => {
     expect(
       tsx(
@@ -208,10 +253,10 @@ describe('CSS', () => {
     ]);
   });
 
-  test('passes the scale, em at the 16 px body, ch, %, hairlines and out-of-scope properties', () => {
+  test('passes the scale, ch, %, hairlines and out-of-scope properties', () => {
     const css = `.a {
-      margin-block: 1em;
-      padding: 0.25em 1.5rem;
+      margin-block: 1rem;
+      padding: 0.25rem 1.5rem;
       font-size: 0.875rem;
       border-top: 1px solid var(--border);
       border-radius: var(--radius);
@@ -252,14 +297,62 @@ describe('CSS', () => {
       --radius: 3px;
       --table-cue-width: 0.875rem;
       --lab-transport-room: calc(2.75rem + 2 * 0.75rem + 1px);
+      --table-cover-width: 2.5rem;
       --grid-cell: 1rem;
+      --icon: 1.25rem;
+      --icon-button: 2.5rem;
+      --icon-button-touch: 2.75rem;
     }`;
     expect(keys('a.css', css)).toEqual([
       'text --text-legend: 0.9375rem',
       'leading --leading-x: 27px',
       'radius --radius: 3px',
       'size --table-cue-width: 0.875rem',
+      'size --lab-transport-room: 2.75rem',
+      'size --table-cover-width: 2.5rem',
     ]);
+  });
+
+  test('em is relative to the local size, so it is off the scale wherever it measures', () => {
+    const css = `.a {
+      margin-block: 1em;
+      padding: 0.25em 1rem;
+      font-size: 0.875em;
+      letter-spacing: 0.02em;
+    }`;
+    expect(keys('a.css', css)).toEqual([
+      'spacing margin-block: 1em',
+      'spacing padding: 0.25em',
+      'text font-size: 0.875em',
+    ]);
+    expect(tsx('text-[0.875em] px-[1em]')).toEqual(['text text-[0.875em]', 'spacing px-[1em]']);
+  });
+
+  test('shorthands: font size and line height, flex basis, transforms', () => {
+    const css = `.a {
+      font: 600 15px/1.2 var(--font-sans);
+      font: 500 0.875rem/27px var(--font-mono);
+      flex: 0 0 18.5rem;
+      transform: translateY(3px) rotate(45deg);
+      translate: 0 5px;
+    }`;
+    expect(keys('a.css', css)).toEqual([
+      'text font: 15px',
+      'leading font: 27px',
+      'size flex: 18.5rem',
+      'spacing transform: 3px',
+      'spacing translate: 5px',
+    ]);
+    expect(
+      keys('a.css', '.a { font: 600 1rem/1.5 serif; flex: 1 1 0; transform: scale(1.5); }'),
+    ).toEqual([]);
+  });
+
+  test('a declaration after a nested rule, and @apply', () => {
+    expect(keys('a.css', '.a { & p { gap: 1rem; } margin-top: 5px; }')).toEqual([
+      'spacing margin-top: 5px',
+    ]);
+    expect(keys('a.css', '.a { @apply flex p-5 gap-2; }')).toEqual(['spacing p-5']);
   });
 
   test('a comment is not a declaration', () => {
@@ -291,6 +384,12 @@ describe('Astro, MDX and React styles', () => {
     const code =
       "<div style={{ padding: '0.35em', marginTop: 20, lineHeight: 1.5, width: MAX, left: `${x}%` }} />";
     expect(keys('a.tsx', code)).toEqual(['spacing padding: 0.35em', 'spacing marginTop: 20']);
+  });
+
+  test('Astro reads React-style objects too', () => {
+    expect(keys('a.astro', '<div style={{ marginTop: "10px", padding: 8 }} />')).toEqual([
+      'spacing marginTop: 10px',
+    ]);
   });
 
   test('SVG drawing attributes are out of scope', () => {

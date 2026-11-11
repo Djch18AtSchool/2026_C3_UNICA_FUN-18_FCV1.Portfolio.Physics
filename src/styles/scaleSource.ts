@@ -17,49 +17,40 @@ export const CSS_COMMENT = /\/\*[\s\S]*?\*\//g;
 export const HTML_COMMENT = /<!--[\s\S]*?-->/g;
 export const JSX_COMMENT = /\{\/\*[\s\S]*?\*\/\}/g;
 
-type JsState = 'code' | "'" | '"' | '`' | 'line' | 'block';
-
-function nextState(state: JsState, char: string, next: string): JsState | 'skip' {
-  if (state === 'code') {
-    if (char === '/' && next === '/') return 'line';
-    if (char === '/' && next === '*') return 'block';
-    if (char === "'" || char === '"' || char === '`') return char;
-    return 'code';
-  }
-  if (state === 'line') return char === '\n' ? 'code' : 'line';
-  if (state === 'block') return char === '*' && next === '/' ? 'skip' : 'block';
-  if (char === '\\') return 'skip';
-  // A quote string cannot cross a line: an apostrophe in JSX text ends at the line's end.
-  if (char === state || (char === '\n' && state !== '`')) return 'code';
-  return state;
-}
+type JsMode = 'code' | 'string' | 'line' | 'block';
 
 /**
  * Blanks `//` and `/* *\/` comments in TypeScript, TSX or an Astro template, leaving strings
- * (and the `//` of a URL inside one) alone.
+ * (and the `//` of a URL inside one) alone. A quote string ends at its line's end (so an
+ * apostrophe in JSX text does not swallow the file) unless an `=` opened it: a JSX or HTML
+ * attribute value may cross lines.
  */
 export function blankJsComments(text: string): string {
   const chars = [...text];
-  let state: JsState = 'code';
-  let index = 0;
-  while (index < chars.length) {
+  let mode: JsMode = 'code';
+  let quote = '';
+  let isMultiline = false;
+  let lastCode = '';
+  for (let index = 0; index < chars.length; index += 1) {
     const char = chars[index];
     const next = chars[index + 1] ?? '';
-    const result = nextState(state, char, next);
-    const isComment =
-      state === 'line' || state === 'block' || result === 'line' || result === 'block';
-    if (result === 'skip') {
-      if (state === 'block') {
-        chars[index] = ' ';
-        chars[index + 1] = ' ';
-        state = 'code';
-      }
-      index += 2;
-      continue;
-    }
-    if (isComment && char !== '\n') chars[index] = ' ';
-    state = result;
-    index += 1;
+    if (mode === 'line' || mode === 'block') {
+      const ends = mode === 'line' ? char === '\n' : char === '*' && next === '/';
+      if (char !== '\n') chars[index] = ' ';
+      if (ends && mode === 'block') chars[(index += 1)] = ' ';
+      if (ends) mode = 'code';
+    } else if (mode === 'string') {
+      if (char === '\\') index += 1;
+      else if (char === quote || (char === '\n' && !isMultiline)) mode = 'code';
+    } else if (char === '/' && (next === '/' || next === '*')) {
+      mode = next === '/' ? 'line' : 'block';
+      chars[index] = ' ';
+      chars[(index += 1)] = ' ';
+    } else if (char === "'" || char === '"' || char === '`') {
+      mode = 'string';
+      quote = char;
+      isMultiline = char === '`' || lastCode === '=';
+    } else if (!/\s/.test(char)) lastCode = char;
   }
   return chars.join('');
 }
@@ -70,12 +61,16 @@ export interface Region {
   offset: number;
 }
 
-/** String literals: '…' and "…" on one line, `…` across lines (its expressions included). */
+/**
+ * String literals: attribute values (`="…"`, `='…'`) and templates (`…`) across lines, other
+ * '…' and "…" on one line.
+ */
 export function stringLiterals(text: string): Region[] {
-  return [...text.matchAll(/`([^`]*)`|'([^'\n]*)'|"([^"\n]*)"/g)].map((match) => ({
-    text: match[1] ?? match[2] ?? match[3],
-    offset: (match.index ?? 0) + 1,
-  }));
+  const pattern = /=\s*"([^"]*)"|=\s*'([^']*)'|`([^`]*)`|'([^'\n]*)'|"([^"\n]*)"/g;
+  return [...text.matchAll(pattern)].map((match) => {
+    const content = match.slice(1).find((group) => group !== undefined) ?? '';
+    return { text: content, offset: (match.index ?? 0) + match[0].length - content.length - 1 };
+  });
 }
 
 /** Every whitespace- or quote-separated word of a region, with its offset. */

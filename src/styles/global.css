@@ -67,8 +67,10 @@
 :root {
   --topic-bar-height: 3rem;
   --topic-bar-clearance: calc(var(--topic-bar-height) + 1rem);
-  --lab-transport-room: calc(2.75rem + 2 * 0.75rem + 1px);
-  --lab-transport-room-events: calc(var(--lab-transport-room) + 2.75rem + 0.75rem);
+  --lab-transport-room: calc(var(--icon-button-touch) + 2 * var(--space-3) + 1px);
+  --lab-transport-room-events: calc(
+    var(--lab-transport-room) + var(--icon-button-touch) + var(--space-3)
+  );
 }
 
 [data-lab-stage]:has([data-transport-events]) {
@@ -142,8 +144,8 @@
   samp,
   pre {
     font-family: var(--font-mono);
-    /* 14 px in the 16 px reading text. */
-    font-size: 0.875em;
+    /* 14 px in the reading text, 12 in auxiliary text (--text-code, scale.css). */
+    font-size: var(--text-code);
   }
 
   :focus-visible {
@@ -160,6 +162,7 @@
 @layer components {
   /* Reference to a class session, set like a note in a notebook's double-ruled margin. */
   .margin-note {
+    --text-code: var(--text-aux-small);
     border-left: 3px double var(--accent); /* scale-exempt: a double rule is two 1 px lines and a 1 px gap */
     padding-left: var(--space-3);
     color: var(--fg-muted);
