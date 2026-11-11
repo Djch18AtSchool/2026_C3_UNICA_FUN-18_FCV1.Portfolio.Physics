@@ -87,7 +87,16 @@ describe('ParamField', () => {
           value={1}
           onChange={vi.fn()}
         />
-        <ParamField id="c" label="Factor" min={0} max={10} step={1} value={1} onChange={vi.fn()} />
+        <ParamField
+          id="c"
+          label="Factor"
+          unit=""
+          min={0}
+          max={10}
+          step={1}
+          value={1}
+          onChange={vi.fn()}
+        />
       </>,
     );
 
