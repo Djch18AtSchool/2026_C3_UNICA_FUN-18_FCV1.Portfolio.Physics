@@ -23,10 +23,16 @@ export const LAB_PANEL_CELL =
 export const LAB_CANVAS_NOTES = 'min-w-0 lab-split:col-span-2 lab-split:row-start-2';
 /**
  * The panel flows with the page: nothing it holds hides behind a scroll of its own. A wide one (a
- * lab in one column at ~900 px) sets its levels in two columns, parameters beside the scenario
- * and the readouts, so no label sits half a screen away from its value.
+ * lab in one column at ~900 px) flows its levels into two balanced columns, in reading order (CSS
+ * columns: down the left, then down the right), so no label sits half a screen from its value and
+ * no column ends half a screen before the other.
  */
 export const LAB_PANEL =
-  'flex flex-col gap-6 @2xl/panel:grid @2xl/panel:grid-cols-2 @2xl/panel:items-start @2xl/panel:gap-x-8';
-/** In a two-column panel, the parameters take the left column down both rows. */
-export const LAB_PARAMS_LEVEL = '@2xl/panel:row-span-2';
+  'flex flex-col gap-6 @2xl/panel:block @2xl/panel:columns-2 @2xl/panel:gap-x-8';
+/**
+ * Each level of a wide panel: the gap the flex column gave, now a margin in the columns. A column
+ * may break between the level's pieces (its title row, a choice, the presets), never inside one
+ * (a label away from its select), and the title row stays with the piece that follows it.
+ */
+export const LAB_LEVEL_IN_COLUMNS =
+  '@2xl/panel:mb-6 @2xl/panel:last:mb-0 *:break-inside-avoid *:first:break-after-avoid';

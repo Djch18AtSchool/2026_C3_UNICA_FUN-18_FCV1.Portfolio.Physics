@@ -39,7 +39,7 @@ import {
   LAB_COLUMNS,
   LAB_PANEL,
   LAB_PANEL_CELL,
-  LAB_PARAMS_LEVEL,
+  LAB_LEVEL_IN_COLUMNS,
   LAB_STAGE_CELL,
   LAB_STAGE_TOP,
 } from './labShellClasses';
@@ -166,7 +166,7 @@ function Panel({ levels, readouts, onReset }: PanelProps): JSX.Element {
       <Section
         level="params"
         title="Parámetros"
-        className={LAB_PARAMS_LEVEL}
+        className={LAB_LEVEL_IN_COLUMNS}
         action={
           <button type="button" onClick={onReset} className={RESET}>
             Restablecer
@@ -176,12 +176,12 @@ function Panel({ levels, readouts, onReset }: PanelProps): JSX.Element {
         {levels.params}
       </Section>
       {levels.scenario ? (
-        <Section level="scenario" title="Escenario">
+        <Section level="scenario" title="Escenario" className={LAB_LEVEL_IN_COLUMNS}>
           {levels.scenario}
         </Section>
       ) : null}
       {readouts.length > 0 ? (
-        <Section level="readouts" title="Lecturas">
+        <Section level="readouts" title="Lecturas" className={LAB_LEVEL_IN_COLUMNS}>
           <div className="grid grid-cols-2 gap-x-4 gap-y-3">
             {readouts.map((readout) => (
               <Readout key={readout.id} layout="cell" {...readout} />

@@ -519,9 +519,51 @@ for (const { path, testId } of LABS) {
         const params = await boxOf(lab.getByRole('region', { name: 'Parámetros' }));
         const readoutsRegion = lab.getByRole('region', { name: 'Lecturas' });
         if (wide && (await readoutsRegion.count()) > 0) {
-          const readouts = await boxOf(readoutsRegion);
-          expect(readouts.x).toBeGreaterThanOrEqual(params.x + params.width);
           expect(params.width).toBeLessThan(panel.width / 2);
+          // Both columns end as near each other as whole pieces allow (Temas 7 and 8 left 360 and
+          // 500 px under the parameters): the gap between their feet is no taller than the
+          // tallest unit a column could hand to the other (a level's title with its first piece,
+          // or a later piece), or moving that unit would have balanced them better.
+          const columns = await lab.locator('[data-lab-panel]').evaluate((node) => {
+            const middle = node.getBoundingClientRect().left + node.clientWidth / 2;
+            const levels = [...node.querySelectorAll('[data-lab-level]')];
+            const rects = levels.flatMap((level) => [...level.getClientRects()]);
+            const foot = (side: 'left' | 'right') =>
+              Math.max(
+                ...rects
+                  .filter((rect) => (side === 'left' ? rect.right <= middle : rect.left >= middle))
+                  .map((rect) => rect.bottom),
+                0,
+              );
+            const units = levels.flatMap((level) => {
+              const heights = [...level.children].map((piece) => piece.getBoundingClientRect());
+              const [title, first, ...rest] = heights;
+              const lead = first ? first.bottom - title.top : title.height;
+              return [lead, ...rest.map((piece) => piece.height)];
+            });
+            return { left: foot('left'), right: foot('right'), unit: Math.max(...units) };
+          });
+          expect(columns.left).toBeGreaterThan(0);
+          expect(columns.right).toBeGreaterThan(0);
+          expect(Math.abs(columns.left - columns.right)).toBeLessThanOrEqual(columns.unit);
+          // A column may break between a level's pieces, never inside one (a label away from its
+          // select) nor right under a level's title.
+          const cut = await lab.locator('[data-lab-panel]').evaluate((node) =>
+            [...node.querySelectorAll('[data-lab-level]')].flatMap((level) => {
+              const pieces = [...level.children];
+              const split = pieces.filter((piece) => piece.getClientRects().length > 1);
+              const [title, first] = pieces.map((piece) => piece.getBoundingClientRect());
+              const orphan = first !== undefined && Math.abs(title.left - first.left) > 1;
+              return [
+                ...split.map(
+                  (piece) =>
+                    `${level.getAttribute('data-lab-level')}: ${piece.textContent?.slice(0, 40)}`,
+                ),
+                ...(orphan ? [`${level.getAttribute('data-lab-level')}: título solo`] : []),
+              ];
+            }),
+          );
+          expect(cut).toEqual([]);
         }
         // One rule for every drawing in one column: the canvas grows up to 36 rem, centred
         // (Temas 1 and 3 no longer fill 813 px while Temas 7–9 stay at 400).
