@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { hydrateAllIslands, readoutText as readReadout, waitForIsland } from './helpers';
+import { badgeTouches } from './svgBadgeClearance';
 
 const PAGE = './temas/asistencia-gravitatoria/';
 const TITLE = 'Asistencia gravitatoria: cómo la Voyager ganó velocidad sin gastar combustible';
@@ -329,3 +330,133 @@ for (const viewport of [PHONE, DESKTOP]) {
     expect(Math.abs(rp.inset - reference.inset)).toBeLessThanOrEqual(1);
   });
 }
+
+const FRAME = '[data-testid="flyby-planet-frame"]';
+const BADGE = `${FRAME} g[data-time-scale-badge]`;
+const WIDTHS = [320, 360, 1280] as const;
+const RP_LIMITS = ['1', '100'] as const;
+const NOMINAL_FACTOR = /^×19\s000\s*cámara rápida$/u;
+const PEAK_AT = 0.5;
+const MARK_SLACK_PX = 1;
+const APPROACH_SAID =
+  /^Máxima aproximación: la sonda pasa a 10,09 radios de Júpiter, con \d+,\d+\skm\/s respecto al planeta\.$/u;
+
+test.describe('escala de tiempo y máxima aproximación', () => {
+  test('el factor va en el marco del planeta, entre la clave de V_p y el valor de r_p, y dice lo mismo que la nota', async ({
+    page,
+  }) => {
+    await page.setViewportSize(DESKTOP);
+    await page.goto(PAGE);
+    await open(page, LAB);
+    const lab = page.locator(LAB);
+    const badge = lab.locator(BADGE);
+
+    await expect(badge).toHaveText(NOMINAL_FACTOR);
+    await expect(badge).toHaveAttribute('aria-hidden', 'true');
+    await expect(lab.locator('g[data-time-scale-badge]')).toHaveCount(1);
+    const box = (await badge.boundingBox())!;
+    const frame = (await lab.locator(FRAME).boundingBox())!;
+    const rp = (await lab.getByTestId('flyby-rp-value').boundingBox())!;
+    expect(box.x).toBeGreaterThan(frame.x);
+    expect(box.x + box.width).toBeLessThan(rp.x);
+    expect(box.y).toBeLessThan(frame.y + 32);
+    // The note states the same factor at 1x, in words.
+    await expect(lab.getByTestId('flyby-lapse')).toContainText(/unas 19\s000 veces/u);
+    await expect(lab.locator('[data-time-scale-words]')).toHaveText(
+      /^Escala de tiempo: 19\s000 veces la velocidad real, cámara rápida$/u,
+    );
+  });
+
+  for (const width of WIDTHS) {
+    test(`a ${width} px el factor no toca texto ni trazo, con los seis encuentros y r_p de 1 a 100`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: DESKTOP.height });
+      await page.goto(PAGE);
+      await open(page, LAB);
+      const lab = page.locator(LAB);
+      const presets = lab.getByRole('combobox', { name: 'Valores de referencia' });
+      const field = lab.getByRole('textbox', { name: 'Máxima aproximación r sub p' });
+      const options = await presets
+        .locator('option')
+        .evaluateAll((nodes) => nodes.map((node) => (node as HTMLOptionElement).value));
+
+      for (const value of options) {
+        await presets.selectOption(value);
+        for (const rp of [undefined, ...RP_LIMITS]) {
+          if (rp) {
+            await field.fill(rp);
+            await field.press('Enter');
+          }
+          await expect(lab.locator(BADGE)).toHaveText(/^×[\d\s,]+cámara (rápida|lenta)$/u);
+          const touches = await badgeTouches(lab.locator(FRAME));
+          expect(touches, `${value}, r_p ${rp ?? 'del encuentro'}`).toEqual([]);
+        }
+      }
+    });
+  }
+
+  test('la máxima aproximación es una marca en la línea de tiempo, donde queda el pulgar a t = t_p', async ({
+    page,
+  }) => {
+    await page.setViewportSize(DESKTOP);
+    await page.goto(PAGE);
+    await open(page, LAB);
+    const lab = page.locator(LAB);
+    const mark = lab.locator('[data-transport-mark]');
+    const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
+
+    await expect(mark).toHaveCount(1);
+    await expect(mark).toHaveAttribute('data-kind', 'peak');
+    const range = (await timeline.boundingBox())!;
+    const tick = (await mark.boundingBox())!;
+    // The thumb's centre at the middle of the range is the middle of the range (8 px each side).
+    expect(
+      Math.abs(tick.x + tick.width / 2 - (range.x + range.width * PEAK_AT)),
+    ).toBeLessThanOrEqual(MARK_SLACK_PX);
+    await lab.getByRole('button', { name: 'Evento siguiente' }).click();
+    await expect(timeline).toHaveAttribute('aria-valuetext', /Máxima aproximación$/u);
+    await expect(lab.getByTestId('flyby-clock')).toContainText('= 0,0 h');
+  });
+
+  test('«Ir a la máxima aproximación» lleva el tiempo a t_p, pausa y dice qué hay allí', async ({
+    page,
+  }) => {
+    await page.setViewportSize(DESKTOP);
+    await page.goto(PAGE);
+    await open(page, LAB);
+    const lab = page.locator(LAB);
+    const go = lab.getByRole('button', { name: 'Ir a la máxima aproximación' });
+    const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
+
+    await lab.getByRole('button', { name: 'Reproducir' }).click();
+    await expect(timeline).not.toHaveValue('0');
+    await go.click();
+
+    await expect(lab).toHaveAttribute('data-playing', 'false');
+    await expect(timeline).toHaveValue('500');
+    await expect(lab.getByTestId('flyby-clock')).toContainText('= 0,0 h');
+    await expect(lab.getByText(APPROACH_SAID)).toHaveCount(1);
+    await expect(
+      lab.getByText(APPROACH_SAID).locator('xpath=ancestor-or-self::*[@role="status"]'),
+    ).toHaveCount(1);
+    await expect(go).toBeVisible();
+  });
+
+  test('con movimiento reducido el factor es el paso que se ve (el paso en 15 s): ×15 000 tras hidratar', async ({
+    browser,
+  }) => {
+    const server = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce' });
+    const plain = await server.newPage();
+    await plain.goto(PAGE);
+    await expect(plain.locator(BADGE)).toHaveText(NOMINAL_FACTOR);
+    await server.close();
+
+    const context = await browser.newContext({ reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    await page.goto(PAGE);
+    await open(page, LAB);
+    await expect(page.locator(BADGE)).toHaveText(/^×15\s000\s*cámara rápida$/u);
+    await context.close();
+  });
+});

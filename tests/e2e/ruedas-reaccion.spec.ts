@@ -7,6 +7,7 @@ import {
   seekTimeline,
   waitForIsland,
 } from './helpers';
+import { badgeTouches } from './svgBadgeClearance';
 
 const PAGE = './temas/ruedas-reaccion/';
 const TITLE = 'Ruedas de reacción: cómo un satélite se gira sin empujarse contra nada';
@@ -282,3 +283,102 @@ for (const theme of THEMES) {
     expect(blocking).toEqual([]);
   });
 }
+
+const SCENE = '[data-testid="wheel-scene"]';
+const SCENE_BADGE = `${SCENE} g[data-time-scale-badge]`;
+const SCENE_WIDTHS = [320, 360, 1280] as const;
+const REAL_TIME = /^×1\s*velocidad real$/u;
+const FILL_FACTOR = /^×7\s200\s*cámara rápida$/u;
+const MAGNETORQUER_DUMP = /^×1\s700\s*cámara rápida$/u;
+const THRUSTER_DUMP = /^×2,5\s*cámara rápida$/u;
+const REDUCED_MANEUVER = /^×4\s*cámara rápida$/u;
+const REDUCED_FILL = /^×18\s000\s*cámara rápida$/u;
+
+test.describe('escala de tiempo en el lienzo', () => {
+  async function openScene(page: Page, width = 1280): Promise<ReturnType<Page['locator']>> {
+    await page.setViewportSize({ width, height: 900 });
+    await openLab(page);
+    return page.locator(LAB);
+  }
+
+  for (const width of SCENE_WIDTHS) {
+    test(`a ${width} px el factor no toca texto ni trazo en la maniobra ni en la perturbación`, async ({
+      page,
+    }) => {
+      const lab = await openScene(page, width);
+      const scene = lab.locator(SCENE);
+
+      await expect(lab.locator(SCENE_BADGE)).toHaveText(REAL_TIME);
+      expect(await badgeTouches(scene)).toEqual([]);
+
+      await lab.getByRole('radio', { name: 'Perturbación y descarga' }).check({ force: true });
+      await expect(lab.locator(SCENE_BADGE)).toHaveText(FILL_FACTOR);
+      expect(await badgeTouches(scene), 'magnetopar, relleno').toEqual([]);
+      await lab.getByRole('button', { name: 'Ir a la descarga' }).click();
+      await expect(lab.locator(SCENE_BADGE)).toHaveText(MAGNETORQUER_DUMP);
+      expect(await badgeTouches(scene), 'magnetopar, descarga').toEqual([]);
+
+      await lab.getByRole('radio', { name: 'Propulsor' }).check({ force: true });
+      await lab.getByRole('button', { name: 'Ir a la descarga' }).click();
+      await expect(lab.locator(SCENE_BADGE)).toHaveText(THRUSTER_DUMP);
+      expect(await badgeTouches(scene), 'propulsor, descarga').toEqual([]);
+    });
+  }
+
+  test('la maniobra lo dice en la esquina izquierda y la perturbación en la derecha, bajo el dibujo', async ({
+    page,
+  }) => {
+    const lab = await openScene(page);
+    const scene = (await lab.locator(SCENE).boundingBox())!;
+    const place = async () => {
+      const box = (await lab.locator(SCENE_BADGE).boundingBox())!;
+      return {
+        left: box.x - scene.x,
+        right: scene.x + scene.width - (box.x + box.width),
+        bottom: scene.y + scene.height - (box.y + box.height),
+      };
+    };
+
+    const maneuver = await place();
+    await lab.getByRole('radio', { name: 'Perturbación y descarga' }).check({ force: true });
+    await expect(lab.locator(SCENE_BADGE)).toHaveText(FILL_FACTOR);
+    const disturbance = await place();
+
+    expect(maneuver.left).toBeLessThan(maneuver.right);
+    expect(disturbance.right).toBeLessThan(disturbance.left);
+    for (const edge of [maneuver.bottom, disturbance.bottom]) expect(edge).toBeLessThan(16);
+  });
+
+  test('sigue habiendo una sola región status en el laboratorio: la escala va en la descripción del dibujo', async ({
+    page,
+  }) => {
+    const lab = await openScene(page);
+    await lab.getByRole('radio', { name: 'Perturbación y descarga' }).check({ force: true });
+
+    await expect(lab.getByRole('status')).toHaveCount(1);
+    await expect(lab.locator(`${SCENE} [role="img"]`)).toHaveAttribute(
+      'aria-label',
+      /Escala de tiempo: 7\s200 veces la velocidad real, cámara rápida\.$/u,
+    );
+  });
+
+  test('con movimiento reducido lee el paso que se ve: la maniobra de 60 s en 15 s es ×4, el relleno ×18 000', async ({
+    browser,
+  }) => {
+    const server = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce' });
+    const plain = await server.newPage();
+    await plain.goto(PAGE);
+    // The server cannot know reduced motion: it sends real time.
+    await expect(plain.locator(SCENE_BADGE)).toHaveText(REAL_TIME);
+    await server.close();
+
+    const context = await browser.newContext({ reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    await openLab(page);
+    const lab = page.locator(LAB);
+    await expect(lab.locator(SCENE_BADGE)).toHaveText(REDUCED_MANEUVER);
+    await lab.getByRole('radio', { name: 'Perturbación y descarga' }).check({ force: true });
+    await expect(lab.locator(SCENE_BADGE)).toHaveText(REDUCED_FILL);
+    await context.close();
+  });
+});
