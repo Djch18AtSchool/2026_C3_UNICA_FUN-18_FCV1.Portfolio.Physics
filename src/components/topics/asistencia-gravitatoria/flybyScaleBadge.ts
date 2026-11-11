@@ -12,12 +12,18 @@ import { formatTimeScale, timeScaleLabel } from '../../lab/timeScaleFormat';
 const FACTOR_SIZE = 14;
 const WORDS_SIZE = 12;
 const LINE_GAP = 16;
-/** Baseline of the factor: the two lines centre on the band's axis, with the corner texts. */
-const FACTOR_BASELINE = 12;
+/**
+ * Baseline of the factor: low enough that its line box (14 px of Plex Mono reaches 14,4 px above
+ * the baseline) stays inside the svg, which a check of the figures' texts requires.
+ */
+const FACTOR_BASELINE = 16;
 /** Gap between the V_p key's text and the badge. */
 const KEY_GAP = 12;
-/** The text band's height (PlanetFrame's TEXT_BAND, less the descenders' room): nothing below. */
-export const SCALE_BAND_BOTTOM = 32;
+/**
+ * The lowest the badge's boxes reach: the words' descenders go a few px past PlanetFrame's 30 px
+ * text band, where the drawing starts, so the e2e checks that no stroke or text meets it.
+ */
+export const SCALE_BAND_BOTTOM = 36;
 
 export interface ScaleBadgeSpot {
   /** Start of both lines and baseline of the first (the second is LINE_GAP below). */
