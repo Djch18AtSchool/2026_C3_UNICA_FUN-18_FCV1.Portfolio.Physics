@@ -42,12 +42,14 @@ describe('syncScrollRegion', () => {
     expect(element).not.toHaveAttribute('aria-label');
   });
 
-  test('a subpixel rounding difference does not count as overflow', () => {
+  // A formula 261.5 px wide in a 261 px box reads 262 / 261: the browser scrolls that pixel and
+  // axe (scrollable-region-focusable) asks for a tab stop, so it is overflow (Tema 6 at 375 px).
+  test('a one-pixel overflow counts, as it does for the browser and for axe', () => {
     const element = region(301, 300);
 
     syncScrollRegion(element);
 
-    expect(element).not.toHaveAttribute('tabindex');
+    expect(element).toHaveAttribute('tabindex', '0');
   });
 
   test('drops the tab stop again when the element stops overflowing', () => {

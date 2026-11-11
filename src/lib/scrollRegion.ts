@@ -10,8 +10,6 @@ export const SCROLL_LABEL_SELECTOR = '[data-scroll-label]';
 const NUMBER_PLACEHOLDER = '{n}';
 /** The template's number with its brackets and leading space, dropped when there is no number. */
 const NUMBER_SLOT = /\s*\(?\{n\}\)?/;
-/** scrollWidth and clientWidth are rounded separately; one pixel apart is not real overflow. */
-const OVERFLOW_TOLERANCE_PX = 1;
 
 /**
  * The region's name. A template with "{n}" gets the number the CSS counters print beside the
@@ -32,7 +30,8 @@ export function scrollLabel(element: HTMLElement): string | undefined {
 
 /** Add or remove the tab stop, the region role and its name, depending on overflow now. */
 export function syncScrollRegion(element: HTMLElement): void {
-  const isOverflowing = element.scrollWidth - element.clientWidth > OVERFLOW_TOLERANCE_PX;
+  // Any overflow, one pixel too: the browser scrolls it and axe asks for the tab stop.
+  const isOverflowing = element.scrollWidth > element.clientWidth;
   // Only an overflowing element needs a name (numbering one walks the topic body).
   const label = isOverflowing ? scrollLabel(element) : undefined;
   if (label) {
