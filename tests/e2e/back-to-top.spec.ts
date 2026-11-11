@@ -42,7 +42,7 @@ function maxScroll(page: Page): Promise<number> {
   return page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
 }
 
-/** The root font size in px (17 on this site), to turn rem into the pixels the layout uses. */
+/** The root font size in px (16 on this site), to turn rem into the pixels the layout uses. */
 function remPx(page: Page): Promise<number> {
   return page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).fontSize));
 }
@@ -195,20 +195,30 @@ for (const viewport of [DESKTOP, LAPTOP, PHONE]) {
   });
 }
 
-for (const viewport of [DESKTOP, { width: 360, height: 800 }]) {
+/** Scrolls so the lab's foot sits just above the window's bottom: the lab fills the window's foot. */
+async function labFootAtBottom(page: Page): Promise<void> {
+  const lab = page.getByTestId(LAB_TEST_ID);
+  await lab.scrollIntoViewIfNeeded();
+  await waitForIsland(page, `[data-testid="${LAB_TEST_ID}"]`);
+  await lab.evaluate((node) => {
+    const box = node.getBoundingClientRect();
+    window.scrollTo(0, window.scrollY + box.bottom - window.innerHeight + 8);
+  });
+}
+
+/*
+ * Windows where the lab reaches the button's corner: the 72 rem column (1 152 px at the 16 px root)
+ * fills a laptop's width; at 1 280 px it stops short of the corner (next test).
+ */
+for (const viewport of [LAPTOP, { width: 360, height: 800 }]) {
   test(`a ${viewport.width} px el botón nunca queda sobre un laboratorio: se esconde mientras uno ocupa su esquina`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
     await page.goto('./temas/salto-personaje/');
     const lab = page.getByTestId(LAB_TEST_ID);
-    await lab.scrollIntoViewIfNeeded();
-    await waitForIsland(page, `[data-testid="${LAB_TEST_ID}"]`);
     // The lab's foot at the window's bottom: the lab fills the corner where the button sits.
-    await lab.evaluate((node) => {
-      const box = node.getBoundingClientRect();
-      window.scrollTo(0, window.scrollY + box.bottom - window.innerHeight + 8);
-    });
+    await labFootAtBottom(page);
     await expect(anyBackToTop(page)).toBeHidden();
 
     // Past the lab, in the prose: the button is back.
@@ -219,6 +229,20 @@ for (const viewport of [DESKTOP, { width: 360, height: 800 }]) {
     await expect(backToTop(page)).toBeVisible();
   });
 }
+
+test('a 1280 px el laboratorio no llega a la esquina: el botón se queda a su lado, sin taparlo', async ({
+  page,
+}) => {
+  await page.setViewportSize(DESKTOP);
+  await page.goto('./temas/salto-personaje/');
+  await labFootAtBottom(page);
+
+  await expect(backToTop(page)).toBeVisible();
+  const [lab, button] = await Promise.all(
+    [page.getByTestId(LAB_TEST_ID), anyBackToTop(page)].map((locator) => locator.boundingBox()),
+  );
+  expect(button!.x).toBeGreaterThanOrEqual(lab!.x + lab!.width);
+});
 
 test('si un laboratorio crece bajo el botón sin que la página se mueva, el botón se esconde', async ({
   page,
