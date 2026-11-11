@@ -41,6 +41,9 @@ async function openLab(page: Page): Promise<void> {
   await waitForIsland(page, LAB);
 }
 
+/** A seek whose destination reads like its origin takes at most this long in seekTimeline. */
+const SAME_READING_SEEK_MS = 3000;
+
 test.describe('página', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);
@@ -365,6 +368,25 @@ test.describe('escala de tiempo en el lienzo', () => {
     // The readout helper writes the narrow no-break space as a plain one.
     const same = new RegExp(`^t = ${hours.replace(/\s/gu, '\\s')}$`, 'u');
     await expect(timeline).toHaveAttribute('aria-valuetext', same);
+  });
+
+  test('seekTimeline no se queda esperando cuando el destino se lee igual que el origen (descarga del propulsor)', async ({
+    page,
+  }) => {
+    const lab = await openScene(page);
+    await lab.getByRole('radio', { name: 'Perturbación y descarga' }).check({ force: true });
+    await lab.getByRole('radio', { name: 'Propulsor' }).check({ force: true });
+    await lab.getByRole('button', { name: 'Ir a la descarga' }).click();
+    const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
+    const before = await timeline.getAttribute('aria-valuetext');
+    const next = String(Number(await timeline.inputValue()) + 1);
+
+    const started = Date.now();
+    await seekTimeline(timeline, next);
+
+    // One position of the stretched dump is under 0,1 s of orbit: the hours read the same.
+    await expect(timeline).toHaveAttribute('aria-valuetext', before ?? '');
+    expect(Date.now() - started).toBeLessThan(SAME_READING_SEEK_MS);
   });
 
   test('sigue habiendo una sola región status en el laboratorio: la escala va en la descripción del dibujo', async ({

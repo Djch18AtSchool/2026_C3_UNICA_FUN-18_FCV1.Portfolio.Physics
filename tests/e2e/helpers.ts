@@ -15,22 +15,36 @@ const SEEK_SETTLE_MS = 1000;
 const SEEK_GIVE_UP_MS = 10_000;
 
 /**
+ * Whether the timeline's reading left `before`. A lab's own reading (formatTime) can read two
+ * neighbouring positions alike (Tema 8 in the thruster's dump: one position is under 0,1 s of
+ * orbit, the hours do not move): when the text stays, the seek is taken as done once the range
+ * holds the value, which is all a reading at fixed decimals lets a test see.
+ */
+async function readingMoved(timeline: Locator, before: string, value: string): Promise<boolean> {
+  try {
+    await expect(timeline).not.toHaveAttribute('aria-valuetext', before, {
+      timeout: SEEK_SETTLE_MS,
+    });
+    return true;
+  } catch {
+    return (await timeline.inputValue()) === value;
+  }
+}
+
+/**
  * Seeks the transport's timeline and waits until the clock took it. An island can drop the first
  * input event (fired before React listens) and hydrate the slider back, so the seek is sent again
  * until the timeline's aria-valuetext, which only React writes, has left the one it had before
  * (whatever the lab's origin or reading: «t = 0», «t = 376,00 s», «t = 0 h») and the range holds
- * the new value. A seek to the position the range already holds only checks the value.
+ * the new value. A seek to the position the range already holds only checks the value; one whose
+ * destination reads like its origin (readingMoved) settles on the value after SEEK_SETTLE_MS.
  */
 export async function seekTimeline(timeline: Locator, value: string): Promise<void> {
   const before = (await timeline.getAttribute('aria-valuetext')) ?? '';
   const isMove = (await timeline.inputValue()) !== value;
   await expect(async () => {
     await setRange(timeline, value);
-    if (isMove) {
-      await expect(timeline).not.toHaveAttribute('aria-valuetext', before, {
-        timeout: SEEK_SETTLE_MS,
-      });
-    }
+    if (isMove) expect(await readingMoved(timeline, before, value)).toBe(true);
     await expect(timeline).toHaveValue(value, { timeout: SEEK_SETTLE_MS });
   }).toPass({ timeout: SEEK_GIVE_UP_MS });
 }
