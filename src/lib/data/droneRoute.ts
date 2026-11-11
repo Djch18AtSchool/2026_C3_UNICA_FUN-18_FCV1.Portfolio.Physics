@@ -125,6 +125,35 @@ export function routeDuration(def: RouteDefinition): number {
   return legEnd(legs[legs.length - 1]);
 }
 
+/** When one leg of the route happens: the drone leaves `from`, reaches `to` at rest and, after its dwell, the next leg starts. */
+export interface LegSchedule {
+  from: RouteStop;
+  to: RouteStop;
+  /** The instant the drone leaves `from` (s). */
+  departure: number;
+  /** The instant it reaches `to`, at rest (s). */
+  arrival: number;
+  /** The instant the dwell at `to` ends: when the next leg departs, or the route ends (s). */
+  end: number;
+  /** Time from the departure until it stops accelerating; braking lasts as long (s). */
+  accelDuration: number;
+}
+
+/** The legs of the route with their instants: what the laboratory marks and plays leg by leg. */
+export function routeSchedule(def: RouteDefinition): LegSchedule[] {
+  return buildLegs(def).map((leg, i) => {
+    const flight = leg.profile.duration;
+    return {
+      from: def.stops[i],
+      to: def.stops[i + 1],
+      departure: leg.start,
+      arrival: leg.start + flight,
+      end: legEnd(leg),
+      accelDuration: leg.profile.isTriangular ? flight / 2 : def.vMax / def.aMax,
+    };
+  });
+}
+
 /** State at time t: s, v and a of the leg profile projected on its heading; at rest during dwells. */
 function stateAt(legs: Leg[], t: number): { r: Vec2; v: Vec2; a: Vec2 } {
   const leg = legs.find((candidate) => t < legEnd(candidate)) ?? legs[legs.length - 1];

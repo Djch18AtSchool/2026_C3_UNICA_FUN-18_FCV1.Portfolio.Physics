@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'vitest';
 import { derivativeSeries, trapezoidalProfile, vec } from '../physics';
-import { DRONE_ROUTE, generateRoute, routeDuration, type RouteDefinition } from './droneRoute';
+import {
+  DRONE_ROUTE,
+  generateRoute,
+  routeDuration,
+  routeSchedule,
+  type RouteDefinition,
+} from './droneRoute';
 
 const SAMPLES = generateRoute(DRONE_ROUTE);
 const TOLERANCE = 1e-9;
@@ -145,5 +151,63 @@ describe('generateRoute', () => {
     expect(again).not.toBe(SAMPLES);
     expect(again).toEqual(SAMPLES);
     expect(JSON.stringify(DRONE_ROUTE)).toBe(before);
+  });
+});
+
+describe('routeSchedule', () => {
+  const legs = routeSchedule(DRONE_ROUTE);
+
+  test('has one leg per pair of consecutive stops, named by the stops it joins', () => {
+    expect(legs.map(({ from, to }) => [from.name, to.name])).toEqual([
+      ['Depósito', 'A'],
+      ['A', 'B'],
+      ['B', 'C'],
+      ['C', 'Depósito'],
+    ]);
+  });
+
+  test('the first leg leaves at 0 s and arrives when its trapezoidal profile ends', () => {
+    expect(legs[0].departure).toBe(0);
+    expect(legs[0].arrival).toBeCloseTo(FIRST_LEG.duration, 9);
+    expect(legs[0].end).toBeCloseTo(FIRST_LEG.duration + DWELL_A, 9);
+  });
+
+  test('each leg leaves when the previous one ends its dwell, and the last one ends the route', () => {
+    legs.slice(1).forEach((leg, i) => expect(leg.departure).toBe(legs[i].end));
+    expect(legs[legs.length - 1].end).toBe(routeDuration(DRONE_ROUTE));
+  });
+
+  test('the drone is at rest on the stop at every arrival', () => {
+    legs.forEach((leg) => {
+      const arrived = SAMPLES.reduce((best, s) =>
+        Math.abs(s.t - leg.arrival) < Math.abs(best.t - leg.arrival) ? s : best,
+      );
+      expect(Math.hypot(arrived.x - leg.to.x, arrived.y - leg.to.y)).toBeLessThan(0.05);
+      expect(arrived.speed).toBeLessThan(0.5);
+    });
+  });
+
+  test('accelDuration is vMax / aMax on a trapezoidal leg: 4 s here', () => {
+    legs.forEach((leg) => expect(leg.accelDuration).toBeCloseTo(4, 9));
+  });
+
+  test('a leg too short to reach vMax is triangular: it brakes right when it stops accelerating', () => {
+    const short: RouteDefinition = {
+      ...DRONE_ROUTE,
+      stops: [
+        { name: 'Depósito', x: 0, y: 0, dwell: 0 },
+        { name: 'A', x: 20, y: 0, dwell: 5 },
+      ],
+    };
+    const [leg] = routeSchedule(short);
+
+    expect(leg.accelDuration).toBeCloseTo((leg.arrival - leg.departure) / 2, 9);
+    expect(leg.accelDuration).toBeLessThan(4);
+  });
+
+  test('rejects what routeDuration rejects', () => {
+    expect(() => routeSchedule({ ...DRONE_ROUTE, stops: DRONE_ROUTE.stops.slice(0, 1) })).toThrow(
+      RangeError,
+    );
   });
 });
