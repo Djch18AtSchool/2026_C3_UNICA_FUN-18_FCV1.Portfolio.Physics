@@ -6,7 +6,6 @@ import InlineMath from '../../lab/InlineMath';
 import ChoiceField from '../../lab/ChoiceField';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
-import type { TransportMarker } from '../../lab/transportMarkers';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { useSimClock } from '../../lab/useSimClock';
 import { DEFAULT_DISPLAY, flybyLocalSettings, type FlybyDisplay } from './flybyLabSettings';
@@ -19,10 +18,12 @@ import {
   SIDE_NAMES,
   type FlybySettings,
 } from './flybyPresets';
+import { nominalFactor } from './flybyFormat';
 import { clampRp, planetView, type RpWarning } from './flybyScene';
 import FlybyNotes from './FlybyNotes';
 import FlybyScene from './FlybyScene';
 import RpField, { RpWarningNote } from './RpField';
+import { usePeriapsis } from './usePeriapsis';
 
 /**
  * Time lapse of the flyby: at 1× every drawn pass plays in this many seconds, whatever the planet
@@ -47,9 +48,6 @@ const NO_WRAP = 'whitespace-nowrap';
 const DRAG_HINT =
   'Arrastra el punto de máxima aproximación en el dibujo, o enfócalo y muévelo con las flechas (1 % de la escala logarítmica; con Mayús, 10 %); Inicio y Fin lo llevan a 1 y 100 radios.';
 const ARRIVAL_HINT = String.raw`Un preajuste fija la llegada: $V_p$, $v_\infty$ y $\theta_\text{in}$, el ángulo entre $\vec V_p$ y $\vec v_{\infty,\text{in}}$; $r_p$ y el lado son tuyos.`;
-/** The closest approach on the timeline: a peak (t = t_p is the middle of every drawn pass). */
-const PERIAPSIS_LABEL = 'Máxima aproximación';
-const MIDDLE = 1 / 2;
 const SIDE_OPTIONS = (['behind', 'front'] as const).map((value) => ({
   value,
   label: SIDE_NAMES[value],
@@ -106,7 +104,7 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
     return 2 * timeToRadius(hyperbola, reachKm);
   }, [hyperbola, rpKm, planet.radiusKm]);
 
-  const clock = useSimClock(passSeconds, { timeScale: passSeconds / FLYBY_LAPSE });
+  const clock = useSimClock(passSeconds, { timeScale: nominalFactor(passSeconds, FLYBY_LAPSE) });
   const { seek } = clock;
   // The clock's own duration lags a render behind an edit, so the share of the pass stays put.
   const clockDuration = clock.state.duration;
@@ -123,13 +121,6 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
     [clockDuration, passSeconds, hyperbola],
   );
   const live = useMemo(() => ({ frame: clock.frame, probeAt }), [clock.frame, probeAt]);
-  // t = t_p is the middle of the clock's own duration, so the mark never lags an edit's duration.
-  const periapsisT = clockDuration * MIDDLE;
-  const markers = useMemo<readonly TransportMarker[]>(
-    () => [{ t: periapsisT, label: PERIAPSIS_LABEL, kind: 'peak' }],
-    [periapsisT],
-  );
-
   /** Where in the pass (0..1) an edit found the probe, so the new pass resumes there. */
   const progressRef = useRef(0);
   useEffect(() => {
@@ -184,7 +175,13 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
   ];
 
   const kms = (value: number) => formatNumber(value, { precision: decimals, unit: 'km/s' });
-  const periapsisSummary = `${PERIAPSIS_LABEL}: la sonda pasa a ${formatNumber(rp, { precision: 2 })} radios de ${planet.name}, con ${kms(stateAt(hyperbola, 0).speed)} respecto al planeta.`;
+  const periapsis = usePeriapsis({
+    clockDuration,
+    hyperbola,
+    rp,
+    planetName: planet.name,
+    formatSpeed: kms,
+  });
   // Keyed by quantity, not by text: a new preset changes the values in place, not the nodes.
   const arrival = [
     { key: 'Vp', text: `$V_p$${EQUALS}${kms(encounter.VpKms)}` },
@@ -243,7 +240,7 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
     <LabShell
       title="Laboratorio del sobrevuelo (modelo plano)"
       clock={clock}
-      markers={markers}
+      markers={periapsis.markers}
       readouts={readouts}
       canvasNotes={
         <FlybyNotes
@@ -280,7 +277,7 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
         display={display}
         decimals={decimals}
         clock={clock}
-        periapsis={{ periapsisT, summary: periapsisSummary }}
+        periapsis={periapsis.jump}
         onRpRequest={requestRp}
       />
     </LabShell>

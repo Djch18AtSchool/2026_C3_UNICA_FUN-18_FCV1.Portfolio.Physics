@@ -46,6 +46,7 @@ const SECONDS_PER_HOUR = 3600;
  */
 export default function FlybyScene(props: FlybySceneProps): JSX.Element {
   const { hyperbola, planet, Vp, result, rp, unit, tau, probe, live, display, decimals } = props;
+  const { clock, periapsis } = props;
   const kms = (value: number) => formatNumber(value, { precision: decimals, unit: 'km/s' });
   const clockText = [
     `$t - t_p$ = ${signed(tau / SECONDS_PER_HOUR, 1, 'h')}`,
@@ -65,17 +66,17 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
             unit={unit}
             live={live}
             showVectors={display.showVectors}
-            clock={props.clock}
+            clock={clock}
             onRpRequest={props.onRpRequest}
           />
-          <TimeScaleStatus clock={props.clock} />
+          <TimeScaleStatus clock={clock} />
           <p
             data-testid="flyby-clock"
             className={`m-0 font-mono text-xs tabular-nums text-fg-muted ${CANVAS_INSET}`}
           >
             <InlineMath text={clockText} />
           </p>
-          <PeriapsisJump clock={props.clock} {...props.periapsis} />
+          <PeriapsisJump clock={clock} {...periapsis} />
         </div>
         <div className="flex flex-col gap-1">
           <p className={`m-0 text-sm font-medium ${CANVAS_INSET}`}>Marco del Sol</p>

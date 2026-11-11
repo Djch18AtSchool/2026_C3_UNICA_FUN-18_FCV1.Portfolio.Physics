@@ -55,7 +55,7 @@ export default function FlybyNotes({
         <LegendItem color={V_AFTER_COLOR}>{`v después = ${kms(result.vOut)}`}</LegendItem>
       </ul>
       <p data-testid="flyby-lapse" className="m-0 text-sm text-fg-muted">
-        {`Cámara rápida: el paso dibujado dura ${transportTimeValue(passSeconds, passSeconds)} y a 1× se ve en ${playbackSeconds} s, unas ${lapseFactorText(passSeconds, playbackSeconds)} veces más rápido.`}
+        {`Cámara rápida: el paso dibujado dura ${transportTimeValue(passSeconds, passSeconds)} y a 1× y sin movimiento reducido se ve en ${playbackSeconds} s, unas ${lapseFactorText(passSeconds, playbackSeconds)} veces más rápido; el factor en curso está sobre el dibujo.`}
       </p>
       <FlybyComparison encounter={encounter} result={result} decimals={decimals} />
     </div>
