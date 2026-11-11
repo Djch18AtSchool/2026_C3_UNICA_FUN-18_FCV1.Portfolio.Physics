@@ -12,7 +12,6 @@ import {
   previousMarkerTime,
   markerTolerance,
 } from '../../lab/transportMarkers';
-import { sampleAt } from './routeEdit';
 import {
   DEFAULT_SELECTION,
   LEG_TIME_LAPSE,
@@ -27,9 +26,26 @@ import {
 
 const SCHEDULE = routeSchedule(DRONE_ROUTE);
 const SAMPLES = generateRoute(DRONE_ROUTE);
-const RUTA = viewSpan(SCHEDULE, { view: 'ruta', leg: 0 });
-/** The drone is within this of the stop (m) when a mark says it has arrived. */
-const AT_STOP_M = 0.05;
+const STEP = DRONE_ROUTE.dt;
+const RUTA = viewSpan(SCHEDULE, { view: 'ruta', leg: 0 }, STEP);
+/** The sample of the flight at a grid instant t, with no interpolation: what the lab reads there. */
+const sampleOnGrid = (t: number) => SAMPLES[Math.round(t / STEP)];
+const isOnGrid = (t: number) => Math.abs(t / STEP - Math.round(t / STEP)) < 1e-6;
+/**
+ * What the lab shows at a stop (the 0,1 s samples are exact there): on it and not moving; and, for
+ * an arrival, with the acceleration over (the very first instant of the route already accelerates).
+ */
+function expectAtRestOn(
+  t: number,
+  stop: { x: number; y: number },
+  label: string,
+  isArrival = true,
+) {
+  const sample = sampleOnGrid(t);
+  expect(Math.hypot(sample.x - stop.x, sample.y - stop.y), label).toBeLessThan(1e-6);
+  expect(sample.speed, label).toBe(0);
+  if (isArrival) expect(sample.accel, label).toBe(0);
+}
 
 describe('viewSpan · Ruta', () => {
   test('plays the whole route, from 0 s, at the route time lapse', () => {
@@ -49,20 +65,21 @@ describe('viewSpan · Ruta', () => {
     ]);
   });
 
-  test('every mark is the instant the drone is at rest on a stop of the route model', () => {
+  test('every mark is the first sample of the flight at rest on a stop of the route model', () => {
     const stops = DRONE_ROUTE.stops;
     expect(RUTA.markers).toHaveLength(stops.length);
-    RUTA.markers.forEach((marker, i) => {
-      const at = sampleAt(SAMPLES, marker.t);
-      expect(Math.hypot(at.x - stops[i].x, at.y - stops[i].y), marker.label).toBeLessThan(
-        AT_STOP_M,
-      );
-      expect(at.speed, marker.label).toBeLessThan(0.5);
+    RUTA.markers.slice(0, -1).forEach((marker, i) => {
+      const arrival = i === 0 ? 0 : SCHEDULE[i - 1].arrival;
+
+      expect(isOnGrid(marker.t), marker.label).toBe(true);
+      expect(marker.t, marker.label).toBeGreaterThanOrEqual(arrival);
+      expect(marker.t, marker.label).toBeLessThan(arrival + STEP);
+      expectAtRestOn(marker.t, stops[i], marker.label, i > 0);
     });
-    expect(RUTA.markers.map((marker) => marker.t)).toEqual([
-      0,
-      ...SCHEDULE.map((leg) => leg.arrival),
-    ]);
+  });
+
+  test('the arrival at the depot, the end of the route, is its last instant', () => {
+    expect(RUTA.markers.at(-1)?.t).toBe(RUTA.duration);
   });
 
   test('all the marks survive normalization and are reachable one by one with the transport', () => {
@@ -80,19 +97,22 @@ describe('viewSpan · Ruta', () => {
 });
 
 describe('viewSpan · Tramo', () => {
-  test('plays one leg at real speed, from its departure to its arrival', () => {
+  test('plays one leg at real speed, from just before its departure to its arrival', () => {
     SCHEDULE.forEach((leg, index) => {
-      const span = viewSpan(SCHEDULE, { view: 'tramo', leg: index });
+      const span = viewSpan(SCHEDULE, { view: 'tramo', leg: index }, STEP);
 
-      expect(span.start).toBe(leg.departure);
-      expect(span.duration).toBe(leg.arrival - leg.departure);
+      expect(isOnGrid(span.start)).toBe(true);
+      expect(span.start).toBeLessThanOrEqual(leg.departure + 1e-9);
+      expect(span.start).toBeGreaterThan(leg.departure - STEP);
+      expect(span.start + span.duration).toBeGreaterThanOrEqual(leg.arrival);
+      expect(span.start + span.duration).toBeLessThan(leg.arrival + STEP);
       expect(span.timeScale).toBe(LEG_TIME_LAPSE);
     });
     expect(LEG_TIME_LAPSE).toBe(1);
   });
 
   test('its marks are on the leg own clock: the departure at 0 and the arrival at its end', () => {
-    const second = viewSpan(SCHEDULE, { view: 'tramo', leg: 1 });
+    const second = viewSpan(SCHEDULE, { view: 'tramo', leg: 1 }, STEP);
 
     expect(second.markers.map((marker) => marker.label)).toEqual([
       'Salida de A',
@@ -101,30 +121,36 @@ describe('viewSpan · Tramo', () => {
       'Llegada a B',
     ]);
     const [departure, accelerated, braking, arrival] = second.markers.map((marker) => marker.t);
+    const { accelDuration } = SCHEDULE[1];
     expect(departure).toBe(0);
-    expect(accelerated).toBeCloseTo(4, 9);
-    expect(braking).toBeCloseTo(second.duration - 4, 9);
+    expect(accelerated).toBeGreaterThanOrEqual(accelDuration);
+    expect(accelerated).toBeLessThan(accelDuration + 2 * STEP);
+    expect(braking).toBeGreaterThan(second.duration - accelDuration - STEP);
+    expect(braking).toBeLessThan(second.duration - accelDuration + 2 * STEP);
     expect(arrival).toBe(second.duration);
   });
 
-  test('the arrival mark is the instant the drone reaches the stop, on the route clock', () => {
+  test('the departure and the arrival are the flight at rest on the two stops of the leg', () => {
     SCHEDULE.forEach((leg, index) => {
-      const span = viewSpan(SCHEDULE, { view: 'tramo', leg: index });
-      const arrivalMark = span.markers.at(-1);
+      const span = viewSpan(SCHEDULE, { view: 'tramo', leg: index }, STEP);
 
-      const at = sampleAt(SAMPLES, span.start + (arrivalMark?.t ?? NaN));
-
-      expect(Math.hypot(at.x - leg.to.x, at.y - leg.to.y)).toBeLessThan(AT_STOP_M);
+      expectAtRestOn(span.start, leg.from, `salida ${index}`, index > 0);
+      // The last arrival is the route's own end (off the grid): the lab already reads it there.
+      if (index < SCHEDULE.length - 1) {
+        expectAtRestOn(span.start + span.duration, leg.to, `llegada ${index}`);
+      }
     });
   });
 
-  test('the drone stops accelerating and starts braking at the marks between', () => {
-    const span = viewSpan(SCHEDULE, DEFAULT_SELECTION);
+  test('the phase marks fall where the sampled flight has stopped accelerating and started braking', () => {
+    const span = viewSpan(SCHEDULE, DEFAULT_SELECTION, STEP);
     const [, accelerated, braking] = span.markers.map((marker) => marker.t);
 
-    expect(sampleAt(SAMPLES, span.start + accelerated - 0.5).accel).toBeCloseTo(2.5, 6);
-    expect(sampleAt(SAMPLES, span.start + accelerated + 0.5).accel).toBeCloseTo(0, 6);
-    expect(sampleAt(SAMPLES, span.start + braking + 0.5).accel).toBeCloseTo(2.5, 6);
+    expect(isOnGrid(span.start + accelerated)).toBe(true);
+    expect(sampleOnGrid(span.start + accelerated).accel).toBe(0);
+    expect(sampleOnGrid(span.start + accelerated).speed).toBeCloseTo(10, 9);
+    expect(sampleOnGrid(span.start + braking).accel).toBeCloseTo(2.5, 9);
+    expect(sampleOnGrid(span.start + braking).speed).toBeGreaterThan(9.7);
   });
 
   test('a leg too short to cruise has its two phase marks at the same instant', () => {
@@ -132,17 +158,35 @@ describe('viewSpan · Tramo', () => {
       ...DRONE_ROUTE,
       stops: [DRONE_ROUTE.stops[0], { name: 'A', x: 20, y: 0, dwell: 5 }],
     };
-    const span = viewSpan(routeSchedule(short), DEFAULT_SELECTION);
+    const span = viewSpan(routeSchedule(short), DEFAULT_SELECTION, STEP);
     const [, accelerated, braking] = span.markers.map((marker) => marker.t);
 
-    expect(accelerated).toBeCloseTo(braking, 9);
+    expect(Math.abs(accelerated - braking)).toBeLessThanOrEqual(STEP + 1e-9);
     expect(normalizeMarkers(span.markers, span.duration)).toHaveLength(4);
   });
 
-  test('an out-of-range leg falls back to the last one', () => {
-    const span = viewSpan(SCHEDULE, { view: 'tramo', leg: 99 });
+  test('the last leg ends where the route ends, not on the sample after it', () => {
+    const last = viewSpan(SCHEDULE, { view: 'tramo', leg: 3 }, STEP);
 
-    expect(span.start).toBe(SCHEDULE.at(-1)?.departure);
+    expect(last.start + last.duration).toBeCloseTo(RUTA.duration, 9);
+  });
+
+  test('an out-of-range leg falls back to the last one', () => {
+    const span = viewSpan(SCHEDULE, { view: 'tramo', leg: 99 }, STEP);
+    const { departure } = SCHEDULE[SCHEDULE.length - 1];
+
+    expect(span.start).toBeLessThanOrEqual(departure + 1e-9);
+    expect(span.start).toBeGreaterThan(departure - STEP);
+  });
+
+  test('without a sample step the marks are the model instants themselves', () => {
+    const span = viewSpan(SCHEDULE, DEFAULT_SELECTION);
+
+    expect(span.markers.at(-1)?.t).toBe(SCHEDULE[0].arrival);
+    expect(viewSpan(SCHEDULE, { view: 'ruta', leg: 0 }).markers.map((m) => m.t)).toEqual([
+      0,
+      ...SCHEDULE.map((leg) => leg.arrival),
+    ]);
   });
 });
 
@@ -162,7 +206,7 @@ describe('legAtTime', () => {
 });
 
 describe('localTime and openingTime', () => {
-  const second = viewSpan(SCHEDULE, { view: 'tramo', leg: 1 });
+  const second = viewSpan(SCHEDULE, { view: 'tramo', leg: 1 }, STEP);
 
   test('localTime is the route time on the span own clock, held inside it', () => {
     expect(localTime(second, second.start + 12)).toBeCloseTo(12, 9);
@@ -172,7 +216,7 @@ describe('localTime and openingTime', () => {
   });
 
   test('openingTime shows the drone cruising: 30 s in, or the middle of a short leg', () => {
-    expect(openingTime(viewSpan(SCHEDULE, DEFAULT_SELECTION))).toBe(30);
+    expect(openingTime(viewSpan(SCHEDULE, DEFAULT_SELECTION, STEP))).toBe(30);
     expect(openingTime({ ...second, duration: 20 })).toBe(10);
   });
 });
@@ -187,14 +231,17 @@ describe('legOptionLabel and viewNote', () => {
     ]);
   });
 
-  test('Tramo says when the leg departs on the route and how long it lasts', () => {
-    const note = viewNote(SCHEDULE, { view: 'tramo', leg: 1 }).replace(/\s/g, ' ');
+  test('Tramo says when the leg departs on the route and how long it lasts: the clock the lab runs', () => {
+    const selection = { view: 'tramo', leg: 1 } as const;
+    const note = viewNote(viewSpan(SCHEDULE, selection, STEP), selection).replace(/\s/g, ' ');
 
-    expect(note).toBe('Sale en t = 87,2 s de la ruta y dura 71,1 s.');
+    expect(note).toBe('Sale en t = 87,2 s de la ruta y dura 71,2 s.');
   });
 
   test('Ruta says how long the whole route lasts', () => {
-    expect(viewNote(SCHEDULE, { view: 'ruta', leg: 0 }).replace(/\s/g, ' ')).toBe(
+    const selection = { view: 'ruta', leg: 0 } as const;
+
+    expect(viewNote(viewSpan(SCHEDULE, selection, STEP), selection).replace(/\s/g, ' ')).toBe(
       'La ruta entera dura 387,4 s.',
     );
   });

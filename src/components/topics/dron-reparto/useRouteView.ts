@@ -40,7 +40,7 @@ export interface RouteViewState {
 export function useRouteView(definition: RouteDefinition): RouteViewState {
   const schedule = useMemo(() => routeSchedule(definition), [definition]);
   const [selection, setSelection] = useState<ViewSelection>(DEFAULT_SELECTION);
-  const span = useMemo(() => viewSpan(schedule, selection), [schedule, selection]);
+  const span = useMemo(() => viewSpan(schedule, selection, definition.dt), [schedule, selection]);
   const clock = useSimClock(span.duration, { timeScale: span.timeScale });
   const { seek } = clock;
   /**
@@ -56,7 +56,7 @@ export function useRouteView(definition: RouteDefinition): RouteViewState {
 
   const routeNow = () => span.start + clock.frame.get();
   const moveTo = (next: ViewSelection) => {
-    pendingSeek.current = localTime(viewSpan(schedule, next), routeNow());
+    pendingSeek.current = localTime(viewSpan(schedule, next, definition.dt), routeNow());
     setSelection(next);
   };
   const setView = (view: RouteView) => {
@@ -64,7 +64,7 @@ export function useRouteView(definition: RouteDefinition): RouteViewState {
     moveTo({ view, leg: legAtTime(schedule, routeNow()) });
   };
   const setLeg = (leg: number) => {
-    pendingSeek.current = openingTime(viewSpan(schedule, { view: 'tramo', leg }));
+    pendingSeek.current = openingTime(viewSpan(schedule, { view: 'tramo', leg }, definition.dt));
     setSelection({ view: 'tramo', leg });
   };
 

@@ -38,6 +38,9 @@ export const DEFAULT_SELECTION: ViewSelection = { view: 'tramo', leg: 0 };
 /** Cruising on leg 1, halfway to A: clear of every stop, with v and a visible. */
 const OPENING_TIME_S = 30;
 const DEPOT_NAME = 'Depósito';
+/** Slack so that an instant a hair past a grid instant does not jump a whole step. */
+const GRID_EPSILON = 1e-9;
+const TIME_DECIMALS = 6;
 
 const isDepot = ({ name }: RouteStop) => name === DEPOT_NAME;
 const fromText = (stop: RouteStop) => (isDepot(stop) ? 'del depósito' : `de ${stop.name}`);
@@ -53,43 +56,72 @@ const arrivalMark = (t: number, to: RouteStop): TransportMarker => ({
   label: `Llegada ${toText(to)}`,
 });
 
+/**
+ * The flight is sampled every `step` s, and the laboratory reads it by interpolating the samples:
+ * only on a sample are its readings exact. Where the acceleration jumps (a departure, the end of
+ * the acceleration, the start of braking, an arrival) an instant between two samples reads a
+ * blend of both sides, such as 2 m/s² at a stop. So an event is placed on the sample that follows
+ * it (a step at most later than the model's instant), and a leg starts on the one before its
+ * departure (the drone at rest, in its dwell); none goes past the route's own end. Without a
+ * `step` the instants are the model's.
+ */
+function gridAfter(t: number, step: number): number {
+  if (!(step > 0)) return t;
+  return Number((Math.ceil(t / step - GRID_EPSILON) * step).toFixed(TIME_DECIMALS));
+}
+
+function gridBefore(t: number, step: number): number {
+  if (!(step > 0)) return t;
+  return Number((Math.floor(t / step + GRID_EPSILON) * step).toFixed(TIME_DECIMALS));
+}
+
 /** «Ruta»: the departure from the depot and the arrival at every stop, on the route's clock. */
-function routeSpan(schedule: readonly LegSchedule[]): ViewSpan {
-  const [first] = schedule;
+function routeSpan(schedule: readonly LegSchedule[], step: number): ViewSpan {
+  const duration = schedule[schedule.length - 1].end;
   return {
     start: 0,
-    duration: schedule[schedule.length - 1].end,
+    duration,
     timeScale: ROUTE_TIME_LAPSE,
     markers: [
-      departureMark(0, first.from),
-      ...schedule.map((leg) => arrivalMark(leg.arrival, leg.to)),
+      departureMark(0, schedule[0].from),
+      ...schedule.map((leg) =>
+        arrivalMark(Math.min(gridAfter(leg.arrival, step), duration), leg.to),
+      ),
     ],
   };
 }
 
 /**
- * «Tramo»: the flight from `departure` to `arrival` on its own clock (0 at the departure), with
- * the instants the acceleration ends and the braking starts between the two stops.
+ * «Tramo»: the flight from just before `departure` to just after `arrival` on its own clock (0 at
+ * the start), with the instants the acceleration ends and the braking starts between the two
+ * stops.
  */
-function legSpan(leg: LegSchedule): ViewSpan {
-  const flight = leg.arrival - leg.departure;
+function legSpan(leg: LegSchedule, step: number, routeEnd: number): ViewSpan {
+  const start = gridBefore(leg.departure, step);
+  const on = (t: number) => Math.min(gridAfter(t, step), routeEnd) - start;
+  const duration = on(leg.arrival);
   return {
-    start: leg.departure,
-    duration: flight,
+    start,
+    duration,
     timeScale: LEG_TIME_LAPSE,
     markers: [
       departureMark(0, leg.from),
-      { t: leg.accelDuration, label: 'Fin de la aceleración' },
-      { t: flight - leg.accelDuration, label: 'Inicio del frenado' },
-      arrivalMark(flight, leg.to),
+      { t: on(leg.departure + leg.accelDuration), label: 'Fin de la aceleración' },
+      { t: on(leg.arrival - leg.accelDuration), label: 'Inicio del frenado' },
+      arrivalMark(duration, leg.to),
     ],
   };
 }
 
-/** The span of a selection; a leg out of range is the last one. */
-export function viewSpan(schedule: readonly LegSchedule[], { view, leg }: ViewSelection): ViewSpan {
-  if (view === 'ruta') return routeSpan(schedule);
-  return legSpan(schedule[Math.min(Math.max(leg, 0), schedule.length - 1)]);
+/** The span of a selection, its events placed on the flight's samples `step` s apart. */
+export function viewSpan(
+  schedule: readonly LegSchedule[],
+  { view, leg }: ViewSelection,
+  step = 0,
+): ViewSpan {
+  if (view === 'ruta') return routeSpan(schedule, step);
+  const routeEnd = schedule[schedule.length - 1].end;
+  return legSpan(schedule[Math.min(Math.max(leg, 0), schedule.length - 1)], step, routeEnd);
 }
 
 /** The leg the drone is on at route time t: during a dwell, the one that just arrived. */
@@ -114,11 +146,8 @@ export function legOptionLabel({ from, to }: LegSchedule): string {
   return `${lead.toUpperCase()}${rest.join('')}`;
 }
 
-/** What the selected view covers, in the route's own seconds. */
-export function viewNote(schedule: readonly LegSchedule[], { view, leg }: ViewSelection): string {
-  if (view === 'ruta') {
-    return `La ruta entera dura ${seconds(schedule[schedule.length - 1].end)}.`;
-  }
-  const { departure, arrival } = schedule[Math.min(Math.max(leg, 0), schedule.length - 1)];
-  return `Sale en t = ${seconds(departure)} de la ruta y dura ${seconds(arrival - departure)}.`;
+/** What the selected view covers, in the route's own seconds: the clock the laboratory runs. */
+export function viewNote(span: ViewSpan, { view }: ViewSelection): string {
+  if (view === 'ruta') return `La ruta entera dura ${seconds(span.duration)}.`;
+  return `Sale en t = ${seconds(span.start)} de la ruta y dura ${seconds(span.duration)}.`;
 }

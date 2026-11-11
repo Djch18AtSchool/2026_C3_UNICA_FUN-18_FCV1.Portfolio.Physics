@@ -206,6 +206,7 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
             <RouteViewFields
               selection={routeView.selection}
               schedule={routeView.schedule}
+              span={span}
               onView={routeView.setView}
               onLeg={routeView.setLeg}
             />

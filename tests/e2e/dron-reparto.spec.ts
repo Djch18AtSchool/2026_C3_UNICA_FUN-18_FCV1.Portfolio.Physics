@@ -274,7 +274,7 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
     );
     expect(box?.y ?? 0).toBeGreaterThanOrEqual(map?.y ?? Infinity);
     await expect(page.getByTestId('drone-view-note')).toHaveText(
-      /Sale en t = 0,0\s*s de la ruta y dura 67,2\s*s\./,
+      /Sale en t = 0,0\s*s de la ruta y dura 67,3\s*s\./,
     );
   });
 
@@ -331,6 +331,7 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
       // The mark is the instant the drone is on the stop (the 0,1 s samples leave it a hair off).
       expect(await readoutText(page, 'Posición x')).toBe(STOP_POSITIONS[stop].x);
       expect(await readoutText(page, 'Posición y')).toBe(STOP_POSITIONS[stop].y);
+      if (stop !== 'Depósito') expect(await readoutText(page, 'Aceleración |a|')).toBe('0,00 m/s²');
       await expect(page.locator(LAB).getByRole('status').filter({ hasText: arrival })).toHaveCount(
         1,
       );
@@ -352,12 +353,13 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
     await next.focus();
     const heard: string[] = [];
     const phase = page.locator(`${LAB} [data-lab-canvas-notes] p`, { hasText: 'Fase:' });
-    const phases: string[] = [];
+    // Each mark is a sample of the flight, so it reads the phase it names, with no blend.
+    const phases = ['crucero', 'frenando', 'detenido en un vértice'];
 
     for (let i = 0; i < TRAMO_MARKS - 1; i += 1) {
       await page.keyboard.press('Enter');
+      await expect(phase).toContainText(phases[i]);
       heard.push((await timelineOf(page).getAttribute('aria-valuetext')) ?? '');
-      phases.push((await phase.textContent()) ?? '');
     }
 
     expect(heard.map((text) => text.replace(/^.* · /u, ''))).toEqual([
@@ -365,9 +367,6 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
       'Inicio del frenado',
       'Llegada a A',
     ]);
-    // Where the acceleration jumps the 0,1 s samples are interpolated, so a mark reads the phase
-    // on one side of it or the other; at the start of braking, a force against the velocity.
-    expect(phases[1]).toContain('frenando');
   });
 
   test('cambiar de tramo abre el nuevo en crucero y dice cuándo sale en la ruta', async ({
@@ -378,13 +377,13 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
     await leg.selectOption({ label: 'De B a C' });
 
     await expect(page.getByTestId('drone-view-note')).toHaveText(
-      /Sale en t = 178,3\s*s de la ruta y dura 71,1\s*s\./,
+      /Sale en t = 178,3\s*s de la ruta y dura 71,2\s*s\./,
     );
     await expect(
       page.locator(`${LAB} [data-lab-canvas-notes] p`, { hasText: 'Fase:' }),
     ).toContainText('crucero');
     await expect(marksOf(page)).toHaveCount(TRAMO_MARKS);
-    expect(await readoutText(page, 'Instante en la ruta')).toBe('208,33 s');
+    expect(await readoutText(page, 'Instante en la ruta')).toBe('208,30 s');
   });
 
   test('las flechas del teclado cambian la vista y el dron queda dentro del tramo', async ({

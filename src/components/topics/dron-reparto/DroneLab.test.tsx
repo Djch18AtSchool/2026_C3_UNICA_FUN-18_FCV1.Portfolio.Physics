@@ -366,7 +366,7 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
       expect(marks()).toBe(4);
       expect(badge()).toBe('×1 velocidad real');
       expect(screen.getByTestId('drone-view-note')).toHaveTextContent(
-        'Sale en t = 0,0 s de la ruta y dura 67,2 s.',
+        'Sale en t = 0,0 s de la ruta y dura 67,3 s.',
       );
       expect(screen.getByTestId('route-map').closest('.relative')).toContainElement(
         document.querySelector('[data-time-scale-badge]') as HTMLElement,
@@ -403,9 +403,11 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
 
       await nextEvent();
 
-      expect(readout('Instante en la ruta')).toBe('67,25 s');
-      // The 0,1 s samples are interpolated, so a stop reads under a·dt/2 = 0,125 m/s, not 0.
-      expect(readout('Rapidez |v|')).toMatch(/^0,0\d m\/s$/);
+      expect(readout('Instante en la ruta')).toBe('67,30 s');
+      // The mark is a sample of the flight, so the stop reads exactly at rest.
+      expect(readout('Rapidez |v|')).toBe('0,00 m/s');
+      expect(readout('Aceleración |a|')).toBe('0,00 m/s²');
+      expect(mathSourceText(screen.getByTestId('drone-lab'))).toContain('detenido en un vértice');
       expect(readout('Posición x')).toBe('600,00 m');
       expect(readout('Posición y')).toBe('200,00 m');
     });
@@ -422,8 +424,8 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
 
       expect(times).toEqual([
         't = 4,00 s · Fin de la aceleración',
-        't = 63,25 s · Inicio del frenado',
-        't = 67,25 s · Llegada a A',
+        't = 63,30 s · Inicio del frenado',
+        't = 67,30 s · Llegada a A',
       ]);
     });
 
@@ -448,7 +450,7 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
       });
 
       expect(valueText(timeline())).toBe('t = 30,0 s');
-      expect(readout('Instante en la ruta')).toBe('299,41 s');
+      expect(readout('Instante en la ruta')).toBe('299,40 s');
       expect(screen.getByTestId('drone-view-note')).toHaveTextContent(
         'Sale en t = 269,4 s de la ruta y dura 118,0 s.',
       );
@@ -473,14 +475,14 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
       const drone = screen.getByTestId('drone-marker');
 
       expect([drone.getAttribute('aria-valuemin'), drone.getAttribute('aria-valuemax')]).toEqual([
-        '87.24555320336759',
-        '158.3275925283613',
+        '87.2',
+        '158.4',
       ]);
       drone.focus();
       await userEvent.keyboard('{End}');
-      expect(readout('Instante en la ruta')).toBe('158,33 s');
+      expect(readout('Instante en la ruta')).toBe('158,40 s');
       await userEvent.keyboard('{Home}');
-      expect(readout('Instante en la ruta')).toBe('87,25 s');
+      expect(readout('Instante en la ruta')).toBe('87,20 s');
     });
 
     test('an edited route moves the marks with it: the model, not a list, says when it arrives', async () => {
