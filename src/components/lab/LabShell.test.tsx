@@ -182,34 +182,15 @@ describe('LabShell', () => {
     expect(screen.getByRole('button', { name: 'Evento siguiente' })).toBeInTheDocument();
   });
 
-  test('a transport with events reserves its two rows under a focused canvas control', () => {
-    const { container, rerender } = renderShell({ clock: fakeClock({ duration: 1369 }) });
-    const stage = () => container.querySelector<HTMLElement>('[data-lab-stage]');
-    expect(stage()?.style.getPropertyValue('--lab-transport-room')).toBe('');
-
-    rerender(
-      <LabShell
-        {...shellProps({
-          clock: fakeClock({ duration: 1369 }),
-          markers: [{ t: 312, label: 'Detención' }],
-        })}
-      />,
-    );
-
-    expect(stage()?.style.getPropertyValue('--lab-transport-room')).toBe(
-      'calc(2 * 2.75rem + 0.75rem + 2 * 0.75rem + 1px)',
-    );
-  });
-
-  test('markers that none fall in the run leave the plain transport and its room', () => {
+  test('markers that none fall in the run leave the plain transport', () => {
     const { container } = renderShell({
       clock: fakeClock({ duration: 10 }),
       markers: [{ t: 312, label: 'Detención' }],
     });
 
     expect(screen.queryByRole('button', { name: 'Evento siguiente' })).toBeNull();
-    const stage = container.querySelector<HTMLElement>('[data-lab-stage]');
-    expect(stage?.style.getPropertyValue('--lab-transport-room')).toBe('');
+    // global.css gives the stage the two rows' room only over [data-transport-events].
+    expect(container.querySelector('[data-transport-events]')).toBeNull();
   });
 
   test('readouts are keyed by id, so two may share a label', () => {

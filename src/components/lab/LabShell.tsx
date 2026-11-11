@@ -29,7 +29,7 @@
  * the canvas notes take the row under both, the disclosures follow. The shell owns only whether
  * the drawer is open; the simulation state belongs to the laboratory.
  */
-import { useId, type CSSProperties, type JSX, type ReactNode } from 'react';
+import { useId, type JSX, type ReactNode } from 'react';
 import Readout from '../controls/Readout';
 import { useFitsInWindow } from '../hooks/useFitsInWindow';
 import { CANVAS_BLEED } from './canvasInset';
@@ -50,7 +50,6 @@ import type { LabLevels, LabReadout, LabShellProps } from './labShellTypes';
 import SettingsDrawer from './SettingsDrawer';
 import { settingChips } from './settingChips';
 import TransportBar from './TransportBar';
-import { normalizeMarkers } from './transportMarkers';
 
 export { READOUT_ANNOUNCE_DELAY_MS } from './labShellParts';
 export type { LabLevels, LabReadout, LabShellProps } from './labShellTypes';
@@ -65,16 +64,13 @@ export const STAGE =
   'flex flex-col gap-4 lab-split:data-[lab-stage-fits=true]:sticky lab-split:data-[lab-stage-fits=true]:top-(--topic-bar-clearance)';
 /**
  * Over a stage taller than the window, the transport waits at the window's bottom. Its height (the
- * 44 px buttons of TransportBar, py-3 and the 1 px rule) is copied in --lab-transport-room
- * (global.css): change both together (lab-shell.spec.ts fails when they drift).
+ * 44 px buttons of TransportBar, py-3 and the 1 px rule; a second row with events) is copied once,
+ * in --lab-transport-room and --lab-transport-room-events (global.css, which also switches the
+ * stage to the second): change them together (lab-shell.spec.ts and time-scale.spec.ts fail when
+ * they drift).
  */
 const TRANSPORT =
   'lab-split:sticky lab-split:bottom-0 lab-split:z-10 lab-split:border-t lab-split:border-border lab-split:bg-bg-elevated lab-split:py-3';
-/**
- * A transport with events (`markers`) has two rows of 44 px buttons, 12 px apart: the stage
- * overrides --lab-transport-room with this height (lab-shell.spec.ts measures it too).
- */
-const TRANSPORT_ROOM_WITH_EVENTS = 'calc(2 * 2.75rem + 0.75rem + 2 * 0.75rem + 1px)';
 /**
  * In a narrow lab the canvas bleeds into the card's padding (canvasInset.ts). In two columns,
  * whatever in it takes focus keeps the pinned transport's room below it (WCAG 2.4.11):
@@ -199,14 +195,6 @@ function Panel({ levels, readouts, onReset }: PanelProps): JSX.Element {
   );
 }
 
-/** The stage's room for a pinned transport with two rows, when its events show. */
-function transportRoom(clock: LabShellProps['clock'], markers: LabShellProps['markers']) {
-  if (!clock || !markers || normalizeMarkers(markers, clock.state.duration).length === 0) {
-    return undefined;
-  }
-  return { '--lab-transport-room': TRANSPORT_ROOM_WITH_EVENTS } as CSSProperties;
-}
-
 /** The stage, in its cell: the canvas, then the transport when the lab has a clock. */
 function Stage({
   clock,
@@ -221,7 +209,6 @@ function Stage({
         ref={ref}
         data-lab-stage=""
         data-lab-stage-fits={fits === undefined ? undefined : String(fits)}
-        style={transportRoom(clock, markers)}
         className={STAGE}
       >
         <div data-lab-canvas="" className={CANVAS}>
