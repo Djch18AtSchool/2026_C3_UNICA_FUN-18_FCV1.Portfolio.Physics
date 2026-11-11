@@ -1,21 +1,23 @@
-import type { JSX } from 'react';
+import { useMemo, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import type { CycleSample } from '../../../lib/physics/energy';
-import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY, TICK_FONT_SIZE } from '../../charts/chartTheme';
+import { TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import type { FrameStore } from '../../lab/frameStore';
 import { useFrameDerived } from '../../lab/useFrameTime';
 import type { Stretch } from './regenStretch';
 
 /**
- * The strip's rows (px, from its top): the labels' baseline, the top speed's line, the rest
- * baseline, and the strip's foot where the stop marks end; the band is at least `bandMin` wide.
+ * The strip (px): a 16 px row of HTML labels over a 32 px drawing, 48 px in all. In the drawing,
+ * from its top: the top speed's line, the rest baseline, and its foot where the stop marks end;
+ * the band is at least `bandMin` wide.
  */
 export const MINIMAP = {
   height: 48,
-  labelBaseline: 12,
-  curveTop: 16,
-  baseline: 40,
+  labelRow: 16,
+  drawing: 32,
+  curveTop: 4,
+  baseline: 24,
   bandMin: 4,
 } as const;
 
@@ -23,12 +25,17 @@ export const MINIMAP = {
 const EDGE = 1;
 /** viewBox width before the container is measured (SSR, jsdom): the article column. */
 const FALLBACK_WIDTH = 720;
-const CURVE_WIDTH = 1.5;
+const CURVE_WIDTH = 1;
 const MARK_WIDTH = 2;
 const BAND_OPACITY = 0.16;
 const ACCENT = 'var(--accent)';
 /** Decimals of the drawn coordinates: a short, stable path. */
 const PX_DECIMALS = 2;
+/**
+ * Strokes keep their width whatever the scaling: with preserveAspectRatio="none" the server's
+ * 720-wide drawing stretches to the box until the width is measured, lines unchanged.
+ */
+const STROKE = { vectorEffect: 'non-scaling-stroke' } as const;
 
 const px = (value: number) => Number(value.toFixed(PX_DECIMALS));
 
@@ -63,9 +70,12 @@ export interface CycleMinimapProps {
 }
 
 const seconds = (t: number) => formatNumber(t, { precision: 0, unit: 's' });
+const stopsText = (count: number) => `${count} ${count === 1 ? 'detención' : 'detenciones'}`;
+const stretchText = ({ start, end }: Stretch) =>
+  `${formatNumber(start, { precision: 0 })}–${seconds(end)}`;
 
 function describeMap({ samples, stops, stretch, cycleName }: CycleMinimapProps): string {
-  const cycle = `Velocidad en el ciclo ${cycleName}: ${seconds(samples[samples.length - 1].t)} y ${stops.length} detenciones`;
+  const cycle = `Velocidad en el ciclo ${cycleName}: ${seconds(samples[samples.length - 1].t)} y ${stopsText(stops.length)}`;
   if (!stretch) return `${cycle}.`;
   return `${cycle}; el tramo va de ${formatNumber(stretch.start, { precision: 0 })} a ${seconds(stretch.end)}.`;
 }
@@ -79,9 +89,10 @@ function Playhead({ live, x }: { live: MinimapLive; x: (t: number) => number }):
       x1={cx}
       x2={cx}
       y1={MINIMAP.curveTop}
-      y2={MINIMAP.height}
+      y2={MINIMAP.drawing}
       stroke={ACCENT}
       strokeWidth={MARK_WIDTH}
+      style={STROKE}
     />
   );
 }
@@ -94,78 +105,90 @@ function StretchBand({ stretch, x }: { stretch: Stretch; x: (t: number) => numbe
     <rect
       data-stretch=""
       x={px((from + to) / 2 - width / 2)}
-      y={MINIMAP.curveTop}
+      y={0}
       width={px(width)}
-      height={MINIMAP.height - MINIMAP.curveTop}
+      height={MINIMAP.drawing}
       fill={ACCENT}
       fillOpacity={BAND_OPACITY}
       stroke={ACCENT}
       strokeWidth={1}
+      style={STROKE}
     />
+  );
+}
+
+/** The drawing: band, baseline, v(t), the stop marks and the playhead, at `width` px. */
+function MinimapDrawing({
+  samples,
+  stops,
+  stretch,
+  live,
+  width,
+}: CycleMinimapProps & { width: number }) {
+  const x = minimapX(samples[samples.length - 1].t, width);
+  const path = useMemo(() => speedPath(samples, width), [samples, width]);
+  return (
+    <>
+      {stretch ? <StretchBand stretch={stretch} x={x} /> : null}
+      <line
+        x1={x(0)}
+        x2={width - EDGE}
+        y1={MINIMAP.baseline}
+        y2={MINIMAP.baseline}
+        stroke={TICK_COLOR}
+        strokeWidth={1}
+        style={STROKE}
+      />
+      <path d={path} fill="none" stroke={TEXT_COLOR} strokeWidth={CURVE_WIDTH} style={STROKE} />
+      {stops.map((t) => (
+        <line
+          key={t}
+          data-stop=""
+          x1={x(t)}
+          x2={x(t)}
+          y1={MINIMAP.baseline}
+          y2={MINIMAP.drawing}
+          stroke={TICK_COLOR}
+          strokeWidth={MARK_WIDTH}
+          style={STROKE}
+        />
+      ))}
+      <Playhead live={live} x={x} />
+    </>
   );
 }
 
 /**
  * A small map of the whole cycle above the scene: v(t), a mark under the curve at each stop, the
  * stretch the view «Tramo» plays as a band, and a playhead at the live time. Not interactive: the
- * transport's event buttons move between the stops. Drawn at its measured width and a fixed 48 px
- * height, so the server's box is the final one.
+ * transport's event buttons move between the stops. Its labels are HTML (they read at their size
+ * before hydration); the drawing fills its box until it measures its width, at a fixed height, so
+ * the server's box is the final one.
  */
 export default function CycleMinimap(props: CycleMinimapProps): JSX.Element {
-  const { samples, stops, stretch, cycleName, live } = props;
+  const { stretch, cycleName } = props;
   const [ref, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
-  const x = minimapX(samples[samples.length - 1].t, width);
-  const label = {
-    fontFamily: TICK_FONT_FAMILY,
-    fontSize: TICK_FONT_SIZE,
-    fill: TICK_COLOR,
-  } as const;
   return (
-    <div ref={ref} data-testid="regen-minimap" className="w-full">
+    <div ref={ref} data-testid="regen-minimap" className="flex w-full flex-col">
+      <p
+        aria-hidden="true"
+        // In px, like the drawing: the strip is 48 px at any root size.
+        style={{ height: MINIMAP.labelRow }}
+        className="m-0 flex items-center justify-between gap-2 font-mono text-xs leading-none text-fg-muted"
+      >
+        <span>{`Velocidad del ${cycleName}`}</span>
+        {stretch ? <span>{`Tramo ${stretchText(stretch)}`}</span> : null}
+      </p>
       <svg
-        viewBox={`0 0 ${width} ${MINIMAP.height}`}
+        viewBox={`0 0 ${width} ${MINIMAP.drawing}`}
         width="100%"
-        height={MINIMAP.height}
+        height={MINIMAP.drawing}
+        preserveAspectRatio="none"
         role="img"
         aria-label={describeMap(props)}
         className="block"
       >
-        <text x={0} y={MINIMAP.labelBaseline} {...label}>
-          {`Velocidad del ${cycleName}`}
-        </text>
-        {stretch ? (
-          <text x={width} y={MINIMAP.labelBaseline} textAnchor="end" {...label}>
-            {`Tramo ${formatNumber(stretch.start, { precision: 0 })}–${seconds(stretch.end)}`}
-          </text>
-        ) : null}
-        {stretch ? <StretchBand stretch={stretch} x={x} /> : null}
-        <line
-          x1={x(0)}
-          x2={width - EDGE}
-          y1={MINIMAP.baseline}
-          y2={MINIMAP.baseline}
-          stroke={TICK_COLOR}
-          strokeWidth={1}
-        />
-        <path
-          d={speedPath(samples, width)}
-          fill="none"
-          stroke={TEXT_COLOR}
-          strokeWidth={CURVE_WIDTH}
-        />
-        {stops.map((t) => (
-          <line
-            key={t}
-            data-stop=""
-            x1={x(t)}
-            x2={x(t)}
-            y1={MINIMAP.baseline}
-            y2={MINIMAP.height}
-            stroke={TICK_COLOR}
-            strokeWidth={MARK_WIDTH}
-          />
-        ))}
-        <Playhead live={live} x={x} />
+        <MinimapDrawing {...props} width={width} />
       </svg>
     </div>
   );

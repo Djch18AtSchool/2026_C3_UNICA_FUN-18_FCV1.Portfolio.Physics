@@ -75,8 +75,9 @@ describe('minimap geometry', () => {
     expect(Math.max(...ys)).toBe(MINIMAP.baseline);
   });
 
-  test('the strip is 48 px high, on the 4/8 scale', () => {
+  test('the strip is 48 px high, labels and drawing, on the 4/8 scale', () => {
     expect(MINIMAP.height).toBe(48);
+    expect(MINIMAP.labelRow + MINIMAP.drawing).toBe(MINIMAP.height);
     for (const value of Object.values(MINIMAP)) expect(value % 4).toBe(0);
   });
 });
@@ -93,6 +94,20 @@ describe('CycleMinimap', () => {
     expect(imageName()).toBe(
       'Velocidad en el ciclo UDDS: 1 369 s y 17 detenciones; el tramo va de 376 a 402 s.',
     );
+  });
+
+  test('one stop is «1 detención», singular', () => {
+    const frame = createFrameStore();
+    render(
+      <CycleMinimap
+        samples={DRIVE_CYCLES.hwfet.samples}
+        stops={cycleStops(DRIVE_CYCLES.hwfet.samples)}
+        cycleName="HWFET"
+        live={{ frame, toCycle: (t) => t }}
+      />,
+    );
+
+    expect(imageName()).toBe('Velocidad en el ciclo HWFET: 765 s y 1 detención.');
   });
 
   test('without a stretch (the whole cycle) it names no stretch and draws no band', () => {
@@ -124,7 +139,9 @@ describe('CycleMinimap', () => {
 
     expect(left + width / 2).toBeCloseTo((x(376) + x(402)) / 2, 6);
     expect(width).toBeGreaterThanOrEqual(4);
-    expect(svg().textContent?.replace(/\u202f/g, ' ')).toContain('Tramo 376–402 s');
+    expect(screen.getByTestId('regen-minimap').textContent?.replace(/\u202f/g, ' ')).toContain(
+      'Tramo 376–402 s',
+    );
   });
 
   test('the playhead follows the live clock of the view, in the cycle’s time', () => {
@@ -141,8 +158,23 @@ describe('CycleMinimap', () => {
     stubWidth(WIDTH);
     renderMap();
 
-    expect(svg().getAttribute('viewBox')).toBe(`0 0 ${WIDTH} 48`);
-    expect(svg().getAttribute('height')).toBe('48');
+    expect(svg().getAttribute('viewBox')).toBe(`0 0 ${WIDTH} 32`);
+    expect(svg().getAttribute('height')).toBe('32');
+  });
+
+  test('before it measures, the drawing fills its box and its labels are HTML at their own size', () => {
+    renderMap();
+    const labels = screen.getByTestId('regen-minimap').querySelector('p') as HTMLElement;
+
+    expect(svg().getAttribute('viewBox')).toBe('0 0 720 32');
+    expect(svg().getAttribute('preserveAspectRatio')).toBe('none');
+    expect(svg().querySelector('text')).toBeNull();
+    expect(labels).toHaveAttribute('aria-hidden', 'true');
+    expect(labels.style.height).toBe('16px');
+    expect(labels).toHaveTextContent('Velocidad del UDDS');
+    for (const line of svg().querySelectorAll('line, path, rect')) {
+      expect((line as SVGElement).style.vectorEffect).toBe('non-scaling-stroke');
+    }
   });
 
   test('every character it prints is one IBM Plex draws', () => {
