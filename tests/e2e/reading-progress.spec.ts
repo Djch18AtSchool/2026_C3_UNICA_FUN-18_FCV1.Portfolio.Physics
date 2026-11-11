@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 const TOPIC = './temas/salto-personaje/';
 const BAR = '[data-reading-progress]';
-const BAR_HEIGHT_PX = 3;
+const BAR_HEIGHT_PX = 4;
 const DESKTOP = { width: 1280, height: 800 };
 const PHONE = { width: 390, height: 844 };
 /** Subpixel rounding of the last scroll step. */
