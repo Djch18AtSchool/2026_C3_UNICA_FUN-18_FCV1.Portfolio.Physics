@@ -9,7 +9,7 @@ export default getViteConfig({
     setupFiles: ['./src/test-setup.ts'],
     coverage: {
       provider: 'v8',
-      include: ['src/lib/**', 'src/components/**'],
+      include: ['src/lib/**', 'src/components/**', 'src/styles/**/*.ts'],
       // Astro components render only at build time (checked by the build and e2e); test kits
       // are fixtures.
       exclude: ['src/**/*.test.*', 'src/**/*.astro', 'src/**/*TestKit.ts'],
@@ -17,6 +17,8 @@ export default getViteConfig({
       thresholds: {
         'src/lib/**': { lines: 80, functions: 80, branches: 80, statements: 80 },
         'src/components/**': { lines: 80, statements: 80 },
+        // The scale's scanner (scale.test.ts): what guards the measurement scale is guarded too.
+        'src/styles/**/*.ts': { lines: 80, functions: 80, branches: 80, statements: 80 },
       },
     },
   },
