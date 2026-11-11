@@ -5,10 +5,13 @@ import type { SettingOption } from '../../lab/SettingsDrawer';
 import type { SimClock } from '../../lab/useSimClock';
 import type { RegenView } from './regenStretch';
 
-/** The two views, named by what they show (never by a factor: the badge on the canvas says it). */
+/**
+ * The two views, named by what they show (never by a factor: the badge on the canvas says it).
+ * Their chip says «Ciclo completo», not «Ciclo», so it never reads as the drive cycle's chip.
+ */
 export const VIEW_OPTIONS: readonly { value: RegenView; label: string; chip: string }[] = [
   { value: 'tramo', label: 'Tramo: una frenada', chip: 'Tramo' },
-  { value: 'ciclo', label: 'Ciclo completo', chip: 'Ciclo' },
+  { value: 'ciclo', label: 'Ciclo completo', chip: 'Ciclo completo' },
 ];
 
 /** The three EPA schedules, named by the driving they stand for. */

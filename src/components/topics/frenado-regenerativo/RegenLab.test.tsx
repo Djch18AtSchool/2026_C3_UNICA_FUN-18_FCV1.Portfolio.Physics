@@ -32,6 +32,13 @@ const BATTERY = 'Energía a la batería $E_\\text{batería}$';
 const FRICTION = 'Calor de fricción $E_\\text{fricción}$';
 const LOSS = 'Pérdidas de conversión $E_\\text{conversión}$';
 const RECOVERED = 'Recuperado, % de la tracción';
+/** The same readouts in «Tramo»: the stretch's, from its start. */
+const STRETCH_BATTERY = 'Energía a la batería en el tramo $E_\\text{batería}$';
+const STRETCH_FRICTION = 'Calor de fricción en el tramo $E_\\text{fricción}$';
+const STRETCH_LOSS = 'Pérdidas de conversión en el tramo $E_\\text{conversión}$';
+const STRETCH_RECOVERED = 'Recuperado, % del frenado en las ruedas';
+const STRETCH_BARS = 'Energías acumuladas en el tramo, hasta t';
+const CYCLE_BARS = 'Energías acumuladas hasta t';
 const POWER = 'Potencia en las ruedas P';
 const SPEED = 'Velocidad v';
 
@@ -69,7 +76,7 @@ function chooseView(view: 'tramo' | 'ciclo'): void {
 const showCycle = () => chooseView('ciclo');
 /** Moves the energy cursor to the end of the cycle with the keyboard, in the view «Ciclo». */
 function seekToEnd(): void {
-  if (viewChip().getAttribute('aria-label') !== 'Vista Ciclo') showCycle();
+  if (viewChip().getAttribute('aria-label') !== 'Vista Ciclo completo') showCycle();
   timeCursor().focus();
   fireEvent.keyDown(timeCursor(), { key: 'End' });
 }
@@ -133,11 +140,38 @@ describe('RegenLab', () => {
     expect(timelineText()).toBe('t = 376,00 s');
     expect(readout(SPEED)).toBe('57,94 km/h');
     expect(readout(POWER)).toBe('3,81 kW');
+    // The stretch's own energies: nothing yet at its start (ruling R21).
+    expect(readout(STRETCH_BATTERY)).toBe('0,0 kJ');
+    expect(readout(STRETCH_LOSS)).toBe('0,0 kJ');
+    expect(readout(STRETCH_FRICTION)).toBe('0,0 kJ');
+    expect(readout(STRETCH_RECOVERED)).toBe('0,0 %');
+    expect(presetShown()).toMatch(/^Model 3 · ciudad \(UDDS\)/);
+  });
+
+  test('at the stretch’s end its readouts are figure 6.3’s braking: 168,1 + 42,0 + 13,9 = 224 kJ, 75,0 % recovered', () => {
+    renderLab();
+    scrubTo(1000);
+
+    expect(readout(STRETCH_BATTERY)).toBe('168,1 kJ');
+    expect(readout(STRETCH_LOSS)).toBe('42,0 kJ');
+    expect(readout(STRETCH_FRICTION)).toBe('13,9 kJ');
+    expect(readout(STRETCH_RECOVERED)).toBe('75,0 %');
+    const bars = screen.getByRole('list', { name: STRETCH_BARS });
+    expect(bars.querySelector('[data-energy="eBrake"]')).toHaveTextContent(/224,0\skJ/);
+    expect(screen.getByText(/\(escala de 0 a 250\skJ\)/)).toBeInTheDocument();
+  });
+
+  test('«Ciclo» keeps the cycle’s readouts: at 376 s, 0,173 kWh to the battery and 26,9 % of the traction', () => {
+    renderLab();
+    showCycle();
+
+    expect(timelineText()).toBe('t = 376 s');
     expect(readout(BATTERY)).toBe('0,173 kWh');
     expect(readout(LOSS)).toBe('0,043 kWh');
     expect(readout(FRICTION)).toBe('0,010 kWh');
     expect(readout(RECOVERED)).toBe('26,9 %');
-    expect(presetShown()).toMatch(/^Model 3 · ciudad \(UDDS\)/);
+    expect(screen.getByRole('list', { name: CYCLE_BARS })).toBeInTheDocument();
+    expect(screen.getByText(/\(escala de 0 a 2,0\skWh\)/)).toBeInTheDocument();
   });
 
   test('«Tramo» plays the 26 s of the stretch at real time and declares ×1 on the canvas', () => {
@@ -158,7 +192,7 @@ describe('RegenLab', () => {
     for (const now of [2000, 2050, 2100]) frames.flush(now);
     expect(timelineText()).toBe('t = 402,00 s');
     expect(readout(SPEED)).toBe('0,00 km/h');
-    expect(readout(BATTERY)).toBe('0,220 kWh');
+    expect(readout(STRETCH_BATTERY)).toBe('168,1 kJ');
     expect(lab()).toHaveAttribute('data-playing', 'false');
   });
 
@@ -225,29 +259,43 @@ describe('RegenLab', () => {
     expect(minimap.querySelector('[data-stretch]')).not.toBeNull();
     expect(minimap.querySelectorAll('[data-stop]')).toHaveLength(17);
     expect(road.textContent?.replace(/\s/g, ' ')).toBe('4,59 km4,83 km');
+    // The stretch's road is to scale, the car is not: the note says its length and that.
+    expect(screen.getByTestId('regen-scene').textContent?.replace(/\s/g, ' ')).toContain(
+      '236 m · auto no a escala',
+    );
 
     showCycle();
     expect(road.textContent?.replace(/\s/g, ' ')).toBe('0,00 km11,99 km');
   });
 
-  test('in «Tramo» the energy plot shades the stretch; its cursor seeks in it, and out of it moves to «Ciclo»', () => {
+  test('in «Tramo» the energy plot shades the stretch and its cursor stays in it, reading the cycle’s t as the transport does', () => {
     renderLab();
     const plot = screen.getByTestId('regen-energy-plot');
 
     expect(plot.querySelector('[data-band="Tramo"]')).not.toBeNull();
-    // One «t =» on screen: the transport's, in the cycle's time (timeOrigin).
-    expect(plot.querySelector('[data-cursor] text')).toBeNull();
     timeCursor().focus();
     fireEvent.keyDown(timeCursor(), { key: 'ArrowRight' });
     // 1 % of the cycle, 13,69 s: 389,69 s is still in the stretch.
     expect(timelineText()).toBe('t = 389,69 s');
-    expect(viewChip()).toHaveAccessibleName('Vista Tramo');
+    expect(timeCursor()).toHaveAttribute(
+      'aria-valuetext',
+      timeline().getAttribute('aria-valuetext'),
+    );
 
     fireEvent.keyDown(timeCursor(), { key: 'ArrowRight' });
-    expect(viewChip()).toHaveAccessibleName('Vista Ciclo');
-    expect(timelineText()).toBe('t = 403 s');
+    fireEvent.keyDown(timeCursor(), { key: 'End' });
+    // The view changes only from the drawer: the cursor stops at the stretch's end.
+    expect(viewChip()).toHaveAccessibleName('Vista Tramo');
+    expect(timelineText()).toBe('t = 402,00 s');
+    fireEvent.keyDown(timeCursor(), { key: 'Home' });
+    expect(timelineText()).toBe('t = 376,00 s');
+    expect(plot.querySelector('[data-cursor] text')?.textContent?.replace(/\s/g, ' ')).toBe(
+      't = 376,00 s',
+    );
+
+    showCycle();
     expect(plot.querySelector('[data-band]')).toBeNull();
-    expect(plot.querySelector('[data-cursor] text')).toHaveTextContent(/t = 403\ss/);
+    expect(timeCursor().getAttribute('aria-valuetext')?.replace(/\s/g, ' ')).toBe('t = 376 s');
   });
 
   test('the shell is the tiered one: η and P_máx in Parámetros, the five presets in Escenario, the view in the drawer', () => {
@@ -316,13 +364,12 @@ describe('RegenLab', () => {
     )!;
 
     expect(usage.open || leftOut.open).toBe(false);
-    expect(usage).toHaveTextContent(
-      'La vista se elige en los ajustes: «Tramo» reproduce la frenada',
-    );
+    expect(usage).toHaveTextContent('La vista se elige en los ajustes. «Tramo» es la frenada');
     expect(usage).toHaveTextContent('con 5 s antes y después (en el UDDS, la de la figura 6.3)');
     expect(usage).toHaveTextContent('saltan entre las detenciones');
     expect(usage).toHaveTextContent('Arrastra el cursor de la gráfica de energía');
-    expect(usage).toHaveTextContent('fuera del tramo, la vista pasa a «Ciclo»');
+    expect(usage).toHaveTextContent('en «Tramo» no sale del tramo');
+    expect(usage).toHaveTextContent('sus energías y el porcentaje recuperado son los del tramo');
     expect(usage).not.toHaveTextContent(/veces más rápida|×\d/);
     expect(usage).toHaveTextContent('apaga la regeneración cerca de detenerse');
     expect(usage).toHaveTextContent(USAGE);
@@ -352,7 +399,7 @@ describe('RegenLab', () => {
     expect(notes).toHaveTextContent('La barra del frenado en las ruedas se reparte');
     expect(notes.querySelector('button, a, input, select, [tabindex]')).toBeNull();
     expect(canvas.querySelector('[aria-label="Leyenda del flujo de potencia"]')).toBeNull();
-    expect(canvas).toHaveTextContent('Energías acumuladas hasta t');
+    expect(canvas).toHaveTextContent(STRETCH_BARS);
     expect(canvas).not.toHaveTextContent('El grosor es proporcional');
   });
 
@@ -601,7 +648,7 @@ describe('RegenLab', () => {
     expect(gear).toHaveFocus();
   });
 
-  test('choosing another cycle in the drawer restarts its stretch from the start, on its own road', async () => {
+  test('choosing another cycle in the drawer restarts it at t = 0 on its own road', async () => {
     const user = userEvent.setup();
     renderLab();
     await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
@@ -645,7 +692,7 @@ describe('RegenLab', () => {
 
   test('the cumulative bars follow t and name each energy', () => {
     renderLab();
-    const bars = screen.getByRole('list', { name: 'Energías acumuladas hasta t' });
+    const bars = screen.getByRole('list', { name: STRETCH_BARS });
 
     for (const name of [
       'Tracción en las ruedas',
@@ -660,9 +707,10 @@ describe('RegenLab', () => {
       ).toContain(name);
     }
     const battery = () => bars.querySelector('[data-energy="eBattery"]') as HTMLElement;
-    expect(battery()).toHaveTextContent(/0,173\skWh/);
+    expect(battery()).toHaveTextContent(/0,0\skJ/);
 
     seekToEnd();
+    expect(screen.getByRole('list', { name: CYCLE_BARS })).toBe(bars);
     expect(battery()).toHaveTextContent(/0,645\skWh/);
   });
 

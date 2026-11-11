@@ -127,7 +127,7 @@ export default function RegenScene(props: RegenSceneProps): JSX.Element {
               fontSize={NOTE_SIZE}
               fill={TICK_COLOR}
             >
-              no a escala
+              {road.note}
             </text>
             <RoadStrip range={road} x0={x0} x1={x1} y={ROAD_Y} live={live} />
             <PowerFlow flows={flows} x0={x0} x1={x1} y={flowY} />

@@ -3,8 +3,11 @@ import { DRIVE_CYCLES } from '../../../lib/data/driveCycles';
 import { MODEL3_LR_RWD_2025 } from '../../../lib/data/evModels';
 import { cycleBalance, DEFAULT_REGEN, type CycleSample } from '../../../lib/physics/energy';
 import { BRAKING_PAD_S, brakingWindow, largestBrakingEvent } from './regenFigures';
+import { balanceAt, cumulativeDistance } from './regenScene';
 import {
+  balanceSince,
   brakingStretch,
+  stretchAxisMax,
   CYCLE_TIME_LAPSE,
   cycleStops,
   markersInStretch,
@@ -84,8 +87,9 @@ describe('stopMarkers', () => {
     ]);
   });
 
-  test('none without stops', () => {
+  test('none without stops; a single stop is just «Detención», not «1 de 1»', () => {
     expect(stopMarkers([])).toEqual([]);
+    expect(stopMarkers([763])).toEqual([{ t: 763, label: 'Detención', kind: 'stop' }]);
   });
 });
 
@@ -188,5 +192,72 @@ describe('view timing', () => {
 
     expect(viewSwitchTime(tramo, 116)).toBe(0);
     expect(viewSwitchTime(tramo, 1369)).toBe(0);
+  });
+});
+
+describe('balanceSince', () => {
+  const { steps } = cycleBalance(UDDS, MODEL3_LR_RWD_2025, DEFAULT_REGEN);
+  const distances = cumulativeDistance(UDDS);
+  const at = (t: number) => balanceAt(steps, distances, t);
+  const ENERGIES = [
+    'eTraction',
+    'eRoadLoad',
+    'eBrake',
+    'eBattery',
+    'eConversionLoss',
+    'eFriction',
+  ] as const;
+
+  test('at the stretch’s start every energy of the stretch is 0, and so is the share', () => {
+    const start = balanceSince(at(376), at(376));
+
+    for (const key of ENERGIES) expect(start[key]).toBe(0);
+    expect(start.recoveredShare).toBe(0);
+  });
+
+  test('at its end the stretch holds figure 6.3’s braking: 224 kJ = battery + losses + friction', () => {
+    const event = largestBrakingEvent(steps);
+    const figure = brakingWindow(steps, event, DEFAULT_REGEN.eta).energies;
+    const end = balanceSince(at(402), at(376));
+
+    expect(end.eBrake).toBeCloseTo(figure.brake, 6);
+    expect(end.eBattery).toBeCloseTo(figure.battery, 6);
+    expect(end.eConversionLoss).toBeCloseTo(figure.losses, 6);
+    expect(end.eFriction).toBeCloseTo(figure.friction, 6);
+    expect(Math.round(end.eBrake / 1000)).toBe(224);
+  });
+
+  test('the share recovered in a stretch is of its braking at the wheels: 75,0 % in the UDDS’s', () => {
+    const end = balanceSince(at(402), at(376));
+
+    expect(end.recoveredShare).toBeCloseTo(end.eBattery / end.eBrake, 12);
+    expect(end.recoveredShare * 100).toBeCloseTo(75.0, 1);
+  });
+
+  test('speed, distance and powers stay the instant’s own', () => {
+    const now = at(389);
+    const since = balanceSince(now, at(376));
+
+    expect([since.t, since.v, since.distance, since.pWheel, since.pBattery]).toEqual([
+      now.t,
+      now.v,
+      now.distance,
+      now.pWheel,
+      now.pBattery,
+    ]);
+  });
+});
+
+describe('stretchAxisMax', () => {
+  const { steps } = cycleBalance(UDDS, MODEL3_LR_RWD_2025, DEFAULT_REGEN);
+  const distances = cumulativeDistance(UDDS);
+  const at = (t: number) => balanceAt(steps, distances, t);
+
+  test('the bars of a stretch end at its largest energy rounded up to 50 kJ: 250 kJ in the UDDS', () => {
+    expect(stretchAxisMax(at(376), at(402))).toBe(250);
+  });
+
+  test('never below 50 kJ, even for a stretch where nothing happens', () => {
+    expect(stretchAxisMax(at(0), at(10))).toBe(50);
   });
 });

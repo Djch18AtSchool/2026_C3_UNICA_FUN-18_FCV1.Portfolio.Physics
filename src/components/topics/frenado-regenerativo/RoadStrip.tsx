@@ -43,6 +43,8 @@ export interface RoadRange {
   from: number;
   to: number;
   tickEvery: number;
+  /** What the strip says under the road, between its end labels: what is not to scale. */
+  note: string;
 }
 
 export interface RoadStripProps {

@@ -19,15 +19,16 @@ export interface RegenEnergyPlotProps {
   /** Dragging the cursor or moving it with the keys seeks there (and pauses), in the cycle's time. */
   onSeek(t: number): void;
   /**
-   * The stretch the view «Tramo» plays, shaded. The cursor then carries no t label: one «t =» on
-   * screen, the transport's (which reads the cycle's time there too, through its timeOrigin).
+   * The cursor's «t = …» in the cycle's time, as the transport reads it (its timeOrigin in
+   * «Tramo»), so the plot's slider and the timeline say the same t.
    */
+  cursorLabel(x: number): string;
+  /** The stretch the view «Tramo» plays, shaded. */
   stretch?: Stretch;
 }
 
 const ENERGY_PRECISION = 3;
 const STRETCH_LABEL = 'Tramo';
-const cursorLabel = (x: number) => `t = ${formatNumber(x, { precision: 0, unit: 's' })}`;
 
 /**
  * The cumulative energies over the whole cycle with a draggable cursor at the lab's instant: the
@@ -41,6 +42,7 @@ export default function RegenEnergyPlot({
   frame,
   toCycle,
   onSeek,
+  cursorLabel,
   stretch,
 }: RegenEnergyPlotProps): JSX.Element {
   const series = useMemo<PlotSeries[]>(
@@ -58,12 +60,7 @@ export default function RegenEnergyPlot({
   const kWh = (joules: number) =>
     formatNumber(joules / J_PER_KWH, { precision: ENERGY_PRECISION, unit: 'kWh' });
   const follow = { frame, toX: toCycle };
-  const cursor: PlotCursor = {
-    x: t,
-    follow,
-    onChange: onSeek,
-    label: stretch ? undefined : cursorLabel,
-  };
+  const cursor: PlotCursor = { x: t, follow, onChange: onSeek, label: cursorLabel };
   const bands: PlotBand[] = stretch
     ? [{ from: stretch.start, to: stretch.end, label: STRETCH_LABEL, labelBefore: true }]
     : [];

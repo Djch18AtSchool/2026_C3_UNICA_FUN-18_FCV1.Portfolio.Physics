@@ -8,6 +8,7 @@ import { MODEL3_LR_RWD_2025, type EvModel } from '../../../lib/data/evModels';
 import { cycleBalance, DEFAULT_REGEN, type CycleSample } from '../../../lib/physics/energy';
 import type { TransportMarker } from '../../lab/transportMarkers';
 import { BRAKING_PAD_S, largestBrakingEvent } from './regenFigures';
+import { ENERGY_SERIES, type BalanceAt, type EnergyKey } from './regenScene';
 
 export type RegenView = 'tramo' | 'ciclo';
 
@@ -21,9 +22,14 @@ export function cycleStops(samples: readonly CycleSample[]): number[] {
     .map((sample) => sample.t);
 }
 
-/** One marker per stop, named by its place among the cycle's stops («Detención 4 de 17»). */
+/**
+ * One marker per stop, named by its place among the cycle's stops («Detención 4 de 17»); a
+ * cycle's only stop is just «Detención».
+ */
 export function stopMarkers(stops: readonly number[]): TransportMarker[] {
-  return stops.map((t, i) => ({ t, label: `Detención ${i + 1} de ${stops.length}`, kind: 'stop' }));
+  const name = (i: number) =>
+    stops.length === 1 ? 'Detención' : `Detención ${i + 1} de ${stops.length}`;
+  return stops.map((t, i) => ({ t, label: name(i), kind: 'stop' }));
 }
 
 /** A stretch of the cycle, from `start` to `end`. */
@@ -81,4 +87,33 @@ export function viewTiming(view: RegenView, stretch: Stretch, cycleDuration: num
 export function viewSwitchTime({ offset, duration }: ViewTiming, cycleT: number): number {
   const t = cycleT - offset;
   return t >= 0 && t <= duration ? t : 0;
+}
+
+const J_PER_KJ = 1000;
+/** A stretch's bars end at its largest energy rounded up to this many kJ (at least one grain). */
+const STRETCH_AXIS_GRAIN_KJ = 50;
+const ENERGY_KEYS: readonly EnergyKey[] = ENERGY_SERIES.map(({ key }) => key);
+
+/**
+ * The balance of a stretch at the instant `at`: every energy counted from `base` (the stretch's
+ * start), while speed, distance and powers stay the instant's own. The share recovered is of the
+ * stretch's braking at the wheels (E_batería / E_freno): a braking stretch has almost no traction
+ * (24,8 kJ against 168,1 kJ to the battery in the UDDS's), so a share of it would pass 600 %.
+ */
+export function balanceSince(at: BalanceAt, base: BalanceAt): BalanceAt {
+  const energies = Object.fromEntries(
+    ENERGY_KEYS.map((key) => [key, at[key] - base[key]]),
+  ) as Record<EnergyKey, number>;
+  return {
+    ...at,
+    ...energies,
+    recoveredShare: energies.eBrake > 0 ? energies.eBattery / energies.eBrake : 0,
+  };
+}
+
+/** The bars' end (kJ) for a stretch from `start` to `end`: its largest energy, up to 50 kJ. */
+export function stretchAxisMax(start: BalanceAt, end: BalanceAt): number {
+  const largest = Math.max(...ENERGY_KEYS.map((key) => (end[key] - start[key]) / J_PER_KJ));
+  const grains = Math.max(1, Math.ceil(largest / STRETCH_AXIS_GRAIN_KJ));
+  return grains * STRETCH_AXIS_GRAIN_KJ;
 }
