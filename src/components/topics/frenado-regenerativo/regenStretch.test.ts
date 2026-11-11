@@ -177,6 +177,10 @@ describe('view timing', () => {
     expect(CYCLE_TIME_LAPSE).toBe(20);
   });
 
+  test('«Conducir» runs on the clock of «Tramo»: the same stretch, at real time', () => {
+    expect(viewTiming('conducir', stretch, 1369)).toEqual(viewTiming('tramo', stretch, 1369));
+  });
+
   test('switching keeps the instant of the cycle when the new view holds it', () => {
     const tramo = viewTiming('tramo', stretch, 1369);
     const ciclo = viewTiming('ciclo', stretch, 1369);

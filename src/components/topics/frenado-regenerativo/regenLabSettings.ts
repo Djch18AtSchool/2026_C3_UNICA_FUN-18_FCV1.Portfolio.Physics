@@ -6,13 +6,14 @@ import type { SimClock } from '../../lab/useSimClock';
 import type { RegenView } from './regenStretch';
 
 /**
- * The two views, named by what they show (never by a factor: the badge on the canvas says it).
- * Their chips are short («Tramo», «Ciclo»), so the header keeps two rows at 360 px; the chip's
- * accessible name, «Vista Ciclo», tells it from the drive cycle's.
+ * The three views, named by what they show (never by a factor: the badge on the canvas says it).
+ * Their chips are short («Tramo», «Ciclo», «Conducir»), so the header keeps two rows at 360 px; the
+ * chip's accessible name, «Vista Ciclo», tells it from the drive cycle's.
  */
 export const VIEW_OPTIONS: readonly { value: RegenView; label: string; chip: string }[] = [
   { value: 'tramo', label: 'Tramo: una frenada', chip: 'Tramo' },
   { value: 'ciclo', label: 'Ciclo completo', chip: 'Ciclo' },
+  { value: 'conducir', label: 'Conducir: el tramo con tus pedales', chip: 'Conducir' },
 ];
 
 /** The three EPA schedules, named by the driving they stand for. */

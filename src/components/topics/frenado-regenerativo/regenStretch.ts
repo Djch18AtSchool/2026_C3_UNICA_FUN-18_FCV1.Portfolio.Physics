@@ -10,7 +10,11 @@ import type { TransportMarker } from '../../lab/transportMarkers';
 import { BRAKING_PAD_S, largestBrakingEvent } from './regenFigures';
 import { ENERGY_SERIES, J_PER_KJ, type BalanceAt, type EnergyKey } from './regenScene';
 
-export type RegenView = 'tramo' | 'ciclo';
+/**
+ * «Tramo» and «Ciclo» play the cycle; «Conducir» lets the reader drive the stretch of «Tramo» with
+ * the pedals, against the cycle's own car.
+ */
+export type RegenView = 'tramo' | 'ciclo' | 'conducir';
 
 /** «Ciclo» compresses the cycle 20 times: the 1 369 s UDDS in 68,5 s at speed 1. */
 export const CYCLE_TIME_LAPSE = 20;
@@ -74,10 +78,11 @@ export interface ViewTiming {
   readonly timeScale: number;
 }
 
+/** «Tramo» and «Conducir» run on the stretch's clock at real time; «Ciclo», on the cycle's. */
 export function viewTiming(view: RegenView, stretch: Stretch, cycleDuration: number): ViewTiming {
-  return view === 'tramo'
-    ? { offset: stretch.start, duration: stretch.end - stretch.start, timeScale: 1 }
-    : { offset: 0, duration: cycleDuration, timeScale: CYCLE_TIME_LAPSE };
+  return view === 'ciclo'
+    ? { offset: 0, duration: cycleDuration, timeScale: CYCLE_TIME_LAPSE }
+    : { offset: stretch.start, duration: stretch.end - stretch.start, timeScale: 1 };
 }
 
 /**

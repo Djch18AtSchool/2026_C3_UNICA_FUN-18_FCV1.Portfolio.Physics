@@ -45,6 +45,8 @@ export interface RoadRange {
   tickEvery: number;
   /** What the strip says under the road, between its end labels: what is not to scale. */
   note: string;
+  /** «Conducir»: the stop line, where the cycle's car stops (m of the cycle). */
+  line?: number;
 }
 
 export interface RoadStripProps {

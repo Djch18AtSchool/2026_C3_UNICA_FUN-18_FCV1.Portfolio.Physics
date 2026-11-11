@@ -32,7 +32,8 @@ import {
 } from './regenStretch';
 
 const CYCLE_IDS = Object.keys(DRIVE_CYCLES) as CycleId[];
-const perCycle = <T>(value: (id: CycleId) => T) =>
+/** One value per drive cycle, computed once. */
+export const perCycle = <T>(value: (id: CycleId) => T) =>
   Object.fromEntries(CYCLE_IDS.map((id) => [id, value(id)])) as Readonly<Record<CycleId, T>>;
 
 /** Each cycle's stops, derived from its samples (17 in the UDDS), and their transport markers. */
@@ -42,8 +43,14 @@ const CYCLE_MARKERS = perCycle((id) => stopMarkers(STOPS[id]));
 export const STRETCHES = perCycle((id) => brakingStretch(DRIVE_CYCLES[id].samples));
 const STRETCH_MARKERS = perCycle((id) => markersInStretch(CYCLE_MARKERS[id], STRETCHES[id]));
 
-/** The transport's events in a view: the stretch's stops on its own clock, or the cycle's. */
+const NO_MARKERS: readonly TransportMarker[] = [];
+
+/**
+ * The transport's events in a view: the stretch's stops on its own clock, or the cycle's. None in
+ * «Conducir»: the stops are the cycle's car's, and the reader's own run has its timeline.
+ */
 export function viewMarkers(view: RegenView, cycle: CycleId): readonly TransportMarker[] {
+  if (view === 'conducir') return NO_MARKERS;
   return (view === 'tramo' ? STRETCH_MARKERS : CYCLE_MARKERS)[cycle];
 }
 
@@ -119,19 +126,31 @@ export function shownBalance(
   return view === 'tramo' ? balanceSince(at, balanceAt(steps, distances, stretch.start)) : at;
 }
 
+/** What the energies of each view count: the stretch's, the cycle's or the reader's run. */
+const READOUT_SCOPE: Readonly<Record<RegenView, string>> = {
+  tramo: ' en el tramo',
+  ciclo: '',
+  conducir: ' en tu conducción',
+};
+const RECOVERED_LABEL: Readonly<Record<RegenView, string>> = {
+  tramo: 'Recuperado en el tramo, % del frenado en las ruedas',
+  ciclo: 'Recuperado en el ciclo, % de la tracción',
+  conducir: 'Recuperado en tu conducción, % del frenado en las ruedas',
+};
+
 /**
  * The readouts: v and P at the instant, then E_batería, the conversion loss and E_fricción, and the
- * share recovered; in «Tramo» those are the stretch's, in kJ, the share of its braking.
+ * share recovered; in «Tramo» those are the stretch's and in «Conducir» the reader's run's, in kJ,
+ * the share of its braking.
  */
 export function readoutsFor(at: BalanceAt, view: RegenView): LabReadout[] {
-  const isStretch = view === 'tramo';
-  const scope = isStretch ? ' en el tramo' : '';
+  const isKj = view !== 'ciclo';
   const energy = (id: string, name: string, symbol: string, joules: number): LabReadout => ({
     id,
-    label: `${name}${scope} ${symbol}`,
-    value: joules / (isStretch ? J_PER_KJ : J_PER_KWH),
-    unit: isStretch ? 'kJ' : 'kWh',
-    precision: isStretch ? KJ_PRECISION : KWH_PRECISION,
+    label: `${name}${READOUT_SCOPE[view]} ${symbol}`,
+    value: joules / (isKj ? J_PER_KJ : J_PER_KWH),
+    unit: isKj ? 'kJ' : 'kWh',
+    precision: isKj ? KJ_PRECISION : KWH_PRECISION,
   });
   return [
     { id: 'v', label: 'Velocidad v', value: at.v * KMH_PER_MS, unit: 'km/h' },
@@ -141,9 +160,7 @@ export function readoutsFor(at: BalanceAt, view: RegenView): LabReadout[] {
     energy('friction', 'Calor de fricción', '$E_\\text{fricción}$', at.eFriction),
     {
       id: 'recovered',
-      label: isStretch
-        ? 'Recuperado en el tramo, % del frenado en las ruedas'
-        : 'Recuperado en el ciclo, % de la tracción',
+      label: RECOVERED_LABEL[view],
       value: at.recoveredShare * PERCENT,
       unit: '%',
       precision: SHARE_PRECISION,

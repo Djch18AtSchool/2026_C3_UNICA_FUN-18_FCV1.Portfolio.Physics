@@ -100,11 +100,14 @@ describe('regenLocalSettings', () => {
     expect(view.options.map(({ label, chip }) => [label, chip])).toEqual([
       ['Tramo: una frenada', 'Tramo'],
       ['Ciclo completo', 'Ciclo'],
+      ['Conducir: el tramo con tus pedales', 'Conducir'],
     ]);
     view.onChange('lento');
     expect(onViewChange).not.toHaveBeenCalled();
     view.onChange('ciclo');
     expect(onViewChange).toHaveBeenCalledWith('ciclo');
+    view.onChange('conducir');
+    expect(onViewChange).toHaveBeenCalledWith('conducir');
     const cycle = settings[1];
     if (cycle.kind !== 'select') throw new Error('the cycle is a select');
     cycle.onChange('wltc');
