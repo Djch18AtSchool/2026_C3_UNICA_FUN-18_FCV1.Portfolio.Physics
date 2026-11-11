@@ -2,11 +2,15 @@
  * Topic body: the published entry set like a lab notebook. Figures and equations are numbered per
  * topic with CSS counters; TopicLayout sets the topic counter inline (counter-set: topic N).
  * Prose rules use :where() so every component class below overrides them without a fight.
+ * Measures come from scale.css: the reading size, --flow between the blocks of a step (equation,
+ * Why, figure, table, callout), --flow-step between steps, --flow-section before the use case, and
+ * one separator stroke (--rule) wherever a rule divides content.
  */
 
 @layer components {
   .topic-body {
     counter-reset: figure equation table;
+    font-size: var(--text-body);
   }
 
   /* ---- Prose flow ---- */
@@ -19,22 +23,23 @@
   }
   :where(.topic-body) :where(ul) {
     list-style: disc;
-    padding-left: 1.25em;
+    padding-left: 1.5em;
   }
   :where(.topic-body) :where(ol) {
     list-style: decimal;
     padding-left: 1.5em;
   }
   :where(.topic-body) :where(li + li) {
-    margin-top: 0.35em;
+    margin-top: var(--space-2);
   }
+  /* A section's heading carries the air between steps (its margin collapses through the section). */
   :where(.topic-body) :where(h2) {
-    margin-top: 3.5rem;
-    margin-bottom: 1rem;
+    margin-top: var(--flow-step);
+    margin-bottom: var(--space-4);
   }
   :where(.topic-body) :where(h3) {
-    margin-top: 2rem;
-    margin-bottom: 0.5rem;
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-2);
   }
   /* The article already spaces the body from the header: the opening heading adds nothing. */
   :where(.topic-body) > :first-child,
@@ -50,21 +55,27 @@
   .use-case {
     counter-reset: use-case-part;
   }
+  /* The use case opens the topic's closing sections: more air than between steps. */
+  :where(.topic-body) > .use-case {
+    margin-top: var(--flow-section);
+  }
   .use-case-part {
     position: relative;
     counter-increment: use-case-part;
-    margin-top: 2rem;
-    padding-top: 1.25rem;
-    padding-left: 2.25rem;
-    border-top: 1px dashed var(--border);
+    margin-top: var(--space-8);
+    padding-top: var(--space-4);
+    padding-left: var(--space-8);
+    border-top: var(--rule);
   }
+  /* The number shares the heading's 24 px line box (20 px at 1.2), so the two line up. */
   .use-case-part::before {
     content: counter(use-case-part, decimal-leading-zero);
     position: absolute;
-    top: 1.45rem;
+    top: var(--space-4);
     left: 0;
     font-family: var(--font-mono);
-    font-size: 0.8125rem;
+    font-size: var(--text-aux-small);
+    line-height: var(--space-6);
     color: var(--fg-muted);
   }
   /* On phones the part number sits above its heading so the text keeps the full width. */
@@ -75,12 +86,12 @@
     .use-case-part::before {
       position: static;
       display: block;
-      margin-bottom: 0.25rem;
+      margin-bottom: var(--space-1);
     }
   }
   .use-case-part > h3 {
     margin-top: 0;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-2);
   }
   .use-case-part > :last-child {
     margin-bottom: 0;
@@ -92,22 +103,29 @@
     margin-bottom: 0;
   }
 
-  /* ---- Why: the step's double justification, ruled like the UseCase parts ---- */
+  /*
+   * ---- Why: the step's double justification. No rule: a small mono label names each part, with
+   * 24 px between the parts and 8 px from a label to its text (3:1, so the grouping reads). ----
+   */
 
   .why {
-    margin-block: 1.5rem;
+    margin-block: var(--flow);
   }
-  .why-part {
-    margin-top: 1.25rem;
-    padding-top: 1rem;
-    border-top: 1px dashed var(--border);
-  }
-  .why-part:first-child {
-    margin-top: 0;
+  .why-part + .why-part {
+    margin-top: var(--flow);
   }
   .why-label {
-    margin-block: 0 0.25rem;
-    font-weight: 600;
+    margin-block: 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-aux-small);
+    font-weight: 500;
+    line-height: var(--leading-aux);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+  .why-label + * {
+    margin-top: 0;
   }
   .why-part > :last-child {
     margin-bottom: 0;
@@ -121,15 +139,15 @@
     grid-template-columns: minmax(0, 1fr) auto;
     column-gap: 1rem;
     align-items: center;
-    margin-block: 1.5rem;
-    padding: 0.75rem;
+    margin-block: var(--flow);
+    padding: var(--space-3);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     background-color: var(--bg-elevated);
   }
   @media (min-width: 40rem) {
     .equation {
-      padding-inline: 1rem;
+      padding-inline: var(--space-4);
     }
   }
   .equation::after {
@@ -137,7 +155,7 @@
     grid-column: 2;
     grid-row: 1;
     font-family: var(--font-mono);
-    font-size: 0.875rem;
+    font-size: var(--text-aux);
     color: var(--fg-muted);
   }
   .equation-math {
@@ -148,23 +166,23 @@
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: thin;
-    padding-block: 0.25em;
+    padding-block: var(--space-1);
   }
   .equation-legend {
     grid-column: 1 / -1;
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-    border-top: 1px dashed var(--border);
-    font-size: 0.9375rem;
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: var(--rule);
+    font-size: var(--text-aux);
   }
   .equation-legend-lead {
-    margin: 0 0 0.25rem;
+    margin: 0 0 var(--space-1);
     color: var(--fg-muted);
   }
   .equation-legend dl {
     display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
-    gap: 0.25rem 1rem;
+    gap: var(--space-1) var(--space-4);
   }
   .equation-legend dl > div {
     display: contents;
@@ -173,7 +191,7 @@
     text-align: right;
   }
   .equation-unit {
-    margin-left: 0.4em;
+    margin-left: var(--space-1);
     font-family: var(--font-mono);
     font-size: 0.875em;
     color: var(--fg-muted);
@@ -183,17 +201,17 @@
 
   .content-figure {
     counter-increment: figure;
-    margin-block: 2rem;
+    margin-block: var(--flow);
   }
   .figure-head {
     display: flex;
     justify-content: flex-end;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-2);
   }
   .figure-frame {
     overflow-x: auto;
     scrollbar-width: thin;
-    padding: 1rem;
+    padding: var(--space-4);
     border: 1px solid var(--border);
     border-radius: var(--radius);
   }
@@ -213,9 +231,9 @@
   }
   .content-figure > figcaption {
     max-width: 70ch;
-    margin-top: 0.75rem;
-    font-size: 0.9375rem;
-    line-height: 1.5;
+    margin-top: var(--space-3);
+    font-size: var(--text-aux);
+    line-height: var(--leading-aux);
   }
   .content-figure > figcaption::before {
     content: 'Figura ' counter(topic) '.' counter(figure) ' · ';
@@ -223,8 +241,8 @@
     font-weight: 500;
   }
   .figure-source {
-    margin-top: 0.25rem;
-    font-size: 0.875rem;
+    margin-top: var(--space-1);
+    font-size: var(--text-aux);
     color: var(--fg-muted);
   }
 
@@ -232,7 +250,7 @@
 
   .content-table {
     counter-increment: table;
-    margin-block: 2rem;
+    margin-block: var(--flow);
   }
   /*
    * Scroll cue: a soft shadow on each edge that hides columns. The shadows stay with the frame
@@ -242,7 +260,7 @@
   .table-frame {
     --table-surface: var(--bg);
     --table-cue: color-mix(in srgb, var(--fg) 22%, transparent);
-    --table-cue-width: 0.875rem;
+    --table-cue-width: var(--space-4);
     --table-cover-width: 2.5rem;
     overflow-x: auto;
     scrollbar-width: thin;
@@ -262,19 +280,19 @@
   .content-table table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9375rem;
+    font-size: var(--text-aux);
     line-height: 1.4;
   }
   .content-table :is(th, td) {
-    padding: 0.5rem 0.75rem;
+    padding: var(--space-2) var(--space-3);
     text-align: left;
     vertical-align: baseline;
   }
   .content-table tbody tr + tr > * {
-    border-top: 1px solid var(--border);
+    border-top: var(--rule);
   }
   .content-table thead th {
-    border-bottom: 1px solid var(--fg-muted);
+    border-bottom: var(--rule);
     font-weight: 600;
     white-space: nowrap;
   }
@@ -293,9 +311,9 @@
   }
   .content-table > figcaption {
     max-width: 70ch;
-    margin-top: 0.75rem;
-    font-size: 0.9375rem;
-    line-height: 1.5;
+    margin-top: var(--space-3);
+    font-size: var(--text-aux);
+    line-height: var(--leading-aux);
   }
   .content-table > figcaption::before {
     content: 'Tabla ' counter(topic) '.' counter(table) ' · ';
@@ -307,7 +325,7 @@
 
   .cite {
     font-family: var(--font-mono);
-    font-size: 0.8em;
+    font-size: var(--text-aux-small);
     text-decoration-line: none;
     white-space: nowrap;
   }
@@ -322,8 +340,8 @@
   }
   .sources-list > li {
     position: relative;
-    margin-top: 0.75rem;
-    padding-left: 2.75rem;
+    margin-top: var(--space-3);
+    padding-left: var(--space-12);
     overflow-wrap: anywhere;
   }
   .sources-list > li::before {
@@ -331,7 +349,7 @@
     position: absolute;
     left: 0;
     font-family: var(--font-mono);
-    font-size: 0.875rem;
+    font-size: var(--text-aux);
     line-height: 1.85;
     color: var(--fg-muted);
   }
@@ -340,7 +358,7 @@
     --target-tint: color-mix(in srgb, var(--accent) 10%, transparent);
     border-radius: var(--radius);
     background-color: var(--target-tint);
-    box-shadow: 0 0 0 0.375rem var(--target-tint);
+    box-shadow: 0 0 0 var(--space-2) var(--target-tint);
   }
   .source-url {
     font-family: var(--font-mono);
@@ -355,17 +373,17 @@
   .connections-lists {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: var(--space-6);
   }
   .connections-lists h3 {
     margin-top: 0;
-    margin-bottom: 0.75rem;
-    font-size: 1rem;
+    margin-bottom: var(--space-3);
+    font-size: var(--text-h4);
   }
   .connections-list {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--space-3);
     list-style: none;
     padding-left: 0;
   }
@@ -375,7 +393,7 @@
   .connections-number {
     display: block;
     font-family: var(--font-mono);
-    font-size: 0.8125rem;
+    font-size: var(--text-aux-small);
     color: var(--fg-muted);
   }
   .connections-list > li.margin-note .connections-number {
@@ -383,22 +401,23 @@
   }
   .connections-note {
     display: block;
-    margin-top: 0.15rem;
+    margin-top: var(--space-1);
   }
 
   /* ---- Callout: a remark in the margin ---- */
 
   .callout {
     max-width: 70ch;
-    margin-block: 1.5rem;
-    padding: 0.75rem 1rem;
-    border-left: 3px solid var(--accent);
+    margin-block: var(--flow);
+    padding: var(--space-3) var(--space-4);
+    border-left: var(--border-thick) solid var(--accent);
     border-radius: 0 var(--radius) var(--radius) 0;
     background-color: var(--bg-elevated);
-    font-size: 0.9375rem;
+    font-size: var(--text-aux);
   }
+  /* A class session's note keeps the margin-note's double rule (global.css). */
   .callout-clase {
-    border-left-style: double;
+    border-left: 3px double var(--accent); /* scale-exempt: a double rule is two 1 px lines and a 1 px gap */
   }
   /* Resource and chart hues are marks only: the warning shows in the rule and tint, not the text. */
   .callout-cuidado {
@@ -406,7 +425,7 @@
     background-color: color-mix(in srgb, var(--chart-2) 8%, var(--bg-elevated));
   }
   .callout-title {
-    margin: 0 0 0.25rem;
+    margin: 0 0 var(--space-1);
     font-weight: 600;
   }
   .callout-body > :first-child {
@@ -426,7 +445,7 @@
   overflow-x: auto;
   scrollbar-width: thin;
   overflow-y: hidden;
-  padding-block: 0.25em;
+  padding-block: var(--space-1);
 }
 .topic-body .equation-math .katex-display {
   /* Inside <Equation> the .equation-math wrapper is the one scroller (and the focusable region). */
