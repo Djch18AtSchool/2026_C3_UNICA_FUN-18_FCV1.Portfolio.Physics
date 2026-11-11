@@ -4,12 +4,15 @@ import { LEAF_2025, MODEL3_LR_RWD_2025 } from '../data/evModels';
 import {
   cycleBalance,
   DEFAULT_REGEN,
+  FASTSIM_MOTOR_PMAX_W,
   KG_PER_LB,
   lowSpeedFade,
   MS_PER_MPH,
   N_PER_LBF,
   roadLoadForce,
   roadLoadFromEpa,
+  stepBalance,
+  type BalanceStep,
   type BalanceTotals,
   type CycleSample,
   type Vehicle,
@@ -428,5 +431,46 @@ describe('cycleBalance degenerate inputs', () => {
     expect(() => cycleBalance(cycle, { ...MODEL3_LR_RWD_2025, m: 0 }, DEFAULT_REGEN)).toThrow(
       /^m must/,
     );
+  });
+});
+
+describe('stepBalance: one interval of the kernel, for a run that is not a cycle (Tema 6, «Conducir»)', () => {
+  test('stepping a cycle sample by sample reproduces cycleBalance exactly', () => {
+    const { steps } = cycleBalance(UDDS, MODEL3_LR_RWD_2025, DEFAULT_REGEN);
+    const stepped = UDDS.slice(1).reduce<BalanceStep[]>(
+      (acc, sample) => [
+        ...acc,
+        stepBalance(acc[acc.length - 1], sample, MODEL3_LR_RWD_2025, DEFAULT_REGEN),
+      ],
+      [steps[0]],
+    );
+
+    expect(stepped).toEqual(steps);
+  });
+
+  test('takes intervals of any length: 0,01 s of braking from 10 m/s', () => {
+    const start = cycleBalance(cycleOf([10, 10]), MODEL3_LR_RWD_2025, DEFAULT_REGEN).steps[0];
+    const next = stepBalance(start, { t: 0.01, v: 9.99 }, MODEL3_LR_RWD_2025, DEFAULT_REGEN);
+    const deltaK = 0.5 * MODEL3_LR_RWD_2025.m * (9.99 ** 2 - 10 ** 2);
+    const roadLoad = roadLoadForce(9.995, MODEL3_LR_RWD_2025.roadLoad) * 9.995 * 0.01;
+
+    expect(next.t).toBe(0.01);
+    expect(next.pWheel).toBeCloseTo((deltaK + roadLoad) / 0.01, 6);
+    expect(next.eBrake).toBeCloseTo(-(deltaK + roadLoad), 9);
+    expect(next.eBattery + next.eConversionLoss + next.eFriction).toBeCloseTo(next.eBrake, 9);
+  });
+
+  test('does not mutate the previous step', () => {
+    const start = cycleBalance(cycleOf([10, 10]), MODEL3_LR_RWD_2025, DEFAULT_REGEN).steps[0];
+    const copy = { ...start };
+
+    stepBalance(start, { t: 1, v: 5 }, MODEL3_LR_RWD_2025, DEFAULT_REGEN);
+
+    expect(start).toEqual(copy);
+  });
+
+  test('FASTSIM_MOTOR_PMAX_W is the motor of the default model, 239 kW', () => {
+    expect(FASTSIM_MOTOR_PMAX_W).toBe(239_000);
+    expect(DEFAULT_REGEN.pMax).toBe(FASTSIM_MOTOR_PMAX_W);
   });
 });

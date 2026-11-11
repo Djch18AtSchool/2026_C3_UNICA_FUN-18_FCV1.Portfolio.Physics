@@ -46,6 +46,8 @@ Rutas (scratchpad): datos en `research/data/frenado/`, scripts en `research/scri
   - Transmisión: `eff_interp: 0.98`.
   - Batería: `eff_interp: Constant 0.9848857801796105`, `pwr_out_max_watts: 201227.4239`, `energy_capacity_joules: 194400000.0` (= 54 kWh, cálculo propio), `min_soc 0.05`, `max_soc 0.98`.
   - Chasis: `drag_coef 0.23`, `frontal_area 2.22 m²`, `wheel_rr_coef 0.007`, `mass_kilograms 1752.0`, `pwr_aux_base_watts 250.0`.
+  - Chasis, para la adherencia (leído el 2026-11-11 en el mismo archivo, mismo sha256): `wheel_fric_coef: 0.7`, `drive_type: RWD`, `drive_axle_weight_frac: 0.59`, `cg_height_meters: -0.53`, `wheel_base_meters: 2.87528`.
+  - Límite de tracción de FASTSim 3.1.0 (`fastsim-core/src/vehicle/vehicle_model.rs`, `set_curr_pwr_out_max`, l. 966–991, sha256 b342f797…): `max_trac_accel = wheel_fric_coef * drive_axle_weight_frac * ACC_GRAV / (1 + weight_transfer_sign * |cg_height| * wheel_fric_coef / wheel_base)`, con `weight_transfer_sign = -1.0` en RWD (comentario: "weight shifts toward rear drive axle → increases traction"). Con g = 9,81 m/s² da 4,65 m/s² (cálculo propio). Lo usa el modo «Conducir» del laboratorio (tarea D3).
   - Estos valores son estimaciones del equipo de FASTSim, no datos de Tesla.
 - **Versión anterior (FASTSim 2), modelo explícito de desvanecimiento a baja velocidad.** Rama `fastsim-2`, `python/fastsim/simdrive.py` l. 912–919:
   ```

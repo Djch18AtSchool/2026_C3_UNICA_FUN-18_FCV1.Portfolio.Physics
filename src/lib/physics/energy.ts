@@ -88,8 +88,12 @@ export interface BalanceTotals {
   peakDecelG: number;
 }
 
-/** P_máx of the FASTSim 3.1.0 Tesla Model 3 RWD motor (research §5). */
-const FASTSIM_MOTOR_PMAX_W = 239_000;
+/**
+ * P_máx of the FASTSim 3.1.0 Tesla Model 3 RWD motor (research §5): its `pwr_out_max_watts`, the
+ * most it gives or takes at the shaft. The default regeneration limit and, in «Conducir», the
+ * accelerator's power limit.
+ */
+export const FASTSIM_MOTOR_PMAX_W = 239_000;
 /**
  * The site's improved model (spec §6, ruling R19): η constant 0,80 (Boretti measured 70–80 % on
  * the 2012 Leaf and 72–87 % on the 2013 one, research §5), P_máx 239 kW and FASTSim's low-speed
@@ -248,6 +252,21 @@ function nextStep(
     eFriction: previous.eFriction + pFriction * dt,
     eConversionLoss: previous.eConversionLoss + (1 - eta) * pRegen * dt,
   };
+}
+
+/**
+ * One interval of the kernel: the step after `previous` when the car reaches `sample`, with the
+ * same powers and accumulated energies cycleBalance computes (its validation aside). For a run that
+ * is not a stored cycle, such as the lab's «Conducir», whose speeds the reader's pedals produce.
+ */
+export function stepBalance(
+  previous: BalanceStep,
+  sample: CycleSample,
+  vehicle: Vehicle,
+  regen: RegenParams,
+): BalanceStep {
+  const flow = intervalFlow(previous, sample, vehicle, regen);
+  return nextStep(previous, sample, flow, regen.eta);
 }
 
 /**
