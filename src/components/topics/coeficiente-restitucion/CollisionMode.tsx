@@ -356,7 +356,7 @@ export function CollisionNotes({ settings: s, outcome }: CollisionNotesProps): J
   return (
     <ul
       data-testid="collision-notes"
-      className="m-0 flex list-disc flex-col gap-1 pl-5 text-sm text-fg-muted"
+      className="m-0 flex list-disc flex-col gap-1 pl-6 text-sm text-fg-muted"
     >
       <li>
         <InlineMath text={LOSS_NOTE} />

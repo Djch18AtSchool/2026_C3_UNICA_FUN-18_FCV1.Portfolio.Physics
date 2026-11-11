@@ -59,7 +59,7 @@ export function sceneNotes({
 
 function Row({ term, children }: { term: string; children: string }): JSX.Element {
   return (
-    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b border-dotted border-border pb-1.5">
+    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-dotted border-border pb-2">
       <dt className="text-sm text-fg-muted">
         <InlineMath text={term} />
       </dt>
@@ -140,7 +140,7 @@ export default function BounceNotes({
     <div className="flex flex-col gap-3">
       <StatusChips label="Motor" testId="engine-config" items={engineChips(settings)} />
       {notes.length > 0 ? (
-        <ul data-testid="scene-notes" className="m-0 flex list-disc flex-col gap-1 pl-5 text-sm">
+        <ul data-testid="scene-notes" className="m-0 flex list-disc flex-col gap-1 pl-6 text-sm">
           {notes.map((note) => (
             <li key={note}>{note}</li>
           ))}
