@@ -266,6 +266,40 @@ async function timelineSeconds(page: Page): Promise<number> {
 }
 
 test.describe('las vistas «Tramo» y «Ruta»', () => {
+  /** The leg chosen in «Tramo» by its option label, or the whole route. */
+  const ONE_T_VIEWS = [
+    'Del depósito a A',
+    'De A a B',
+    'De B a C',
+    'De C al depósito',
+    'Ruta',
+  ] as const;
+
+  for (const view of ONE_T_VIEWS) {
+    test(`un solo t en «${view}»: la línea, «Instante en la ruta» y el cursor de las gráficas dicen el mismo`, async ({
+      page,
+    }) => {
+      if (view === 'Ruta') await chooseView(page, 'Ruta');
+      else {
+        await page
+          .locator(LAB)
+          .getByRole('combobox', { name: 'Tramo mostrado' })
+          .selectOption({ label: view });
+      }
+      await seekTimeline(timelineOf(page), '437');
+
+      const readout = await readoutText(page, 'Instante en la ruta');
+      expect(readout).toMatch(/^\d+,\d{2} s$/u);
+      // Every reading with its spaces as plain ones (the readout helper writes them so).
+      const plain = (text: string | null) => (text ?? '').replace(/\s/gu, ' ');
+      expect(plain(await timelineOf(page).getAttribute('aria-valuetext'))).toBe(`t = ${readout}`);
+      const chart = page.locator('[data-profile-reading] dd').first();
+      expect(plain(await chart.textContent())).toBe(readout);
+      const marker = page.locator('[data-profile-marker] text').first();
+      expect(plain(await marker.textContent())).toBe(`t = ${readout}`);
+    });
+  }
+
   test('abre en «Tramo»: cuatro marcas y «×1 velocidad real» sobre el mapa', async ({ page }) => {
     await expect(marksOf(page)).toHaveCount(TRAMO_MARKS);
     const badge = badgeOf(page);
