@@ -51,7 +51,7 @@ const FOOTNOTE =
   'Cada salto Δ|v| es la diferencia de rapidez que daría solo el Sol a la distancia del encuentro con la energía de la sonda 120 días antes y 120 días después (vis-viva).';
 
 const BUTTON_BASE =
-  'inline-flex min-h-11 items-center gap-2 rounded-base border px-3 py-1.5 text-sm font-medium transition-colors';
+  'inline-flex min-h-11 items-center gap-2 rounded-base border px-3 py-2 text-sm font-medium transition-colors';
 const BUTTON_ACTIVE = 'border-accent bg-accent/10';
 const BUTTON_IDLE = 'border-border bg-bg-elevated hover:border-fg-muted';
 
@@ -80,7 +80,7 @@ function ViewToggle({ view, onSelect }: { view: View; onSelect: (view: View) => 
             {option.token ? (
               <span
                 aria-hidden="true"
-                className="size-2.5 shrink-0 rounded-full"
+                className="size-3 shrink-0 rounded-full"
                 style={{ background: option.token }}
               />
             ) : null}
