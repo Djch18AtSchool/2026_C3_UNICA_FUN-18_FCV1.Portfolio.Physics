@@ -88,7 +88,7 @@ const figureHeight = (svgWidth: number, rem: number) =>
   mapPlotHeight(svgWidth) + resolveCss(MAP_FIGURE_CHROME, 0, rem);
 
 describe('the skeleton’s placeholder of the map figure', { timeout: MAP_RENDER_TIMEOUT_MS }, () => {
-  // The frame is in rem: check both the current 17 px root and phase C's 16 px.
+  // The frame is in rem: check it at the site's 16 px root and at a reader's larger 17 px one.
   test.each([
     [300, 17],
     [360, 16],

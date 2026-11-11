@@ -43,7 +43,7 @@ export default function SidebarSearch({ index, listId }: SidebarSearchProps) {
           placeholder="Buscar temas y secciones"
           autoComplete="off"
           onChange={(event) => setQuery(event.target.value)}
-          className="w-full rounded-base border border-border bg-bg h-10 px-3 text-sm text-fg placeholder:text-fg-muted"
+          className="h-10 w-full rounded-base border border-border bg-bg px-3 text-sm text-fg placeholder:text-fg-muted"
         />
       </div>
       <p

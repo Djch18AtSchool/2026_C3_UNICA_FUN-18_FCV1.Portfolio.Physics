@@ -97,9 +97,10 @@ export default function RegenScene(props: RegenSceneProps): JSX.Element {
       <div className="flex flex-col gap-1">
         {/*
           The badge's box: 48 px high (the badge, 8 px from the top, fits whole) and room on the
-          right for the widest badge this lab shows («×0,25 cámara lenta», 134 px plus its 8 px inset), so
-          the car's name wraps before it instead of running under it: the name leaves 8 rem + 2 rem
-          (160 px) free, two lengths of the scale. The regime keeps the full width below.
+          right for the widest badge this lab shows («×0,25 cámara lenta», 134 px plus its 8 px
+          inset), so the car's name wraps before it instead of running under it: the name leaves
+          8 rem + 2 rem (160 px) free, two lengths of the scale. The regime keeps the full width
+          below.
         */}
         <div className="relative flex min-h-12 items-center">
           {/* The cycle is named by the minimap right above. */}
