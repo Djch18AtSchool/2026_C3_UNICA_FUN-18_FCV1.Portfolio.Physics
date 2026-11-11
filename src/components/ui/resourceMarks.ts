@@ -13,5 +13,5 @@ export const RESOURCE_MARKS: Record<ResourceType, { swatch: string; tint: string
 
 /** The badge box a resource mark sits in (ResourceBadge). */
 export const RESOURCE_BADGE =
-  'inline-flex items-center gap-2 rounded-base border px-2 py-0.5 text-sm text-fg';
-export const RESOURCE_SWATCH = 'size-2.5 shrink-0 rounded-[1px]';
+  'inline-flex items-center gap-2 rounded-base border px-2 py-1 text-sm text-fg';
+export const RESOURCE_SWATCH = 'size-3 shrink-0 rounded-base';
