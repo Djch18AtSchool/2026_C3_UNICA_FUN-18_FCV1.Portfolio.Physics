@@ -5,6 +5,7 @@ import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../lib/settingsStore';
 import { fakeClock } from '../../test-fake-clock';
+import { plexViolations } from '../../test-glyphs';
 import TimeScaleBadge, { TimeScaleBadgeSvg, TimeScaleStatus } from './TimeScaleBadge';
 import { useSimClock } from './useSimClock';
 
@@ -98,6 +99,19 @@ describe('TimeScaleBadge', () => {
     expect(status).toHaveTextContent('Escala de tiempo: 20 veces la velocidad real, cámara rápida');
     expect(status).toHaveClass('sr-only');
     expect(status).toHaveAttribute('aria-live', 'polite');
+  });
+
+  test('every character it prints is one IBM Plex draws, in HTML and in SVG', () => {
+    const { container } = render(
+      <>
+        <TimeScaleBadge factor={19_345} />
+        <svg>
+          <TimeScaleBadgeSvg factor={0.25} x={0} y={0} />
+        </svg>
+      </>,
+    );
+
+    expect(plexViolations(container)).toEqual([]);
   });
 
   test('the server and the first client render draw the same markup', async () => {

@@ -5,6 +5,7 @@ import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { EXACT_TEXT } from '../../test-exact-text';
 import { fakeClock } from '../../test-fake-clock';
+import { plexViolations } from '../../test-glyphs';
 import TransportBar from './TransportBar';
 import type { TransportMarker } from './transportMarkers';
 import { useSimClock } from './useSimClock';
@@ -176,6 +177,14 @@ describe('TransportBar with markers', () => {
     expect(event).toHaveTextContent('Detención 2 de 3');
     expect(event).toHaveAttribute('aria-hidden', 'true');
     expect(screen.getByText(`t = 312${NNBSP}s`, EXACT_TEXT)).toBeInTheDocument();
+  });
+
+  test('every character it prints is one IBM Plex draws', () => {
+    const { container } = render(<LiveBar />);
+
+    fireEvent.click(next());
+
+    expect(plexViolations(container)).toEqual([]);
   });
 
   test('the server and the first client render draw the same markup', async () => {
