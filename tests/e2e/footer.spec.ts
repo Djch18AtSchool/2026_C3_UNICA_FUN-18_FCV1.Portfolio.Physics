@@ -246,3 +246,27 @@ for (const theme of ['light', 'dark']) {
     });
   }
 }
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`(${theme}) la doble línea del pie es la de la cabecera: el mismo grosor, estilo y color del trazo`, async ({
+    page,
+  }) => {
+    await page.addInitScript((value) => window.localStorage.setItem('theme', value), theme);
+    await page.goto('./');
+
+    const rules = await page.evaluate(() => {
+      const rule = (selector: string, side: 'Top' | 'Bottom') => {
+        const style = getComputedStyle(document.querySelector(selector)!);
+        return [
+          style[`border${side}Width`],
+          style[`border${side}Style`],
+          style[`border${side}Color`],
+        ];
+      };
+      return { header: rule('body > header', 'Bottom'), footer: rule('body > footer', 'Top') };
+    });
+
+    expect(rules.footer).toEqual(rules.header);
+    expect(rules.footer.slice(0, 2)).toEqual(['3px', 'double']);
+  });
+}
