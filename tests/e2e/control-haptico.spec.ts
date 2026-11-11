@@ -421,3 +421,42 @@ test.describe('con pantalla táctil', () => {
       .toBe(AT_REST);
   });
 });
+
+for (const width of [1280, 360]) {
+  test(`a ${width} px la etiqueta «x = …» no pisa la palanca, en reposo ni apretada`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto(PAGE);
+    await page.locator(LAB).scrollIntoViewIfNeeded();
+    await waitForIsland(page, LAB);
+    const lever = page.getByRole('slider', { name: 'Recorrido del gatillo x' });
+
+    for (const key of ['Home', 'End']) {
+      await lever.focus();
+      await page.keyboard.press(key);
+      // Points along the label's box, against the lever's outlined stroke.
+      const hits = await page.getByTestId('trigger-lever').evaluate((svg) => {
+        const outline = svg.querySelector('[data-lever-outline]') as SVGLineElement;
+        const label = [...svg.querySelectorAll('text')].find((t) =>
+          t.textContent?.startsWith('x = '),
+        );
+        if (!label) return ['sin etiqueta'];
+        const box = label.getBBox();
+        const point = new DOMPoint();
+        const SAMPLES = 12;
+        return Array.from(
+          { length: SAMPLES + 1 },
+          (_, i) => box.x + (box.width * i) / SAMPLES,
+        ).flatMap((x) =>
+          [box.y, box.y + box.height / 2].flatMap((y) => {
+            point.x = x;
+            point.y = y;
+            return outline.isPointInStroke(point) ? [`(${x.toFixed(0)}, ${y.toFixed(0)})`] : [];
+          }),
+        );
+      });
+      expect(hits, `${key}: puntos de la etiqueta sobre la palanca`).toEqual([]);
+    }
+  });
+}

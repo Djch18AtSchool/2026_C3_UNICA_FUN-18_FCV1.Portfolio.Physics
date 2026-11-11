@@ -4,7 +4,7 @@ import { formatNumber } from '../../../lib/format';
 import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import MathText from '../../lab/MathText';
-import { Arrow, ARROW_HEAD, Knob, Label, type Point } from '../../lab/OverlayMarks';
+import { Arrow, ARROW_HEAD, Knob, Label, LABEL_SIZE, type Point } from '../../lab/OverlayMarks';
 import { monoTextWidth } from '../../lab/plotScales';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
@@ -65,7 +65,8 @@ const CAP_HEIGHT_SHARE = 0.8;
 const FORCE_LABEL_GAP = 8;
 const TICKS_MM = [0, 2, 4, 6, 8];
 const TEXT_SIZE = 12;
-export const LEVER_TEXT_SIZE = TEXT_SIZE;
+/** The value label is an OverlayMarks Label, set at its size. */
+export const LEVER_TEXT_SIZE = LABEL_SIZE;
 const LEVER_FILL = 'color-mix(in srgb, var(--fg) 12%, var(--bg-elevated))';
 const DEG = Math.PI / 180;
 const X_PRECISION = 1;
@@ -78,9 +79,9 @@ const xText = (xMm: number) => formatNumber(xMm, { precision: X_PRECISION, unit:
  * slopes down under the text.
  */
 export function valueLabelDrop(angleDeg: number, text: string): number {
-  const reach = Math.max(0, monoTextWidth(text, TEXT_SIZE) - VALUE_LABEL_LEAN);
+  const reach = Math.max(0, monoTextWidth(text, LEVER_TEXT_SIZE) - VALUE_LABEL_LEAN);
   const edge = Math.max(0, Math.tan(-angleDeg * DEG) * reach) + LEVER_HALF_THICKNESS;
-  const clear = edge + VALUE_LABEL_CLEARANCE + TEXT_SIZE * CAP_HEIGHT_SHARE;
+  const clear = edge + VALUE_LABEL_CLEARANCE + LEVER_TEXT_SIZE * CAP_HEIGHT_SHARE;
   return Math.max(VALUE_LABEL_DROP, Math.ceil(clear));
 }
 
@@ -250,6 +251,7 @@ export default function TriggerLever({
           />
           <TravelArc pivot={pivot} radius={arm + ARC_GAP} x0Mm={x0Mm} />
           <line
+            data-lever-outline=""
             x1={pivot.x}
             y1={pivot.y}
             x2={tip.x}
