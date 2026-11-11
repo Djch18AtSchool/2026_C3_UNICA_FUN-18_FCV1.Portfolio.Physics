@@ -369,9 +369,16 @@ for (const { path, testId } of LABS) {
           const lab = await openTiered(page, path, testId);
           const top = await stickyTop(page);
           const stage = lab.locator('[data-lab-stage]');
-          const fits = (await boxOf(stage)).height + top <= size.height;
-          // Measured after hydration: until then nothing sticks (the server's markup).
-          await expect(stage).toHaveAttribute('data-lab-stage-fits', String(fits));
+          // Measured after hydration: until then nothing sticks (the server's markup). The fit
+          // is read again on every poll, so a stage that settles on either side of the line (a
+          // late font, a rounding at the threshold) is judged as it ends up, not as it started.
+          const fitsNow = async () => String((await boxOf(stage)).height + top <= size.height);
+          await expect
+            .poll(
+              async () => (await stage.getAttribute('data-lab-stage-fits')) === (await fitsNow()),
+            )
+            .toBe(true);
+          const fits = (await stage.getAttribute('data-lab-stage-fits')) === 'true';
           // The panel has no scroll of its own: the readouts are reached by scrolling the page.
           const panelScroll = await lab.locator('[data-lab-panel]').evaluate((node) => ({
             overflow: getComputedStyle(node).overflowY,
