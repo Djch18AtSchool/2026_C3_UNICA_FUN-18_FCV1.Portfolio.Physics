@@ -243,14 +243,20 @@ describe('CSS', () => {
     expect(keys('a.css', 'html { font-size: 100%; }')).toEqual([]);
   });
 
-  test('custom properties: a radius by its name, any other as a length', () => {
+  test('custom properties: a radius or a text size by its name, any other as a length', () => {
     const css = `:root {
+      --text-h1: 2.25rem;
+      --text-aux: 0.875rem;
+      --text-legend: 0.9375rem;
+      --leading-x: 27px;
       --radius: 3px;
       --table-cue-width: 0.875rem;
       --lab-transport-room: calc(2.75rem + 2 * 0.75rem + 1px);
       --grid-cell: 1rem;
     }`;
     expect(keys('a.css', css)).toEqual([
+      'text --text-legend: 0.9375rem',
+      'leading --leading-x: 27px',
       'radius --radius: 3px',
       'size --table-cue-width: 0.875rem',
     ]);

@@ -60,7 +60,7 @@
   --neptune: #1f3fa8;
   --tennis: #718800;
   --basketball: #d97200;
-  --radius: 3px;
+  --radius: 4px;
 }
 
 :root[data-theme='dark'] {
@@ -90,5 +90,5 @@
   --neptune: #5f78ea;
   --tennis: #c3d92a;
   --basketball: #ff8c1a;
-  --radius: 3px;
+  --radius: 4px;
 }

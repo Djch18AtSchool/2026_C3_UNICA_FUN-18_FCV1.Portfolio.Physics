@@ -116,12 +116,23 @@ const CSS_PROPERTY_RULES: readonly (readonly [RegExp, ScaleRule])[] = [
   ],
 ];
 
+const CUSTOM_PROPERTY_RULES: readonly (readonly [RegExp, ScaleRule])[] = [
+  [/radius/, 'radius'],
+  [/^--(text|font-size)(-|$)/, 'text'],
+  [/^--(leading|line-height)(-|$)/, 'leading'],
+];
+
+function customPropertyRule(property: string): ScaleRule {
+  return CUSTOM_PROPERTY_RULES.find(([pattern]) => pattern.test(property))?.[1] ?? 'size';
+}
+
 /**
  * The rule a CSS property's lengths answer to, or undefined when the property is out of scope
  * (letter-spacing, text-underline-offset, stroke-width and other SVG paint, transitions…). A
- * custom property is a radius by its name and any other length otherwise.
+ * custom property is a radius, a text size or a line height by its name (`--radius`, `--text-*`,
+ * `--leading-*`) and any other length otherwise.
  */
 export function cssPropertyRule(property: string): ScaleRule | undefined {
-  if (property.startsWith('--')) return /radius/.test(property) ? 'radius' : 'size';
+  if (property.startsWith('--')) return customPropertyRule(property);
   return CSS_PROPERTY_RULES.find(([pattern]) => pattern.test(property))?.[1];
 }
