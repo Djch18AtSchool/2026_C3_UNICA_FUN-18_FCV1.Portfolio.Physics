@@ -94,7 +94,9 @@ function main(): void {
   const scanned = scanTree(REPO_ROOT);
   const actual = countViolations(scanned);
   if (args.has('--init')) {
-    if (existsSync(BASELINE_PATH)) throw new Error('scale.baseline.json ya existe: usa --prune');
+    if (existsSync(BASELINE_PATH)) {
+      throw new Error('scale.baseline.json ya existe: usa pnpm run scale:prune');
+    }
     writeFileSync(BASELINE_PATH, formatBaseline(actual));
     console.info(`Baseline written: ${BASELINE_PATH}`);
     return;
@@ -112,7 +114,12 @@ function main(): void {
   console.info(
     `Against the baseline: ${added.length} new, ${stale.length} cleaned but still listed`,
   );
-  added.forEach(({ file, key }) => console.info(`  new: ${file}: ${key}`));
+  added.forEach(({ file, key, actual: now, baseline: listed }) =>
+    console.info(`  new: ${file}: ${key} (${listed} → ${now})`),
+  );
+  stale.forEach(({ file, key, actual: now, baseline: listed }) =>
+    console.info(`  cleaned, run scale:prune: ${file}: ${key} (${listed} → ${now})`),
+  );
 }
 
 main();
