@@ -236,7 +236,7 @@ for (const theme of ['light', 'dark']) {
       const rem = await page.evaluate(() =>
         parseFloat(getComputedStyle(document.documentElement).fontSize),
       );
-      // size-10 is 2.5 rem (42.5 px at this site's 17 px root).
+      // size-10 is 2.5 rem (40 px at the 16 px root).
       expect(looks.header.link.width).toBe(`${2.5 * rem}px`);
       expect(looks.header.link.borderWidth).toBe('1px');
       expect(looks.footer.link).toEqual(looks.header.link);

@@ -23,8 +23,6 @@ const POSITION_SLACK = 1;
 const THUMB_HALF_PX = 8;
 /** The badge's status speaks a change once it holds this long (SCALE_ANNOUNCE_DELAY_MS), and more. */
 const SCALE_SETTLED_MS = 1000;
-/** Rounding of rem at the site's root size against the measured transport. */
-const ROOM_SLACK_PX = 1;
 const BLOCKING_IMPACTS = ['serious', 'critical'];
 const VIEWPORTS = [
   { width: 1280, height: 800 },
@@ -153,7 +151,8 @@ test('la reproducción con eventos reserva sus dos filas bajo un control del lie
   const room = await cssLengthPxIn(stage, 'var(--lab-transport-room)');
   const bar = await lab.locator('[data-lab-transport]').boundingBox();
 
-  expect(Math.abs(room - bar!.height)).toBeLessThanOrEqual(ROOM_SLACK_PX);
+  // At the 16 px root the room and the transport are whole pixels: they match exactly.
+  expect(room).toBe(bar!.height);
 });
 
 test('el factor de tiempo va en la esquina del lienzo, sin tapar ni atrapar el puntero', async ({

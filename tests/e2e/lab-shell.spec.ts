@@ -28,8 +28,6 @@ const SCROLL_INTO_LAB_PX = 300;
 const FIRST_CONTROL = ':is(input, select, textarea, [role="slider"], [role="radio"])';
 /** Anything that is or may become a control: none may sit in a lab's canvas notes. */
 const CONTROL = ':is(a, button, input, select, textarea, summary, [tabindex]:not([tabindex^="-"]))';
-/** A pinned transport against --lab-transport-room (global.css): rounding of rem at 17 px. */
-const TRANSPORT_ROOM_SLACK_PX = 1;
 /** Sub-pixel rounding of the columns grid against its cells. */
 const LAYOUT_SLACK_PX = 1;
 /** The transport's event buttons, in the order Tab reaches them after the timeline. */
@@ -494,10 +492,11 @@ for (const { path, testId } of LABS) {
         lab.locator('[data-lab-stage]'),
         'var(--lab-transport-room)',
       );
+      // At the 16 px root both are whole pixels (44 + 2 × 12 + 1, and a second row of 44 + 12).
       expect(
-        Math.abs(room - bar.height),
+        room,
         `--lab-transport-room (global.css) = ${room} px, la reproducción pegada (LabShell TRANSPORT) = ${bar.height} px`,
-      ).toBeLessThanOrEqual(TRANSPORT_ROOM_SLACK_PX);
+      ).toBe(bar.height);
     });
 
     for (const { name, size } of ONE_COLUMN_VIEWPORTS) {
