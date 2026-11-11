@@ -62,7 +62,7 @@ function snapToStep(value: number, min: number, max: number, step: number): numb
 }
 
 /** Five monospace characters: the longest unit of the labs' fields («m/s²», «km/h», «kWh»). */
-const UNIT_BOX = 'w-[5ch] shrink-0 font-mono text-sm text-fg-muted';
+export const UNIT_BOX = 'w-[5ch] shrink-0 font-mono text-sm text-fg-muted';
 
 /**
  * A parameter as a range and a number field bound to the same value. The range commits on every

@@ -287,3 +287,45 @@ for (const theme of THEMES) {
     });
   });
 }
+
+/** How far the number box of a lab's first parameter ends from the parameters' right edge. */
+async function numberBoxInset(page: Page, path: string, lab: string, field: string) {
+  await page.goto(path);
+  await open(page, lab);
+  return page.locator(lab).evaluate((node, selector) => {
+    const params = node.querySelector('[data-lab-level="params"]') as HTMLElement;
+    const input = node.querySelector(selector) as HTMLElement;
+    const label = params.querySelector('label') as HTMLElement;
+    const box = input.getBoundingClientRect();
+    return {
+      inset: params.getBoundingClientRect().right - box.right,
+      // The number box sits on its label's row, not on a line of its own.
+      isBesideLabel: box.top < label.getBoundingClientRect().bottom,
+    };
+  }, field);
+}
+
+for (const viewport of [PHONE, DESKTOP]) {
+  test(`a ${viewport.width} px el campo de r_p se alinea con los de los demás temas, junto a su etiqueta`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    // Tema 2's first field: a ParamField with the shared unit box.
+    const reference = await numberBoxInset(
+      page,
+      './temas/salto-personaje/',
+      '[data-testid="jump-lab"]',
+      '[data-lab-level="params"] input[type="text"]',
+    );
+
+    const rp = await numberBoxInset(
+      page,
+      PAGE,
+      LAB,
+      '[data-lab-level="params"] input[type="text"]',
+    );
+
+    expect(rp.isBesideLabel).toBe(true);
+    expect(Math.abs(rp.inset - reference.inset)).toBeLessThanOrEqual(1);
+  });
+}

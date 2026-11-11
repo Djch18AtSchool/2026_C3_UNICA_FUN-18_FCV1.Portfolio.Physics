@@ -3,6 +3,7 @@ import { formatNumber } from '../../../lib/format';
 import { mathAriaLabel } from '../../../lib/inlineMath';
 import { mathTextToString } from '../../../lib/mathNotation';
 import InlineMath from '../../lab/InlineMath';
+import { UNIT_BOX } from '../../lab/ParamField';
 import { unitTex } from './flybyFormat';
 import { withStableCallbacks } from '../../lab/withStableCallbacks';
 import { RP_RANGE, rpToSlider, sliderToRp, type RpWarning } from './flybyScene';
@@ -61,12 +62,13 @@ function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
 
   return (
     <div className="flex flex-col gap-1.5">
-      {/* On a phone the field drops under its label instead of squeezing it into three lines. */}
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+      {/* As every ParamField: the number box beside its label and the unit in the shared unit
+          box, so it lines up with the other labs' fields at every width. */}
+      <div className="flex items-center justify-between gap-3">
         <label id={labelId} htmlFor={ID} className="text-sm font-medium">
           <InlineMath text={LABEL} />
         </label>
-        <span className="ml-auto flex items-center gap-1.5">
+        <span className="flex items-center gap-1.5">
           <input
             type="text"
             inputMode="decimal"
@@ -81,7 +83,7 @@ function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
             }}
             className="h-9 w-24 rounded-base border border-border bg-bg px-2 text-right font-mono text-sm tabular-nums text-fg"
           />
-          <span id={unitId} className="font-mono text-sm text-fg-muted">
+          <span id={unitId} className={UNIT_BOX}>
             <InlineMath text={unitTex(unit)} />
           </span>
         </span>
