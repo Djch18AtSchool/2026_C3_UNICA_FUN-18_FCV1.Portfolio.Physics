@@ -1,6 +1,11 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
-import { expectSameHeightAfterHydration, HYDRATION_WIDTHS } from './hydrationStability';
+import {
+  delayMeasuring,
+  expectSameHeightAfterHydration,
+  HYDRATION_WIDTHS,
+  notYetMeasured,
+} from './hydrationStability';
 import { TOPIC_PAGES } from './topicPages';
 
 const DESKTOP = { width: 1280, height: 800 };
@@ -11,6 +16,8 @@ const SETTINGS_TITLE = /^Ajustes: /;
 const WHEEL_PX = 400;
 /** LabShell's READOUT_ANNOUNCE_DELAY_MS: readouts are spoken once still for this long. */
 const READOUT_SETTLE_MS = 750;
+/** How late the self-check makes every ResizeObserver report, as on a loaded machine. */
+const MEASURE_DELAY_MS = 1500;
 /** Rounding of a sticky offset in rem at the site's root size. */
 const STICKY_SLACK_PX = 6;
 const SCROLL_INTO_LAB_PX = 300;
@@ -249,6 +256,23 @@ test.describe('guardias del cascarón por niveles, autocomprobadas', () => {
     );
 
     expect(await canvasNotesControls(lab)).toEqual(['button «Ir a la descarga»']);
+  });
+
+  test('con la medición retrasada, los dibujos siguen sin medir tras la hidratación y la comprobación de alturas los espera', async ({
+    page,
+    browser,
+  }) => {
+    // What a comparison right after waitForIsland would see: drawings not yet measured.
+    await page.setViewportSize({ width: 360, height: 800 });
+    await delayMeasuring(page, MEASURE_DELAY_MS);
+    const lab = await openLab(page, JUMP_PAGE, JUMP_LAB);
+    expect(await notYetMeasured(page, `[data-testid="${JUMP_LAB}"]`)).not.toEqual([]);
+
+    // The helper waits for them, so the same delay still compares the hydrated lab, green.
+    await expect(lab).toBeVisible();
+    await expectSameHeightAfterHydration(browser, JUMP_PAGE, `[data-testid="${JUMP_LAB}"]`, 360, {
+      measureDelayMs: MEASURE_DELAY_MS,
+    });
   });
 
   test('sin notas del lienzo, la rejilla no deja una fila vacía con su hueco', async ({ page }) => {

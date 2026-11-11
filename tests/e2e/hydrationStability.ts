@@ -30,7 +30,7 @@ async function measureLab(page: Page, labSelector: string): Promise<number[]> {
  * Astro drops the island's `ssr` flag when it starts hydrating, before React commits and before
  * any ResizeObserver reports, so waitForIsland alone is not enough to compare.
  */
-async function notYetMeasured(page: Page, labSelector: string): Promise<string[]> {
+export async function notYetMeasured(page: Page, labSelector: string): Promise<string[]> {
   return page.locator(labSelector).evaluate(
     (lab, { drawings, slack }) => {
       const isHydrated = Object.keys(lab).some((key) => key.startsWith('__reactFiber'));
@@ -55,6 +55,7 @@ export async function expectSameHeightAfterHydration(
   url: string,
   labSelector: string,
   width: number,
+  options: { measureDelayMs?: number } = {},
 ): Promise<void> {
   const viewport = { width, height: VIEWPORT_HEIGHT };
   const plain = await browser.newContext({ viewport, javaScriptEnabled: false });
@@ -67,6 +68,7 @@ export async function expectSameHeightAfterHydration(
 
   const live = await browser.newContext({ viewport });
   const page = await live.newPage();
+  if (options.measureDelayMs) await delayMeasuring(page, options.measureDelayMs);
   await page.goto(url);
   await page.locator(labSelector).scrollIntoViewIfNeeded();
   await waitForIsland(page, labSelector);
@@ -119,4 +121,20 @@ async function letterboxed(page: Page, labSelector: string): Promise<string[]> {
         : [];
     });
   }, HEIGHT_TOLERANCE_PX);
+}
+
+/**
+ * For the helper's own checks (lab-shell.spec.ts): every ResizeObserver report of the page comes
+ * `ms` late, as on a loaded machine, so a comparison that did not wait for the drawings to measure
+ * would read the server's 720 px drawings under SvgPlot's reserve.
+ */
+export async function delayMeasuring(page: Page, ms: number): Promise<void> {
+  await page.addInitScript((delay) => {
+    const Real = window.ResizeObserver;
+    window.ResizeObserver = class extends Real {
+      constructor(callback: ResizeObserverCallback) {
+        super((entries, observer) => setTimeout(() => callback(entries, observer), delay));
+      }
+    };
+  }, ms);
 }
