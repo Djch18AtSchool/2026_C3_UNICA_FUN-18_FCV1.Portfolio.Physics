@@ -1,0 +1,202 @@
+{
+  "src/components/controls/Readout.tsx": {
+    "spacing pb-1.5": 1
+  },
+  "src/components/controls/Slider.tsx": {
+    "spacing gap-1.5": 1
+  },
+  "src/components/lab/ChoiceField.tsx": {
+    "size min-h-9": 1
+  },
+  "src/components/lab/ParamField.tsx": {
+    "size h-9": 1,
+    "size w-24": 1,
+    "spacing gap-1.5": 2
+  },
+  "src/components/lab/SettingsDrawer.tsx": {
+    "size size-[18px]": 1,
+    "size w-[22rem]": 1
+  },
+  "src/components/lab/SettingsFields.tsx": {
+    "radius rounded-[1px]": 1,
+    "size min-h-9": 1,
+    "size min-w-9": 1,
+    "spacing gap-y-1.5": 1,
+    "spacing left-[3px]": 1,
+    "spacing pr-9": 1,
+    "spacing right-[13px]": 1,
+    "spacing top-[3px]": 1
+  },
+  "src/components/lab/TransportBar.tsx": {
+    "size size-[18px]": 3
+  },
+  "src/components/lab/TransportEvents.tsx": {
+    "size min-w-24": 1
+  },
+  "src/components/nav/iconButton.ts": {
+    "size size-[18px]": 1
+  },
+  "src/components/nav/PrevNext.astro": {
+    "spacing gap-0.5": 1
+  },
+  "src/components/nav/ReadingProgress.astro": {
+    "size height: 3px": 1
+  },
+  "src/components/nav/SidebarSearch.tsx": {
+    "spacing ml-[2.125rem]": 1,
+    "spacing pl-1.5": 2,
+    "spacing py-1.5": 2
+  },
+  "src/components/nav/SideNav.astro": {
+    "spacing gap-5": 2
+  },
+  "src/components/nav/SideNavTopic.astro": {
+    "spacing mb-1.5": 1,
+    "spacing ml-[2.125rem]": 1,
+    "spacing mt-0.5": 1,
+    "spacing pl-1.5": 2,
+    "spacing py-1.5": 1
+  },
+  "src/components/nav/SiteFooter.astro": {
+    "border border-t-[3px]": 1
+  },
+  "src/components/nav/SiteHeader.astro": {
+    "border border-b-[3px]": 1
+  },
+  "src/components/nav/TopicCard.astro": {
+    "border border-l-[3px]": 1,
+    "size max-w-[38rem]": 1,
+    "spacing gap-1.5": 1
+  },
+  "src/components/nav/TopicMeta.astro": {
+    "spacing gap-1.5": 1,
+    "spacing gap-x-5": 1
+  },
+  "src/components/nav/TopicTools.tsx": {
+    "spacing gap-1.5": 2
+  },
+  "src/components/topics/asistencia-gravitatoria/RpField.tsx": {
+    "size h-9": 1,
+    "size w-24": 1,
+    "spacing gap-1.5": 2
+  },
+  "src/components/topics/asistencia-gravitatoria/VoyagerSpeedChart.tsx": {
+    "size size-2.5": 1,
+    "spacing py-1.5": 1
+  },
+  "src/components/topics/coeficiente-restitucion/BounceNotes.tsx": {
+    "spacing gap-y-0.5": 1,
+    "spacing pb-1.5": 1,
+    "spacing pl-5": 1
+  },
+  "src/components/topics/coeficiente-restitucion/CollisionMode.tsx": {
+    "spacing pl-5": 1
+  },
+  "src/components/topics/control-haptico/HapticVideo.tsx": {
+    "size min-h-9": 1,
+    "size size-3.5": 1,
+    "spacing gap-1.5": 1,
+    "spacing pb-10": 1,
+    "spacing py-1.5": 1
+  },
+  "src/components/topics/control-haptico/ThirdLawDiagram.tsx": {
+    "size max-w-[30rem]": 1
+  },
+  "src/components/topics/dron-reparto/DroneProfilesMarker.tsx": {
+    "spacing gap-1.5": 2
+  },
+  "src/components/topics/frenado-regenerativo/EnergyBalanceChart.tsx": {
+    "spacing gap-y-1.5": 1
+  },
+  "src/components/topics/frenado-regenerativo/EnergyBars.tsx": {
+    "radius rounded-[2px]": 1,
+    "size grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)_auto]": 1,
+    "spacing gap-1.5": 1
+  },
+  "src/components/topics/frenado-regenerativo/RegenScene.tsx": {
+    "radius rounded-[2px]": 1,
+    "size size-2.5": 1,
+    "spacing pr-40": 1
+  },
+  "src/components/topics/gravedad-artificial/ApparentWeightDiagram.tsx": {
+    "size max-w-[30rem]": 1
+  },
+  "src/components/topics/gravedad-artificial/HabitatDiagram.astro": {
+    "size max-width: 30rem": 1
+  },
+  "src/components/topics/ruedas-reaccion/ExchangeDiagram.tsx": {
+    "size max-w-[30rem]": 1
+  },
+  "src/components/topics/ruedas-reaccion/MomentumGauge.tsx": {
+    "size w-[3px]": 1,
+    "spacing gap-1.5": 1
+  },
+  "src/components/topics/ruedas-reaccion/WheelDiagram.astro": {
+    "size max-width: 30rem": 1,
+    "size max-width: 62rem": 1,
+    "text font-size: 17px": 1
+  },
+  "src/components/topics/ruedas-reaccion/WheelStatus.tsx": {
+    "border border-l-[3px]": 1,
+    "size min-h-9": 1
+  },
+  "src/components/ui/ResourceBadge.astro": {
+    "radius rounded-[1px]": 1,
+    "size size-2.5": 1,
+    "spacing py-0.5": 1
+  },
+  "src/components/ui/resourceMarks.ts": {
+    "radius rounded-[1px]": 1,
+    "size size-2.5": 1,
+    "spacing py-0.5": 1
+  },
+  "src/layouts/BaseLayout.astro": {
+    "spacing pt-10": 1
+  },
+  "src/layouts/TopicLayout.astro": {
+    "size grid-cols-[17rem_minmax(0,1fr)]": 1
+  },
+  "src/pages/404.astro": {
+    "size grid-cols-[17rem_minmax(0,1fr)]": 1,
+    "spacing mt-5": 1,
+    "spacing p-5": 1,
+    "spacing px-5": 1
+  },
+  "src/pages/index.astro": {
+    "border border-b-[3px]": 1,
+    "spacing gap-0.5": 5,
+    "spacing gap-14": 1,
+    "spacing px-1.5": 1,
+    "spacing px-3.5": 1,
+    "text text-[2.5rem]": 1,
+    "text text-5xl": 1
+  },
+  "src/styles/content.css": {
+    "border border-left: 3px": 1,
+    "size --table-cue-width: 0.875rem": 1,
+    "spacing box-shadow: 0.375rem": 1,
+    "spacing margin-left: 0.4em": 1,
+    "spacing margin-top: 0.15rem": 1,
+    "spacing margin-top: 0.35em": 1,
+    "spacing margin-top: 1.25rem": 1,
+    "spacing margin-top: 3.5rem": 1,
+    "spacing padding-left: 1.25em": 1,
+    "spacing padding-left: 2.25rem": 1,
+    "spacing padding-left: 2.75rem": 1,
+    "spacing padding-top: 1.25rem": 1,
+    "spacing top: 1.45rem": 1,
+    "text font-size: 0.8125rem": 2,
+    "text font-size: 0.8em": 1,
+    "text font-size: 0.9375rem": 5
+  },
+  "src/styles/global.css": {
+    "border border-left: 3px": 1,
+    "text font-size: 0.9em": 1,
+    "text font-size: 1.5625rem": 1,
+    "text font-size: 106.25%": 1,
+    "text font-size: 2rem": 1
+  },
+  "src/styles/tokens.css": {
+    "radius --radius: 3px": 2
+  }
+}

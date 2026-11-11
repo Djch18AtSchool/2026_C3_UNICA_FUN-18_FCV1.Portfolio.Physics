@@ -19,7 +19,9 @@
     "data:cycles": "tsx scripts/generate-drive-cycles.ts",
     "data:voyager": "tsx scripts/generate-voyager-speed.ts",
     "data:fonts": "tsx scripts/font-data.ts && prettier --write src/lib/plexCoverage.ts src/lib/glyphAdvances.ts",
-    "measure:labs": "tsx scripts/measure-labs.ts"
+    "measure:labs": "tsx scripts/measure-labs.ts",
+    "scale:report": "tsx scripts/scale-report.ts",
+    "scale:prune": "tsx scripts/scale-report.ts --prune"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.2",
