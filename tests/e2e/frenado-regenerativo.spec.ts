@@ -29,8 +29,10 @@ const UDDS_STOPS = 17;
 const PX_SLACK = 1;
 const VIEW_CYCLE = 'Ciclo completo';
 const SETTINGS = /^Ajustes: /;
-const STILL_AT_END_MS = 500;
-const BATTERY = 'Energía a la batería $E_\\text{batería}$';
+/** Animation frames to watch after the end: a run that looped would have left 1000 by then. */
+const STILL_FRAMES = 30;
+/** «Tramo» reads the stretch's own energies (ruling R21). */
+const STRETCH_BATTERY = 'Energía a la batería en el tramo $E_\\text{batería}$';
 const BLENDED = 'Frenando con el motor y con fricción';
 
 /** The value text of the readout row of the lab labelled exactly `label` (helpers.ts). */
@@ -157,7 +159,11 @@ test.describe('laboratorio', () => {
       await expect(lab).toHaveAttribute('data-playing', 'false');
       await expect(lab.getByRole('button', { name: 'Reproducir', exact: true })).toBeVisible();
       await expect(timeline).toHaveAttribute('aria-valuetext', end);
-      await page.waitForTimeout(STILL_AT_END_MS);
+      await page.evaluate(async (count) => {
+        for (let i = 0; i < count; i += 1) {
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+        }
+      }, STILL_FRAMES);
       await expect(timeline).toHaveValue('1000');
       await expect(lab).toHaveAttribute('data-playing', 'false');
     });
@@ -175,6 +181,10 @@ test.describe('laboratorio', () => {
     );
     await expect(marksOf(lab)).toHaveCount(1);
     await expect(timelineOf(lab)).toHaveAttribute('aria-valuetext', /^t = 376,00\s?s$/u);
+    // The stretch's energies start at 0 and end at figure 6.3's braking.
+    expect(await readoutText(page, STRETCH_BATTERY)).toMatch(/^0,0\s?kJ$/u);
+    await seekTimeline(timelineOf(lab), '1000');
+    await expect.poll(() => readoutText(page, STRETCH_BATTERY)).toMatch(/^168,1\s?kJ$/u);
   });
 
   test('«Evento siguiente» y «anterior», con el teclado, en las dos vistas', async ({ page }) => {
@@ -196,7 +206,7 @@ test.describe('laboratorio', () => {
 
     // The view by keyboard, from its chip; the instant (397 s) is kept.
     await chooseView(page, lab, VIEW_CYCLE);
-    await expect(viewChipOf(lab)).toHaveAccessibleName('Vista Ciclo');
+    await expect(viewChipOf(lab)).toHaveAccessibleName('Vista Ciclo completo');
     await expect(badgeOf(lab)).toHaveText(/^×20\s*cámara rápida$/u);
     await expect(marksOf(lab)).toHaveCount(UDDS_STOPS);
     await expect(timelineOf(lab)).toHaveAttribute(
@@ -246,17 +256,25 @@ test.describe('laboratorio', () => {
     const lab = page.locator(LAB);
 
     await expect(badgeOf(lab)).toHaveText(/^×1\s*velocidad real$/u);
-    const svg = lab.getByTestId('regen-minimap').locator('svg');
-    expect((await svg.boundingBox())?.height).toBe(48);
+    const minimap = lab.getByTestId('regen-minimap');
+    expect((await minimap.boundingBox())?.height).toBe(48);
+    // Its labels are HTML at their own size, not a drawing scaled down before it measures.
+    const label = minimap.getByText('Velocidad del UDDS');
+    expect(await label.evaluate((node) => getComputedStyle(node).fontSize)).toBe(
+      await page
+        .evaluate(() => getComputedStyle(document.documentElement).fontSize)
+        .then((root) => `${(parseFloat(root) * 0.75).toString()}px`),
+    );
     await context.close();
   });
 
   test('cambiar η cambia la energía que llega a la batería', async ({ page }) => {
-    const before = await readoutText(page, BATTERY);
+    await seekTimeline(timelineOf(page.locator(LAB)), '1000');
+    const before = await readoutText(page, STRETCH_BATTERY);
 
     await setRange(page.locator(LAB).getByRole('slider', { name: /^Rendimiento rueda/ }), '0.5');
 
-    await expect.poll(() => readoutText(page, BATTERY)).not.toBe(before);
+    await expect.poll(() => readoutText(page, STRETCH_BATTERY)).not.toBe(before);
   });
 
   test('«Cómo se usa» dice a qué velocidad va la reproducción y «Qué deja fuera el modelo» lo que el modelo omite', async ({
@@ -266,8 +284,10 @@ test.describe('laboratorio', () => {
     const leftOut = page.locator(LAB).locator('details[data-lab-note="left-out"]');
 
     await usage.locator('summary').click();
-    await expect(usage).toContainText('En «Tramo» la reproducción va a velocidad real');
-    await expect(usage).toContainText('La escala la dice la insignia sobre el dibujo.');
+    await expect(usage).toContainText('«Tramo» es la frenada del ciclo');
+    await expect(usage).toContainText('la lectura t cuenta desde el inicio del ciclo');
+    // The lab's hint and the MDX's note do not say the same thing twice.
+    expect(((await usage.textContent()) ?? '').match(/insignia/gu)).toHaveLength(1);
     await expect(usage).not.toContainText('veces más rápida');
     await leftOut.locator('summary').click();
     for (const left of ['Pendiente', 'viento', 'temperatura', 'carga', 'Boretti']) {
