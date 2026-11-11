@@ -235,22 +235,37 @@ test('con colores forzados las marcas siguen viéndose', async ({ page }) => {
   }
 });
 
-test('a 320 px la fila de eventos cabe sin desbordar', async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 800 });
-  const lab = await openFixture(page);
-  for (let i = 0; i < 4; i += 1) await next(lab).click();
-  const transport = lab.locator('[data-lab-transport]');
+for (const width of [360, 320]) {
+  test(`a ${width} px la fila de eventos cabe y no cambia de alto al avanzar t`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 800 });
+    const lab = await openFixture(page);
+    const transport = lab.locator('[data-lab-transport]');
+    const height = async () => (await transport.boundingBox())!.height;
+    const atStart = await height();
 
-  const overflow = await transport.evaluate((node) => {
-    const box = node.getBoundingClientRect();
-    return [...node.querySelectorAll('button, [data-transport-event], span.font-mono')]
-      .map((child) => child.getBoundingClientRect())
-      .filter((child) => child.left < box.left - 1 || child.right > box.right + 1).length;
+    // At an event (its name on two lines), then at the end (the widest readout).
+    for (let i = 0; i < 4; i += 1) await next(lab).click();
+    await expect(lab.locator('[data-transport-event]')).toHaveText('Rapidez máxima');
+    expect(await height()).toBe(atStart);
+    await timeline(lab).focus();
+    await page.keyboard.press('End');
+    await expect(timeline(lab)).toHaveAttribute('aria-valuetext', /^t = 1\u202F369\u202Fs/u);
+    expect(await height()).toBe(atStart);
+
+    const overflow = await transport.evaluate((node) => {
+      const box = node.getBoundingClientRect();
+      return [...node.querySelectorAll('button, [data-transport-event], span.font-mono')]
+        .map((child) => child.getBoundingClientRect())
+        .filter((child) => child.left < box.left - 1 || child.right > box.right + 1).length;
+    });
+    expect(overflow).toBe(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      width,
+    );
   });
-
-  expect(overflow).toBe(0);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
-});
+}
 
 for (const width of HYDRATION_WIDTHS) {
   test(`a ${width} px el servidor y la página hidratada miden lo mismo`, async ({ browser }) => {

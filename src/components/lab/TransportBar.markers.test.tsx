@@ -260,6 +260,15 @@ describe('TransportBar with markers', () => {
     }
   });
 
+  test('the event row keeps its lines while playing: a readout as wide as the longest t', () => {
+    const { container } = render(<LiveBar />);
+
+    const readout = screen.getByText(`t = 0${NNBSP}s`, EXACT_TEXT);
+    // «t = 1 369 s»: 11 characters of the mono face, so the row never rewraps as t grows.
+    expect(readout.style.minWidth).toBe('11ch');
+    expect(container.querySelector('[data-transport-event]')).toHaveClass('line-clamp-2');
+  });
+
   test('every character it prints is one IBM Plex draws', () => {
     const { container } = render(<LiveBar />);
 

@@ -133,22 +133,21 @@ function useEventAnnouncement(clock: SimClock, tolerance: number) {
   return { announcement: isStale ? undefined : announcement, announce };
 }
 
+const FINDERS = { previous: previousMarkerTime, next: nextMarkerTime } as const;
+
 /**
- * «Evento anterior», «Evento siguiente», the event the settled time stands on (a visual copy of
- * the timeline's aria-valuetext) and the t readout. A button seeks from the live time to the
- * neighbouring event and says it; at an end it is aria-disabled (it keeps the focus) and says
- * which event is the last or the first.
+ * The buttons' state (from the settled time) and action (from the live time): seek to the
+ * neighbouring event and say it, or, at an end (aria-disabled, so the button keeps the focus),
+ * say which event is the last or the first.
  */
-export function EventRow(props: EventRowProps): JSX.Element {
-  const { clock, markers, tolerance, eventText, timeText, timeTextOf } = props;
+function useEventNavigation({ clock, markers, tolerance, timeTextOf }: EventRowProps) {
   const { announcement, announce } = useEventAnnouncement(clock, tolerance);
   const { t } = clock.state;
-  const finders = { previous: previousMarkerTime, next: nextMarkerTime } as const;
   const isEnabled = (direction: Direction) =>
-    finders[direction](markers, t, tolerance) !== undefined;
+    FINDERS[direction](markers, t, tolerance) !== undefined;
   const goTo = (direction: Direction) => {
     const target = isEnabled(direction)
-      ? finders[direction](markers, clock.frame.get(), tolerance)
+      ? FINDERS[direction](markers, clock.frame.get(), tolerance)
       : undefined;
     if (target === undefined) {
       announce(noFurtherEvent(direction, markers, tolerance, timeTextOf), t);
@@ -158,6 +157,19 @@ export function EventRow(props: EventRowProps): JSX.Element {
     const name = markersText(markers, markersAt(markers, target, tolerance));
     announce(`${name} · ${timeTextOf(target)}`, target);
   };
+  return { announcement, isEnabled, goTo };
+}
+
+/**
+ * «Evento anterior», «Evento siguiente», the event the settled time stands on (a visual copy of
+ * the timeline's aria-valuetext, two lines at most) and the t readout; the row wraps (the readout
+ * first) only by its width, so its height holds while playing.
+ */
+export function EventRow(props: EventRowProps): JSX.Element {
+  const { clock, eventText, timeText, timeTextOf } = props;
+  const { announcement, isEnabled, goTo } = useEventNavigation(props);
+  // The readout is as wide as its longest text (mono): the row wraps by its width, never by t.
+  const longestTime = `${[...timeTextOf(clock.state.duration)].length}ch`;
   const button = (direction: Direction, label: string, icon: JSX.Element) => (
     <button
       type="button"
@@ -178,11 +190,13 @@ export function EventRow(props: EventRowProps): JSX.Element {
       <span
         data-transport-event=""
         aria-hidden="true"
-        className="min-w-24 flex-1 text-xs text-fg-muted"
+        className="line-clamp-2 min-w-24 flex-1 text-xs text-fg-muted"
       >
         {eventText}
       </span>
-      <span className="font-mono text-sm tabular-nums">{timeText}</span>
+      <span style={{ minWidth: longestTime }} className="font-mono text-sm tabular-nums">
+        {timeText}
+      </span>
       <p role="status" className="sr-only">
         {announcement ? <span key={announcement.count}>{announcement.text}</span> : null}
       </p>
