@@ -71,6 +71,7 @@ function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
         </label>
         <span className="flex items-center gap-2">
           <input
+            id={`${ID}-number`}
             type="text"
             inputMode="decimal"
             autoComplete="off"

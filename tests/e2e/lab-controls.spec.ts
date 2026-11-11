@@ -13,6 +13,13 @@ const VIEWPORTS = [
 ] as const;
 /** Form controls: number fields, selects, segments and switch rows (`h-10`, `min-h-10`). */
 const CONTROL_PX = 40;
+/**
+ * The exception (README, «Iconos y controles»): the settings chips beside the gear and the topic's
+ * copy buttons are 32 px with a fine pointer (targets of at least 24 px, WCAG 2.5.8).
+ */
+const COMPACT_CONTROL_PX = 32;
+/** The two laboratories without a clock: no transport to measure. */
+const LABS_WITHOUT_CLOCK: ReadonlySet<string> = new Set(['tyre-lab', 'trigger-lab']);
 /** Icon buttons at the touch size the laboratories use (`size-11`). */
 const ICON_BUTTON_PX = 44;
 /** A glyph inside an icon button (`size-5`). */
@@ -116,7 +123,9 @@ for (const { name, size } of VIEWPORTS) {
       }) => {
         const lab = await openLab(page, path, labTestId);
 
-        for (const field of await measureNumberFields(lab)) {
+        const fields = await measureNumberFields(lab);
+        expect(fields.length, 'campos numéricos medidos').toBeGreaterThan(0);
+        for (const field of fields) {
           expect(field.height, `${field.id}: alto`).toBe(CONTROL_PX);
           expect(field.overflow, `${field.id}: «${field.longest}» no cabe`).toBeLessThanOrEqual(0);
         }
@@ -127,9 +136,17 @@ for (const { name, size } of VIEWPORTS) {
           expect(minHeight).toBe(`${CONTROL_PX}px`);
         }
 
+        for (const chip of await heights(lab, '[aria-label="Ajustes activos"] button')) {
+          expect(chip.height, `ficha ${chip.text}`).toBe(COMPACT_CONTROL_PX);
+        }
+
         const transport = lab.getByRole('group', { name: 'Reproducción' });
-        if ((await transport.count()) === 0) return;
-        for (const button of await heights(transport, 'button')) {
+        const hasClock = !LABS_WITHOUT_CLOCK.has(labTestId);
+        await expect(transport).toHaveCount(hasClock ? 1 : 0);
+        if (!hasClock) return;
+        const buttons = await heights(transport, 'button');
+        expect(buttons.length, 'botones de la reproducción').toBeGreaterThanOrEqual(2);
+        for (const button of buttons) {
           expect(button.height, `botón ${button.text}`).toBe(ICON_BUTTON_PX);
         }
         for (const glyph of await transport.locator('button svg').all()) {
@@ -138,6 +155,36 @@ for (const { name, size } of VIEWPORTS) {
         }
       });
     }
+
+    test('Tema 9: «Ir a la máxima aproximación» y las vistas de la gráfica de las Voyager miden 40 px', async ({
+      page,
+    }) => {
+      const lab = await openLab(page, './temas/asistencia-gravitatoria/', 'flyby-lab');
+      const jump = lab.getByRole('button', { name: 'Ir a la máxima aproximación' });
+      expect((await jump.boundingBox())?.height).toBe(CONTROL_PX);
+
+      const views = page.getByRole('group', { name: 'Detalle de cada encuentro' });
+      await views.scrollIntoViewIfNeeded();
+      await waitForIsland(page, '[aria-label="Detalle de cada encuentro"]');
+      const buttons = await heights(views, 'button');
+      expect(buttons.length).toBeGreaterThan(1);
+      for (const button of buttons) {
+        expect(button.height, `vista ${button.text}`).toBe(CONTROL_PX);
+      }
+    });
+
+    test('las herramientas del tema miden 32 px con un puntero fino (la excepción del README)', async ({
+      page,
+    }) => {
+      await page.goto('./temas/salto-personaje/');
+      const tools = page.getByTestId('topic-tools');
+      await waitForIsland(page, '[data-testid="topic-tools"]');
+      const buttons = await heights(tools, 'button');
+      expect(buttons.length).toBeGreaterThan(0);
+      for (const button of buttons) {
+        expect(button.height, `herramienta ${button.text}`).toBe(COMPACT_CONTROL_PX);
+      }
+    });
 
     test('el cajón de ajustes: pestañas, selectores, interruptores y segmentos de 40 px; cerrar con un icono de 20', async ({
       page,

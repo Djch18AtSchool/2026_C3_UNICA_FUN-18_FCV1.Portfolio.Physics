@@ -14,7 +14,7 @@ import type { SimClock } from '../../lab/useSimClock';
 export const GO_TO_PERIAPSIS = 'Ir a la máxima aproximación';
 
 const BUTTON =
-  'min-h-11 self-start rounded-sm border border-border bg-bg-elevated px-3 text-sm text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
+  'min-h-10 self-start rounded-sm border border-border bg-bg-elevated px-3 text-sm text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
 
 export interface PeriapsisJumpProps {
   clock: SimClock;
