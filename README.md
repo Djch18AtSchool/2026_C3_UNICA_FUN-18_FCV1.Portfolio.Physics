@@ -49,7 +49,7 @@ Los cuatro temas del Avance 2 siguen el mismo formato, cada uno con su laborator
 - `src/lib/data/`: modelos, datos copiados de una fuente y preajustes, con sus fuentes.
 - `src/lib/tables/`: el registro de tablas de datos: `index.ts` (registro y búsqueda por id), `types.ts`, `markdown.ts` (exportación para "Copiar Markdown") y una tabla por tema en `topics/<slug>.ts`. Es la única fuente de cada tabla para la página, el tiempo de lectura y "Copiar Markdown".
 - `src/components/ui/`: componentes de interfaz base, incluidos `Step.astro` y `Why.astro` (el modelo de contenido por pasos) y `DataTable.astro` (la tabla de datos, que lee el registro de `src/lib/tables/`).
-- `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `LabPresets`, `LabNotes`, `StatusChips`, `LegendKey`, `SettingsDrawer`, `ParamField`, `TransportBar`, `useSimClock`; ver «Laboratorios por niveles»), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), los ajustes de reproducción comunes (`clockSettings`), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
+- `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `LabPresets`, `LabNotes`, `StatusChips`, `LegendKey`, `SettingsDrawer`, `ParamField`, `TransportBar` con sus eventos, `TimeScaleBadge`, `useSimClock`; ver «Laboratorios por niveles» y «Escala de tiempo y eventos»), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), los ajustes de reproducción comunes (`clockSettings`), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
 - `src/components/controls/`: `Readout` (una lectura) y `Slider`.
 - `src/components/charts/`: `ChartFrame` (el marco con título y nota de toda gráfica) y `chartTheme`/`chartScale` (tokens de color y tipografía, formato de marcas); las gráficas mismas son `SvgPlot`, en `src/components/lab/`.
 - `src/components/nav/`: navegación: barra lateral con búsqueda (`SidebarSearch`), `TopicTools`, el pie (identidad, icono de GitHub y botón de tema) y `BackToTop.astro`, el botón flotante "Volver arriba", que aparece al bajar, se detiene sobre el pie y se esconde mientras hay un laboratorio bajo él (en el móvil, mientras se lee uno: no tapa sus campos).
@@ -58,7 +58,7 @@ Los cuatro temas del Avance 2 siguen el mismo formato, cada uno con su laborator
 - `src/layouts/`: plantillas de página.
 - `src/pages/`: páginas del sitio (`temas/` para cada tema).
 - `src/styles/`: estilos globales.
-- `tests/e2e/`: pruebas de extremo a extremo (Playwright).
+- `tests/e2e/`: pruebas de extremo a extremo (Playwright). `tests/e2e/fixtures/<nombre>/` son páginas de prueba fuera del sitio (una raíz de Astro propia que `fixtureSite.ts` construye y sirve en un puerto libre para un archivo de pruebas); hoy, `lab-time` para `time-scale.spec.ts`.
 
 ## Notación matemática
 
@@ -81,6 +81,7 @@ Los nueve laboratorios usan `LabShell` (`src/components/lab/LabShell.tsx`). Uno 
   title="Laboratorio del …"
   testId="<algo>-lab"             // también en tests/e2e/topicPages.ts y en MIGRATED_LABS (lab-shell.spec.ts)
   clock={clock}                   // opcional: sin reloj no hay reproducción
+  markers={markers}               // opcional: eventos en la línea de tiempo (ver «Escala de tiempo y eventos»)
   readouts={readouts}             // «Lecturas», en celdas de dos columnas
   onReset={onReset}               // «Restablecer», junto a «Parámetros»
   levels={{
@@ -110,6 +111,28 @@ Reglas que dejaron los nueve laboratorios:
 - **Consultas de contenedor dentro del lienzo** (`@container` y `@lg:`…): a 1 280 px el escenario mide ~430 px aunque la ventana sea ancha. Lo que deba alinearse con el texto de la tarjeta usa `CANVAS_INSET` (`canvasInset.ts`), que sigue al sangrado del lienzo.
 - **SSR y alto reservado**: el servidor no conoce el ancho del escenario. `SvgPlot` reserva solo el alto que dibujará (`svgPlotReserve.ts`; `aspectRatio` admite un par `{ compact, wide }`); un dibujo propio que mide su ancho debe reservar su alto en CSS (como `HabitatScene`) o tener un alto fijo (como `BounceScene`). `lab-shell.spec.ts` compara la página sin JavaScript con la hidratada a 360, 540 y 1 280 px y falla si un dibujo cambia de alto o queda con bandas vacías.
 - **Todo dibujo del lienzo mide su ancho**: un `svg[role=img]` o `svg[data-testid]` con `viewBox` dentro del lienzo debe dibujarse al ancho que mide (su `viewBox` igual a su caja). La comprobación de hidratación espera a eso antes de comparar, y un dibujo de `viewBox` fijo la deja esperando hasta fallar con «dibujo N sin medir». Un dibujo fijo va fuera de esos selectores o mide su ancho como los demás.
+
+## Escala de tiempo y eventos
+
+Regla (auditoría §12.2): cada laboratorio con reloj declara su escala de tiempo **en el lienzo**, junto a lo que se mueve, y ofrece al menos una vista a 1× en la que el fenómeno se entiende. Las notas al pie pueden explicarla, pero no son el único lugar donde se dice. Dos piezas de `src/components/lab/` lo resuelven:
+
+```tsx
+const clock = useSimClock(duration, { timeScale: 20 });  // clock.rate: s simulados por s real
+const markers: TransportMarker[] = stops.map((t) => ({ t, label: 'Detención' }));
+
+<LabShell clock={clock} markers={markers} …>
+  <div className="relative">                 // la caja de la escena, posicionada
+    <Scene … />
+    <TimeScaleBadge clock={clock} />          // «×20 cámara rápida», esquina superior derecha
+  </div>
+</LabShell>
+```
+
+- **`clock.rate`** (`useSimClock`): segundos simulados por segundo real de la reproducción actual: `timeScale` × velocidad, o, con movimiento reducido, el paso que de verdad se ve (la corrida entera en 15 s a 1×, por pasos).
+- **`TimeScaleBadge`** (HTML): en una esquina (`corner`, por omisión `top-right`) de la caja posicionada de la escena, a 8 px de sus bordes, sin atrapar el puntero ni animarse. Lee `clock.rate` o un `factor` explícito, que manda (un laboratorio cuyo reloj no cuenta segundos reales del fenómeno, como la perturbación del Tema 8, pasa el suyo). El factor va con dos cifras significativas («×0,25», «×20», «×19 000»); la palabra es automática («velocidad real», «cámara rápida», «cámara lenta»), propia (`label`, con `$…$`) o ninguna (`label={null}`). Lleva su texto hablado en una región `status` discreta («Escala de tiempo: 20 veces la velocidad real, cámara rápida»), que se dice solo cuando cambia.
+- **`TimeScaleBadgeSvg`**: el mismo rótulo como `<g>` dentro de una escena SVG, en `x`, `y` (la palabra, 16 unidades debajo; `anchor` `start` o `end`; `label` en la mininotación de `MathText`). Es solo dibujo: la escena añade `<TimeScaleStatus clock={clock} />` en HTML para los lectores de pantalla.
+- **`markers`** (`TransportMarker`: `{ t, label, kind? }`): eventos del reloj, en segundos, nunca posiciones de la línea de tiempo. `kind` es `'stop'` (por omisión) o `'peak'` (una marca más ancha y oscura). Se descartan las marcas fuera de [0, duración], sin nombre o repetidas; se ordenan por tiempo (`transportMarkers.ts`). Con alguna, `TransportBar` dibuja las marcas en una franja bajo la línea de tiempo, donde queda el centro del pulgar en ese instante (sin tapar el pulgar ni recibir el puntero), y una segunda fila: «Evento anterior», «Evento siguiente», el evento en que está el tiempo y la lectura de t. Los botones saltan desde el tiempo en vivo a la marca vecina (con tolerancia de media posición de la línea, para no quedarse en la actual), quedan con `aria-disabled` en los extremos (conservan el foco) y anuncian el destino en una región `status`: «Detención 5 de 17 · t = 312 s». Las marcas con el mismo `label` se numeran entre sí; un nombre único se lee solo («Máxima aproximación»). La línea de tiempo añade el evento a su `aria-valuetext` mientras el tiempo está en él y conserva sus teclas nativas.
+- **Alto**: la reproducción con eventos mide dos filas; `LabShell` cambia `--lab-transport-room` en el escenario para que un control del lienzo enfocado no quede bajo la reproducción pegada. El servidor y el cliente dibujan lo mismo (marcas, botones y rótulo dependen solo de las props y del reloj), así que no hay salto al hidratar.
 
 ## Comandos
 
