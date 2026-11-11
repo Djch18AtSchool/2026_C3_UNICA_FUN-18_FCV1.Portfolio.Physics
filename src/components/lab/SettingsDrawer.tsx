@@ -71,10 +71,10 @@ const TABS: readonly { key: TabKey; label: string }[] = [
 
 /** Bottom sheet on phones, full-height right panel from `sm` up; the backdrop dims the page. */
 const DIALOG =
-  'inset-x-0 top-auto bottom-0 m-0 max-h-[85dvh] w-full max-w-none rounded-t-base border-t border-border bg-bg-elevated p-0 text-fg backdrop:bg-black/40 sm:top-0 sm:right-0 sm:left-auto sm:h-dvh sm:max-h-none sm:w-[22rem] sm:max-w-full sm:rounded-none sm:border-t-0 sm:border-l';
+  'inset-x-0 top-auto bottom-0 m-0 max-h-[85dvh] w-full max-w-none rounded-t-base border-t border-border bg-bg-elevated p-0 text-fg backdrop:bg-black/40 sm:top-0 sm:right-0 sm:left-auto sm:h-dvh sm:max-h-none sm:w-96 sm:max-w-full sm:rounded-none sm:border-t-0 sm:border-l';
 
 const TAB =
-  '-mb-px min-h-11 border-b-2 border-transparent px-3 text-sm font-medium text-fg-muted transition-colors hover:text-fg aria-selected:border-accent aria-selected:text-fg';
+  '-mb-px min-h-10 border-b-2 border-transparent px-3 text-sm font-medium text-fg-muted transition-colors hover:text-fg aria-selected:border-accent aria-selected:text-fg';
 
 function showDialog(dialog: HTMLDialogElement): void {
   if (dialog.open) return;
@@ -113,7 +113,7 @@ function nextTab(current: TabKey, key: string): TabKey | undefined {
 function CloseIcon() {
   return (
     <svg
-      className="size-[18px]"
+      className="size-5"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

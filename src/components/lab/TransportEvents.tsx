@@ -210,7 +210,7 @@ export function EventRow(props: EventRowProps): JSX.Element {
         data-transport-event={eventKind(eventText, nextText)}
         aria-hidden="true"
         title={eventText ?? nextText}
-        className={`line-clamp-2 min-w-24 flex-1 text-xs ${eventText === undefined ? 'text-fg-muted' : 'text-fg'}`}
+        className={`line-clamp-2 min-w-32 flex-1 text-xs ${eventText === undefined ? 'text-fg-muted' : 'text-fg'}`}
       >
         {eventText ?? nextText}
       </span>

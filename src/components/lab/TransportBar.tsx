@@ -46,7 +46,7 @@ const RANGE_MAX = TIMELINE_STEPS;
 
 function PlayIcon() {
   return (
-    <svg className="size-[18px]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <svg className="size-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M7 4.5v15l12-7.5Z" />
     </svg>
   );
@@ -54,7 +54,7 @@ function PlayIcon() {
 
 function PauseIcon() {
   return (
-    <svg className="size-[18px]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <svg className="size-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M6.5 4.5h4v15h-4ZM13.5 4.5h4v15h-4Z" />
     </svg>
   );
@@ -63,7 +63,7 @@ function PauseIcon() {
 function ResetIcon() {
   return (
     <svg
-      className="size-[18px]"
+      className="size-5"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

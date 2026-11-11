@@ -2,16 +2,6 @@
   "src/components/controls/Readout.tsx": {
     "spacing pb-1.5": 1
   },
-  "src/components/lab/SettingsDrawer.tsx": {
-    "size size-[18px]": 1,
-    "size w-[22rem]": 1
-  },
-  "src/components/lab/TransportBar.tsx": {
-    "size size-[18px]": 3
-  },
-  "src/components/lab/TransportEvents.tsx": {
-    "size min-w-24": 1
-  },
   "src/components/nav/iconButton.ts": {
     "size size-[18px]": 1
   },
