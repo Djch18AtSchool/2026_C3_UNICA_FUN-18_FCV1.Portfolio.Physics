@@ -15,8 +15,11 @@ const REAL_TIME_SLACK = 0.005;
 
 const isFactor = (factor: number) => Number.isFinite(factor) && factor > 0;
 
-/** The factor with two significant digits, decimal comma and U+202F thousands: «19 000», «0,25». */
-function factorNumber(factor: number): string {
+/**
+ * The factor with two significant digits, decimal comma and U+202F thousands: «19 000», «0,25».
+ * Shared by the time factor and the zoom factor (zoomMath.ts), which read alike.
+ */
+export function factorNumber(factor: number): string {
   const rounded = Number(factor.toPrecision(SIGNIFICANT_DIGITS));
   const decimals = Math.max(0, SIGNIFICANT_DIGITS - 1 - Math.floor(Math.log10(rounded)));
   const text = formatNumber(rounded, { precision: decimals });
