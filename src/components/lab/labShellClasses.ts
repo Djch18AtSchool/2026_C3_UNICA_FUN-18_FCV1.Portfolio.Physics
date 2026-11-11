@@ -13,6 +13,8 @@ export const LAB_CARD =
  */
 export const LAB_COLUMNS =
   'flex flex-col gap-6 lab-split:grid lab-split:grid-cols-[minmax(0,1fr)_20rem]';
+/** The CSS variable the stage sticks at (under the topic bar): global.css owns its value. */
+export const LAB_STAGE_TOP = '--topic-bar-clearance';
 /** Each cell spans row 1 only, so what sticks inside it never slides over the canvas notes. */
 export const LAB_STAGE_CELL = 'min-w-0 lab-split:col-start-1 lab-split:row-start-1';
 /** The panel's cell is its container: the panel sets its levels by its own width. */

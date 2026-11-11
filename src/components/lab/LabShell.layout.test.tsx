@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../lib/settingsStore';
 import { installDialogPolyfill } from '../../test-dialog';
 import { fakeClock } from '../../test-fake-clock';
-import LabShell, { type LabShellProps } from './LabShell';
+import LabShell, { STAGE, type LabShellProps } from './LabShell';
+import { LAB_STAGE_TOP } from './labShellClasses';
 import type { SettingOption } from './SettingsDrawer';
 
 const display = (trail = true): SettingOption[] => [
@@ -275,6 +276,10 @@ describe('LabShell layout: levels, stage and panel', () => {
     expect(panel).not.toHaveAttribute('tabindex');
     expect(panel).not.toHaveAttribute('role');
     expect(panel.className).not.toMatch(/overflow|max-h|sticky/);
+  });
+
+  test('the stage sticks at the very variable its fit is measured against', () => {
+    expect(STAGE).toContain(`top-(${LAB_STAGE_TOP})`);
   });
 
   test('the stage sticks only once it is measured to fit the window under the topic bar', () => {

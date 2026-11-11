@@ -55,7 +55,7 @@
 
 /*
  * Lengths the topic bar and the tiered laboratories share: the bar's height (TopicStickyBar), the
- * clearance below it where keyboard focus, #anchors and the labs' sticky columns stop, and the
+ * clearance below it where keyboard focus, #anchors and a lab's sticky stage stop, and the
  * room a transport pinned to the window's bottom takes, kept free under a focused canvas control:
  * a copy of LabShell's TRANSPORT (TransportBar's 44 px buttons, 2 × 12 px padding, 1 px
  * rule). Change both together; lab-shell.spec.ts fails when they drift.

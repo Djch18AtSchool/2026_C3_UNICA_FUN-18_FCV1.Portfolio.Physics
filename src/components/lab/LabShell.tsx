@@ -41,6 +41,7 @@ import {
   LAB_PANEL_CELL,
   LAB_PARAMS_LEVEL,
   LAB_STAGE_CELL,
+  LAB_STAGE_TOP,
 } from './labShellClasses';
 import InlineMath from './InlineMath';
 import LabNotes from './LabNotes';
@@ -53,13 +54,13 @@ import TransportBar from './TransportBar';
 export { READOUT_ANNOUNCE_DELAY_MS } from './labShellParts';
 export type { LabLevels, LabReadout, LabShellProps } from './labShellTypes';
 
-/** Where the stage sticks: under the topic bar. */
-const STICKY_TOP = 'var(--topic-bar-clearance)';
 /**
  * The stage sticks only while it fits the window under the topic bar: data-lab-stage-fits is
- * "true" or "false" once measured (absent on the server, so nothing sticks before).
+ * "true" or "false" once measured (absent on the server, so nothing sticks before). The sticky
+ * top is the CSS variable the fit is measured against (LAB_STAGE_TOP): Tailwind needs the class
+ * literal, and LabShell.layout.test checks that it names the same variable.
  */
-const STAGE =
+export const STAGE =
   'flex flex-col gap-4 lab-split:data-[lab-stage-fits=true]:sticky lab-split:data-[lab-stage-fits=true]:top-(--topic-bar-clearance)';
 /**
  * Over a stage taller than the window, the transport waits at the window's bottom. Its height (the
@@ -198,7 +199,7 @@ function Stage({
   timeUnit,
   children,
 }: Pick<LabShellProps, 'clock' | 'timeUnit' | 'children'>): JSX.Element {
-  const [ref, fits] = useFitsInWindow<HTMLDivElement>(STICKY_TOP);
+  const [ref, fits] = useFitsInWindow<HTMLDivElement>(`var(${LAB_STAGE_TOP})`);
   return (
     <div className={LAB_STAGE_CELL}>
       <div
