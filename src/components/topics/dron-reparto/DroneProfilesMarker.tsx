@@ -134,14 +134,14 @@ export function ProfileReading({
       className="m-0 flex flex-wrap items-baseline gap-x-4 gap-y-1 px-1 text-sm tabular-nums"
     >
       {/* The bare spaces are not laid out by the flex boxes but keep the text content readable. */}
-      <div className="flex items-baseline gap-1.5">
+      <div className="flex items-baseline gap-2">
         <dt className="text-fg-muted">t</dt>{' '}
         <dd className="m-0 font-mono">
           {formatNumber(at, { precision: timeDecimals, unit: 's' })}
         </dd>
       </div>
       {source.series.map((series, k) => (
-        <div key={series.id} className="flex items-baseline gap-1.5">
+        <div key={series.id} className="flex items-baseline gap-2">
           <svg aria-hidden="true" width={SWATCH_WIDTH} height={SWATCH_HEIGHT} className="shrink-0">
             <line
               x1="0"

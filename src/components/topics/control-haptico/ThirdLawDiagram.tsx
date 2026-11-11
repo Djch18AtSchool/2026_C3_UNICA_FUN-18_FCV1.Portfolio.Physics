@@ -119,7 +119,7 @@ export default function ThirdLawDiagram(): JSX.Element {
       aria-label="Par de tercera ley entre el dedo y el gatillo: dos fuerzas de igual módulo y sentido opuesto, una sobre cada cuerpo"
       viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
       width="100%"
-      className="mx-auto block h-auto max-w-[30rem]"
+      className="mx-auto block h-auto max-w-lg"
     >
       <g textAnchor="middle" fill={TEXT_COLOR} {...textStyle}>
         <text x={PANEL / 2} y={TITLE_Y}>

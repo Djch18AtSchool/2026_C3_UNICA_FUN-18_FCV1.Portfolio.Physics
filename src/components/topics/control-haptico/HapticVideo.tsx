@@ -20,7 +20,7 @@ export interface HapticVideoProps {
 
 const NO_MARKER = -1;
 const MARKER_BASE =
-  'inline-flex min-h-9 items-center gap-2 self-start rounded-base border px-3 py-1.5 text-left text-sm font-medium text-fg no-underline motion-safe:transition-colors';
+  'inline-flex min-h-10 items-center gap-2 self-start rounded-base border px-3 py-2 text-left text-sm font-medium text-fg no-underline motion-safe:transition-colors';
 const MARKER_ACTIVE = 'border-accent bg-accent/10';
 const MARKER_IDLE = 'border-border bg-bg-elevated hover:border-fg-muted';
 const FACADE = 'group relative block aspect-video w-full overflow-hidden bg-black no-underline';
@@ -47,7 +47,7 @@ function PlayIcon(): JSX.Element {
 
 function ExternalIcon(): JSX.Element {
   return (
-    <svg viewBox="0 0 16 16" className="ml-1 inline size-3.5 align-[-2px]" aria-hidden="true">
+    <svg viewBox="0 0 16 16" className="ml-1 inline size-4 align-[-2px]" aria-hidden="true">
       <path
         d="M6 3H3v10h10v-3M9 3h4v4M13 3 7.5 8.5"
         fill="none"
@@ -105,7 +105,7 @@ function VideoFacade({ video, isHydrated, onPlay }: FacadeProps): JSX.Element {
       <span className="sr-only">{`${action}:`}</span> <VideoThumbnail id={video.id} />
       <span
         lang="en"
-        className="absolute inset-x-0 top-0 bg-linear-to-b from-black/80 to-transparent px-4 pt-3 pb-10 text-left text-sm font-semibold text-white sm:text-base"
+        className="absolute inset-x-0 top-0 bg-linear-to-b from-black/80 to-transparent px-4 pt-3 pb-8 text-left text-sm font-semibold text-white sm:text-base"
       >
         {video.title}
       </span>
@@ -173,7 +173,7 @@ function MarkerItem({ marker, videoId, playerId, isActive, onSeek }: MarkerItemP
   );
   const className = `${MARKER_BASE} ${isActive ? MARKER_ACTIVE : MARKER_IDLE}`;
   return (
-    <li className="m-0 flex flex-col gap-1.5">
+    <li className="m-0 flex flex-col gap-2">
       {onSeek ? (
         <button
           type="button"

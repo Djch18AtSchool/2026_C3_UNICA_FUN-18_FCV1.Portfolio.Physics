@@ -104,7 +104,7 @@ export default function ApparentWeightDiagram(): JSX.Element {
       aria-label="Peso aparente en la Tierra y en una nave que no gira"
       viewBox={`0 0 ${VIEW.width} ${VIEW.height + LINE}`}
       width="100%"
-      className="mx-auto block h-auto max-w-[30rem]"
+      className="mx-auto block h-auto max-w-lg"
     >
       <g textAnchor="middle" fill={TEXT_COLOR} {...textStyle}>
         <text x={earth} y={TITLE_Y}>
