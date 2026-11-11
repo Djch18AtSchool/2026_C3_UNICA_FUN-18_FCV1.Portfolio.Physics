@@ -64,6 +64,41 @@ const field = () => screen.getByRole<HTMLInputElement>('textbox', { name: 'Grave
 describe('ParamField', () => {
   afterEach(cleanup);
 
+  test('the unit takes the same width in every field, so the number boxes line up in a column', () => {
+    render(
+      <>
+        <ParamField
+          id="a"
+          label="Rapidez"
+          unit="m/s²"
+          min={0}
+          max={10}
+          step={1}
+          value={1}
+          onChange={vi.fn()}
+        />
+        <ParamField
+          id="b"
+          label="Giro"
+          unit="°"
+          min={0}
+          max={10}
+          step={1}
+          value={1}
+          onChange={vi.fn()}
+        />
+        <ParamField id="c" label="Factor" min={0} max={10} step={1} value={1} onChange={vi.fn()} />
+      </>,
+    );
+
+    const units = ['a', 'b', 'c'].map(
+      (id) => document.getElementById(`${id}-number`)?.nextElementSibling as HTMLElement,
+    );
+    // A unit box of a fixed width after every number box, an empty one when there is no unit.
+    expect(units.every((unit) => unit?.className.includes('w-[5ch]'))).toBe(true);
+    expect(units[2]).toHaveAttribute('aria-hidden', 'true');
+  });
+
   test('labels the range and the number with the same (rich) label, unit after the number', () => {
     render(<Controlled />);
 
@@ -225,10 +260,12 @@ describe('ParamField', () => {
     expect(range().value).toBe('4.5');
   });
 
-  test('an empty unit renders no unit mark', () => {
+  test('an empty unit renders no unit mark: only the empty box that keeps the column', () => {
     render(<ParamField {...BASE} unit="" value={2} onChange={() => {}} />);
 
-    expect(field().nextElementSibling).toBeNull();
+    const box = field().nextElementSibling;
+    expect(box).toBeEmptyDOMElement();
+    expect(box).toHaveAttribute('aria-hidden', 'true');
     expect(field()).not.toHaveAttribute('aria-describedby');
   });
 });

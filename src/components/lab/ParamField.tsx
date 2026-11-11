@@ -61,6 +61,9 @@ function snapToStep(value: number, min: number, max: number, step: number): numb
   return Number((min + index * step).toFixed(Math.max(decimalsOf(step), decimalsOf(min))));
 }
 
+/** Five monospace characters: the longest unit of the labs' fields («m/s²», «km/h», «kWh»). */
+const UNIT_BOX = 'w-[5ch] shrink-0 font-mono text-sm text-fg-muted';
+
 /**
  * A parameter as a range and a number field bound to the same value. The range commits on every
  * move; the field keeps what is typed and commits on blur or Enter, snapped to the step grid
@@ -119,11 +122,15 @@ function ParamField({
             }}
             className="h-9 w-24 rounded-base border border-border bg-bg px-2 text-right font-mono text-sm tabular-nums text-fg"
           />
+          {/* A unit box of one width in every field (none is longer than «m/s²»), empty without
+              a unit, so the number boxes of a level line up in a column. */}
           {unit ? (
-            <span id={unitId} className="font-mono text-sm text-fg-muted">
+            <span id={unitId} className={UNIT_BOX}>
               {unit}
             </span>
-          ) : null}
+          ) : (
+            <span aria-hidden="true" className={UNIT_BOX} />
+          )}
         </span>
       </div>
       <input
