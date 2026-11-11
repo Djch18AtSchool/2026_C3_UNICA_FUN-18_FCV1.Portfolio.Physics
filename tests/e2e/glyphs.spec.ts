@@ -7,7 +7,7 @@
  * Each lab is measured as it opens and again after each of its presets and its other states.
  */
 import { expect, test, type Locator } from '@playwright/test';
-import { hydrateAllIslands, setRange } from './helpers';
+import { hydrateAllIslands, seekTimeline } from './helpers';
 import {
   describeReport,
   measureGlyphs,
@@ -81,9 +81,13 @@ const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
         const field = lab.getByRole('textbox', { name: /^Duración de la maniobra T/ });
         await field.fill('8');
         await field.press('Enter');
-        // T = 8 s is below T_min: the warning is the sign that the field was committed.
-        await expect(lab.getByRole('status')).toContainText(/la rueda no alcanza/i);
-        await setRange(
+        // T = 8 s is below T_min: the warning is the sign that the field was committed. Found by
+        // its text: the lab may hold other status regions (the time-scale badge's, events').
+        await expect(
+          lab.getByRole('status').filter({ hasText: /la rueda no alcanza/i }),
+        ).toContainText(/la rueda no alcanza/i);
+        // Sent again until the clock takes it (helpers.seekTimeline), as every other seek.
+        await seekTimeline(
           lab.getByRole('slider', { name: 'Línea de tiempo' }),
           String(OVER_LIMIT_SHARE),
         );

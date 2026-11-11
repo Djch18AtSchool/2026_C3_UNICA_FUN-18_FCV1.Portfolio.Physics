@@ -186,7 +186,11 @@ async function measureOnce(
 
 /** A running lab may replace a node between tagging it and asking CDP about it: measure again. */
 const MEASURE_ATTEMPTS = 3;
-const LOST_NODES = /^CDP encontró \d+ de los/;
+/**
+ * A node lost to a re-render: gone before DOM.querySelectorAll found it, or between that and the
+ * font query (CDP's «Could not find node with given id»; Tema 9 after a preset, 3 of 160 runs).
+ */
+const LOST_NODES = /^CDP encontró \d+ de los|^error de CDP: .*Could not find node with given id/;
 
 /**
  * Measures the page (or the part under `rootSelector`). Nodes lost to a re-render are retried; any

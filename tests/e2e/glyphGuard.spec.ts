@@ -6,6 +6,9 @@
 import { expect, test, type CDPSession } from '@playwright/test';
 import { describeReport, measureGlyphs, openFontSession, requireStates } from './glyphKit';
 
+const LOST_NODE_MESSAGE =
+  'Protocol error (CSS.getPlatformFontsForNode): Could not find node with given id';
+
 test.describe('la guardia de glifos se activa', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('./');
@@ -95,6 +98,33 @@ test.describe('la guardia de glifos se activa', () => {
     const report = await measureGlyphs(page, blind);
 
     expect(report.errors.join('\n')).toMatch(/CDP encontró 0 de los/);
+  });
+
+  test('(b) un elemento que un nuevo render reemplazó se mide otra vez; si nunca vuelve, avisa', async ({
+    page,
+  }) => {
+    const real = await openFontSession(page);
+    // What CDP says when the node it was given is gone (glyphs.spec.ts, Tema 9 after a preset).
+    // A session whose font query loses the node for the first `failures` calls.
+    const losingNodes = (failures: number) => {
+      let left = failures;
+      return {
+        send: (method: string, params?: object) => {
+          if (method === 'CSS.getPlatformFontsForNode' && left > 0) {
+            left -= 1;
+            return Promise.reject(new Error(LOST_NODE_MESSAGE));
+          }
+          return (real.send as (m: string, p?: object) => Promise<unknown>)(method, params);
+        },
+      } as unknown as CDPSession;
+    };
+
+    const recovered = await measureGlyphs(page, losingNodes(1));
+    const neverBack = await measureGlyphs(page, losingNodes(Number.POSITIVE_INFINITY));
+
+    expect(recovered.errors).toEqual([]);
+    expect(recovered.fontNodes).toBeGreaterThan(0);
+    expect(describeReport(neverBack).join('\n')).toMatch(/no pudo correr: .*Could not find node/);
   });
 
   test('(a) un laboratorio sin ningún estado que medir falla', () => {
