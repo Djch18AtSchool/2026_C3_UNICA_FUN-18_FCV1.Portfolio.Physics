@@ -31,6 +31,8 @@ export const REVIEWED_TOKEN_MATH: ReviewedTokenMath = {
       "the pinned transport's own height (69 px): 44 px buttons, 12 px above and below, its 1 px rule",
     'calc(var(--lab-transport-room)+var(--icon-button-touch)+var(--space-3))':
       'the transport with events (125 px): its second row of 44 px buttons, 12 px below the first',
+    'calc(var(--lab-transport-room-events)+var(--space-8))':
+      'the transport with events when its t reading takes a third line (157 px): 32 px more',
     'calc(var(--grid-cell)*var(--grid-major-every))':
       "the grid paper's period between major lines (80 px: five 16 px cells), a pattern, not a gap",
   },

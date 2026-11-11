@@ -611,3 +611,37 @@ for (const { path, testId } of LABS) {
     });
   });
 }
+
+/** The laboratories whose transport has events (a second row: buttons, event text, t reading). */
+const EVENT_LABS: ReadonlySet<string> = new Set(['drone-lab', 'regen-lab', 'flyby-lab']);
+/**
+ * Windows in two columns around the band where the stage is too narrow for the event row and its
+ * t reading drops to a third line (1 058 to 1 069 px; to 1 077 in Tema 6: README), and 1 280.
+ */
+const THIRD_LINE_WIDTHS = [1058, 1069, 1070, 1077, 1078, 1280] as const;
+/** One line of the event row (a 20 px line and its 12 px gap): the most the room may exceed it. */
+const EVENT_LINE_PX = 32;
+
+for (const { path, testId } of LABS.filter(({ testId }) => EVENT_LABS.has(testId))) {
+  test(`${testId}: en dos columnas la reserva bajo el lienzo cubre la reproducción, también con la lectura de t en una tercera línea`, async ({
+    page,
+  }) => {
+    const lab = await openTiered(page, path, testId);
+    const stage = lab.locator('[data-lab-stage]');
+    const transport = lab.locator('[data-lab-transport]');
+    for (const width of THIRD_LINE_WIDTHS) {
+      await page.setViewportSize({ width, height: DESKTOP.height });
+      await expect(lab.locator('[data-lab-panel]')).toBeVisible();
+      const bar = (await boxOf(transport)).height;
+      const room = await cssLengthPxIn(stage, 'var(--lab-transport-room)');
+      expect(
+        room,
+        `a ${width} px: reserva ${room} px, reproducción ${bar} px`,
+      ).toBeGreaterThanOrEqual(bar);
+      expect(
+        room - bar,
+        `a ${width} px: reserva ${room} px, reproducción ${bar} px`,
+      ).toBeLessThanOrEqual(EVENT_LINE_PX);
+    }
+  });
+}

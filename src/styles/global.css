@@ -77,6 +77,21 @@
   --lab-transport-room: var(--lab-transport-room-events);
 }
 
+/*
+ * In two columns the stage is the card less the 20 rem panel and its gap. Under 43.25 rem of card
+ * it is too narrow for the event row (two 44 px buttons, the event's 128 px and the t reading),
+ * and the reading drops to a third line: 32 px more (a 20 px line and the row's 12 px gap). The
+ * widest reading (Tema 6) sets the width; Temas 1 and 9 keep the line to 42.75 rem, so between the
+ * two they reserve a line they do not use. lab-shell.spec.ts measures the band.
+ */
+@media (width >= 64rem) {
+  @container lab (width < 43.25rem) {
+    [data-lab-stage]:has([data-transport-events]) {
+      --lab-transport-room: calc(var(--lab-transport-room-events) + var(--space-8));
+    }
+  }
+}
+
 @layer base {
   /* The browser's 16 px root (Dylan, 2026-11-10): a rem is 16 px and Tailwind's steps are whole pixels. */
   html {
