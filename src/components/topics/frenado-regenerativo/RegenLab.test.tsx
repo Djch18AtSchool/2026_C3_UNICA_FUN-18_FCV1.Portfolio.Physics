@@ -130,7 +130,7 @@ describe('RegenLab', () => {
     renderLab();
 
     expect(viewChip()).toHaveAccessibleName('Vista Tramo');
-    expect(timelineText()).toBe('t = 0,00 s');
+    expect(timelineText()).toBe('t = 376,00 s');
     expect(readout(SPEED)).toBe('57,94 km/h');
     expect(readout(POWER)).toBe('3,81 kW');
     expect(readout(BATTERY)).toBe('0,173 kWh');
@@ -151,12 +151,12 @@ describe('RegenLab', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
     frames.flush(1000);
     frames.flush(1100);
-    expect(timelineText()).toBe('t = 0,10 s');
+    expect(timelineText()).toBe('t = 376,10 s');
 
     scrubTo(999);
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
     for (const now of [2000, 2050, 2100]) frames.flush(now);
-    expect(timelineText()).toBe('t = 26,00 s');
+    expect(timelineText()).toBe('t = 402,00 s');
     expect(readout(SPEED)).toBe('0,00 km/h');
     expect(readout(BATTERY)).toBe('0,220 kWh');
     expect(lab()).toHaveAttribute('data-playing', 'false');
@@ -173,17 +173,17 @@ describe('RegenLab', () => {
     expect(screen.getByTestId('regen-minimap').querySelector('[data-stretch]')).toBeNull();
   });
 
-  test('switching views keeps the instant of the cycle: 389 s is t = 13 s of the stretch', () => {
+  test('switching views keeps the instant of the cycle: 389 s of the cycle, 13 s into the stretch, reads 389 s in both', () => {
     renderLab();
     scrubTo(500);
-    expect(timelineText()).toBe('t = 13,00 s');
+    expect(timelineText()).toBe('t = 389,00 s');
 
     showCycle();
     expect(timelineText()).toBe('t = 389 s');
     expect(readout(SPEED)).toBe('37,01 km/h');
 
     chooseView('tramo');
-    expect(timelineText()).toBe('t = 13,00 s');
+    expect(timelineText()).toBe('t = 389,00 s');
     expect(readout(SPEED)).toBe('37,01 km/h');
   });
 
@@ -196,7 +196,7 @@ describe('RegenLab', () => {
     scrubTo(85);
     chooseView('tramo');
 
-    expect(timelineText()).toBe('t = 0,00 s');
+    expect(timelineText()).toBe('t = 376,00 s');
     expect(lab()).toHaveAttribute('data-playing', 'false');
   });
 
@@ -204,7 +204,7 @@ describe('RegenLab', () => {
     renderLab();
 
     fireEvent.click(nextEvent());
-    expect(timelineText()).toBe('t = 21,00 s · Detención 3 de 17');
+    expect(timelineText()).toBe('t = 397,00 s · Detención 3 de 17');
     expect(readout(SPEED)).toBe('0,00 km/h');
     expect(nextEvent()).toHaveAttribute('aria-disabled', 'true');
 
@@ -235,12 +235,12 @@ describe('RegenLab', () => {
     const plot = screen.getByTestId('regen-energy-plot');
 
     expect(plot.querySelector('[data-band="Tramo"]')).not.toBeNull();
-    // One «t =» on screen: the transport's, counted from the stretch's start.
+    // One «t =» on screen: the transport's, in the cycle's time (timeOrigin).
     expect(plot.querySelector('[data-cursor] text')).toBeNull();
     timeCursor().focus();
     fireEvent.keyDown(timeCursor(), { key: 'ArrowRight' });
     // 1 % of the cycle, 13,69 s: 389,69 s is still in the stretch.
-    expect(timelineText()).toBe('t = 13,69 s');
+    expect(timelineText()).toBe('t = 389,69 s');
     expect(viewChip()).toHaveAccessibleName('Vista Tramo');
 
     fireEvent.keyDown(timeCursor(), { key: 'ArrowRight' });
@@ -466,7 +466,7 @@ describe('RegenLab', () => {
     renderLab();
 
     await choosePreset(user, /^Model 3 · carretera \(HWFET\)/);
-    expect(timelineText()).toBe('t = 0,00 s');
+    expect(timelineText()).toBe('t = 729,00 s');
     seekToEnd();
     expect(timelineText()).toBe('t = 765,0 s');
     expect(readout(RECOVERED)).toBe('12,5 %');
@@ -569,7 +569,7 @@ describe('RegenLab', () => {
     act(() => vi.advanceTimersByTime(250));
 
     // One step is 1/60 of the stretch: 26/60 = 0,433 s; the badge says the pace that is seen.
-    expect(timelineText()).toBe('t = 0,43 s');
+    expect(timelineText()).toBe('t = 376,43 s');
     expect(badgeText()).toBe('×1,7 cámara rápida');
     expect(frames.request).not.toHaveBeenCalled();
   });
@@ -601,7 +601,7 @@ describe('RegenLab', () => {
     expect(gear).toHaveFocus();
   });
 
-  test('choosing another cycle in the drawer restarts it at t = 0 on its own road', async () => {
+  test('choosing another cycle in the drawer restarts its stretch from the start, on its own road', async () => {
     const user = userEvent.setup();
     renderLab();
     await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
@@ -614,7 +614,7 @@ describe('RegenLab', () => {
     await user.keyboard('{Escape}');
 
     // «Tramo» now plays the highway's largest braking, 729–765 s.
-    expect(timelineText()).toBe('t = 0,00 s');
+    expect(timelineText()).toBe('t = 729,00 s');
     expect(screen.getByTestId('regen-minimap').textContent?.replace(/\s/g, ' ')).toContain(
       'Tramo 729–765 s',
     );
@@ -708,7 +708,7 @@ describe('RegenLab', () => {
     await user.click(screen.getByRole('button', { name: 'Restablecer' }));
 
     expect(viewChip()).toHaveAccessibleName('Vista Tramo');
-    expect(timelineText()).toBe('t = 0,00 s');
+    expect(timelineText()).toBe('t = 376,00 s');
     expect(etaSlider()).toHaveValue('0.8');
     expect(presetShown()).toMatch(/^Model 3 · ciudad/);
     expect(readout(POWER)).toBe('3,81 kW');

@@ -138,7 +138,7 @@ test.describe('laboratorio', () => {
   });
 
   for (const [view, end] of [
-    ['Tramo', /^t = 26,00\s?s$/u],
+    ['Tramo', /^t = 402,00\s?s$/u],
     // The UDDS lasts 1369 s; the thousands are grouped with a narrow no-break space.
     [VIEW_CYCLE, /^t = 1\s?369\s?s$/u],
   ] as const) {
@@ -174,7 +174,7 @@ test.describe('laboratorio', () => {
       'Escala de tiempo: velocidad real',
     );
     await expect(marksOf(lab)).toHaveCount(1);
-    await expect(timelineOf(lab)).toHaveAttribute('aria-valuetext', /^t = 0,00\s?s$/u);
+    await expect(timelineOf(lab)).toHaveAttribute('aria-valuetext', /^t = 376,00\s?s$/u);
   });
 
   test('«Evento siguiente» y «anterior», con el teclado, en las dos vistas', async ({ page }) => {
@@ -186,10 +186,10 @@ test.describe('laboratorio', () => {
     await page.keyboard.press('Enter');
     await expect(timelineOf(lab)).toHaveAttribute(
       'aria-valuetext',
-      /^t = 21,00\s?s · Detención 3 de 17$/u,
+      /^t = 397,00\s?s · Detención 3 de 17$/u,
     );
     await expect(lab.getByRole('status').filter({ hasText: 'Detención' })).toHaveText(
-      /^Detención 3 de 17 · t = 21,00\s?s$/u,
+      /^Detención 3 de 17 · t = 397,00\s?s$/u,
     );
     await expect(next).toHaveAttribute('aria-disabled', 'true');
     await expect(next).toBeFocused();

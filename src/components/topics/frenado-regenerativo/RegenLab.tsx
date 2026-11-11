@@ -140,7 +140,8 @@ function readoutsFor(at: BalanceAt): LabReadout[] {
 
 /**
  * The view on show and its clock: «Tramo» plays the cycle's stretch at real time on a clock of
- * its own (t = 0 at the stretch's start), «Ciclo» the whole cycle CYCLE_TIME_LAPSE times faster.
+ * its own (t = 0 at the stretch's start; the transport reads it from the cycle's start through
+ * `timing.offset`), «Ciclo» the whole cycle CYCLE_TIME_LAPSE times faster.
  * Switching keeps the instant of the cycle when the new view holds it (else the stretch's start)
  * and pauses. The seek waits for the clock's new duration, which useSimClock sets in an effect
  * declared before this hook's own.
@@ -295,6 +296,7 @@ export default function RegenLab({ usage, leftOut }: RegenLabProps): JSX.Element
       title="Laboratorio del frenado regenerativo"
       clock={clock}
       markers={markers}
+      timeOrigin={timing.offset}
       timeUnit="s"
       readouts={readoutsFor(at)}
       levels={{ params, scenario, display }}

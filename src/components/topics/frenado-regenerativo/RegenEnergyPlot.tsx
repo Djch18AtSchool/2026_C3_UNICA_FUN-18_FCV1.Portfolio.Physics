@@ -19,8 +19,8 @@ export interface RegenEnergyPlotProps {
   /** Dragging the cursor or moving it with the keys seeks there (and pauses), in the cycle's time. */
   onSeek(t: number): void;
   /**
-   * The stretch the view «Tramo» plays, shaded. The cursor then carries no t label: the transport
-   * counts t from the stretch's start, and two different «t =» would contradict each other.
+   * The stretch the view «Tramo» plays, shaded. The cursor then carries no t label: one «t =» on
+   * screen, the transport's (which reads the cycle's time there too, through its timeOrigin).
    */
   stretch?: Stretch;
 }
