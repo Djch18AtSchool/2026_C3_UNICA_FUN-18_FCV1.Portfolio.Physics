@@ -6,6 +6,7 @@ import InlineMath from '../../lab/InlineMath';
 import ChoiceField from '../../lab/ChoiceField';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
+import type { TransportMarker } from '../../lab/transportMarkers';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { useSimClock } from '../../lab/useSimClock';
 import { DEFAULT_DISPLAY, flybyLocalSettings, type FlybyDisplay } from './flybyLabSettings';
@@ -46,6 +47,9 @@ const NO_WRAP = 'whitespace-nowrap';
 const DRAG_HINT =
   'Arrastra el punto de máxima aproximación en el dibujo, o enfócalo y muévelo con las flechas (1 % de la escala logarítmica; con Mayús, 10 %); Inicio y Fin lo llevan a 1 y 100 radios.';
 const ARRIVAL_HINT = String.raw`Un preajuste fija la llegada: $V_p$, $v_\infty$ y $\theta_\text{in}$, el ángulo entre $\vec V_p$ y $\vec v_{\infty,\text{in}}$; $r_p$ y el lado son tuyos.`;
+/** The closest approach on the timeline: a peak (t = t_p is the middle of every drawn pass). */
+const PERIAPSIS_LABEL = 'Máxima aproximación';
+const MIDDLE = 1 / 2;
 const SIDE_OPTIONS = (['behind', 'front'] as const).map((value) => ({
   value,
   label: SIDE_NAMES[value],
@@ -119,6 +123,12 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
     [clockDuration, passSeconds, hyperbola],
   );
   const live = useMemo(() => ({ frame: clock.frame, probeAt }), [clock.frame, probeAt]);
+  // t = t_p is the middle of the clock's own duration, so the mark never lags an edit's duration.
+  const periapsisT = clockDuration * MIDDLE;
+  const markers = useMemo<readonly TransportMarker[]>(
+    () => [{ t: periapsisT, label: PERIAPSIS_LABEL, kind: 'peak' }],
+    [periapsisT],
+  );
 
   /** Where in the pass (0..1) an edit found the probe, so the new pass resumes there. */
   const progressRef = useRef(0);
@@ -174,6 +184,7 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
   ];
 
   const kms = (value: number) => formatNumber(value, { precision: decimals, unit: 'km/s' });
+  const periapsisSummary = `${PERIAPSIS_LABEL}: la sonda pasa a ${formatNumber(rp, { precision: 2 })} radios de ${planet.name}, con ${kms(stateAt(hyperbola, 0).speed)} respecto al planeta.`;
   // Keyed by quantity, not by text: a new preset changes the values in place, not the nodes.
   const arrival = [
     { key: 'Vp', text: `$V_p$${EQUALS}${kms(encounter.VpKms)}` },
@@ -232,6 +243,7 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
     <LabShell
       title="Laboratorio del sobrevuelo (modelo plano)"
       clock={clock}
+      markers={markers}
       readouts={readouts}
       canvasNotes={
         <FlybyNotes
@@ -267,6 +279,8 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
         live={live}
         display={display}
         decimals={decimals}
+        clock={clock}
+        periapsis={{ periapsisT, summary: periapsisSummary }}
         onRpRequest={requestRp}
       />
     </LabShell>

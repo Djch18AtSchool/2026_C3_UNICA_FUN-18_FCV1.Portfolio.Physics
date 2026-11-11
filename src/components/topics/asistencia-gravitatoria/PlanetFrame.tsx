@@ -3,6 +3,8 @@ import type { Planet } from '../../../lib/data/planets';
 import { formatNumber } from '../../../lib/format';
 import { mathTextToString } from '../../../lib/mathNotation';
 import MathText from '../../lab/MathText';
+import { TimeScaleBadgeSvg } from '../../lab/TimeScaleBadge';
+import type { SimClock } from '../../lab/useSimClock';
 import {
   LINE_WIDTH,
   SURFACE_COLOR,
@@ -17,6 +19,7 @@ import { Arrow, Knob, LABEL_SIZE, Label, type Point } from '../../lab/OverlayMar
 import { useDrag, type DragPoint } from '../../lab/useDrag';
 import { useFrameDerived } from '../../lab/useFrameTime';
 import { sampleTrack, type FlybyHyperbola, type FlybyState } from './flybyOrbit';
+import { scaleBadgeSpot } from './flybyScaleBadge';
 import {
   ARROW_PX,
   centreOn,
@@ -56,6 +59,8 @@ export interface PlanetFrameProps {
   unit: string;
   live: LiveProbe;
   showVectors: boolean;
+  /** Its rate is the time scale the frame declares, in the top band between the two corner texts. */
+  clock: SimClock;
   /** r_p (planet radii) asked for by the handle, unclamped. */
   onRpRequest(rp: number): void;
 }
@@ -174,7 +179,7 @@ function ProbeLayer({ live, hyperbola, track, trackPx, toPx, showVectors }: Prob
  * logarithmic r_p scale: drag it, or use the arrow keys, Page keys, Home and End.
  */
 export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
-  const { hyperbola, planet, rp, unit, live, showVectors, onRpRequest } = props;
+  const { hyperbola, planet, rp, unit, live, showVectors, clock, onRpRequest } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const side = Math.min(width, MAX_SIDE);
   const drawSide = side - 2 * TEXT_BAND;
@@ -216,6 +221,8 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
   const barText = `${formatNumber(bar.radii, { precision: bar.radii < 1 ? 1 : 0 })} ${unit}`;
   const cornerY = CORNER + CORNER_BASELINE;
   const vpText = { x: CORNER + VP_ARROW + VP_TEXT_GAP, y: cornerY };
+  const vpBox = { ...textBox(vpText, VP_KEY, NOTE_SIZE, 'start'), left: CORNER };
+  const scale = scaleBadgeSpot(vpBox.right, clock.rate);
   // The v∞ labels keep off every line drawn still and off every text; the moving probe and v_rel
   // are left out, so a label does not jump while the pass plays.
   const [outLabel, inLabel] = placeLabels(
@@ -246,7 +253,8 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
       ],
     ],
     [
-      { ...textBox(vpText, VP_KEY, NOTE_SIZE, 'start'), left: CORNER },
+      vpBox,
+      ...scale.boxes,
       textBox({ x: width - CORNER, y: cornerY }, rpValue, NOTE_SIZE, 'end'),
       textBox({ x: CORNER, y: side - CORNER - BAR_TEXT_LIFT }, barText, NOTE_SIZE, 'start'),
       ...(view.isPlanetEnlarged
@@ -300,6 +308,7 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
               fontSize={NOTE_SIZE}
               fill={TEXT_COLOR}
             />
+            <TimeScaleBadgeSvg clock={clock} x={scale.x} y={scale.y} />
             <g data-testid="flyby-rp-value">
               <MathText
                 source={rpValue}
