@@ -49,37 +49,54 @@ export async function notYetMeasured(page: Page, labSelector: string): Promise<s
   );
 }
 
-/**
- * A lab whose drawings measure their own width must not change height when React takes over: the
- * server draws them at the article's width, and the stage of a tiered lab is narrower. The page
- * without scripts shows what the server sent; the same page after hydration shows what React made.
- */
-export async function expectSameHeightAfterHydration(
+/** The widths of the canvas' drawings' viewBoxes: 720 (the server's) until each one measures. */
+export async function drawingWidths(page: Page, labSelector: string): Promise<number[]> {
+  return page
+    .locator(labSelector)
+    .evaluate(
+      (lab, drawings) =>
+        [...lab.querySelectorAll(drawings)].map(
+          (svg) => (svg as SVGSVGElement).viewBox.baseVal.width,
+        ),
+      DRAWINGS,
+    );
+}
+
+/** The heights of the lab as the server sent it: the page without scripts, fonts in place. */
+export async function measureServer(
   browser: Browser,
   url: string,
   labSelector: string,
   width: number,
-  options: { measureDelayMs?: number } = {},
-): Promise<void> {
-  const viewport = { width, height: VIEWPORT_HEIGHT };
-  const plain = await browser.newContext({ viewport, javaScriptEnabled: false });
+): Promise<number[]> {
+  const plain = await browser.newContext({
+    viewport: { width, height: VIEWPORT_HEIGHT },
+    javaScriptEnabled: false,
+  });
   const server = await plain.newPage();
   await server.goto(url);
   // Fonts set the wrapping of every label; measure both pages with them in place.
   await server.evaluate(() => document.fonts.ready);
   const sent = await measureLab(server, labSelector);
   await plain.close();
+  return sent;
+}
 
-  const live = await browser.newContext({ viewport });
-  const page = await live.newPage();
-  if (options.measureDelayMs) await delayMeasuring(page, options.measureDelayMs);
-  await page.goto(url);
-  await page.locator(labSelector).scrollIntoViewIfNeeded();
-  await waitForIsland(page, labSelector);
-  await page.evaluate(() => document.fonts.ready);
+/**
+ * On a hydrated page: waits until React has the lab and every drawing has measured, then holds
+ * its heights to the server's and its drawings to their boxes. Returns the drawings' viewBox
+ * widths it accepted, so its own check can tell it compared the measured lab (lab-shell.spec.ts).
+ */
+export async function compareHydrated(
+  page: Page,
+  labSelector: string,
+  sent: readonly number[],
+  width: number,
+): Promise<number[]> {
+  const at = `${labSelector} a ${width} px`;
   await expect
     .poll(() => notYetMeasured(page, labSelector), {
-      message: `${labSelector} a ${width} px: hidratado y con sus dibujos medidos`,
+      message: `${at}: hidratado y con sus dibujos medidos`,
       timeout: HYDRATION_TIMEOUT_MS,
     })
     .toEqual([]);
@@ -95,16 +112,38 @@ export async function expectSameHeightAfterHydration(
   };
   await expect
     .poll(drift, {
-      message: `${labSelector} a ${width} px: alturas del laboratorio, el lienzo y sus dibujos`,
+      message: `${at}: alturas del laboratorio, el lienzo y sus dibujos`,
       timeout: HYDRATION_TIMEOUT_MS,
     })
     .toEqual([]);
   await expect
     .poll(() => letterboxed(page, labSelector), {
-      message: `${labSelector} a ${width} px: dibujos sin bandas vacías`,
+      message: `${at}: dibujos sin bandas vacías`,
       timeout: HYDRATION_TIMEOUT_MS,
     })
     .toEqual([]);
+  return drawingWidths(page, labSelector);
+}
+
+/**
+ * A lab whose drawings measure their own width must not change height when React takes over: the
+ * server draws them at the article's width, and the stage of a tiered lab is narrower. The page
+ * without scripts shows what the server sent; the same page after hydration shows what React made.
+ */
+export async function expectSameHeightAfterHydration(
+  browser: Browser,
+  url: string,
+  labSelector: string,
+  width: number,
+): Promise<void> {
+  const sent = await measureServer(browser, url, labSelector, width);
+  const live = await browser.newContext({ viewport: { width, height: VIEWPORT_HEIGHT } });
+  const page = await live.newPage();
+  await page.goto(url);
+  await page.locator(labSelector).scrollIntoViewIfNeeded();
+  await waitForIsland(page, labSelector);
+  await page.evaluate(() => document.fonts.ready);
+  await compareHydrated(page, labSelector, sent, width);
   await live.close();
 }
 
@@ -128,17 +167,29 @@ async function letterboxed(page: Page, labSelector: string): Promise<string[]> {
 }
 
 /**
- * For the helper's own checks (lab-shell.spec.ts): every ResizeObserver report of the page comes
- * `ms` late, as on a loaded machine, so a comparison that did not wait for the drawings to measure
- * would read the server's 720 px drawings under SvgPlot's reserve.
+ * For the helper's own check (lab-shell.spec.ts): every ResizeObserver report of the page waits
+ * until the test calls releaseMeasuring, as a loaded machine might make it wait, but with no clock.
  */
-export async function delayMeasuring(page: Page, ms: number): Promise<void> {
-  await page.addInitScript((delay) => {
+export async function holdMeasuring(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const held: (() => void)[] = [];
+    Object.assign(window, {
+      __releaseMeasuring: () => held.splice(0).forEach((report) => report()),
+    });
     const Real = window.ResizeObserver;
     window.ResizeObserver = class extends Real {
       constructor(callback: ResizeObserverCallback) {
-        super((entries, observer) => setTimeout(() => callback(entries, observer), delay));
+        super((entries, observer) => {
+          held.push(() => callback(entries, observer));
+        });
       }
     };
-  }, ms);
+  });
+}
+
+/** Lets the held ResizeObserver reports through (see holdMeasuring). */
+export async function releaseMeasuring(page: Page): Promise<void> {
+  await page.evaluate(() =>
+    (window as unknown as { __releaseMeasuring: () => void }).__releaseMeasuring(),
+  );
 }

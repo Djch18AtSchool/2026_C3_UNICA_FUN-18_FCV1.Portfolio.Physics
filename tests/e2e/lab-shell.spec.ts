@@ -1,10 +1,13 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { waitForIsland } from './helpers';
 import {
-  delayMeasuring,
+  compareHydrated,
+  drawingWidths,
   expectSameHeightAfterHydration,
+  holdMeasuring,
   HYDRATION_WIDTHS,
-  notYetMeasured,
+  measureServer,
+  releaseMeasuring,
 } from './hydrationStability';
 import { TOPIC_PAGES } from './topicPages';
 
@@ -16,8 +19,8 @@ const SETTINGS_TITLE = /^Ajustes: /;
 const WHEEL_PX = 400;
 /** LabShell's READOUT_ANNOUNCE_DELAY_MS: readouts are spoken once still for this long. */
 const READOUT_SETTLE_MS = 750;
-/** How late the self-check makes every ResizeObserver report, as on a loaded machine. */
-const MEASURE_DELAY_MS = 1500;
+/** Frames the self-check gives a comparison to (wrongly) finish while measuring is held. */
+const HELD_FRAMES = 30;
 /** Rounding of a sticky offset in rem at the site's root size. */
 const STICKY_SLACK_PX = 6;
 const SCROLL_INTO_LAB_PX = 300;
@@ -258,21 +261,43 @@ test.describe('guardias del cascarón por niveles, autocomprobadas', () => {
     expect(await canvasNotesControls(lab)).toEqual(['button «Ir a la descarga»']);
   });
 
-  test('con la medición retrasada, los dibujos siguen sin medir tras la hidratación y la comprobación de alturas los espera', async ({
+  test('con la medición retenida, la comprobación de hidratación no acepta antes de que los dibujos midan', async ({
     page,
     browser,
   }) => {
-    // What a comparison right after waitForIsland would see: drawings not yet measured.
-    await page.setViewportSize({ width: 360, height: 800 });
-    await delayMeasuring(page, MEASURE_DELAY_MS);
-    const lab = await openLab(page, JUMP_PAGE, JUMP_LAB);
-    expect(await notYetMeasured(page, `[data-testid="${JUMP_LAB}"]`)).not.toEqual([]);
+    // Tema 7 at 360 px: before measuring, its scene (400 px, a fixed height) already has the
+    // server's height and no plot to look letterboxed, so only the wait tells the two apart.
+    const lab = '[data-testid="bounce-lab"]';
+    const path = './temas/coeficiente-restitucion/';
+    const width = 360;
+    const sent = await measureServer(browser, path, lab, width);
+    await page.setViewportSize({ width, height: 800 });
+    await holdMeasuring(page);
+    await openLab(page, path, 'bounce-lab');
+    await page.evaluate(() => document.fonts.ready);
 
-    // The helper waits for them, so the same delay still compares the hydrated lab, green.
-    await expect(lab).toBeVisible();
-    await expectSameHeightAfterHydration(browser, JUMP_PAGE, `[data-testid="${JUMP_LAB}"]`, 360, {
-      measureDelayMs: MEASURE_DELAY_MS,
+    // What a comparison right after waitForIsland reads: the drawing as the server drew it.
+    const early = await drawingWidths(page, lab);
+
+    // The comparison starts while measuring is held: it must still be waiting some frames later
+    // (frames, not a clock), and accept only the measured drawing once the reports are let through.
+    let isDone = false;
+    const accepted = compareHydrated(page, lab, sent, width).then((widths) => {
+      isDone = true;
+      return widths;
     });
+    for (let frame = 0; frame < HELD_FRAMES && !isDone; frame += 1) {
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+    }
+    expect(isDone, 'aceptó con la medición retenida').toBe(false);
+    await releaseMeasuring(page);
+    const widths = await accepted;
+
+    expect(widths).not.toEqual(early);
+    const boxes = await page
+      .locator(`${lab} [data-lab-canvas] svg[data-testid]`)
+      .evaluateAll((svgs) => svgs.map((svg) => Math.round(svg.getBoundingClientRect().width)));
+    expect(widths.map(Math.round)).toEqual(boxes);
   });
 
   test('sin notas del lienzo, la rejilla no deja una fila vacía con su hueco', async ({ page }) => {
