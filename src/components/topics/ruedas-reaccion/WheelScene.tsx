@@ -11,6 +11,8 @@ import {
 import { useElementWidth } from '../../hooks/useElementWidth';
 import type { FrameStore } from '../../lab/frameStore';
 import { Knob, Label } from '../../lab/OverlayMarks';
+import { TimeScaleBadgeSvg } from '../../lab/TimeScaleBadge';
+import { timeScaleLabel, timeScaleSpoken } from '../../lab/timeScaleFormat';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
 import { useFrameDerived } from '../../lab/useFrameTime';
 import { LIMIT_COLOR } from './MomentumGauge';
@@ -104,10 +106,19 @@ export interface WheelSceneProps extends SpinState {
   actuator: DumpActuator;
   dumping: boolean;
   showArrows: boolean;
+  /** Orbit (or maneuver) seconds per real second, the scale the badge declares (wheelTimeScale). */
+  timeScale: number;
   onTargetChange(degrees: number): void;
 }
 
 type Geometry = SceneGeometry;
+
+interface ScaleBadgeProps {
+  factor: number;
+  mode: WheelMode;
+  width: number;
+  side: number;
+}
 
 function layout(width: number): { side: number; geometry: Geometry } {
   const side = Math.min(width, MAX_SIDE);
@@ -356,11 +367,33 @@ function SpinLayer({
 function describeScene(props: WheelSceneProps): string {
   const deg = (value: number) => formatNumber(value, { precision: 1, unit: '°' });
   const rpm = formatNumber(props.omegaW, { precision: 0, unit: 'rpm' });
+  const scale = `${timeScaleSpoken(props.timeScale, timeScaleLabel(props.timeScale))}.`;
   if (props.mode === 'perturbacion') {
     const phase = props.dumping ? 'la descarga la está frenando' : 'absorbe el torque externo';
-    return `Vista superior del CubeSat 6U, quieto a 0°, con su rueda de reacción a ${rpm}: ${phase}.`;
+    return `Vista superior del CubeSat 6U, quieto a 0°, con su rueda de reacción a ${rpm}: ${phase}. ${scale}`;
   }
-  return `Vista superior del CubeSat 6U con su rueda de reacción: la nave está a ${deg(props.thetaS)} de un objetivo de ${deg(props.targetDeg)} y la rueda gira a ${rpm}, en sentido contrario.`;
+  return `Vista superior del CubeSat 6U con su rueda de reacción: la nave está a ${deg(props.thetaS)} de un objetivo de ${deg(props.targetDeg)} y la rueda gira a ${rpm}, en sentido contrario. ${scale}`;
+}
+
+/** The badge's two lines (the factor, then its words) end on the same baseline as the corner texts. */
+const BADGE_LINE_GAP = 16;
+
+/**
+ * The scale the canvas declares, in the bottom corner the mode leaves free: bottom-left in the
+ * maneuver (the target's text is at the right), bottom-right in the disturbance (the actuator's
+ * law is at the left). Drawing only: the scene's description says it in words, and the lab's one
+ * live region stays the warning's.
+ */
+function ScaleBadge({ factor, mode, width, side }: ScaleBadgeProps): JSX.Element {
+  const isManeuver = mode === 'maniobra';
+  return (
+    <TimeScaleBadgeSvg
+      factor={factor}
+      x={isManeuver ? TEXT_INSET : width - TEXT_INSET}
+      y={side - TEXT_INSET - BADGE_LINE_GAP}
+      anchor={isManeuver ? 'start' : 'end'}
+    />
+  );
 }
 
 /**
@@ -406,6 +439,7 @@ export default function WheelScene(props: WheelSceneProps): JSX.Element {
               dumping={props.dumping}
             />
           )}
+          <ScaleBadge factor={props.timeScale} mode={mode} width={width} side={side} />
         </g>
         {isManeuver ? (
           <g data-testid="wheel-dial" data-cx={c.x} data-cy={c.y}>

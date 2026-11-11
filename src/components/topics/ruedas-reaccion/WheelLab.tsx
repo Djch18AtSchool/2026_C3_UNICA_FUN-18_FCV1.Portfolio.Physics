@@ -10,6 +10,7 @@ import {
   firstDumpPlayback,
   orbitTimeAt,
   playbackTimeAt,
+  wheelTimeScale,
 } from './disturbanceTimeline';
 import MomentumGauge from './MomentumGauge';
 import { DEFAULT_DISPLAY, wheelLocalSettings, type WheelDisplay } from './wheelLabSettings';
@@ -161,6 +162,12 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
     [isManeuver, warp],
   );
   const t = toOrbitTime(clock.state.t);
+  const timeScale = wheelTimeScale({
+    isManeuver,
+    warp,
+    playbackTime: clock.state.t,
+    clockRate: clock.rate,
+  });
   const seekOrbit = (orbitTime: number) =>
     clock.seek(isManeuver ? orbitTime : playbackTimeAt(warp, orbitTime));
   const maneuver = isManeuver ? maneuverReadings(settings, t) : undefined;
@@ -285,6 +292,7 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
           actuator={settings.actuator}
           dumping={disturbance?.dumping ?? false}
           showArrows={display.showArrows}
+          timeScale={timeScale}
           onTargetChange={(thetaDeg) => set('thetaDeg', thetaDeg)}
         />
         <div className={CANVAS_INSET}>
