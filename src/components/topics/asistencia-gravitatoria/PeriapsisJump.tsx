@@ -1,8 +1,9 @@
 /**
  * «Ir a la máxima aproximación», in the canvas under the planet frame's clock line: a button that
  * seeks to t = t_p (the clock stops there, as for any seek) and a status region that says what is
- * there. The region is a node renewed on every press, so a second press says the same text again,
- * and it empties once playback starts or the time leaves t_p (a stale line is not read later).
+ * there. The region is a node renewed on every press, so a second press says the same text again.
+ * It empties once playback starts, the time leaves t_p or an edit changes what it said (a new r_p
+ * or encounter): a line with old figures is never read, nor is a new one announced unasked.
  */
 import { useState, type JSX } from 'react';
 import { CANVAS_INSET } from '../../lab/canvasInset';
@@ -27,13 +28,14 @@ export default function PeriapsisJump({
   periapsisT,
   summary,
 }: PeriapsisJumpProps): JSX.Element {
-  const [presses, setPresses] = useState(0);
+  /** The press count and what was said then: an edit that changes `summary` leaves it stale. */
+  const [pressed, setPressed] = useState<{ count: number; said: string }>({ count: 0, said: '' });
   const { t, playing, duration } = clock.state;
   const isAtPeriapsis = !playing && Math.abs(t - periapsisT) <= markerTolerance(duration);
-  const isSpoken = presses > 0 && isAtPeriapsis;
+  const isSpoken = pressed.count > 0 && pressed.said === summary && isAtPeriapsis;
   const jump = () => {
     clock.seek(periapsisT);
-    setPresses((count) => count + 1);
+    setPressed(({ count }) => ({ count: count + 1, said: summary }));
   };
   return (
     <div data-periapsis-jump="" className={`flex flex-col gap-1 ${CANVAS_INSET}`}>
@@ -41,7 +43,7 @@ export default function PeriapsisJump({
         {GO_TO_PERIAPSIS}
       </button>
       <p role="status" className="sr-only">
-        {isSpoken ? <span key={presses}>{summary}</span> : null}
+        {isSpoken ? <span key={pressed.count}>{summary}</span> : null}
       </p>
     </div>
   );

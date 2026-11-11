@@ -20,6 +20,7 @@ const badges = () => [...lab().querySelectorAll('[data-time-scale-badge]')];
 const badgeText = () => plain(planetFrame().querySelector('[data-time-scale-badge]')?.textContent);
 const clockLine = () => plain(mathSourceText(screen.getByTestId('flyby-clock')));
 const marks = () => [...lab().querySelectorAll('[data-transport-mark]')] as HTMLElement[];
+const SAID = /^Máxima aproximación: la sonda pasa a /;
 const presetSelect = () => screen.getByRole('combobox', { name: 'Valores de referencia' });
 
 async function setSpeed(user: ReturnType<typeof userEvent.setup>, value: string) {
@@ -138,6 +139,26 @@ describe('the flyby lab: its time scale and its closest approach', () => {
       expect(within(lab()).queryByText(/^Máxima aproximación: la sonda pasa a /)).toBeNull();
     });
 
+    test('goes quiet when an edit changes what it said: a new r_p or encounter is not announced', async () => {
+      const user = userEvent.setup();
+      render(<FlybyLab />);
+      await user.click(goButton());
+      expect(within(lab()).queryByText(SAID)).not.toBeNull();
+
+      await user.clear(screen.getByRole('textbox', { name: 'Máxima aproximación r sub p' }));
+      await user.type(
+        screen.getByRole('textbox', { name: 'Máxima aproximación r sub p' }),
+        '3{Enter}',
+      );
+      expect(within(lab()).queryByText(SAID)).toBeNull();
+
+      await user.click(goButton());
+      expect(within(lab()).getByText(SAID)).toHaveTextContent(/pasa a 3,00 radios de Júpiter/);
+
+      await user.selectOptions(presetSelect(), 'V2 · Urano');
+      expect(within(lab()).queryByText(SAID)).toBeNull();
+    });
+
     test('goes quiet when playback starts', async () => {
       vi.useFakeTimers();
       setSettings({ motion: 'reduced' });
@@ -172,6 +193,18 @@ describe('the flyby lab: its time scale and its closest approach', () => {
       );
 
       expect(`×${noted?.[1]}`).toBe(badgeText().replace('cámara rápida', ''));
+    });
+
+    test('the note states the nominal pass (1×, no reduced motion) and the badge the one in force', () => {
+      setSettings({ motion: 'reduced' });
+      render(<FlybyLab />);
+
+      expect(badgeText()).toBe('×15 000cámara rápida');
+      const note = plain(screen.getByTestId('flyby-lapse').textContent);
+      expect(note).toMatch(
+        /a 1× y sin movimiento reducido se ve en 12 s, unas 19\s000 veces más rápido/,
+      );
+      expect(note).toMatch(/el factor en curso está sobre el dibujo/);
     });
 
     test('the scale is also in words, once, for the reader: hidden text and a status that stays quiet on load', () => {
