@@ -428,6 +428,16 @@ for (const { path, testId } of LABS) {
         const panel = await boxOf(lab.locator('[data-lab-panel]'));
         expect(panel.y).toBeGreaterThanOrEqual(stage.y + stage.height);
         expect(Math.abs(panel.x - stage.x)).toBeLessThanOrEqual(STICKY_SLACK_PX);
+        // A panel this wide (one column at 900 px) sets its levels in two columns: parameters on
+        // the left, readouts on the right, so no label sits half a screen from its value.
+        const wide = (await cssLengthPx(page, '42rem')) <= panel.width;
+        const params = await boxOf(lab.getByRole('region', { name: 'Parámetros' }));
+        const readoutsRegion = lab.getByRole('region', { name: 'Lecturas' });
+        if (wide && (await readoutsRegion.count()) > 0) {
+          const readouts = await boxOf(readoutsRegion);
+          expect(readouts.x).toBeGreaterThanOrEqual(params.x + params.width);
+          expect(params.width).toBeLessThan(panel.width / 2);
+        }
         // The order of reading is the visual one: the canvas notes come after the panel.
         const notes = lab.locator('[data-lab-canvas-notes]');
         if ((await notes.count()) > 0) {
