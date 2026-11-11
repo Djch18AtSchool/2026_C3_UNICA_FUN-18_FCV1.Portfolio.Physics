@@ -68,6 +68,48 @@ async function loadDeclaredSamples(): Promise<RouteSample[]> {
   return typed.samples;
 }
 
+/** The lab's six readouts: the drone's state, the route time it is at and how long the route lasts. */
+function droneReadouts(now: RouteSample, routeTime: number, duration: number): LabReadout[] {
+  return [
+    { id: 'x', label: 'Posición x', value: now.x, unit: 'm' },
+    { id: 'y', label: 'Posición y', value: now.y, unit: 'm' },
+    { id: 'speed', label: 'Rapidez |v|', value: now.speed, unit: 'm/s' },
+    { id: 'accel', label: 'Aceleración |a|', value: now.accel, unit: 'm/s²' },
+    { id: 'route-time', label: 'Instante en la ruta', value: routeTime, unit: 's' },
+    { id: 'duration', label: 'Duración de la ruta', value: duration, unit: 's' },
+  ];
+}
+
+/** Level 1: the two limits of the flight. */
+function DroneParams({
+  limits,
+  onChange,
+}: {
+  limits: Limits;
+  onChange(update: (previous: Limits) => Limits): void;
+}): JSX.Element {
+  return (
+    <>
+      <ParamField
+        id="drone-vmax"
+        label="Rapidez máxima $v_\text{máx}$"
+        unit="m/s"
+        {...V_MAX_RANGE}
+        value={limits.vMax}
+        onChange={(vMax) => onChange((previous) => ({ ...previous, vMax }))}
+      />
+      <ParamField
+        id="drone-amax"
+        label="Aceleración máxima $a_\text{máx}$"
+        unit="m/s²"
+        {...A_MAX_RANGE}
+        value={limits.aMax}
+        onChange={(aMax) => onChange((previous) => ({ ...previous, aMax }))}
+      />
+    </>
+  );
+}
+
 type DroneLabViewProps = DroneLabProps & { declared: RouteSample[] };
 
 function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Element {
@@ -152,36 +194,6 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
     [clock.frame, flightSampleAt],
   );
 
-  const readouts: LabReadout[] = [
-    { id: 'x', label: 'Posición x', value: now.x, unit: 'm' },
-    { id: 'y', label: 'Posición y', value: now.y, unit: 'm' },
-    { id: 'speed', label: 'Rapidez |v|', value: now.speed, unit: 'm/s' },
-    { id: 'accel', label: 'Aceleración |a|', value: now.accel, unit: 'm/s²' },
-    { id: 'route-time', label: 'Instante en la ruta', value: routeTime, unit: 's' },
-    { id: 'duration', label: 'Duración de la ruta', value: duration, unit: 's' },
-  ];
-
-  const params = (
-    <>
-      <ParamField
-        id="drone-vmax"
-        label="Rapidez máxima $v_\text{máx}$"
-        unit="m/s"
-        {...V_MAX_RANGE}
-        value={limits.vMax}
-        onChange={(vMax) => setLimits((previous) => ({ ...previous, vMax }))}
-      />
-      <ParamField
-        id="drone-amax"
-        label="Aceleración máxima $a_\text{máx}$"
-        unit="m/s²"
-        {...A_MAX_RANGE}
-        value={limits.aMax}
-        onChange={(aMax) => setLimits((previous) => ({ ...previous, aMax }))}
-      />
-    </>
-  );
-
   return (
     <div className="flex flex-col gap-4">
       <LabShell
@@ -189,7 +201,7 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
         clock={clock}
         timeUnit="s"
         markers={span.markers}
-        readouts={readouts}
+        readouts={droneReadouts(now, routeTime, duration)}
         canvasNotes={
           <RouteMapNotes
             now={now}
@@ -201,7 +213,7 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
           />
         }
         levels={{
-          params,
+          params: <DroneParams limits={limits} onChange={setLimits} />,
           scenario: (
             <RouteViewFields
               selection={routeView.selection}
