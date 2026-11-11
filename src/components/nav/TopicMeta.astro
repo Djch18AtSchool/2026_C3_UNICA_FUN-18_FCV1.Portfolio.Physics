@@ -34,7 +34,7 @@ const updatedLabel = new Intl.DateTimeFormat('es-CR', {
 const updatedIso = updated.toISOString().slice(0, 10);
 const sourceUrl = `${REPO_URL}/blob/main/src/content/topics/${slug}.mdx`;
 const pageUrl = canonicalUrl(topicUrl(slug), SITE_URL);
-const FACT = 'inline-flex items-center gap-1.5';
+const FACT = 'inline-flex items-center gap-2';
 ---
 
 <div
@@ -43,7 +43,7 @@ const FACT = 'inline-flex items-center gap-1.5';
 >
   <ul
     data-testid="topic-facts"
-    class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-fg-muted"
+    class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-fg-muted"
   >
     <li class="flex">
       <ResourceBadge type={resourceType} />

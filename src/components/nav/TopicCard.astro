@@ -14,13 +14,13 @@ const { topic } = Astro.props;
 
 <article
   data-testid="topic-card"
-  class="group relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-3 py-4 hover:bg-bg-elevated sm:grid-cols-[2.5rem_minmax(0,1fr)]"
+  class="group relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-3 py-4 hover:bg-bg-elevated sm:grid-cols-[3rem_minmax(0,1fr)]"
 >
   <span class="text-right font-mono text-lg leading-6 text-fg-muted" aria-hidden="true">
     {topic.number}
   </span>
-  <div class="flex min-w-0 flex-col gap-2 border-l-[3px] border-double border-border pr-2 pl-4 md:flex-row md:items-center md:gap-4">
-    <div class="min-w-0 md:max-w-[38rem]">
+  <div class="flex min-w-0 flex-col gap-2 border-l-(length:--rule-double-width) border-double border-border pr-2 pl-4 md:flex-row md:items-center md:gap-4">
+    <div class="min-w-0 md:max-w-[40rem]">
       <h3 class="text-base leading-6 font-medium">
         <span class="sr-only">Tema {topic.number}: </span>
         <a
@@ -33,10 +33,10 @@ const { topic } = Astro.props;
       </h3>
     </div>
     <span
-      class="hidden min-w-8 flex-1 self-center border-b-2 border-dotted border-border md:block"
+      class="hidden min-w-8 flex-1 self-center border-b border-border md:block"
       aria-hidden="true"
     ></span>
-    <div class="flex flex-col items-start gap-1.5 md:shrink-0 md:flex-row md:items-center md:gap-2">
+    <div class="flex flex-col items-start gap-2 md:shrink-0 md:flex-row md:items-center md:gap-2">
       <ResourceBadge type={topic.resourceType} />
     </div>
   </div>

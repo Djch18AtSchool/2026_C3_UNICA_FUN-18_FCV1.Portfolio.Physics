@@ -11,7 +11,7 @@ const { all, number } = Astro.props;
 const { prev, next } = neighbors(all, number);
 
 const LINK_CLASSES =
-  'flex flex-col gap-0.5 rounded-base border border-border bg-bg-elevated px-4 py-3 no-underline hover:border-fg-muted';
+  'flex flex-col gap-1 rounded-base border border-border bg-bg-elevated px-4 py-3 no-underline hover:border-fg-muted';
 ---
 
 {(prev || next) && (

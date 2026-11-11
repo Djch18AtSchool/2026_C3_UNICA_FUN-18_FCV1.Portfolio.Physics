@@ -242,7 +242,7 @@ for (const theme of ['light', 'dark']) {
       expect(looks.footer.link).toEqual(looks.header.link);
       expect(looks.footer.theme).toEqual(looks.header.theme);
       expect(looks.header.theme).toEqual(looks.header.link);
-      expect(looks.footer.link.glyph).toEqual([18, 18]);
+      expect(looks.footer.link.glyph).toEqual([20, 20]);
     });
   }
 }

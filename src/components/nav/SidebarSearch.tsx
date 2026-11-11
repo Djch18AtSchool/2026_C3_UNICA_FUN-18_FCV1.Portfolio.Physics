@@ -11,7 +11,7 @@ interface SidebarSearchProps {
 }
 
 const RESULT_LINK =
-  'grid grid-cols-[1.5rem_minmax(0,1fr)] items-baseline gap-x-1 border-l-2 border-transparent py-1.5 pr-2 pl-1.5 leading-snug text-fg no-underline hover:bg-bg hover:text-fg';
+  'grid grid-cols-[1.5rem_minmax(0,1fr)] items-baseline gap-x-1 border-l-2 border-transparent py-2 pr-2 pl-2 leading-snug text-fg no-underline hover:bg-bg hover:text-fg';
 
 /** Announced as the results change; visible only when nothing matches. */
 function statusText(count: number): string {
@@ -43,7 +43,7 @@ export default function SidebarSearch({ index, listId }: SidebarSearchProps) {
           placeholder="Buscar temas y secciones"
           autoComplete="off"
           onChange={(event) => setQuery(event.target.value)}
-          className="w-full rounded-base border border-border bg-bg px-3 py-1.5 text-sm text-fg placeholder:text-fg-muted"
+          className="w-full rounded-base border border-border bg-bg h-10 px-3 text-sm text-fg placeholder:text-fg-muted"
         />
       </div>
       <p
@@ -60,10 +60,10 @@ export default function SidebarSearch({ index, listId }: SidebarSearchProps) {
                 <span className="text-right font-mono text-xs text-fg-muted">
                   {topicNumberLabel(entry.number)}
                 </span>
-                <span className="pl-1.5">{entry.shortTitle}</span>
+                <span className="pl-2">{entry.shortTitle}</span>
               </a>
               {headings.length > 0 && (
-                <ul className="mb-1 ml-[2.125rem] flex flex-col border-l border-border">
+                <ul className="mb-1 ml-8 flex flex-col border-l border-border">
                   {headings.map((heading) => (
                     <li key={heading.anchor}>
                       <a

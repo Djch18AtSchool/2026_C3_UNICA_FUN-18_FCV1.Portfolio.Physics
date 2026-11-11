@@ -60,9 +60,9 @@ const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phas
         <path d="m4 6 4 4 4-4"></path>
       </svg>
     </summary>
-    <div class="flex flex-col gap-5 border-t border-border px-2 pt-3 pb-4 lg:border-0 lg:p-0">
+    <div class="flex flex-col gap-6 border-t border-border px-2 pt-3 pb-4 lg:border-0 lg:p-0">
       <SidebarSearch client:idle index={index} listId={LIST_ID} />
-      <div id={LIST_ID} class="flex flex-col gap-5">
+      <div id={LIST_ID} class="flex flex-col gap-6">
         {groups.map(({ phase, label, topics: phaseTopics, isFuture }) =>
           isFuture ? (
             <SideNavFuturePhase phase={phase} label={label} />

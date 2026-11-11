@@ -29,10 +29,10 @@ const TOOL_OBJECTS: Record<Tool, string> = { url: 'URL', markdown: 'Markdown' };
  * light theme); taller where the pointer is a finger.
  */
 const BUTTON =
-  'inline-flex h-8 items-center gap-1.5 rounded-base px-2 text-sm text-fg-muted no-underline transition-colors hover:bg-fg/7 hover:text-fg pointer-coarse:h-10';
+  'inline-flex h-8 items-center gap-2 rounded-base px-2 text-sm text-fg-muted no-underline transition-colors hover:bg-fg/7 hover:text-fg pointer-coarse:h-10';
 
 /** Each state is an icon and a label; both states share one grid cell. */
-const STATE = 'col-start-1 row-start-1 inline-flex items-center gap-1.5';
+const STATE = 'col-start-1 row-start-1 inline-flex items-center gap-2';
 
 /**
  * The idle and "Copiado" states overlap in one grid cell, so the button keeps its width while it
