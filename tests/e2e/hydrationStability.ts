@@ -1,5 +1,5 @@
 import { expect, type Browser, type Page } from '@playwright/test';
-import { waitForIsland } from './helpers';
+import { HYDRATION_TIMEOUT_MS, waitForIsland } from './helpers';
 
 /**
  * Phone; a 540 px window, whose one-column stage (~495 px) sits just past SvgPlot's 480 px
@@ -74,6 +74,7 @@ export async function expectSameHeightAfterHydration(
   await expect
     .poll(() => notYetMeasured(page, labSelector), {
       message: `${labSelector} a ${width} px: hidratado y con sus dibujos medidos`,
+      timeout: HYDRATION_TIMEOUT_MS,
     })
     .toEqual([]);
   // Each height against the server's, unrounded, within the tolerance: [] once all agree.
@@ -89,11 +90,13 @@ export async function expectSameHeightAfterHydration(
   await expect
     .poll(drift, {
       message: `${labSelector} a ${width} px: alturas del laboratorio, el lienzo y sus dibujos`,
+      timeout: HYDRATION_TIMEOUT_MS,
     })
     .toEqual([]);
   await expect
     .poll(() => letterboxed(page, labSelector), {
       message: `${labSelector} a ${width} px: dibujos sin bandas vacías`,
+      timeout: HYDRATION_TIMEOUT_MS,
     })
     .toEqual([]);
   await live.close();

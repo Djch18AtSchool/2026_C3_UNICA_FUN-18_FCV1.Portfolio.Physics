@@ -35,25 +35,45 @@ export async function seekTimeline(timeline: Locator, value: string): Promise<vo
 }
 
 /**
+ * How long an island may take to hydrate once Astro starts it (client:visible, KaTeX, eight
+ * workers on a loaded machine): longer than expect's 5 s, shorter than a test.
+ */
+export const HYDRATION_TIMEOUT_MS = 15_000;
+
+/**
  * Wait until the React island that contains `inner` has hydrated. Astro drops the island's `ssr`
  * flag as it starts hydrating, before React has rendered anything: an event fired then is lost and
  * hydration puts the control back. React tags a host element with its fiber when it completes it,
- * the outermost one last, and commits right after; so the island's outermost element carrying a
- * fiber means the whole island is React's and listening.
+ * and commits right after the last one; so every top-level element of the island carrying a fiber
+ * (a component may return several) means the whole island is React's and listening. A lab also
+ * decides, once it has measured its stage, whether the stage sticks (LabShell): boxes read before
+ * that could move under a sticky stage the moment it engages, so that is waited for too.
  */
 export async function waitForIsland(page: Page, inner: string): Promise<void> {
-  const island = page.locator(`astro-island:has(${inner}):not([ssr])`);
-  await island.waitFor({ state: 'attached' });
+  const island = page.locator(`astro-island:has(${inner}):not([ssr])`).first();
+  await island.waitFor({ state: 'attached', timeout: HYDRATION_TIMEOUT_MS });
   await expect
     .poll(
       () =>
-        island.first().evaluate((node) => {
-          const root = node.querySelector(':scope > :not(template, script, style, astro-slot)');
-          return root !== null && Object.keys(root).some((key) => key.startsWith('__reactFiber'));
+        island.evaluate((node) => {
+          const roots = [
+            ...node.querySelectorAll(':scope > :not(template, script, style, astro-slot)'),
+          ];
+          const isReact = (root: Element) =>
+            Object.keys(root).some((key) => key.startsWith('__reactFiber'));
+          return roots.length > 0 && roots.every(isReact);
         }),
-      { message: `la isla de ${inner} hidratada por React` },
+      { message: `la isla de ${inner} hidratada por React`, timeout: HYDRATION_TIMEOUT_MS },
     )
     .toBe(true);
+  const stage = island.locator('[data-lab-stage]');
+  if ((await stage.count()) > 0) {
+    await expect(stage, `${inner}: el escenario medido`).toHaveAttribute(
+      'data-lab-stage-fits',
+      /^(true|false)$/,
+      { timeout: HYDRATION_TIMEOUT_MS },
+    );
+  }
 }
 
 /** Islands hydrate with client:visible: walk the page so every one renders, then back to the top. */
