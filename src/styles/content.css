@@ -162,6 +162,8 @@
     color: var(--fg-muted);
   }
   .equation-math {
+    /* On the equation's surface; the scroll cue is the table's (below). */
+    --scroll-surface: var(--bg-elevated);
     grid-column: 1;
     grid-row: 1;
     min-width: 0;
@@ -259,29 +261,32 @@
     margin-block: var(--flow);
   }
   /*
-   * Scroll cue: a soft shadow on each edge that hides columns. The shadows stay with the frame
-   * (scroll); two covers in the surface color ride with the content (local) and hide each shadow
-   * while that edge of the table is in view. Pure background: no layout shift, theme tokens.
+   * Scroll cue (a table's frame, an equation's formula): a soft shadow on each edge that hides
+   * content. The shadows stay with the box (scroll); two covers in the surface color ride with the
+   * content (local) and hide each shadow while that edge is in view. Pure background: no layout
+   * shift, theme tokens. Each box names its surface.
    */
+  :is(.table-frame, .equation-math) {
+    --scroll-cue: color-mix(in srgb, var(--fg) 22%, transparent);
+    --scroll-cue-width: var(--space-4);
+    --scroll-cover-width: var(--space-8);
+    background:
+      linear-gradient(to right, var(--scroll-surface) 40%, transparent) left center /
+        var(--scroll-cover-width) 100% no-repeat local,
+      linear-gradient(to left, var(--scroll-surface) 40%, transparent) right center /
+        var(--scroll-cover-width) 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, var(--scroll-cue), transparent) left center /
+        var(--scroll-cue-width) 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, var(--scroll-cue), transparent) right center /
+        var(--scroll-cue-width) 100% no-repeat scroll,
+      var(--scroll-surface);
+  }
   .table-frame {
-    --table-surface: var(--bg);
-    --table-cue: color-mix(in srgb, var(--fg) 22%, transparent);
-    --table-cue-width: var(--space-4);
-    --table-cover-width: var(--space-8);
+    --scroll-surface: var(--bg);
     overflow-x: auto;
     scrollbar-width: thin;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background:
-      linear-gradient(to right, var(--table-surface) 40%, transparent) left center /
-        var(--table-cover-width) 100% no-repeat local,
-      linear-gradient(to left, var(--table-surface) 40%, transparent) right center /
-        var(--table-cover-width) 100% no-repeat local,
-      radial-gradient(farthest-side at 0 50%, var(--table-cue), transparent) left center /
-        var(--table-cue-width) 100% no-repeat scroll,
-      radial-gradient(farthest-side at 100% 50%, var(--table-cue), transparent) right center /
-        var(--table-cue-width) 100% no-repeat scroll,
-      var(--table-surface);
   }
   .content-table table {
     width: 100%;

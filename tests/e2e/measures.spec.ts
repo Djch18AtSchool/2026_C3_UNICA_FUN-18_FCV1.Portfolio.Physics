@@ -159,6 +159,36 @@ for (const viewport of VIEWPORTS) {
   });
 }
 
+test('a 360 px una ecuación que se desplaza avisa con la sombra de borde de las tablas', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto(SNUG_EQUATION.path);
+  const cue = (selector: string) =>
+    page
+      .locator(selector)
+      .first()
+      .evaluate((node) => {
+        const style = getComputedStyle(node);
+        return {
+          gradients: style.backgroundImage.match(/(linear|radial)-gradient/g),
+          attachment: style.backgroundAttachment,
+          size: style.backgroundSize,
+        };
+      });
+
+  const table = await cue('.table-frame');
+  const equation = await cue('.equation-math');
+
+  expect(table.gradients).toEqual([
+    'linear-gradient',
+    'linear-gradient',
+    'radial-gradient',
+    'radial-gradient',
+  ]);
+  expect(equation).toEqual(table);
+});
+
 test(`a ${SNUG_EQUATION_WIDTH_PX} px la ecuación del trabajo del tema 6 cabe sin desplazarse`, async ({
   page,
 }) => {
