@@ -54,13 +54,13 @@ const description = mathTextToString(notation);
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
     align-items: start;
     gap: 1.5rem;
-    max-width: 62rem;
+    max-width: 68rem;
     margin-inline: auto;
   }
   .wheel-diagram :global(.wd-panel) {
     display: block;
     width: 100%;
-    max-width: 30rem;
+    max-width: 32rem;
     height: auto;
     margin-inline: auto;
     overflow: visible;
@@ -83,6 +83,7 @@ const description = mathTextToString(notation);
   }
   .wheel-diagram :global(.wd-label) {
     font-family: var(--font-sans);
+    /* scale-exempt: SVG text, in viewBox units (it scales with the drawing); 17 sits between the 16 of the notes and the 18 of the math tags, and the file's contract is ≥ 16 units */
     font-size: 17px;
   }
   .wheel-diagram :global(.wd-note) {

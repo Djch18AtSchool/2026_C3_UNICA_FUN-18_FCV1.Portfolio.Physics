@@ -31,7 +31,7 @@ export default function MomentumGauge({ Lw, Lmax, threshold }: MomentumGaugeProp
   const percentText = formatNumber(percent, { precision: PERCENT_PRECISION, unit: '%' });
   const lmaxText = formatNumber(Lmax, { precision: LMAX_PRECISION, unit: 'N·m·s' });
   return (
-    <div data-testid="momentum-gauge" data-exceeds={exceeds} className="flex flex-col gap-1.5">
+    <div data-testid="momentum-gauge" data-exceeds={exceeds} className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between gap-3 text-sm">
         <span>
           <InlineMath text={GAUGE_LABEL} />
@@ -66,7 +66,7 @@ export default function MomentumGauge({ Lw, Lmax, threshold }: MomentumGaugeProp
           />
         )}
         <div
-          className="absolute -inset-y-1 right-0 w-[3px] rounded-full"
+          className="absolute -inset-y-1 right-0 w-1 rounded-full"
           style={{ backgroundColor: LIMIT_COLOR }}
         />
       </div>

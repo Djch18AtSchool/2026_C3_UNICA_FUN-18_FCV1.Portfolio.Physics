@@ -31,7 +31,7 @@ const scientific = (value: number, exponent: number, precision: number) =>
 const DISTURBANCE_DECIMALS = 2;
 const DUMP_DECIMALS = 1;
 const BUTTON =
-  'min-h-9 self-start rounded-base border border-border px-3 text-sm text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
+  'min-h-10 self-start rounded-base border border-border px-3 text-sm text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
 
 /** T below T_min: the brief's warning, then what the turn asks of the wheel and the shortest T. */
 function maneuverWarning(settings: WheelSettings, feasibility: Feasibility): string {
@@ -48,7 +48,7 @@ function WarningRegion({ text }: { text: string | undefined }): JSX.Element {
     <div role="status">
       {text === undefined ? null : (
         <p
-          className="mx-0 mt-4 mb-0 rounded-base border-l-[3px] px-3 py-2 text-sm"
+          className="mx-0 mt-4 mb-0 rounded-base border-l-2 px-3 py-2 text-sm"
           style={WARNING_STYLE}
         >
           <InlineMath text={text} />
