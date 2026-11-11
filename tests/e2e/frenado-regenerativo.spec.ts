@@ -206,7 +206,7 @@ test.describe('laboratorio', () => {
 
     // The view by keyboard, from its chip; the instant (397 s) is kept.
     await chooseView(page, lab, VIEW_CYCLE);
-    await expect(viewChipOf(lab)).toHaveAccessibleName('Vista Ciclo completo');
+    await expect(viewChipOf(lab)).toHaveAccessibleName('Vista Ciclo');
     await expect(badgeOf(lab)).toHaveText(/^×20\s*cámara rápida$/u);
     await expect(marksOf(lab)).toHaveCount(UDDS_STOPS);
     await expect(timelineOf(lab)).toHaveAttribute(

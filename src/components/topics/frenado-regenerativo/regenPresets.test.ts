@@ -99,7 +99,7 @@ describe('regenLocalSettings', () => {
     if (view.kind !== 'select') throw new Error('the view is a select');
     expect(view.options.map(({ label, chip }) => [label, chip])).toEqual([
       ['Tramo: una frenada', 'Tramo'],
-      ['Ciclo completo', 'Ciclo completo'],
+      ['Ciclo completo', 'Ciclo'],
     ]);
     view.onChange('lento');
     expect(onViewChange).not.toHaveBeenCalled();

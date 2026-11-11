@@ -14,6 +14,7 @@ import type { RoadRange } from './RoadStrip';
 import {
   balanceAt,
   energyAxisMax,
+  J_PER_KJ,
   J_PER_KWH,
   KMH_PER_MS,
   W_PER_KW,
@@ -75,7 +76,6 @@ export function roadRange(
   return { from, to, tickEvery: STRETCH_TICK_M, note: `${length} · auto no a escala` };
 }
 
-const J_PER_KJ = 1000;
 const KWH_PRECISION = 3;
 const KJ_PRECISION = 1;
 const SHARE_PRECISION = 1;
@@ -141,7 +141,9 @@ export function readoutsFor(at: BalanceAt, view: RegenView): LabReadout[] {
     energy('friction', 'Calor de fricción', '$E_\\text{fricción}$', at.eFriction),
     {
       id: 'recovered',
-      label: isStretch ? 'Recuperado, % del frenado en las ruedas' : 'Recuperado, % de la tracción',
+      label: isStretch
+        ? 'Recuperado en el tramo, % del frenado en las ruedas'
+        : 'Recuperado en el ciclo, % de la tracción',
       value: at.recoveredShare * PERCENT,
       unit: '%',
       precision: SHARE_PRECISION,

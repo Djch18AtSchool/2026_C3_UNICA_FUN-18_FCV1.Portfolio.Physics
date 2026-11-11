@@ -7,6 +7,7 @@
 import type { BalanceStep, CycleSample } from '../../../lib/physics/energy';
 
 export const J_PER_KWH = 3_600_000;
+export const J_PER_KJ = 1000;
 export const W_PER_KW = 1000;
 export const KMH_PER_MS = 3.6;
 export const M_PER_KM = 1000;

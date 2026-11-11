@@ -8,7 +8,7 @@ import { MODEL3_LR_RWD_2025, type EvModel } from '../../../lib/data/evModels';
 import { cycleBalance, DEFAULT_REGEN, type CycleSample } from '../../../lib/physics/energy';
 import type { TransportMarker } from '../../lab/transportMarkers';
 import { BRAKING_PAD_S, largestBrakingEvent } from './regenFigures';
-import { ENERGY_SERIES, type BalanceAt, type EnergyKey } from './regenScene';
+import { ENERGY_SERIES, J_PER_KJ, type BalanceAt, type EnergyKey } from './regenScene';
 
 export type RegenView = 'tramo' | 'ciclo';
 
@@ -89,7 +89,6 @@ export function viewSwitchTime({ offset, duration }: ViewTiming, cycleT: number)
   return t >= 0 && t <= duration ? t : 0;
 }
 
-const J_PER_KJ = 1000;
 /** A stretch's bars end at its largest energy rounded up to this many kJ (at least one grain). */
 const STRETCH_AXIS_GRAIN_KJ = 50;
 const ENERGY_KEYS: readonly EnergyKey[] = ENERGY_SERIES.map(({ key }) => key);

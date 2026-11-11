@@ -13,6 +13,7 @@ import {
 } from '../../../lib/physics/energy';
 import {
   ENERGY_SERIES,
+  J_PER_KJ,
   J_PER_KWH,
   KMH_PER_MS,
   W_PER_KW,
@@ -23,7 +24,6 @@ import {
 export type Point = { x: number; y: number };
 
 export { J_PER_KWH };
-const J_PER_KJ = 1000;
 
 const SERIES_BY_KEY = new Map(ENERGY_SERIES.map((series) => [series.key, series]));
 

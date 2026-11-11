@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -31,12 +33,12 @@ function renderLab() {
 const BATTERY = 'Energía a la batería $E_\\text{batería}$';
 const FRICTION = 'Calor de fricción $E_\\text{fricción}$';
 const LOSS = 'Pérdidas de conversión $E_\\text{conversión}$';
-const RECOVERED = 'Recuperado, % de la tracción';
+const RECOVERED = 'Recuperado en el ciclo, % de la tracción';
 /** The same readouts in «Tramo»: the stretch's, from its start. */
 const STRETCH_BATTERY = 'Energía a la batería en el tramo $E_\\text{batería}$';
 const STRETCH_FRICTION = 'Calor de fricción en el tramo $E_\\text{fricción}$';
 const STRETCH_LOSS = 'Pérdidas de conversión en el tramo $E_\\text{conversión}$';
-const STRETCH_RECOVERED = 'Recuperado, % del frenado en las ruedas';
+const STRETCH_RECOVERED = 'Recuperado en el tramo, % del frenado en las ruedas';
 const STRETCH_BARS = 'Energías acumuladas en el tramo, hasta t';
 const CYCLE_BARS = 'Energías acumuladas hasta t';
 const POWER = 'Potencia en las ruedas P';
@@ -76,7 +78,7 @@ function chooseView(view: 'tramo' | 'ciclo'): void {
 const showCycle = () => chooseView('ciclo');
 /** Moves the energy cursor to the end of the cycle with the keyboard, in the view «Ciclo». */
 function seekToEnd(): void {
-  if (viewChip().getAttribute('aria-label') !== 'Vista Ciclo completo') showCycle();
+  if (viewChip().getAttribute('aria-label') !== 'Vista Ciclo') showCycle();
   timeCursor().focus();
   fireEvent.keyDown(timeCursor(), { key: 'End' });
 }
@@ -381,6 +383,33 @@ describe('RegenLab', () => {
     expect(usage).not.toHaveTextContent('Boretti');
     expect(leftOut).toHaveTextContent('Boretti midió del 70 al 80 % en un Leaf 2012');
     expect(leftOut).toHaveTextContent(LEFT_OUT);
+  });
+
+  test('the lab’s hints and the MDX’s usage split the work: no topic said twice, and the playback is conditioned', () => {
+    const mdx = readFileSync(
+      join(process.cwd(), 'src/content/topics/frenado-regenerativo.mdx'),
+      'utf8',
+    );
+    const mdxUsage = /usage="([^"]+)"/.exec(mdx)?.[1] ?? '';
+    const { container } = render(<RegenLab usage={mdxUsage} />);
+    const text = container.querySelector('details[data-lab-note="usage"]')?.textContent ?? '';
+    const count = (phrase: string) => text.split(phrase).length - 1;
+
+    expect(mdxUsage).not.toBe('');
+    // Each topic once: the lab says where the view is chosen and what «Tramo» is; the MDX, how
+    // each view plays, where t counts from and who says the scale.
+    for (const phrase of [
+      'La vista se elige',
+      'velocidad real',
+      'cámara rápida',
+      'inicio del ciclo',
+      'insignia',
+    ]) {
+      expect(count(phrase), phrase).toBe(1);
+    }
+    // As in Tema 1: «velocidad real» holds at 1× and without reduced motion only.
+    expect(mdxUsage).toMatch(/en 1×/);
+    expect(mdxUsage).toMatch(/movimiento reducido/);
   });
 
   test('without the MDX texts it still says how to use it and where η comes from', () => {

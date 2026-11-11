@@ -30,8 +30,11 @@ function balanceFor(state: RegenLabState) {
   );
 }
 
-/** «Cómo se usa»: the two views and the events, the energy cursor, then what f(v) does. */
-/** How each view plays, where t counts from and the scale are the MDX's `usage`: not repeated here. */
+/**
+ * «Cómo se usa»: where the view is chosen, what «Tramo» is and the events. How each view plays,
+ * where t counts from and the scale are the MDX's `usage`, after these hints: not repeated here
+ * (RegenLab.test.tsx ties the two: no sentence of one is in the other).
+ */
 const VIEW_HINT = `La vista se elige en los ajustes. «Tramo» es la frenada del ciclo que más energía quita en las ruedas, con ${BRAKING_PAD_S} s antes y después (en el UDDS, la de la figura 6.3); el mapa de arriba la sitúa en el ciclo, y sus energías y el porcentaje recuperado son los del tramo. «Evento anterior» y «Evento siguiente» saltan entre las detenciones.`;
 const CURSOR_HINT =
   'Arrastra el cursor de la gráfica de energía, o enfócalo y muévelo con las flechas (1 % del ciclo; con Mayús, 10 %); en «Tramo» no sale del tramo.';

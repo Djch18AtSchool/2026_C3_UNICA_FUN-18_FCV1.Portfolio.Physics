@@ -7,11 +7,12 @@ import type { RegenView } from './regenStretch';
 
 /**
  * The two views, named by what they show (never by a factor: the badge on the canvas says it).
- * Their chip says «Ciclo completo», not «Ciclo», so it never reads as the drive cycle's chip.
+ * Their chips are short («Tramo», «Ciclo»), so the header keeps two rows at 360 px; the chip's
+ * accessible name, «Vista Ciclo», tells it from the drive cycle's.
  */
 export const VIEW_OPTIONS: readonly { value: RegenView; label: string; chip: string }[] = [
   { value: 'tramo', label: 'Tramo: una frenada', chip: 'Tramo' },
-  { value: 'ciclo', label: 'Ciclo completo', chip: 'Ciclo completo' },
+  { value: 'ciclo', label: 'Ciclo completo', chip: 'Ciclo' },
 ];
 
 /** The three EPA schedules, named by the driving they stand for. */
