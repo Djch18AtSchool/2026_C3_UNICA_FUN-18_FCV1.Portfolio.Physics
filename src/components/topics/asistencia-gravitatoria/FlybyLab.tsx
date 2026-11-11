@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import { PLANETS } from '../../../lib/data/planets';
 import { formatNumber } from '../../../lib/format';
-import { deltaVMagnitude, planarFlyby, type PassSide } from '../../../lib/physics';
+import { deltaVMagnitude, planarFlyby } from '../../../lib/physics';
 import InlineMath from '../../lab/InlineMath';
 import ChoiceField from '../../lab/ChoiceField';
 import LabPresets from '../../lab/LabPresets';

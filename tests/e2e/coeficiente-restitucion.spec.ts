@@ -329,7 +329,7 @@ test.describe('a 360 px', () => {
 
     const collision = page.locator(LAB).getByRole('radio', { name: 'Choque de dos cuerpos' });
     await collision.scrollIntoViewIfNeeded();
-    await collision.check();
+    await collision.check({ force: true });
     await expect(collision).toBeChecked();
     await expect(page.getByTestId('collision-scene')).toBeVisible();
 

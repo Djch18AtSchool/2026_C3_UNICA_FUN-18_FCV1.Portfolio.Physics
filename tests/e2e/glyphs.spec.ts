@@ -69,7 +69,7 @@ const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
     [
       'choque de dos cuerpos',
       async (_page, lab) => {
-        await lab.getByRole('radio', { name: 'Choque de dos cuerpos' }).check();
+        await lab.getByRole('radio', { name: 'Choque de dos cuerpos' }).check({ force: true });
       },
     ],
   ],

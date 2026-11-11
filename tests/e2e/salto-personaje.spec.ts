@@ -65,6 +65,12 @@ test('reproducir termina en t = t_aire, vuelve a "Reproducir" y no repite', asyn
 });
 
 test('arrastrar el manejador del vector con el ratón cambia la altura máxima', async ({ page }) => {
+  // As a reader looks at it: the lab's top under the topic bar, the stage stuck there. (Scrolled
+  // further, the stage rides its cell's bottom, and the panel shrinking as the preset's note goes
+  // away during the drag would move it under the pointer: a known effect, see the B3.3 report.)
+  await page
+    .locator(LAB)
+    .evaluate((node) => window.scrollTo(0, node.getBoundingClientRect().top + window.scrollY - 64));
   const before = await readoutText(page, 'Altura máxima');
   const knob = page.getByTestId('launch-handle').locator('[data-knob]');
   const box = await knob.boundingBox();
