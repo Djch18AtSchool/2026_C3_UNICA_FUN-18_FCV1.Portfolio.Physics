@@ -21,7 +21,7 @@ const chips = () =>
   within(screen.getByRole('group', { name: 'Ajustes activos' }))
     .getAllByRole('button')
     .map((chip) => chip.getAttribute('aria-label'));
-const collisionMode = () => screen.getByRole('button', { name: 'Choque de dos cuerpos' });
+const collisionMode = () => screen.getByRole('radio', { name: 'Choque de dos cuerpos' });
 const CONTROL = 'a, button, input, select, textarea, summary, [tabindex]';
 
 describe('BounceLab on the tiered shell', () => {
@@ -46,8 +46,8 @@ describe('BounceLab on the tiered shell', () => {
     expect(within(params()).queryByRole('combobox')).toBeNull();
     expect(within(params()).queryByRole('button', { name: 'Choque de dos cuerpos' })).toBeNull();
     expect(
-      within(scenario()).getByRole('button', { name: 'Rebote contra el piso' }),
-    ).toHaveAttribute('aria-pressed', 'true');
+      within(scenario()).getByRole('radio', { name: 'Rebote contra el piso' }),
+    ).toBeChecked();
     expect(within(scenario()).getByRole('combobox', { name: 'Valores de referencia' })).toHaveValue(
       'tenis-itf',
     );
@@ -166,8 +166,8 @@ describe('BounceLab on the tiered shell', () => {
     ).toBeVisible();
     expect(within(scenario()).queryByRole('combobox')).toBeNull();
     expect(
-      within(scenario()).getByRole('button', { name: 'Choque de dos cuerpos' }),
-    ).toHaveAttribute('aria-pressed', 'true');
+      within(scenario()).getByRole('radio', { name: 'Choque de dos cuerpos' }),
+    ).toBeChecked();
     expect(within(canvasNotes()).getByTestId('collision-notes')).toHaveTextContent(
       /momento lineal/,
     );

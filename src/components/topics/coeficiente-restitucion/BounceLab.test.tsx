@@ -216,7 +216,7 @@ describe('BounceLab', () => {
   test('collision mode conserves p to the displayed decimals for e = 0, 0,5 and 1', async () => {
     const user = userEvent.setup();
     renderLab();
-    await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
+    await user.click(screen.getByRole('radio', { name: 'Choque de dos cuerpos' }));
     const eField = screen.getByRole('textbox', { name: /^Coeficiente de restitución e/ });
 
     for (const e of ['0', '0,5', '1']) {
@@ -232,7 +232,7 @@ describe('BounceLab', () => {
   test('collision mode: e = 0 leaves both bodies with the centre-of-mass velocity', async () => {
     const user = userEvent.setup();
     renderLab();
-    await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
+    await user.click(screen.getByRole('radio', { name: 'Choque de dos cuerpos' }));
     const eField = screen.getByRole('textbox', { name: /^Coeficiente de restitución e/ });
 
     await user.clear(eField);
@@ -256,7 +256,7 @@ describe('BounceLab', () => {
       await user.click(gear());
       expect(plexViolations(document.body), 'settings').toEqual([]);
       await user.keyboard('{Escape}');
-      await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
+      await user.click(screen.getByRole('radio', { name: 'Choque de dos cuerpos' }));
       expect(plexViolations(document.body), 'collision').toEqual([]);
       await user.click(screen.getByRole('switch', { name: /m sub 2 tiende a infinito/ }));
       expect(plexViolations(document.body), 'wall').toEqual([]);
@@ -267,7 +267,7 @@ describe('BounceLab', () => {
   test('collision mode with a fixed body 2 is the floor: v₁′ = −e v₁', async () => {
     const user = userEvent.setup();
     renderLab();
-    await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
+    await user.click(screen.getByRole('radio', { name: 'Choque de dos cuerpos' }));
 
     await user.click(screen.getByRole('switch', { name: /m sub 2 tiende a infinito/ }));
 
@@ -469,7 +469,7 @@ describe('BounceLab', () => {
     const user = userEvent.setup();
     renderLab();
     await choosePreset('plastilina');
-    await user.click(screen.getByRole('button', { name: 'Choque de dos cuerpos' }));
+    await user.click(screen.getByRole('radio', { name: 'Choque de dos cuerpos' }));
 
     await user.click(screen.getByRole('button', { name: 'Restablecer' }));
 

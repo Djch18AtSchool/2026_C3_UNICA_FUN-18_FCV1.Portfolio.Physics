@@ -69,7 +69,15 @@ export interface SelectFieldProps {
   /** Options and groups of options, in the order the list shows them. */
   options: readonly (SelectOption | SelectOptionGroup)[];
   onChange(value: string): void;
+  /**
+   * The label above the select, as every choice of a lab's levels shows it (ChoiceField); by
+   * default beside it, as in the settings drawer, wrapping under it when there is no room.
+   */
+  stacked?: boolean;
 }
+
+const SELECT_ROW = 'flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5';
+const SELECT_STACK = 'flex flex-col items-start gap-2';
 
 const isGroup = (entry: SelectOption | SelectOptionGroup): entry is SelectOptionGroup =>
   'options' in entry;
@@ -86,9 +94,10 @@ export function SelectField({
   value,
   options,
   onChange,
+  stacked = false,
 }: SelectFieldProps): JSX.Element {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+    <div className={stacked ? SELECT_STACK : SELECT_ROW}>
       <label htmlFor={id} className="text-sm font-medium">
         <InlineMath text={label} />
       </label>

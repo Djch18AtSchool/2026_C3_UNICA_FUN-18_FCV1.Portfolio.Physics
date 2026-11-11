@@ -327,10 +327,10 @@ test.describe('a 360 px', () => {
     await page.evaluate(() => document.fonts.ready);
     expect(await documentWidth(page)).toBeLessThanOrEqual(PHONE.width);
 
-    const collision = page.locator(LAB).getByRole('button', { name: 'Choque de dos cuerpos' });
+    const collision = page.locator(LAB).getByRole('radio', { name: 'Choque de dos cuerpos' });
     await collision.scrollIntoViewIfNeeded();
-    await collision.click();
-    await expect(collision).toHaveAttribute('aria-pressed', 'true');
+    await collision.check();
+    await expect(collision).toBeChecked();
     await expect(page.getByTestId('collision-scene')).toBeVisible();
 
     expect(await documentWidth(page)).toBeLessThanOrEqual(PHONE.width);

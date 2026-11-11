@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState, type JSX } from 'react';
 import { CANVAS_INSET } from '../../lab/canvasInset';
+import ChoiceField from '../../lab/ChoiceField';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
 import { useSimClock } from '../../lab/useSimClock';
-import ChoiceField from './ChoiceField';
 import {
   disturbanceTimeline,
   firstDumpPlayback,

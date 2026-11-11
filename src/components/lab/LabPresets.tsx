@@ -123,6 +123,7 @@ function PresetSelect<T>({ id, presets, groups, activeId, onSelect, label }: Lab
   return (
     <SelectField
       id={id}
+      stacked
       label={label ?? PRESETS_LABEL}
       value={value}
       options={options}

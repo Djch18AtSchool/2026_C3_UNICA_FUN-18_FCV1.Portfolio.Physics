@@ -3,9 +3,9 @@ import { PLANETS } from '../../../lib/data/planets';
 import { formatNumber } from '../../../lib/format';
 import { deltaVMagnitude, planarFlyby, type PassSide } from '../../../lib/physics';
 import InlineMath from '../../lab/InlineMath';
+import ChoiceField from '../../lab/ChoiceField';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
-import { SegmentedField } from '../../lab/SettingsFields';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { useSimClock } from '../../lab/useSimClock';
 import { DEFAULT_DISPLAY, flybyLocalSettings, type FlybyDisplay } from './flybyLabSettings';
@@ -35,7 +35,6 @@ const DEG = 180 / Math.PI;
 const E_PRECISION = 3;
 const ANGLE_PRECISION = 1;
 
-const SIDE_BY_NAME: Record<string, PassSide> = { detrás: 'behind', delante: 'front' };
 /**
  * «=» between no-break spaces, and each «symbol = value» of the arrival in a no-wrap span: a line
  * may break after a KaTeX box even before a no-break space, so the span is what keeps them together.
@@ -47,7 +46,10 @@ const NO_WRAP = 'whitespace-nowrap';
 const DRAG_HINT =
   'Arrastra el punto de máxima aproximación en el dibujo, o enfócalo y muévelo con las flechas (1 % de la escala logarítmica; con Mayús, 10 %); Inicio y Fin lo llevan a 1 y 100 radios.';
 const ARRIVAL_HINT = String.raw`Un preajuste fija la llegada: $V_p$, $v_\infty$ y $\theta_\text{in}$, el ángulo entre $\vec V_p$ y $\vec v_{\infty,\text{in}}$; $r_p$ y el lado son tuyos.`;
-const SIDE_OPTIONS = [SIDE_NAMES.behind, SIDE_NAMES.front] as const;
+const SIDE_OPTIONS = (['behind', 'front'] as const).map((value) => ({
+  value,
+  label: SIDE_NAMES[value],
+}));
 
 interface FlybyLabState {
   settings: FlybySettings;
@@ -186,14 +188,14 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
     <>
       <RpField rp={rp} unit={unit} radiusKm={planet.radiusKm} onChange={requestRp} />
       <RpWarningNote warning={warning} unit={unit} />
-      <SegmentedField
+      <ChoiceField
         id="flyby-side"
         label="Lado de paso"
-        value={SIDE_NAMES[side]}
+        value={side}
         options={SIDE_OPTIONS}
-        onChange={(name) =>
+        onChange={(next) =>
           update((previous) => ({
-            settings: { ...previous.settings, side: SIDE_BY_NAME[name] },
+            settings: { ...previous.settings, side: next },
             warning: null,
           }))
         }

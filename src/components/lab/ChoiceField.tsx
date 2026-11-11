@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import { withStableCallbacks } from '../../lab/withStableCallbacks';
+import { withStableCallbacks } from './withStableCallbacks';
 
 export interface ChoiceFieldProps<T extends string> {
   id: string;
@@ -10,8 +10,9 @@ export interface ChoiceFieldProps<T extends string> {
 }
 
 /**
- * Native radios sharing a name (arrow keys move the choice) drawn as segments that wrap on phones:
- * the lab's mode and dump actuator, whose labels are words rather than the drawer's short values.
+ * Native radios sharing a name (arrow keys move the choice) drawn as segments that wrap on phones,
+ * the label above: every choice in words of a lab's levels (Tema 7's and Tema 8's mode, Tema 8's
+ * dump actuator, Tema 9's side of the pass). The drawer's short values use SegmentedField.
  */
 function ChoiceField<T extends string>({
   id,
@@ -22,7 +23,7 @@ function ChoiceField<T extends string>({
 }: ChoiceFieldProps<T>): JSX.Element {
   const labelId = `${id}-label`;
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       <span id={labelId} className="text-sm font-medium">
         {label}
       </span>

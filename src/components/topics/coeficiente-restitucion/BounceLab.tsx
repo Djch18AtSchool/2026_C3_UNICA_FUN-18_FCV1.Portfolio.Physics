@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { G_EARTH } from '../../../lib/physics';
+import ChoiceField from '../../lab/ChoiceField';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
@@ -73,24 +74,6 @@ const INITIAL_STATE: BounceState = {
 
 /** Keys that must keep their native meaning: fields, buttons and anything inside the drawer. */
 const NATIVE_KEYS_SELECTOR = 'input, select, textarea, button, a, dialog';
-
-function ModeToggle({ mode, onChange }: { mode: LabMode; onChange(mode: LabMode): void }) {
-  return (
-    <div role="group" aria-label="Modo" className="flex flex-wrap gap-2">
-      {MODE_OPTIONS.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          aria-pressed={mode === option.value}
-          onClick={() => onChange(option.value)}
-          className="min-h-10 rounded-base border border-border px-3 text-sm font-medium transition-colors hover:border-fg-muted aria-pressed:border-accent aria-pressed:bg-accent/10"
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 /** The 0–1,2 scale of e with its "gana energía" zone above 1 and a mark at the current e. */
 function GainZone({ e }: { e: number }) {
@@ -289,7 +272,13 @@ export default function BounceLab({ usage, leftOut }: BounceLabProps): JSX.Eleme
           ),
           scenario: (
             <>
-              <ModeToggle mode={mode} onChange={setMode} />
+              <ChoiceField
+                id="bounce-mode"
+                label="Modo"
+                value={mode}
+                options={MODE_OPTIONS}
+                onChange={(next: LabMode) => setMode(next)}
+              />
               {isBounce ? (
                 <LabPresets
                   id="bounce-preset"

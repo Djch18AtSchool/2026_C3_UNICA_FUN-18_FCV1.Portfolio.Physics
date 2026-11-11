@@ -208,6 +208,14 @@ describe('LabPresets', () => {
     );
   });
 
+  test('the select’s label sits above it, as every choice of a lab’s levels', () => {
+    render(<LabPresets id="p" presets={MANY} activeId="a" onSelect={vi.fn()} />);
+
+    const field = screen.getByRole('combobox', { name: 'Valores de referencia' }).closest('div')
+      ?.parentElement as HTMLElement;
+    expect(field).toHaveClass('flex-col');
+  });
+
   test('takes another name for its group or select', () => {
     render(<LabPresets id="p" label="Preajuste" presets={MANY} activeId="a" onSelect={vi.fn()} />);
 
