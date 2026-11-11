@@ -2,6 +2,7 @@
 import type { ReactNode } from 'react';
 import type { LabNotesContent } from './LabNotes';
 import type { SettingOption } from './SettingsDrawer';
+import type { TransportMarker } from './transportMarkers';
 import type { TransportTimeUnitChoice } from './transportTime';
 import type { SimClock } from './useSimClock';
 
@@ -23,6 +24,11 @@ export interface LabShellProps {
    * whose plots, readouts and text speak in seconds fixes 's'.
    */
   timeUnit?: TransportTimeUnitChoice;
+  /**
+   * Events on the clock (s) for the transport: marks on its timeline, «Evento anterior /
+   * siguiente» and the event named while the time stands on it (TransportBar, transportMarkers.ts).
+   */
+  markers?: readonly TransportMarker[];
   readouts: LabReadout[];
   onReset(): void;
   testId: string;
