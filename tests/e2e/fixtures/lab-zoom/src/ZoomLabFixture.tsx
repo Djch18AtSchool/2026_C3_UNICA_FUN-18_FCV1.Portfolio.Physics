@@ -45,17 +45,24 @@ function Grid({ width, pxPerKm }: { width: number; pxPerKm: number }): JSX.Eleme
   const rows = Math.ceil(SCENE_HEIGHT / (GRID_KM * pxPerKm));
   const columns = WORLD_WIDTH_KM / GRID_KM;
   return (
-    <g stroke="var(--grid)" strokeWidth={1} vectorEffect="non-scaling-stroke">
+    <g stroke="var(--grid)" strokeWidth={1}>
       {Array.from({ length: columns + 1 }, (_, i) => (
         <line
           key={`c${i}`}
+          vectorEffect="non-scaling-stroke"
           x1={i * GRID_KM * pxPerKm}
           x2={i * GRID_KM * pxPerKm}
           y2={SCENE_HEIGHT}
         />
       ))}
       {Array.from({ length: rows + 1 }, (_, i) => (
-        <line key={`r${i}`} y1={i * GRID_KM * pxPerKm} y2={i * GRID_KM * pxPerKm} x2={width} />
+        <line
+          key={`r${i}`}
+          vectorEffect="non-scaling-stroke"
+          y1={i * GRID_KM * pxPerKm}
+          y2={i * GRID_KM * pxPerKm}
+          x2={width}
+        />
       ))}
     </g>
   );

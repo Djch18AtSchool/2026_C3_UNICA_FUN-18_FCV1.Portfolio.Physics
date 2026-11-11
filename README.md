@@ -49,7 +49,7 @@ Los cuatro temas del Avance 2 siguen el mismo formato, cada uno con su laborator
 - `src/lib/data/`: modelos, datos copiados de una fuente y preajustes, con sus fuentes.
 - `src/lib/tables/`: el registro de tablas de datos: `index.ts` (registro y búsqueda por id), `types.ts`, `markdown.ts` (exportación para "Copiar Markdown") y una tabla por tema en `topics/<slug>.ts`. Es la única fuente de cada tabla para la página, el tiempo de lectura y "Copiar Markdown".
 - `src/components/ui/`: componentes de interfaz base, incluidos `Step.astro` y `Why.astro` (el modelo de contenido por pasos) y `DataTable.astro` (la tabla de datos, que lee el registro de `src/lib/tables/`).
-- `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `LabPresets`, `LabNotes`, `StatusChips`, `LegendKey`, `SettingsDrawer`, `ParamField`, `TransportBar` con sus eventos, `TimeScaleBadge`, `useSimClock`; ver «Laboratorios por niveles» y «Escala de tiempo y eventos»), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), los ajustes de reproducción comunes (`clockSettings`), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
+- `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `LabPresets`, `LabNotes`, `StatusChips`, `LegendKey`, `SettingsDrawer`, `ParamField`, `TransportBar` con sus eventos, `TimeScaleBadge`, `useSimClock`, `useZoomPan`, `ZoomControls`, `ScaleBar`; ver «Laboratorios por niveles», «Escala de tiempo y eventos» y «Zoom y desplazamiento»), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), los ajustes de reproducción comunes (`clockSettings`), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
 - `src/components/controls/`: `Readout` (una lectura) y `Slider`.
 - `src/components/charts/`: `ChartFrame` (el marco con título y nota de toda gráfica) y `chartTheme`/`chartScale` (tokens de color y tipografía, formato de marcas); las gráficas mismas son `SvgPlot`, en `src/components/lab/`.
 - `src/components/nav/`: navegación: barra lateral con búsqueda (`SidebarSearch`), `TopicTools`, el pie (identidad, icono de GitHub y botón de tema) y `BackToTop.astro`, el botón flotante "Volver arriba", que aparece al bajar, se detiene sobre el pie y se esconde mientras hay un laboratorio bajo él (en el móvil, mientras se lee uno: no tapa sus campos).
@@ -58,7 +58,7 @@ Los cuatro temas del Avance 2 siguen el mismo formato, cada uno con su laborator
 - `src/layouts/`: plantillas de página.
 - `src/pages/`: páginas del sitio (`temas/` para cada tema).
 - `src/styles/`: estilos globales: `tokens.css` (colores por tema y `--radius`), `scale.css` (la escala de medidas, ver «Escala de medidas»), `global.css` y `content.css` (el cuerpo de los temas).
-- `tests/e2e/`: pruebas de extremo a extremo (Playwright). `tests/e2e/fixtures/<nombre>/` son páginas de prueba fuera del sitio (una raíz de Astro propia que `fixtureSite.ts` construye y sirve en un puerto libre para un archivo de pruebas); hoy, `lab-time` para `time-scale.spec.ts`.
+- `tests/e2e/`: pruebas de extremo a extremo (Playwright). `tests/e2e/fixtures/<nombre>/` son páginas de prueba fuera del sitio (una raíz de Astro propia que `fixtureSite.ts` construye y sirve en un puerto libre para un archivo de pruebas); hoy, `lab-time` para `time-scale.spec.ts` y `lab-zoom` para `zoom-pan.spec.ts`.
 
 ## Notación matemática
 
@@ -155,6 +155,47 @@ const clock = useSimClock(duration, { timeScale: 20 });  // clock.rate: s simula
 - **La insignia HTML necesita un padre `relative`** (la caja de la escena). Dentro de un `svg[role=img]` sus hijos no llegan al lector: ahí va `TimeScaleBadgeSvg` y, en HTML, `TimeScaleStatus` con el mismo `label`.
 - **La escala la declara solo la insignia.** No escribas «1×» ni otro factor en el nombre de una vista o en un preajuste: con movimiento reducido la insignia dirá, por ejemplo, «×91» y los dos textos se contradirían. Nombra la vista por lo que muestra («Tramo», «Ciclo»). Un `factor` explícito no sigue la velocidad ni el movimiento reducido: úsalo solo cuando el reloj no cuenta segundos del fenómeno (Tema 8).
 - **`markers` como constante de módulo** (o memorizada): se normalizan con la identidad de la prop, y una lista nueva en cada render se normaliza en cada render.
+
+## Zoom y desplazamiento
+
+Regla (auditoría §8 y §12.3): un lienzo que se acerca lleva el mismo grupo de botones en una esquina («Acercar», «Alejar», «Ajustar», «Tamaño real 1:1», con el factor «×2,5» encima), responde al ratón, al tacto y al teclado, y declara su escala con una barra de longitud redonda que se recalcula con el zoom. Tres piezas de `src/components/lab/`; ningún laboratorio del sitio las usa todavía (las adoptan D1.2 y siguientes):
+
+```tsx
+const KM = [{ label: 'km', size: 1 }];                       // de módulo; escalera opcional: m y km
+const zoom = useZoomPan({ label: 'Mapa de la ruta' });     // nombre accesible del lienzo
+
+<LabShell …>
+  <div {...zoom.viewportProps} className="relative">        // el lienzo: enfocable y posicionado
+    <svg width="100%" height={h} viewBox={`0 0 ${width} ${h}`}>
+      <g transform={zoom.transform}>…dibujo…</g>             // o coordenadas con zoom.toScreen
+      <Asidero at={zoom.toScreen(p)} {...drag} />            // fuera del grupo: no crece
+    </svg>
+    <ScaleBar pxPerUnit={pxPerKm * zoom.view.scale} units={KM} />  // abajo a la izquierda
+    <ZoomControls zoom={zoom} />                              // abajo a la derecha; obligatorio
+  </div>
+</LabShell>
+```
+
+- **La vista** (`zoom.view`, `{ scale, x, y }`, inmutable): pantalla = dibujo · `scale` + (x, y), en px. Las unidades del dibujo son los px del laboratorio sin zoom (su `viewBox` igual a su caja), así que la vista inicial es la identidad: el servidor pinta el encuadre del laboratorio y la hidratación no cambia nada (`zoom-pan.spec.ts` lo compara a 360, 540 y 1 280 px). Las matemáticas son puras y están en `zoomMath.ts` (zoom sobre un punto, desplazamiento acotado, pellizco, «Ajustar», «1:1», deslizamiento, rueda, formato) y `scaleBarMath.ts`.
+- **«1:1»** es ×1: una unidad del dibujo por px, la escala nominal con que el laboratorio dibuja; conserva el punto del centro del lienzo. **«Ajustar»** encuadra `fit` (por omisión, todo `bounds`; y `bounds`, por omisión, el propio lienzo), centrado y tan grande como quepa; vuelve a encuadrar del todo. Con las opciones por omisión las dos llevan a la vista inicial. Un botón que no cambiaría nada (alejar en ×1, acercar en el máximo, «Ajustar» y «1:1» ya encuadrados) queda inerte con `aria-disabled` y conserva el foco.
+- **Opciones** de `useZoomPan`: `label` (obligatoria), `minScale` y `maxScale` (por omisión ×1 y ×8; una escena que dibuja más allá del lienzo baja `minScale`), `bounds` (todo lo que dibuja el laboratorio, en unidades del dibujo: el desplazamiento no deja hueco junto a él ni, si es menor, lo deja salir) y `fit` (lo que encuadra «Ajustar»). Opciones inválidas lanzan un error con el arreglo.
+- **Ratón y tacto**: rueda con Ctrl (también el pellizco de un panel táctil, que llega así) o la rueda sola con el lienzo enfocado (un clic en el fondo lo enfoca), sobre el puntero; con Ctrl nunca deja que la página haga zoom; sola, en un límite, deja que la página se desplace. Arrastrar el fondo desplaza a partir de 4 px (un clic sigue siendo un clic y el clic que termina un arrastre no llega al dibujo). Un arrastre que empieza en un control del lienzo (un asidero con `tabindex`, un botón, un `[data-zoom-ignore]`) o cuyo `pointerdown` ya llamó a `preventDefault` (`useDrag`) no se toca. Dos dedos pellizcan sobre su punto medio; al levantar uno, el otro sigue desplazando sin salto. `touch-action` es `pan-y` mientras el dibujo cabe (un dedo desplaza la página) y `none` acercado (un dedo mueve el dibujo; la página se desplaza fuera del lienzo).
+- **Teclado** (solo con el lienzo mismo enfocado; nunca con Ctrl, Alt o Meta, que son del navegador): `+` (también `=`), `−`/`-`, `0` ajusta, flechas de 48 px. La tecla se le quita al navegador solo si cambia la vista: una flecha en ×1 desplaza la página. Los botones y las teclas de zoom se deslizan 200 ms (sin animación con movimiento reducido); la rueda, el pellizco y el arrastre siguen a la mano; dos pulsaciones seguidas se suman.
+- **Accesibilidad**: el lienzo es un `group` con `aria-roledescription="lienzo con zoom"`, su `label`, `aria-keyshortcuts` y `aria-describedby` hacia las instrucciones, que pinta `ZoomControls` (sin él la referencia queda rota). No es `role="application"`: eso pasaría a modo foco todo lo de dentro (asideros, botones) y anularía la navegación del lector; a cambio, en modo exploración el lector se queda las flechas (los botones siguen siendo botones). `ZoomControls` dice el factor en palabras en un texto oculto («Zoom: 2,5 veces el tamaño real») y en una región `status` cuando se asienta 500 ms; al cargar no dice nada. `ScaleBar` no tiene región `status` (cambia solo con el zoom, que ya se anuncia): su longitud va en un texto oculto («Barra de escala: 1 000 km»).
+- **`ZoomControls`**: `corner` (`top-left` … `bottom-right`, por omisión abajo a la derecha, a 8 px de los bordes, como `TimeScaleBadge`: `canvasCorner.ts`) y `orientation` (`column`, por omisión, u `row`). Botones de 40 px con glifo de 20, separados por el trazo único; el factor arriba en mono de 12 px. En columna ocupa 42 × 194 px (medido, con su borde): un lienzo de menos de ~210 px de alto pide `row`.
+- **`ScaleBar`** (HTML, en una esquina; por omisión abajo a la izquierda) y **`ScaleBarSvg`** (un `<g>` en `x`, `y`, con `ScaleBarWords` en HTML para el lector, como `TimeScaleBadgeSvg` y `TimeScaleStatus`): una longitud 1 · 2 · 5 × 10ⁿ que mide de 64 a 160 px. `pxPerUnit` son los px por unidad base a la vista actual (la escala del laboratorio por `zoom.view.scale`); `units`, una escalera de menor a mayor (`{ label: 'm', size: 1 }`, `{ label: 'km', size: 1000 }`): se usa la mayor que alcanza la longitud («500 m», «2 km»). Rótulos con `$…$` («1 $R_J$»); un `R_J` fuera de `$…$` lanza un error. Números con coma decimal y espacio fino de miles («1 000 km», «0,5 km»).
+
+### Reglas para quien migre un laboratorio
+
+- **El trazo y el texto crecen con el grupo.** Dentro de `<g transform={zoom.transform}>` todo escala: líneas con `vectorEffect="non-scaling-stroke"`; rótulos, asideros y marcas que deban conservar su tamaño, fuera del grupo, en `zoom.toScreen(p)`.
+- **`useDrag` da puntos del `svg` raíz**, no del grupo con zoom: pásalos por `zoom.toWorld(punto)` antes de invertir las escalas del laboratorio (el asidero de la página de prueba lo hace).
+- **Un asidero enfocado fuera de la vista** no se trae solo: con zoom, el Tab puede llegar a uno que no se ve. Si el laboratorio lo necesita, desplaza la vista al enfocarlo (hoy no hay `reveal`; añadirlo a `useZoomPan` es parte de la migración que lo pida).
+- **El `svg` llena el lienzo desde su esquina superior izquierda**: el puntero se mide contra la caja del elemento de `viewportProps` y el tamaño, con un `ResizeObserver` sobre ella. Sin relleno ni borde en ese elemento.
+- **Rendimiento**: el deslizamiento vuelve a pintar el laboratorio en cada cuadro durante 200 ms; un laboratorio pesado que dependa de `zoom.view` debe memorizar lo que no cambia con la vista.
+- **Esquinas**: la insignia de tiempo va arriba a la derecha; botones abajo a la derecha y barra abajo a la izquierda caben juntos desde 360 px (`zoom-pan.spec.ts` comprueba que no se tocan). Si el dibujo tiene algo importante en una esquina, mueve la pieza con `corner`.
+- **«Cómo se usa»**: el laboratorio añade a sus `notes.usage` una línea con los gestos y las teclas del zoom (texto del tema: lo redacta Claude y lo revisa Dylan); las instrucciones ocultas de `ZoomControls` no la sustituyen.
+- **Minimapa**: opcional en la auditoría (§12.3) y no hecho; si una escena lo pide, se monta sobre `zoom.view` y `bounds`.
+- **Playwright espera a los botones con `aria-disabled`**: en una e2e, pulsar uno inerte pide `click({ force: true })`; y como el factor se lee redondeado antes de que acabe el deslizamiento, lee la vista (el `transform` del grupo) con `expect.poll`.
 
 ## Escala de medidas
 
