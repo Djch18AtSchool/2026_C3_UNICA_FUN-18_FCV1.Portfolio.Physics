@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { BACK_TO_TOP_REVEAL_PX, goToTop, isBackToTopShown } from './backToTop';
+import { BACK_TO_TOP_REVEAL_PX, goToTop, isBackToTopShown, overlapsAny } from './backToTop';
 
 const scrollTo = vi.fn();
 
@@ -72,5 +72,21 @@ describe('isBackToTopShown', () => {
   test('is hidden for a negative scroll (rubber-banding past the top) or an invalid one', () => {
     expect(isBackToTopShown(-40)).toBe(false);
     expect(isBackToTopShown(Number.NaN)).toBe(false);
+  });
+});
+
+describe('overlapsAny', () => {
+  const button = { left: 1216, right: 1263, top: 740, bottom: 784 };
+
+  test('true when any box covers part of the button, by even a few pixels', () => {
+    const lab = { left: 400, right: 1226, top: 100, bottom: 900 };
+    expect(overlapsAny(button, [lab])).toBe(true);
+  });
+
+  test('false when the boxes only touch it or lie elsewhere', () => {
+    const touching = { left: 400, right: 1216, top: 100, bottom: 900 };
+    const above = { left: 1000, right: 1300, top: 0, bottom: 740 };
+    expect(overlapsAny(button, [touching, above])).toBe(false);
+    expect(overlapsAny(button, [])).toBe(false);
   });
 });

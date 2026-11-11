@@ -15,6 +15,10 @@
  * At rest it is 80 % opaque, so what scrolls under it stays legible (contrast of the icon over
  * its worst case is still above 3:1 in both themes); hover and keyboard focus make it solid.
  *
+ * It also hides while a laboratory lies under it (any [data-lab-shell] box covering part of it):
+ * on a phone it would sit over the panel's fields and «Restablecer», on a desktop over the lab's
+ * edge and the focus ring of what has the keyboard (WCAG 2.4.11). Past the lab it is back.
+ *
  * Layers: above the content and the desktop sticky bar (z-20), below the reading bar (z-40, at
  * the top edge, so they never meet) and the skip link (z-50). The settings drawer is a modal
  * <dialog> in the top layer, which paints over any z-index and makes the page behind it inert.
@@ -50,20 +54,29 @@ const LABEL = 'Volver arriba';
 </noscript>
 
 <script>
-  import { goToTop, isBackToTopShown } from '../../lib/backToTop';
+  import { goToTop, isBackToTopShown, overlapsAny } from '../../lib/backToTop';
 
   const button = document.querySelector<HTMLAnchorElement>('.back-to-top');
   if (button) {
     button.addEventListener('click', goToTop);
     let frame = 0;
+    // Labs mount and grow after load (Tema 1's after its data), so they are looked up each time.
+    const overLab = () =>
+      overlapsAny(
+        button.getBoundingClientRect(),
+        [...document.querySelectorAll('[data-lab-shell]')].map((lab) =>
+          lab.getBoundingClientRect(),
+        ),
+      );
     const update = () => {
       frame = 0;
-      button.toggleAttribute('data-hidden', !isBackToTopShown(window.scrollY));
+      button.toggleAttribute('data-hidden', !isBackToTopShown(window.scrollY) || overLab());
     };
     const schedule = () => {
       if (frame === 0) frame = requestAnimationFrame(update);
     };
     window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
     // A page restored from the back-forward cache comes back scrolled.
     window.addEventListener('pageshow', schedule);
     update();

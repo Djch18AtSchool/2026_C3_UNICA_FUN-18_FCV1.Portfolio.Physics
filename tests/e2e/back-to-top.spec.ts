@@ -195,6 +195,31 @@ for (const viewport of [DESKTOP, LAPTOP, PHONE]) {
   });
 }
 
+for (const viewport of [DESKTOP, { width: 360, height: 800 }]) {
+  test(`a ${viewport.width} px el botón nunca queda sobre un laboratorio: se esconde mientras uno ocupa su esquina`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('./temas/salto-personaje/');
+    const lab = page.getByTestId(LAB_TEST_ID);
+    await lab.scrollIntoViewIfNeeded();
+    await waitForIsland(page, `[data-testid="${LAB_TEST_ID}"]`);
+    // The lab's foot at the window's bottom: the lab fills the corner where the button sits.
+    await lab.evaluate((node) => {
+      const box = node.getBoundingClientRect();
+      window.scrollTo(0, window.scrollY + box.bottom - window.innerHeight + 8);
+    });
+    await expect(anyBackToTop(page)).toBeHidden();
+
+    // Past the lab, in the prose: the button is back.
+    await lab.evaluate((node) => {
+      const box = node.getBoundingClientRect();
+      window.scrollTo(0, window.scrollY + box.bottom + 16);
+    });
+    await expect(backToTop(page)).toBeVisible();
+  });
+}
+
 test('"Volver arriba" lleva al inicio, deja el foco de teclado al principio y se esconde', async ({
   page,
 }) => {

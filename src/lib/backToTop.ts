@@ -35,3 +35,26 @@ export function goToTop(event: Pick<Event, 'preventDefault'>, root: Document = d
     { once: true },
   );
 }
+
+/** The edges of a box, as getBoundingClientRect gives them. */
+export interface Edges {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+/**
+ * Whether any of the boxes covers part of the button (touching is not covering). The button hides
+ * while a laboratory lies under it, so it never sits over a lab's fields, «Restablecer» or the
+ * focus ring of what has the keyboard (WCAG 2.4.11).
+ */
+export function overlapsAny(button: Edges, boxes: readonly Edges[]): boolean {
+  return boxes.some(
+    (box) =>
+      box.left < button.right &&
+      button.left < box.right &&
+      box.top < button.bottom &&
+      button.top < box.bottom,
+  );
+}
