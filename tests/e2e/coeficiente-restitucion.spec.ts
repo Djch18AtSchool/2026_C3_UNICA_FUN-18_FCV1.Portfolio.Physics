@@ -362,3 +362,30 @@ for (const viewport of VIEWPORTS) {
     });
   }
 }
+
+for (const colorScheme of ['light', 'dark'] as const) {
+  test(`en ${colorScheme === 'light' ? 'claro' : 'oscuro'}, el modo elegido conserva su borde de acento bajo el puntero y el otro se oscurece`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme });
+    await page.goto(PAGE);
+    await page.locator(LAB).scrollIntoViewIfNeeded();
+    await waitForIsland(page, LAB);
+    const segment = (name: string) =>
+      page.locator(LAB).getByRole('radio', { name }).locator('xpath=following-sibling::span');
+    const border = (name: string) =>
+      segment(name).evaluate((node) => getComputedStyle(node).borderTopColor);
+    const chosen = 'Rebote contra el piso';
+    const other = 'Choque de dos cuerpos';
+    const accent = await border(chosen);
+    const idle = await border(other);
+    expect(accent).not.toBe(idle);
+
+    await segment(chosen).hover();
+    await expect.poll(() => border(chosen)).toBe(accent);
+
+    await segment(other).hover();
+    await expect.poll(() => border(other)).not.toBe(idle);
+    expect(await border(other)).not.toBe(accent);
+  });
+}

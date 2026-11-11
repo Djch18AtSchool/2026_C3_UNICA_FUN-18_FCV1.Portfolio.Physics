@@ -48,5 +48,7 @@ describe('ChoiceField', () => {
     expect(segment('Choque de dos cuerpos')).toHaveClass('border-border');
     expect(segment('Choque de dos cuerpos')).not.toHaveClass('border-transparent');
     expect(segment('Rebote contra el piso')).toHaveClass('peer-checked:border-accent');
+    // Hover darkens only an unchosen segment (the computed colours: coeficiente-restitucion.spec).
+    expect(segment('Rebote contra el piso')).not.toHaveClass('hover:border-fg-muted');
   });
 });
