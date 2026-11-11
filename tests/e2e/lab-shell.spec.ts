@@ -32,6 +32,8 @@ const CONTROL = ':is(a, button, input, select, textarea, summary, [tabindex]:not
 const TRANSPORT_ROOM_SLACK_PX = 1;
 /** Sub-pixel rounding of the columns grid against its cells. */
 const LAYOUT_SLACK_PX = 1;
+/** The transport's event buttons, in the order Tab reaches them after the timeline. */
+const EVENT_BUTTONS = ['Evento anterior', 'Evento siguiente'] as const;
 /** What the Tab key reaches, in document order. */
 const TABBABLE =
   ':is(a[href], button, input, select, textarea, summary, [tabindex]):not([tabindex="-1"]):not([disabled])';
@@ -585,17 +587,28 @@ for (const { path, testId } of LABS) {
       // The lab's top under the topic bar: «Restablecer» is in view, so Tab must not move the page
       // (a panel with a scroll of its own once dragged it ~60 px, the lab's header under the bar).
       await scrollLabTo(lab, await stickyTop(page));
+      // A lab with events (TransportBar `markers`) has «Evento anterior» and «Evento siguiente»
+      // after its timeline, in the transport and in the order of reading; one without has none.
+      const transport = lab.locator('[data-lab-transport]');
+      const hasMarks = (await transport.locator('[data-transport-mark]').count()) > 0;
+      const eventSteps = hasMarks
+        ? EVENT_BUTTONS.map((name) => transport.getByRole('button', { name, exact: true }))
+        : [];
+      await expect(lab.getByRole('button', { name: /^Evento (anterior|siguiente)$/ })).toHaveCount(
+        eventSteps.length,
+      );
+      const restore = lab
+        .getByRole('region', { name: 'Parámetros' })
+        .getByRole('button', { name: 'Restablecer' });
       await timeline.evaluate((node) => (node as HTMLElement).focus({ preventScroll: true }));
       const before = await page.evaluate(() => window.scrollY);
-      await page.keyboard.press('Tab');
-      await expect(
-        lab
-          .getByRole('region', { name: 'Parámetros' })
-          .getByRole('button', { name: 'Restablecer' }),
-      ).toBeFocused();
-      expect(Math.abs((await page.evaluate(() => window.scrollY)) - before)).toBeLessThanOrEqual(
-        LAYOUT_SLACK_PX,
-      );
+      for (const next of [...eventSteps, restore]) {
+        await page.keyboard.press('Tab');
+        await expect(next).toBeFocused();
+        expect(Math.abs((await page.evaluate(() => window.scrollY)) - before)).toBeLessThanOrEqual(
+          LAYOUT_SLACK_PX,
+        );
+      }
     });
   });
 }
