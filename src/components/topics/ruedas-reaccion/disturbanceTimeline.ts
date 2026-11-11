@@ -65,3 +65,33 @@ export function firstDumpPlayback({ segments }: DisturbanceTimeline): number {
   const dump = segments.find((s) => s.dumping) ?? segments[0];
   return (dump.u0 + dump.u1) / 2;
 }
+
+/** Orbit seconds per playback second at playback time u: DAY_LAPSE on a fill, less on a dump. */
+export function playbackRateAt({ segments }: DisturbanceTimeline, u: number): number {
+  const segment = segments.find((s) => u <= s.u1) ?? segments[segments.length - 1];
+  return (segment.t1 - segment.t0) / (segment.u1 - segment.u0);
+}
+
+export interface WheelTimeScaleInput {
+  isManeuver: boolean;
+  warp: DisturbanceTimeline;
+  /** The clock's settled time: playback seconds in the disturbance, maneuver seconds in the turn. */
+  playbackTime: number;
+  /** SimClock.rate: playback seconds per real second (the speed, or the reduced-motion pace). */
+  clockRate: number;
+}
+
+/**
+ * The factor the canvas declares, in orbit (or maneuver) seconds per real second. The maneuver
+ * plays in real time, so it is the clock's rate; the disturbance's clock counts playback seconds,
+ * each worth the piece's orbit seconds, so the factor is that times the rate and it drops while a
+ * dump plays stretched.
+ */
+export function wheelTimeScale({
+  isManeuver,
+  warp,
+  playbackTime,
+  clockRate,
+}: WheelTimeScaleInput): number {
+  return isManeuver ? clockRate : playbackRateAt(warp, playbackTime) * clockRate;
+}

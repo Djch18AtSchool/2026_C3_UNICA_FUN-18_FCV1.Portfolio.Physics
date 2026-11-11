@@ -4,7 +4,9 @@ import {
   firstDumpPlayback,
   MIN_DUMP_PLAYBACK,
   orbitTimeAt,
+  playbackRateAt,
   playbackTimeAt,
+  wheelTimeScale,
 } from './disturbanceTimeline';
 import {
   DAY_LAPSE,
@@ -59,5 +61,63 @@ describe('disturbanceTimeline', () => {
 
       expect(disturbanceReadings(actuator, orbitTimeAt(timeline, u)).dumping).toBe(true);
     }
+  });
+
+  test('the orbit seconds per playback second are DAY_LAPSE on a fill and stretched on a dump', () => {
+    for (const actuator of ['magnetopar', 'propulsor'] as const) {
+      const timeline = disturbanceTimeline(actuator);
+      const dump = timeline.segments.find((segment) => segment.dumping);
+      const dumpRate = ((dump?.t1 ?? 0) - (dump?.t0 ?? 0)) / MIN_DUMP_PLAYBACK;
+
+      expect(playbackRateAt(timeline, 0)).toBeCloseTo(DAY_LAPSE, 6);
+      expect(playbackRateAt(timeline, firstDumpPlayback(timeline))).toBeCloseTo(dumpRate, 6);
+      expect(playbackRateAt(timeline, timeline.duration)).toBeCloseTo(DAY_LAPSE, 6);
+    }
+  });
+
+  test('the dump of the propulsor runs near real time and the magnetorquer one at about ×1700', () => {
+    const rateAtDump = (actuator: 'magnetopar' | 'propulsor') => {
+      const timeline = disturbanceTimeline(actuator);
+      return playbackRateAt(timeline, firstDumpPlayback(timeline));
+    };
+
+    expect(rateAtDump('propulsor')).toBeCloseTo(2.5, 1);
+    expect(rateAtDump('magnetopar')).toBeGreaterThan(1500);
+    expect(rateAtDump('magnetopar')).toBeLessThan(1900);
+  });
+
+  test('outside the clock range the rate is the nearest piece’s', () => {
+    const timeline = disturbanceTimeline('propulsor');
+
+    expect(playbackRateAt(timeline, -5)).toBeCloseTo(DAY_LAPSE, 6);
+    expect(playbackRateAt(timeline, timeline.duration + 5)).toBeCloseTo(DAY_LAPSE, 6);
+  });
+});
+
+describe('wheelTimeScale', () => {
+  const warp = disturbanceTimeline('propulsor');
+
+  test('the maneuver runs in real time: the factor is the clock rate (the speed, or the reduced pace)', () => {
+    expect(wheelTimeScale({ isManeuver: true, warp, playbackTime: 12, clockRate: 1 })).toBe(1);
+    expect(wheelTimeScale({ isManeuver: true, warp, playbackTime: 12, clockRate: 4 })).toBe(4);
+  });
+
+  test('the disturbance multiplies the piece’s orbit seconds per playback second by the clock rate', () => {
+    expect(wheelTimeScale({ isManeuver: false, warp, playbackTime: 5, clockRate: 1 })).toBeCloseTo(
+      DAY_LAPSE,
+      6,
+    );
+    expect(wheelTimeScale({ isManeuver: false, warp, playbackTime: 5, clockRate: 4 })).toBeCloseTo(
+      4 * DAY_LAPSE,
+      6,
+    );
+    expect(
+      wheelTimeScale({
+        isManeuver: false,
+        warp,
+        playbackTime: firstDumpPlayback(warp),
+        clockRate: 0.5,
+      }),
+    ).toBeCloseTo(1.25, 1);
   });
 });
