@@ -438,6 +438,16 @@ for (const { path, testId } of LABS) {
           expect(readouts.x).toBeGreaterThanOrEqual(params.x + params.width);
           expect(params.width).toBeLessThan(panel.width / 2);
         }
+        // One rule for every drawing in one column: the canvas grows up to 36 rem, centred
+        // (Temas 1 and 3 no longer fill 813 px while Temas 7–9 stay at 400).
+        const canvas = await boxOf(lab.locator('[data-lab-canvas]'));
+        expect(canvas.width).toBeLessThanOrEqual(
+          (await cssLengthPx(page, '36rem')) + LAYOUT_SLACK_PX,
+        );
+        const stageCentre = stage.x + stage.width / 2;
+        expect(Math.abs(canvas.x + canvas.width / 2 - stageCentre)).toBeLessThanOrEqual(
+          STICKY_SLACK_PX,
+        );
         // The order of reading is the visual one: the canvas notes come after the panel.
         const notes = lab.locator('[data-lab-canvas-notes]');
         if ((await notes.count()) > 0) {
