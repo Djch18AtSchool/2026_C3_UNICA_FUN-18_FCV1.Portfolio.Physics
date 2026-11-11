@@ -23,6 +23,7 @@
  */
 import { useEffect, useRef, useState, type JSX } from 'react';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_COLOR } from '../charts/chartTheme';
+import { CANVAS_CORNER, type CanvasCorner } from './canvasCorner';
 import InlineMath from './InlineMath';
 import MathText, { type TextAnchor } from './MathText';
 import {
@@ -47,14 +48,7 @@ export type TimeScaleProps = TimeScaleSource & {
   label?: string | null;
 };
 
-export type TimeScaleCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-
-const CORNER: Readonly<Record<TimeScaleCorner, string>> = {
-  'top-left': 'top-2 left-2',
-  'top-right': 'top-2 right-2',
-  'bottom-left': 'bottom-2 left-2',
-  'bottom-right': 'bottom-2 right-2',
-};
+export type TimeScaleCorner = CanvasCorner;
 const BADGE =
   'pointer-events-none absolute flex max-w-[calc(100%-1rem)] items-baseline gap-2 rounded-sm border border-border bg-bg/90 px-2 py-1';
 
@@ -133,7 +127,11 @@ export default function TimeScaleBadge({
   const label = badgeLabel(factor, props.label);
   return (
     <>
-      <div data-time-scale-badge="" aria-hidden="true" className={`${BADGE} ${CORNER[corner]}`}>
+      <div
+        data-time-scale-badge=""
+        aria-hidden="true"
+        className={`${BADGE} ${CANVAS_CORNER[corner]}`}
+      >
         <span className="font-mono text-sm font-medium whitespace-nowrap text-fg tabular-nums">
           {formatTimeScale(factor)}
         </span>
