@@ -284,15 +284,29 @@ test('la sección activa del esquema usa el color de acento', async ({ page }) =
   const active = links.and(page.locator('[aria-current="location"]'));
   await expect(active).toHaveCount(1);
 
-  const [color, accent] = await active.evaluate((link) => {
-    const probe = document.createElement('span');
-    probe.style.color = 'var(--accent)';
-    document.body.append(probe);
-    const result = [getComputedStyle(link).color, getComputedStyle(probe).color];
-    probe.remove();
-    return result;
-  });
-  expect(color).toBe(accent);
+  // Read the current link and the accent in one step: the observer may still move the mark to a
+  // neighbor while the scroll settles, and a locator resolved before that reads a muted link.
+  const colors = () =>
+    page.evaluate(() => {
+      const link = document.querySelector(
+        'nav[aria-label="Temas"] [data-outline-current] a[aria-current="location"]',
+      );
+      const probe = document.createElement('span');
+      probe.style.color = 'var(--accent)';
+      document.body.append(probe);
+      const result = {
+        link: link && getComputedStyle(link).color,
+        accent: getComputedStyle(probe).color,
+      };
+      probe.remove();
+      return result;
+    });
+  await expect
+    .poll(async () => {
+      const { link, accent } = await colors();
+      return link === accent;
+    })
+    .toBe(true);
 });
 
 test('buscar "llantas" deja una coincidencia y su enlace navega', async ({ page }) => {
