@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { DRIVE_CYCLES } from '../../../lib/data/driveCycles';
 import { MODEL3_LR_RWD_2025 } from '../../../lib/data/evModels';
-import { cycleBalance, DEFAULT_REGEN, type BalanceStep } from '../../../lib/physics/energy';
+import { cycleBalance, DEFAULT_REGEN } from '../../../lib/physics/energy';
 import {
   balanceAt,
   BRAKE_PARTS,
@@ -14,9 +14,9 @@ import {
   J_PER_KWH,
   MAX_FLOW_WIDTH,
   MIN_FLOW_WIDTH,
-  peakBrakeTime,
   powerFlows,
   roadPosition,
+  roadTicks,
   type BalanceAt,
 } from './regenScene';
 
@@ -115,25 +115,6 @@ describe('balanceAt', () => {
     expect(at.pBattery).toBe(0);
     expect(at.recoveredShare).toBe(0);
     expect(at.pRegen).toBeGreaterThan(0);
-  });
-});
-
-describe('peakBrakeTime', () => {
-  test('is the end of the interval with the largest brake power: 116 s on the UDDS', () => {
-    expect(peakBrakeTime(uddsSteps)).toBe(116);
-  });
-
-  test('is the first sample time when the car never brakes', () => {
-    const parked: BalanceStep[] = cycleBalance(
-      [
-        { t: 0, v: 0 },
-        { t: 1, v: 0 },
-      ],
-      MODEL3_LR_RWD_2025,
-      DEFAULT_REGEN,
-    ).steps;
-
-    expect(peakBrakeTime(parked)).toBe(0);
   });
 });
 
@@ -281,5 +262,21 @@ describe('roadPosition', () => {
     expect(roadPosition(2000, 1000, 20, 220)).toBe(220);
     expect(roadPosition(-1, 1000, 20, 220)).toBe(20);
     expect(roadPosition(10, 0, 20, 220)).toBe(20);
+  });
+});
+
+describe('roadTicks', () => {
+  test('a tick at every multiple of the step within the road, both ends included', () => {
+    expect(roadTicks(0, 11_990, 1000)).toEqual([
+      0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10_000, 11_000,
+    ]);
+    expect(roadTicks(4595, 4831, 50)).toEqual([4600, 4650, 4700, 4750, 4800]);
+    expect(roadTicks(100, 200, 50)).toEqual([100, 150, 200]);
+  });
+
+  test('none for an empty road or a step that is not positive', () => {
+    expect(roadTicks(300, 300, 50)).toEqual([300]);
+    expect(roadTicks(300, 200, 50)).toEqual([]);
+    expect(roadTicks(0, 1000, 0)).toEqual([]);
   });
 });

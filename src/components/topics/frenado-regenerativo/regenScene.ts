@@ -112,11 +112,6 @@ export function balanceAt(
   };
 }
 
-/** The end of the interval with the largest brake power: the cycle's hardest braking. */
-export function peakBrakeTime(steps: readonly BalanceStep[]): number {
-  return steps.reduce((best, step) => (step.pBrake > best.pBrake ? step : best), steps[0]).t;
-}
-
 export type FlowId = 'battery-motor' | 'motor-wheels' | 'wheels-brakes';
 export type FlowKind = 'traction' | 'regen' | 'friction' | 'idle';
 
@@ -255,4 +250,12 @@ export function energyAxisMax(steps: readonly BalanceStep[]): number {
 export function roadPosition(distance: number, total: number, x0: number, x1: number): number {
   const share = total > 0 ? Math.min(Math.max(distance / total, 0), 1) : 0;
   return x0 + share * (x1 - x0);
+}
+
+/** The distances (m) of a road from `from` to `to` that get a tick: every multiple of `every`. */
+export function roadTicks(from: number, to: number, every: number): number[] {
+  if (!(every > 0) || to < from) return [];
+  const first = Math.ceil(from / every);
+  const count = Math.floor(to / every) - first + 1;
+  return Array.from({ length: Math.max(count, 0) }, (_, k) => (first + k) * every);
 }

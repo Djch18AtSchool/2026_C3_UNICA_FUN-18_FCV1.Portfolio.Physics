@@ -3,7 +3,14 @@ import { formatNumber } from '../../../lib/format';
 import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import type { FrameStore } from '../../lab/frameStore';
 import { useFrameDerived } from '../../lab/useFrameTime';
-import { drivePhase, FLOW_COLORS, M_PER_KM, roadPosition, type BalanceAt } from './regenScene';
+import {
+  drivePhase,
+  FLOW_COLORS,
+  M_PER_KM,
+  roadPosition,
+  roadTicks,
+  type BalanceAt,
+} from './regenScene';
 
 const ROAD_HEIGHT = 10;
 const LANE_DASH = '8 6';
@@ -31,9 +38,15 @@ export interface LiveBalance {
   atTime(t: number): BalanceAt;
 }
 
+/** The stretch of the cycle the road stands for (m) and its tick step (m). */
+export interface RoadRange {
+  from: number;
+  to: number;
+  tickEvery: number;
+}
+
 export interface RoadStripProps {
-  /** The cycle's total length (m). */
-  total: number;
+  range: RoadRange;
   /** Ends of the road and the y of its top edge, in viewBox pixels. */
   x0: number;
   x1: number;
@@ -97,11 +110,13 @@ const kmLabel = (meters: number) =>
  * The moving layer: the stretch already driven and the car at the live time, translated along the
  * road (one attribute per frame, plus the tint's width), with its halos from the live phase.
  */
-function RoadLive({ total, x0, x1, y, live }: RoadStripProps): JSX.Element {
+function RoadLive({ range, x0, x1, y, live }: RoadStripProps): JSX.Element {
   const at = useFrameDerived(live.frame, live.atTime);
   const phase = drivePhase(at);
-  const carX = roadPosition(at.distance, total, x0 + CAR_HALF_LENGTH, x1 - CAR_HALF_LENGTH);
-  const coveredX = roadPosition(at.distance, total, x0, x1);
+  const along = at.distance - range.from;
+  const length = range.to - range.from;
+  const carX = roadPosition(along, length, x0 + CAR_HALF_LENGTH, x1 - CAR_HALF_LENGTH);
+  const coveredX = roadPosition(along, length, x0, x1);
   return (
     <>
       <rect
@@ -129,13 +144,15 @@ function RoadLive({ total, x0, x1, y, live }: RoadStripProps): JSX.Element {
 }
 
 /**
- * The cycle as a road: its whole length spans the strip, the stretch already driven is tinted, a
- * tick marks every kilometre and the car stands where the cycle has taken it, clamped to the road.
- * Green halos on the wheels mean the motor brakes; orange-red ones, the friction brakes.
+ * A stretch of the cycle as a road (the whole cycle, or the stretch of the view «Tramo»): its
+ * length spans the strip, what is already driven is tinted, a tick marks every `tickEvery` metres
+ * and the car stands where the cycle has taken it, clamped to the road. The end labels give the
+ * cycle's distance there. Green halos on the wheels mean the motor brakes; orange-red ones, the
+ * friction brakes.
  */
 export default function RoadStrip(props: RoadStripProps): JSX.Element {
-  const { total, x0, x1, y } = props;
-  const kilometres = Array.from({ length: Math.floor(total / M_PER_KM) + 1 }, (_, k) => k);
+  const { range, x0, x1, y } = props;
+  const length = range.to - range.from;
   return (
     <g>
       <g data-testid="regen-road" data-x1={x1}>
@@ -149,11 +166,11 @@ export default function RoadStrip(props: RoadStripProps): JSX.Element {
           style={{ stroke: 'var(--bg-elevated)' }}
           strokeDasharray={LANE_DASH}
         />
-        {kilometres.map((k) => {
-          const tickX = roadPosition(k * M_PER_KM, total, x0, x1);
+        {roadTicks(range.from, range.to, range.tickEvery).map((distance) => {
+          const tickX = roadPosition(distance - range.from, length, x0, x1);
           return (
             <line
-              key={k}
+              key={distance}
               x1={tickX}
               y1={y + ROAD_HEIGHT}
               x2={tickX}
@@ -169,7 +186,7 @@ export default function RoadStrip(props: RoadStripProps): JSX.Element {
           fontSize={LABEL_SIZE}
           fill={TICK_COLOR}
         >
-          {kmLabel(0)}
+          {kmLabel(range.from)}
         </text>
         <text
           x={x1}
@@ -179,7 +196,7 @@ export default function RoadStrip(props: RoadStripProps): JSX.Element {
           fontSize={LABEL_SIZE}
           fill={TICK_COLOR}
         >
-          {kmLabel(total)}
+          {kmLabel(range.to)}
         </text>
       </g>
     </g>

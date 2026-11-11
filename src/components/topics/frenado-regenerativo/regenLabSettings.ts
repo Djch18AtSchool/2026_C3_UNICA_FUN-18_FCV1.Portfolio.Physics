@@ -12,8 +12,8 @@ export const CYCLE_OPTIONS: readonly { value: CycleId; label: string }[] = [
 ];
 
 /**
- * Playback speeds offered. At 1× (already 20 times real time) the UDDS lasts 68,5 s; 4× brings it
- * to about 17 s, and 0,25× slows one braking enough to follow the flow.
+ * Playback speeds offered, times the view's own scale: in «Ciclo» (20 times real time) the UDDS
+ * lasts 68,5 s at 1× and about 17 s at 4×; in «Tramo» (real time) 0,25× slows the braking down.
  */
 const SPEEDS = [0.25, 0.5, 1, 2, 4] as const;
 

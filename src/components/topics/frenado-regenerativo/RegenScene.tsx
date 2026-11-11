@@ -1,4 +1,4 @@
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
@@ -15,7 +15,7 @@ import {
   type DrivePhase,
   type FlowLink,
 } from './regenScene';
-import RoadStrip, { type LiveBalance } from './RoadStrip';
+import RoadStrip, { type LiveBalance, type RoadRange } from './RoadStrip';
 
 export interface RegenSceneProps {
   /** The balance at the settled time (phase, flows, description); the car follows `live`. */
@@ -23,9 +23,13 @@ export interface RegenSceneProps {
   live: LiveBalance;
   /** Length of the cycle (m). */
   totalDistance: number;
+  /** What the road stands for: the whole cycle, or the stretch the view plays. */
+  road: RoadRange;
   vehicleName: string;
   cycleName: string;
   decimals: number;
+  /** The time scale this view plays at (TimeScaleBadge), in the top-right corner of the header. */
+  timeScale?: ReactNode;
 }
 
 /** viewBox width before the container is measured (SSR, jsdom): the article column. */
@@ -78,7 +82,7 @@ function describeScene(
  * key to the colors and how to read the widths are canvas notes (RegenNotes).
  */
 export default function RegenScene(props: RegenSceneProps): JSX.Element {
-  const { at, live, totalDistance, vehicleName, cycleName } = props;
+  const { at, live, road, vehicleName } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const flows = powerFlows(at);
   const phase = drivePhase(at);
@@ -91,7 +95,16 @@ export default function RegenScene(props: RegenSceneProps): JSX.Element {
     <div data-testid="regen-scene" className="flex flex-col gap-3">
       {/* HTML, not SVG text: the car's name and the longest regime wrap instead of clipping on a phone. */}
       <div className="flex flex-col gap-1">
-        <p className="m-0 text-xs text-fg-muted">{`${vehicleName} · ${cycleName}`}</p>
+        {/*
+          The badge's box: 48 px high (the badge, 8 px from the top, fits whole) and room on the
+          right for the widest badge this lab shows («×0,25 cámara lenta»), so the car's name wraps
+          before it instead of running under it. The regime keeps the full width below.
+        */}
+        <div className="relative flex min-h-12 items-center pr-40">
+          {/* The cycle is named by the minimap right above. */}
+          <p className="m-0 text-xs text-fg-muted">{vehicleName}</p>
+          {props.timeScale}
+        </div>
         <p className="m-0 flex items-center gap-2 text-sm font-semibold">
           <span
             aria-hidden="true"
@@ -116,7 +129,7 @@ export default function RegenScene(props: RegenSceneProps): JSX.Element {
             >
               no a escala
             </text>
-            <RoadStrip total={totalDistance} x0={x0} x1={x1} y={ROAD_Y} live={live} />
+            <RoadStrip range={road} x0={x0} x1={x1} y={ROAD_Y} live={live} />
             <PowerFlow flows={flows} x0={x0} x1={x1} y={flowY} />
           </g>
         </svg>

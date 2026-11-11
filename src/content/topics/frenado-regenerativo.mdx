@@ -86,12 +86,10 @@ import Cite from '../../components/ui/Cite.astro';
 import Callout from '../../components/ui/Callout.astro';
 import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
-import { formatNumber } from '../../lib/format';
 import RegenFigure from '../../components/topics/frenado-regenerativo/RegenFigure';
 import EnergyBalanceChart from '../../components/topics/frenado-regenerativo/EnergyBalanceChart';
 import { ENERGY_BALANCE_SOURCE } from '../../components/topics/frenado-regenerativo/regenFigures';
-import RegenLab, { TIME_LAPSE } from '../../components/topics/frenado-regenerativo/RegenLab';
-import { DRIVE_CYCLES } from '../../lib/data/driveCycles';
+import RegenLab from '../../components/topics/frenado-regenerativo/RegenLab';
 
 Al frenar, un auto pierde energía cinética; un eléctrico devuelve parte a la batería. Calculo cuánta vuelve y cuánta se pierde.
 
@@ -282,7 +280,7 @@ La (6.4) divide entre la tracción, no entre el frenado, repartido sin resto ent
 >
   <RegenLab
     client:visible
-    usage={`La reproducción va ${TIME_LAPSE} veces más rápida que el ciclo real: los ${formatNumber(DRIVE_CYCLES.udds.samples[DRIVE_CYCLES.udds.samples.length - 1].t, { precision: 0, unit: 's' })} del UDDS duran ${formatNumber(DRIVE_CYCLES.udds.samples[DRIVE_CYCLES.udds.samples.length - 1].t / TIME_LAPSE, { precision: 1, unit: 's' })} a 1×; la lectura t va en segundos reales.`}
+    usage="En «Tramo» la reproducción va a velocidad real y su lectura t cuenta desde el inicio del tramo; en «Ciclo» recorre el ciclo entero en cámara rápida, con t desde el inicio del ciclo. La escala la dice la insignia sobre el dibujo."
     leftOut={`Pendiente, viento, temperatura y estado de carga de la batería (salvo a través de $P_\\text{máx}$) y la inercia de las ruedas aparte de la ETW; $\\eta$ es constante, y los 10 kW son un escenario, no una medición. $f(v)$ se evalúa a la rapidez al final de cada segundo; FASTSim 2 usa la rapidez media (con ella el UDDS daría 41,2 %). El tope por omisión, 239 kW, es el del motor del Model 3 RWD 2022 de FASTSim, que tomo para el 2025.`}
   />
 </Figure>

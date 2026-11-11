@@ -6,10 +6,10 @@ import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
-import RegenLab, { TIME_LAPSE } from './RegenLab';
+import RegenLab from './RegenLab';
 import { readout } from '../../../test-readout';
 
-const USAGE = 'La reproducción va 20 veces más rápida que el ciclo.';
+const USAGE = 'En «Tramo» la reproducción va a velocidad real.';
 const LEFT_OUT = 'Pendiente, viento y temperatura.';
 
 /** Identity CTM on every svg: client pixels are viewBox units, so DOM coordinates are pointer ones. */
@@ -51,11 +51,29 @@ async function choosePreset(user: ReturnType<typeof userEvent.setup>, name: RegE
 const flow = (id: string) =>
   screen.getByTestId('regen-scene').querySelector(`[data-flow="${id}"]`) as SVGGElement;
 
-/** Moves the energy cursor to the end of the cycle with the keyboard. */
+const viewRadio = (name: 'Tramo: una frenada' | 'Ciclo completo') =>
+  screen.getByRole('radio', { name });
+/** Shows the whole cycle («Ciclo»), where the energy cursor seeks. */
+function showCycle(): void {
+  fireEvent.click(viewRadio('Ciclo completo'));
+}
+/** Moves the energy cursor to the end of the cycle with the keyboard, in the view «Ciclo». */
 function seekToEnd(): void {
+  if (!(viewRadio('Ciclo completo') as HTMLInputElement).checked) showCycle();
   timeCursor().focus();
   fireEvent.keyDown(timeCursor(), { key: 'End' });
 }
+/** The badge's visible text, factor and words, as the canvas shows it. */
+const badgeText = () =>
+  [...(lab().querySelector('[data-time-scale-badge]')?.children ?? [])]
+    .map((part) => part.textContent?.replace(/\s/g, ' '))
+    .join(' ');
+const marks = () => lab().querySelectorAll('[data-transport-mark]');
+const nextEvent = () => screen.getByRole('button', { name: 'Evento siguiente' });
+const previousEvent = () => screen.getByRole('button', { name: 'Evento anterior' });
+/** Moves the transport to a timeline position (of 1000), as a drag would. */
+const scrubTo = (position: number) =>
+  fireEvent.change(timeline(), { target: { value: String(position) } });
 
 /**
  * Replaces requestAnimationFrame with a queue the test flushes at chosen timestamps (ms);
@@ -98,24 +116,123 @@ describe('RegenLab', () => {
     resetSettingsForTests();
   });
 
-  test('plays the cycle 20 times faster than real time', () => {
-    expect(TIME_LAPSE).toBe(20);
-  });
-
-  test('opens on the Model 3 in the UDDS at its hardest braking, t = 116 s, with f(v) on', () => {
+  test('opens in «Tramo» on the Model 3 in the UDDS: figure 6.3’s braking from its start, 376 s, with f(v) on', () => {
     renderLab();
 
-    expect(timelineText()).toBe('t = 116 s');
-    expect(readout(SPEED)).toBe('46,03 km/h');
-    expect(readout(POWER)).toBe('−33,20 kW');
-    expect(readout(BATTERY)).toBe('0,032 kWh');
-    expect(readout(LOSS)).toBe('0,008 kWh');
-    expect(readout(FRICTION)).toBe('0,001 kWh');
-    expect(readout(RECOVERED)).toBe('22,8 %');
+    expect(viewRadio('Tramo: una frenada')).toBeChecked();
+    expect(timelineText()).toBe('t = 0,00 s');
+    expect(readout(SPEED)).toBe('57,94 km/h');
+    expect(readout(POWER)).toBe('3,81 kW');
+    expect(readout(BATTERY)).toBe('0,173 kWh');
+    expect(readout(LOSS)).toBe('0,043 kWh');
+    expect(readout(FRICTION)).toBe('0,010 kWh');
+    expect(readout(RECOVERED)).toBe('26,9 %');
     expect(presetShown()).toMatch(/^Model 3 · ciudad \(UDDS\)/);
   });
 
-  test('the shell is the tiered one: η and P_máx in Parámetros, the five presets as a select in Escenario', () => {
+  test('«Tramo» plays the 26 s of the stretch at real time and declares ×1 on the canvas', () => {
+    const frames = installFrameQueue();
+    renderLab();
+
+    expect(badgeText()).toBe('×1 velocidad real');
+    expect(screen.getByTestId('regen-scene')).toContainElement(
+      lab().querySelector('[data-time-scale-badge]') as HTMLElement,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
+    frames.flush(1000);
+    frames.flush(1100);
+    expect(timelineText()).toBe('t = 0,10 s');
+
+    scrubTo(999);
+    fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
+    for (const now of [2000, 2050, 2100]) frames.flush(now);
+    expect(timelineText()).toBe('t = 26,00 s');
+    expect(readout(SPEED)).toBe('0,00 km/h');
+    expect(readout(BATTERY)).toBe('0,220 kWh');
+    expect(lab()).toHaveAttribute('data-playing', 'false');
+  });
+
+  test('«Ciclo» shows the whole cycle 20 times faster, with its 17 stops on the timeline', () => {
+    renderLab();
+    expect(marks()).toHaveLength(1);
+
+    showCycle();
+
+    expect(badgeText()).toBe('×20 cámara rápida');
+    expect(marks()).toHaveLength(17);
+    expect(screen.getByTestId('regen-minimap').querySelector('[data-stretch]')).toBeNull();
+  });
+
+  test('switching views keeps the instant of the cycle: 389 s is t = 13 s of the stretch', () => {
+    renderLab();
+    scrubTo(500);
+    expect(timelineText()).toBe('t = 13,00 s');
+
+    showCycle();
+    expect(timelineText()).toBe('t = 389 s');
+    expect(readout(SPEED)).toBe('37,01 km/h');
+
+    fireEvent.click(viewRadio('Tramo: una frenada'));
+    expect(timelineText()).toBe('t = 13,00 s');
+    expect(readout(SPEED)).toBe('37,01 km/h');
+  });
+
+  test('back to «Tramo» from an instant outside the stretch, it starts from the stretch’s beginning', () => {
+    installFrameQueue();
+    renderLab();
+    showCycle();
+    fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
+
+    scrubTo(85);
+    fireEvent.click(viewRadio('Tramo: una frenada'));
+
+    expect(timelineText()).toBe('t = 0,00 s');
+    expect(lab()).toHaveAttribute('data-playing', 'false');
+  });
+
+  test('the event buttons jump to the stops: the stretch holds the 3rd, the cycle starts at the 1st', () => {
+    renderLab();
+
+    fireEvent.click(nextEvent());
+    expect(timelineText()).toBe('t = 21,00 s · Detención 3 de 17');
+    expect(readout(SPEED)).toBe('0,00 km/h');
+    expect(nextEvent()).toHaveAttribute('aria-disabled', 'true');
+
+    showCycle();
+    expect(timelineText()).toBe('t = 397 s · Detención 3 de 17');
+    fireEvent.click(previousEvent());
+    expect(timelineText()).toBe('t = 333 s · Detención 2 de 17');
+    scrubTo(0);
+    fireEvent.click(nextEvent());
+    expect(timelineText()).toBe('t = 125 s · Detención 1 de 17');
+  });
+
+  test('a minimap of v(t) situates the stretch in the cycle; the road is the stretch’s 236 m', () => {
+    renderLab();
+    const minimap = screen.getByTestId('regen-minimap');
+    const road = screen.getByTestId('regen-road');
+
+    expect(minimap.querySelector('[data-stretch]')).not.toBeNull();
+    expect(minimap.querySelectorAll('[data-stop]')).toHaveLength(17);
+    expect(road.textContent?.replace(/\s/g, ' ')).toBe('4,59 km4,83 km');
+
+    showCycle();
+    expect(road.textContent?.replace(/\s/g, ' ')).toBe('0,00 km11,99 km');
+  });
+
+  test('in «Tramo» the energy plot shades the stretch and its cursor is a line, not a slider', () => {
+    renderLab();
+    const plot = screen.getByTestId('regen-energy-plot');
+
+    expect(plot.querySelector('[data-band="Tramo"]')).not.toBeNull();
+    expect(within(plot).queryByRole('slider')).toBeNull();
+
+    showCycle();
+    expect(plot.querySelector('[data-band]')).toBeNull();
+    expect(timeCursor()).toBeInTheDocument();
+  });
+
+  test('the shell is the tiered one: η and P_máx in Parámetros, the view and the five presets in Escenario', () => {
     const { container } = renderLab();
     const region = (name: string) => screen.getByRole('region', { name });
 
@@ -124,6 +241,8 @@ describe('RegenLab', () => {
     expect(region('Parámetros')).toContainElement(pMaxField());
     expect(region('Parámetros').innerHTML).not.toMatch(/\bsm:grid-cols/);
     expect(region('Escenario')).toContainElement(presetSelect());
+    expect(region('Escenario')).toContainElement(viewRadio('Tramo: una frenada'));
+    expect(within(region('Escenario')).getByRole('radiogroup', { name: 'Vista' })).toBeVisible();
     expect(within(presetSelect()).getAllByRole('option')).toHaveLength(5);
     expect(region('Lecturas')).toContainElement(screen.getByText(SPEED));
     expect(container.querySelector('[data-lab-transport]')).not.toBeNull();
@@ -172,7 +291,7 @@ describe('RegenLab', () => {
     expect(chips()).toEqual(['Ciclo US06 · agresivo', 'Velocidad 1×']);
   });
 
-  test('how to use it says the cursor, f(v) and the time lapse; the source of η is in what the model leaves out', () => {
+  test('how to use it says the views, the events, the cursor, f(v) and the MDX text; the source of η is in what the model leaves out', () => {
     const { container } = renderLab();
     const usage = container.querySelector<HTMLDetailsElement>('details[data-lab-note="usage"]')!;
     const leftOut = container.querySelector<HTMLDetailsElement>(
@@ -180,7 +299,11 @@ describe('RegenLab', () => {
     )!;
 
     expect(usage.open || leftOut.open).toBe(false);
-    expect(usage).toHaveTextContent('Arrastra el cursor de la gráfica de energía');
+    expect(usage).toHaveTextContent('«Tramo» reproduce la frenada del ciclo que más energía quita');
+    expect(usage).toHaveTextContent('con 5 s antes y después (en el UDDS, la de la figura 6.3)');
+    expect(usage).toHaveTextContent('saltan entre las detenciones');
+    expect(usage).toHaveTextContent('En «Ciclo», arrastra el cursor de la gráfica de energía');
+    expect(usage).not.toHaveTextContent(/veces más rápida|×\d/);
     expect(usage).toHaveTextContent('apaga la regeneración cerca de detenerse');
     expect(usage).toHaveTextContent(USAGE);
     expect(usage).not.toHaveTextContent('engranaje');
@@ -253,38 +376,43 @@ describe('RegenLab', () => {
 
   test('the regime and the car line are HTML above the drawing, so they wrap on a phone', () => {
     renderLab();
+    scrubTo(500);
 
     const phase = screen.getByText('Frenando con el motor y con fricción');
     expect(phase.closest('svg')).toBeNull();
-    const title = screen.getByText('Tesla Model 3 Long Range RWD 2025 · UDDS');
+    const title = screen.getByText('Tesla Model 3 Long Range RWD 2025');
     expect(title.closest('svg')).toBeNull();
   });
 
   test('the power flow runs wheels → motor → battery with widths proportional to |P|', () => {
     renderLab();
+    scrubTo(500); // 389 s of the UDDS, braking from 41,4 to 37,0 km/h at 23,33 kW
 
     expect(flow('motor-wheels')).toHaveAttribute('data-kind', 'regen');
     expect(flow('battery-motor')).toHaveAttribute('data-kind', 'regen');
-    // f(v) = 0,98 at road speed: 2 % of the 33,20 kW, 0,66 kW, goes to the friction brakes.
+    // f(v) = 0,98 at road speed: 2 % of the 23,33 kW, 0,47 kW, goes to the friction brakes.
     expect(flow('wheels-brakes')).toHaveAttribute('data-kind', 'friction');
-    expect(flow('wheels-brakes')).toHaveTextContent(/0,7\skW/);
+    expect(flow('wheels-brakes')).toHaveTextContent(/0,5\skW/);
     const width = (id: string) => Number(flow(id).getAttribute('data-width'));
-    // 32,54 kW into the motor and 0,80 of it, 26,03 kW, into the battery, at 4 kW per pixel.
-    expect(width('motor-wheels')).toBeCloseTo(8.13, 2);
-    expect(width('battery-motor')).toBeCloseTo(6.51, 2);
-    expect(flow('battery-motor')).toHaveTextContent(/26,0\skW/);
+    // 22,86 kW into the motor and 0,80 of it, 18,29 kW, into the battery, at 4 kW per pixel.
+    expect(width('motor-wheels')).toBeCloseTo(5.72, 2);
+    expect(width('battery-motor')).toBeCloseTo(4.57, 2);
+    expect(flow('battery-motor')).toHaveTextContent(/18,3\skW/);
   });
 
-  test('play advances t and stops at the end of the cycle without repeating', () => {
+  test('in «Ciclo» play advances t 20 times faster and stops at the end of the cycle without repeating', () => {
     const frames = installFrameQueue();
     renderLab();
+    showCycle();
+    // From the instant the stretch opened at, 376 s.
+    expect(timelineText()).toBe('t = 376 s');
 
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
     frames.flush(1000);
     // One 100 ms frame at 20× is two seconds of the cycle; the transport's settled time is
     // synced every 100 ms of playback.
     frames.flush(1100);
-    expect(timelineText()).toBe('t = 118 s');
+    expect(timelineText()).toBe('t = 378 s');
 
     fireEvent.change(timeline(), { target: { value: '999' } });
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
@@ -318,7 +446,7 @@ describe('RegenLab', () => {
     renderLab();
 
     await choosePreset(user, /^Model 3 · carretera \(HWFET\)/);
-    expect(timelineText()).toBe('t = 0,0 s');
+    expect(timelineText()).toBe('t = 0,00 s');
     seekToEnd();
     expect(timelineText()).toBe('t = 765,0 s');
     expect(readout(RECOVERED)).toBe('12,5 %');
@@ -359,6 +487,7 @@ describe('RegenLab', () => {
     const user = userEvent.setup();
     renderLab();
 
+    scrubTo(500);
     await user.clear(pMaxField());
     await user.type(pMaxField(), '0{Enter}');
 
@@ -372,8 +501,9 @@ describe('RegenLab', () => {
     expect(lab().textContent).not.toMatch(/NaN|Infinity/);
   });
 
-  test('the energy cursor takes the keyboard: Home, arrows (1 % of the cycle) and End seek', () => {
+  test('in «Ciclo» the energy cursor takes the keyboard: Home, arrows (1 % of the cycle) and End seek', () => {
     renderLab();
+    showCycle();
     const before = readout(BATTERY);
     const cursor = timeCursor();
     cursor.focus();
@@ -391,9 +521,10 @@ describe('RegenLab', () => {
     expect(timelineText()).toBe('t = 1 369 s');
   });
 
-  test('dragging the energy cursor seeks and pauses playback', () => {
+  test('in «Ciclo» dragging the energy cursor seeks and pauses playback', () => {
     installFrameQueue();
     renderLab();
+    showCycle();
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
     expect(lab()).toHaveAttribute('data-playing', 'true');
     const cursor = timeCursor();
@@ -405,7 +536,7 @@ describe('RegenLab', () => {
     fireEvent.pointerUp(cursor, { pointerId: 1, clientX: x + 120, clientY: 0 });
 
     expect(lab()).toHaveAttribute('data-playing', 'false');
-    expect(timelineText()).not.toBe('t = 116 s');
+    expect(timelineText()).not.toBe('t = 376 s');
   });
 
   test('with motion "reduced" playback advances in discrete steps, with no frame loop', () => {
@@ -417,8 +548,9 @@ describe('RegenLab', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
     act(() => vi.advanceTimersByTime(250));
 
-    // One step is 1/60 of the cycle: 1369/60 = 22,817 s.
-    expect(timelineText()).toBe('t = 139 s');
+    // One step is 1/60 of the stretch: 26/60 = 0,433 s; the badge says the pace that is seen.
+    expect(timelineText()).toBe('t = 0,43 s');
+    expect(badgeText()).toBe('×1,7 cámara rápida');
     expect(frames.request).not.toHaveBeenCalled();
   });
 
@@ -461,7 +593,13 @@ describe('RegenLab', () => {
     );
     await user.keyboard('{Escape}');
 
-    expect(timelineText()).toBe('t = 0,0 s');
+    // «Tramo» now plays the highway's largest braking, 729–765 s.
+    expect(timelineText()).toBe('t = 0,00 s');
+    expect(screen.getByTestId('regen-minimap').textContent?.replace(/\s/g, ' ')).toContain(
+      'Tramo 729–765 s',
+    );
+    showCycle();
+    expect(timelineText()).toBe('t = 729,0 s');
     expect(screen.getByTestId('regen-scene')).toHaveTextContent(/16,51\skm/);
     expect(presetShown()).toMatch(/^Model 3 · carretera/);
   });
@@ -502,7 +640,7 @@ describe('RegenLab', () => {
       ).toContain(name);
     }
     const battery = () => bars.querySelector('[data-energy="eBattery"]') as HTMLElement;
-    expect(battery()).toHaveTextContent(/0,032\skWh/);
+    expect(battery()).toHaveTextContent(/0,173\skWh/);
 
     seekToEnd();
     expect(battery()).toHaveTextContent(/0,645\skWh/);
@@ -539,30 +677,36 @@ describe('RegenLab', () => {
     expect(lab()).toHaveAttribute('data-playing', 'false');
   });
 
-  test('Restablecer returns to the Model 3 in the UDDS at t = 116 s', async () => {
+  test('Restablecer returns to the Model 3 in the UDDS, in «Tramo» at its start', async () => {
     const user = userEvent.setup();
     renderLab();
     await choosePreset(user, /^Nissan LEAF/);
     fireEvent.change(etaSlider(), { target: { value: '0.5' } });
+    showCycle();
+    scrubTo(500);
 
     await user.click(screen.getByRole('button', { name: 'Restablecer' }));
 
-    expect(timelineText()).toBe('t = 116 s');
+    expect(viewRadio('Tramo: una frenada')).toBeChecked();
+    expect(timelineText()).toBe('t = 0,00 s');
     expect(etaSlider()).toHaveValue('0.8');
     expect(presetShown()).toMatch(/^Model 3 · ciudad/);
-    expect(readout(POWER)).toBe('−33,20 kW');
+    expect(readout(POWER)).toBe('3,81 kW');
   });
 
-  test('the car rides along the road and stays on it at the end of the cycle', () => {
+  test('the car rides along the road and stays on it, at the end of the stretch and of the cycle', () => {
     renderLab();
-    const car = screen.getByTestId('regen-car');
-    const x = () => Number(car.getAttribute('data-x'));
+    const car = () => screen.getByTestId('regen-car');
+    const x = () => Number(car().getAttribute('data-x'));
+    const road = () => Number(screen.getByTestId('regen-road').getAttribute('data-x1'));
     const start = x();
 
-    seekToEnd();
+    scrubTo(1000);
+    // The 236 m of the stretch span the road: the car crosses most of it at real time.
+    expect(x()).toBeGreaterThan(start + (road() - start) / 2);
+    expect(x()).toBeLessThanOrEqual(road());
 
-    expect(x()).toBeGreaterThan(start);
-    const road = screen.getByTestId('regen-road');
-    expect(x()).toBeLessThanOrEqual(Number(road.getAttribute('data-x1')));
+    seekToEnd();
+    expect(x()).toBeLessThanOrEqual(road());
   });
 });
