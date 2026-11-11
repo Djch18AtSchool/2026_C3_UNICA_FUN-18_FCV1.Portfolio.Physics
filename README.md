@@ -82,6 +82,7 @@ Los nueve laboratorios usan `LabShell` (`src/components/lab/LabShell.tsx`). Uno 
   testId="<algo>-lab"             // también en tests/e2e/topicPages.ts y en MIGRATED_LABS (lab-shell.spec.ts)
   clock={clock}                   // opcional: sin reloj no hay reproducción
   markers={markers}               // opcional: eventos en la línea de tiempo (ver «Escala de tiempo y eventos»)
+  timeOrigin={offset}             // opcional: dónde cae t = 0 del reloj en el tiempo del laboratorio (solo la lectura)
   readouts={readouts}             // «Lecturas», en celdas de dos columnas
   onReset={onReset}               // «Restablecer», junto a «Parámetros»
   levels={{
@@ -138,11 +139,15 @@ const clock = useSimClock(duration, { timeScale: 20 });  // clock.rate: s simula
 
 ### Reglas para quien las use
 
-- **Las marcas son del reloj que se pasa.** Se filtran por su duración y se numeran entre las que sobreviven: una vista «Tramo» con reloj propio (de 0 a su duración) necesita los tiempos ya desplazados a ese reloj, y su numeración será la del tramo («Detención 1 de 6»), no la del ciclo.
+- **Las marcas son del reloj que se pasa.** Se filtran por su duración y se numeran entre las que sobreviven: una vista «Tramo» con reloj propio (de 0 a su duración) necesita los tiempos ya desplazados a ese reloj, y su numeración será la del tramo («Detención 1 de 6»), no la del ciclo (o un `label` explícito, como «Detención 3 de 17» en el Tema 6).
+- **`timeOrigin`: la lectura en el tiempo del ciclo.** Una vista con reloj propio pasa a `LabShell` (o a `TransportBar`) dónde cae su t = 0 en el tiempo de la corrida entera (el Tema 6, el inicio del tramo: 376 s en el UDDS). La lectura de t, el `aria-valuetext` y los anuncios de evento dicen origen + t («t = 397,00 s · Detención 3 de 17»); la línea de tiempo, las marcas y `seek` siguen en el reloj, y la unidad y sus decimales siguen saliendo de la duración del reloj. Sin la prop (o con un valor no finito), nada cambia. En e2e, con un origen la lectura nunca dice «t = 0»: de las dos esperas de `seekTimeline`, la que cuenta es que la línea tome el valor.
 - **`seek` pausa.** Los botones de evento detienen la reproducción; un laboratorio que quiera «saltar y seguir» llama a `play()` después.
 - **Tolerancia.** Dos marcas a menos de `duration / 2000` s cuentan como una: se anuncian juntas («A · B») y la segunda es inalcanzable con los botones. Una marca a menos de esa distancia de `t = 0` es inalcanzable con «Evento siguiente» desde el inicio (en la UDDS, 0,68 s).
 - **Alto.** Las dos filas suman 59 px al escenario a 1 280 px: comprueba a 1 280 × 800 y a 1 366 × 768 que el escenario sigue pegado; `useFitsInWindow` mide el escenario entero y uno que antes cabía justo puede dejar de pegarse (la reproducción queda entonces pegada al pie).
-- **Hasta tres regiones `status`** en un laboratorio: las lecturas (`LabShell`), la reproducción con eventos y la insignia. En e2e, filtra por su texto o por su vecina (`[data-time-scale-badge] ~ [role="status"]`), nunca `getByRole('status')` a secas.
+- **Varias regiones `status`** en un laboratorio: las lecturas (`LabShell`), la reproducción con eventos, la insignia y las del propio tema (el Tema 9 tiene cinco: también el aviso de $r_p$ y el anuncio de «Ir a la máxima aproximación»). En e2e, filtra por su texto o por su vecina (`[data-time-scale-badge] ~ [role="status"]`), nunca `getByRole('status')` a secas (la guardia de glifos tampoco lo hace).
+- **Con marcas, el Tab** pasa de la línea de tiempo a «Evento anterior» y «Evento siguiente» antes de llegar a «Parámetros» (`lab-shell.spec.ts` lo recorre así en todo laboratorio con marcas).
+- **Insignia SVG junto al borde superior**: la línea de 14 px de IBM Plex Mono sube unos 14,4 px sobre su base; con la base a menos de 15 unidades del borde, la caja del texto sale del `svg` y la comprobación de textos de `responsive.spec.ts` falla.
+- **Números con unidad en e2e**: `formatNumber` separa con U+202F, y `getByText` con una expresión regular no lo normaliza: casa «20,23 km/s» con `\s` (`/20,23\skm\/s/`), no con un espacio.
 - **No uses a la vez `TimeScaleBadge` y `TimeScaleStatus`**: la insignia HTML ya lleva sus palabras y se dirían dos veces. `TimeScaleStatus` es solo para la variante SVG.
 - **La insignia HTML necesita un padre `relative`** (la caja de la escena). Dentro de un `svg[role=img]` sus hijos no llegan al lector: ahí va `TimeScaleBadgeSvg` y, en HTML, `TimeScaleStatus` con el mismo `label`.
 - **La escala la declara solo la insignia.** No escribas «1×» ni otro factor en el nombre de una vista o en un preajuste: con movimiento reducido la insignia dirá, por ejemplo, «×91» y los dos textos se contradirían. Nombra la vista por lo que muestra («Tramo», «Ciclo»). Un `factor` explícito no sigue la velocidad ni el movimiento reducido: úsalo solo cuando el reloj no cuenta segundos del fenómeno (Tema 8).
