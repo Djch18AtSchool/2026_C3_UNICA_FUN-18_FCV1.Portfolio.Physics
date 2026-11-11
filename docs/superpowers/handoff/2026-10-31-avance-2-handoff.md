@@ -13,12 +13,18 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
   portada responden 200. La rama local `main` ya apunta al mismo commit. Lo publicado antes
   (`1069de1`, Avance 1 del 17 de octubre) queda en la historia. Las etiquetas `avance-1` y
   `avance-2` siguen sin crearse (pendientes 4 y 5; `git tag -l` está vacío). **Después:**
-  `origin/main` avanzó a `6dc690b` (suma B1a, B1b y el plan de las fases B, C y D); la `main`
-  local sigue en `c9a773d`.
+  `origin/main` avanzó a `6dc690b` (suma B1a, B1b y el plan de las fases B, C y D) y el 11 de
+  noviembre a `7c0abe6` (la fase B completa, integrada con avance rápido; ver «Fase B cerrada»);
+  la `main` local está en `7c0abe6`.
 - **Fase B cerrada en `fase-b`** (`c26520a`, 11 de noviembre de 2026, 00:06 UTC−6; 212 commits
-  sobre `6dc690b`, sin empujar): B2 notación, B3 cascarón por niveles y B4 legibilidad a velocidad
+  sobre `6dc690b`; integrada en `main` como `7c0abe6`): B2 notación, B3 cascarón por niveles y B4 legibilidad a velocidad
   real, sobre B1a y B1b. Resumen, decisiones (FB-R1 a FB-R26), textos para Dylan, decisiones
   abiertas y deudas en la sección «Fase B cerrada».
+- **Fase C cerrada en `fase-c`** (`dc5ce55`, 11 de noviembre de 2026, 11:58 UTC−6; 46 commits sobre
+  `7c0abe6`, sin empujar): sistema de medidas (raíz y cuerpo a 16 px, escala 4/8, un solo trazo,
+  `Why` sin borde) y un trinquete que lo vigila (`scale.test.ts`, lista de partida vacía). Resumen,
+  decisiones (FC-R1 a FC-R45), cambios visibles, decisiones abiertas (27 a 39) y notas para la
+  fase D en la sección «Fase C cerrada».
 - **Contenido del Avance 2** (rama `avance-2`, ya en `main`). Reúne:
   - **Temas 6 a 9**, con el formato del Avance 1 (cuatro `Step` con ecuación numerada y `Why`,
     `UseCase`, `Callout` de clase, `Connections`, `Sources`), su recurso prescrito con insignia
@@ -85,13 +91,14 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
 | Laboratorios y figuras de los temas nuevos | `src/components/topics/{frenado-regenerativo,coeficiente-restitucion,ruedas-reaccion,asistencia-gravitatoria}/` |
 | Pruebas e2e de los temas nuevos | `tests/e2e/{frenado-regenerativo,coeficiente-restitucion,ruedas-reaccion,asistencia-gravitatoria,data-table}.spec.ts` |
 | Comandos y estructura | `README.md` |
+| Escala de medidas (tokens, trinquete, aritmética revisada) | `src/styles/scale.css`, `scale.test.ts`, `scale*.ts`, `scale.baseline.json`, `scaleCalcReviewed.ts`; `README.md`, «Escala de medidas» |
 
 **No está en git (solo local):**
 
 - `.reference/class-material/`: material del curso. Para el Avance 2 se extrajo el Módulo 4,
   Gravitación (`04-gravitacion.md`), y `00-indice.md` registra la cobertura de los Temas 6 a 9.
-- `.superpowers/sdd/2026-10-31-fases-b-c-d/`: el libro de la fase B (`progress.md`, rulings
-  FB-R1 a FB-R26), los briefs, los informes `task-*-report.md` y las revisiones
+- `.superpowers/sdd/2026-10-31-fases-b-c-d/`: el libro de las fases B y C (`progress.md`,
+  rulings FB-R1 a FB-R26 y FC-R1 a FC-R45), los briefs, los informes `task-*-report.md` y las revisiones
   `review-*-report.md`; las capturas están en `shots/`.
 - `.superpowers/sdd/2026-10-30-avance-2/`: el libro de decisiones (`progress.md`), los briefs,
   informes y paquetes de revisión de cada tarea. Lo vigente está resumido abajo.
@@ -179,13 +186,16 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
    Tema 6, f(v) a la rapidez media como FASTSim 2 (40,4 % → 41,2 %, fricción 0,062 → 0,046 kWh)
    o a la rapidez final, ya declarada en la nota; Tema 4, si el caso de uso debe explicar qué
    implicaría LS_EXPY = 0,49 como β (unas 20 palabras a recortar); raíz y cuerpo a 16 px
-   (decidido por Dylan el 10 de noviembre; lo aplica la fase C); notación de vectores en texto
+   (decidido por Dylan el 10 de noviembre; aplicado en la fase C); notación de vectores en texto
    plano (hecha en la fase B2); anillos de Saturno y realismo
    (fase D); y la voz de las líneas de fuente (pendiente 7).
 
 10. **Leer los textos de la fase B** (sección «Fase B cerrada», apartado 4) y resolver las
     decisiones abiertas de su apartado 5. Los textos nuevos o cambiados son borradores de Claude,
     como los del Avance 2.
+11. **Mirar la fase C** (sección «Fase C cerrada», apartado 4: lo que se ve distinto) y resolver
+    las decisiones abiertas 27 a 39 de su apartado 5. No cambió ninguna prosa ni ningún texto de
+    interfaz.
 
 ## Decisiones vigentes que condicionan el contenido
 
@@ -258,9 +268,15 @@ Final.
   globales, atajos de teclado, alternativa de teclado para cada arrastre, movimiento reducido
   respetado y velocidad de reproducción indicada en la página cuando no es real (desde B4, en
   una insignia sobre el lienzo, no solo en una nota).
+- **Medidas: todo `src` sigue la escala** (4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 px; radios 4 y 8;
+  bordes 1 y 2; iconos de 20; controles de 40 y botones de icono de 44; texto de 12, 14, 16, 18, 20,
+  24 y 36; raíz y cuerpo de 16 px; un solo trazo, sólido). `src/styles/scale.test.ts` falla con una
+  longitud nueva fuera de ella; las excepciones son seis y llevan nombre (fase C). Rige también para
+  la Entrega Final.
 - **Tema 5, portada, franja del tema, pie, "Volver arriba" y títulos que se parten:** sin
   cambios respecto del traspaso del Avance 1, salvo "Volver arriba": desde B3 no aparece
-  mientras un laboratorio ocupa su esquina y, en el móvil, se oculta mientras se lee uno.
+  mientras un laboratorio ocupa su esquina y, en el móvil, se oculta mientras se lee uno. Desde la fase C, las medidas de la portada, el pie
+  y la ficha de tema siguen la escala (apartado 4 de «Fase C cerrada»).
 
 ## Decisiones que tomó Claude sin consultar
 
@@ -558,10 +574,12 @@ Rama `fase-b`, de `6dc690b` a `c26520a`: 212 commits, 329 archivos, +21 981 / �
 y D, sin detenerse (libro de la fase, cabecera). Ningún commit lleva línea de coautor ni de
 atribución (`git log --format=%B 6dc690b..HEAD | grep -ci 'co-authored\|claude-session'` da 0).
 
-- **Sin empujar.** `origin/fase-b` y `origin/main` están en `6dc690b` (referencias remotas
-  locales, sin `fetch`; ese commit ya incluía B1a, B1b y el plan) y la `main` local sigue en
-  `c9a773d`. La integración (`git push origin fase-b:main`, avance rápido) espera la puerta
-  completa del controlador sobre `c26520a` y el CI en verde (FB-R26).
+- **Integrada en `main` (11 de noviembre).** `git push origin fase-b:main`, avance rápido
+  `6dc690b..7c0abe6` (`7c0abe6` es el commit de documentación que anotó la puerta; el último de
+  contenido es `c26520a`), con el token de la cuenta universitaria pasado solo por `GH_TOKEN` en
+  ese comando. El CI (run 42972703368) terminó en verde en 9 min 46 s, el despliegue a GitHub
+  Pages (run 42972703286) también, y el sitio responde 200 (libro de la fase, cierre de B). La
+  `main` local avanzó al mismo commit. Cubierta por FB-R26.
 - **Puerta del controlador sobre `c26520a` (2026-11-11, antes de integrar):** `pnpm run check` sin errores,
   avisos ni sugerencias; 193 archivos y 2 646 pruebas unitarias en verde; cobertura 98,98 % de sentencias y
   94,64 % de ramas; `pnpm run build` con 11 páginas; e2e 756 pasan (7,7 min, `--workers=2`, puerto 4322).
@@ -570,17 +588,17 @@ atribución (`git log --format=%B 6dc690b..HEAD | grep -ci 'co-authored\|claude-
   `pnpm run check` sin errores, avisos ni sugerencias; 2 646 pruebas unitarias en 193 archivos;
   cobertura 98,98 % de sentencias y 94,64 % de ramas; `pnpm run build` en verde; e2e 756 pasan,
   0 fallan, 0 inestables (7,7 min, `--workers=2`, puerto 4322). Antes (puerta de B1 sobre
-  `0fa68f0`): 1 961 pruebas en 154 archivos, 98,74 %, 485 e2e. La corrida del controlador sobre el
-  mismo commit se anota al cerrar; no existía cuando se escribió esto.
+  `0fa68f0`): 1 961 pruebas en 154 archivos, 98,74 %, 485 e2e. La del controlador sobre el mismo
+  commit, más arriba.
 - **Dónde está el detalle.** Libro de decisiones (`progress.md`), briefs, 15 informes de
   implementación (`task-*-report.md`; B4.4 va dentro del de B4.3) y 21 de revisión (`review-*-report.md`), en
   `.superpowers/sdd/2026-10-31-fases-b-c-d/` (no está en git, como el del Avance 2). Las cifras de
   abajo llevan entre paréntesis el informe de donde salen. El plan es
   `docs/superpowers/plans/2026-10-31-fases-b-c-d.md`.
-- **Ramas de trabajo.** Quedan las ramas `fase-b-b32-{a,b,c}` y `fase-b-b42-{a,b,c}` con sus
-  worktrees en el directorio temporal de la sesión; todo está integrado en `fase-b` (por
-  `cherry-pick`, así que los hashes difieren). Borrarlos al integrar. No hay etiquetas
-  (`git tag -l` vacío): `avance-1` y `avance-2` siguen pendientes (4 y 5).
+- **Ramas de trabajo.** Las ramas `fase-b-b32-{a,b,c}` y `fase-b-b42-{a,b,c}` (integradas en
+  `fase-b` por `cherry-pick`, así que los hashes difieren) y sus worktrees se podaron al empezar
+  la fase C (libro de la fase). No hay etiquetas (`git tag -l` vacío): `avance-1` y `avance-2`
+  siguen pendientes (4 y 5).
 
 ### 1. Qué entregó la fase B
 
@@ -926,8 +944,10 @@ hidratación de los Temas 7 y 9 desaparecieron en el servidor de desarrollo de D
 
 ### 6. Deudas y notas para las fases C y D
 
-- **Raíz y cuerpo a 16 px (FB-R2).** `src/styles/global.css` sigue con `font-size: 106,25 %` (17
-  px). Todo lo medido en B se midió a raíz 17: los pasos en rem del esqueleto del Tema 1
+- **Raíz y cuerpo a 16 px (FB-R2). Hecho en la fase C** (`13a1530`; qué dependía de la raíz y en
+  qué quedó, en «Fase C cerrada», apartado 1). Lo que sigue es lo que se vio antes de hacerlo:
+  `src/styles/global.css` tenía `font-size: 106,25 %` (17 px) y todo lo medido en B se midió a
+  raíz 17: los pasos en rem del esqueleto del Tema 1
   (`DroneSkeleton.tsx`; su e2e corre también a raíz 16 px, y el esqueleto y el laboratorio cambian
   de alto en el mismo ancho: 394 px a raíz 16 y 417 o 418 a raíz 17; B3.3 ronda 3, B4.2b),
   `--lab-transport-room` y `--lab-transport-room-events` (alto de la reproducción; `global.css` es
@@ -936,9 +956,11 @@ hidratación de los Temas 7 y 9 desaparecieron en el servidor de desarrollo de D
   umbral de 479,5 px de `SvgPlot` (30 rem eran 510 px) y, en el informe inicial de B4.2b, una banda
   de ~5 px donde el esqueleto de la reproducción es una línea más alto (19,55 rem a 17 px, 19,25 a
   16). Revisar cada uno con 16 px.
-- **Escala de texto.** El laboratorio usa 14,875 / 12,75 / 11 px a raíz 17 (B3 visual); el plan
+- **Escala de texto. Hecha en la fase C** (`scale.test.ts` no deja texto de `src` fuera de 12 /
+  14 / 16 / 18 / 20 / 24 / 36). Lo visto en B: el laboratorio usa 14,875 / 12,75 / 11 px a raíz 17 (B3 visual); el plan
   fija 14 y 12 como texto auxiliar. Re-mirar a 16 px.
-- **Reproducción con eventos a ≤ 390 px: 140 px.** La fila 2 necesita ~342 px y hay ~290; el alto
+- **Reproducción con eventos a ≤ 390 px: 140 px** (a raíz 17; a raíz 16 son 132 px, hasta 405 px
+  y hasta 413 en el Tema 6; ver «Fase C cerrada», decisión abierta 33). La fila 2 necesita ~342 px y hay ~290; el alto
   se mantiene fijo mientras t avanza (B4.1, B4.3). Bajar a ~106 px pide acortar nombres o dejar
   que el alto cambie al reproducir. A 320 px «Siguiente: …» se corta con «…» (el `title` y el
   anuncio llevan el texto entero). La cabecera del T6 a 360 px tiene 3 filas; 2 pide tocar la
@@ -947,7 +969,7 @@ hidratación de los Temas 7 y 9 desaparecieron en el servidor de desarrollo de D
   440), centradas (B3.2c). Las figuras fuera de los laboratorios conservan seis copias de
   `usePlotAspect`/`useFigureAspect`; pasarlas a `aspectRatio={{ compact, wide }}` movería su
   umbral 34 px (B3.3, D3).
-- **`--radius` de 3 px** y varias medidas fuera de escala (el esqueleto del Tema 1 conserva alturas
+- **`--radius` de 3 px** (hecho en C: 4 px) y varias medidas fuera de escala (el esqueleto del Tema 1 conserva alturas
   medidas, nombradas y comentadas; el hábitat del T3 a 20/24 u por el mínimo de 9 px en subíndices;
   B3.1 menor 6, B3.3 D6 y D7) son de C.
 - **Pulgar nativo de las marcas** (FB-R20): fijar el pulgar con `::-webkit-slider-thumb` y
@@ -958,8 +980,8 @@ hidratación de los Temas 7 y 9 desaparecieron en el servidor de desarrollo de D
   empieza por el mapa del T1 y el marco del planeta del T9. Tocará el lienzo de cada laboratorio,
   `SvgPlot` (reserva de alto, cursor), `canvasNotes` (la escala) y, para la insignia, la caja
   `relative` de la escena (`TimeScaleBadge`). Los textos de D1 deben usar la escala 4/8.
-- **Limpieza:** borrar los worktrees y las ramas `fase-b-b32-*` y `fase-b-b42-*` (hashes distintos
-  por `cherry-pick`); el `stash@{0}` de `v2` sigue ahí.
+- **Limpieza:** los worktrees y las ramas `fase-b-b32-*` y `fase-b-b42-*` ya se podaron (al
+  empezar la fase C); el `stash@{0}` de `v2` sigue ahí.
 - **Cómo correr la verificación.** Puerta completa, desde la raíz del repo:
   ```
   pnpm run check && pnpm run test:cov && pnpm run build && E2E_PORT=4322 pnpm run e2e
@@ -996,25 +1018,362 @@ Lo que dejó de ser cierto con la fase B y se cambió arriba, en el lugar donde 
   retiraron en B3.3 (los nueve usan `LabShell` por niveles). El traspaso no los mencionaba; la
   prueba que los saltaba (24 a 80 pruebas) corre completa, sin saltadas.
 
+## Fase C cerrada (11 de noviembre de 2026)
+
+Rama `fase-c`, de `7c0abe6` (`main`, con la fase B integrada) a `dc5ce55`: 46 commits, 81 archivos,
++3 140 / −331 líneas (`git diff --shortstat 7c0abe6..HEAD`), del 11 de noviembre a las 00:43 a las
+11:58 (UTC−6; `dc5ce55` es el último commit de contenido: el que registra este apartado solo toca
+documentación). Cierra el sistema de medidas de la auditoría (§6.2): raíz y cuerpo a 16 px, escala
+4/8 en todo `src`, un solo trazo para separar, `Why` sin borde y un trinquete que lo vigila
+(`scale.test.ts`). Dylan levantó el alto en el mismo acto que el de B: la fase C y la D, sin
+detenerse (libro de la fase, cabecera). Ningún commit lleva línea de coautor ni de atribución
+(`git log --format=%B 7c0abe6..HEAD | grep -ciE 'co-authored|claude-session'` da 0).
+
+- **Sin empujar.** `main` y `origin/main` siguen en `7c0abe6`; `fase-c` no existe en el remoto. La
+  integración (`git push origin fase-c:main`, avance rápido) espera la puerta completa del
+  controlador sobre `dc5ce55` y el CI en verde (FC-R26).
+- **Puerta del implementador sobre `dc5ce55`** (`task-C1-report.md`, ronda 1): `pnpm run check` sin
+  errores, avisos ni sugerencias; 2 714 pruebas unitarias en 197 archivos; cobertura 99,02 % de
+  sentencias y 94,78 % de ramas; `pnpm run build` con 11 páginas; `pnpm run scale:report` con total
+  0, 0 nuevas, 0 ya limpias y 6 exenciones con nombre; e2e 855 pasan, 0 fallan (7,8 min,
+  `--workers=2`, puerto 4322). Antes (puerta de B sobre `c26520a`): 2 646 pruebas en 193 archivos,
+  98,98 % y 94,64 %, e2e 756. **La corrida del controlador sobre el mismo commit no existía cuando
+  se escribió esto**: se anota al cerrar, como en B.
+- **Dónde está el detalle.** Libro de decisiones (`progress.md`, sección «Phase C»), el patrón y los
+  briefs de los barridos (`c-sweep-pattern.md`, `task-C-{a,b,c,d}-brief.md`), seis informes de
+  implementación (`task-C0-report.md`, `task-C-{a,b,c,d}-report.md`, `task-C1-report.md`) y tres de
+  revisión (`review-C0-report.md`, `review-C-report.md`, `review-C-visual-report.md`), con sus
+  capturas en `shots/{c0,c-a,c-b,c-c,c-d,c1,c-visual}/`, todo en
+  `.superpowers/sdd/2026-10-31-fases-b-c-d/` (no está en git). Las cifras de abajo llevan entre
+  paréntesis el informe de donde salen («C0», «C-a»… son los de implementación; «rev. C0», «rev. C» y
+  «rev. visual», las tres revisiones). El plan sigue siendo
+  `docs/superpowers/plans/2026-10-31-fases-b-c-d.md`.
+- **Ramas de trabajo.** Quedan `fase-c-{a,b,c,d}` con sus worktrees en el directorio temporal de la
+  sesión; todo está integrado en `fase-c` por `cherry-pick` (los hashes difieren: el `561eeda` de
+  C-a es el `7aa6124` de `fase-c`). Borrarlas al integrar. `fase-b` es `main` (`7c0abe6`).
+
+### 1. Qué entregó la fase C
+
+| Etapa | Qué entregó | Cifras antes → después (informe) |
+|---|---|---|
+| **C0 · base compartida** | El trinquete de la escala (`scale.test.ts`, el escáner, la lista de partida y `scale:report` / `scale:prune`); raíz y cuerpo a 16 px; `scale.css` con todos los tokens; títulos 36 / 24 / 20 / 18; `--radius` 4; texto auxiliar 14 y 12; `--flow` 24 / 48 / 64; un solo trazo (`--rule`); `Why` sin borde. Ronda 1: el escáner lee clases en varias líneas y cierra los puntos ciegos de la revisión (`style` en Astro, `@apply`, propiedades arbitrarias, abreviadas `font` y `flex`…); `--rule-double-width` como única exención; cabecera de tabla a 2 px (FC-R27). | **Infracciones de escala 132 → 104** tras los tres primeros commits (C0), 105 tras la ronda 1 (destapó una: `TopicCard`). Raíz 17 → 16 px; cuerpo 17 / 27,2 → 16 / 25,6; h1 34 → 36; h2 26,56 → 24 (Temas 2 y 9, a 1 280 y 360 px; C0 §3). `Why`: borde discontinuo de 1 px, Plex Sans 17 px 600, 21,25 + 17 px entre partes y 17 px de la etiqueta al texto → sin borde, Plex Mono 12 px 500, 24 y 8 px (C0 §5). Ritmo: el `h2` de cada sección 59,5 → 48 px; figuras y tablas 32 → 24; caso de uso 64 (C0 §4); en conjunto `--flow` 60 / 60 / 26 → 48 / 64 / 24 entre pasos, antes del caso de uso y entre bloques (rev. visual). Lo que dependía de la raíz: barra del tema 51 → 48 px, `--topic-bar-clearance` 68 → 64, `--lab-transport-room` 73,25 → 69, con eventos 132,75 → 125; contenedor de dos columnas 714 → 672 px, panel 340 → 320, tope del sangrado del lienzo 612 → 576 (C0 §3). Pruebas: 2 646 → 2 692 → 2 701; e2e 756 → 795 pasan y 2 rojas, las del esqueleto del Tema 1 (C0, ronda 1). |
+| **C-a · `lab` y `controls`** | Todo control de formulario a 40 px; botones de icono a 44 con glifo de 20; cajón de 24 rem; lecturas con el trazo único; `lab-controls.spec.ts`. | Infracciones del grupo 21 → 0 (total 105 → 84; C-a). Campo numérico 36 × 96 → 40 × 64 px; selectores, filas de interruptor y pestañas 44 → 40; segmentos 36 → 40; glifos 18 → 20; cajón 352 → 384 px; texto del evento 96 → 128 px como mínimo. Panel «Parámetros» del Tema 1 793 → 804 px (una columna) y 787 → 804 (dos). e2e propia: 20 pruebas, rojas antes y 20/20 después. |
+| **C-b · `nav`, `layouts`, `pages`, `ui`** | Columna del índice 17 → 16 rem; cabecera, pie, ficha de tema, barra lateral, buscador, portada, 404 e insignia de recurso en la escala. | Infracciones del grupo 48 → 0 (105 → 56; C-b). Artículo a 1 280 px 784 → 800; lienzo del Tema 2 372 → 388; fila de la barra lateral ~31 → ~35 px; insignia de recurso 26 → 30 px de alto; barra de lectura 3 → 4 px. |
+| **C-c · Temas 1 a 5** | Diez infracciones a la escala; **el esqueleto del Tema 1 recalibrado a la raíz de 16 px**. | 10 → 0 (105 → 95; C-c). Cinco escalones del esqueleto nuevos (16,85; 18,365; 19,25; 19,9275 y 30,975 rem; antes 17,1; 17,6; 19,55; 19,7 y 31,7); holgura de la prueba 8 → 2 px; 10 de 15 anchos rojas con el esqueleto viejo; 507 e2e verdes. |
+| **C-d · Temas 6 a 9** | Veinticinco infracciones a la escala; `RpField`, marcas, muestras y topes de la rueda. | 25 → 0 (105 → 80; C-d). Una exención nueva (`WheelDiagram.astro`, 17 unidades del `viewBox`). e2e del grupo: 481 pasan y 2 rojas (alineación de `RpField`, que esperaba a C-a). |
+| **C1 · cierre de lo que cruzan los barridos** | Esqueleto del Tema 1 otra vez (ahora para los controles de 40 px), `RpField` igual que `ParamField`, `max-w-lg` en el Tema 8, número de ecuación a 12 px en el móvil, revisión a mano de las aritméticas con variables (`scaleCalcReviewed.ts`). | Primera puerta tras integrar los cuatro barridos (sobre `9be81cd`, lista ya vacía): 800 pasan y 15 fallan. Tras C1: 2 712 pruebas, e2e 824 pasan y 0 fallan (C1 §4). Esqueleto del Tema 1: 20 de 21 anchos rojas con el esqueleto anterior → 21/21; `RpField`: ancho 128 → 64 px, 0/2 → 2/2; ecuación del Tema 6 a 375 px: 1 px de desborde → 0. |
+| **Revisiones y ronda 1 de C1** | Dos Important (punteados que quedaban; README frente a botones de 44 y de 32), el resto pulido; pasada visual contra el sitio de la fase B. | Revisión de código: sin Critical, 2 Important, ninguna prueba debilitada (rev. C). Revisión visual: aprobada, sin Important; sin desborde horizontal en 55 combinaciones de página, ancho y tema; páginas **8–12 % más cortas** (Tema 6 a 360 px: 19 166 → 16 825 px; rev. visual). Tras la ronda 1 (9 commits, `c0dc24b`..`dc5ce55`): 2 714 pruebas, 99,02 %, e2e 855 pasan, 0 fallan (+31 nuevas; C1 ronda 1). |
+
+Cifras de conjunto: infracciones de escala **132 → 0**, con la lista de partida en `{}` (`scale:report`,
+C1 ronda 1); exenciones con nombre **6** y aritméticas con variables revisadas a mano **9** (README y
+`scaleCalcReviewed.ts`; rev. C cuenta las mismas 9). Pruebas unitarias 2 646 → 2 714 (193 → 197
+archivos); cobertura de sentencias 98,98 → 99,02 % y de ramas 94,64 → 94,78 % (con `src/styles/**/*.ts`
+dentro del umbral desde `43fe2ad`); e2e 756 → 855.
+
+### 2. Decisiones del controlador de esta fase
+
+Las `Ruling` del libro con número (R1, R2, R3, R26, R27) llevan aquí el mismo número con prefijo
+**FC-R**, para no chocar con R1–R50 de este traspaso ni con FB-R1–FB-R26. Las demás decisiones de la
+fase (tomadas por los implementadores y aceptadas por el controlador al integrar, o surgidas de las
+revisiones) no tienen número en el libro: **se numeran aquí de FC-R28 en adelante**, en el orden en
+que se tomaron. Cuando el informe no anotó el costo, la celda dice cuál sale de la lectura.
+
+| N.º | Decisión | Por qué | Costo si estuviera equivocada |
+|---|---|---|---|
+| FC-R1 (R1) | Los cuatro barridos por directorio corren en paralelo, cada uno en su worktree (C-a Opus alto; C-b, C-c y C-d Sonnet alto); lo compartido, de a una tarea. Se integran por `cherry-pick`. | El plan y el traspaso lo piden (igual que FB-R1). | Un conflicto a mano. Pasó: los de solo la lista de partida se resolvieron con `--ours` más `scale:prune`, y un desliz del controlador dejó fuera dos commits de C-c, reparados en `8faa543` y `b7fd463` (libro). |
+| FC-R2 (R2) | Raíz y cuerpo de lectura a 16 px, no los 17 px del plan. | Dylan, 10 de noviembre: «usa 16px». | Un token (`--text-body`; `html` ya no lleva `font-size`). |
+| FC-R3 (R3) | Desde B2, toda longitud nueva sale de la escala 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 (radios 4 y 8; bordes 1 y 2). | C encuentra menos que arreglar (libro). | Ninguno. |
+| FC-R26 (R26) | Empujar `fase-c` a `main` con avance rápido tras la puerta del controlador y el CI en verde, bajo la instrucción permanente de Dylan del 30 de octubre («sube el código, luego continúa con las demás fases»). **No se ejecutó todavía.** | El mismo flujo dio el CI y el despliegue en verde en `7c0abe6` (cierre de B). | Los de FB-R26: textos de Claude publicados antes de la lectura de Dylan (aquí, ninguno: cambian medidas, no textos); `main` solo se revierte con `push --force`, que no se hará. |
+| FC-R27 (R27) | La cabecera de tabla conserva un ancla visible: 2 px del mismo trazo (`--rule-heavy`, el segundo ancho de borde permitido) bajo la fila de títulos; las filas, 1 px. | Con «un solo trazo» la cabecera perdía su línea oscura (rev. C0); 2 px del mismo color no rompe la regla. | Que Dylan la prefiera sin línea, o con `--fg-muted`. Medido en la revisión de código: el trazo pasó de ≈ 6:1 a 1,37:1 en claro y 1,58:1 en oscuro; el texto sigue en 6,4:1 y 6,8:1 (rev. C; decisión abierta 29). |
+| FC-R28 | El trinquete entra con una lista de partida (132 infracciones) en vez de arreglarlas de una vez; cuenta por archivo y por «regla valor», sin números de línea (`scale.baseline.json`). | Cada commit queda en verde mientras cuatro barridos corren en paralelo; mover una línea no la vuelve nueva (C0 §1; rev. C0 lo comprobó). | Un JSON y dos órdenes que mantener. Hoy está en `{}` y la prueba es estricta; una rama que choque en él se resuelve con la versión de más entradas y `scale:prune` (README). |
+| FC-R29 | Los barridos esperaron a que cerrara la revisión de C0 y su ronda 1 (1 de 5). | Un falso negativo del escáner habría cambiado la lista de partida bajo los cuatro barridos (libro). | Tiempo. Rindió: el escáner no veía las clases partidas en varias líneas (rev. C0, Important) ni los puntos ciegos del menor 1 (`style` en Astro, `@apply`, abreviadas…); la lista pasó de 104 a 105. |
+| FC-R30 | Reglas del escáner: un `1px` o `2px` escrito tal cual vale, el medio paso de Tailwind (`gap-0.5`) no; `em` se juzga contra el tamaño local; 20, 40 y 44 solo con su nombre (`size-5`, `h-10`, `--icon*`); anchos y altos mayores de 64 px, en múltiplos de 4 rem (`17rem`, `30rem`, `22rem`, `38rem` y `9.5rem` salen). | Cada una cierra un hueco medido: 2 px de aire no está en la escala; una propiedad propia sin nombre colaba `2.5rem` como control (rev. C0). | Una lista de excepciones en `scaleRules.ts` si Dylan prefiere, por ejemplo, un índice de 18 rem (C0 §8). |
+| FC-R31 | Las aritméticas con variables (`calc()`, `min()`, `max()`, `clamp()` con `var(--…)`) se **revisan a mano**, no se evalúan: `scaleCalcReviewed.ts` las lista con su motivo y `scale.test.ts` falla con una nueva o con una que ya no existe. | Evaluar marcaría como fuera de escala medidas compuestas que copian a propósito una pieza real (la reproducción pegada, 69 y 125 px; el periodo de la cuadrícula, 80) y no resuelve lo relativo a una caja (C1 §2). | Una línea por expresión nueva; y una resta de tokens mal hecha pasa si el revisor la acepta (C-a §5 lo señaló). |
+| FC-R32 | Todo control de formulario mide 40 px; los botones de icono, 44 con glifo de 20. Excepción escrita en el README: las fichas de ajustes (`CHIP`) y los botones de copiar, 32. | El patrón de C-a; `PeriapsisJump` y las vistas de la gráfica de las Voyager pasan de 44 a 40 en la ronda 1 (rev. C, Important 2). | Objetivos táctiles menores (selectores y pestañas de 44 a 40), todos por encima de los 24 px de WCAG 2.5.8 (rev. C). Revertir es `min-h-11` en cada uno y su prueba (decisión abierta 34). |
+| FC-R33 | El campo numérico mide 64 px con 4 px de relleno lateral (`w-16 px-1`), también el de $r_p$ (C-d lo dejó en 128; C1 lo igualó). | El texto más largo de las rejillas de los nueve laboratorios son seis caracteres, 48 px en Plex Mono de 14 px; la caja útil es 54 px. `w-32` robaba 32 px a las etiquetas (a 360 px pasaban a tres líneas; C-a). | Un laboratorio con rejillas más largas falla en `lab-controls.spec.ts` y pide `w-32` (decisión abierta 35). |
+| FC-R34 | Un solo trazo para toda línea que separa: sólido de 1 px (`--rule`). El escáner rechaza bordes, divisores y contornos punteados o discontinuos (`c0dc24b`); cuatro marcas de estado llevan exención con nombre (la insignia «Se publica con su consigna», la muestra de «Recurso por definir», los lugares del esqueleto del Tema 1 y la marca del umbral del medidor del Tema 8). Los punteados de las notas del Tema 7 y de la tabla del Tema 9 pasaron a sólido. | `navigation.spec.ts:42` exige la insignia discontinua y es el marco de un estado, no una separación (C-b); la revisión de código halló los dos punteados que quedaban (rev. C, Important 1). | Una palabra por cada marca y su prueba si Dylan las quiere sólidas (decisión abierta 37). |
+| FC-R35 | La doble línea de 3 px (notas al margen, nota de clase, cabecera, pie, fichas de tema y fases de la portada) es una excepción con nombre única: `--rule-double-width` (con su exención) y `--rule-double`. | Una doble línea son dos de 1 px con 1 px de hueco y no cabe en 2 px; repetir la exención cuatro veces pasaba a ser norma (rev. C0, menor 8). | Si Dylan la prefiere de 2 px, se cambian el token y los lugares que lo usan (medido en el navegador: 3 px `double`, C-b). |
+| FC-R36 | `Why` sin borde: etiqueta en Plex Mono de 12 px, en mayúsculas, gris (`--fg-muted`); 24 px entre sus partes y 8 px hasta el texto. Solo CSS: el texto no cambia. | La estructura se entiende porque en los 36 casos del sitio va entre una ecuación y una figura, ambas con marco (rev. visual); contraste 6,4:1 / 6,8:1 (rev. C0) o 6,6:1 / 7,9:1 (rev. visual), en claro / oscuro. | Que en una lectura rápida parezca un párrafo más (decisión abierta 30). Es el CSS de una clase. |
+| FC-R37 | Texto auxiliar a 14 y 12 px: pies de figura y de tabla, tablas, leyendas «donde» y notas de 15 → 14; números de parte y citas de 13 / 12,8 → 12; títulos de conexiones de 16 → 18. | La escala solo tiene 12, 14, 16, 18, 20, 24 y 36 (C0 §3). | Pies largos densos (la Figura 6.3, cinco líneas); decisión abierta 27. Un token. |
+| FC-R38 | Columna del índice de 16 rem (no 20): el artículo y los laboratorios ganan 16 px. | 20 rem le quitaba 48 px al artículo y al lienzo (C-b). | Un índice más angosto de lo que Dylan espere (decisión abierta 38). |
+| FC-R39 | Los topes de los diagramas de los Temas 3, 5 y 8 pasan de 30 rem (480 px) a 32 rem (512 px): `max-w-lg`. `CollisionDiagram` del Tema 7 (28 rem) no cambia. | A raíz 17 eran 510 px; 480 los habría encogido un 6 % con su texto en unidades del `viewBox` (C-c, C-d, C1 §1d). | Figuras ~6 % menores si se vuelve a 480 px. |
+| FC-R40 | Las longitudes que calcula un script no se tocan: `BounceScene.MAX_WIDTH` 400, `WheelScene.MAX_SIDE` 400, `PlanetFrame` y `SunFrame` `MAX_SIDE` 380, `WheelPlot.PLOT_MAX_WIDTH` 440, `COMPACT_WIDTH` 480, `SPLIT_BELOW_PX` 400 y los demás umbrales. Revisadas una a una con su motivo (C1 §2). | Son el tamaño del dibujo o puntos de ruptura sobre un ancho medido, no aire ni espaciado; 384 y 448 cambiarían el dibujo −4 % y +2 % y las pruebas de insignia (`svgBadgeClearance`). | Cinco constantes y sus e2e si Dylan quiere la regla también ahí (decisión abierta 39). |
+| FC-R41 | `WheelDiagram.astro` `.wd-label` queda en `font-size: 17px` con exención con nombre. | Es texto de SVG en unidades del `viewBox`; 17 queda entre el 16 de las notas y el 18 de las etiquetas matemáticas, y el contrato del archivo es «todo texto ≥ 16 unidades» (C-d). | Cambiarlo a 16 o 18 rompe ese equilibrio (decisión abierta 36). |
+| FC-R42 | `src/lib/scrollRegion.ts`, fuera del alcance de C0: un desborde de 1 px ya cuenta como región desplazable (`4ab1aa7`). | Con la raíz de 16 px la ecuación del trabajo del Tema 6 desbordaba 1 px y axe marcaba `scrollable-region-focusable` (`a11y.spec.ts` en rojo en el Tema 6, móvil); la tolerancia de 1 px no servía a ningún caso real (rev. C0). | Revertir el commit y esquivar el píxel con CSS, que solo lo mueve de ancho (C0 §6). Una ecuación que desborde 1 px por redondeo gana una parada de tabulación con nombre. |
+| FC-R43 | La lectura de t en una tercera línea de la reproducción (Temas 1, 6 y 9) se acepta sin cambiar el código: hasta 405 px de ventana (413 en el Tema 6) y, en dos columnas, de 1 058 a 1 069 px (1 077 en el Tema 6). Por la franja de dos columnas se añadieron 32 px de reserva bajo el lienzo (`0a2590e`). | Nada se corta ni se solapa y la fila no cambia de alto al reproducir; dentro de la escala no hay arreglo: `min-w-16` corta el evento y 96 px no está en la escala (C1 §1e). | La reproducción mide 132 px en vez de 100 en un teléfono de 390–402 px; arreglarlo pide rediseñar la fila (decisión abierta 33). T1 y T9 reservan 32 px de más entre 42,75 y 43,25 rem de contenido (inofensivo; C1 ronda 1). |
+| FC-R44 | El esqueleto del Tema 1 se recalibra midiendo, dos veces (C-c y C1), y la prueba se endurece: holgura 8 → 2 px y 12 → 21 anchos, a ambos lados de cada escalón. | Aflojar la prueba habría dejado pasar los saltos de 5 px (C-c); la revisión de código lo valora: «las recalibraciones endurecen, no ablandan» (rev. C). | Los escalones (de cuatro decimales) dependen de las métricas de IBM Plex y de Chromium: hay que recalibrar si cambia la fuente o el navegador. |
+| FC-R45 | Dos arreglos de pulido tomados de las revisiones: la ecuación que se desplaza (a 360 px) lleva la misma sombra de borde que las tablas, y las etiquetas de campos y lecturas usan `text-wrap: balance`. | La revisión visual halló fórmulas cortadas sin aviso ((6.1) sin su «²») y símbolos solos en una segunda línea (η del Tema 6, \|Δv⃗\| del Tema 9). | El balance cambia el corte de línea de nueve etiquetas sin tocar texto (C1 ronda 1); la sombra es una regla CSS con tokens `--scroll-*`. |
+
+### 3. Contratos y guardias nuevos
+
+El README ya los describe («Escala de medidas», «Iconos y controles»); aquí solo dónde vive cada pieza.
+
+| Pieza | Archivo | Para qué |
+|---|---|---|
+| Trinquete | `src/styles/scale.test.ts` | Recorre `src` (`.astro`, `.tsx`, `.ts`, `.css`, `.mdx`; sin pruebas ni kits) y falla con una longitud fuera de escala o con una entrada de la lista que ya está limpia. |
+| Escáner | `src/styles/scaleRules.ts`, `scaleTailwind.ts`, `scaleSource.ts`, `scaleScan.ts`, `scaleTree.ts`; `scaleScan.test.ts` | Las reglas (`spacing`, `size`, `text`, `leading`, `radius`, `border`), la lectura de clases y CSS (también en varias líneas) y su propia prueba, con casos verdaderos y falsos positivos. |
+| Lista de partida | `src/styles/scale.baseline.json` (hoy `{}`), `scaleBaseline.ts` | Infracciones previas por archivo, regla y valor; vacía, así que cualquier medida nueva fuera de escala falla. |
+| `scale:report`, `scale:prune` | `scripts/scale-report.ts` | Informe por directorio (con `--files`, por línea; nuevas, ya limpias y exenciones) y poda que solo baja. |
+| Aritmética con variables | `src/styles/scaleCalc.ts`, `scaleCalc.test.ts`, `scaleCalcReviewed.ts` | Toda expresión con `var(--…)` debe estar listada con su motivo (9 en 5 archivos). |
+| Exenciones con nombre | comentario `scale-exempt: <motivo>` | Seis: `--rule-double-width`, el 17 px de `WheelDiagram.astro` y cuatro trazos discontinuos de estado; `scale:report` las lista. |
+| Tokens | `src/styles/scale.css`; `scaleTokens.test.ts` | Tipografía, `--space-*`, `--flow*`, `--rule*`, `--rule-double*`, bordes, iconos y controles, rejilla de papel; `--radius` (4) vive en `tokens.css`. |
+| Controles del laboratorio | `tests/e2e/lab-controls.spec.ts` | Los nueve laboratorios: campos de 40 px con su texto más largo dentro, selectores, segmentos, interruptores, pestañas, botones de icono de 44 con glifo de 20, cajón de 384, fichas y herramientas de 32, botones del Tema 9 de 40; ninguna fórmula sola en una línea. Exige al menos un campo medido; los dos laboratorios sin reloj (`tyre-lab`, `trigger-lab`) van nombrados (C1 ronda 1). |
+| Medidas del tema | `tests/e2e/measures.spec.ts` | Raíz, cuerpo, títulos, `Why`, 48 / 64 / 24 px del ritmo, cabecera de tabla a 2 px, número de ecuación a su relleno (12 y 16 px), sombra de borde de la ecuación y la del trabajo del Tema 6 sin desplazarse a 375 px; en los nueve temas a 1 280 y 360 px. |
+| Reserva del transporte | `tests/e2e/lab-shell.spec.ts`, `time-scale.spec.ts` | `--lab-transport-room` y `-events` exactos (sin la holgura de 1 px de la raíz de 17); en los tres laboratorios con eventos, a 1 058–1 280 px la reserva es ≥ la reproducción y como mucho una línea más. |
+| Esqueleto del Tema 1 | `dron-reparto/DroneSkeleton.tsx`, `tests/e2e/dron-reparto.spec.ts` | Escalones `s16-49`, `s16-85`, `s18-0521`, `s21-25`, `s30-975` y `splitNarrow`; 21 anchos con holgura de 2 px; el comentario del archivo es el procedimiento de recalibración. |
+| Otras guardias | `tests/e2e/navigation.spec.ts`, `footer.spec.ts`, `reading-progress.spec.ts`, `asistencia-gravitatoria.spec.ts`, `back-to-top.spec.ts` | Número de tema en la línea base de su título; doble línea del pie igual a la de la cabecera; barra de lectura de 4 px; caja de $r_p$ igual a la de `ParamField`; «Volver arriba» recalibrada al ancho de 16 px (`ad2e0d8`). |
+| Cobertura | `vitest.config.ts` (`src/styles/**/*.ts`) | El escáner entra en el umbral global (`43fe2ad`). |
+
+### 4. Lo que Dylan debe ver distinto
+
+Lista única de lo que cambia a la vista (capturas «antes» y «después» en `shots/`). **No cambió
+ninguna prosa de los temas ni ningún texto de interfaz** (rev. C: el diff solo toca clases,
+comentarios y README; C1: «ninguno en el sitio»). La mayúscula de la etiqueta de `Why` es
+presentación CSS: el texto sigue igual.
+
+**Tipografía y ritmo (todas las páginas de tema)**
+
+- Raíz y cuerpo 17 → 16 px (interlineado 27,2 → 25,6); h1 34 → 36; h2 26,56 → 24 (C0 §3).
+- Texto auxiliar de 15 (15,94 medidos a raíz 17) → 14 px: pies, tablas, leyendas «donde» y notas;
+  números de parte y citas → 12; títulos de conexiones 16 → 18; código en línea a 14 px en el cuerpo y
+  12 en el texto auxiliar (C0, ronda 1; rev. visual).
+- Ritmo: 48 px entre pasos, 64 antes del caso de uso, 24 entre bloques (antes 60 / 60 / 26
+  irregulares); figuras y tablas a 24 px de lo que las rodea (antes 32). Páginas 8–12 % más cortas
+  (rev. visual).
+- `Why` sin borde, con etiqueta en mayúsculas, gris y en mono de 12 px (antes borde discontinuo y
+  subtítulo de 17 px en 600).
+- Todo separador es un trazo sólido de 1 px: desaparecen los punteados y discontinuos de la leyenda
+  de la ecuación, las partes del caso de uso, las lecturas, la guía de la ficha de tema, las notas del
+  Tema 7 y la tabla del Tema 9.
+- Cabecera de tabla: línea de 2 px del color del separador (antes 1 px oscura); en oscuro se ve poco
+  (FC-R27).
+- El callout común pasa de 3 a 2 px de barra; el de clase conserva la doble línea de 3 px (hoy los
+  cinco publicados son de clase, así que no se ve; C0 §8). Sangría de fuentes 44 → 48 px; listas de
+  notas 20 → 24 px; `--radius` 3 → 4 px; rejilla de papel de 16 px con línea mayor cada 80.
+- Ecuaciones en el móvil: el número queda a 12 px de la fórmula (antes 16); una ecuación que se
+  desplaza muestra la sombra de borde de las tablas (C1).
+
+**Portada, índice y navegación**
+
+- Columna del índice de 17 a 16 rem; a 1 280 px el artículo pasa de 784 a 800 px y el lienzo del
+  Tema 2, de 372 a 388 (C-b). Barra lateral: filas con 8 px de relleno (~35 px, antes ~31); el esquema
+  de la sección actual a 32 px de sangría (antes 34); buscador de 40 px.
+- Portada: h1 de 36 px en todos los anchos (antes 40 y 48 desde `sm`; a 1 280 queda en dos líneas);
+  `gap-14` → 48 px; guía de la ficha de tema sólida (antes punteada); columna del número 40 → 48 px
+  desde `sm`; el número sobre la línea base del título (antes ~3 px más alto desde 768 px); ficha
+  máxima de 38 a 40 rem (`TopicCard`; no figuraba en las decisiones de C-b, lo anotó rev. C).
+- Insignia de recurso: 30 px de alto (antes 26), muestra de 12 px con radio 4 (antes 10 px y 1 px).
+  La insignia «Se publica con su consigna» sigue discontinua (FC-R34).
+- Barra de lectura 3 → 4 px; botones de icono con glifo de 20 px (antes 18); 404 con relleno móvil de
+  16 px (antes 20); contenido a 32 px bajo la cabecera (antes 40).
+
+**Laboratorios**
+
+- Campo numérico 36 × 96 → 40 × 64 px (el número a 4 px del borde); cada `ParamField` crece 8 px y el
+  panel «Parámetros» del Tema 1 pasa de 793 a 804 px (C-a).
+- Controles a 40 px: selectores, filas de interruptor y pestañas del cajón (antes 44); segmentos
+  (antes 36; un grupo con su marco mide 50). Botones de icono siguen en 44. «Ir a la máxima
+  aproximación» y las vistas de la gráfica de las Voyager 44 → 40. Fichas de ajustes y botones de
+  copiar siguen en 32.
+- Interruptor: pista de 24 × 40 y pulgar cuadrado de 16 px a 4 px del borde, radio 0; selector con el
+  chevrón a 12 px del borde.
+- Cajón de ajustes 352 → 384 px.
+- Lecturas con trazo sólido (antes punteado) y 8 px bajo el valor (antes 6).
+- Reproducción con eventos: el texto del evento tiene 128 px como mínimo (antes 96) y se lee entero;
+  a cambio, de 390 a ~413 px (405 en los Temas 1 y 9) la lectura de t baja a una tercera línea y la
+  reproducción mide 132 px (antes 100); en dos columnas, de 1 058 a 1 069 px (1 077 en el Tema 6).
+- Laboratorio en dos columnas desde ~1 030 px (el contenedor de 42 rem son 672 px, antes 714): a 1 100
+  px el lienzo mide 370 px donde el sitio de B lo apilaba a 612 (rev. visual).
+- Etiquetas de campos y lecturas equilibradas: la palabra anterior baja con el símbolo
+  («Rendimiento / rueda → batería η»).
+
+**Por tema**
+
+- Temas 3, 5 y 8: topes de diagrama 480 → 512 px (el marco de la rueda, de 62 a 68 rem).
+- Tema 5: marcas del video 36 → 40 px de alto; icono de enlace externo 14 → 16 px; degradado bajo el
+  título del video 40 → 32 px (C-c).
+- Tema 6: columna de etiquetas de las barras de energía 152 → 128 px; muestras de leyenda 10 → 12 px.
+- Tema 7: sangría de las listas de notas 20 → 24 px.
+- Tema 8: marca del límite de $L_w$ 3 → 4 px; barra de aviso 3 → 2 px.
+- Tema 9: caja de $r_p$ 36 × 96 → 40 × 64 px.
+- Tema 1: nada visible; solo el esqueleto de carga, recalibrado dos veces.
+
+### 5. Decisiones abiertas de Dylan
+
+Continúan la lista del apartado 5 de la fase B (1 a 26). «Recomendada» es la del informe de origen;
+donde ninguno la da y añado criterio propio, lo marco (mía). Ninguna se tocó.
+
+**Lo que la fase C movió de la lista anterior.** La 1 (laboratorio más ancho que el artículo): C no
+lo ensanchó; solo ganó 16 px con el índice de 16 rem (lienzo del Tema 2 a 1 280 px, de 372 a 388). Las
+medidas de 1, 2 y 5 (432 px de escenario, escena del Tema 6, alturas de los escenarios) siguen siendo
+las de raíz 17 y no se volvieron a medir. La 9 (fichas que parecen insignias): C llevó radios y bordes
+a la escala y dejó las fichas en 32 px; sigue abierta. La 13 (pulgar nativo de 16 px de las marcas):
+sin cambio; la aritmética de las marcas está en `scaleCalcReviewed.ts` con ese motivo.
+
+**Tipografía y lectura**
+
+27. **Texto secundario a 14 px.** El cuerpo bajó 6 % (17 → 16) y las tablas, los pies y las leyendas
+    12 % (15,94 → 14); los pies largos (Figura 6.3, cinco líneas con matemáticas) quedan densos a
+    14 px y 560 px de medida (rev. visual). Sin recomendación en el informe; alternativa
+    intermedia: 16 px solo para `figcaption` y tabla, 14 para fuentes y unidades.
+28. **Medida del párrafo: 700 px fijos** (`.step > p`, `max-width: 700px`), unos 90–95 caracteres a
+    16 px; lo cómodo son 65–75 (rev. visual). Si se quiere, `40rem` (640 px) o `68ch`; no mueve la
+    maqueta, porque figuras y laboratorios siguen a 800.
+29. **Cabecera de tabla anclada con 2 px del color del separador.** En oscuro el trazo se ve poco
+    (1,58:1; 1,37:1 en claro; rev. C). Opción del informe visual: dejar los 2 px con `--fg-muted`
+    solo en la cabecera.
+30. **Etiqueta de `Why` a 12 px en mayúsculas y gris.** «EN EL FENÓMENO» es más pequeña que la
+    leyenda «donde» de la ecuación anterior y en lectura rápida se parece a un párrafo (rev. visual).
+    Punto medio del informe: la etiqueta a 14 px, conservando mono y mayúsculas.
+31. **h1 de 36 px también en el teléfono.** Los títulos largos (Temas 4 y 7) ocupan 5 líneas, ~215 px,
+    en la primera pantalla de 360; el sitio de B hacía casi lo mismo (34 px). La escala no tiene 30;
+    24 en el teléfono pierde presencia (rev. visual). Sin recomendación.
+
+**Laboratorio**
+
+32. **Laboratorios en dos columnas desde ~1 030 px.** El contenedor de 42 rem son ahora 672 px
+    (714 a raíz 17); a ~1 030 px el lienzo queda en ~296 px y a 1 100 px en 370, donde B lo apilaba
+    con 612 (rev. visual). Los controles quedan junto al lienzo, que era lo buscado; el dibujo se
+    achica. Opción del informe: subir el umbral a 44–46 rem. Depende de la 1.
+33. **Tercera línea de la lectura de t** (Temas 1, 6 y 9) hasta 405 px (413 en el 6) y en dos
+    columnas de 1 058 a 1 069 px (1 077 en el 6): la reproducción mide 132 px en vez de 100 y la
+    lectura queda sola a la izquierda (FC-R43). La franja de dos columnas ya no deja un control
+    enfocado bajo la reproducción (la reserva de `0a2590e`). Recomendada (C1): dejarlo; si se quiere
+    dos líneas en un iPhone de 390–402 px, la única salida dentro de la escala es rediseñar la fila
+    (la lectura en la primera fila, junto a la línea de tiempo).
+34. **Controles de 40 px y objetivos táctiles chicos.** Selectores y pestañas bajaron de 44 a 40;
+    las fichas de ajustes y los botones de copiar siguen en 32; a 360 px las fichas de estado miden
+    32 px de alto (la de $\vec v$ del Tema 2, 26 de ancho) y los enlaces del índice desplegable
+    27–35 px (rev. visual, aparte). Todos superan los 24 px de WCAG 2.5.8 y ninguno llega a 40/44.
+    Recomendada (mía): dejarlo; la excepción está escrita en el README.
+35. **Caja numérica de 64 px con el número a 4 px del borde.** Cabe el texto más largo de las
+    rejillas actuales (seis caracteres, 6 px de holgura); una rejilla más larga rompe
+    `lab-controls.spec.ts` y pide `w-32` (C-a). Recomendada (mía): dejarla.
+
+**Escala y estructura**
+
+36. **El 17 px exento de `WheelDiagram.astro`.** Texto de SVG en unidades del `viewBox`; 16 o 18
+    desequilibra con el 16 de las notas y el 18 de las etiquetas (C-d). Recomendada (mía): dejarlo.
+37. **Cuatro marcas de estado discontinuas** (la insignia «Se publica con su consigna», la muestra de
+    «Recurso por definir», los lugares del esqueleto del Tema 1 y la marca del umbral del medidor del
+    Tema 8). Son marcos de un estado, no separadores; sólidas es una palabra más su prueba
+    (`navigation.spec.ts:42` para la insignia). Recomendada (C-b): dejarlas.
+38. **Índice de 16 rem y la regla de los 4 rem.** C-b eligió 16 y no 20 para no quitarle 48 px al
+    artículo; la regla «anchos mayores de 64 px, en múltiplos de 4 rem» sacó `17rem`, `30rem`, `22rem`,
+    `38rem` y `9.5rem` de la escala: un índice de 18 rem sería una excepción en `scaleRules.ts`
+    (C0 §8). Sin recomendación en los informes.
+39. **Topes de diagrama de 512 px y topes de JS sin la regla.** Los diagramas de los Temas 3, 5 y 8
+    quedaron en 512; `BounceScene` y `WheelScene` en 400, `WheelPlot` en 440 y `PlanetFrame` y
+    `SunFrame` en 380 no están en la escala (el escáner no mide JS). Pasarlos a 384 / 448 cambia el
+    dibujo −4 % / +2 % y las pruebas de insignia; a 1 280 el escenario (~388–430 px) ya los limita
+    o casi (C1 §2). Se cruza con la 1 y la 5. Recomendada (C1): dejarlos.
+
+**Heredados:** siguen igual los del apartado 5 de la fase B, incluidos los pendientes heredados del
+traspaso que ahí se enumeran.
+
+### 6. Deudas y notas para la fase D
+
+- **Zoom (D1).** `useZoomPan` y `ScaleBar` aún no existen (ninguna aparición en `src`); D1 los crea y
+  empieza por el mapa del Tema 1 y el marco del planeta del Tema 9 (plan, D1). Con la escala de C:
+  botones de zoom como botones de icono (`ICON_BUTTON`, 44 px con glifo `size-5`; README, «Iconos y
+  controles»); `lab-controls.spec.ts` mide en cada laboratorio los botones de icono de 44 y los
+  glifos de 20, así que unos botones de otra medida lo harían fallar (inferencia mía); textos de la
+  barra de escala a 12 o 14 px; separaciones con `1 2 3 4 6 8 12 16` de Tailwind o `--space-*`; radios
+  4 y 8; trazo `--rule` o `border-border`, nunca punteado (el escáner lo rechaza); sin `gap-0.5` ni
+  `1.5`.
+- **El escáner no ve longitudes calculadas en JS.** Constantes como `RESERVED_HEIGHT`, `'2rem'` en
+  TS, `style={{ maxWidth: MAX_SIDE }}` o la longitud de una barra de escala que D1 calcule quedan
+  fuera: se prueban contra el dibujo y se revisan a mano, como las de C1 §2 (FC-R40). Una aritmética
+  con `var(--…)` que D añada debe entrar en `scaleCalcReviewed.ts` o `scale.test.ts` falla. Lo que D1
+  tocará: el lienzo de cada laboratorio, `SvgPlot` (reserva de alto, cursor), `canvasNotes` y la caja
+  `relative` de la escena (`TimeScaleBadge`).
+- **El esqueleto del Tema 1 depende de las métricas de IBM Plex.** Sus escalones cambian a ventanas
+  de 330, 336, 355, 406 y 562 px y, en dos columnas, de 1 058 a 1 070 px (C1 §1a), y cambian con la
+  fuente, el navegador o la altura de un control; por eso la prueba mide a ambos lados de cada uno.
+  Si D1 suma una fila o un control que cambie un alto del mapa, la reproducción o el panel,
+  recalibrar con el procedimiento del comentario de `DroneSkeleton.tsx`: correr
+  `dron-reparto.spec.ts`; barrer el ancho de la ventana de 1 en 1 px en `astro preview`; refinar cada
+  escalón fijando el ancho de la tarjeta en fracciones de px; mover `STEPS` y `PLACE_HEIGHT`. Las
+  gráficas del esqueleto quedan 4–9 px más cortas que cargadas, a las dos raíces; la prueba no las
+  compara (C-c).
+- **Lo que sigue abierto de B (apartado 6 de «Fase B cerrada»).** Pulgar nativo de las marcas
+  (FB-R20); banda del tramo en `SvgPlot` (m8); las seis copias de `usePlotAspect` /
+  `useFigureAspect`. `COMPACT_WIDTH = 480` está copiado en 10 archivos y podría importarse de
+  `svgPlotReserve.ts` (C1, sin hacer).
+- **Tokens.** `--radius-card` y `--icon` no se usan fuera de `scale.css` y de `scaleTokens.test.ts`
+  (contado con `grep` en `src`); el resto de los tokens de `scale.css` sí tiene uso.
+- **Pruebas sensibles a la carga.** `dron-reparto.spec.ts:338` («Tramo» a velocidad real, 0,94 s
+  frente a ≥ 1,2) falló una vez con la CPU cargada y pasó en la puerta (C1 §6). Una prueba unitaria
+  sin identificar falló una vez en `test:cov` con sesiones de Playwright activas y pasó al repetir
+  (C-b, sin reproducir; B3.3 vio algo parecido). `sidebar.spec.ts` («la sección activa usa el color
+  de acento») fallaba 1 de cada 20 y se arregló en `da92b21` (40/40; C0 ronda 1).
+- **Historia de C-b.** Sus commits intermedios no pasan `scale.test.ts` (la lista se poda en el
+  último); solo importa al bisecar. En `fase-c` la lista quedó vacía en `9be81cd`.
+- **Ecuaciones anchas.** Con la raíz de 16 px, a 360 y 375 px las demás ecuaciones numeradas que se
+  desplazan lo hacen por 7 px o más (fórmulas anchas de verdad); ahora lo avisa la sombra de borde
+  (C1 §2, FC-R45).
+- **Limpieza.** Borrar los worktrees y las ramas `fase-c-{a,b,c,d}` al integrar; el `stash@{0}` de
+  `v2` sigue ahí.
+- **Cómo correr la verificación.** La misma puerta, desde la raíz del repo:
+  ```
+  pnpm run check && pnpm run test:cov && pnpm run build && E2E_PORT=4322 pnpm run e2e
+  ```
+  Más `pnpm run scale:report` (debe dar total 0). Bajo carga, `--workers=2`. En la fase C los
+  barridos usaron e2e en 4336–4339 y previews en 4326–4329; el controlador, 4322 y 4324; las
+  revisiones, 4374 a 4379; nunca el 4321.
+
+### 7. Correcciones al texto anterior
+
+Lo que dejó de ser cierto con la fase C (y con la integración de B, que ya había ocurrido) y se
+cambió arriba, en el lugar donde estaba:
+
+- **Estado, «Publicado» y «Fase B cerrada»:** `origin/main` ya no es `6dc690b` sino `7c0abe6`; la
+  `main` local avanzó con él (ya no «sigue en `c9a773d`»); la fase B ya no está «sin empujar» (CI y
+  despliegue en verde). Se añadió la línea de la fase C en «Estado».
+- **«Fase B cerrada»:** la viñeta «Sin empujar», la de «Ramas de trabajo» (las ramas `fase-b-b32-*` y
+  `fase-b-b42-*` ya no existen), la frase «la corrida del controlador… no existía» (la corrida estaba
+  anotada más arriba en la misma sección) y, en el apartado 6, «Limpieza».
+- **Apartado 6 de «Fase B cerrada»:** raíz y cuerpo a 16 px y escala de texto, hechas en C;
+  `--radius` de 3 px, hecho (4 px); la reproducción con eventos a ≤ 390 px mide 132 px (140 era a raíz
+  17) y llega a 405 px (413 en el Tema 6). Las demás cifras de B (esqueleto del Tema 1 a raíz 17,
+  `--lab-transport-room` de 73,25 px) quedaron como historia: el apartado 1 de la fase C dice en qué
+  se convirtieron.
+- **Medidas de B a raíz 17:** los 432 px de escenario, los 797 px de laboratorio, las alturas de
+  escenario de las decisiones abiertas 1 a 5 y el umbral de dos columnas (`lab-split` en 714 px) son
+  de antes de C y no se volvieron a medir; lo único medido otra vez: lienzo del Tema 2 de 372 a
+  388 px y contenedor de dos columnas de 714 a 672.
+- **Pendiente 9:** la raíz a 16 px ya se aplicó. **Pendientes:** se añadió el 11 (mirar la fase C).
+- **Decisiones vigentes:** se añadió la regla de la escala; «Tema 5, portada, franja del tema, pie…»
+  ya no es «sin cambios»: sus medidas siguen la escala desde C.
+- **«Dónde está cada cosa»:** el libro es ahora «de las fases B y C» y hay una fila de la escala.
+- **«Después del Avance 2»:** ya no «quedan por integrar B2 a B4»; el estado de la fase B es
+  «integrada», el de la C «cerrada, sin empujar», y queda solo la D. Se quitó «B1 ya está en
+  `origin/main` (`6dc690b`)».
+- **Conteos de pruebas:** los de «Puerta tras la fase A» y «Puerta final en `avance-2`» (1 936 y 1 923
+  pruebas, 478 e2e), los de B1 (1 961 y 485) y los de la fase B (2 646 y 756) son los de sus
+  puertas; los vigentes son 2 714 pruebas unitarias en 197 archivos y 855 e2e (puerta del
+  implementador sobre `dc5ce55`; la del controlador, al cerrar).
+
 ## Después del Avance 2
 
-- **Estado de la fase B:** cerrada en `fase-b` (B1a, B1b, B2, B3 y B4; `c26520a`); ver la
-  sección «Fase B cerrada». El alto antes de B2 que pidió Dylan el 31 de octubre se levantó el 10
-  de noviembre. B1 ya está en `origin/main` (`6dc690b`). Puerta de B1 sobre `0fa68f0`:
+- **Estado de la fase C:** cerrada en `fase-c` (`dc5ce55`, sin empujar); ver «Fase C cerrada».
+  Falta la puerta del controlador, el CI y `git push origin fase-c:main` (FC-R26); la fase D no
+  empezó.
+- **Estado de la fase B:** cerrada e integrada en `main` (B1a, B1b, B2, B3 y B4; `c26520a`, y
+  `7c0abe6` con la documentación); ver la sección «Fase B cerrada». El alto antes de B2 que pidió
+  Dylan el 31 de octubre se levantó el 10 de noviembre. Puerta de B1 sobre `0fa68f0`:
   `pnpm run check` sin errores ni avisos; 1 961 pruebas unitarias en 154 archivos; cobertura
   98,74 % de sentencias, 93,84 % de ramas, 99,19 % de funciones y 99,27 % de líneas; 11 páginas
-  construidas; e2e 485 pasan y 0 fallan en el 4322 (siete nuevas de rendimiento). Quedan por
-  integrar B2 a B4: `git push origin fase-b:main` (avance rápido) tras la puerta del controlador
-  y el CI (FB-R26). Pendiente de verificar en el servidor de desarrollo de Dylan: que los avisos
+  construidas; e2e 485 pasan y 0 fallan en el 4322 (siete nuevas de rendimiento). Pendiente de verificar en el servidor de desarrollo de Dylan: que los avisos
   de hidratación de los Temas 7 y 9 desaparecieron tras el redondeo de coordenadas (Claude no
   levanta un segundo `astro dev` para no compartir la caché de Vite con el 4321).
 - **Fases B, C y D de la auditoría** (`docs/superpowers/audits/2026-10-30-auditoria-integral.md`
-  §10 y §12): B (hecha), rendimiento de las simulaciones (reloj fuera de React, memoización, Tema 1
+  §10 y §12): B (hecha e integrada), rendimiento de las simulaciones (reloj fuera de React, memoización, Tema 1
   sin Recharts), notación de símbolos sin depender de la fuente de reserva, controles junto al
   lienzo en tres niveles y «legibilidad a 1×» (Temas 6 y 1); C, sistema de medidas (raíz 16 px,
-  escala 4/8, radios, separadores, `Why`); D, zoom con botones en el lienzo y barra de escala,
-  anillos de Saturno, modo «Conducir» del Tema 6, microinteracciones. Quedan C y D (deudas en
-  «Fase B cerrada», apartado 6).
+  escala 4/8, radios, separadores, `Why`; hecha en `fase-c`, sin integrar); D, zoom con botones en el lienzo y barra de escala,
+  anillos de Saturno, modo «Conducir» del Tema 6, microinteracciones. Falta D (notas en
+  «Fase C cerrada», apartado 6).
 
 - **Entrega Final:** esperar su consigna. Cuando llegue, agregar sus temas a `TOPICS` en
   `src/consigna.ts` y un MDX completo por tema, con el mismo esquema (`Step`/`Why`/`Figure`/
