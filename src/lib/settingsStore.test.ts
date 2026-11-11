@@ -110,6 +110,11 @@ describe('blocked localStorage', () => {
 });
 
 describe('resetSettingsForTests', () => {
+  // The stubbed window must go even if an assertion fails, before the file's own afterEach reset.
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   test('forgets a stored choice too: the next test starts from the defaults, whatever the order', () => {
     // Arrange: a test that chose 3 decimals, which setSettings also stored.
     const stored = new Map<string, string>();
@@ -127,7 +132,6 @@ describe('resetSettingsForTests', () => {
 
     // Assert
     expect(getSettings()).toEqual(DEFAULT_SETTINGS);
-    vi.unstubAllGlobals();
   });
 });
 
