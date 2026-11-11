@@ -80,7 +80,7 @@ function lapseAt(speed: number): string {
 
 function lapseStatement(speed: number): string {
   const chosen = speed === 1 ? '' : `; a ${lapseAt(speed)}`;
-  return `La perturbación va a cámara rápida y el dibujo dice el factor. A ${lapseAt(1)}${chosen}. Cada descarga se estira a ${n(MIN_DUMP_PLAYBACK, 0, 's')} de pantalla a 1× para que se vea; la línea de tiempo cuenta segundos de reproducción y la lectura «Tiempo en órbita», horas de órbita.`;
+  return `La perturbación va a cámara rápida y el dibujo dice el factor. A ${lapseAt(1)}${chosen}. Cada descarga se estira a ${n(MIN_DUMP_PLAYBACK, 0, 's')} de pantalla a 1× para que se vea; la reproducción y la lectura «Tiempo en órbita» cuentan horas de órbita.`;
 }
 
 function actuatorLaw(isMagnetic: boolean): string {

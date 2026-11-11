@@ -4,6 +4,7 @@ import { mathTextToString } from '../../../lib/mathNotation';
 import { TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
 import type { FrameStore } from '../../lab/frameStore';
 import SvgPlot, { type PlotSeries } from '../../lab/SvgPlot';
+import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { LIMIT_COLOR } from './MomentumGauge';
 import {
   DISTURBANCE_SPAN,
@@ -19,6 +20,7 @@ const PERCENT = 100;
 /** The y axis shows L_max with this much room, and grows in steps of 10 % past it. */
 const Y_HEADROOM = 1.1;
 const Y_GRAIN = 10;
+/** The maneuver's cursor, in seconds; the disturbance's, in hours, takes the global decimals. */
 const CURSOR_PRECISION = 1;
 const GAP: SeriesPoint = { x: Number.NaN, y: Number.NaN };
 /** The plot is never wider than the dial above it: its 400 px and the frame's padding. */
@@ -110,12 +112,14 @@ export default function WheelPlot({
   onSeek,
 }: WheelPlotProps): JSX.Element {
   const isManeuver = settings.mode === 'maniobra';
+  const { decimals } = useGlobalSettings();
   const plot = useMemo(
     () => (isManeuver ? maneuverPlot(settings) : disturbancePlot(settings)),
     [isManeuver, settings],
   );
+  // In hours (the disturbance) at the global decimals, as the transport and «Tiempo en órbita».
   const cursorText = (x: number) =>
-    `t = ${formatNumber(x, { precision: CURSOR_PRECISION, unit: plot.xUnit })}`;
+    `t = ${formatNumber(x, { precision: isManeuver ? CURSOR_PRECISION : decimals, unit: plot.xUnit })}`;
   const ariaLabel = mathTextToString(
     isManeuver
       ? `L_w respecto de L_máx durante el giro: un triángulo que sube y vuelve a 0 en ${formatNumber(settings.T, { precision: 1, unit: 's' })}, con ±L_máx en rojo.`

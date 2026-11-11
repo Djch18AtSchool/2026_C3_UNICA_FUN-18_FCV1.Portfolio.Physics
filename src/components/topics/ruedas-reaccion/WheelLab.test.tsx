@@ -506,6 +506,25 @@ describe('WheelLab', () => {
     const hours = readout('Tiempo en órbita');
     expect(hours).toMatch(/^22,\d{2} h$/);
     expect(timelineText()).toBe(`t = ${hours}`);
+    // The plot's cursor says it at the same (global) decimals.
+    const cursorLabel = screen.getByTestId('wheel-plot').querySelector('[data-cursor] text');
+    expect((cursorLabel?.textContent ?? '').replace(/\s/g, ' ')).toBe(`t = ${hours}`);
+  });
+
+  test('the time-lapse note says what the transport reads: hours of orbit, as «Tiempo en órbita»', async () => {
+    const user = userEvent.setup();
+    render(<WheelLab />);
+    await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
+    seekHours(22.5);
+
+    // The unit the transport's formatTime writes, and what the note says it counts.
+    const unit = /\s(\S+)$/.exec(timelineText())?.[1];
+    const note = screen.getByText(/La perturbación va a cámara rápida/).textContent ?? '';
+    expect(unit).toBe('h');
+    expect(note).toContain(
+      'la reproducción y la lectura «Tiempo en órbita» cuentan horas de órbita',
+    );
+    expect(note).not.toMatch(/segundos de reproducción/);
   });
 
   test('in the maneuver the transport keeps its seconds', () => {
