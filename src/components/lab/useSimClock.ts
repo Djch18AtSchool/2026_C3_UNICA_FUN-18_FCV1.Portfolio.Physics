@@ -25,6 +25,12 @@ import { useGlobalSettings } from './useGlobalSettings';
 export interface SimClock {
   state: ClockState;
   frame: FrameStore;
+  /**
+   * Simulated seconds per real second of the playback now: the time scale times the speed, or,
+   * under reduced motion, the stepped pace (duration/60 every 250 ms, times the speed). What a
+   * lab's canvas declares (TimeScaleBadge).
+   */
+  rate: number;
   play(): void;
   pause(): void;
   toggle(): void;
@@ -50,6 +56,13 @@ export const MAX_FRAME_DT_S = 0.25;
 /** Reduced motion: discrete steps of duration/REDUCED_STEPS every REDUCED_STEP_MS. */
 const REDUCED_STEPS = 60;
 const REDUCED_STEP_MS = 250;
+/** Real seconds a whole run takes at speed 1 under reduced motion. */
+const REDUCED_RUN_S = (REDUCED_STEPS * REDUCED_STEP_MS) / MS_PER_S;
+
+/** Simulated seconds per real second: see SimClock.rate. */
+function playbackRate({ duration, speed }: ClockState, timeScale: number, isReduced: boolean) {
+  return isReduced ? (duration / REDUCED_RUN_S) * speed : timeScale * speed;
+}
 
 /** Follows `prefers-reduced-motion` live; false until mount and wherever matchMedia is missing. */
 export function usePrefersReducedMotion(): boolean {
@@ -200,5 +213,6 @@ export function useSimClock(duration: number, { timeScale = 1 }: SimClockOptions
     [transition],
   );
 
-  return useMemo(() => ({ state, frame, ...actions }), [state, frame, actions]);
+  const rate = playbackRate(state, timeScale, isReduced);
+  return useMemo(() => ({ state, frame, rate, ...actions }), [state, frame, rate, actions]);
 }

@@ -370,6 +370,38 @@ describe('useSimClock', () => {
     expect(result.current.seek).toBe(seek);
   });
 
+  describe('rate', () => {
+    test('is 1 simulated second per real second by default', () => {
+      stubAnimationFrame();
+
+      const { result } = renderClock(6);
+
+      expect(result.current.rate).toBe(1);
+    });
+
+    test('is the time scale times the speed setting', () => {
+      stubAnimationFrame();
+      const { result } = renderHook(() => useSimClock(1369, { timeScale: 20 }));
+      expect(result.current.rate).toBe(20);
+
+      act(() => result.current.setSpeed(0.25));
+
+      expect(result.current.rate).toBe(5);
+    });
+
+    test('under reduced motion it is the stepped pace: duration/60 every 250 ms, times the speed', () => {
+      stubAnimationFrame();
+      setSettings({ motion: 'reduced' });
+      const { result } = renderHook(() => useSimClock(1369, { timeScale: 20 }));
+      // 60 steps of 250 ms play the whole run in 15 s, whatever the time scale.
+      expect(result.current.rate).toBeCloseTo(1369 / 15, 10);
+
+      act(() => result.current.setSpeed(2));
+
+      expect(result.current.rate).toBeCloseTo((2 * 1369) / 15, 10);
+    });
+  });
+
   describe('with reduced motion', () => {
     test('the settings choice advances by duration/60 every 250 ms without rAF', () => {
       const { request } = stubAnimationFrame();

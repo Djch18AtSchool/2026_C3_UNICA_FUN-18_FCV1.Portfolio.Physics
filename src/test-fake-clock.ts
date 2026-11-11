@@ -9,6 +9,7 @@ export function fakeClock(overrides: Partial<ClockState> = {}, duration = 4): Si
   return {
     state,
     frame: createFrameStore(state.t),
+    rate: 1,
     play: vi.fn(),
     pause: vi.fn(),
     toggle: vi.fn(),
