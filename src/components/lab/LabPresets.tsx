@@ -175,6 +175,9 @@ function NoteLine<T>({ preset, isModified }: { preset?: Preset<T>; isModified: b
       <p data-testid="preset-note" className={`${NOTE} [grid-area:1/1]`}>
         <NoteText preset={preset} isModified={isModified} />
       </p>
+      {/* The edited note, invisible in the same cell: the line is already as tall as it will be.
+          Its text is in the DOM twice, so a test reads the note within
+          getByTestId('preset-note'), never with a page-wide getByText (it would find both). */}
       {isModified ? null : (
         <p
           data-preset-note-reserve=""
