@@ -51,15 +51,25 @@ async function choosePreset(user: ReturnType<typeof userEvent.setup>, name: RegE
 const flow = (id: string) =>
   screen.getByTestId('regen-scene').querySelector(`[data-flow="${id}"]`) as SVGGElement;
 
-const viewRadio = (name: 'Tramo: una frenada' | 'Ciclo completo') =>
-  screen.getByRole('radio', { name });
-/** Shows the whole cycle («Ciclo»), where the energy cursor seeks. */
-function showCycle(): void {
-  fireEvent.click(viewRadio('Ciclo completo'));
+/** The view on show, as the chip beside the gear names it. */
+const viewChip = () =>
+  within(screen.getByRole('group', { name: 'Ajustes activos' })).getByRole('button', {
+    name: /^Vista /,
+  });
+/** Picks a view in the drawer («Vista») and closes it. */
+function chooseView(view: 'tramo' | 'ciclo'): void {
+  fireEvent.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+  const dialog = screen.getByRole('dialog');
+  fireEvent.change(within(dialog).getByRole('combobox', { name: 'Vista' }), {
+    target: { value: view },
+  });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Cerrar ajustes' }));
 }
+/** Shows the whole cycle («Ciclo»). */
+const showCycle = () => chooseView('ciclo');
 /** Moves the energy cursor to the end of the cycle with the keyboard, in the view «Ciclo». */
 function seekToEnd(): void {
-  if (!(viewRadio('Ciclo completo') as HTMLInputElement).checked) showCycle();
+  if (viewChip().getAttribute('aria-label') !== 'Vista Ciclo') showCycle();
   timeCursor().focus();
   fireEvent.keyDown(timeCursor(), { key: 'End' });
 }
@@ -119,7 +129,7 @@ describe('RegenLab', () => {
   test('opens in «Tramo» on the Model 3 in the UDDS: figure 6.3’s braking from its start, 376 s, with f(v) on', () => {
     renderLab();
 
-    expect(viewRadio('Tramo: una frenada')).toBeChecked();
+    expect(viewChip()).toHaveAccessibleName('Vista Tramo');
     expect(timelineText()).toBe('t = 0,00 s');
     expect(readout(SPEED)).toBe('57,94 km/h');
     expect(readout(POWER)).toBe('3,81 kW');
@@ -172,7 +182,7 @@ describe('RegenLab', () => {
     expect(timelineText()).toBe('t = 389 s');
     expect(readout(SPEED)).toBe('37,01 km/h');
 
-    fireEvent.click(viewRadio('Tramo: una frenada'));
+    chooseView('tramo');
     expect(timelineText()).toBe('t = 13,00 s');
     expect(readout(SPEED)).toBe('37,01 km/h');
   });
@@ -184,7 +194,7 @@ describe('RegenLab', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Reproducir' }));
 
     scrubTo(85);
-    fireEvent.click(viewRadio('Tramo: una frenada'));
+    chooseView('tramo');
 
     expect(timelineText()).toBe('t = 0,00 s');
     expect(lab()).toHaveAttribute('data-playing', 'false');
@@ -220,19 +230,27 @@ describe('RegenLab', () => {
     expect(road.textContent?.replace(/\s/g, ' ')).toBe('0,00 km11,99 km');
   });
 
-  test('in «Tramo» the energy plot shades the stretch and its cursor is a line, not a slider', () => {
+  test('in «Tramo» the energy plot shades the stretch; its cursor seeks in it, and out of it moves to «Ciclo»', () => {
     renderLab();
     const plot = screen.getByTestId('regen-energy-plot');
 
     expect(plot.querySelector('[data-band="Tramo"]')).not.toBeNull();
-    expect(within(plot).queryByRole('slider')).toBeNull();
+    // One «t =» on screen: the transport's, counted from the stretch's start.
+    expect(plot.querySelector('[data-cursor] text')).toBeNull();
+    timeCursor().focus();
+    fireEvent.keyDown(timeCursor(), { key: 'ArrowRight' });
+    // 1 % of the cycle, 13,69 s: 389,69 s is still in the stretch.
+    expect(timelineText()).toBe('t = 13,69 s');
+    expect(viewChip()).toHaveAccessibleName('Vista Tramo');
 
-    showCycle();
+    fireEvent.keyDown(timeCursor(), { key: 'ArrowRight' });
+    expect(viewChip()).toHaveAccessibleName('Vista Ciclo');
+    expect(timelineText()).toBe('t = 403 s');
     expect(plot.querySelector('[data-band]')).toBeNull();
-    expect(timeCursor()).toBeInTheDocument();
+    expect(plot.querySelector('[data-cursor] text')).toHaveTextContent(/t = 403\ss/);
   });
 
-  test('the shell is the tiered one: η and P_máx in Parámetros, the view and the five presets in Escenario', () => {
+  test('the shell is the tiered one: η and P_máx in Parámetros, the five presets in Escenario, the view in the drawer', () => {
     const { container } = renderLab();
     const region = (name: string) => screen.getByRole('region', { name });
 
@@ -241,8 +259,7 @@ describe('RegenLab', () => {
     expect(region('Parámetros')).toContainElement(pMaxField());
     expect(region('Parámetros').innerHTML).not.toMatch(/\bsm:grid-cols/);
     expect(region('Escenario')).toContainElement(presetSelect());
-    expect(region('Escenario')).toContainElement(viewRadio('Tramo: una frenada'));
-    expect(within(region('Escenario')).getByRole('radiogroup', { name: 'Vista' })).toBeVisible();
+    expect(viewChip()).toHaveAccessibleName('Vista Tramo');
     expect(within(presetSelect()).getAllByRole('option')).toHaveLength(5);
     expect(region('Lecturas')).toContainElement(screen.getByText(SPEED));
     expect(container.querySelector('[data-lab-transport]')).not.toBeNull();
@@ -278,7 +295,7 @@ describe('RegenLab', () => {
       within(screen.getByRole('group', { name: 'Ajustes activos' }))
         .getAllByRole('button')
         .map((chip) => chip.getAttribute('aria-label'));
-    expect(chips()).toEqual(['Ciclo UDDS · ciudad', 'f(v)', 'Velocidad 1×']);
+    expect(chips()).toEqual(['Vista Tramo', 'Ciclo UDDS · ciudad', 'f(v)', 'Velocidad 1×']);
 
     await user.click(screen.getByRole('button', { name: 'Ciclo UDDS · ciudad' }));
     const dialog = screen.getByRole('dialog');
@@ -288,7 +305,7 @@ describe('RegenLab', () => {
     );
     await user.click(within(dialog).getByRole('switch', { name: /^Desvanecimiento/ }));
 
-    expect(chips()).toEqual(['Ciclo US06 · agresivo', 'Velocidad 1×']);
+    expect(chips()).toEqual(['Vista Tramo', 'Ciclo US06 · agresivo', 'Velocidad 1×']);
   });
 
   test('how to use it says the views, the events, the cursor, f(v) and the MDX text; the source of η is in what the model leaves out', () => {
@@ -299,10 +316,13 @@ describe('RegenLab', () => {
     )!;
 
     expect(usage.open || leftOut.open).toBe(false);
-    expect(usage).toHaveTextContent('«Tramo» reproduce la frenada del ciclo que más energía quita');
+    expect(usage).toHaveTextContent(
+      'La vista se elige en los ajustes: «Tramo» reproduce la frenada',
+    );
     expect(usage).toHaveTextContent('con 5 s antes y después (en el UDDS, la de la figura 6.3)');
     expect(usage).toHaveTextContent('saltan entre las detenciones');
-    expect(usage).toHaveTextContent('En «Ciclo», arrastra el cursor de la gráfica de energía');
+    expect(usage).toHaveTextContent('Arrastra el cursor de la gráfica de energía');
+    expect(usage).toHaveTextContent('fuera del tramo, la vista pasa a «Ciclo»');
     expect(usage).not.toHaveTextContent(/veces más rápida|×\d/);
     expect(usage).toHaveTextContent('apaga la regeneración cerca de detenerse');
     expect(usage).toHaveTextContent(USAGE);
@@ -687,7 +707,7 @@ describe('RegenLab', () => {
 
     await user.click(screen.getByRole('button', { name: 'Restablecer' }));
 
-    expect(viewRadio('Tramo: una frenada')).toBeChecked();
+    expect(viewChip()).toHaveAccessibleName('Vista Tramo');
     expect(timelineText()).toBe('t = 0,00 s');
     expect(etaSlider()).toHaveValue('0.8');
     expect(presetShown()).toMatch(/^Model 3 · ciudad/);

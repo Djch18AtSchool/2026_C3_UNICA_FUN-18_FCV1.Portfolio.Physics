@@ -16,11 +16,12 @@ export interface RegenEnergyPlotProps {
   /** The live clock the cursor follows between renders, and its time in the cycle's. */
   frame: FrameStore;
   toCycle(t: number): number;
+  /** Dragging the cursor or moving it with the keys seeks there (and pauses), in the cycle's time. */
+  onSeek(t: number): void;
   /**
-   * Dragging the cursor or moving it with the keys seeks there (and pauses), in the cycle's time.
-   * Without it (the view «Tramo») the cursor is a plain line and `stretch` is shaded.
+   * The stretch the view «Tramo» plays, shaded. The cursor then carries no t label: the transport
+   * counts t from the stretch's start, and two different «t =» would contradict each other.
    */
-  onSeek?: (t: number) => void;
   stretch?: Stretch;
 }
 
@@ -29,9 +30,8 @@ const STRETCH_LABEL = 'Tramo';
 const cursorLabel = (x: number) => `t = ${formatNumber(x, { precision: 0, unit: 's' })}`;
 
 /**
- * The cumulative energies over the whole cycle with a cursor at the lab's t. In the view «Ciclo»
- * the cursor is draggable, the same clock as the transport timeline; in «Tramo» it is a line
- * inside the shaded stretch, which the transport plays on its own clock.
+ * The cumulative energies over the whole cycle with a draggable cursor at the lab's instant: the
+ * same clock as the transport timeline. In the view «Tramo» the stretch it plays is shaded.
  */
 export default function RegenEnergyPlot({
   steps,
@@ -58,9 +58,12 @@ export default function RegenEnergyPlot({
   const kWh = (joules: number) =>
     formatNumber(joules / J_PER_KWH, { precision: ENERGY_PRECISION, unit: 'kWh' });
   const follow = { frame, toX: toCycle };
-  const cursor: PlotCursor = onSeek
-    ? { x: t, follow, onChange: onSeek, label: cursorLabel }
-    : { x: t, follow };
+  const cursor: PlotCursor = {
+    x: t,
+    follow,
+    onChange: onSeek,
+    label: stretch ? undefined : cursorLabel,
+  };
   const bands: PlotBand[] = stretch
     ? [{ from: stretch.start, to: stretch.end, label: STRETCH_LABEL, labelBefore: true }]
     : [];

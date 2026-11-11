@@ -28,6 +28,7 @@ const UDDS_STOPS = 17;
 /** Half a pixel of rounding either way when comparing drawn positions. */
 const PX_SLACK = 1;
 const VIEW_CYCLE = 'Ciclo completo';
+const SETTINGS = /^Ajustes: /;
 const STILL_AT_END_MS = 500;
 const BATTERY = 'Energía a la batería $E_\\text{batería}$';
 const BLENDED = 'Frenando con el motor y con fricción';
@@ -43,6 +44,19 @@ async function openLab(page: Page): Promise<void> {
 const timelineOf = (lab: Locator) =>
   lab.getByRole('slider', { name: 'Línea de tiempo', exact: true });
 const badgeOf = (lab: Locator) => lab.locator('[data-lab-canvas] [data-time-scale-badge]');
+const viewChipOf = (lab: Locator) =>
+  lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button', { name: /^Vista / });
+
+/** Picks a view in the drawer with the keyboard: the chip opens it, Escape closes it. */
+async function chooseView(page: Page, lab: Locator, label: string): Promise<void> {
+  await viewChipOf(lab).focus();
+  await page.keyboard.press('Enter');
+  const dialog = page.getByRole('dialog', { name: SETTINGS });
+  await dialog.getByRole('combobox', { name: 'Vista' }).selectOption({ label });
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+}
+
 const marksOf = (lab: Locator) => lab.locator('[data-transport-marks] [data-transport-mark]');
 
 test.describe('página', () => {
@@ -132,7 +146,7 @@ test.describe('laboratorio', () => {
       page,
     }) => {
       const lab = page.locator(LAB);
-      if (view === VIEW_CYCLE) await lab.getByText(VIEW_CYCLE, { exact: true }).click();
+      if (view === VIEW_CYCLE) await chooseView(page, lab, VIEW_CYCLE);
       // Exact: the energy plot's cursor is "Tiempo", the transport's slider "Línea de tiempo".
       const timeline = timelineOf(lab);
       await seekTimeline(timeline, NEAR_END);
@@ -154,7 +168,7 @@ test.describe('laboratorio', () => {
   }) => {
     const lab = page.locator(LAB);
 
-    await expect(lab.getByRole('radio', { name: 'Tramo: una frenada' })).toBeChecked();
+    await expect(viewChipOf(lab)).toHaveAccessibleName('Vista Tramo');
     await expect(badgeOf(lab)).toHaveText(/^×1\s*velocidad real$/u);
     await expect(lab.locator('[data-time-scale-words]')).toHaveText(
       'Escala de tiempo: velocidad real',
@@ -180,10 +194,9 @@ test.describe('laboratorio', () => {
     await expect(next).toHaveAttribute('aria-disabled', 'true');
     await expect(next).toBeFocused();
 
-    // The view by keyboard: its radios take the arrows, and the instant (397 s) is kept.
-    await lab.getByRole('radio', { name: 'Tramo: una frenada' }).focus();
-    await page.keyboard.press('ArrowRight');
-    await expect(lab.getByRole('radio', { name: VIEW_CYCLE })).toBeChecked();
+    // The view by keyboard, from its chip; the instant (397 s) is kept.
+    await chooseView(page, lab, VIEW_CYCLE);
+    await expect(viewChipOf(lab)).toHaveAccessibleName('Vista Ciclo');
     await expect(badgeOf(lab)).toHaveText(/^×20\s*cámara rápida$/u);
     await expect(marksOf(lab)).toHaveCount(UDDS_STOPS);
     await expect(timelineOf(lab)).toHaveAttribute(
@@ -219,7 +232,7 @@ test.describe('laboratorio', () => {
     ).toBeLessThanOrEqual(PX_SLACK);
     await expect(svg).toHaveAttribute('aria-label', /el tramo va de 376 a 402\s?s\.$/u);
 
-    await lab.getByText(VIEW_CYCLE, { exact: true }).click();
+    await chooseView(page, lab, VIEW_CYCLE);
     await expect(band).toHaveCount(0);
     await expect(minimap.locator('[data-playhead]')).toHaveCount(1);
   });

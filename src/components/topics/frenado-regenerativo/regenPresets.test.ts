@@ -75,9 +75,12 @@ describe('regenLocalSettings', () => {
     setLoop: vi.fn(),
   } as unknown as SimClock;
 
-  test('offers the three cycles, f(v), speed and repeat; an unknown cycle value is ignored', () => {
+  test('offers the view, the three cycles, f(v), speed and repeat; unknown values are ignored', () => {
     const onCycleChange = vi.fn();
+    const onViewChange = vi.fn();
     const settings = regenLocalSettings({
+      view: 'tramo',
+      onViewChange,
       cycle: 'udds',
       lowSpeedFade: false,
       onCycleChange,
@@ -86,12 +89,23 @@ describe('regenLocalSettings', () => {
     });
 
     expect(settings.map((setting) => setting.key)).toEqual([
+      'view',
       'cycle',
       'lowSpeedFade',
       'speed',
       'loop',
     ]);
-    const cycle = settings[0];
+    const view = settings[0];
+    if (view.kind !== 'select') throw new Error('the view is a select');
+    expect(view.options.map(({ label, chip }) => [label, chip])).toEqual([
+      ['Tramo: una frenada', 'Tramo'],
+      ['Ciclo completo', 'Ciclo'],
+    ]);
+    view.onChange('lento');
+    expect(onViewChange).not.toHaveBeenCalled();
+    view.onChange('ciclo');
+    expect(onViewChange).toHaveBeenCalledWith('ciclo');
+    const cycle = settings[1];
     if (cycle.kind !== 'select') throw new Error('the cycle is a select');
     cycle.onChange('wltc');
     expect(onCycleChange).not.toHaveBeenCalled();

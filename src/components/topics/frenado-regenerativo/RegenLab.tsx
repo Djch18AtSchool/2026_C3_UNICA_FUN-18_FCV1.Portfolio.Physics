@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import { DRIVE_CYCLES, type CycleId } from '../../../lib/data/driveCycles';
 import { cycleBalance } from '../../../lib/physics/energy';
-import ChoiceField from '../../lab/ChoiceField';
 import InlineMath from '../../lab/InlineMath';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
@@ -76,11 +75,6 @@ const STRETCH_MARKERS = perCycle((id) => markersInStretch(CYCLE_MARKERS[id], STR
 const CYCLE_TICK_M = 1000;
 const STRETCH_TICK_M = 50;
 
-const VIEW_OPTIONS: readonly { value: RegenView; label: string }[] = [
-  { value: 'tramo', label: 'Tramo: una frenada' },
-  { value: 'ciclo', label: 'Ciclo completo' },
-];
-
 /** Why nothing reaches the battery, when a parameter switches regeneration off. */
 function zeroRegenNote({ eta, pMaxKw }: RegenLabState): string | null {
   if (pMaxKw === 0) {
@@ -93,9 +87,9 @@ function zeroRegenNote({ eta, pMaxKw }: RegenLabState): string | null {
 }
 
 /** «Cómo se usa»: the two views and the events, the energy cursor, then what f(v) does. */
-const VIEW_HINT = `«Tramo» reproduce la frenada del ciclo que más energía quita en las ruedas, con ${BRAKING_PAD_S} s antes y después (en el UDDS, la de la figura 6.3); el mapa de arriba la sitúa en el ciclo. «Evento anterior» y «Evento siguiente» saltan entre las detenciones.`;
+const VIEW_HINT = `La vista se elige en los ajustes: «Tramo» reproduce la frenada del ciclo que más energía quita en las ruedas, con ${BRAKING_PAD_S} s antes y después (en el UDDS, la de la figura 6.3), y el mapa de arriba la sitúa en el ciclo; «Ciclo», el ciclo entero. «Evento anterior» y «Evento siguiente» saltan entre las detenciones.`;
 const CURSOR_HINT =
-  'En «Ciclo», arrastra el cursor de la gráfica de energía, o enfócalo y muévelo con las flechas (1 % del ciclo; con Mayús, 10 %).';
+  'Arrastra el cursor de la gráfica de energía, o enfócalo y muévelo con las flechas (1 % del ciclo; con Mayús, 10 %); fuera del tramo, la vista pasa a «Ciclo».';
 const FADE_HINT = `$f(v)$ apaga la regeneración cerca de detenerse; sin él, con el tope de ${DEFAULT_P_MAX_KW} kW, la fricción no haría falta en estos ciclos.`;
 /** «Qué deja fuera el modelo»: where η comes from, before the MDX's own caveats. */
 const ETA_SOURCE =
@@ -164,9 +158,9 @@ function useRegenView(cycle: CycleId, cycleDuration: number) {
     pendingSeek.current = undefined;
   }, [view, seek]);
 
-  const changeView = (next: RegenView) => {
+  /** To `next`, at the instant `cycleT` of the cycle (by default, the one on show now). */
+  const changeView = (next: RegenView, cycleT = timing.offset + clock.frame.get()) => {
     if (next === view) return;
-    const cycleT = timing.offset + clock.frame.get();
     pendingSeek.current = viewSwitchTime(viewTiming(next, stretch, cycleDuration), cycleT);
     clock.pause();
     setView(next);
@@ -232,6 +226,16 @@ export default function RegenLab({ usage, leftOut }: RegenLabProps): JSX.Element
     setState(next);
   };
 
+  /**
+   * The energy cursor picks any instant of the cycle: inside the stretch «Tramo» seeks there; out
+   * of it the lab moves to «Ciclo», which holds it (the badge then says the new scale).
+   */
+  const seekCycle = (cycleT: number) => {
+    const isInStretch = cycleT >= stretch.start && cycleT <= stretch.end;
+    if (isStretch && !isInStretch) changeView('ciclo', cycleT);
+    else clock.seek(cycleT - offset);
+  };
+
   const onReset = () => {
     setState(INITIAL_REGEN_STATE);
     resetView();
@@ -265,24 +269,17 @@ export default function RegenLab({ usage, leftOut }: RegenLabProps): JSX.Element
   );
 
   const scenario = (
-    <>
-      <ChoiceField
-        id="regen-view"
-        label="Vista"
-        value={view}
-        options={VIEW_OPTIONS}
-        onChange={changeView}
-      />
-      <LabPresets
-        id="regen-preset"
-        presets={REGEN_PRESETS}
-        activeId={presetIdFor(state)}
-        onSelect={(preset) => update(preset.values)}
-      />
-    </>
+    <LabPresets
+      id="regen-preset"
+      presets={REGEN_PRESETS}
+      activeId={presetIdFor(state)}
+      onSelect={(preset) => update(preset.values)}
+    />
   );
 
   const display = regenLocalSettings({
+    view,
+    onViewChange: (next) => changeView(next),
     cycle: state.cycle,
     lowSpeedFade: state.lowSpeedFade,
     onCycleChange: (next: CycleId) => update({ ...state, cycle: next }),
@@ -337,7 +334,7 @@ export default function RegenLab({ usage, leftOut }: RegenLabProps): JSX.Element
           t={toCycle(clock.state.t)}
           frame={clock.frame}
           toCycle={toCycle}
-          onSeek={isStretch ? undefined : clock.seek}
+          onSeek={seekCycle}
           stretch={isStretch ? stretch : undefined}
         />
       </div>

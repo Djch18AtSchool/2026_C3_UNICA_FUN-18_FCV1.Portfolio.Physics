@@ -3,6 +3,13 @@ import type { CycleId } from '../../../lib/data/driveCycles';
 import { clockSettings } from '../../lab/clockSettings';
 import type { SettingOption } from '../../lab/SettingsDrawer';
 import type { SimClock } from '../../lab/useSimClock';
+import type { RegenView } from './regenStretch';
+
+/** The two views, named by what they show (never by a factor: the badge on the canvas says it). */
+export const VIEW_OPTIONS: readonly { value: RegenView; label: string; chip: string }[] = [
+  { value: 'tramo', label: 'Tramo: una frenada', chip: 'Tramo' },
+  { value: 'ciclo', label: 'Ciclo completo', chip: 'Ciclo' },
+];
 
 /** The three EPA schedules, named by the driving they stand for. */
 export const CYCLE_OPTIONS: readonly { value: CycleId; label: string }[] = [
@@ -19,8 +26,12 @@ const SPEEDS = [0.25, 0.5, 1, 2, 4] as const;
 
 const isCycleId = (value: string): value is CycleId =>
   CYCLE_OPTIONS.some((option) => option.value === value);
+const isView = (value: string): value is RegenView =>
+  VIEW_OPTIONS.some((option) => option.value === value);
 
 export interface RegenLocalSettingsInput {
+  view: RegenView;
+  onViewChange(view: RegenView): void;
   cycle: CycleId;
   lowSpeedFade: boolean;
   onCycleChange(cycle: CycleId): void;
@@ -28,8 +39,13 @@ export interface RegenLocalSettingsInput {
   clock: SimClock;
 }
 
-/** Ciclo, f(v), velocidad and repetir, in that order; the cycle and f(v) show as chips beside the gear. */
+/**
+ * Vista, ciclo, f(v), velocidad and repetir, in that order; the view, the cycle and f(v) show as
+ * chips beside the gear.
+ */
 export function regenLocalSettings({
+  view,
+  onViewChange,
   cycle,
   lowSpeedFade,
   onCycleChange,
@@ -37,6 +53,17 @@ export function regenLocalSettings({
   clock,
 }: RegenLocalSettingsInput): SettingOption[] {
   return [
+    {
+      key: 'view',
+      label: 'Vista',
+      chip: 'Vista',
+      kind: 'select',
+      value: view,
+      options: VIEW_OPTIONS.map((option) => ({ ...option })),
+      onChange: (value) => {
+        if (isView(value)) onViewChange(value);
+      },
+    },
     {
       key: 'cycle',
       label: 'Ciclo de manejo (EPA)',
