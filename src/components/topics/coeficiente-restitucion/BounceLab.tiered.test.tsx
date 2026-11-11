@@ -45,9 +45,7 @@ describe('BounceLab on the tiered shell', () => {
     expect(within(params()).getByRole('textbox', { name: /^Altura de suelta h/ })).toBeVisible();
     expect(within(params()).queryByRole('combobox')).toBeNull();
     expect(within(params()).queryByRole('button', { name: 'Choque de dos cuerpos' })).toBeNull();
-    expect(
-      within(scenario()).getByRole('radio', { name: 'Rebote contra el piso' }),
-    ).toBeChecked();
+    expect(within(scenario()).getByRole('radio', { name: 'Rebote contra el piso' })).toBeChecked();
     expect(within(scenario()).getByRole('combobox', { name: 'Valores de referencia' })).toHaveValue(
       'tenis-itf',
     );
@@ -165,9 +163,7 @@ describe('BounceLab on the tiered shell', () => {
       within(params()).getByRole('switch', { name: /m sub 2 tiende a infinito/ }),
     ).toBeVisible();
     expect(within(scenario()).queryByRole('combobox')).toBeNull();
-    expect(
-      within(scenario()).getByRole('radio', { name: 'Choque de dos cuerpos' }),
-    ).toBeChecked();
+    expect(within(scenario()).getByRole('radio', { name: 'Choque de dos cuerpos' })).toBeChecked();
     expect(within(canvasNotes()).getByTestId('collision-notes')).toHaveTextContent(
       /momento lineal/,
     );

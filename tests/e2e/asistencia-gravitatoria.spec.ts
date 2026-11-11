@@ -381,14 +381,21 @@ test.describe('escala de tiempo y máxima aproximación', () => {
         .locator('option')
         .evaluateAll((nodes) => nodes.map((node) => (node as HTMLOptionElement).value));
 
+      const arrival = lab.getByTestId('flyby-arrival');
+      const rpValue = lab.getByTestId('flyby-rp-value');
       for (const value of options) {
+        // Wait for the new encounter to be drawn: its arrival line is the one that changes.
+        const before = await arrival.textContent();
+        const isCurrent = (await presets.inputValue()) === value;
         await presets.selectOption(value);
+        if (!isCurrent) await expect(arrival).not.toHaveText(before ?? '');
         for (const rp of [undefined, ...RP_LIMITS]) {
           if (rp) {
             await field.fill(rp);
             await field.press('Enter');
+            // The r_p readout in the frame is the render that follows the edit.
+            await expect(rpValue).toContainText(`${rp},00`);
           }
-          await expect(lab.locator(BADGE)).toHaveText(/^×[\d\s,]+cámara (rápida|lenta)$/u);
           const touches = await badgeTouches(lab.locator(FRAME));
           expect(touches, `${value}, r_p ${rp ?? 'del encuentro'}`).toEqual([]);
         }
