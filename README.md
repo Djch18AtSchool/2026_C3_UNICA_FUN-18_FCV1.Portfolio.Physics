@@ -57,7 +57,7 @@ Los cuatro temas del Avance 2 siguen el mismo formato, cada uno con su laborator
 - `src/components/topics/`: laboratorios y figuras de cada tema (`DroneLab`, `JumpLab`, `HabitatLab`, `TyreLab`, `TriggerLab`, `RegenLab`, `BounceLab`, `WheelLab`, `FlybyLab`).
 - `src/layouts/`: plantillas de página.
 - `src/pages/`: páginas del sitio (`temas/` para cada tema).
-- `src/styles/`: estilos globales.
+- `src/styles/`: estilos globales: `tokens.css` (colores por tema y `--radius`), `scale.css` (la escala de medidas, ver «Escala de medidas»), `global.css` y `content.css` (el cuerpo de los temas).
 - `tests/e2e/`: pruebas de extremo a extremo (Playwright). `tests/e2e/fixtures/<nombre>/` son páginas de prueba fuera del sitio (una raíz de Astro propia que `fixtureSite.ts` construye y sirve en un puerto libre para un archivo de pruebas); hoy, `lab-time` para `time-scale.spec.ts`.
 
 ## Notación matemática
@@ -156,6 +156,17 @@ const clock = useSimClock(duration, { timeScale: 20 });  // clock.rate: s simula
 - **La escala la declara solo la insignia.** No escribas «1×» ni otro factor en el nombre de una vista o en un preajuste: con movimiento reducido la insignia dirá, por ejemplo, «×91» y los dos textos se contradirían. Nombra la vista por lo que muestra («Tramo», «Ciclo»). Un `factor` explícito no sigue la velocidad ni el movimiento reducido: úsalo solo cuando el reloj no cuenta segundos del fenómeno (Tema 8).
 - **`markers` como constante de módulo** (o memorizada): se normalizan con la identidad de la prop, y una lista nueva en cada render se normaliza en cada render.
 
+## Escala de medidas
+
+Raíz y cuerpo de lectura a 16 px (decisión de Dylan, 10 de noviembre de 2026): un rem son 16 px y cada paso de Tailwind cae en un píxel entero. Las medidas viven en `src/styles/scale.css`; en el marcado, los nombres de Tailwind son la escala.
+
+- **Longitudes**: solo 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 px (`1 2 3 4 6 8 12 16` en Tailwind; `--space-*` en CSS). Anchos y altos mayores, en múltiplos de 4 rem (`w-32`, `max-w-md`, `20rem`). Iconos 20 (`size-5`); botones de icono y controles 40 y 44 (`size-10`, `size-11`). Un `1px`/`2px` escrito tal cual (el grosor de una línea) vale; el medio paso de Tailwind (`gap-0.5`) no, salvo una línea de 2 px dibujada como caja (`w-0.5`).
+- **Texto**: cuerpo 16; títulos 36 / 24 / 20 / 18 (`h1`–`h4`); texto auxiliar 14 y 12 (`text-sm`, `text-xs`; `--text-aux`, `--text-aux-small`). Radios 4 (`--radius`, `rounded-base`) y 8 (`rounded-lg`); bordes 1 y 2.
+- **Ritmo vertical** del tema: `--flow` (24 px) entre los bloques de un paso (ecuación, `Why`, figura, tabla, nota), `--flow-step` (48) entre pasos y `--flow-section` (64) antes del caso de uso. **Un solo trazo** para toda línea que separa contenido: `--rule` (1 px sólido `--border`). `Why` no lleva línea: una etiqueta en mono de 12 px, 24 px entre sus partes y 8 px hasta su texto.
+- **La prueba** `src/styles/scale.test.ts` recorre `src` (`.astro`, `.tsx`, `.ts`, `.css`, `.mdx`; sin pruebas ni kits de prueba) y falla con una longitud fuera de la escala: clases de Tailwind (también valores entre corchetes y `calc()`), declaraciones CSS (hojas, `<style>` de Astro, `style="…"`) y objetos `style={{ … }}` con valores literales. Fuera de alcance: el dibujo SVG (atributos `width`, `r`, `strokeWidth`, `fontSize`, `dy`…; `stroke-width` en CSS), lo que calcula un script (reservas de alto que imitan un dibujo), puntos de ruptura y consultas de contenedor, `ch`, `%`, `vw`, `cqw`, `fr`, el interlineado sin unidad y los comentarios. Las reglas están en `scaleRules.ts`, `scaleTailwind.ts` y `scaleScan.ts`.
+- **Trinquete**: `src/styles/scale.baseline.json` lista las infracciones que había (por archivo, regla y valor). Una infracción nueva falla; una de la lista que ya no existe también, para que la lista solo baje. `pnpm run scale:report` las imprime por directorio, archivo y regla (`--files`, con su línea); `pnpm run scale:prune` baja la lista a lo que queda y nunca añade. Si dos ramas chocan en el JSON, quédate con la versión con más entradas y corre `scale:prune`.
+- **Excepciones con nombre**: un comentario `scale-exempt: <motivo>` exime su línea (o, solo en su línea, la siguiente). Hoy: la doble línea de `.margin-note` y `.callout-clase` (dos líneas de 1 px y 1 px de hueco no caben en 2 px).
+
 ## Comandos
 
 ```bash
@@ -173,6 +184,8 @@ pnpm run data:drone
 pnpm run data:cycles
 pnpm run data:voyager
 pnpm run measure:labs http://localhost:4324/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics/
+pnpm run scale:report
+pnpm run scale:prune
 bash scripts/compress-video.sh media-raw/<archivo>  # plan B del Tema 5, hoy sin uso
 ```
 
