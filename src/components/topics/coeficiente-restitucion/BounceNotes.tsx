@@ -59,7 +59,7 @@ export function sceneNotes({
 
 function Row({ term, children }: { term: string; children: string }): JSX.Element {
   return (
-    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-dotted border-border pb-2">
+    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-border pb-2">
       <dt className="text-sm text-fg-muted">
         <InlineMath text={term} />
       </dt>

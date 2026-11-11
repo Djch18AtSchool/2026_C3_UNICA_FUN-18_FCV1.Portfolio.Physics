@@ -182,13 +182,26 @@ function fontViolations(value: string): ValueViolation[] {
   );
 }
 
+/** A border or an outline, or its style alone (`border-left-style`). */
+const STROKE_PROPERTY =
+  /^(border|outline|column-rule)(-(top|right|bottom|left|block|inline|start|end))*(-style)?$/;
+/** One solid stroke separates content: a dotted or dashed one is off the scale (rule `border`). */
+const BROKEN_STROKE = /\b(dotted|dashed)\b/;
+
+function strokeViolations(property: string, value: string): ValueViolation[] {
+  const broken = STROKE_PROPERTY.test(property) ? BROKEN_STROKE.exec(value) : null;
+  return broken ? [{ rule: 'border', literal: broken[1] }] : [];
+}
+
 /** The lengths off the scale in one CSS declaration (also a Tailwind `[prop:value]`). */
 export function cssValueViolations(property: string, value: string): ValueViolation[] {
   if (property === 'font') return fontViolations(value);
+  const strokes = strokeViolations(property, value);
   const rule = cssPropertyRule(property);
-  if (rule === undefined) return [];
+  if (rule === undefined) return strokes;
   const control = CONTROL_TOKEN.test(property);
-  return lengthLiterals(value, rule)
+  const lengths = lengthLiterals(value, rule)
     .filter((literal) => !isLiteralOnScale(rule, literal, control))
     .map(({ text }) => ({ rule, literal: text }));
+  return [...lengths, ...strokes];
 }

@@ -271,8 +271,16 @@ function checkArbitraryProperty(text: string): ClassViolation | null | undefined
 }
 
 /** The class's violation of the scale, if it is a length utility off the scale. */
+/**
+ * One solid stroke separates content (README, «Ritmo vertical»): a dotted or dashed border, divider
+ * or outline is off the scale. A dashed frame that marks a state, not a separation, names its
+ * exception with scale-exempt.
+ */
+const BROKEN_STROKE = /^(border|divide|outline)-(dotted|dashed)$/;
+
 export function checkClass(token: string): ClassViolation | undefined {
   const utilityText = stripVariants(token);
+  if (BROKEN_STROKE.test(utilityText)) return { rule: 'border', value: utilityText };
   const arbitrary = checkArbitraryProperty(utilityText);
   if (arbitrary !== undefined) return arbitrary ?? undefined;
   const unsigned = utilityText.replace(/^-/, '');

@@ -171,7 +171,7 @@ describe('Tailwind classes', () => {
   test('borders 1 and 2', () => {
     expect(
       tsx(
-        'border border-2 border-l-2 border-0 border-border border-dashed outline-2 outline-offset-2',
+        'border border-2 border-l-2 border-0 border-border border-solid outline-2 outline-offset-2',
       ),
     ).toEqual([]);
     expect(tsx('border-4 border-l-[3px] border-b-[3px] border-chart-2')).toEqual([
@@ -179,6 +179,18 @@ describe('Tailwind classes', () => {
       'border border-l-[3px]',
       'border border-b-[3px]',
     ]);
+  });
+
+  test('one solid stroke: dotted and dashed borders, dividers and outlines are off the scale', () => {
+    expect(
+      tsx('border-b border-dotted md:border-dashed divide-y divide-dashed outline-dotted'),
+    ).toEqual([
+      'border border-dotted',
+      'border border-dashed',
+      'border divide-dashed',
+      'border outline-dotted',
+    ]);
+    expect(tsx('border-double border-solid decoration-dotted')).toEqual([]);
   });
 
   test('breakpoints and container queries are not spacing', () => {
@@ -250,6 +262,24 @@ describe('CSS', () => {
       'leading line-height: 27px',
       'spacing box-shadow: 0.375rem',
       'size max-width: 62rem',
+    ]);
+  });
+
+  test('one solid stroke: a dotted or dashed border or outline is off the scale', () => {
+    const css = `.a {
+      border-bottom: 1px dotted var(--border);
+      border-style: dashed;
+      outline: 2px dashed red;
+      border-left-style: dotted;
+      border-top: var(--rule);
+      border: var(--rule-double-width) double var(--accent);
+      text-decoration-style: dotted;
+    }`;
+    expect(keys('a.css', css)).toEqual([
+      'border border-bottom: dotted',
+      'border border-style: dashed',
+      'border outline: dashed',
+      'border border-left-style: dotted',
     ]);
   });
 

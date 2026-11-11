@@ -71,7 +71,7 @@ export default function FlybyComparison({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.label} className="border-b border-dotted border-border">
+            <tr key={row.label} className="border-b border-border">
               <th scope="row" className="px-2 py-1 text-left font-normal text-fg-muted">
                 {row.label}
               </th>

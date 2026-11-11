@@ -47,6 +47,7 @@ const STATUS_TEXT: Record<DroneSkeletonProps['status'], string> = {
   loading: 'Cargando los datos de la ruta…',
   error: 'No se pudieron cargar los datos de la ruta. Recarga la página para intentarlo de nuevo.',
 };
+// scale-exempt: the outline of a loading placeholder marks a state, it separates no content
 const PLACE = 'rounded-base border border-dashed border-border';
 const CHIP_PLACES = 3;
 

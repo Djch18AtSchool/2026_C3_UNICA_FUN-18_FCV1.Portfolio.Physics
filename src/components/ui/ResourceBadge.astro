@@ -10,6 +10,9 @@ interface Props {
 const { type, label } = Astro.props;
 
 const mark = type ? RESOURCE_MARKS[type] : undefined;
+/** The swatch of a resource still to be defined: an empty, dashed square. */
+// scale-exempt: a dashed swatch marks a state (no resource yet), it separates no content
+const UNDEFINED_SWATCH = 'size-3 shrink-0 rounded-base border border-dashed border-fg-muted';
 ---
 
 {type && mark ? (
@@ -19,10 +22,7 @@ const mark = type ? RESOURCE_MARKS[type] : undefined;
   </span>
 ) : (
   <span class="inline-flex items-center gap-2 rounded-base border border-transparent px-2 py-1 text-sm text-fg-muted">
-    <span
-      class="size-3 shrink-0 rounded-base border border-dashed border-fg-muted"
-      aria-hidden="true"
-    />
+    <span class={UNDEFINED_SWATCH} aria-hidden="true" />
     Recurso por definir
   </span>
 )}

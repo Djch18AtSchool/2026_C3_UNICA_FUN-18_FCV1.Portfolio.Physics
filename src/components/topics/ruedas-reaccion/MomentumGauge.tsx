@@ -13,6 +13,9 @@ const FILL_COLOR = 'var(--fg-muted)';
 const PERCENT = 100;
 const PERCENT_PRECISION = 1;
 const LMAX_PRECISION = 3;
+/** Where the dump starts on the gauge, dashed like the plots' reference lines. */
+// scale-exempt: a dashed threshold mark on the gauge, not a line that separates content
+const THRESHOLD_MARK = 'absolute -inset-y-1 border-l-2 border-dashed border-fg';
 
 export interface MomentumGaugeProps {
   Lw: number;
@@ -61,7 +64,7 @@ export default function MomentumGauge({ Lw, Lmax, threshold }: MomentumGaugeProp
         {threshold === undefined ? null : (
           <div
             data-threshold=""
-            className="absolute -inset-y-1 border-l-2 border-dashed border-fg"
+            className={THRESHOLD_MARK}
             style={{ left: `${threshold * PERCENT}%` }}
           />
         )}

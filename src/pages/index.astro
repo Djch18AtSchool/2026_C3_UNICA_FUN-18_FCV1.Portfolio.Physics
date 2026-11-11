@@ -14,6 +14,10 @@ const entries = sortByNumber(
 
 // Future phases (no topics yet) show only their heading and a dashed badge: no rows or counts.
 const groups = groupByPhase(entries);
+/** «Se publica con su consigna»: a dashed frame (navigation.spec.ts checks it). */
+const UPCOMING_BADGE =
+  // scale-exempt: a dashed frame marks a state (published with its brief), not a separator
+  'inline-flex shrink-0 items-center rounded-base border border-dashed border-fg-muted px-2 py-px text-xs leading-5 whitespace-nowrap text-fg-muted';
 ---
 
 <BaseLayout title="Portafolio de evidencias de Física I">
@@ -72,10 +76,7 @@ const groups = groupByPhase(entries);
         <div class="flex flex-col items-start gap-x-4 gap-y-2 border-b-(length:--rule-double-width) border-double border-border pb-2 sm:flex-row sm:items-center sm:justify-between">
           <h2 id={`fase-${group.phase}-titulo`}>{group.label}</h2>
           {group.isFuture && (
-            <span
-              data-testid="upcoming-phase"
-              class="inline-flex shrink-0 items-center rounded-base border border-dashed border-fg-muted px-2 py-px text-xs leading-5 whitespace-nowrap text-fg-muted"
-            >
+            <span data-testid="upcoming-phase" class={UPCOMING_BADGE}>
               Se publica con su consigna
             </span>
           )}
