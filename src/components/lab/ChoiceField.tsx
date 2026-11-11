@@ -11,6 +11,7 @@ export interface ChoiceFieldProps<T extends string> {
 
 /**
  * Native radios sharing a name (arrow keys move the choice) drawn as segments that wrap on phones,
+ * each with its own faint border so an option wrapped to a second row still reads as one,
  * the label above: every choice in words of a lab's levels (Tema 7's and Tema 8's mode, Tema 8's
  * dump actuator, Tema 9's side of the pass). The drawer's short values use SegmentedField.
  */
@@ -42,7 +43,7 @@ function ChoiceField<T extends string>({
               onChange={() => onChange(option.value)}
               className="peer sr-only"
             />
-            <span className="flex min-h-9 cursor-pointer items-center rounded-base border border-transparent px-3 text-sm text-fg-muted transition-colors peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-fg peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent hover:text-fg">
+            <span className="flex min-h-9 cursor-pointer items-center rounded-base border border-border px-3 text-sm text-fg-muted transition-colors peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-fg peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent hover:border-fg-muted hover:text-fg">
               {option.label}
             </span>
           </label>
