@@ -29,8 +29,8 @@ const MARK_KIND: Readonly<Record<'stop' | 'peak', string>> = {
 };
 /**
  * The timeline's cell with events: the 8 px strip of marks at the bottom, and the range over the
- * whole cell (40 px, its track and thumb centred), painted after the marks: a click on a mark
- * lands on the range there, as on any point of it.
+ * whole cell (40 px, its track and thumb centred, the thumb clear of the strip). The marks take no
+ * pointer events, so a click on one lands on the range there, as on any point of it.
  */
 export const TIMELINE_WITH_MARKS = 'relative min-w-32 flex-1';
 export const RANGE_WITH_MARKS = 'relative block h-10 w-full';

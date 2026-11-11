@@ -1,13 +1,18 @@
 /**
  * A test page outside the site (tests/e2e/fixtures/<name>/, an Astro root of its own), built and
  * served on a free port for one spec file: shared lab pieces are tried there without touching a
- * real topic. Built once per file (run its tests in serial mode) and removed when it stops.
+ * real topic. Built once per file (run its tests in serial mode, with a beforeAll timeout of
+ * FIXTURE_BUILD_TIMEOUT_MS) and removed when it stops: the build folder and the .astro folder
+ * Astro's build writes into the fixture's root (both ignored by git).
  */
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AstroInlineConfig } from 'astro';
+
+/** A cold Astro build of a fixture takes ~2 s; under a loaded e2e run, far more. */
+export const FIXTURE_BUILD_TIMEOUT_MS = 120_000;
 
 export interface FixtureSite {
   url: string;
@@ -72,13 +77,23 @@ export async function startFixtureSite(name: string): Promise<FixtureSite> {
     vite: { plugins: [tailwindcss()], cacheDir: join(work, 'vite') },
     server: { host: '127.0.0.1', port },
   };
-  await astro.build(config);
-  const server = await astro.preview(config);
-  return {
-    url: `http://127.0.0.1:${port}/`,
-    async stop() {
-      await server.stop();
-      await rm(work, { recursive: true, force: true });
-    },
-  };
+  const cleanUp = () =>
+    Promise.all([
+      rm(work, { recursive: true, force: true }),
+      rm(join(root, '.astro'), { recursive: true, force: true }),
+    ]);
+  try {
+    await astro.build(config);
+    const server = await astro.preview(config);
+    return {
+      url: `http://127.0.0.1:${port}/`,
+      async stop() {
+        await server.stop();
+        await cleanUp();
+      },
+    };
+  } catch (error) {
+    await cleanUp();
+    throw error;
+  }
 }

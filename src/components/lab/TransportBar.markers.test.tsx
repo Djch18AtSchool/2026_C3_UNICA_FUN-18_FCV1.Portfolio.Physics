@@ -249,10 +249,11 @@ describe('TransportBar with markers', () => {
     );
     const layer = container.querySelector('[data-transport-marks]');
 
-    // The range comes after the marks: it paints over them and takes a click on one.
+    // The range covers the marks' strip (and paints after it); the marks let a click through.
     expect(layer?.nextElementSibling).toBe(timeline());
     expect(timeline()).toHaveClass('h-10');
     expect(timeline()).not.toHaveClass('h-6');
+    expect(layer).toHaveClass('pointer-events-none');
     for (const mark of marks(container)) {
       expect(mark.className).toMatch(/\bborder-/u);
       expect(mark.className).not.toMatch(/\bbg-/u);

@@ -6,7 +6,7 @@
  */
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { startFixtureSite, type FixtureSite } from './fixtureSite';
+import { FIXTURE_BUILD_TIMEOUT_MS, startFixtureSite, type FixtureSite } from './fixtureSite';
 import { cssLengthPxIn, waitForIsland } from './helpers';
 import { expectSameHeightAfterHydration, HYDRATION_WIDTHS } from './hydrationStability';
 
@@ -19,6 +19,10 @@ const FIRST_STOP = 22;
 const LAST_STOP = 1360;
 /** A click on a native range lands its thumb within one position of the point. */
 const POSITION_SLACK = 1;
+/** Half the native thumb (16 px): the marks start below it. */
+const THUMB_HALF_PX = 8;
+/** The badge's status speaks a change once it holds this long (SCALE_ANNOUNCE_DELAY_MS), and more. */
+const SCALE_SETTLED_MS = 1000;
 /** Rounding of rem at the site's root size against the measured transport. */
 const ROOM_SLACK_PX = 1;
 const BLOCKING_IMPACTS = ['serious', 'critical'];
@@ -31,6 +35,7 @@ let site: FixtureSite;
 
 test.describe.configure({ mode: 'serial' });
 test.beforeAll(async () => {
+  test.setTimeout(FIXTURE_BUILD_TIMEOUT_MS);
   site = await startFixtureSite('lab-time');
 });
 test.afterAll(async () => {
@@ -51,7 +56,7 @@ for (const viewport of VIEWPORTS) {
   test.describe(`a ${viewport.width} px`, () => {
     test.use({ viewport });
 
-    test('las marcas de evento van bajo la línea de tiempo, sin tocar el pulgar, e inertes', async ({
+    test('las marcas van bajo el pulgar, sin tocarlo, y un clic sobre una lleva el pulgar a ella', async ({
       page,
     }) => {
       const lab = await openFixture(page);
@@ -66,15 +71,21 @@ for (const viewport of VIEWPORTS) {
       for (const box of boxes) {
         expect(box.x).toBeGreaterThanOrEqual(range!.x);
         expect(box.x + box.width).toBeLessThanOrEqual(range!.x + range!.width);
-        // Under the range (and so under its thumb), in the 8 px strip below it.
-        expect(box.y).toBeGreaterThanOrEqual(range!.y + range!.height);
+        // In the strip at the bottom of the range's box, below the thumb (centred, 16 px).
+        expect(box.y).toBeGreaterThanOrEqual(range!.y + range!.height / 2 + THUMB_HALF_PX);
+        expect(box.y + box.height).toBeLessThanOrEqual(range!.y + range!.height + 1);
         expect(box.height).toBeGreaterThan(0);
       }
-      // A click on a mark reaches the range (the marks are not hit) and lands the thumb's centre
-      // on the mark: the mark sits where the thumb stands at its time.
-      const lastBox = boxes.at(-1)!;
-      const centre = { x: lastBox.x + lastBox.width / 2, y: range!.y + range!.height / 2 };
-      await page.mouse.click(centre.x, centre.y);
+      // A click right on a mark: the mark lets it through to the range, which paints over the
+      // strip, and the thumb's centre lands where the mark is.
+      const last = boxes.at(-1)!;
+      const onMark = { x: last.x + last.width / 2, y: last.y + last.height / 2 };
+      const hit = await page.evaluate(
+        ({ x, y }) => document.elementFromPoint(x, y)?.getAttribute('aria-label') ?? null,
+        onMark,
+      );
+      expect(hit).toBe('Línea de tiempo');
+      await page.mouse.click(onMark.x, onMark.y);
       const value = Number(await timeline(lab).inputValue());
       expect(Math.abs(value - (LAST_STOP / DURATION) * STEPS)).toBeLessThanOrEqual(POSITION_SLACK);
     });
@@ -163,18 +174,82 @@ test('el factor de tiempo va en la esquina del lienzo, sin tapar ni atrapar el p
     { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 },
   );
   expect(hit).toBeNull();
-  await expect(lab.getByRole('status').filter({ hasText: 'Escala de tiempo' })).toHaveText(
+  await expect(lab.locator('[data-time-scale-words]')).toHaveText(
     'Escala de tiempo: 20 veces la velocidad real, cámara rápida',
   );
   await expect(lab.locator('svg g[data-time-scale-badge]')).toHaveText(/×20/u);
 });
 
-test('con movimiento reducido el factor dice el paso que se reproduce', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
+test('con movimiento reducido el factor pasa, tras hidratar, al paso que se reproduce, sin anunciarlo', async ({
+  browser,
+}) => {
+  // The server cannot know reduced motion: it sends the nominal ×20.
+  const plain = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce' });
+  const server = await plain.newPage();
+  await server.goto(site.url);
+  await expect(server.locator('div[data-time-scale-badge]')).toHaveText(/^×20\s*cámara rápida$/u);
+  await plain.close();
+
+  const live = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await live.newPage();
+  const lab = await openFixture(page);
+  const status = lab.locator('[data-time-scale-badge] ~ [role="status"]');
+
+  // Once mounted it reads the stepped pace: 60 steps of 250 ms play the 1 369 s run in 15 s, some
+  // 91 times real time. The wait is for that one change after mount (README, «Escala de tiempo
+  // y eventos»); the live region must stay silent through it.
+  await expect(lab.locator('div[data-time-scale-badge]')).toHaveText(/^×91\s*cámara rápida$/u);
+  await page.waitForTimeout(SCALE_SETTLED_MS);
+  await expect(status).toBeEmpty();
+  await live.close();
+});
+
+test('un cambio de velocidad sí se anuncia', async ({ page }) => {
+  const lab = await openFixture(page);
+  const status = lab.locator('[data-time-scale-badge] ~ [role="status"]');
+  // Nothing on the page tells when the badge took its baseline (the first scale that holds after
+  // mount): wait past it, as a reader would, so the change below is a change.
+  await page.waitForTimeout(SCALE_SETTLED_MS);
+
+  await lab.getByRole('button', { name: 'Velocidad 1×' }).click();
+  await page.getByRole('dialog').getByRole('combobox', { name: 'Velocidad' }).selectOption('0.25');
+
+  await expect(status).toHaveText('Escala de tiempo: 5 veces la velocidad real, cámara rápida');
+});
+
+test('con colores forzados las marcas siguen viéndose', async ({ page }) => {
+  await page.emulateMedia({ forcedColors: 'active' });
   const lab = await openFixture(page);
 
-  // 60 pasos de 250 ms: el ciclo de 1 369 s en 15 s, unas 91 veces la velocidad real.
-  await expect(lab.locator('div[data-time-scale-badge]')).toHaveText(/^×91\s*cámara rápida$/u);
+  const inks = await lab.locator('[data-transport-mark]').evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const style = getComputedStyle(node);
+      return { width: parseFloat(style.borderLeftWidth), color: style.borderLeftColor };
+    }),
+  );
+  const canvas = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+
+  for (const ink of inks) {
+    expect(ink.width).toBeGreaterThan(0);
+    expect(ink.color).not.toBe(canvas);
+  }
+});
+
+test('a 320 px la fila de eventos cabe sin desbordar', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  const lab = await openFixture(page);
+  for (let i = 0; i < 4; i += 1) await next(lab).click();
+  const transport = lab.locator('[data-lab-transport]');
+
+  const overflow = await transport.evaluate((node) => {
+    const box = node.getBoundingClientRect();
+    return [...node.querySelectorAll('button, [data-transport-event], span.font-mono')]
+      .map((child) => child.getBoundingClientRect())
+      .filter((child) => child.left < box.left - 1 || child.right > box.right + 1).length;
+  });
+
+  expect(overflow).toBe(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
 });
 
 for (const width of HYDRATION_WIDTHS) {
