@@ -31,8 +31,9 @@ export interface LabShellProps {
   levels: LabLevels;
   /**
    * What reads the canvas without being a control (a legend, the stated time lapse, a model
-   * versus data table): right after the transport in one column, under both columns at the card's
-   * full width in two. No controls here: in two columns focus would jump down and back up.
+   * versus data table): after the panel in one column, under both columns at the card's full width
+   * in two, so the order of reading is the visual one in both. Still no controls here: they belong
+   * to the levels or, if they act on the drawing, to the canvas.
    */
   canvasNotes?: ReactNode;
   /** «Cómo se usa» and «Qué deja fuera el modelo», closed disclosures at the end of the card. */

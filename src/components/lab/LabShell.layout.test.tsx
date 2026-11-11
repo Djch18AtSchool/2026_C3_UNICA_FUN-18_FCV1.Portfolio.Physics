@@ -73,6 +73,8 @@ describe('LabShell layout: levels, stage and panel', () => {
     cleanup();
     uninstall();
     vi.useRealTimers();
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     localStorage.clear();
     resetSettingsForTests();
   });
@@ -245,7 +247,7 @@ describe('LabShell layout: levels, stage and panel', () => {
     }
   });
 
-  test('canvas notes: after the transport in reading order, in their own cell under the columns', () => {
+  test('canvas notes: after the panel in reading order (as they are seen), in their own cell under the columns', () => {
     const { container } = renderTiered({
       clock: fakeClock(),
       canvasNotes: <ul aria-label="Leyenda del dibujo" />,
@@ -256,7 +258,7 @@ describe('LabShell layout: levels, stage and panel', () => {
     const panel = container.querySelector('[data-lab-panel]') as HTMLElement;
     expect(within(notes).getByRole('list', { name: 'Leyenda del dibujo' })).toBeInTheDocument();
     expect(stage).not.toContainElement(notes);
-    expectInOrder([screen.getByRole('group', { name: 'Reproducción' }), notes, panel]);
+    expectInOrder([screen.getByRole('group', { name: 'Reproducción' }), panel, notes]);
     expect(notes.parentElement).toBe(container.querySelector('[data-lab-columns]'));
   });
 
@@ -266,7 +268,16 @@ describe('LabShell layout: levels, stage and panel', () => {
     expect(container.querySelector('[data-lab-canvas-notes]')).toBeNull();
   });
 
-  test('the panel is a named, focusable region only while its content overflows it', () => {
+  test('the panel flows with the page: no scroll of its own, no region or tab stop of its own', () => {
+    const { container } = renderTiered();
+    const panel = container.querySelector('[data-lab-panel]') as HTMLElement;
+
+    expect(panel).not.toHaveAttribute('tabindex');
+    expect(panel).not.toHaveAttribute('role');
+    expect(panel.className).not.toMatch(/overflow|max-h|sticky/);
+  });
+
+  test('the stage sticks only once it is measured to fit the window under the topic bar', () => {
     const observers: ResizeObserverCallback[] = [];
     vi.stubGlobal(
       'ResizeObserver',
@@ -278,18 +289,22 @@ describe('LabShell layout: levels, stage and panel', () => {
         disconnect() {}
       },
     );
+    vi.stubGlobal('innerHeight', 800);
+    let stageHeight = 900;
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return { height: this.hasAttribute('data-lab-stage') ? stageHeight : 64 } as DOMRect;
+    });
     const { container } = renderTiered();
-    const panel = container.querySelector('[data-lab-panel]') as HTMLElement;
-    expect(panel).not.toHaveAttribute('tabindex');
-    expect(panel).not.toHaveAttribute('role');
+    const stage = container.querySelector('[data-lab-stage]') as HTMLElement;
+    expect(stage).toHaveAttribute('data-lab-stage-fits', 'false');
+    expect(stage.className).toMatch(/lab-split:data-\[lab-stage-fits=true\]:sticky/);
 
-    Object.defineProperty(panel, 'scrollHeight', { configurable: true, value: 929 });
-    Object.defineProperty(panel, 'clientHeight', { configurable: true, value: 715 });
+    stageHeight = 600;
     act(() => observers.forEach((callback) => callback([], {} as ResizeObserver)));
 
-    expect(screen.getByRole('region', { name: 'Controles del laboratorio' })).toBe(panel);
-    expect(panel).toHaveAttribute('tabindex', '0');
-    vi.unstubAllGlobals();
+    expect(stage).toHaveAttribute('data-lab-stage-fits', 'true');
   });
 
   test('the notes are two closed disclosures; without notes there are none', () => {

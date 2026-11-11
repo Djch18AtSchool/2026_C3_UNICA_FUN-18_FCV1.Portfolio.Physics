@@ -21,19 +21,27 @@
  *
  * One card: the title with the chip row and the gear; the stage (canvas, then transport); the
  * panel (level 1 «Parámetros» with «Restablecer», level 2 «Escenario», «Lecturas» in two narrow
- * columns); the canvas notes; and «Cómo se usa» and «Qué deja fuera el modelo» at the end. In two
- * columns (the lab-split variant, global.css: lg and a lab 42rem wide) the stage and the panel sit
- * side by side, each sticking under the topic bar in its own cell, the panel 20rem wide, never
- * taller than the window and scrolling on its own (then a named, focusable region), and a stage
- * taller than the window keeps its transport at the window's bottom; the canvas notes take the
- * row under both, the disclosures follow. In one column the order is canvas, transport, canvas
- * notes, levels, readouts, disclosures. The shell owns only whether the drawer is open; the
- * simulation state belongs to the laboratory.
+ * columns); the canvas notes; and «Cómo se usa» and «Qué deja fuera el modelo» at the end. The
+ * order of the DOM is the order of reading and of the layout, in one column and in two. In two
+ * columns (the lab-split variant, global.css: lg and a lab 42rem wide) the stage and the 20rem
+ * panel sit side by side: the panel flows with the page, and the stage sticks under the topic bar
+ * while it fits the window (a taller one flows too, its transport pinned at the window's bottom);
+ * the canvas notes take the row under both, the disclosures follow. The shell owns only whether
+ * the drawer is open; the simulation state belongs to the laboratory.
  */
 import { useId, type JSX, type ReactNode } from 'react';
 import Readout from '../controls/Readout';
-import { useOverflowsY } from '../hooks/useOverflowsY';
+import { useFitsInWindow } from '../hooks/useFitsInWindow';
 import { CANVAS_BLEED } from './canvasInset';
+import {
+  LAB_CANVAS_NOTES,
+  LAB_CARD,
+  LAB_COLUMNS,
+  LAB_PANEL,
+  LAB_PANEL_CELL,
+  LAB_PARAMS_LEVEL,
+  LAB_STAGE_CELL,
+} from './labShellClasses';
 import InlineMath from './InlineMath';
 import LabNotes from './LabNotes';
 import { GearButton, ReadoutAnnouncer, useLabDrawer, type LabDrawer } from './labShellParts';
@@ -45,25 +53,14 @@ import TransportBar from './TransportBar';
 export { READOUT_ANNOUNCE_DELAY_MS } from './labShellParts';
 export type { LabLevels, LabReadout, LabShellProps } from './labShellTypes';
 
-/** Inside a figure the frame lends its border (content.css); alone the card draws its own. */
-const ROOT =
-  '@container/lab flex flex-col gap-4 rounded-base border border-border bg-bg-elevated p-4 in-[.figure-frame]:border-0';
+/** Where the stage sticks: under the topic bar. */
+const STICKY_TOP = 'var(--topic-bar-clearance)';
 /**
- * Row 1: stage and panel cells; the canvas notes, when there are any, open an implicit row 2 across
- * both (an explicit empty row would still add its gap).
+ * The stage sticks only while it fits the window under the topic bar: data-lab-stage-fits is
+ * "true" or "false" once measured (absent on the server, so nothing sticks before).
  */
-const COLUMNS = 'flex flex-col gap-6 lab-split:grid lab-split:grid-cols-[minmax(0,1fr)_20rem]';
-/** Each cell spans row 1 only, so what sticks inside it never slides over the canvas notes. */
-const STAGE_CELL = 'min-w-0 lab-split:col-start-1 lab-split:row-start-1';
-const PANEL_CELL = 'min-w-0 lab-split:col-start-2 lab-split:row-start-1';
-const CANVAS_NOTES = 'min-w-0 lab-split:col-span-2 lab-split:row-start-2';
-const STAGE = 'flex flex-col gap-4 lab-split:sticky lab-split:top-(--topic-bar-clearance)';
-/**
- * Its 0,25rem padding keeps focus rings unclipped, so it sits 0,25rem higher and wider to line
- * its content up with the stage's; its edges shade while it hides content (scroll-cue-y).
- */
-const PANEL =
-  'flex flex-col gap-6 lab-split:sticky lab-split:top-[calc(var(--topic-bar-clearance)-0.25rem)] lab-split:-m-1 lab-split:max-h-[calc(100dvh-var(--topic-bar-clearance)-1rem)] lab-split:overflow-y-auto lab-split:p-1 lab-split:scroll-cue-y lab-split:[scrollbar-width:thin]';
+const STAGE =
+  'flex flex-col gap-4 lab-split:data-[lab-stage-fits=true]:sticky lab-split:data-[lab-stage-fits=true]:top-(--topic-bar-clearance)';
 /**
  * Over a stage taller than the window, the transport waits at the window's bottom. Its height (the
  * 44 px buttons of TransportBar, py-3 and the 1 px rule) is copied in --lab-transport-room
@@ -82,20 +79,24 @@ const CHIP =
   'inline-flex min-h-8 items-center whitespace-nowrap rounded-base border border-border bg-bg px-2 text-xs font-medium text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
 const RESET =
   'min-h-10 rounded-base border border-border px-3 text-sm text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
-const PANEL_NAME = 'Controles del laboratorio';
 
 interface SectionProps {
   level: 'params' | 'scenario' | 'readouts';
   title: string;
   action?: ReactNode;
+  className?: string;
   children: ReactNode;
 }
 
 /** A level of the panel: a region named by its heading. */
-function Section({ level, title, action, children }: SectionProps): JSX.Element {
+function Section({ level, title, action, className = '', children }: SectionProps): JSX.Element {
   const headingId = `${useId()}-heading`;
   return (
-    <section aria-labelledby={headingId} data-lab-level={level} className="flex flex-col gap-4">
+    <section
+      aria-labelledby={headingId}
+      data-lab-level={level}
+      className={`flex flex-col gap-4 ${className}`}
+    >
       <div className="flex items-center justify-between gap-3 border-b border-border pb-2">
         <h3 id={headingId} className="m-0 text-sm font-semibold">
           {title}
@@ -157,17 +158,14 @@ interface PanelProps {
   onReset(): void;
 }
 
-/** The three levels. Scrolling on its own, it is a named stop of the tab order (WCAG 2.1.1). */
+/** The three levels, in the page's flow. */
 function Panel({ levels, readouts, onReset }: PanelProps): JSX.Element {
-  const [ref, overflows] = useOverflowsY<HTMLDivElement>();
-  const scrollable = overflows
-    ? ({ role: 'region', 'aria-label': PANEL_NAME, tabIndex: 0 } as const)
-    : {};
   return (
-    <div ref={ref} data-lab-panel="" className={PANEL} {...scrollable}>
+    <div data-lab-panel="" className={LAB_PANEL}>
       <Section
         level="params"
         title="Parámetros"
+        className={LAB_PARAMS_LEVEL}
         action={
           <button type="button" onClick={onReset} className={RESET}>
             Restablecer
@@ -200,9 +198,15 @@ function Stage({
   timeUnit,
   children,
 }: Pick<LabShellProps, 'clock' | 'timeUnit' | 'children'>): JSX.Element {
+  const [ref, fits] = useFitsInWindow<HTMLDivElement>(STICKY_TOP);
   return (
-    <div className={STAGE_CELL}>
-      <div data-lab-stage="" className={STAGE}>
+    <div className={LAB_STAGE_CELL}>
+      <div
+        ref={ref}
+        data-lab-stage=""
+        data-lab-stage-fits={fits === undefined ? undefined : String(fits)}
+        className={STAGE}
+      >
         <div data-lab-canvas="" className={CANVAS}>
           {children}
         </div>
@@ -236,21 +240,21 @@ export default function LabShell({
       data-testid={testId}
       data-lab-shell="tiered"
       data-playing={clock?.state.playing ?? false}
-      className={ROOT}
+      className={LAB_CARD}
     >
       <Header title={title} drawer={drawer} display={levels.display} />
-      <div data-lab-columns="" className={COLUMNS}>
+      <div data-lab-columns="" className={LAB_COLUMNS}>
         <Stage clock={clock} timeUnit={timeUnit}>
           {children}
         </Stage>
+        <div className={LAB_PANEL_CELL}>
+          <Panel levels={levels} readouts={readouts} onReset={onReset} />
+        </div>
         {canvasNotes ? (
-          <div data-lab-canvas-notes="" className={CANVAS_NOTES}>
+          <div data-lab-canvas-notes="" className={LAB_CANVAS_NOTES}>
             {canvasNotes}
           </div>
         ) : null}
-        <div className={PANEL_CELL}>
-          <Panel levels={levels} readouts={readouts} onReset={onReset} />
-        </div>
       </div>
       <LabNotes {...notes} />
       <ReadoutAnnouncer readouts={readouts} />

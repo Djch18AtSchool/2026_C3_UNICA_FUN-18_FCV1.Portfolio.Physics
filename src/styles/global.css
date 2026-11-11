@@ -158,23 +158,6 @@
   }
 }
 
-/*
- * Scroll cue for a column that scrolls on its own (LabShell's panel), as .table-frame does
- * sideways: a soft shadow on each edge that hides content, hidden by a cover in the surface color
- * while that edge is in view. Pure background: no layout shift, theme tokens.
- */
-@utility scroll-cue-y {
-  --scroll-cue: color-mix(in srgb, var(--fg) 22%, transparent);
-  background:
-    linear-gradient(var(--bg-elevated) 40%, transparent) center top / 100% 2rem no-repeat local,
-    linear-gradient(transparent, var(--bg-elevated) 60%) center bottom / 100% 2rem no-repeat local,
-    radial-gradient(farthest-side at 50% 0, var(--scroll-cue), transparent) center top / 100%
-      0.75rem no-repeat scroll,
-    radial-gradient(farthest-side at 50% 100%, var(--scroll-cue), transparent) center bottom / 100%
-      0.75rem no-repeat scroll,
-    var(--bg-elevated);
-}
-
 /* Reading column: about 70 characters per line. */
 @utility measure {
   max-width: 70ch;

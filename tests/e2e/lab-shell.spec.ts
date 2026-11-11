@@ -188,9 +188,20 @@ async function scrollLabTo(lab: Locator, below: number): Promise<void> {
   );
 }
 
-/** The sticky offset the stage declares (its computed `top`, in px). */
-const stickyTop = (lab: Locator) =>
-  lab.locator('[data-lab-stage]').evaluate((node) => parseFloat(getComputedStyle(node).top));
+/** A CSS length resolved in the page, in px (a probe of that height). */
+async function cssLengthPx(page: Page, length: string): Promise<number> {
+  return page.evaluate((value) => {
+    const probe = document.createElement('div');
+    probe.style.height = value;
+    document.body.append(probe);
+    const height = probe.getBoundingClientRect().height;
+    probe.remove();
+    return height;
+  }, length);
+}
+
+/** Where a stage that fits the window sticks: under the topic bar (its clearance). */
+const stickyTop = (page: Page) => cssLengthPx(page, 'var(--topic-bar-clearance)');
 
 async function boxOf(locator: Locator) {
   const box = await locator.boundingBox();
@@ -294,7 +305,7 @@ for (const { path, testId } of LABS) {
           page,
         }) => {
           const lab = await openTiered(page, path, testId);
-          await scrollLabTo(lab, await stickyTop(lab));
+          await scrollLabTo(lab, await stickyTop(page));
 
           const params = lab.getByRole('region', { name: 'Parámetros' });
           const control = await boxOf(params.locator(FIRST_CONTROL).first());
@@ -303,42 +314,41 @@ for (const { path, testId } of LABS) {
           expect(control.x).toBeGreaterThanOrEqual(canvas.x + canvas.width);
         });
 
-        test('al bajar, el panel queda bajo la barra del tema, nunca más alto que la ventana, y la reproducción a la vista', async ({
+        test('al bajar, el escenario que cabe queda bajo la barra y el panel fluye con la página; uno más alto fluye con la reproducción al pie', async ({
           page,
         }) => {
           const lab = await openTiered(page, path, testId);
-          const top = await stickyTop(lab);
-          // Each column sticks inside its row: scroll halfway through the panel's sticky travel.
-          const { cellTop, travel } = await lab.evaluate((root) => {
-            const cell = root.querySelector('[data-lab-stage]')?.parentElement;
-            const panelBox = root.querySelector('[data-lab-panel]')?.getBoundingClientRect();
-            const cellBox = cell?.getBoundingClientRect();
+          const top = await stickyTop(page);
+          const stage = lab.locator('[data-lab-stage]');
+          const fits = (await boxOf(stage)).height + top <= size.height;
+          // Measured after hydration: until then nothing sticks (the server's markup).
+          await expect(stage).toHaveAttribute('data-lab-stage-fits', String(fits));
+          // The panel has no scroll of its own: the readouts are reached by scrolling the page.
+          const panelScroll = await lab.locator('[data-lab-panel]').evaluate((node) => ({
+            overflow: getComputedStyle(node).overflowY,
+            hidden: node.scrollHeight - node.clientHeight,
+          }));
+          expect(panelScroll.overflow).toBe('visible');
+          expect(panelScroll.hidden).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
+
+          // Halfway through the stage's travel in its cell (the row is as tall as the panel).
+          const { cellTop, travel } = await stage.evaluate((node) => {
+            const cell = node.parentElement?.getBoundingClientRect();
             return {
-              cellTop: (cellBox?.top ?? 0) + window.scrollY,
-              travel: (cellBox?.height ?? 0) - (panelBox?.height ?? 0),
+              cellTop: (cell?.top ?? 0) + window.scrollY,
+              travel: (cell?.height ?? 0) - node.getBoundingClientRect().height,
             };
           });
-          if (travel <= 0) {
-            // Nothing to travel: row 1 (the stage's and the panel's cells, not the canvas notes'
-            // row under both) is no taller than the panel, which fits the window.
-            const stageCell = await boxOf(lab.locator('[data-lab-stage]').locator('xpath=..'));
-            const panelCell = await boxOf(lab.locator('[data-lab-panel]').locator('xpath=..'));
-            expect(Math.max(stageCell.height, panelCell.height)).toBeLessThanOrEqual(
-              size.height - top,
-            );
-            return;
-          }
           await page.evaluate(
             (y) => window.scrollTo(0, y),
-            cellTop - top + Math.min(travel / 2, SCROLL_INTO_LAB_PX),
+            cellTop - top + Math.min(Math.max(travel, 0) / 2, SCROLL_INTO_LAB_PX),
           );
 
-          const panel = await boxOf(lab.locator('[data-lab-panel]'));
-          const firstLevel = await boxOf(lab.getByRole('region', { name: 'Parámetros' }));
-          const bar = await boxOf(page.locator('[data-topic-sticky-bar]'));
-          expect(Math.abs(firstLevel.y - top)).toBeLessThanOrEqual(STICKY_SLACK_PX);
-          expect(panel.y).toBeGreaterThanOrEqual(bar.y + bar.height);
-          expect(panel.y + panel.height).toBeLessThanOrEqual(size.height);
+          const position = await stage.evaluate((node) => getComputedStyle(node).position);
+          expect(position).toBe(fits ? 'sticky' : 'static');
+          if (fits && travel > STICKY_SLACK_PX) {
+            expect(Math.abs((await boxOf(stage)).y - top)).toBeLessThanOrEqual(STICKY_SLACK_PX);
+          }
           const transport = lab.locator('[data-lab-transport]');
           if ((await transport.count()) > 0) {
             const box = await boxOf(transport);
@@ -347,27 +357,6 @@ for (const { path, testId } of LABS) {
         });
       });
     }
-
-    test('a 1 280 × 800 el panel que desborda es una región con nombre y una parada del tabulador; si no, no', async ({
-      page,
-    }) => {
-      await page.setViewportSize(SPLIT_VIEWPORTS[0].size);
-      const lab = await openTiered(page, path, testId);
-      const panel = lab.locator('[data-lab-panel]');
-      const overflows = await panel.evaluate((node) => node.scrollHeight > node.clientHeight + 1);
-
-      if (overflows) {
-        await expect(panel).toHaveAttribute('tabindex', '0');
-        await expect(lab.getByRole('region', { name: 'Controles del laboratorio' })).toHaveCount(1);
-        await panel.focus();
-        const before = await panel.evaluate((node) => node.scrollTop);
-        await page.keyboard.press('PageDown');
-        await expect.poll(() => panel.evaluate((node) => node.scrollTop)).toBeGreaterThan(before);
-      } else {
-        await expect(panel).not.toHaveAttribute('tabindex');
-        await expect(panel).not.toHaveAttribute('role');
-      }
-    });
 
     test('las notas del lienzo no tienen controles y la rejilla no deja huecos', async ({
       page,
@@ -413,14 +402,7 @@ for (const { path, testId } of LABS) {
       const bar = await boxOf(transport);
       expect(control.y + control.height).toBeLessThanOrEqual(bar.y + 1);
       // The scroll padding reserves --lab-transport-room: it must stay the transport's height.
-      const room = await page.evaluate(() => {
-        const probe = document.createElement('div');
-        probe.style.height = 'var(--lab-transport-room)';
-        document.body.append(probe);
-        const height = probe.getBoundingClientRect().height;
-        probe.remove();
-        return height;
-      });
+      const room = await cssLengthPx(page, 'var(--lab-transport-room)');
       expect(
         Math.abs(room - bar.height),
         `--lab-transport-room (global.css) = ${room} px, la reproducción pegada (LabShell TRANSPORT) = ${bar.height} px`,
@@ -446,6 +428,11 @@ for (const { path, testId } of LABS) {
         const panel = await boxOf(lab.locator('[data-lab-panel]'));
         expect(panel.y).toBeGreaterThanOrEqual(stage.y + stage.height);
         expect(Math.abs(panel.x - stage.x)).toBeLessThanOrEqual(STICKY_SLACK_PX);
+        // The order of reading is the visual one: the canvas notes come after the panel.
+        const notes = lab.locator('[data-lab-canvas-notes]');
+        if ((await notes.count()) > 0) {
+          expect((await boxOf(notes)).y).toBeGreaterThanOrEqual(panel.y + panel.height);
+        }
       });
     }
 
@@ -464,11 +451,6 @@ for (const { path, testId } of LABS) {
       if ((await timeline.count()) === 0) return;
       await timeline.focus();
       await page.keyboard.press('Tab');
-      // A panel that scrolls on its own is a tab stop of its own, before its first control.
-      if ((await lab.locator('[data-lab-panel][tabindex="0"]').count()) > 0) {
-        await expect(lab.locator('[data-lab-panel]')).toBeFocused();
-        await page.keyboard.press('Tab');
-      }
       await expect(
         lab
           .getByRole('region', { name: 'Parámetros' })
