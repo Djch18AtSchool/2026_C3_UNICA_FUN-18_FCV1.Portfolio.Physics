@@ -289,25 +289,44 @@ for (const theme of THEMES) {
   });
 }
 
-/** How far the number box of a lab's first parameter ends from the parameters' right edge. */
-async function numberBoxInset(page: Page, path: string, lab: string, field: string) {
+/**
+ * The longest text the r_p field shows: two decimals over 1 to 100 planet radii (RpField's
+ * toFieldText), five characters from 10 up.
+ */
+const LONGEST_RP_TEXT = '99,99';
+
+/**
+ * How far the number box of a lab's first parameter ends from the parameters' right edge, its
+ * size, and how far `longest` typed in it would overflow it.
+ */
+async function numberBoxInset(page: Page, path: string, lab: string, field: string, longest = '') {
   await page.goto(path);
   await open(page, lab);
-  return page.locator(lab).evaluate((node, selector) => {
-    const params = node.querySelector('[data-lab-level="params"]') as HTMLElement;
-    const input = node.querySelector(selector) as HTMLElement;
-    const label = params.querySelector('label') as HTMLElement;
-    const box = input.getBoundingClientRect();
-    return {
-      inset: params.getBoundingClientRect().right - box.right,
-      // The number box sits on its label's row, not on a line of its own.
-      isBesideLabel: box.top < label.getBoundingClientRect().bottom,
-    };
-  }, field);
+  return page.locator(lab).evaluate(
+    (node, { selector, text }) => {
+      const params = node.querySelector('[data-lab-level="params"]') as HTMLElement;
+      const input = node.querySelector(selector) as HTMLInputElement;
+      const label = params.querySelector('label') as HTMLElement;
+      const box = input.getBoundingClientRect();
+      const shown = input.value;
+      input.value = text;
+      const overflow = input.scrollWidth - input.clientWidth;
+      input.value = shown;
+      return {
+        inset: params.getBoundingClientRect().right - box.right,
+        width: box.width,
+        height: box.height,
+        overflow,
+        // The number box sits on its label's row, not on a line of its own.
+        isBesideLabel: box.top < label.getBoundingClientRect().bottom,
+      };
+    },
+    { selector: field, text: longest },
+  );
 }
 
 for (const viewport of [PHONE, DESKTOP]) {
-  test(`a ${viewport.width} px el campo de r_p se alinea con los de los demás temas, junto a su etiqueta`, async ({
+  test(`a ${viewport.width} px el campo de r_p se alinea con los de los demás temas, junto a su etiqueta, y mide lo mismo`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
@@ -324,10 +343,17 @@ for (const viewport of [PHONE, DESKTOP]) {
       PAGE,
       LAB,
       '[data-lab-level="params"] input[type="text"]',
+      LONGEST_RP_TEXT,
     );
 
     expect(rp.isBesideLabel).toBe(true);
     expect(Math.abs(rp.inset - reference.inset)).toBeLessThanOrEqual(1);
+    // The same 40 px by 64 px box as every ParamField, and r_p's longest text fits in it.
+    expect({ width: rp.width, height: rp.height }).toEqual({
+      width: reference.width,
+      height: reference.height,
+    });
+    expect(rp.overflow, `«${LONGEST_RP_TEXT}» no cabe`).toBeLessThanOrEqual(0);
   });
 }
 

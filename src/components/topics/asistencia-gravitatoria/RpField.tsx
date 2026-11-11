@@ -62,8 +62,9 @@ function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
 
   return (
     <div className="flex flex-col gap-2">
-      {/* As every ParamField: the number box beside its label and the unit in the shared unit
-          box, so it lines up with the other labs' fields at every width. */}
+      {/* As every ParamField: the same 40 × 64 px number box beside its label (its longest text,
+          «99,99», fits with px-1) and the unit in the shared unit box, so it lines up with the
+          other labs' fields at every width. */}
       <div className="flex items-center justify-between gap-3">
         <label id={labelId} htmlFor={ID} className="text-sm font-medium">
           <InlineMath text={LABEL} />
@@ -81,7 +82,7 @@ function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
             onKeyDown={(event) => {
               if (event.key === 'Enter') commitDraft();
             }}
-            className="h-10 w-32 rounded-base border border-border bg-bg px-2 text-right font-mono text-sm tabular-nums text-fg"
+            className="h-10 w-16 rounded-base border border-border bg-bg px-1 text-right font-mono text-sm tabular-nums text-fg"
           />
           <span id={unitId} className={UNIT_BOX}>
             <InlineMath text={unitTex(unit)} />
