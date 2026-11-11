@@ -95,7 +95,9 @@ Los nueve laboratorios usan `LabShell` (`src/components/lab/LabShell.tsx`). Uno 
 </LabShell>
 ```
 
-- **Dos columnas** (variante `lab-split:` de `global.css`: ventana `lg` y laboratorio de 42 rem): el escenario y, a su derecha, el panel de 20 rem, cada uno pegajoso en su celda; el panel que desborda tiene scroll propio y es una región con nombre. En una columna: lienzo, reproducción, notas del lienzo, niveles, lecturas, desplegables. Nada del laboratorio decide columnas con `sm:`/`md:`/`lg:`.
+- **Orden**: el del DOM es el de lectura y el visual, en una columna y en dos: escenario (lienzo y reproducción) → panel (parámetros, escenario, lecturas) → `canvasNotes` → desplegables.
+- **Dos columnas** (variante `lab-split:` de `global.css`: ventana `lg` y laboratorio de 42 rem): el escenario y, a su derecha, el panel de 20 rem. El panel fluye con la página (nada se esconde en un scroll propio). El escenario se queda pegado bajo la barra del tema mientras cabe en la ventana (`useFitsInWindow`, `data-lab-stage-fits`); si es más alto, fluye y su reproducción queda pegada al pie de la ventana. `canvasNotes` ocupa la fila de abajo, a todo el ancho.
+- **Una columna**: el lienzo crece hasta 36 rem, centrado (`canvasInset.ts`); un panel de más de 42 rem pone los parámetros a la izquierda y el escenario y las lecturas a la derecha. Nada del laboratorio decide columnas con `sm:`/`md:`/`lg:`.
 - **`LabPresets`**: hasta cuatro preajustes son fichas; más, un `<select>` (con `groups` si se agrupan, y `optionLabel` en texto plano para un nombre con `$…$`). Debajo, una línea con la nota (una oración: `presetNotes.test.ts`) y «Fuente:», enlazada si hay `sourceUrl` (una página, no un archivo que se descarga). `basedOnId` deja la nota del último preajuste tras una edición, con «Partí de…».
 - **`StatusChips`**: fichas de solo lectura para un estado que informa el laboratorio (el «Motor» del Tema 7), no para un ajuste.
 - **Fichas de ajustes**: una opción del nivel 3 con `chip` se ve junto al engranaje (`settingChips.ts`): un interruptor solo si está activo, un selector con su opción, un rango con su valor.
@@ -104,9 +106,10 @@ Los nueve laboratorios usan `LabShell` (`src/components/lab/LabShell.tsx`). Uno 
 Reglas que dejaron los nueve laboratorios:
 
 - **El lienzo es solo el dibujo** y lo que se arrastra o se pulsa en él. Leyendas (`LegendItem`, `src/components/lab/LegendKey.tsx`), notas de cámara rápida, tablas y párrafos que leen el dibujo van a `canvasNotes`.
-- **`canvasNotes` sin controles**: en dos columnas el foco saltaría abajo y volvería arriba (`lab-shell.spec.ts` lo comprueba). Un botón como «Soltar el gatillo» va en el lienzo o en un nivel.
+- **`canvasNotes` sin controles**: son texto que lee el dibujo, tras los controles (`lab-shell.spec.ts` lo comprueba). Un botón como «Soltar el gatillo» va en el lienzo o en un nivel.
 - **Consultas de contenedor dentro del lienzo** (`@container` y `@lg:`…): a 1 280 px el escenario mide ~430 px aunque la ventana sea ancha. Lo que deba alinearse con el texto de la tarjeta usa `CANVAS_INSET` (`canvasInset.ts`), que sigue al sangrado del lienzo.
 - **SSR y alto reservado**: el servidor no conoce el ancho del escenario. `SvgPlot` reserva solo el alto que dibujará (`svgPlotReserve.ts`; `aspectRatio` admite un par `{ compact, wide }`); un dibujo propio que mide su ancho debe reservar su alto en CSS (como `HabitatScene`) o tener un alto fijo (como `BounceScene`). `lab-shell.spec.ts` compara la página sin JavaScript con la hidratada a 360, 540 y 1 280 px y falla si un dibujo cambia de alto o queda con bandas vacías.
+- **Todo dibujo del lienzo mide su ancho**: un `svg[role=img]` o `svg[data-testid]` con `viewBox` dentro del lienzo debe dibujarse al ancho que mide (su `viewBox` igual a su caja). La comprobación de hidratación espera a eso antes de comparar, y un dibujo de `viewBox` fijo la deja esperando hasta fallar con «dibujo N sin medir». Un dibujo fijo va fuera de esos selectores o mide su ancho como los demás.
 
 ## Comandos
 

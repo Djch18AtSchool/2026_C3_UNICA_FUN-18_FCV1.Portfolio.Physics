@@ -10,7 +10,11 @@ export const HYDRATION_WIDTHS = [360, 540, 1280] as const;
 const HEIGHT_TOLERANCE_PX = 1;
 const VIEWPORT_HEIGHT = 800;
 
-/** The drawings of a lab's canvas: SvgPlot's plots and the scenes the labs draw themselves. */
+/**
+ * The drawings of a lab's canvas: SvgPlot's plots and the scenes the labs draw themselves. Rule
+ * (README, «Laboratorios por niveles»): each draws at the width it measures, its viewBox as wide as
+ * its box; one with a fixed viewBox would keep notYetMeasured waiting until it fails, by name.
+ */
 const DRAWINGS = '[data-lab-canvas] :is(svg[role=img], svg[data-testid])[viewBox]';
 
 /** Heights of the lab and of every drawing in its canvas, as laid out right now. */
