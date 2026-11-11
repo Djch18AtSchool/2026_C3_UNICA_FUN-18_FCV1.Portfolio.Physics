@@ -5,6 +5,8 @@
  * is gone fails too, so the list only shrinks (`pnpm run scale:prune` drops what was cleaned).
  * When the list is empty the test is strict. The rules and what they leave out are in
  * scaleRules.ts and scaleScan.ts; `pnpm run scale:report` prints what is left, by directory.
+ * CSS math on custom properties, which the scan judges by its literals only, is reviewed by hand
+ * (scaleCalc.ts, scaleCalcReviewed.ts).
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -15,7 +17,9 @@ import {
   readBaseline,
   type BaselineDrift,
 } from './scaleBaseline';
-import { scanTree } from './scaleTree';
+import { compareTokenMath } from './scaleCalc';
+import { REVIEWED_TOKEN_MATH } from './scaleCalcReviewed';
+import { scanTokenMath, scanTree } from './scaleTree';
 
 const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const BASELINE_PATH = fileURLToPath(new URL('./scale.baseline.json', import.meta.url));
@@ -37,5 +41,17 @@ describe('the measurement scale over src', () => {
 
   test('the baseline lists nothing already cleaned (run pnpm run scale:prune)', () => {
     expect(describeDrift(stale)).toBe('');
+  });
+});
+
+describe('CSS math on custom properties over src', () => {
+  const { unreviewed, gone } = compareTokenMath(scanTokenMath(REPO_ROOT), REVIEWED_TOKEN_MATH);
+
+  test('each expression is reviewed, with its reason, in scaleCalcReviewed.ts', () => {
+    expect(unreviewed.join('\n')).toBe('');
+  });
+
+  test('scaleCalcReviewed.ts lists nothing no longer written', () => {
+    expect(gone.join('\n')).toBe('');
   });
 });

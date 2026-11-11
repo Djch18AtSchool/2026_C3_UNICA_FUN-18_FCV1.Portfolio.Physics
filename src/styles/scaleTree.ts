@@ -5,6 +5,7 @@
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { tokenMath } from './scaleCalc';
 import { scanSource, type ScaleViolation } from './scaleScan';
 
 const SCANNED = /\.(astro|tsx|ts|css|mdx)$/;
@@ -26,5 +27,18 @@ export function scanTree(repoRoot: string): Record<string, ScaleViolation[]> {
       path,
       scanSource(path, readFileSync(join(repoRoot, path), 'utf8')),
     ]),
+  );
+}
+
+/** The reviewed list quotes every expression: it describes them, it does not style anything. */
+const TOKEN_MATH_REVIEW = 'src/styles/scaleCalcReviewed.ts';
+
+/** Every scanned file that writes CSS math on custom properties, with those expressions. */
+export function scanTokenMath(repoRoot: string): Record<string, string[]> {
+  return Object.fromEntries(
+    scaleSources(repoRoot)
+      .filter((path) => path !== TOKEN_MATH_REVIEW)
+      .map((path) => [path, tokenMath(path, readFileSync(join(repoRoot, path), 'utf8'))] as const)
+      .filter(([, expressions]) => expressions.length > 0),
   );
 }
