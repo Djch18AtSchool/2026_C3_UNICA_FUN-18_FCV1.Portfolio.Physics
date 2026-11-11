@@ -59,10 +59,13 @@ export function chartStep(sampleCount: number): number {
   return Math.max(MIN_CHART_STEP, Math.ceil(sampleCount / MAX_CHART_POINTS));
 }
 
-/** The trail flown up to the drone: thinned samples before its t, then the drone itself. */
-export function trailSamples(samples: RouteSample[], now: RouteSample): Point[] {
+/**
+ * The trail flown up to the drone: thinned samples from `from` (the start of the view) to its t,
+ * then the drone itself.
+ */
+export function trailSamples(samples: RouteSample[], now: RouteSample, from = 0): Point[] {
   const stride = Math.max(1, Math.ceil(samples.length / MAX_TRAIL_POINTS));
-  const flown = samples.filter((s, i) => s.t < now.t && i % stride === 0);
+  const flown = samples.filter((s, i) => s.t >= from && s.t < now.t && i % stride === 0);
   return [...flown, now].map(({ x, y }) => ({ x, y }));
 }
 

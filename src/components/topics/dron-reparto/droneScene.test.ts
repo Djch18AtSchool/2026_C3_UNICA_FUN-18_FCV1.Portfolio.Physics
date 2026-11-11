@@ -81,6 +81,16 @@ describe('chartStep and trailSamples', () => {
     expect(trail.at(-1)).toEqual({ x: 1, y: 2 });
     expect(trail.length).toBeLessThan(660);
   });
+
+  test('a trail that starts at a later instant leaves out what was flown before it', () => {
+    const now = { ...SAMPLES[1000], t: 100, x: 1, y: 2 };
+    const whole = trailSamples(SAMPLES, now);
+    const fromLeg = trailSamples(SAMPLES, now, 87.2);
+
+    expect(fromLeg.length).toBeLessThan(whole.length);
+    expect(fromLeg[0]).toEqual({ x: SAMPLES[880].x, y: SAMPLES[880].y });
+    expect(fromLeg.at(-1)).toEqual({ x: 1, y: 2 });
+  });
 });
 
 describe('timeAxisEnd', () => {

@@ -11,7 +11,7 @@ import type { Point } from '../../lab/OverlayMarks';
 import ParamField from '../../lab/ParamField';
 import type { DragPoint } from '../../lab/useDrag';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
-import { useSimClock } from '../../lab/useSimClock';
+import TimeScaleBadge from '../../lab/TimeScaleBadge';
 import {
   ACCEL_SCALE_FACTOR,
   DEFAULT_DISPLAY,
@@ -24,14 +24,10 @@ import { isDeclaredRoute, moveStop, sampleAt, tryGenerate } from './routeEdit';
 import RouteMapLab from './RouteMapLab';
 import RouteMapNotes from './RouteMapNotes';
 import type { StopIndex } from './RouteOverlay';
+import RouteViewFields from './RouteViewFields';
+import { localTime } from './routeView';
+import { useRouteView } from './useRouteView';
 
-/** The route lasts minutes: playback compresses it 20 times (387 s in about 19 s at 1×). */
-export const TIME_LAPSE = 20;
-/**
- * Cruising on leg 1, halfway to A: the opening view shows the drone and its v clear of every stop
- * (braking into A, as in v1, put the drone under A's knob at any width).
- */
-const INITIAL_TIME_S = 30;
 /** Ranges of the main parameters (spec §8.3). */
 const V_MAX_RANGE = { min: 1, max: 15, step: 0.5 } as const;
 const A_MAX_RANGE = { min: 0.5, max: 5, step: 0.1 } as const;
@@ -86,9 +82,10 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
   const { decimals } = useGlobalSettings();
 
   const duration = useMemo(() => routeDuration(route.def), [route.def]);
-  const clock = useSimClock(duration, { timeScale: TIME_LAPSE });
+  /** The clock plays one view of the route: a leg at real speed, or the whole route faster. */
+  const routeView = useRouteView(route.def);
+  const { clock, span, routeTime } = routeView;
   const { seek, pause } = clock;
-  useEffect(() => seek(INITIAL_TIME_S), [seek]);
 
   /** Adopts the candidate if it can be flown; otherwise keeps the last valid route and says why. */
   const commit = (candidate: RouteDefinition) => {
@@ -138,8 +135,18 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
   const shownStops = preview
     ? moveStop(route.def, preview.index, preview.at.x, preview.at.y).stops
     : route.def.stops;
-  const now = sampleAt(route.samples, clock.state.t);
-  const flightSampleAt = useCallback((t: number) => sampleAt(route.samples, t), [route.samples]);
+  const now = sampleAt(route.samples, routeTime);
+  /** The flight at a time of the clock, which starts where the view's span starts on the route. */
+  const flightSampleAt = useCallback(
+    (t: number) => sampleAt(route.samples, span.start + t),
+    [route.samples, span.start],
+  );
+  const timeRange = useMemo(
+    () => ({ from: span.start, to: span.start + span.duration }),
+    [span.start, span.duration],
+  );
+  /** The map and its drone speak route time; the clock speaks the span's. */
+  const seekRoute = (t: number) => seek(localTime(span, t));
   const live = useMemo(
     () => ({ frame: clock.frame, sampleAt: flightSampleAt }),
     [clock.frame, flightSampleAt],
@@ -150,6 +157,7 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
     { id: 'y', label: 'Posición y', value: now.y, unit: 'm' },
     { id: 'speed', label: 'Rapidez |v|', value: now.speed, unit: 'm/s' },
     { id: 'accel', label: 'Aceleración |a|', value: now.accel, unit: 'm/s²' },
+    { id: 'route-time', label: 'Instante en la ruta', value: routeTime, unit: 's' },
     { id: 'duration', label: 'Duración de la ruta', value: duration, unit: 's' },
   ];
 
@@ -180,6 +188,7 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
         title="Laboratorio del dron"
         clock={clock}
         timeUnit="s"
+        markers={span.markers}
         readouts={readouts}
         canvasNotes={
           <RouteMapNotes
@@ -193,26 +202,37 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
         }
         levels={{
           params,
+          scenario: (
+            <RouteViewFields
+              selection={routeView.selection}
+              schedule={routeView.schedule}
+              onView={routeView.setView}
+              onLeg={routeView.setLeg}
+            />
+          ),
           display: droneLocalSettings({ display, onDisplayChange: setDisplay, clock }),
         }}
         notes={{ usage: [DRAG_HINT, ...(usage ? [usage] : [])], leftOut: leftOut ? [leftOut] : [] }}
         onReset={onReset}
         testId="drone-lab"
       >
-        <RouteMapLab
-          stops={shownStops}
-          samples={route.samples}
-          now={now}
-          live={live}
-          duration={duration}
-          showVectors={display.showVectors}
-          showTrail={display.showTrail}
-          velocityScale={display.vectorScale}
-          accelScale={display.vectorScale * ACCEL_SCALE_FACTOR}
-          decimals={decimals}
-          onStopDrag={onStopDrag}
-          onSeek={seek}
-        />
+        <div className="relative">
+          <RouteMapLab
+            stops={shownStops}
+            samples={route.samples}
+            now={now}
+            live={live}
+            timeRange={timeRange}
+            showVectors={display.showVectors}
+            showTrail={display.showTrail}
+            velocityScale={display.vectorScale}
+            accelScale={display.vectorScale * ACCEL_SCALE_FACTOR}
+            decimals={decimals}
+            onStopDrag={onStopDrag}
+            onSeek={seekRoute}
+          />
+          <TimeScaleBadge clock={clock} />
+        </div>
       </LabShell>
       <DroneProfiles samples={route.samples} definition={route.def} t={clock.state.t} />
     </div>

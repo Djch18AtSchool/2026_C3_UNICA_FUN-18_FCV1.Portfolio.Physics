@@ -11,7 +11,7 @@ import DroneLab from './DroneLab';
 import { DRONE_LAB_FORMULAS } from './droneLabFormulas';
 import { readout } from '../../../test-readout';
 
-const USAGE = 'La reproducción va 20 veces más rápida que el vuelo.';
+const USAGE = 'La vista «Ruta» va 4 veces más rápida que el vuelo.';
 const LEFT_OUT = 'Mi dron se detiene en cada vértice y no hay viento.';
 /**
  * The declared route is a large JSON the lab imports lazily; under coverage instrumentation the
@@ -43,7 +43,7 @@ function mockIdentityCtm(): void {
 }
 
 /** The transport's reading once the lab has made its opening seek (to 30 s, cruising on leg 1). */
-const OPENING_TIME = /^t = 30,0\s+s$/;
+const OPENING_TIME = /^t = 30,00\s+s$/;
 
 /**
  * Renders the lab, waits for the lazily loaded declared route and for the opening seek, an effect
@@ -110,7 +110,7 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
 
     expect(readout('Duración de la ruta')).toBe(DECLARED_DURATION);
     // The opening seek is an effect after the first ready commit; wait for it rather than race it.
-    await waitFor(() => expect(valueText(timeline())).toBe('t = 30,0 s'), {
+    await waitFor(() => expect(valueText(timeline())).toBe('t = 30,00 s'), {
       timeout: SETTLE_TIMEOUT_MS,
     });
     expect(mathSourceText(screen.getByTestId('drone-lab'))).toContain('crucero ($\\vec a = 0$)');
@@ -119,7 +119,7 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
     expect(screen.getByTestId('drone-profiles')).toBeInTheDocument();
   });
 
-  test('lays out two levels, with no scenario: v_máx and a_máx, then the readouts', async () => {
+  test('lays out three levels: v_máx and a_máx, the scenario with the view, then the readouts', async () => {
     const { container } = await renderLab();
     const region = (name: string) => screen.getByRole('region', { name });
 
@@ -129,9 +129,15 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
     expect(
       within(region('Parámetros')).getByRole('slider', { name: /Aceleración máxima/ }),
     ).toBeTruthy();
-    expect(screen.queryByRole('region', { name: 'Escenario' })).toBeNull();
-    expect(container.querySelector('[data-lab-level="scenario"]')).toBeNull();
+    const levels = [...container.querySelectorAll('[data-lab-level]')].map((level) =>
+      level.getAttribute('data-lab-level'),
+    );
+    expect(levels).toEqual(['params', 'scenario', 'readouts']);
+    expect(
+      within(region('Escenario')).getByRole('radiogroup', { name: 'Vista' }),
+    ).toBeInTheDocument();
     expect(within(region('Lecturas')).getByText('Duración de la ruta')).toBeInTheDocument();
+    expect(within(region('Lecturas')).getByText('Instante en la ruta')).toBeInTheDocument();
   });
 
   test('the legend, the phase and the notes on the route read the map, in the canvas notes', async () => {
@@ -185,13 +191,28 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
     );
   });
 
-  test('at t ≈ 65 s the drone brakes into A: |a| = 2,5 m/s² opposite to v', async () => {
+  test('at the end of the first leg the drone brakes into A: |a| = 2,5 m/s² opposite to v', async () => {
     await renderLab();
+
+    // «Tramo» spreads 0–1000 over the leg's 67,25 s: 950 is t ≈ 63,9 s, in the braking.
+    fireEvent.change(timeline(), { target: { value: '950' } });
+
+    expect(valueText(timeline())).toMatch(/^t = 63,\d+ s$/);
+    expect(mathSourceText(screen.getByTestId('drone-lab'))).toContain(
+      'frenando ($\\vec a$ opuesta a $\\vec v$)',
+    );
+    expect(readout('Aceleración |a|')).toBe('2,50 m/s²');
+  });
+
+  test('in «Ruta» the same braking is at t ≈ 65 s of the whole route', async () => {
+    const user = userEvent.setup();
+    await renderLab();
+    await user.click(screen.getByRole('radio', { name: 'Ruta' }));
 
     // The timeline runs 0–1000 over the route's 387,43 s: 168 is t ≈ 65,09 s.
     fireEvent.change(timeline(), { target: { value: '168' } });
 
-    expect(valueText(timeline())).toMatch(/^t = 65,\d s$/);
+    expect(valueText(timeline())).toMatch(/^t = 65,\d+ s$/);
     expect(mathSourceText(screen.getByTestId('drone-lab'))).toContain(
       'frenando ($\\vec a$ opuesta a $\\vec v$)',
     );
@@ -312,7 +333,7 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
     dragTo('drone-marker', knobCentre('stop-B'));
 
     expect(screen.getByTestId('drone-lab')).toHaveAttribute('data-playing', 'false');
-    expect(valueText(timeline())).not.toBe('t = 30,0 s');
+    expect(valueText(timeline())).not.toBe('t = 30,00 s');
   });
 
   test('a finger on a stop or on the drone does not pan the page', async () => {
@@ -324,6 +345,158 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
       });
       expect(notCancelled, testId).toBe(false);
     }
+  });
+
+  describe('the views «Tramo» and «Ruta»', () => {
+    const marks = () => document.querySelectorAll('[data-transport-mark]').length;
+    const badge = () =>
+      [...(document.querySelector('[data-time-scale-badge]')?.children ?? [])]
+        .map((part) => part.textContent)
+        .join(' ')
+        .replace(/\s/g, ' ');
+    const choose = (name: string | RegExp) => userEvent.click(screen.getByRole('radio', { name }));
+    const nextEvent = () =>
+      userEvent.click(screen.getByRole('button', { name: 'Evento siguiente' }));
+
+    test('opens on «Tramo», the first leg at real speed, with its four marks and the scale on the map', async () => {
+      await renderLab();
+
+      expect(screen.getByRole('radio', { name: 'Tramo' })).toBeChecked();
+      expect(screen.getByRole('combobox', { name: 'Tramo mostrado' })).toHaveValue('0');
+      expect(marks()).toBe(4);
+      expect(badge()).toBe('×1 velocidad real');
+      expect(screen.getByTestId('drone-view-note')).toHaveTextContent(
+        'Sale en t = 0,0 s de la ruta y dura 67,2 s.',
+      );
+      expect(screen.getByTestId('route-map').closest('.relative')).toContainElement(
+        document.querySelector('[data-time-scale-badge]') as HTMLElement,
+      );
+    });
+
+    test('«Ruta» plays the whole route at ×4, with a mark on the departure and each arrival', async () => {
+      await renderLab();
+
+      await choose('Ruta');
+
+      expect(marks()).toBe(5);
+      expect(badge()).toBe('×4 cámara rápida');
+      expect(screen.queryByRole('combobox', { name: 'Tramo mostrado' })).toBeNull();
+      expect(screen.getByTestId('drone-view-note')).toHaveTextContent(
+        'La ruta entera dura 387,4 s.',
+      );
+    });
+
+    test('switching view keeps the drone where it is on the route', async () => {
+      await renderLab();
+      const position = () => [readout('Posición x'), readout('Posición y')];
+      const before = position();
+
+      await choose('Ruta');
+
+      expect(readout('Instante en la ruta')).toBe('30,00 s');
+      expect(position()).toEqual(before);
+    });
+
+    test('«Evento siguiente» in «Ruta» goes to the arrival at A, the drone at rest on it', async () => {
+      await renderLab();
+      await choose('Ruta');
+
+      await nextEvent();
+
+      expect(readout('Instante en la ruta')).toBe('67,25 s');
+      // The 0,1 s samples are interpolated, so a stop reads under a·dt/2 = 0,125 m/s, not 0.
+      expect(readout('Rapidez |v|')).toMatch(/^0,0\d m\/s$/);
+      expect(readout('Posición x')).toBe('600,00 m');
+      expect(readout('Posición y')).toBe('200,00 m');
+    });
+
+    test('«Evento siguiente» in «Tramo» goes through the end of the acceleration, the braking and the arrival', async () => {
+      await renderLab();
+      await userEvent.click(screen.getByRole('button', { name: 'Reiniciar' }));
+      const times: string[] = [];
+
+      for (let i = 0; i < 3; i += 1) {
+        await nextEvent();
+        times.push(valueText(timeline()));
+      }
+
+      expect(times).toEqual([
+        't = 4,00 s · Fin de la aceleración',
+        't = 63,25 s · Inicio del frenado',
+        't = 67,25 s · Llegada a A',
+      ]);
+    });
+
+    test('from «Ruta» to «Tramo» the leg is the one the drone is on, and time carries over', async () => {
+      await renderLab();
+      await choose('Ruta');
+      fireEvent.change(timeline(), { target: { value: '300' } });
+      const at = readout('Instante en la ruta');
+
+      await choose('Tramo');
+
+      expect(screen.getByRole('combobox', { name: 'Tramo mostrado' })).toHaveValue('1');
+      expect(readout('Instante en la ruta')).toBe(at);
+      expect(marks()).toBe(4);
+    });
+
+    test('choosing another leg opens it cruising, with its own start on the route', async () => {
+      await renderLab();
+
+      fireEvent.change(screen.getByRole('combobox', { name: 'Tramo mostrado' }), {
+        target: { value: '3' },
+      });
+
+      expect(valueText(timeline())).toBe('t = 30,0 s');
+      expect(readout('Instante en la ruta')).toBe('299,41 s');
+      expect(screen.getByTestId('drone-view-note')).toHaveTextContent(
+        'Sale en t = 269,4 s de la ruta y dura 118,0 s.',
+      );
+      expect(mathSourceText(screen.getByTestId('drone-lab'))).toContain('crucero');
+    });
+
+    test('in «Tramo» the drone cannot be dragged off its leg', async () => {
+      await renderLab();
+
+      dragTo('drone-marker', knobCentre('stop-C'));
+
+      expect(
+        Number(readout('Instante en la ruta').replace(',', '.').replace(' s', '')),
+      ).toBeLessThanOrEqual(67.3);
+    });
+
+    test('the drone marker speaks route time inside the leg: Home and End go to its two ends', async () => {
+      await renderLab();
+      await choose('Ruta');
+      fireEvent.change(timeline(), { target: { value: '300' } });
+      await choose('Tramo');
+      const drone = screen.getByTestId('drone-marker');
+
+      expect([drone.getAttribute('aria-valuemin'), drone.getAttribute('aria-valuemax')]).toEqual([
+        '87.24555320336759',
+        '158.3275925283613',
+      ]);
+      drone.focus();
+      await userEvent.keyboard('{End}');
+      expect(readout('Instante en la ruta')).toBe('158,33 s');
+      await userEvent.keyboard('{Home}');
+      expect(readout('Instante en la ruta')).toBe('87,25 s');
+    });
+
+    test('an edited route moves the marks with it: the model, not a list, says when it arrives', async () => {
+      await renderLab();
+      await choose('Ruta');
+      const arrivalAtA = async () => {
+        await nextEvent();
+        return readout('Instante en la ruta');
+      };
+      const declared = await arrivalAtA();
+      await userEvent.click(screen.getByRole('button', { name: 'Evento anterior' }));
+
+      dragBy('stop-A', 60, -40);
+
+      expect(await arrivalAtA()).not.toBe(declared);
+    });
   });
 
   test('the local settings hold vectors, vector scale, trail, speed and repeat', async () => {

@@ -22,16 +22,16 @@ import {
   localTime,
   openingTime,
   viewNote,
-  viewWindow,
+  viewSpan,
 } from './routeView';
 
 const SCHEDULE = routeSchedule(DRONE_ROUTE);
 const SAMPLES = generateRoute(DRONE_ROUTE);
-const RUTA = viewWindow(SCHEDULE, { view: 'ruta', leg: 0 });
+const RUTA = viewSpan(SCHEDULE, { view: 'ruta', leg: 0 });
 /** The drone is within this of the stop (m) when a mark says it has arrived. */
 const AT_STOP_M = 0.05;
 
-describe('viewWindow · Ruta', () => {
+describe('viewSpan · Ruta', () => {
   test('plays the whole route, from 0 s, at the route time lapse', () => {
     expect(RUTA.start).toBe(0);
     expect(RUTA.duration).toBe(routeDuration(DRONE_ROUTE));
@@ -79,20 +79,20 @@ describe('viewWindow · Ruta', () => {
   });
 });
 
-describe('viewWindow · Tramo', () => {
+describe('viewSpan · Tramo', () => {
   test('plays one leg at real speed, from its departure to its arrival', () => {
     SCHEDULE.forEach((leg, index) => {
-      const window = viewWindow(SCHEDULE, { view: 'tramo', leg: index });
+      const span = viewSpan(SCHEDULE, { view: 'tramo', leg: index });
 
-      expect(window.start).toBe(leg.departure);
-      expect(window.duration).toBe(leg.arrival - leg.departure);
-      expect(window.timeScale).toBe(LEG_TIME_LAPSE);
+      expect(span.start).toBe(leg.departure);
+      expect(span.duration).toBe(leg.arrival - leg.departure);
+      expect(span.timeScale).toBe(LEG_TIME_LAPSE);
     });
     expect(LEG_TIME_LAPSE).toBe(1);
   });
 
   test('its marks are on the leg own clock: the departure at 0 and the arrival at its end', () => {
-    const second = viewWindow(SCHEDULE, { view: 'tramo', leg: 1 });
+    const second = viewSpan(SCHEDULE, { view: 'tramo', leg: 1 });
 
     expect(second.markers.map((marker) => marker.label)).toEqual([
       'Salida de A',
@@ -109,22 +109,22 @@ describe('viewWindow · Tramo', () => {
 
   test('the arrival mark is the instant the drone reaches the stop, on the route clock', () => {
     SCHEDULE.forEach((leg, index) => {
-      const window = viewWindow(SCHEDULE, { view: 'tramo', leg: index });
-      const arrivalMark = window.markers.at(-1);
+      const span = viewSpan(SCHEDULE, { view: 'tramo', leg: index });
+      const arrivalMark = span.markers.at(-1);
 
-      const at = sampleAt(SAMPLES, window.start + (arrivalMark?.t ?? NaN));
+      const at = sampleAt(SAMPLES, span.start + (arrivalMark?.t ?? NaN));
 
       expect(Math.hypot(at.x - leg.to.x, at.y - leg.to.y)).toBeLessThan(AT_STOP_M);
     });
   });
 
   test('the drone stops accelerating and starts braking at the marks between', () => {
-    const window = viewWindow(SCHEDULE, DEFAULT_SELECTION);
-    const [, accelerated, braking] = window.markers.map((marker) => marker.t);
+    const span = viewSpan(SCHEDULE, DEFAULT_SELECTION);
+    const [, accelerated, braking] = span.markers.map((marker) => marker.t);
 
-    expect(sampleAt(SAMPLES, window.start + accelerated - 0.5).accel).toBeCloseTo(2.5, 6);
-    expect(sampleAt(SAMPLES, window.start + accelerated + 0.5).accel).toBeCloseTo(0, 6);
-    expect(sampleAt(SAMPLES, window.start + braking + 0.5).accel).toBeCloseTo(2.5, 6);
+    expect(sampleAt(SAMPLES, span.start + accelerated - 0.5).accel).toBeCloseTo(2.5, 6);
+    expect(sampleAt(SAMPLES, span.start + accelerated + 0.5).accel).toBeCloseTo(0, 6);
+    expect(sampleAt(SAMPLES, span.start + braking + 0.5).accel).toBeCloseTo(2.5, 6);
   });
 
   test('a leg too short to cruise has its two phase marks at the same instant', () => {
@@ -132,17 +132,17 @@ describe('viewWindow · Tramo', () => {
       ...DRONE_ROUTE,
       stops: [DRONE_ROUTE.stops[0], { name: 'A', x: 20, y: 0, dwell: 5 }],
     };
-    const window = viewWindow(routeSchedule(short), DEFAULT_SELECTION);
-    const [, accelerated, braking] = window.markers.map((marker) => marker.t);
+    const span = viewSpan(routeSchedule(short), DEFAULT_SELECTION);
+    const [, accelerated, braking] = span.markers.map((marker) => marker.t);
 
     expect(accelerated).toBeCloseTo(braking, 9);
-    expect(normalizeMarkers(window.markers, window.duration)).toHaveLength(4);
+    expect(normalizeMarkers(span.markers, span.duration)).toHaveLength(4);
   });
 
   test('an out-of-range leg falls back to the last one', () => {
-    const window = viewWindow(SCHEDULE, { view: 'tramo', leg: 99 });
+    const span = viewSpan(SCHEDULE, { view: 'tramo', leg: 99 });
 
-    expect(window.start).toBe(SCHEDULE.at(-1)?.departure);
+    expect(span.start).toBe(SCHEDULE.at(-1)?.departure);
   });
 });
 
@@ -162,9 +162,9 @@ describe('legAtTime', () => {
 });
 
 describe('localTime and openingTime', () => {
-  const second = viewWindow(SCHEDULE, { view: 'tramo', leg: 1 });
+  const second = viewSpan(SCHEDULE, { view: 'tramo', leg: 1 });
 
-  test('localTime is the route time on the window own clock, held inside it', () => {
+  test('localTime is the route time on the span own clock, held inside it', () => {
     expect(localTime(second, second.start + 12)).toBeCloseTo(12, 9);
     expect(localTime(second, 0)).toBe(0);
     expect(localTime(second, RUTA.duration)).toBe(second.duration);
@@ -172,7 +172,7 @@ describe('localTime and openingTime', () => {
   });
 
   test('openingTime shows the drone cruising: 30 s in, or the middle of a short leg', () => {
-    expect(openingTime(viewWindow(SCHEDULE, DEFAULT_SELECTION))).toBe(30);
+    expect(openingTime(viewSpan(SCHEDULE, DEFAULT_SELECTION))).toBe(30);
     expect(openingTime({ ...second, duration: 20 })).toBe(10);
   });
 });
@@ -180,10 +180,10 @@ describe('localTime and openingTime', () => {
 describe('legOptionLabel and viewNote', () => {
   test('names a leg by the stops it joins', () => {
     expect(SCHEDULE.map(legOptionLabel)).toEqual([
-      'Depósito → A',
-      'A → B',
-      'B → C',
-      'C → Depósito',
+      'Del depósito a A',
+      'De A a B',
+      'De B a C',
+      'De C al depósito',
     ]);
   });
 

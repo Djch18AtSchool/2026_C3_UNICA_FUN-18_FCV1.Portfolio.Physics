@@ -1,6 +1,6 @@
 /**
  * The two views of Tema 1's laboratory, as pure data: «Tramo» plays one leg between two stops at
- * real speed, «Ruta» plays the whole route faster. Each view is a window onto the route: where it
+ * real speed, «Ruta» plays the whole route faster. Each view is a span of the route: where it
  * starts on the route's clock, how long it lasts, how much faster than real time it plays and the
  * events its timeline marks, all taken from the route model (`routeSchedule`), never typed in.
  * No React; seconds.
@@ -18,7 +18,7 @@ export interface ViewSelection {
 }
 
 /** A view's part of the route: the clock the laboratory runs for it. */
-export interface ViewWindow {
+export interface ViewSpan {
   /** The route time at which this clock's 0 falls (s). */
   start: number;
   /** How long the clock runs (s). */
@@ -54,7 +54,7 @@ const arrivalMark = (t: number, to: RouteStop): TransportMarker => ({
 });
 
 /** «Ruta»: the departure from the depot and the arrival at every stop, on the route's clock. */
-function routeWindow(schedule: readonly LegSchedule[]): ViewWindow {
+function routeSpan(schedule: readonly LegSchedule[]): ViewSpan {
   const [first] = schedule;
   return {
     start: 0,
@@ -71,7 +71,7 @@ function routeWindow(schedule: readonly LegSchedule[]): ViewWindow {
  * «Tramo»: the flight from `departure` to `arrival` on its own clock (0 at the departure), with
  * the instants the acceleration ends and the braking starts between the two stops.
  */
-function legWindow(leg: LegSchedule): ViewWindow {
+function legSpan(leg: LegSchedule): ViewSpan {
   const flight = leg.arrival - leg.departure;
   return {
     start: leg.departure,
@@ -86,13 +86,10 @@ function legWindow(leg: LegSchedule): ViewWindow {
   };
 }
 
-/** The window of a selection; a leg out of range is the last one. */
-export function viewWindow(
-  schedule: readonly LegSchedule[],
-  { view, leg }: ViewSelection,
-): ViewWindow {
-  if (view === 'ruta') return routeWindow(schedule);
-  return legWindow(schedule[Math.min(Math.max(leg, 0), schedule.length - 1)]);
+/** The span of a selection; a leg out of range is the last one. */
+export function viewSpan(schedule: readonly LegSchedule[], { view, leg }: ViewSelection): ViewSpan {
+  if (view === 'ruta') return routeSpan(schedule);
+  return legSpan(schedule[Math.min(Math.max(leg, 0), schedule.length - 1)]);
 }
 
 /** The leg the drone is on at route time t: during a dwell, the one that just arrived. */
@@ -101,19 +98,20 @@ export function legAtTime(schedule: readonly LegSchedule[], t: number): number {
   return index < 0 ? schedule.length - 1 : index;
 }
 
-/** Route time t on the window's own clock, held inside it. */
-export function localTime(window: ViewWindow, routeTime: number): number {
-  return Math.min(Math.max(routeTime - window.start, 0), window.duration);
+/** Route time t on the span's own clock, held inside it. */
+export function localTime(span: ViewSpan, routeTime: number): number {
+  return Math.min(Math.max(routeTime - span.start, 0), span.duration);
 }
 
 /** Where a view opens: cruising 30 s in, or in the middle of a leg shorter than 60 s. */
-export function openingTime(window: ViewWindow): number {
-  return Math.min(OPENING_TIME_S, window.duration / 2);
+export function openingTime(span: ViewSpan): number {
+  return Math.min(OPENING_TIME_S, span.duration / 2);
 }
 
-/** «Depósito → A»: a leg named by the stops it joins (plain text: it goes in an <option>). */
+/** «Del depósito a A», «De A a B»: a leg named by the stops it joins (plain text, for an <option>). */
 export function legOptionLabel({ from, to }: LegSchedule): string {
-  return `${from.name} → ${to.name}`;
+  const [lead, ...rest] = `${fromText(from)} ${toText(to)}`;
+  return `${lead.toUpperCase()}${rest.join('')}`;
 }
 
 /** What the selected view covers, in the route's own seconds. */

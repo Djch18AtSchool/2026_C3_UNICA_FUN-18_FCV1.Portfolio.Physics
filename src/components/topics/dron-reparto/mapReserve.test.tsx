@@ -36,7 +36,7 @@ function renderMapAt(svgWidth: number) {
       samples={samples}
       now={now}
       live={{ frame: createFrameStore(), sampleAt: (t) => sampleAt(samples, t) }}
-      duration={387.43}
+      timeRange={{ from: 0, to: 387.43 }}
       showVectors
       showTrail
       velocityScale={15}
@@ -128,7 +128,7 @@ describe('the skeleton’s placeholder of the map figure', { timeout: MAP_RENDER
         samples={samples}
         now={now}
         live={{ frame: createFrameStore(), sampleAt: (t) => sampleAt(samples, t) }}
-        duration={387.43}
+        timeRange={{ from: 0, to: 387.43 }}
         showVectors
         showTrail
         velocityScale={15}

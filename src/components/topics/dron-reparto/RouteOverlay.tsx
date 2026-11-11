@@ -1,4 +1,4 @@
-import { useRef, type JSX, type KeyboardEvent } from 'react';
+import { useMemo, useRef, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
 import type { RouteSample, RouteStop } from '../../../lib/data/droneRoute';
 import { CHART_COLORS, SURFACE_COLOR, TEXT_COLOR } from '../../charts/chartTheme';
@@ -16,6 +16,12 @@ export const VELOCITY_COLOR = CHART_COLORS[2];
 export const ACCEL_COLOR = CHART_COLORS[3];
 export const ROUTE_COLOR = CHART_COLORS[0];
 
+/** A part of the route's clock (s): the whole route in «Ruta», one leg in «Tramo». */
+export interface TimeRange {
+  from: number;
+  to: number;
+}
+
 /** The live clock and the flight's sample at any of its times: what the moving layer draws. */
 export interface LiveFlight {
   frame: FrameStore;
@@ -29,7 +35,8 @@ export interface RouteOverlayProps {
   /** The sample at the settled time (the marker's aria values and keyboard steps). */
   now: RouteSample;
   live: LiveFlight;
-  duration: number;
+  /** What the drone can be dragged or keyed over, and where its trail begins. */
+  timeRange: TimeRange;
   showVectors: boolean;
   showTrail: boolean;
   /** Map metres per m/s of velocity; the acceleration uses `accelScale` metres per m/s². */
@@ -53,7 +60,7 @@ const STOP_LABEL_OFFSET = { dx: -10, dy: -10, anchor: 'end' } as const;
 const VECTOR_LABEL_GAP = 12;
 /** Half the letter height, to centre it vertically on its anchor point. */
 const LABEL_HALF_HEIGHT = 4;
-/** The drone marker steps duration / DRONE_KEY_STEPS per arrow key. */
+/** The drone marker steps a hundredth of its time range per arrow key. */
 const DRONE_KEY_STEPS = 100;
 const ORIGIN: Point = { x: 0, y: 0 };
 /** Decimals of the moving groups' translations: a stable attribute string per frame. */
@@ -62,7 +69,7 @@ const PX_DECIMALS = 2;
 const translate = ({ x, y }: Point) =>
   `translate(${x.toFixed(PX_DECIMALS)} ${y.toFixed(PX_DECIMALS)})`;
 
-const clampTime = (t: number, duration: number) => Math.min(Math.max(t, 0), duration);
+const clampTime = (t: number, { from, to }: TimeRange) => Math.min(Math.max(t, from), to);
 
 function path(points: Point[], scales: RouteOverlayProps['scales']): string {
   return points
@@ -107,6 +114,8 @@ interface FlightLayerProps {
   live: LiveFlight;
   samples: RouteSample[];
   scales: RouteOverlayProps['scales'];
+  /** Where the trail starts: the beginning of the view, not always of the route. */
+  trailFrom: number;
   showTrail: boolean;
   showVectors: boolean;
   velocityScale: number;
@@ -118,7 +127,8 @@ interface FlightLayerProps {
  * drawn relative to the drone inside a translated group.
  */
 function FlightLayer(props: FlightLayerProps): JSX.Element {
-  const { live, samples, scales, showTrail, showVectors, velocityScale, accelScale } = props;
+  const { live, samples, scales, trailFrom, showTrail, showVectors } = props;
+  const { velocityScale, accelScale } = props;
   const now = useFrameDerived(live.frame, live.sampleAt);
   const toPx = (p: Point) => ({ x: scales.x.toPx(p.x), y: scales.y.toPx(p.y) });
   const drone = toPx(now);
@@ -136,7 +146,7 @@ function FlightLayer(props: FlightLayerProps): JSX.Element {
       {showTrail ? (
         <path
           data-trail=""
-          d={path(trailSamples(samples, now), scales)}
+          d={path(trailSamples(samples, now, trailFrom), scales)}
           fill="none"
           stroke={ROUTE_COLOR}
           strokeWidth={TRAIL_WIDTH}
@@ -218,26 +228,31 @@ function StopHandle({ index, stop, scales, onStopDrag }: StopHandleProps): JSX.E
  * (it seeks t) and takes the arrow keys; the stops take them too.
  */
 export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
-  const { scales, stops, samples, now, live, duration, decimals, onSeek } = props;
+  const { scales, stops, samples, now, live, timeRange, decimals, onSeek } = props;
+  /** The part of the flight the drone can be dragged over. */
+  const reachable = useMemo(
+    () => samples.filter((sample) => sample.t >= timeRange.from && sample.t <= timeRange.to),
+    [samples, timeRange],
+  );
   const toPx = (p: Point) => ({ x: scales.x.toPx(p.x), y: scales.y.toPx(p.y) });
   const depot = toPx(stops[0]);
   const droneDrag = useDrag(({ x, y }: DragPoint) =>
-    onSeek(timeFromPoint(samples, scales.x.toValue(x), scales.y.toValue(y))),
+    onSeek(timeFromPoint(reachable, scales.x.toValue(x), scales.y.toValue(y))),
   );
   const onDroneKeyDown = (event: KeyboardEvent<SVGGElement>) => {
-    const step = duration / DRONE_KEY_STEPS;
+    const step = (timeRange.to - timeRange.from) / DRONE_KEY_STEPS;
     const moves: Record<string, number> = {
       ArrowRight: now.t + step,
       ArrowUp: now.t + step,
       ArrowLeft: now.t - step,
       ArrowDown: now.t - step,
-      Home: 0,
-      End: duration,
+      Home: timeRange.from,
+      End: timeRange.to,
     };
     const next = moves[event.key];
     if (next === undefined) return;
     event.preventDefault();
-    onSeek(clampTime(next, duration));
+    onSeek(clampTime(next, timeRange));
   };
 
   return (
@@ -262,6 +277,7 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
         live={live}
         samples={samples}
         scales={scales}
+        trailFrom={timeRange.from}
         showTrail={props.showTrail}
         showVectors={props.showVectors}
         velocityScale={props.velocityScale}
@@ -282,8 +298,8 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
         role="slider"
         tabIndex={0}
         aria-label="Instante en la ruta"
-        aria-valuemin={0}
-        aria-valuemax={duration}
+        aria-valuemin={timeRange.from}
+        aria-valuemax={timeRange.to}
         aria-valuenow={now.t}
         aria-valuetext={`t = ${formatNumber(now.t, { precision: decimals, unit: 's' })}`}
         className="group cursor-grab outline-none"

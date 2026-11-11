@@ -6,7 +6,12 @@ import SvgPlot from '../../lab/SvgPlot';
 import type { Point } from '../../lab/OverlayMarks';
 import type { DragPoint } from '../../lab/useDrag';
 import { MAP_DOMAIN } from './droneScene';
-import RouteOverlay, { ROUTE_COLOR, type LiveFlight, type StopIndex } from './RouteOverlay';
+import RouteOverlay, {
+  ROUTE_COLOR,
+  type LiveFlight,
+  type StopIndex,
+  type TimeRange,
+} from './RouteOverlay';
 
 export interface RouteMapLabProps {
   stops: readonly RouteStop[];
@@ -14,7 +19,8 @@ export interface RouteMapLabProps {
   /** The sample at the settled time (the aria text); the drawing follows `live`. */
   now: RouteSample;
   live: LiveFlight;
-  duration: number;
+  /** The route times the clock covers: the drone, its keys and its drag stay inside. */
+  timeRange: TimeRange;
   showVectors: boolean;
   showTrail: boolean;
   velocityScale: number;
