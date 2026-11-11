@@ -6,7 +6,13 @@
 import { formatNumber } from '../../../lib/format';
 import type { RegenParams } from '../../../lib/physics/energy';
 import { FASTSIM_MOTOR_PMAX_W } from '../../../lib/physics/energy';
-import type { DriveState } from '../../../lib/physics/regenDrive';
+import {
+  FASTSIM_MODEL3_CHASSIS,
+  PEDAL_APPLY_S,
+  PEDAL_RETURN_S,
+  tractionAccelMax,
+  type DriveState,
+} from '../../../lib/physics/regenDrive';
 import { transportTimeText } from '../../lab/transportTime';
 import type { DriveCourse } from './driveRun';
 import { J_PER_KJ, KMH_PER_MS, W_PER_KW, type BalanceAt } from './regenScene';
@@ -128,3 +134,50 @@ export function driveSceneCaption(
         : `Pasaste la línea de detención por ${meters(-ahead)}.`;
   return `El auto de contorno discontinuo es el del ${cycleName}: va a ${kmh(reference.v)}, ${where}. ${line}`;
 }
+
+/** The longest a summary reads: 4-digit distances and energies, 3-digit speeds (the reserve). */
+const LONG_DISTANCE_M = 9_999;
+const LONG_ENERGY_J = 9_999_900;
+const LONG_SPEED_MS = 99;
+
+/**
+ * The longest summary the course can say, for the status line's reserve: the end while still moving
+ * and a pause near the end, with every number at its widest; the longer of the two.
+ */
+export function longestSummary(course: DriveCourse, cycleName: string): string {
+  const wide: BalanceAt = {
+    t: 0,
+    v: LONG_SPEED_MS,
+    distance: course.startDistance + LONG_DISTANCE_M,
+    pWheel: 0,
+    pBrake: 0,
+    pRegen: 0,
+    pFriction: 0,
+    pBattery: 0,
+    eTraction: LONG_ENERGY_J,
+    eRoadLoad: LONG_ENERGY_J,
+    eBrake: LONG_ENERGY_J,
+    eBattery: LONG_ENERGY_J,
+    eFriction: LONG_ENERGY_J,
+    eConversionLoss: LONG_ENERGY_J,
+    recoveredShare: 1,
+  };
+  const input = { own: wide, reference: wide, course, cycleName };
+  const atEnd = driveSummary({ ...input, t: course.duration });
+  const paused = driveSummary({ ...input, t: course.duration - END_EPSILON_S * 2 });
+  return atEnd.length >= paused.length ? atEnd : paused;
+}
+
+const seconds = (value: number, precision: number) => formatNumber(value, { precision, unit: 's' });
+
+/** «Cómo se usa» of «Conducir»: the challenge, the pedals and their keys, the timeline, the summary. */
+export const DRIVE_USAGE = `En «Conducir» conduces tú el tramo: el auto sale a la velocidad del ciclo y el reto es detenerte en la línea donde se detiene el auto del ciclo, para comparar qué parte de tu frenado vuelve a la batería con la del ciclo, con la misma definición que en «Tramo». Mantén pulsado el freno o el acelerador con el puntero, el dedo, Espacio o Intro, o usa ↓ y ↑ con un pedal enfocado: un pedal mantenido se hunde hasta el fondo en ${seconds(PEDAL_APPLY_S, 0)} y vuelve en ${seconds(PEDAL_RETURN_S, 1)} al soltarlo, así que los toques cortos frenan suave; el freno anula el acelerador. Pulsar un pedal arranca la reproducción. La línea de tiempo solo recorre lo ya conducido: al volver atrás y reproducir, sigues desde ahí. Al pausar o al terminar, un resumen dice la distancia, la energía a la batería y el porcentaje recuperado, tuyos y del ciclo.`;
+
+const { wheelFricCoef, driveAxleWeightFrac } = FASTSIM_MODEL3_CHASSIS;
+
+/** «Qué deja fuera el modelo» of «Conducir»: where the pedals' limits come from, and what is left out. */
+export const DRIVE_LEFT_OUT = `En «Conducir», el acelerador empuja como mucho con la adherencia del eje trasero del Model 3 de FASTSim: $\\mu$ = ${formatNumber(wheelFricCoef, { precision: 1 })} y el ${formatNumber(driveAxleWeightFrac * PERCENT, { precision: 0, unit: '%' })} del peso sobre ese eje, con la transferencia de carga al acelerar, dan ${formatNumber(tractionAccelMax(), { precision: 2, unit: 'm/s²' })}; y nunca con más de los ${kw(FASTSIM_MOTOR_PMAX_W)} del motor. El freno llega a $\\mu n = \\mu m g$ en las cuatro ruedas. El LEAF usa el mismo chasis. El motor no tiene un límite de par propio y la adherencia del eje trasero no limita la regeneración. Sin pedal el auto rueda libre: lo frena solo la carga en carretera, sin el freno regenerativo al soltar el acelerador que traen muchos eléctricos.`;
+
+/** The canvas note of «Conducir»: which car and which curve is whose, not by color alone. */
+export const DRIVE_CANVAS_NOTE =
+  'En «Conducir», el auto relleno es el tuyo y el de contorno discontinuo, el del ciclo; la barra que cruza la carretera es la línea de detención. En la gráfica de velocidad, tu conducción va en línea continua y el dato del ciclo, en línea discontinua.';

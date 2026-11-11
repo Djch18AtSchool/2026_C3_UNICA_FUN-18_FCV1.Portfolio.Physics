@@ -96,6 +96,10 @@ export function presetIdFor(state: RegenLabState): string | undefined {
 }
 
 /** The kernel's regeneration parameters for a state (P_máx back in W). */
-export function regenParams({ eta, pMaxKw, lowSpeedFade }: RegenLabState): RegenParams {
+export function regenParams({
+  eta,
+  pMaxKw,
+  lowSpeedFade,
+}: Pick<RegenLabState, 'eta' | 'pMaxKw' | 'lowSpeedFade'>): RegenParams {
   return { eta, pMax: pMaxKw * W_PER_KW, lowSpeedFade };
 }

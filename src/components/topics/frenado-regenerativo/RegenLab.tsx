@@ -1,4 +1,5 @@
 import { useMemo, useState, type JSX } from 'react';
+import type { SimClock } from '../../lab/useSimClock';
 import { DRIVE_CYCLES, type CycleId } from '../../../lib/data/driveCycles';
 import { cycleBalance } from '../../../lib/physics/energy';
 import LabPresets from '../../lab/LabPresets';
@@ -20,6 +21,10 @@ import {
 import { balanceAt, cumulativeDistance } from './regenScene';
 import { BRAKING_PAD_S } from './regenFigures';
 import { readoutsFor, shownBalance, viewMarkers } from './regenViews';
+import DriveCanvas from './DriveCanvas';
+import { DRIVE_LEFT_OUT, DRIVE_USAGE } from './driveText';
+import { DRIVE_CARS, DRIVE_COURSES, driveBalance, driveReadouts, referenceAt } from './driveViews';
+import { useDriveSession } from './useDriveSession';
 import { useRegenView } from './useRegenView';
 
 function balanceFor(state: RegenLabState) {
@@ -72,13 +77,29 @@ function useRegenLab() {
     view.resetView();
   };
   const at = balanceAt(steps, distances, view.timing.offset + clock.state.t);
-  return { ...view, state, cycle, steps, distances, at, update, reset };
+  const drive = useRegenDrive(state, view.view === 'conducir', clock);
+  // In «Conducir» the transport and the settings get the drive's clock (seeks clamped).
+  const shownClock = drive.session.clock;
+  return { ...view, state, cycle, steps, distances, at, update, reset, drive, shownClock };
+}
+
+/** «Conducir»: the course of the cycle on show, the car and model of the lab, and its session. */
+function useRegenDrive(state: RegenLabState, isActive: boolean, clock: SimClock) {
+  const { vehicle, eta, pMaxKw, lowSpeedFade } = state;
+  // Only the car and the model: a new object recomputes the run from its pedals.
+  const model = useMemo(
+    () => ({ car: DRIVE_CARS[vehicle], regen: regenParams({ eta, pMaxKw, lowSpeedFade }) }),
+    [vehicle, eta, pMaxKw, lowSpeedFade],
+  );
+  const course = DRIVE_COURSES[state.cycle];
+  const session = useDriveSession({ isActive, course, model, clock });
+  return { course, model, session };
 }
 
 type RegenLabModel = ReturnType<typeof useRegenLab>;
 
 /** The panel's levels: η and P_máx, the five presets, and the drawer's view, cycle and f(v). */
-function regenLevels({ state, view, clock, update, changeView }: RegenLabModel) {
+function regenLevels({ state, view, shownClock: clock, update, changeView }: RegenLabModel) {
   return {
     params: <RegenParams state={state} onChange={update} />,
     scenario: (
@@ -101,47 +122,74 @@ function regenLevels({ state, view, clock, update, changeView }: RegenLabModel) 
   };
 }
 
+/** The readouts of the view: the cycle's or the stretch's balance, or your run against the cycle's car. */
+function labReadouts(lab: RegenLabModel) {
+  const { view, state, steps, distances, stretch, at, cycle, clock } = lab;
+  if (view !== 'conducir') {
+    return readoutsFor(shownBalance(at, view, stretch, steps, distances), view);
+  }
+  const { course, session } = lab.drive;
+  const own = driveBalance(session.settled, course);
+  const reference = referenceAt(steps, distances, course, clock.state.t);
+  return driveReadouts(own, reference, course, cycle.name);
+}
+
+/** The canvas of the view: the cycle played («Tramo», «Ciclo») or driven («Conducir»). */
+function LabCanvas({ lab, decimals }: { lab: RegenLabModel; decimals: number }): JSX.Element {
+  const { view, state, steps, distances, stretch } = lab;
+  const shared = {
+    cycleId: state.cycle,
+    cycle: lab.cycle,
+    vehicleName: VEHICLES[state.vehicle].name,
+    steps,
+    distances,
+    stretch,
+    decimals,
+  };
+  if (view === 'conducir') {
+    const { course, model, session } = lab.drive;
+    return (
+      <DriveCanvas
+        {...shared}
+        course={course}
+        regen={model.regen}
+        clock={lab.shownClock}
+        session={session}
+      />
+    );
+  }
+  return <RegenCanvas {...shared} view={view} timing={lab.timing} clock={lab.clock} at={lab.at} />;
+}
+
 /**
- * Tema 6's laboratory on LabShell, in two views: «Tramo», one braking at real time (figure 6.3's
- * in the UDDS) with the energies of that stretch, and «Ciclo completo», the whole EPA cycle 20
- * times faster with the cycle's; the scale on the canvas, the cycle's stops as transport events
- * (RegenCanvas). η and P_máx as parameters, five presets as the scenario, the view, the cycle and
- * f(v) (on by default, ruling R19) as local settings, and the readouts of readoutsFor.
+ * Tema 6's laboratory on LabShell, in three views: «Tramo», one braking at real time (figure 6.3's
+ * in the UDDS) with the energies of that stretch; «Ciclo completo», the whole EPA cycle 20 times
+ * faster with the cycle's (RegenCanvas); and «Conducir», the same stretch driven with the reader's
+ * pedals against the cycle's own car (DriveCanvas). The scale on the canvas, the cycle's stops as
+ * transport events. η and P_máx as parameters, five presets as the scenario, the view, the cycle
+ * and f(v) (on by default, ruling R19) as local settings, and the readouts of the view.
  */
 export default function RegenLab({ usage, leftOut }: RegenLabProps): JSX.Element {
   const { decimals } = useGlobalSettings();
   const lab = useRegenLab();
-  const { view, state, steps, distances, stretch, at } = lab;
   return (
     <LabShell
       title="Laboratorio del frenado regenerativo"
-      clock={lab.clock}
-      markers={viewMarkers(view, state.cycle)}
+      clock={lab.shownClock}
+      markers={viewMarkers(lab.view, lab.state.cycle)}
       timeOrigin={lab.timing.offset}
       timeUnit="s"
-      readouts={readoutsFor(shownBalance(at, view, stretch, steps, distances), view)}
+      readouts={labReadouts(lab)}
       levels={regenLevels(lab)}
-      canvasNotes={<RegenNotes />}
+      canvasNotes={<RegenNotes view={lab.view} />}
       notes={{
-        usage: [VIEW_HINT, CURSOR_HINT, FADE_HINT, ...(usage ? [usage] : [])],
-        leftOut: [ETA_SOURCE, ...(leftOut ? [leftOut] : [])],
+        usage: [VIEW_HINT, CURSOR_HINT, FADE_HINT, DRIVE_USAGE, ...(usage ? [usage] : [])],
+        leftOut: [ETA_SOURCE, ...(leftOut ? [leftOut] : []), DRIVE_LEFT_OUT],
       }}
       onReset={lab.reset}
       testId="regen-lab"
     >
-      <RegenCanvas
-        view={view}
-        cycleId={state.cycle}
-        cycle={lab.cycle}
-        vehicleName={VEHICLES[state.vehicle].name}
-        steps={steps}
-        distances={distances}
-        stretch={stretch}
-        timing={lab.timing}
-        clock={lab.clock}
-        at={at}
-        decimals={decimals}
-      />
+      <LabCanvas lab={lab} decimals={decimals} />
     </LabShell>
   );
 }

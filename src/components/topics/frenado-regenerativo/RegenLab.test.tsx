@@ -10,6 +10,7 @@ import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
 import RegenLab from './RegenLab';
 import { readout } from '../../../test-readout';
+import { installFrameQueue } from './regenLabTestKit';
 
 const USAGE = 'En «Tramo» la reproducción va a velocidad real.';
 const LEFT_OUT = 'Pendiente, viento y temperatura.';
@@ -93,33 +94,6 @@ const previousEvent = () => screen.getByRole('button', { name: 'Evento anterior'
 /** Moves the transport to a timeline position (of 1000), as a drag would. */
 const scrubTo = (position: number) =>
   fireEvent.change(timeline(), { target: { value: String(position) } });
-
-/**
- * Replaces requestAnimationFrame with a queue the test flushes at chosen timestamps (ms);
- * cancelAnimationFrame removes a queued frame, as the browser does.
- */
-function installFrameQueue() {
-  let queue = new Map<number, FrameRequestCallback>();
-  let nextId = 0;
-  const request = vi.fn((callback: FrameRequestCallback) => {
-    nextId += 1;
-    queue.set(nextId, callback);
-    return nextId;
-  });
-  vi.stubGlobal('requestAnimationFrame', request);
-  vi.stubGlobal('cancelAnimationFrame', (id: number) => queue.delete(id));
-  return {
-    request,
-    flush(now: number) {
-      const pending = [...queue.values()];
-      queue = new Map();
-      act(() => pending.forEach((callback) => callback(now)));
-    },
-    get pending() {
-      return queue.size;
-    },
-  };
-}
 
 describe('RegenLab', () => {
   let uninstall: () => void;
@@ -417,7 +391,10 @@ describe('RegenLab', () => {
 
     expect(container.querySelector('details[data-lab-note="usage"] p')).not.toBeNull();
     expect(container.querySelector('details[data-lab-note="left-out"] p')).not.toBeNull();
-    expect(container.querySelectorAll('details[data-lab-note="left-out"] p')).toHaveLength(1);
+    // Where η comes from, and what «Conducir» leaves out (D3).
+    const leftOut = container.querySelectorAll('details[data-lab-note="left-out"] p');
+    expect(leftOut).toHaveLength(2);
+    expect(leftOut[1]).toHaveTextContent(/^En «Conducir», el acelerador empuja/);
   });
 
   test('the legend and the two explanations are canvas notes, with no controls, under the drawing', () => {

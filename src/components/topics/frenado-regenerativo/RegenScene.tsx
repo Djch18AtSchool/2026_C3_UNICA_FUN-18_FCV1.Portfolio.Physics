@@ -30,6 +30,10 @@ export interface RegenSceneProps {
   decimals: number;
   /** The time scale this view plays at (TimeScaleBadge), in the top-right corner of the header. */
   timeScale?: ReactNode;
+  /** «Conducir»: the cycle's own car on the road, a dashed outline. */
+  ghost?: LiveBalance;
+  /** «Conducir»: what the scene's name adds (where the cycle's car and the line are). */
+  caption?: string;
 }
 
 /** viewBox width before the container is measured (SSR, jsdom): the article column. */
@@ -60,7 +64,7 @@ const FLOW_NAMES: Readonly<Record<FlowLink['id'], string>> = {
 };
 
 function describeScene(
-  { at, totalDistance, vehicleName, cycleName, decimals }: RegenSceneProps,
+  { at, totalDistance, vehicleName, cycleName, decimals, caption }: RegenSceneProps,
   flows: FlowLink[],
 ): string {
   const n = (value: number, unit: string, precision = decimals) =>
@@ -72,7 +76,8 @@ function describeScene(
       : active
           .map((flow) => `${FLOW_NAMES[flow.id]}, ${n(flow.power / W_PER_KW, 'kW', 1)}`)
           .join('; ');
-  return `${vehicleName} en el ciclo ${cycleName}, no a escala: ${PHASE_TEXT[drivePhase(at)].toLowerCase()} a ${n(at.v * KMH_PER_MS, 'km/h')}, ${n(at.distance / M_PER_KM, 'km')} de ${n(totalDistance / M_PER_KM, 'km')}. Flujo de potencia: ${flowText}.`;
+  const name = `${vehicleName} en el ciclo ${cycleName}, no a escala: ${PHASE_TEXT[drivePhase(at)].toLowerCase()} a ${n(at.v * KMH_PER_MS, 'km/h')}, ${n(at.distance / M_PER_KM, 'km')} de ${n(totalDistance / M_PER_KM, 'km')}. Flujo de potencia: ${flowText}.`;
+  return caption ? `${name} ${caption}` : name;
 }
 
 /**
@@ -131,7 +136,7 @@ export default function RegenScene(props: RegenSceneProps): JSX.Element {
             >
               {road.note}
             </text>
-            <RoadStrip range={road} x0={x0} x1={x1} y={ROAD_Y} live={live} />
+            <RoadStrip range={road} x0={x0} x1={x1} y={ROAD_Y} live={live} ghost={props.ghost} />
             <PowerFlow flows={flows} x0={x0} x1={x1} y={flowY} />
           </g>
         </svg>

@@ -26,6 +26,11 @@ const TICK_LENGTH = 4;
 const LABEL_SIZE = 12;
 const LABEL_DROP = 16;
 const KM_PRECISION = 2;
+/** The cycle's car in «Conducir»: an outline only, dashed, so it never reads as the reader's. */
+const GHOST_DASH = '3 2';
+/** The stop line rises this far above the road, past the wheels of a car standing on it. */
+const LINE_RISE = 8;
+const LINE_WIDTH = 2;
 const ROAD_FILL = 'color-mix(in srgb, var(--fg) 12%, var(--bg-elevated))';
 const COVERED_FILL = 'color-mix(in srgb, var(--accent) 28%, var(--bg-elevated))';
 const BODY_FILL = 'color-mix(in srgb, var(--fg) 14%, var(--bg-elevated))';
@@ -56,6 +61,32 @@ export interface RoadStripProps {
   x1: number;
   y: number;
   live: LiveBalance;
+  /** «Conducir»: the cycle's own car, drawn as a dashed outline behind the reader's. */
+  ghost?: LiveBalance;
+}
+
+/** The body of a hatchback facing right, its sill one unit over the axle. */
+function bodyPath(x: number, sill: number): string {
+  return `M${x - 23} ${sill} L${x - 23} ${sill - 8} L${x - 13} ${sill - 9} L${x - 7} ${sill - 16} L${x + 8} ${sill - 16} L${x + 15} ${sill - 9} L${x + 22} ${sill - 7} L${x + 23} ${sill} Z`;
+}
+
+/** The cycle's car: the same hatchback as a dashed outline, wheels as rings, no halos. */
+function GhostCar({ y }: { y: number }): JSX.Element {
+  const axle = y - WHEEL_RADIUS;
+  const outline = {
+    fill: 'none',
+    stroke: TICK_COLOR,
+    strokeWidth: 1.5,
+    strokeDasharray: GHOST_DASH,
+  };
+  return (
+    <g>
+      <path d={bodyPath(0, axle - 1)} {...outline} />
+      {[-AXLE_OFFSET, AXLE_OFFSET].map((cx) => (
+        <circle key={cx} cx={cx} cy={axle} r={WHEEL_RADIUS} {...outline} />
+      ))}
+    </g>
+  );
 }
 
 /** A side view of a hatchback facing right, wheels on y, centred on x. */
@@ -71,8 +102,7 @@ function Car({
   isFrictionBraking: boolean;
 }): JSX.Element {
   const axle = y - WHEEL_RADIUS;
-  const sill = axle - 1;
-  const body = `M${x - 23} ${sill} L${x - 23} ${sill - 8} L${x - 13} ${sill - 9} L${x - 7} ${sill - 16} L${x + 8} ${sill - 16} L${x + 15} ${sill - 9} L${x + 22} ${sill - 7} L${x + 23} ${sill} Z`;
+  const body = bodyPath(x, axle - 1);
   return (
     <g>
       <path d={body} style={{ fill: BODY_FILL }} stroke={TEXT_COLOR} strokeWidth={1.5} />
@@ -110,6 +140,39 @@ function Car({
 const kmLabel = (meters: number) =>
   formatNumber(meters / M_PER_KM, { precision: KM_PRECISION, unit: 'km' });
 
+/** The car's x on the road at a distance of the cycle (m), kept whole on the strip. */
+function carX({ range, x0, x1 }: RoadStripProps, distance: number): number {
+  const length = range.to - range.from;
+  return roadPosition(distance - range.from, length, x0 + CAR_HALF_LENGTH, x1 - CAR_HALF_LENGTH);
+}
+
+/** The cycle's car at the live time («Conducir»): one translation per frame. */
+function GhostLive(props: RoadStripProps & { ghost: LiveBalance }): JSX.Element {
+  const { ghost, y } = props;
+  const x = useFrameDerived(ghost.frame, (t) => carX(props, ghost.atTime(t).distance));
+  return (
+    <g data-testid="regen-ghost" data-x={x} transform={`translate(${x.toFixed(PX_DECIMALS)} 0)`}>
+      <GhostCar y={y} />
+    </g>
+  );
+}
+
+/** The stop line of «Conducir», where the cycle's car stops: a bar across the road. */
+function StopLine({ range, x0, x1, y }: RoadStripProps & { range: { line: number } }) {
+  const x = roadPosition(range.line - range.from, range.to - range.from, x0, x1);
+  return (
+    <line
+      data-testid="regen-stop-line"
+      x1={x}
+      x2={x}
+      y1={y - LINE_RISE}
+      y2={y + ROAD_HEIGHT}
+      stroke={TEXT_COLOR}
+      strokeWidth={LINE_WIDTH}
+    />
+  );
+}
+
 /**
  * The moving layer: the stretch already driven and the car at the live time, translated along the
  * road (one attribute per frame, plus the tint's width), with its halos from the live phase.
@@ -117,10 +180,8 @@ const kmLabel = (meters: number) =>
 function RoadLive({ range, x0, x1, y, live }: RoadStripProps): JSX.Element {
   const at = useFrameDerived(live.frame, live.atTime);
   const phase = drivePhase(at);
-  const along = at.distance - range.from;
-  const length = range.to - range.from;
-  const carX = roadPosition(along, length, x0 + CAR_HALF_LENGTH, x1 - CAR_HALF_LENGTH);
-  const coveredX = roadPosition(along, length, x0, x1);
+  const x = carX({ range, x0, x1, y, live }, at.distance);
+  const coveredX = roadPosition(at.distance - range.from, range.to - range.from, x0, x1);
   return (
     <>
       <rect
@@ -131,11 +192,7 @@ function RoadLive({ range, x0, x1, y, live }: RoadStripProps): JSX.Element {
         height={ROAD_HEIGHT}
         style={{ fill: COVERED_FILL }}
       />
-      <g
-        data-testid="regen-car"
-        data-x={carX}
-        transform={`translate(${carX.toFixed(PX_DECIMALS)} 0)`}
-      >
+      <g data-testid="regen-car" data-x={x} transform={`translate(${x.toFixed(PX_DECIMALS)} 0)`}>
         <Car
           x={0}
           y={y}
@@ -152,7 +209,8 @@ function RoadLive({ range, x0, x1, y, live }: RoadStripProps): JSX.Element {
  * length spans the strip, what is already driven is tinted, a tick marks every `tickEvery` metres
  * and the car stands where the cycle has taken it, clamped to the road. The end labels give the
  * cycle's distance there. Green halos on the wheels mean the motor brakes; orange-red ones, the
- * friction brakes.
+ * friction brakes. In «Conducir» a bar marks the stop line and the cycle's car drives as a dashed
+ * outline behind the reader's.
  */
 export default function RoadStrip(props: RoadStripProps): JSX.Element {
   const { range, x0, x1, y } = props;
@@ -161,6 +219,10 @@ export default function RoadStrip(props: RoadStripProps): JSX.Element {
     <g>
       <g data-testid="regen-road" data-x1={x1}>
         <rect x={x0} y={y} width={x1 - x0} height={ROAD_HEIGHT} style={{ fill: ROAD_FILL }} />
+        {range.line === undefined ? null : (
+          <StopLine {...props} range={{ ...range, line: range.line }} />
+        )}
+        {props.ghost ? <GhostLive {...props} ghost={props.ghost} /> : null}
         <RoadLive {...props} />
         <line
           x1={x0}

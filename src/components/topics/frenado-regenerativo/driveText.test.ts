@@ -4,7 +4,11 @@ import { startDrive, type DriveState } from '../../../lib/physics/regenDrive';
 import { uncoveredChars } from '../../../lib/typography';
 import type { DriveCourse } from './driveRun';
 import {
+  DRIVE_CANVAS_NOTE,
   DRIVE_HINT,
+  DRIVE_LEFT_OUT,
+  DRIVE_USAGE,
+  longestSummary,
   driveSceneCaption,
   driveSummary,
   noticeOf,
@@ -153,10 +157,65 @@ describe('driveSceneCaption: the scene’s name says where the cycle’s car and
   });
 });
 
+describe('the mode’s own notes («Cómo se usa», «Qué deja fuera el modelo», the canvas)', () => {
+  test('usage states the challenge, the pedals, the keys and the pedal’s travel from the model', () => {
+    const text = plain(DRIVE_USAGE);
+
+    expect(text).toMatch(/detenerte en la línea/);
+    expect(text).toMatch(/↓ y ↑/);
+    expect(text).toMatch(/hasta el fondo en 2 s y vuelve en 0,5 s/);
+    expect(text).toMatch(/Pulsar un pedal arranca/);
+  });
+
+  test('what it leaves out names the sources’ numbers: μ = 0,7, 59 %, 4,65 m/s² and 239 kW', () => {
+    const text = plain(DRIVE_LEFT_OUT);
+
+    expect(text).toMatch(/\$\\mu\$ = 0,7/);
+    expect(text).toMatch(/59 %/);
+    expect(text).toMatch(/4,65 m\/s²/);
+    expect(text).toMatch(/239 kW/);
+    expect(text).toMatch(/rueda libre/);
+  });
+
+  test('the canvas note tells the two cars and the two curves apart without color', () => {
+    expect(DRIVE_CANVAS_NOTE).toMatch(/contorno discontinuo/);
+    expect(DRIVE_CANVAS_NOTE).toMatch(/línea continua/);
+  });
+});
+
+describe('longestSummary: the status line’s reserve', () => {
+  test('is at least as long as any summary of the course, and says no formula', () => {
+    const own = balance({
+      v: 30,
+      distance: 5400,
+      eBrake: 9e5,
+      eBattery: 7e5,
+      recoveredShare: 0.778,
+    });
+    const longest = longestSummary(COURSE, 'HWFET');
+    const real = driveSummary({
+      own,
+      reference: REFERENCE_END,
+      course: COURSE,
+      cycleName: 'HWFET',
+      t: 26,
+    });
+
+    expect(longest.length).toBeGreaterThanOrEqual(real.length);
+    // A pause can read longer than the end (a long time of the cycle): the longer one wins.
+    expect(longestSummary({ ...COURSE, offset: 100_000_000 }, 'UDDS')).toMatch(/^En pausa/);
+    expect(longest).not.toMatch(/\$/);
+  });
+});
+
 describe('glyphs', () => {
   test('every fixed text draws with Plex outside its formulas', () => {
     const texts = [
       DRIVE_HINT,
+      DRIVE_USAGE,
+      DRIVE_LEFT_OUT,
+      DRIVE_CANVAS_NOTE,
+      longestSummary(COURSE, 'UDDS'),
       ...(['regenLimit', 'fade', 'traction'] as const).map((kind) =>
         noticeText(kind, DEFAULT_REGEN),
       ),

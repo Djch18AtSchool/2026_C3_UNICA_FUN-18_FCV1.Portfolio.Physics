@@ -7,13 +7,14 @@
 import { DRIVE_CYCLES } from '../../../lib/data/driveCycles';
 import { formatNumber } from '../../../lib/format';
 import type { BalanceStep, CycleSample } from '../../../lib/physics/energy';
-import type { DriveState } from '../../../lib/physics/regenDrive';
+import { driveCar, type DriveCar, type DriveState } from '../../../lib/physics/regenDrive';
 import type { LabReadout } from '../../lab/LabShell';
 import type { DriveCourse } from './driveRun';
 import type { EnergyScale } from './EnergyBars';
 import type { RoadRange } from './RoadStrip';
 import { balanceAt, cumulativeDistance, J_PER_KJ, type BalanceAt } from './regenScene';
 import { balanceSince, stretchAxisMax, type Stretch } from './regenStretch';
+import { VEHICLES, type VehicleId } from './regenPresets';
 import { perCycle, readoutsFor, STOPS, STRETCHES } from './regenViews';
 
 /** Past the line the road runs on a quarter of the course: room to see an overshoot. */
@@ -73,6 +74,12 @@ export function driveCourse(
 export const DRIVE_COURSES = perCycle((id) =>
   driveCourse(DRIVE_CYCLES[id].samples, STRETCHES[id], STOPS[id]),
 );
+
+/** Each car of the lab as the pedals drive it (driveCar), computed once. */
+export const DRIVE_CARS: Readonly<Record<VehicleId, DriveCar>> = {
+  model3: driveCar(VEHICLES.model3),
+  leaf: driveCar(VEHICLES.leaf),
+};
 
 /**
  * A drive state as the lab's balance: the kernel's values, t in the cycle's time, and the share

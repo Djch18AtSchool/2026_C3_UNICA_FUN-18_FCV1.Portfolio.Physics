@@ -1,7 +1,9 @@
 import type { JSX } from 'react';
 import InlineMath from '../../lab/InlineMath';
 import { LEGEND_LIST, LegendItem } from '../../lab/LegendKey';
+import { DRIVE_CANVAS_NOTE } from './driveText';
 import { FLOW_COLORS } from './regenScene';
+import type { RegenView } from './regenStretch';
 
 const LEGEND: readonly { color: string; text: string }[] = [
   { color: FLOW_COLORS.traction, text: 'Tracción: de la batería a las ruedas' },
@@ -16,10 +18,10 @@ const BRAKE_BAR_NOTE =
 
 /**
  * What reads the canvas, as the shell's canvas notes (no controls): the key to the power flow's
- * colors, how its widths and rings read, and how the braking bar splits. Static: nothing here
- * changes with the cycle or the clock.
+ * colors, how its widths and rings read, and how the braking bar splits; in «Conducir», which car
+ * and which curve is whose. Nothing here changes with the cycle or the clock.
  */
-export default function RegenNotes(): JSX.Element {
+export default function RegenNotes({ view = 'tramo' }: { view?: RegenView }): JSX.Element {
   return (
     <div className="flex flex-col gap-3">
       <ul aria-label="Leyenda del flujo de potencia" className={LEGEND_LIST}>
@@ -33,6 +35,11 @@ export default function RegenNotes(): JSX.Element {
         <InlineMath text={SCALE_NOTE} />
       </p>
       <p className="m-0 text-sm text-fg-muted">{BRAKE_BAR_NOTE}</p>
+      {view === 'conducir' ? (
+        <p data-testid="drive-canvas-note" className="m-0 text-sm text-fg-muted">
+          {DRIVE_CANVAS_NOTE}
+        </p>
+      ) : null}
     </div>
   );
 }

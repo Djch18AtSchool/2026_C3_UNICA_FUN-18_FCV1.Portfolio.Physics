@@ -4,6 +4,7 @@ import { MODEL3_LR_RWD_2025 } from '../../../lib/data/evModels';
 import { cycleBalance, DEFAULT_REGEN } from '../../../lib/physics/energy';
 import { startDrive } from '../../../lib/physics/regenDrive';
 import {
+  DRIVE_CARS,
   DRIVE_COURSES,
   driveBalance,
   driveCourse,
@@ -147,5 +148,12 @@ describe('driveRoad and driveEnergyScale', () => {
 
     expect(quiet).toMatchObject({ unit: 'kJ', axisMax: 250, scope: 'en tu conducción, hasta t' });
     expect(hard.axisMax).toBe(450);
+  });
+});
+
+describe('DRIVE_CARS', () => {
+  test('the lab’s two cars, with their own mass and road load', () => {
+    expect(DRIVE_CARS.model3.vehicle.name).toBe('Tesla Model 3 Long Range RWD 2025');
+    expect(DRIVE_CARS.leaf.vehicle.name).toBe('Nissan LEAF 2025');
   });
 });
