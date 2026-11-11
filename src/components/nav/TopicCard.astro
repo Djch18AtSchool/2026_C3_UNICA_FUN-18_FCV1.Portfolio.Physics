@@ -9,12 +9,14 @@ interface Props {
 }
 const { topic } = Astro.props;
 // One entry of the notebook's table of contents: margin number, double margin rule,
-// title, a dotted leader on wide screens, then the resource type. The whole row is the link target.
+// title, a leader line on wide screens, then the resource type. The whole row is the link target.
+// The number sits on the title's baseline: from md the row is as tall as the 30 px badge and
+// centres the title in it, so a top-aligned number would ride 3 px high.
 ---
 
 <article
   data-testid="topic-card"
-  class="group relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-3 py-4 hover:bg-bg-elevated sm:grid-cols-[3rem_minmax(0,1fr)]"
+  class="group relative grid grid-cols-[2rem_minmax(0,1fr)] items-baseline gap-x-3 py-4 hover:bg-bg-elevated sm:grid-cols-[3rem_minmax(0,1fr)]"
 >
   <span class="text-right font-mono text-lg leading-6 text-fg-muted" aria-hidden="true">
     {topic.number}

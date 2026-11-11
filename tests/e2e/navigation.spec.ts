@@ -242,3 +242,36 @@ test('la página 404 muestra la navegación', async ({ page }) => {
   await expect(page.locator('main')).not.toContainText('trece');
   await expect(page.locator('main')).toContainText('ver los temas por avance');
 });
+
+/** Sub-pixel slack for baselines in two fonts (Plex Mono 18 px and Plex Sans 16 px). */
+const BASELINE_SLACK_PX = 1;
+
+for (const width of [360, 768, 1280]) {
+  test(`a ${width} px el número de cada tema va en la línea base de su título`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('./');
+    await page.evaluate(() => document.fonts.ready);
+
+    const offsets = await page.getByTestId('topic-card').evaluateAll((cards) => {
+      // An empty inline-block sits on the baseline: its top is the line's baseline.
+      const baseline = (node: Element) => {
+        const probe = document.createElement('span');
+        probe.style.cssText = 'display:inline-block;width:0;height:0';
+        node.prepend(probe);
+        const top = probe.getBoundingClientRect().top;
+        probe.remove();
+        return top;
+      };
+      return cards.map((card) => {
+        const number = card.querySelector(':scope > span')!;
+        const title = card.querySelector('[data-testid="topic-link"]')!;
+        return baseline(number) - baseline(title);
+      });
+    });
+
+    expect(offsets.length).toBeGreaterThan(0);
+    for (const offset of offsets) expect(Math.abs(offset)).toBeLessThanOrEqual(BASELINE_SLACK_PX);
+  });
+}
