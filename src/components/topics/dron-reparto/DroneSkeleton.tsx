@@ -144,16 +144,13 @@ function StagePlace({ status }: Pick<DroneSkeletonProps, 'status'>): JSX.Element
   );
 }
 
-/** A level as one box: in a wide panel's columns it moves whole, like the lab's own pieces. */
-const WHOLE_LEVEL = `${LAB_LEVEL_IN_COLUMNS} break-inside-avoid`;
-
 /** The panel's two blocks, beside the stage in two columns, side by side in a wide panel. */
 function PanelPlace(): JSX.Element {
   return (
     <div data-skeleton="panel" aria-hidden="true" className={LAB_PANEL_CELL}>
       <div className={LAB_PANEL}>
-        <Place heights={PARAMS} className={WHOLE_LEVEL} />
-        <Place heights={READOUTS} className={WHOLE_LEVEL} />
+        <Place heights={PARAMS} className={LAB_LEVEL_IN_COLUMNS} />
+        <Place heights={READOUTS} className={LAB_LEVEL_IN_COLUMNS} />
       </div>
     </div>
   );

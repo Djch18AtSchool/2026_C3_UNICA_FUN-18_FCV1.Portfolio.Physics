@@ -30,9 +30,8 @@ export const LAB_CANVAS_NOTES = 'min-w-0 lab-split:col-span-2 lab-split:row-star
 export const LAB_PANEL =
   'flex flex-col gap-6 @2xl/panel:block @2xl/panel:columns-2 @2xl/panel:gap-x-8';
 /**
- * Each level of a wide panel: the gap the flex column gave, now a margin in the columns. A column
- * may break between the level's pieces (its title row, a choice, the presets), never inside one
- * (a label away from its select), and the title row stays with the piece that follows it.
+ * Each level of a wide panel: the gap the flex column gave, now a margin in the columns. A level
+ * moves whole, its title with everything it holds: cut between columns, a piece read as part of
+ * the level beside it (Tema 9's «Llegada» under «Lecturas», Tema 7's presets beside «Parámetros»).
  */
-export const LAB_LEVEL_IN_COLUMNS =
-  '@2xl/panel:mb-6 @2xl/panel:last:mb-0 *:break-inside-avoid *:first:break-after-avoid';
+export const LAB_LEVEL_IN_COLUMNS = '@2xl/panel:mb-6 @2xl/panel:last:mb-0 break-inside-avoid';
