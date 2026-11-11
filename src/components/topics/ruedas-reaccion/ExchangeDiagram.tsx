@@ -219,7 +219,7 @@ export default function ExchangeDiagram(): JSX.Element {
       )}
       viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
       width="100%"
-      className="mx-auto block h-auto max-w-[32rem]"
+      className="mx-auto block h-auto max-w-lg"
     >
       <line
         x1={DIVIDER_X}
