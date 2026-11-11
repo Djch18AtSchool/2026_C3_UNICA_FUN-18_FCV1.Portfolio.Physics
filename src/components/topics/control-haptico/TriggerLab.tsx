@@ -1,7 +1,8 @@
-import { useState, type JSX } from 'react';
+import { useId, useState, type JSX } from 'react';
 import { TRIGGER_LIMITS } from '../../../lib/data/triggerModel';
 import { formatNumber } from '../../../lib/format';
 import { motionReduced } from '../../../lib/settingsStore';
+import { CANVAS_INSET } from '../../lab/canvasInset';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import InlineMath from '../../lab/InlineMath';
@@ -54,6 +55,64 @@ const USAGE =
 export interface TriggerLabProps {
   /** «Qué deja fuera el modelo», written in the topic's MDX so it travels with its text. */
   leftOut?: string;
+}
+
+/** Why a button cannot act yet, said under them while it applies. */
+const AT_REST_HINT = 'Con el gatillo suelto no hay nada que soltar: apriétalo primero.';
+const NO_RELEASE_HINT = '«Repetir retorno» se activa tras el primer retorno.';
+
+interface ReleaseActionsProps {
+  canRelease: boolean;
+  canRepeat: boolean;
+  /** The trigger is at rest (and not returning): «Soltar» has nothing to release. */
+  isAtRest: boolean;
+  /** A release has happened: «Repetir» has one to replay. */
+  hasReleased: boolean;
+  onRelease(): void;
+  onRepeat(): void;
+}
+
+/** «Soltar el gatillo» and «Repetir retorno», and a line saying why one of them waits. */
+function ReleaseActions({
+  canRelease,
+  canRepeat,
+  isAtRest,
+  hasReleased,
+  onRelease,
+  onRepeat,
+}: ReleaseActionsProps): JSX.Element {
+  const restId = useId();
+  const repeatId = useId();
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={onRelease}
+          disabled={!canRelease}
+          aria-describedby={isAtRest ? restId : undefined}
+          className={ACTION_BUTTON}
+        >
+          Soltar el gatillo
+        </button>
+        <button
+          type="button"
+          onClick={onRepeat}
+          disabled={!canRepeat}
+          aria-describedby={hasReleased ? undefined : repeatId}
+          className={ACTION_BUTTON}
+        >
+          Repetir retorno
+        </button>
+      </div>
+      {isAtRest || !hasReleased ? (
+        <p className={`m-0 text-sm text-fg-muted ${CANVAS_INSET}`}>
+          {isAtRest ? <span id={restId}>{AT_REST_HINT} </span> : null}
+          {hasReleased ? null : <span id={repeatId}>{NO_RELEASE_HINT}</span>}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 /**
@@ -185,26 +244,16 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
           onPress={press}
           onRelease={letGo}
         />
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => releaseFrom(state.xMm)}
-            disabled={state.xMm === 0 || release.isReleasing}
-            className={ACTION_BUTTON}
-          >
-            Soltar el gatillo
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (state.lastReleaseMm !== undefined) letGo(state.lastReleaseMm);
-            }}
-            disabled={state.lastReleaseMm === undefined || release.isReleasing}
-            className={ACTION_BUTTON}
-          >
-            Repetir retorno
-          </button>
-        </div>
+        <ReleaseActions
+          canRelease={state.xMm !== 0 && !release.isReleasing}
+          canRepeat={state.lastReleaseMm !== undefined && !release.isReleasing}
+          isAtRest={state.xMm === 0 && !release.isReleasing}
+          hasReleased={state.lastReleaseMm !== undefined}
+          onRelease={() => releaseFrom(state.xMm)}
+          onRepeat={() => {
+            if (state.lastReleaseMm !== undefined) letGo(state.lastReleaseMm);
+          }}
+        />
         <div data-testid="trigger-plot">
           <SvgPlot
             aspectRatio={STAGE_PLOT_ASPECT}

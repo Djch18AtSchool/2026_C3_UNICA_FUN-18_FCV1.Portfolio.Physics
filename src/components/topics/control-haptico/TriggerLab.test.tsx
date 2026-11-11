@@ -264,6 +264,22 @@ describe('TriggerLab', () => {
     expect(request.mock.calls.length).toBe(calls);
   });
 
+  test('while the buttons cannot act, a line under them says why, and they point to it', () => {
+    renderLab();
+    const repeat = () => screen.getByRole('button', { name: 'Repetir retorno' });
+
+    expect(releaseButton()).toBeDisabled();
+    expect(repeat()).toBeDisabled();
+    expect(releaseButton()).toHaveAccessibleDescription(/apriétalo primero/);
+    expect(repeat()).toHaveAccessibleDescription(/tras el primer retorno/);
+
+    lever().focus();
+    fireEvent.keyDown(lever(), { key: 'ArrowRight' });
+
+    expect(releaseButton()).toBeEnabled();
+    expect(releaseButton()).not.toHaveAccessibleDescription(/apriétalo primero/);
+  });
+
   test('the keyboard presses and holds the trigger, and "Soltar el gatillo" releases it', () => {
     stubAnimationFrame();
     renderLab();

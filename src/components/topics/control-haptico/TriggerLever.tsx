@@ -5,6 +5,7 @@ import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartThem
 import { useElementWidth } from '../../hooks/useElementWidth';
 import MathText from '../../lab/MathText';
 import { Arrow, ARROW_HEAD, Knob, Label, type Point } from '../../lab/OverlayMarks';
+import { monoTextWidth } from '../../lab/plotScales';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { PROFILE_COLOR } from './hapticPlots';
@@ -45,21 +46,43 @@ const TICK_LABEL_GAP = 16;
 const X0_LABEL_GAP = 14;
 const LEVER_WIDTH = 12;
 const LEVER_OUTLINE = 2;
+/** From the lever's centre line to the outside of its outline. */
+export const LEVER_HALF_THICKNESS = LEVER_WIDTH / 2 + LEVER_OUTLINE;
 const HIT_WIDTH = 36;
 const PIVOT_RADIUS = 7;
 const MOUNT = { width: 34, height: 44, hatch: 9 } as const;
-/** The value label sits below the tip, leaning left, clear of the arc labels on the right. */
+/**
+ * The value label sits below the tip, ending a little right of it (clear of the arc labels on the
+ * right) and running left, under the lever: low enough that its whole text clears the lever's
+ * lower edge, which slopes down towards the pivot while the tip is up (valueLabelDrop).
+ */
 const VALUE_LABEL_DROP = 30;
 const VALUE_LABEL_LEAN = 10;
+/** Room between the lever's edge and the top of the label's digits (their cap height). */
+const VALUE_LABEL_CLEARANCE = 4;
+const CAP_HEIGHT_SHARE = 0.8;
 /** F sits left of its arrow tip, away from the x₀ mark and the arc on the right. */
 const FORCE_LABEL_GAP = 8;
 const TICKS_MM = [0, 2, 4, 6, 8];
 const TEXT_SIZE = 12;
+export const LEVER_TEXT_SIZE = TEXT_SIZE;
 const LEVER_FILL = 'color-mix(in srgb, var(--fg) 12%, var(--bg-elevated))';
 const DEG = Math.PI / 180;
 const X_PRECISION = 1;
 
 const xText = (xMm: number) => formatNumber(xMm, { precision: X_PRECISION, unit: 'mm' });
+
+/**
+ * How far below the tip the value label's baseline goes for a lever at `angleDeg` (y down; negative
+ * while the tip is above the pivot): at least VALUE_LABEL_DROP, more while the lever's lower edge
+ * slopes down under the text.
+ */
+export function valueLabelDrop(angleDeg: number, text: string): number {
+  const reach = Math.max(0, monoTextWidth(text, TEXT_SIZE) - VALUE_LABEL_LEAN);
+  const edge = Math.max(0, Math.tan(-angleDeg * DEG) * reach) + LEVER_HALF_THICKNESS;
+  const clear = edge + VALUE_LABEL_CLEARANCE + TEXT_SIZE * CAP_HEIGHT_SHARE;
+  return Math.max(VALUE_LABEL_DROP, Math.ceil(clear));
+}
 
 function polar(c: Point, radius: number, degrees: number): Point {
   return { x: c.x + radius * Math.cos(degrees * DEG), y: c.y + radius * Math.sin(degrees * DEG) };
@@ -285,7 +308,12 @@ export default function TriggerLever({
           />
           <Knob at={tip} fill={TEXT_COLOR} />
         </g>
-        <Label at={tip} dx={VALUE_LABEL_LEAN} dy={VALUE_LABEL_DROP} anchor="end">
+        <Label
+          at={tip}
+          dx={VALUE_LABEL_LEAN}
+          dy={valueLabelDrop(angle, `x = ${xText(xMm)}`)}
+          anchor="end"
+        >
           {`x = ${xText(xMm)}`}
         </Label>
       </svg>
