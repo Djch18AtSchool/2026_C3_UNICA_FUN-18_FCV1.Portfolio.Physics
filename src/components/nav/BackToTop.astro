@@ -17,7 +17,10 @@
  *
  * It also hides while a laboratory lies under it (any [data-lab-shell] box covering part of it):
  * on a phone it would sit over the panel's fields and «Restablecer», on a desktop over the lab's
- * edge and the focus ring of what has the keyboard (WCAG 2.4.11). Past the lab it is back.
+ * edge and the focus ring of what has the keyboard (WCAG 2.4.11). Past the lab it is back. On a
+ * phone a lab fills the corner for its whole height (1 000–2 000 px), so there is no button while
+ * reading one: accepted, since the button would sit on its fields. The test runs on scroll,
+ * resize and whenever the page's height changes, so a lab that grows without a scroll counts.
  *
  * Layers: above the content and the desktop sticky bar (z-20), below the reading bar (z-40, at
  * the top edge, so they never meet) and the skip link (z-50). The settings drawer is a modal
@@ -77,6 +80,9 @@ const LABEL = 'Volver arriba';
     };
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule);
+    // A lab may grow under the button with no scroll (Tema 1's when its data arrives): any change
+    // of the page's height asks again.
+    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(schedule).observe(document.body);
     // A page restored from the back-forward cache comes back scrolled.
     window.addEventListener('pageshow', schedule);
     update();

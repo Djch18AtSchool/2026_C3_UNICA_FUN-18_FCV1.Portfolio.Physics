@@ -220,6 +220,31 @@ for (const viewport of [DESKTOP, { width: 360, height: 800 }]) {
   });
 }
 
+test('si un laboratorio crece bajo el botón sin que la página se mueva, el botón se esconde', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto('./temas/salto-personaje/');
+  const lab = page.getByTestId(LAB_TEST_ID);
+  await lab.scrollIntoViewIfNeeded();
+  await waitForIsland(page, `[data-testid="${LAB_TEST_ID}"]`);
+  // The lab's foot 200 px above the window's bottom: the button shows below it, over the prose.
+  await lab.evaluate((node) => {
+    const box = node.getBoundingClientRect();
+    window.scrollTo(0, window.scrollY + box.bottom - window.innerHeight + 200);
+  });
+  await expect(backToTop(page)).toBeVisible();
+
+  // The lab grows down under the button (as Tema 1's does when its data arrives), no scroll.
+  await lab.evaluate((node) => {
+    const grow = document.createElement('div');
+    grow.style.height = '400px';
+    node.append(grow);
+  });
+
+  await expect(anyBackToTop(page)).toBeHidden();
+});
+
 test('"Volver arriba" lleva al inicio, deja el foco de teclado al principio y se esconde', async ({
   page,
 }) => {
