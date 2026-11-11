@@ -90,6 +90,51 @@ function measureNumberFields(lab: Locator): Promise<NumberFieldFit[]> {
   );
 }
 
+/** The labels of the fields (ParamField and r_p) and of the readouts. */
+const LABELS = '[data-lab-level] label[for], [data-readout] > span:first-child';
+/** Two fragments within this many px of each other's top share a line. */
+const SAME_LINE_PX = 4;
+
+/**
+ * The labels (their text) whose formula wrapped onto a line of its own: a symbol under the words
+ * it belongs to (Tema 6's «batería η», Tema 9's «|Δv⃗|»).
+ */
+function lonelySymbols(lab: Locator): Promise<string[]> {
+  return lab.evaluate(
+    async (root, { selector, sameLine }) => {
+      await document.fonts.ready;
+      const tops = (node: Node) => {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return [...range.getClientRects()].filter((rect) => rect.width > 0).map((rect) => rect.top);
+      };
+      return [...root.querySelectorAll<HTMLElement>(selector)]
+        .filter((label) => label.getClientRects().length > 0)
+        .filter((label) => {
+          const formulas = [...label.querySelectorAll('.katex')];
+          const words = [...label.childNodes].flatMap((child) => {
+            const walker = document.createTreeWalker(child, NodeFilter.SHOW_TEXT);
+            const texts: Text[] = [];
+            if (child.nodeType === Node.TEXT_NODE) texts.push(child as Text);
+            while (walker.nextNode()) texts.push(walker.currentNode as Text);
+            return texts.filter(
+              (text) => text.data.trim() !== '' && !text.parentElement?.closest('.katex'),
+            );
+          });
+          const wordTops = words.flatMap(tops);
+          return formulas.some((formula) => {
+            const top = formula.getBoundingClientRect().top;
+            return (
+              wordTops.length > 0 && wordTops.every((wordTop) => Math.abs(wordTop - top) > sameLine)
+            );
+          });
+        })
+        .map((label) => (label.textContent ?? '').trim().slice(0, 60));
+    },
+    { selector: LABELS, sameLine: SAME_LINE_PX },
+  );
+}
+
 /** Rendered heights of what matches `selector` inside `host`, visible ones only. */
 function heights(host: Locator, selector: string): Promise<{ text: string; height: number }[]> {
   return host.evaluate(
@@ -153,6 +198,15 @@ for (const { name, size } of VIEWPORTS) {
           const box = await glyph.boundingBox();
           expect([box?.width, box?.height]).toEqual([ICON_PX, ICON_PX]);
         }
+      });
+    }
+
+    for (const { path, labTestId } of TOPIC_PAGES) {
+      test(`${labTestId}: ningún símbolo queda solo en una línea de su etiqueta`, async ({
+        page,
+      }) => {
+        const lab = await openLab(page, path, labTestId);
+        expect(await lonelySymbols(lab)).toEqual([]);
       });
     }
 

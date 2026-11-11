@@ -102,7 +102,7 @@ function ParamField({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
-        <label id={labelId} htmlFor={id} className="text-sm font-medium">
+        <label id={labelId} htmlFor={id} className="text-sm font-medium text-balance">
           {typeof label === 'string' ? <InlineMath text={label} /> : label}
         </label>
         <span className="flex items-center gap-2">

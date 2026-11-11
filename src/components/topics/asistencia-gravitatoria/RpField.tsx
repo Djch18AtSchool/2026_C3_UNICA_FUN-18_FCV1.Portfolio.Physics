@@ -66,7 +66,7 @@ function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
           «99,99», fits with px-1) and the unit in the shared unit box, so it lines up with the
           other labs' fields at every width. */}
       <div className="flex items-center justify-between gap-3">
-        <label id={labelId} htmlFor={ID} className="text-sm font-medium">
+        <label id={labelId} htmlFor={ID} className="text-sm font-medium text-balance">
           <InlineMath text={LABEL} />
         </label>
         <span className="flex items-center gap-2">

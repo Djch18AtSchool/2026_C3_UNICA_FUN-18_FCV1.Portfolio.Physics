@@ -27,7 +27,8 @@ export default function Readout({ label, value, unit, precision, layout = 'row' 
   const resolvedPrecision = precision ?? decimals;
   return (
     <div data-readout="" data-layout={layout} className={LAYOUT_CLASS[layout]}>
-      <span className="text-sm text-fg-muted">
+      {/* Balanced, so a symbol never wraps onto a line of its own under its words. */}
+      <span className="text-sm text-balance text-fg-muted">
         <InlineMath text={label} />
       </span>
       <span className="font-mono text-base font-medium tabular-nums">
