@@ -1,5 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import { formatTimeScale, timeScaleLabel, timeScaleSpoken } from './timeScaleFormat';
+import {
+  formatTimeScale,
+  inlineMathToNotation,
+  timeScaleLabel,
+  timeScaleSpoken,
+} from './timeScaleFormat';
 
 const NNBSP = ' ';
 
@@ -78,5 +83,33 @@ describe('timeScaleSpoken', () => {
 
   test('says when the factor is unknown', () => {
     expect(timeScaleSpoken(Number.NaN)).toBe('Escala de tiempo: sin definir');
+  });
+});
+
+describe('inlineMathToNotation', () => {
+  test('turns the formulas of a $…$ label into the MathText notation', () => {
+    expect(inlineMathToNotation('paso de $r_p$')).toBe('paso de r_p');
+    expect(inlineMathToNotation('a $v_\\infty$')).toBe('a v_∞');
+    expect(inlineMathToNotation('cámara rápida')).toBe('cámara rápida');
+  });
+
+  test('escapes a literal _ or ^ of the text, which MathText would take as a script', () => {
+    expect(inlineMathToNotation('archivo_1 ^ $x$')).toBe('archivo\\_1 \\^ x');
+  });
+});
+
+describe('requireInlineMathLabel', () => {
+  test('accepts plain words and $…$ formulas', async () => {
+    const { requireInlineMathLabel } = await import('./timeScaleFormat');
+
+    expect(() => requireInlineMathLabel('paso de $r_p$')).not.toThrow();
+    expect(() => requireInlineMathLabel('cámara rápida')).not.toThrow();
+  });
+
+  test('rejects a subscript or power written outside $…$', async () => {
+    const { requireInlineMathLabel } = await import('./timeScaleFormat');
+
+    expect(() => requireInlineMathLabel('paso de r_p')).toThrow(/«paso de r_p».*\$…\$/u);
+    expect(() => requireInlineMathLabel('10^-7')).toThrow(/\$…\$/u);
   });
 });

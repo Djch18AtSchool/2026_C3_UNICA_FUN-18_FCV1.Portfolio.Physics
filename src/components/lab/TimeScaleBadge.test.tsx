@@ -6,7 +6,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../lib/settingsStore';
 import { fakeClock } from '../../test-fake-clock';
 import { plexViolations } from '../../test-glyphs';
-import TimeScaleBadge, { TimeScaleBadgeSvg, TimeScaleStatus } from './TimeScaleBadge';
+import TimeScaleBadge, {
+  SCALE_ANNOUNCE_DELAY_MS,
+  TimeScaleBadgeSvg,
+  TimeScaleStatus,
+} from './TimeScaleBadge';
 import { useSimClock } from './useSimClock';
 
 const NNBSP = ' ';
@@ -92,13 +96,69 @@ describe('TimeScaleBadge', () => {
     expect(badge(container)).toHaveClass('bottom-2', 'left-2');
   });
 
-  test('says the scale in words in a quiet status region', () => {
-    render(<TimeScaleBadge factor={20} label="cámara rápida" />);
+  test('says the scale in words to screen readers, outside the live region', () => {
+    const { container } = render(<TimeScaleBadge factor={20} label="cámara rápida" />);
 
-    const status = screen.getByRole('status');
-    expect(status).toHaveTextContent('Escala de tiempo: 20 veces la velocidad real, cámara rápida');
-    expect(status).toHaveClass('sr-only');
-    expect(status).toHaveAttribute('aria-live', 'polite');
+    const words = container.querySelector('[data-time-scale-words]');
+    expect(words).toHaveTextContent('Escala de tiempo: 20 veces la velocidad real, cámara rápida');
+    expect(words).toHaveClass('sr-only');
+    expect(words).not.toHaveAttribute('aria-live');
+  });
+
+  test('the live region starts empty and stays so while the scale settles after loading', () => {
+    vi.useFakeTimers();
+    const { rerender } = render(<TimeScaleBadge factor={20} />);
+    // Reduced motion is known only after mount: the clock's rate moves once, right away.
+    rerender(<TimeScaleBadge factor={91} />);
+
+    act(() => vi.advanceTimersByTime(SCALE_ANNOUNCE_DELAY_MS * 2));
+
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
+    vi.useRealTimers();
+  });
+
+  test('a later change of scale is said once it settles', () => {
+    vi.useFakeTimers();
+    const { rerender } = render(<TimeScaleBadge factor={20} />);
+    act(() => vi.advanceTimersByTime(SCALE_ANNOUNCE_DELAY_MS));
+
+    rerender(<TimeScaleBadge factor={5} />);
+    act(() => vi.advanceTimersByTime(SCALE_ANNOUNCE_DELAY_MS));
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Escala de tiempo: 5 veces la velocidad real, cámara rápida',
+    );
+    vi.useRealTimers();
+  });
+
+  test('a label is written once, with $…$, for the badge, the SVG and the spoken words', () => {
+    const { container } = render(
+      <>
+        <TimeScaleBadge factor={12} label="paso de $r_p$" />
+        <svg>
+          <TimeScaleBadgeSvg factor={12} x={0} y={0} label="paso de $r_p$" />
+        </svg>
+      </>,
+    );
+
+    expect(container.querySelector('[data-time-scale-words]')).toHaveTextContent(
+      'Escala de tiempo: 12 veces la velocidad real, paso de r sub p',
+    );
+    expect(container.querySelector('[data-notation="paso de r_p"]')).not.toBeNull();
+  });
+
+  test('a raw subscript outside $…$ fails loudly instead of being read as «r_p»', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    expect(() => render(<TimeScaleStatus factor={12} label="paso de r_p" />)).toThrow(/\$…\$/u);
+    error.mockRestore();
+  });
+
+  test('the overlay keeps 8 px from both sides in the rem scale', () => {
+    const { container } = render(<TimeScaleBadge factor={20} />);
+
+    expect(badge(container)).toHaveClass('max-w-[calc(100%-1rem)]');
   });
 
   test('every character it prints is one IBM Plex draws, in HTML and in SVG', () => {
@@ -146,9 +206,9 @@ describe('TimeScaleBadgeSvg', () => {
     expect(container.querySelector('text')).toHaveAttribute('y', '24');
   });
 
-  test('anchors at the end and writes the label in the mini-notation', () => {
+  test('anchors at the end and draws a $…$ label with MathText', () => {
     const { container } = renderInSvg(
-      <TimeScaleBadgeSvg factor={12_000} x={100} y={20} anchor="end" label="paso de r_p" />,
+      <TimeScaleBadgeSvg factor={12_000} x={100} y={20} anchor="end" label="paso de $r_p$" />,
     );
 
     const texts = [...container.querySelectorAll('text')];
@@ -169,8 +229,11 @@ describe('TimeScaleStatus', () => {
   afterEach(cleanup);
 
   test('is the spoken scale alone, for a scene that draws TimeScaleBadgeSvg', () => {
-    render(<TimeScaleStatus clock={clockAt(1)} />);
+    const { container } = render(<TimeScaleStatus clock={clockAt(1)} />);
 
-    expect(screen.getByRole('status')).toHaveTextContent('Escala de tiempo: velocidad real');
+    expect(container.querySelector('[data-time-scale-words]')).toHaveTextContent(
+      'Escala de tiempo: velocidad real',
+    );
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 });

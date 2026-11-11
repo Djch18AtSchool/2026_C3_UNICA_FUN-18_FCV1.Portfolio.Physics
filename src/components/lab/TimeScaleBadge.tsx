@@ -2,7 +2,8 @@
  * The time scale a laboratory declares on its canvas, beside what moves (auditoría §12.2):
  * «×20 cámara rápida», «×1 velocidad real», «×19 000 …». The factor is the clock's rate (time
  * scale times speed, or the reduced-motion pace: SimClock.rate) or an explicit `factor`; the word
- * is automatic unless the lab gives its own (`label`) or none (`label={null}`). Usage:
+ * is automatic unless the lab gives its own (`label`, words with $…$, the same in all three
+ * pieces) or none (`label={null}`). Usage:
  *
  *   <div className="relative">                       // the scene's box, positioned
  *     <Scene … />
@@ -10,18 +11,27 @@
  *   </div>
  *
  *   <svg …>                                          // inside an SVG scene, next to the probe
- *     <TimeScaleBadgeSvg clock={clock} x={…} y={…} label="paso de r_p" />
+ *     <TimeScaleBadgeSvg clock={clock} x={…} y={…} label="paso de $r_p$" />
  *   </svg>
- *   <TimeScaleStatus clock={clock} />                // its words for screen readers, in HTML
+ *   <TimeScaleStatus clock={clock} label="paso de $r_p$" />  // its words, in HTML
  *
- * The HTML badge carries its own status region; the SVG one is drawing only (a figure with
- * role="img" hides its children), so its scene adds TimeScaleStatus. Nothing animates.
+ * The HTML badge carries its own words for screen readers; the SVG one is drawing only (a figure
+ * with role="img" hides its children), so its scene adds TimeScaleStatus. Nothing animates.
+ * Reduced motion is known only once mounted: the server and the first render show the nominal
+ * rate («×20») and, under reduced motion, the badge then reads the stepped pace («×91»); that
+ * first settling is not announced (useScaleAnnouncement).
  */
-import type { JSX } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_COLOR } from '../charts/chartTheme';
 import InlineMath from './InlineMath';
 import MathText, { type TextAnchor } from './MathText';
-import { formatTimeScale, timeScaleLabel, timeScaleSpoken } from './timeScaleFormat';
+import {
+  formatTimeScale,
+  inlineMathToNotation,
+  requireInlineMathLabel,
+  timeScaleLabel,
+  timeScaleSpoken,
+} from './timeScaleFormat';
 import type { SimClock } from './useSimClock';
 
 /** Where the factor comes from: the clock's rate, or an explicit factor that wins over it. */
@@ -31,8 +41,8 @@ export type TimeScaleSource =
 export type TimeScaleProps = TimeScaleSource & {
   /**
    * The words after the factor. Omitted: «velocidad real», «cámara rápida» or «cámara lenta»,
-   * from the factor. null: none. A string: the lab's own («1 s de simulación = 12 s reales»),
-   * with $…$ in HTML and the MathText mini-notation in SVG.
+   * from the factor. null: none. A string: the lab's own («1 s de simulación = 12 s reales»,
+   * «paso de $r_p$»), formulas between $…$ in all three pieces (a raw «r_p» throws).
    */
   label?: string | null;
 };
@@ -46,7 +56,7 @@ const CORNER: Readonly<Record<TimeScaleCorner, string>> = {
   'bottom-right': 'bottom-2 right-2',
 };
 const BADGE =
-  'pointer-events-none absolute flex max-w-[calc(100%-16px)] items-baseline gap-2 rounded-sm border border-border bg-bg/90 px-2 py-1';
+  'pointer-events-none absolute flex max-w-[calc(100%-1rem)] items-baseline gap-2 rounded-sm border border-border bg-bg/90 px-2 py-1';
 
 /** SVG badge: the factor in 14 px, the words under it in 12 px, 16 px apart, with a halo. */
 const FACTOR_SIZE = 14;
@@ -59,19 +69,54 @@ export function timeScaleFactor(source: TimeScaleSource): number {
   return source.factor ?? source.clock?.rate ?? Number.NaN;
 }
 
-/** The words after the factor: the lab's, none (null) or the automatic ones. */
+/**
+ * Quiet time before a new scale is said; the first value that holds this long after mount (the
+ * nominal rate, or the reduced-motion pace that replaces it right after mount) is the baseline.
+ */
+export const SCALE_ANNOUNCE_DELAY_MS = 750;
+
+/** The words after the factor: the lab's (checked: $…$ only), none (null) or the automatic ones. */
 function badgeLabel(factor: number, label: string | null | undefined): string | undefined {
   if (label === null) return undefined;
+  if (label !== undefined) requireInlineMathLabel(label);
   return label ?? timeScaleLabel(factor);
 }
 
-/** The scale in words for screen readers, in a polite status region: said when it changes. */
+/**
+ * What the live region says: nothing until the scale changes after it first settled, then the new
+ * scale once it holds for SCALE_ANNOUNCE_DELAY_MS. So loading the page (and reduced motion
+ * replacing the nominal rate right after mount) announces nothing; a change of speed does.
+ */
+function useScaleAnnouncement(spoken: string): string {
+  const [announced, setAnnounced] = useState('');
+  const baseline = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (baseline.current !== undefined && spoken !== baseline.current) setAnnounced(spoken);
+      baseline.current = spoken;
+    }, SCALE_ANNOUNCE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [spoken]);
+  return announced;
+}
+
+/**
+ * The scale in words for screen readers: always in a hidden text (read when browsing), and in a
+ * polite status region only when it changes (useScaleAnnouncement).
+ */
 export function TimeScaleStatus(props: TimeScaleProps): JSX.Element {
   const factor = timeScaleFactor(props);
+  const spoken = timeScaleSpoken(factor, badgeLabel(factor, props.label));
+  const announced = useScaleAnnouncement(spoken);
   return (
-    <p role="status" aria-live="polite" className="sr-only">
-      {timeScaleSpoken(factor, badgeLabel(factor, props.label))}
-    </p>
+    <>
+      <span data-time-scale-words="" className="sr-only">
+        {spoken}
+      </span>
+      <p role="status" aria-live="polite" className="sr-only">
+        {announced}
+      </p>
+    </>
   );
 }
 
@@ -133,7 +178,7 @@ export function TimeScaleBadgeSvg({
       />
       {label ? (
         <MathText
-          source={label}
+          source={inlineMathToNotation(label)}
           x={x}
           y={y + LINE_GAP}
           anchor={anchor}

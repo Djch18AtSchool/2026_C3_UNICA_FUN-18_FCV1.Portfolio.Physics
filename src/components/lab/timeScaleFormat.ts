@@ -4,7 +4,8 @@
  * seconds per real second; it is an order of size, so it is rounded to two significant digits.
  */
 import { formatNumber } from '../../lib/format';
-import { mathAriaLabel } from '../../lib/inlineMath';
+import { mathAriaLabel, splitInlineMath, texToNotation } from '../../lib/inlineMath';
+import { rawNotationMarks } from '../../lib/typography';
 
 export const TIMES_SIGN = '×';
 const SIGNIFICANT_DIGITS = 2;
@@ -45,4 +46,34 @@ export function timeScaleSpoken(factor: number, label?: string): string {
   const spokenLabel = label === undefined ? undefined : (mathAriaLabel(label) ?? label);
   const suffix = spokenLabel && spokenLabel !== scale ? `, ${spokenLabel}` : '';
   return `Escala de tiempo: ${scale}${suffix}`;
+}
+
+/**
+ * A badge's `label` is plain words with any formula between $…$ («paso de $r_p$»), as everywhere
+ * in the site's HTML. A subscript or power written outside $…$ («r_p») would be printed and said
+ * literally: it fails here, at build time (the server renders every label), with the fix.
+ */
+export function requireInlineMathLabel(label: string): void {
+  const raw = splitInlineMath(label)
+    .filter((segment) => segment.kind === 'text')
+    .flatMap((segment) => rawNotationMarks(segment.text));
+  if (raw.length > 0) {
+    throw new Error(
+      `TimeScaleBadge: la etiqueta «${label}» tiene ${raw.join(' ')} fuera de $…$; escribe la fórmula entre $…$ (p. ej. $r_p$).`,
+    );
+  }
+}
+
+/**
+ * A $…$ label in the MathText notation of an SVG label: each formula through texToNotation, and a
+ * literal _ or ^ of the words escaped (\_, \^) so MathText does not take it as a script.
+ */
+export function inlineMathToNotation(label: string): string {
+  return splitInlineMath(label)
+    .map((segment) =>
+      segment.kind === 'math'
+        ? texToNotation(segment.tex)
+        : segment.text.replace(/[_^]/gu, (mark) => `\\${mark}`),
+    )
+    .join('');
 }
