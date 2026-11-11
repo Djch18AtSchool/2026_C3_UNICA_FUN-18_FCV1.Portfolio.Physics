@@ -218,6 +218,10 @@ describe('RegenLab', () => {
 
     chooseView('tramo');
     expect(timelineText()).toBe('t = 389,00 s');
+
+    // Picking the view on show changes nothing.
+    chooseView('tramo');
+    expect(timelineText()).toBe('t = 389,00 s');
     expect(readout(SPEED)).toBe('37,01 km/h');
   });
 
