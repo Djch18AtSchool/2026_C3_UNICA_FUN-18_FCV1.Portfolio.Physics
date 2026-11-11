@@ -540,27 +540,18 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
       },
     );
 
-    test('«Tramo» marks its leg on the map and as a band «Tramo» in the four charts; «Ruta» does not', async () => {
+    test('«Tramo» draws its leg wider on the map, from B to C; «Ruta» does not', async () => {
       await renderLab();
       fireEvent.change(screen.getByRole('combobox', { name: 'Tramo mostrado' }), {
         target: { value: '2' },
       });
 
       const leg = document.querySelector('[data-shown-leg]');
-      expect(leg).not.toBeNull();
-      // From B (1 000; 600) to C (300; 1 000) on the map.
-      expect(leg?.getAttribute('d')?.split(/[ML]/).filter(Boolean)).toHaveLength(2);
-      const charts = screen.getByTestId('drone-profiles');
-      expect(charts.querySelectorAll('[data-band="Tramo"]')).toHaveLength(4);
-      expect(
-        within(screen.getByTestId('drone-profile-posicion')).getByRole('img'),
-      ).toHaveAccessibleName(
-        expect.stringMatching(/el tramo que reproduce el laboratorio, de 178,\d\ss a 249,\d\ss/),
-      );
+      const at = (name: string) => knobCentre(`stop-${name}`);
+      expect(leg?.getAttribute('d')).toBe(`M${at('B').x} ${at('B').y} L${at('C').x} ${at('C').y}`);
 
       await choose('Ruta');
       expect(document.querySelector('[data-shown-leg]')).toBeNull();
-      expect(charts.querySelectorAll('[data-band="Tramo"]')).toHaveLength(0);
     });
 
     test('in «Ruta» the four readings agree too, at the global decimals', async () => {

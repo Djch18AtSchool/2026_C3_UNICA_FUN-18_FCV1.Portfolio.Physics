@@ -148,14 +148,11 @@ type DroneLabViewProps = DroneLabProps & { declared: RouteSample[] };
 const routeTimeText = (decimals: number) => (t: number) =>
   `t = ${formatNumber(t, { precision: decimals, unit: 's' })}`;
 
-/** The leg «Tramo» plays, on the route's clock and between its two stops; none in «Ruta». */
-function shownLeg({ selection, span }: RouteViewState, stops: RouteDefinition['stops']) {
-  if (selection.view !== 'tramo') return undefined;
-  return {
-    from: span.start,
-    to: span.start + span.duration,
-    stops: [stops[selection.leg], stops[selection.leg + 1]] as const,
-  };
+/** The two stops of the leg «Tramo» plays, drawn wider on the map; none in «Ruta». */
+function shownLeg({ selection }: RouteViewState, stops: RouteDefinition['stops']) {
+  return selection.view === 'tramo'
+    ? ([stops[selection.leg], stops[selection.leg + 1]] as const)
+    : undefined;
 }
 
 interface DroneCanvasProps {
@@ -177,7 +174,7 @@ function DroneCanvas({ editing, routeView, flight, display, decimals }: DroneCan
     <div className="relative">
       <RouteMapLab
         stops={editing.shownStops}
-        leg={shownLeg(routeView, editing.shownStops)?.stops}
+        leg={shownLeg(routeView, editing.shownStops)}
         samples={editing.route.samples}
         now={flight.now}
         live={flight.live}
@@ -205,7 +202,6 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
   const routeView = useRouteView(route.def);
   const { clock, span, routeTime } = routeView;
   const flight = useViewFlight(route.samples, routeView);
-  const leg = shownLeg(routeView, route.def.stops);
   const notes = <DroneNotes now={flight.now} display={display} editing={editing} />;
 
   return (
@@ -233,7 +229,6 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
         definition={route.def}
         t={routeTime}
         timeDecimals={decimals}
-        leg={leg && { from: leg.from, to: leg.to }}
       />
     </div>
   );
