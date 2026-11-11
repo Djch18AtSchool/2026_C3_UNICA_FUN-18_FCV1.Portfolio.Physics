@@ -1,0 +1,508 @@
+// @vitest-environment jsdom
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { resetSettingsForTests, setSettings } from '../../lib/settingsStore';
+import {
+  useZoomPan,
+  ZOOM_PAN_STEP_PX,
+  ZOOM_TRANSITION_MS,
+  type ZoomPan,
+  type ZoomPanOptions,
+} from './useZoomPan';
+import { DEFAULT_ZOOM_LIMITS, IDENTITY_VIEW, ZOOM_STEP } from './zoomMath';
+
+const WIDTH = 400;
+const HEIGHT = 300;
+/** Past the drag threshold, so a background drag pans. */
+const DRAG_PX = 40;
+
+let latest: ZoomPan;
+
+function Canvas({ options = {} }: { options?: Partial<ZoomPanOptions> }) {
+  const zoom = useZoomPan({ label: 'Mapa de prueba', ...options });
+  latest = zoom;
+  return (
+    <div data-testid="viewport" {...zoom.viewportProps}>
+      <svg>
+        <circle data-testid="handle" tabIndex={0} r={4} />
+        <rect data-testid="background" width={WIDTH} height={HEIGHT} />
+      </svg>
+      <button type="button" data-testid="inner-button">
+        botón
+      </button>
+      <p id={zoom.instructionsId}>instrucciones</p>
+    </div>
+  );
+}
+
+/** A ResizeObserver that reports the viewport at WIDTH × HEIGHT as soon as it observes. */
+class FakeResizeObserver {
+  static instances: FakeResizeObserver[] = [];
+  disconnected = false;
+  constructor(private readonly callback: ResizeObserverCallback) {
+    FakeResizeObserver.instances.push(this);
+  }
+  observe() {
+    this.report(WIDTH, HEIGHT);
+  }
+  report(width: number, height: number) {
+    this.callback(
+      [{ contentRect: { width, height } } as ResizeObserverEntry],
+      this as unknown as ResizeObserver,
+    );
+  }
+  disconnect() {
+    this.disconnected = true;
+  }
+  unobserve() {}
+}
+
+function renderCanvas(options: Partial<ZoomPanOptions> = {}) {
+  const result = render(<Canvas options={options} />);
+  const viewport = result.getByTestId('viewport');
+  viewport.getBoundingClientRect = () =>
+    ({ left: 0, top: 0, width: WIDTH, height: HEIGHT, right: WIDTH, bottom: HEIGHT }) as DOMRect;
+  return { ...result, viewport };
+}
+
+const key = (target: Element, name: string, init: KeyboardEventInit = {}) =>
+  fireEvent.keyDown(target, { key: name, ...init });
+
+/** A wheel event the hook sees through its native, non-passive listener. */
+function wheel(target: Element, init: WheelEventInit): WheelEvent {
+  const event = new WheelEvent('wheel', { bubbles: true, cancelable: true, ...init });
+  act(() => {
+    target.dispatchEvent(event);
+  });
+  return event;
+}
+
+function drag(target: Element, from: { x: number; y: number }, by: { x: number; y: number }) {
+  fireEvent.pointerDown(target, { pointerId: 1, button: 0, clientX: from.x, clientY: from.y });
+  fireEvent.pointerMove(target, { pointerId: 1, clientX: from.x + by.x, clientY: from.y + by.y });
+  fireEvent.pointerUp(target, { pointerId: 1, clientX: from.x + by.x, clientY: from.y + by.y });
+}
+
+describe('useZoomPan', () => {
+  beforeEach(() => {
+    FakeResizeObserver.instances = [];
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    setSettings({ motion: 'reduced' });
+  });
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    localStorage.clear();
+    resetSettingsForTests();
+  });
+
+  describe('on the server and at mount', () => {
+    test('starts at the identity view: what the server paints, untransformed', () => {
+      renderCanvas();
+
+      expect(latest.view).toEqual(IDENTITY_VIEW);
+      expect(latest.transform).toBe('translate(0 0) scale(1)');
+    });
+
+    test('the server sends a focusable, named region whose zoom-out, fit and 1:1 do nothing yet', () => {
+      const html = renderToString(<Canvas />);
+
+      expect(html).toContain('tabindex="0"');
+      expect(html).toContain('role="group"');
+      expect(html).toContain('aria-roledescription="lienzo con zoom"');
+      expect(html).toContain('aria-label="Mapa de prueba"');
+      expect(html).toContain('touch-action:pan-y');
+      expect(latest.canZoomIn).toBe(true);
+      expect(latest.canZoomOut).toBe(false);
+      expect(latest.canFit).toBe(false);
+      expect(latest.canActualSize).toBe(false);
+    });
+
+    test('names its instructions and keys for assistive technology', () => {
+      const { viewport } = renderCanvas();
+
+      expect(viewport).toHaveAttribute('aria-describedby', latest.instructionsId);
+      expect(viewport.getAttribute('aria-keyshortcuts')).toContain('ArrowLeft');
+    });
+
+    test('rejects limits out of order, with the fix', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+      expect(() => renderCanvas({ minScale: 4, maxScale: 2 })).toThrow(/useZoomPan/u);
+    });
+  });
+
+  describe('buttons (actions)', () => {
+    test('zoomIn multiplies the scale by one step about the centre', () => {
+      renderCanvas();
+
+      act(() => latest.zoomIn());
+
+      expect(latest.view.scale).toBeCloseTo(ZOOM_STEP, 12);
+      expect(latest.toScreen(latest.toWorld({ x: 200, y: 150 }))).toEqual({ x: 200, y: 150 });
+      expect(latest.toWorld({ x: 200, y: 150 }).x).toBeCloseTo(200, 9);
+      expect(latest.canZoomOut).toBe(true);
+      expect(latest.canFit).toBe(true);
+      expect(latest.canActualSize).toBe(true);
+    });
+
+    test('zoomIn stops at the maximum and says so', () => {
+      renderCanvas();
+
+      act(() => {
+        for (let i = 0; i < 12; i += 1) latest.zoomIn();
+      });
+
+      expect(latest.view.scale).toBe(DEFAULT_ZOOM_LIMITS.maxScale);
+      expect(latest.canZoomIn).toBe(false);
+    });
+
+    test('zoomOut at the minimum leaves the view alone', () => {
+      renderCanvas();
+
+      act(() => latest.zoomOut());
+
+      expect(latest.view).toEqual(IDENTITY_VIEW);
+    });
+
+    test('fit («Ajustar») and actualSize («1:1») go back to the lab’s framing', () => {
+      renderCanvas();
+      act(() => latest.zoomIn());
+
+      act(() => latest.fit());
+      expect(latest.view).toEqual(IDENTITY_VIEW);
+
+      act(() => latest.zoomIn());
+      act(() => latest.actualSize());
+      expect(latest.view).toEqual(IDENTITY_VIEW);
+    });
+
+    test('fit frames the box the lab gives', () => {
+      renderCanvas({ fit: { x: 100, y: 75, width: 200, height: 150 } });
+
+      act(() => latest.fit());
+
+      expect(latest.view).toEqual({ scale: 2, x: -200, y: -150 });
+    });
+  });
+
+  describe('keyboard on the focused canvas', () => {
+    test('+ and − zoom, 0 fits, and the arrows pan', () => {
+      const { viewport } = renderCanvas();
+
+      key(viewport, '+');
+      expect(latest.view.scale).toBeCloseTo(ZOOM_STEP, 12);
+      key(viewport, '+');
+      key(viewport, '-');
+      expect(latest.view.scale).toBeCloseTo(ZOOM_STEP, 12);
+      key(viewport, 'ArrowLeft');
+      key(viewport, 'ArrowUp');
+      const panned = latest.view;
+      key(viewport, 'ArrowRight');
+      key(viewport, 'ArrowDown');
+      expect(panned.x - latest.view.x).toBeCloseTo(ZOOM_PAN_STEP_PX, 9);
+      expect(panned.y - latest.view.y).toBeCloseTo(ZOOM_PAN_STEP_PX, 9);
+      key(viewport, '0');
+      expect(latest.view).toEqual(IDENTITY_VIEW);
+    });
+
+    test('also takes «=», the numeric pad and the typographic minus', () => {
+      const { viewport } = renderCanvas();
+
+      key(viewport, '=');
+      key(viewport, '−');
+      expect(latest.view).toEqual(IDENTITY_VIEW);
+      key(viewport, 'Add');
+      expect(latest.view.scale).toBeCloseTo(ZOOM_STEP, 12);
+      key(viewport, 'Subtract');
+      expect(latest.view.scale).toBeCloseTo(1, 12);
+    });
+
+    test('takes the key from the browser only when it does something', () => {
+      const { viewport } = renderCanvas();
+
+      // At ×1 there is nothing to pan: the arrow scrolls the page as usual.
+      expect(key(viewport, 'ArrowDown')).toBe(true);
+      expect(key(viewport, '+')).toBe(false);
+      expect(key(viewport, 'ArrowDown')).toBe(false);
+    });
+
+    test('leaves keys alone on a handle inside the canvas and with Ctrl, Alt or Meta', () => {
+      const { viewport, getByTestId } = renderCanvas();
+
+      key(getByTestId('handle'), '+');
+      key(viewport, '+', { ctrlKey: true });
+      key(viewport, '+', { altKey: true });
+      key(viewport, '+', { metaKey: true });
+
+      expect(latest.view).toEqual(IDENTITY_VIEW);
+    });
+  });
+
+  describe('wheel', () => {
+    test('with Ctrl it zooms about the pointer and keeps the page from zooming', () => {
+      const { viewport } = renderCanvas();
+
+      const event = wheel(viewport, { deltaY: -100, ctrlKey: true, clientX: 100, clientY: 50 });
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(latest.view.scale).toBeGreaterThan(1);
+      const under = latest.toScreen({ x: 100, y: 50 });
+      expect(under.x).toBeCloseTo(100, 9);
+      expect(under.y).toBeCloseTo(50, 9);
+    });
+
+    test('without Ctrl on an unfocused canvas the page scrolls', () => {
+      const { viewport } = renderCanvas();
+
+      const event = wheel(viewport, { deltaY: -100, clientX: 100, clientY: 50 });
+
+      expect(event.defaultPrevented).toBe(false);
+      expect(latest.view).toEqual(IDENTITY_VIEW);
+    });
+
+    test('alone on the focused canvas it zooms', () => {
+      const { viewport } = renderCanvas();
+      viewport.focus();
+
+      const event = wheel(viewport, { deltaY: -100, clientX: 200, clientY: 150 });
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(latest.view.scale).toBeGreaterThan(1);
+    });
+
+    test('alone at a limit it lets the page scroll; with Ctrl it still keeps the page from zooming', () => {
+      const { viewport } = renderCanvas();
+      viewport.focus();
+
+      expect(wheel(viewport, { deltaY: 100 }).defaultPrevented).toBe(false);
+      expect(wheel(viewport, { deltaY: 100, ctrlKey: true }).defaultPrevented).toBe(true);
+      expect(latest.view).toEqual(IDENTITY_VIEW);
+    });
+
+    test('reads lines as 16 px', () => {
+      const { viewport } = renderCanvas();
+
+      wheel(viewport, { deltaY: -6.25, deltaMode: 1, ctrlKey: true });
+
+      expect(latest.view.scale).toBeCloseTo(ZOOM_STEP, 9);
+    });
+
+    test('its listener goes away with the canvas', () => {
+      const { viewport, unmount } = renderCanvas();
+      const remove = vi.spyOn(viewport, 'removeEventListener');
+
+      unmount();
+
+      expect(remove).toHaveBeenCalledWith('wheel', expect.any(Function));
+      expect(FakeResizeObserver.instances.every((observer) => observer.disconnected)).toBe(true);
+    });
+  });
+
+  describe('dragging the background', () => {
+    test('pans the zoomed drawing once past the threshold', () => {
+      const { viewport, getByTestId } = renderCanvas();
+      act(() => latest.zoomIn());
+      act(() => latest.zoomIn());
+      const before = latest.view;
+
+      drag(getByTestId('background'), { x: 200, y: 150 }, { x: -DRAG_PX, y: -DRAG_PX });
+
+      expect(latest.view.x).toBeCloseTo(before.x - DRAG_PX, 9);
+      expect(latest.view.y).toBeCloseTo(before.y - DRAG_PX, 9);
+      expect(viewport.dataset.zoomPanning).toBeUndefined();
+    });
+
+    test('a short move is a click, not a pan, and the click goes through', () => {
+      const { getByTestId } = renderCanvas();
+      act(() => latest.zoomIn());
+      const before = latest.view;
+      const onClick = vi.fn();
+      getByTestId('background').addEventListener('click', onClick);
+
+      drag(getByTestId('background'), { x: 200, y: 150 }, { x: 2, y: 2 });
+      fireEvent.click(getByTestId('background'));
+
+      expect(latest.view).toEqual(before);
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    test('the click that ends a pan does not reach the drawing', () => {
+      const { getByTestId } = renderCanvas();
+      act(() => latest.zoomIn());
+      const onClick = vi.fn();
+      getByTestId('background').addEventListener('click', onClick);
+
+      drag(getByTestId('background'), { x: 200, y: 150 }, { x: DRAG_PX, y: 0 });
+      fireEvent.click(getByTestId('background'));
+      fireEvent.pointerDown(getByTestId('background'), { pointerId: 2, button: 0 });
+      fireEvent.click(getByTestId('background'));
+
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    test('marks the canvas while it pans, for the grabbing cursor', () => {
+      const { viewport, getByTestId } = renderCanvas();
+      act(() => latest.zoomIn());
+      expect(viewport.style.cursor).toBe('grab');
+      expect(viewport.style.touchAction).toBe('none');
+
+      fireEvent.pointerDown(getByTestId('background'), { pointerId: 1, button: 0, clientX: 9 });
+      fireEvent.pointerMove(getByTestId('background'), { pointerId: 1, clientX: 9 + DRAG_PX });
+
+      expect(viewport).toHaveAttribute('data-zoom-panning');
+      expect(viewport.style.cursor).toBe('grabbing');
+      fireEvent.pointerCancel(getByTestId('background'), { pointerId: 1 });
+      expect(viewport).not.toHaveAttribute('data-zoom-panning');
+    });
+
+    test('never steals a handle’s drag, a button’s press or a drag already taken', () => {
+      const { getByTestId } = renderCanvas();
+      act(() => latest.zoomIn());
+      const before = latest.view;
+      getByTestId('background').addEventListener('pointerdown', (event) => event.preventDefault());
+
+      drag(getByTestId('handle'), { x: 200, y: 150 }, { x: DRAG_PX, y: 0 });
+      drag(getByTestId('inner-button'), { x: 200, y: 150 }, { x: DRAG_PX, y: 0 });
+      drag(getByTestId('background'), { x: 200, y: 150 }, { x: DRAG_PX, y: 0 });
+
+      expect(latest.view).toEqual(before);
+    });
+
+    test('ignores the right mouse button', () => {
+      const { getByTestId } = renderCanvas();
+      act(() => latest.zoomIn());
+      const before = latest.view;
+
+      fireEvent.pointerDown(getByTestId('background'), {
+        pointerId: 1,
+        button: 2,
+        pointerType: 'mouse',
+      });
+      fireEvent.pointerMove(getByTestId('background'), { pointerId: 1, clientX: DRAG_PX });
+
+      expect(latest.view).toEqual(before);
+    });
+  });
+
+  describe('pinch', () => {
+    test('two fingers spread to twice their distance double the scale about their midpoint', () => {
+      const { getByTestId } = renderCanvas();
+      const target = getByTestId('background');
+      const touch = { pointerType: 'touch' };
+
+      fireEvent.pointerDown(target, { ...touch, pointerId: 1, clientX: 150, clientY: 150 });
+      fireEvent.pointerDown(target, { ...touch, pointerId: 2, clientX: 250, clientY: 150 });
+      fireEvent.pointerMove(target, { ...touch, pointerId: 1, clientX: 100, clientY: 150 });
+      fireEvent.pointerMove(target, { ...touch, pointerId: 2, clientX: 300, clientY: 150 });
+
+      expect(latest.view.scale).toBeCloseTo(2, 9);
+      expect(latest.toScreen({ x: 200, y: 150 }).x).toBeCloseTo(200, 9);
+    });
+
+    test('lifting one finger goes on panning with the other, without a jump', () => {
+      const { getByTestId } = renderCanvas();
+      const target = getByTestId('background');
+      const touch = { pointerType: 'touch' };
+      fireEvent.pointerDown(target, { ...touch, pointerId: 1, clientX: 150, clientY: 150 });
+      fireEvent.pointerDown(target, { ...touch, pointerId: 2, clientX: 250, clientY: 150 });
+      fireEvent.pointerMove(target, { ...touch, pointerId: 2, clientX: 350, clientY: 150 });
+      fireEvent.pointerUp(target, { ...touch, pointerId: 2, clientX: 350, clientY: 150 });
+      const afterPinch = latest.view;
+
+      fireEvent.pointerMove(target, { ...touch, pointerId: 1, clientX: 140, clientY: 150 });
+
+      expect(latest.view.scale).toBe(afterPinch.scale);
+      expect(latest.view.x).toBeCloseTo(afterPinch.x - 10, 9);
+    });
+  });
+
+  describe('transitions', () => {
+    let frames: FrameRequestCallback[];
+    let now: number;
+    const runFrame = (at: number) => {
+      now = at;
+      const queued = frames;
+      frames = [];
+      act(() => queued.forEach((callback) => callback(at)));
+    };
+
+    beforeEach(() => {
+      setSettings({ motion: 'auto' });
+      frames = [];
+      now = 0;
+      vi.spyOn(performance, 'now').mockImplementation(() => now);
+      vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+        frames.push(callback);
+        return frames.length;
+      });
+      vi.stubGlobal('cancelAnimationFrame', () => {
+        frames = [];
+      });
+    });
+
+    test('a button zoom glides there in ZOOM_TRANSITION_MS', () => {
+      renderCanvas();
+
+      act(() => latest.zoomIn());
+      runFrame(ZOOM_TRANSITION_MS / 2);
+      const halfway = latest.view.scale;
+      runFrame(ZOOM_TRANSITION_MS);
+
+      expect(halfway).toBeGreaterThan(1);
+      expect(halfway).toBeLessThan(ZOOM_STEP);
+      expect(latest.view.scale).toBeCloseTo(ZOOM_STEP, 12);
+      expect(frames).toHaveLength(0);
+    });
+
+    test('two quick presses add up: ×2 at the end', () => {
+      renderCanvas();
+
+      act(() => latest.zoomIn());
+      runFrame(ZOOM_TRANSITION_MS / 4);
+      act(() => latest.zoomIn());
+      runFrame(ZOOM_TRANSITION_MS / 2);
+      runFrame(ZOOM_TRANSITION_MS * 2);
+
+      expect(latest.view.scale).toBeCloseTo(2, 12);
+    });
+
+    test('a drag stops a glide where it is', () => {
+      const { getByTestId } = renderCanvas({ minScale: 1 });
+      act(() => latest.zoomIn());
+      runFrame(ZOOM_TRANSITION_MS);
+      act(() => latest.zoomIn());
+      runFrame(ZOOM_TRANSITION_MS * 1.5);
+
+      fireEvent.pointerDown(getByTestId('background'), { pointerId: 1, button: 0, clientX: 0 });
+      fireEvent.pointerMove(getByTestId('background'), { pointerId: 1, clientX: DRAG_PX });
+      const stopped = latest.view.scale;
+      runFrame(ZOOM_TRANSITION_MS * 3);
+
+      expect(latest.view.scale).toBe(stopped);
+    });
+
+    test('with reduced motion it jumps, with no frame', () => {
+      setSettings({ motion: 'reduced' });
+      renderCanvas();
+
+      act(() => latest.zoomIn());
+
+      expect(latest.view.scale).toBeCloseTo(ZOOM_STEP, 12);
+      expect(frames).toHaveLength(0);
+    });
+  });
+
+  test('a wider viewport pulls the pan back inside the drawing', () => {
+    renderCanvas({ bounds: { x: 0, y: 0, width: 800, height: 300 } });
+    act(() => latest.zoomIn());
+    for (let i = 0; i < 20; i += 1) act(() => latest.panBy({ x: -ZOOM_PAN_STEP_PX, y: 0 }));
+    const leftmost = latest.view.x;
+
+    act(() => FakeResizeObserver.instances[0].report(WIDTH * 2, HEIGHT));
+
+    expect(latest.view.x).toBeGreaterThan(leftmost);
+  });
+});
