@@ -31,6 +31,8 @@ export interface LiveFlight {
 export interface RouteOverlayProps {
   scales: { x: Scale; y: Scale };
   stops: readonly RouteStop[];
+  /** The leg «Tramo» plays: a wider stroke over the route between its two stops. */
+  leg?: readonly [RouteStop, RouteStop];
   samples: RouteSample[];
   /** The sample at the settled time (the marker's aria values and keyboard steps). */
   now: RouteSample;
@@ -52,6 +54,8 @@ const DELIVERY_INDICES: readonly StopIndex[] = [1, 2, 3];
 const DEPOT_SIZE = 10;
 const TRAIL_WIDTH = 7;
 const TRAIL_OPACITY = 0.3;
+/** The leg on show: twice the route's stroke, in its colour, under the trail. */
+const LEG_WIDTH = 4;
 /** Below and right of the depot: under the first leg and inside the plot area on phones too. */
 const DEPOT_LABEL_OFFSET = { dx: 10, dy: 13 };
 /** Stop names sit up and to the left of their knob, clear of the vector labels past the tips. */
@@ -166,6 +170,47 @@ function FlightLayer(props: FlightLayerProps): JSX.Element {
   );
 }
 
+/** The leg «Tramo» plays: the route between its two stops, twice as wide. */
+function ShownLeg({
+  leg,
+  scales,
+}: {
+  leg: readonly [RouteStop, RouteStop];
+  scales: RouteOverlayProps['scales'];
+}): JSX.Element {
+  return (
+    <path
+      data-shown-leg=""
+      d={path([...leg], scales)}
+      fill="none"
+      stroke={ROUTE_COLOR}
+      strokeWidth={LEG_WIDTH}
+      strokeLinecap="round"
+    />
+  );
+}
+
+/** The depot: a square at `at` (px) with its name. */
+function Depot({ at }: { at: Point }): JSX.Element {
+  return (
+    <>
+      <rect
+        data-testid="depot"
+        x={at.x - DEPOT_SIZE / 2}
+        y={at.y - DEPOT_SIZE / 2}
+        width={DEPOT_SIZE}
+        height={DEPOT_SIZE}
+        fill={TEXT_COLOR}
+        stroke={SURFACE_COLOR}
+        strokeWidth={2}
+      />
+      <Label at={at} {...DEPOT_LABEL_OFFSET}>
+        Depósito
+      </Label>
+    </>
+  );
+}
+
 /** The drone's knob at the live position, inside its slider group. */
 function DroneKnob({ live, scales }: Pick<FlightLayerProps, 'live' | 'scales'>): JSX.Element {
   const now = useFrameDerived(live.frame, live.sampleAt);
@@ -258,19 +303,8 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
   return (
     <g>
       <g className="pointer-events-none">
-        <rect
-          data-testid="depot"
-          x={depot.x - DEPOT_SIZE / 2}
-          y={depot.y - DEPOT_SIZE / 2}
-          width={DEPOT_SIZE}
-          height={DEPOT_SIZE}
-          fill={TEXT_COLOR}
-          stroke={SURFACE_COLOR}
-          strokeWidth={2}
-        />
-        <Label at={depot} {...DEPOT_LABEL_OFFSET}>
-          Depósito
-        </Label>
+        {props.leg ? <ShownLeg leg={props.leg} scales={scales} /> : null}
+        <Depot at={depot} />
       </g>
       {/* After the depot, so at t = 0 the vectors and the trail paint over its square and label. */}
       <FlightLayer
@@ -301,8 +335,8 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
         aria-valuemin={timeRange.from}
         aria-valuemax={timeRange.to}
         aria-valuenow={now.t}
-        // Read on the timeline's own origin (0 at the start of the view), as the transport says it.
-        aria-valuetext={`t = ${formatNumber(now.t - timeRange.from, { precision: decimals, unit: 's' })}`}
+        // Route time at the global decimals, as the transport, the readout and the charts say it.
+        aria-valuetext={`t = ${formatNumber(now.t, { precision: decimals, unit: 's' })}`}
         className="group cursor-grab outline-none"
         onKeyDown={onDroneKeyDown}
         {...droneDrag}

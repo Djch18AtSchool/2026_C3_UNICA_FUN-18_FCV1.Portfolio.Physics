@@ -36,17 +36,16 @@ export interface EditableRoute {
   reset(): void;
 }
 
-/** The editable route over the declared dataset `declared`. */
-export function useEditableRoute(declared: RouteSample[]): EditableRoute {
-  const declaredRoute: ValidRoute = { def: DRONE_ROUTE, samples: declared };
-  const [route, setRoute] = useState<ValidRoute>(declaredRoute);
-  const [limits, setLimits] = useState<Limits>(DECLARED_LIMITS);
-  const [preview, setPreview] = useState<{ index: StopIndex; at: Point } | null>(null);
+/**
+ * Adopting a candidate route: the declared one as is, any other generated (and timed, so that
+ * parameter changes can debounce when a generation is slow); one that cannot be flown keeps the
+ * last valid route and says why.
+ */
+function useRouteCommit(declared: RouteSample[]) {
+  const [route, setRoute] = useState<ValidRoute>({ def: DRONE_ROUTE, samples: declared });
   const [error, setError] = useState<string | null>(null);
   /** How long the last generation took (ms), to decide whether parameter changes debounce. */
   const costRef = useRef(0);
-
-  /** Adopts the candidate if it can be flown; otherwise keeps the last valid route and says why. */
   const commit = (candidate: RouteDefinition) => {
     if (isDeclaredRoute(candidate)) {
       setRoute({ def: candidate, samples: declared });
@@ -63,6 +62,18 @@ export function useEditableRoute(declared: RouteSample[]): EditableRoute {
     setRoute({ def: candidate, samples: result.samples });
     setError(null);
   };
+  const restore = () => {
+    setRoute({ def: DRONE_ROUTE, samples: declared });
+    setError(null);
+  };
+  return { route, error, commit, restore, costRef };
+}
+
+/** The editable route over the declared dataset `declared`. */
+export function useEditableRoute(declared: RouteSample[]): EditableRoute {
+  const { route, error, commit, restore, costRef } = useRouteCommit(declared);
+  const [limits, setLimits] = useState<Limits>(DECLARED_LIMITS);
+  const [preview, setPreview] = useState<{ index: StopIndex; at: Point } | null>(null);
   const commitRef = useRef(commit);
   commitRef.current = commit;
 
@@ -71,7 +82,7 @@ export function useEditableRoute(declared: RouteSample[]): EditableRoute {
     const delay = costRef.current > FRAME_BUDGET_MS ? PARAM_DEBOUNCE_MS : 0;
     const id = setTimeout(() => commitRef.current({ ...route.def, ...limits }), delay);
     return () => clearTimeout(id);
-  }, [limits, route.def]);
+  }, [limits, route.def, costRef]);
 
   const dragStop = (index: StopIndex, at: Point, isEnd: boolean) => {
     if (!isEnd) {
@@ -83,10 +94,9 @@ export function useEditableRoute(declared: RouteSample[]): EditableRoute {
   };
 
   const reset = () => {
-    setRoute(declaredRoute);
+    restore();
     setLimits(DECLARED_LIMITS);
     setPreview(null);
-    setError(null);
   };
 
   const shownStops = preview

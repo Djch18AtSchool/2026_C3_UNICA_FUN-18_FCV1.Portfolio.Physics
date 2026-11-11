@@ -449,7 +449,7 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
         target: { value: '3' },
       });
 
-      expect(valueText(timeline())).toBe('t = 30,0 s');
+      expect(valueText(timeline())).toBe('t = 299,40 s');
       expect(readout('Instante en la ruta')).toBe('299,40 s');
       expect(screen.getByTestId('drone-view-note')).toHaveTextContent(
         'Sale en t = 269,4 s de la ruta y dura 118,0 s.',
@@ -509,13 +509,68 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
       },
     );
 
-    test('the drone marker reads t on the same origin as the timeline in «Tramo»', async () => {
+    /** The four ways the lab says t, each as «t = …» with plain spaces. */
+    const fourReadings = () => {
+      const reading = document.querySelector('[data-profile-reading] dd') as HTMLElement;
+      return {
+        timeline: valueText(timeline()).replace(/ · .*$/, ''),
+        readout: `t = ${readout('Instante en la ruta')}`,
+        chart: `t = ${(reading.textContent ?? '').replace(/\s/g, ' ')}`,
+        drone: valueText(screen.getByTestId('drone-marker')),
+      };
+    };
+
+    test.each(['0', '1', '2', '3'])(
+      'in leg %s one t is on screen, the route’s: timeline, readout, charts and drone agree',
+      async (leg) => {
+        await renderLab();
+        fireEvent.change(screen.getByRole('combobox', { name: 'Tramo mostrado' }), {
+          target: { value: leg },
+        });
+        fireEvent.change(timeline(), { target: { value: '437' } });
+
+        const said = fourReadings();
+        expect(said.readout).toMatch(/^t = \d+,\d{2} s$/);
+        expect(said).toEqual({
+          timeline: said.readout,
+          readout: said.readout,
+          chart: said.readout,
+          drone: said.readout,
+        });
+      },
+    );
+
+    test('«Tramo» marks its leg on the map and as a band «Tramo» in the four charts; «Ruta» does not', async () => {
       await renderLab();
       fireEvent.change(screen.getByRole('combobox', { name: 'Tramo mostrado' }), {
         target: { value: '2' },
       });
 
-      expect(valueText(screen.getByTestId('drone-marker'))).toBe(valueText(timeline()));
+      const leg = document.querySelector('[data-shown-leg]');
+      expect(leg).not.toBeNull();
+      // From B (1 000; 600) to C (300; 1 000) on the map.
+      expect(leg?.getAttribute('d')?.split(/[ML]/).filter(Boolean)).toHaveLength(2);
+      const charts = screen.getByTestId('drone-profiles');
+      expect(charts.querySelectorAll('[data-band="Tramo"]')).toHaveLength(4);
+      expect(
+        within(screen.getByTestId('drone-profile-posicion')).getByRole('img'),
+      ).toHaveAccessibleName(
+        expect.stringMatching(/el tramo que reproduce el laboratorio, de 178,\d\ss a 249,\d\ss/),
+      );
+
+      await choose('Ruta');
+      expect(document.querySelector('[data-shown-leg]')).toBeNull();
+      expect(charts.querySelectorAll('[data-band="Tramo"]')).toHaveLength(0);
+    });
+
+    test('in «Ruta» the four readings agree too, at the global decimals', async () => {
+      await renderLab();
+      await choose('Ruta');
+      fireEvent.change(timeline(), { target: { value: '421' } });
+
+      const said = fourReadings();
+      expect(said.readout).toMatch(/^t = \d+,\d{2} s$/);
+      expect(new Set(Object.values(said)).size).toBe(1);
     });
 
     test('«Restablecer» brings back the default view, the first leg cruising', async () => {

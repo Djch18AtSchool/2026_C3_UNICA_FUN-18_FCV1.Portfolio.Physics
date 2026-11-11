@@ -395,6 +395,12 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
     ).toContainText('crucero');
     await expect(marksOf(page)).toHaveCount(TRAMO_MARKS);
     expect(await readoutText(page, 'Instante en la ruta')).toBe('208,30 s');
+    // One t on screen: the transport and the drone read the route's too, not the leg's own clock.
+    await expect(timelineOf(page)).toHaveAttribute('aria-valuetext', /^t = 208,30\ss$/u);
+    await expect(page.getByTestId('drone-marker')).toHaveAttribute(
+      'aria-valuetext',
+      /^t = 208,30\ss$/u,
+    );
     // The charts below read the same instant of the route, not the leg's own clock.
     await expect(page.locator('[data-profile-marker]').first()).toHaveAttribute(
       'data-marker-t',

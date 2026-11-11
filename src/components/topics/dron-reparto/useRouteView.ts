@@ -62,25 +62,13 @@ export function useRouteView(definition: RouteDefinition): RouteViewState {
     pendingSeek.current = null;
   }, [selection, seek]);
 
-  const routeNow = () => span.start + clock.frame.get();
-  const moveTo = (next: ViewSelection) => {
-    pendingSeek.current = localTime(viewSpan(schedule, next, definition.dt), routeNow());
+  /** Goes to `next` and, once its clock is set, to the clock time `at` gives on its span. */
+  const go = (next: ViewSelection, at: (nextSpan: ViewSpan) => number) => {
+    pendingSeek.current = at(viewSpan(schedule, next, definition.dt));
     setSelection(next);
   };
-  const setView = (view: RouteView) => {
-    if (view === 'ruta') return moveTo({ view, leg: selection.leg });
-    moveTo({ view, leg: legAtTime(schedule, routeNow()) });
-  };
-  const setLeg = (leg: number) => {
-    pendingSeek.current = openingTime(viewSpan(schedule, { view: 'tramo', leg }, definition.dt));
-    setSelection({ view: 'tramo', leg });
-  };
-
-  const reset = () => {
-    pendingSeek.current = openingTime(viewSpan(schedule, DEFAULT_SELECTION, definition.dt));
-    // A new object, so the effect that takes the pending seek runs even from the default view.
-    setSelection({ ...DEFAULT_SELECTION });
-  };
+  const routeNow = () => span.start + clock.frame.get();
+  const keepRouteTime = (nextSpan: ViewSpan) => localTime(nextSpan, routeNow());
 
   return {
     selection,
@@ -88,9 +76,14 @@ export function useRouteView(definition: RouteDefinition): RouteViewState {
     span,
     clock,
     routeTime: span.start + clock.state.t,
-    setView,
-    setLeg,
-    reset,
+    setView: (view) =>
+      go(
+        { view, leg: view === 'ruta' ? selection.leg : legAtTime(schedule, routeNow()) },
+        keepRouteTime,
+      ),
+    setLeg: (leg) => go({ view: 'tramo', leg }, openingTime),
+    // A new object, so the effect that takes the pending seek runs even from the default view.
+    reset: () => go({ ...DEFAULT_SELECTION }, openingTime),
   };
 }
 

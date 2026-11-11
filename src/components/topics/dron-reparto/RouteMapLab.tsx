@@ -15,6 +15,8 @@ import RouteOverlay, {
 
 export interface RouteMapLabProps {
   stops: readonly RouteStop[];
+  /** The leg «Tramo» plays, between these two stops: drawn over the route. */
+  leg?: readonly [RouteStop, RouteStop];
   samples: RouteSample[];
   /** The sample at the settled time (the aria text); the drawing follows `live`. */
   now: RouteSample;
@@ -34,7 +36,7 @@ function describeMap(now: RouteSample, decimals: number): string {
   const n = (value: number, unit: string, precision = decimals) =>
     formatNumber(value, { precision, unit });
   return mathTextToString(
-    `Mapa de la ruta en el plano x–y. En t = ${n(now.t, 's', 1)} el dron está en (${n(now.x, '', 0)}; ${n(now.y, '', 0)}) m con |v| = ${n(now.speed, 'm/s')} y |a| = ${n(now.accel, 'm/s²')}.`,
+    `Mapa de la ruta en el plano x–y. En t = ${n(now.t, 's')} el dron está en (${n(now.x, '', 0)}; ${n(now.y, '', 0)}) m con |v| = ${n(now.speed, 'm/s')} y |a| = ${n(now.accel, 'm/s²')}.`,
   );
 }
 

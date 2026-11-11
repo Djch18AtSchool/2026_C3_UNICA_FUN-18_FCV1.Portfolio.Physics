@@ -4,6 +4,7 @@ import {
   type RouteDefinition,
   type RouteSample,
 } from '../../../lib/data/droneRoute';
+import { formatNumber } from '../../../lib/format';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import { readTexSeed } from '../../lab/TexSeed';
 import type { Point } from '../../lab/OverlayMarks';
@@ -24,8 +25,8 @@ import RouteMapLab from './RouteMapLab';
 import RouteMapNotes from './RouteMapNotes';
 import type { StopIndex } from './RouteOverlay';
 import RouteViewFields from './RouteViewFields';
-import { useEditableRoute, type Limits } from './useEditableRoute';
-import { useRouteView, useViewFlight } from './useRouteView';
+import { useEditableRoute, type EditableRoute, type Limits } from './useEditableRoute';
+import { useRouteView, useViewFlight, type RouteViewState, type ViewFlight } from './useRouteView';
 
 /** Ranges of the main parameters (spec §8.3). */
 const V_MAX_RANGE = { min: 1, max: 15, step: 0.5 } as const;
@@ -95,85 +96,145 @@ function DroneParams({
   );
 }
 
+interface DroneNotesProps {
+  now: RouteSample;
+  display: DroneDisplay;
+  editing: EditableRoute;
+}
+
+/** What reads the map: the legend with the vectors' scale, the phase and the route's state. */
+function DroneNotes({ now, display, editing }: DroneNotesProps): JSX.Element {
+  return (
+    <RouteMapNotes
+      now={now}
+      showVectors={display.showVectors}
+      velocityScale={display.vectorScale}
+      accelScale={display.vectorScale * ACCEL_SCALE_FACTOR}
+      isModified={!isDeclaredRoute(editing.route.def)}
+      error={editing.error}
+    />
+  );
+}
+
+interface DroneLevelsInput {
+  editing: EditableRoute;
+  routeView: RouteViewState;
+  display: DroneDisplay;
+  onDisplayChange(display: DroneDisplay): void;
+}
+
+/** The three levels: the flight's limits, the view of the route, the drawer's settings. */
+function droneLevels({ editing, routeView, display, onDisplayChange }: DroneLevelsInput) {
+  return {
+    params: <DroneParams limits={editing.limits} onChange={editing.setLimits} />,
+    scenario: (
+      <RouteViewFields
+        selection={routeView.selection}
+        schedule={routeView.schedule}
+        onView={routeView.setView}
+        onLeg={routeView.setLeg}
+      />
+    ),
+    display: droneLocalSettings({ display, onDisplayChange, clock: routeView.clock }),
+  };
+}
+
 type DroneLabViewProps = DroneLabProps & { declared: RouteSample[] };
+
+/**
+ * One t on screen, the route's, at the global decimals: the transport (from the view's start on the
+ * route, timeOrigin), the readout «Instante en la ruta», the charts and the drone all say it alike.
+ */
+const routeTimeText = (decimals: number) => (t: number) =>
+  `t = ${formatNumber(t, { precision: decimals, unit: 's' })}`;
+
+/** The leg «Tramo» plays, on the route's clock and between its two stops; none in «Ruta». */
+function shownLeg({ selection, span }: RouteViewState, stops: RouteDefinition['stops']) {
+  if (selection.view !== 'tramo') return undefined;
+  return {
+    from: span.start,
+    to: span.start + span.duration,
+    stops: [stops[selection.leg], stops[selection.leg + 1]] as const,
+  };
+}
+
+interface DroneCanvasProps {
+  editing: EditableRoute;
+  routeView: RouteViewState;
+  flight: ViewFlight;
+  display: DroneDisplay;
+  decimals: number;
+}
+
+/** The lab's canvas: the route map, its leg in «Tramo», and the time scale in its corner. */
+function DroneCanvas({ editing, routeView, flight, display, decimals }: DroneCanvasProps) {
+  const onStopDrag = (index: StopIndex, at: Point, phase: DragPoint['phase']) => {
+    // Any edit, by pointer or by arrow key, pauses playback like a timeline drag.
+    routeView.clock.pause();
+    editing.dragStop(index, at, phase === 'end');
+  };
+  return (
+    <div className="relative">
+      <RouteMapLab
+        stops={editing.shownStops}
+        leg={shownLeg(routeView, editing.shownStops)?.stops}
+        samples={editing.route.samples}
+        now={flight.now}
+        live={flight.live}
+        timeRange={flight.timeRange}
+        showVectors={display.showVectors}
+        showTrail={display.showTrail}
+        velocityScale={display.vectorScale}
+        accelScale={display.vectorScale * ACCEL_SCALE_FACTOR}
+        decimals={decimals}
+        onStopDrag={onStopDrag}
+        onSeek={flight.seekRoute}
+      />
+      <TimeScaleBadge clock={routeView.clock} />
+    </div>
+  );
+}
 
 function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Element {
   const editing = useEditableRoute(declared);
-  const { route, limits, error, shownStops } = editing;
+  const { route } = editing;
   const [display, setDisplay] = useState<DroneDisplay>(DEFAULT_DISPLAY);
   const { decimals } = useGlobalSettings();
-
   const duration = useMemo(() => routeDuration(route.def), [route.def]);
   /** The clock plays one view of the route: a leg at real speed, or the whole route faster. */
   const routeView = useRouteView(route.def);
   const { clock, span, routeTime } = routeView;
-  const { pause } = clock;
-
-  const onStopDrag = (index: StopIndex, at: Point, phase: DragPoint['phase']) => {
-    // Any edit, by pointer or by arrow key, pauses playback like a timeline drag.
-    pause();
-    editing.dragStop(index, at, phase === 'end');
-  };
-  const onReset = () => {
-    editing.reset();
-    routeView.reset();
-  };
-
-  const { now, live, timeRange, seekRoute } = useViewFlight(route.samples, routeView);
+  const flight = useViewFlight(route.samples, routeView);
+  const leg = shownLeg(routeView, route.def.stops);
+  const notes = <DroneNotes now={flight.now} display={display} editing={editing} />;
 
   return (
     <div className="flex flex-col gap-4">
       <LabShell
         title="Laboratorio del dron"
         clock={clock}
-        timeUnit="s"
+        timeOrigin={span.start}
+        formatTime={routeTimeText(decimals)}
         markers={span.markers}
-        readouts={droneReadouts(now, routeTime, duration)}
-        canvasNotes={
-          <RouteMapNotes
-            now={now}
-            showVectors={display.showVectors}
-            velocityScale={display.vectorScale}
-            accelScale={display.vectorScale * ACCEL_SCALE_FACTOR}
-            isModified={!isDeclaredRoute(route.def)}
-            error={error}
-          />
-        }
-        levels={{
-          params: <DroneParams limits={limits} onChange={editing.setLimits} />,
-          scenario: (
-            <RouteViewFields
-              selection={routeView.selection}
-              schedule={routeView.schedule}
-              onView={routeView.setView}
-              onLeg={routeView.setLeg}
-            />
-          ),
-          display: droneLocalSettings({ display, onDisplayChange: setDisplay, clock }),
-        }}
+        readouts={droneReadouts(flight.now, routeTime, duration)}
+        canvasNotes={notes}
+        levels={droneLevels({ editing, routeView, display, onDisplayChange: setDisplay })}
         notes={{ usage: [DRAG_HINT, ...(usage ? [usage] : [])], leftOut: leftOut ? [leftOut] : [] }}
-        onReset={onReset}
+        onReset={() => {
+          editing.reset();
+          routeView.reset();
+        }}
         testId="drone-lab"
       >
-        <div className="relative">
-          <RouteMapLab
-            stops={shownStops}
-            samples={route.samples}
-            now={now}
-            live={live}
-            timeRange={timeRange}
-            showVectors={display.showVectors}
-            showTrail={display.showTrail}
-            velocityScale={display.vectorScale}
-            accelScale={display.vectorScale * ACCEL_SCALE_FACTOR}
-            decimals={decimals}
-            onStopDrag={onStopDrag}
-            onSeek={seekRoute}
-          />
-          <TimeScaleBadge clock={clock} />
-        </div>
+        <DroneCanvas {...{ editing, routeView, flight, display, decimals }} />
       </LabShell>
-      <DroneProfiles samples={route.samples} definition={route.def} t={routeTime} />
+      <DroneProfiles
+        samples={route.samples}
+        definition={route.def}
+        t={routeTime}
+        timeDecimals={decimals}
+        leg={leg && { from: leg.from, to: leg.to }}
+      />
     </div>
   );
 }

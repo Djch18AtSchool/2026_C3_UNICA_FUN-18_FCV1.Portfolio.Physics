@@ -22,12 +22,16 @@ export interface DroneProfilesProps {
   definition: RouteDefinition;
   /** The laboratory's instant (s); every chart draws a vertical marker there. */
   t: number;
-  /** Decimals of t in the marker and the readings: those of the timeline's step (0,1 s). */
+  /** Decimals of t in the marker and the readings: the lab passes the global ones. */
   timeDecimals?: number;
+  /** The leg the laboratory plays in «Tramo» (route times, s): shaded as the band «Tramo». */
+  leg?: { from: number; to: number };
 }
 
-/** The timeline of Tema 1 moves in 0,1 s, so t is printed with one decimal. */
+/** Without the lab's decimals, t is printed with one, the step of the charts' samples (0,1 s). */
 const TIMELINE_DECIMALS = 1;
+/** The band of the leg on show, as Tema 6 names its stretch. */
+const LEG_LABEL = 'Tramo';
 /** The stops stay inside 0–1 300 m; a 0–1 500 m range keeps the position ticks round. */
 const POSITION_AXIS_END_M = 1500;
 /** Velocity and acceleration charts span ±1,15 times their limit, so an edit never stretches them. */
@@ -197,6 +201,7 @@ function distanceChart(flight: Flight): ProfileChart {
 export function buildProfiles(
   samples: RouteSample[],
   definition: RouteDefinition,
+  leg?: { from: number; to: number },
 ): DroneProfileSet {
   const times = samples.map((sample) => sample.t);
   const duration = times[times.length - 1];
@@ -206,13 +211,20 @@ export function buildProfiles(
     definition,
     times,
     every: chartStep(samples.length),
-    naming: `a lo largo de los ${named(duration, 's')} de la ruta; las bandas sombreadas son las entregas en ${stops.join(', ')}`,
+    naming: `a lo largo de los ${named(duration, 's')} de la ruta; las bandas sombreadas son las entregas en ${stops.join(', ')}${leg ? ` y el tramo que reproduce el laboratorio, de ${named(leg.from, 's')} a ${named(leg.to, 's')}` : ''}`,
   };
+  const legBand: PlotBand[] = leg ? [{ ...leg, label: LEG_LABEL, labelAt: 'bottom' }] : [];
   return {
     times,
     xDomain: { min: 0, max: timeAxisEnd(duration) },
     // Band labels along the bottom, clear of the marker's t label on the top line (as in Tema 4).
-    bands: dwellWindows(samples, definition.stops).map((band) => ({ ...band, labelAt: 'bottom' })),
+    bands: [
+      ...dwellWindows(samples, definition.stops).map((band): PlotBand => ({
+        ...band,
+        labelAt: 'bottom',
+      })),
+      ...legBand,
+    ],
     charts: [
       positionChart(flight),
       velocityChart(flight),
@@ -282,8 +294,18 @@ export default function DroneProfiles({
   definition,
   t,
   timeDecimals = TIMELINE_DECIMALS,
+  leg,
 }: DroneProfilesProps): JSX.Element {
-  const profiles = useMemo(() => buildProfiles(samples, definition), [samples, definition]);
+  const { from, to } = leg ?? {};
+  const profiles = useMemo(
+    () =>
+      buildProfiles(
+        samples,
+        definition,
+        from === undefined || to === undefined ? undefined : { from, to },
+      ),
+    [samples, definition, from, to],
+  );
   return (
     <MarkerTimeContext.Provider value={t}>
       <div data-testid="drone-profiles" className="flex flex-col gap-4">
