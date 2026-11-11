@@ -9,11 +9,6 @@ export async function setRange(slider: Locator, value: string): Promise<void> {
   await slider.dispatchEvent('change');
 }
 
-/**
- * The transport's reading at the very start of a run, before any seek took: «t = 0,000 s» or
- * «t = 0 s», not «t = 0,5 s» (the unit follows after a space, U+202F or a plain one).
- */
-const AT_START = /^t = 0(,0+)?\s/u;
 /** How long one seek may take to show in the transport before it is sent again. */
 const SEEK_SETTLE_MS = 1000;
 /** How long a seek may keep failing before the test says so (a few resends, not the whole test). */
@@ -21,15 +16,21 @@ const SEEK_GIVE_UP_MS = 10_000;
 
 /**
  * Seeks the transport's timeline and waits until the clock took it. An island can drop the first
- * input event (fired before React listens) and hydrate the slider back to 0, so the seek is sent
- * again until the transport reads the new time.
+ * input event (fired before React listens) and hydrate the slider back, so the seek is sent again
+ * until the timeline's aria-valuetext, which only React writes, has left the one it had before
+ * (whatever the lab's origin or reading: «t = 0», «t = 376,00 s», «t = 0 h») and the range holds
+ * the new value. A seek to the position the range already holds only checks the value.
  */
 export async function seekTimeline(timeline: Locator, value: string): Promise<void> {
+  const before = (await timeline.getAttribute('aria-valuetext')) ?? '';
+  const isMove = (await timeline.inputValue()) !== value;
   await expect(async () => {
     await setRange(timeline, value);
-    await expect(timeline).not.toHaveAttribute('aria-valuetext', AT_START, {
-      timeout: SEEK_SETTLE_MS,
-    });
+    if (isMove) {
+      await expect(timeline).not.toHaveAttribute('aria-valuetext', before, {
+        timeout: SEEK_SETTLE_MS,
+      });
+    }
     await expect(timeline).toHaveValue(value, { timeout: SEEK_SETTLE_MS });
   }).toPass({ timeout: SEEK_GIVE_UP_MS });
 }
