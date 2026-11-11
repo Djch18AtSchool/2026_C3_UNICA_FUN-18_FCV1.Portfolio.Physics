@@ -64,6 +64,11 @@ describe('scale.css', () => {
     expect(scale.get('--rule-color')).toBe('var(--border)');
   });
 
+  test('the double rule: one named 3 px width, the only exception to borders 1 and 2', () => {
+    expect(px('--rule-double-width')).toBe(3);
+    expect(scale.get('--rule-double')).toBe('var(--rule-double-width) double var(--rule-color)');
+  });
+
   test('inline code: 14 px in the reading text', () => {
     expect(px('--text-code')).toBe(14);
   });

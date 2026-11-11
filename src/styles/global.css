@@ -163,7 +163,7 @@
   /* Reference to a class session, set like a note in a notebook's double-ruled margin. */
   .margin-note {
     --text-code: var(--text-aux-small);
-    border-left: 3px double var(--accent); /* scale-exempt: a double rule is two 1 px lines and a 1 px gap */
+    border-left: var(--rule-double-width) double var(--accent);
     padding-left: var(--space-3);
     color: var(--fg-muted);
     font-size: var(--text-aux);

@@ -42,6 +42,15 @@
   --rule-width: 1px;
   --rule-color: var(--border);
   --rule: var(--rule-width) solid var(--rule-color);
+  /*
+   * The notebook's double rule (margin notes, class callouts; the site header, footer and topic
+   * cards in their sweep): a double border paints two 1 px lines with a 1 px gap, so it needs
+   * 3 px, the one width outside the borders' 1 and 2. Use the width with your own color
+   * (`border-left: var(--rule-double-width) double var(--accent)`, Tailwind
+   * `border-b-(length:--rule-double-width) border-double`) or --rule-double in the rule's color.
+   */
+  --rule-double-width: 3px; /* scale-exempt: a double rule is two 1 px lines and a 1 px gap */
+  --rule-double: var(--rule-double-width) double var(--rule-color);
 
   /* Radii (--radius, 4 px, lives with the theme tokens in tokens.css), borders, icons. */
   --radius-card: 0.5rem;

@@ -423,7 +423,7 @@
   }
   /* A class session's note keeps the margin-note's double rule (global.css). */
   .callout-clase {
-    border-left: 3px double var(--accent); /* scale-exempt: a double rule is two 1 px lines and a 1 px gap */
+    border-left: var(--rule-double-width) double var(--accent);
   }
   /* Resource and chart hues are marks only: the warning shows in the rule and tint, not the text. */
   .callout-cuidado {
