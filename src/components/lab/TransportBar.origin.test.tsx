@@ -56,7 +56,7 @@ describe('TransportBar timeOrigin', () => {
   });
 
   test('with markers, the event stays on the clock and is read at the shifted time', () => {
-    render(
+    const { container } = render(
       <TransportBar
         clock={fakeClock({ duration: STRETCH, t: 21 })}
         timeUnit="s"
@@ -67,6 +67,9 @@ describe('TransportBar timeOrigin', () => {
 
     expect(timeline()).toHaveAttribute('aria-valuetext', `t = 397,00${NNBSP}s · Detención 3 de 17`);
     expect(screen.getByText(`t = 397,00${NNBSP}s`, EXACT_TEXT)).toBeInTheDocument();
+    // The mark is placed by its clock time, 21 of 26 s, not by the reading.
+    const mark = container.querySelector<HTMLElement>('[data-transport-mark]');
+    expect(mark?.style.getPropertyValue('--mark-at')).toBe(String(21 / STRETCH));
   });
 
   test('a jump seeks the clock time and announces the shifted one', () => {
@@ -110,6 +113,20 @@ describe('TransportBar timeOrigin', () => {
 
     const readout = screen.getByText(`t = 376,00${NNBSP}s`, EXACT_TEXT);
     expect(readout.style.minWidth).toBe(`${[...`t = 402,00${NNBSP}s`].length}ch`);
+  });
+
+  test('with a negative origin the readout reserves its widest text, the start', () => {
+    render(
+      <TransportBar
+        clock={fakeClock({ duration: STRETCH, t: STRETCH })}
+        timeUnit="s"
+        markers={STOP}
+        timeOrigin={-100}
+      />,
+    );
+
+    const readout = screen.getByText(`t = \u221274,00${NNBSP}s`, EXACT_TEXT);
+    expect(readout.style.minWidth).toBe(`${[...`t = \u2212100,00${NNBSP}s`].length}ch`);
   });
 
   test('an origin of 0, or one that is not a finite number, is the bar without it', () => {

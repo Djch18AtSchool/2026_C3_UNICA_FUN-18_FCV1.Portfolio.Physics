@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { LabNotesContent } from './LabNotes';
 import type { SettingOption } from './SettingsDrawer';
 import type { TransportMarker } from './transportMarkers';
+import type { TransportTimeFormat } from './transportReading';
 import type { TransportTimeUnitChoice } from './transportTime';
 import type { SimClock } from './useSimClock';
 
@@ -35,6 +36,12 @@ export interface LabShellProps {
    * while the timeline, the markers and seek stay on the clock.
    */
   timeOrigin?: number;
+  /**
+   * The lab's own reading of the transport's time (s, shifted by `timeOrigin`): its readout,
+   * aria-valuetext and event announcements (TransportBar). For a clock that does not count seconds
+   * of the phenomenon (Tema 8's disturbance: playback seconds, read as hours of orbit).
+   */
+  formatTime?: TransportTimeFormat;
   readouts: LabReadout[];
   onReset(): void;
   testId: string;

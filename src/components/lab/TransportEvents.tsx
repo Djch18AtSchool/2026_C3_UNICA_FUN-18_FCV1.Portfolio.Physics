@@ -62,18 +62,26 @@ export function TimelineMarks({ markers, duration }: TimelineMarksProps): JSX.El
   );
 }
 
-function PreviousIcon() {
+/**
+ * An event button's icon: a mark standing on a track, as under the timeline, and an arrow that
+ * goes to it from the side the button looks (not ⏮ ⏭, which read as «to the start / to the end»).
+ */
+function EventIcon({ direction }: { direction: Direction }) {
   return (
-    <svg className="size-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M6 5h2v14H6ZM18 5v14L9 12Z" />
-    </svg>
-  );
-}
-
-function NextIcon() {
-  return (
-    <svg className="size-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M16 5h2v14h-2ZM6 5v14l9-7Z" />
+    <svg
+      className="size-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      data-event-icon={direction}
+    >
+      <path d="M3 20h18" />
+      <path d={direction === 'next' ? 'M17 12v8' : 'M7 12v8'} />
+      <path d={direction === 'next' ? 'M4 6h9m-3-3 3 3-3 3' : 'M20 6h-9m3-3-3 3 3 3'} />
     </svg>
   );
 }
@@ -110,10 +118,14 @@ export interface EventRowProps {
   tolerance: number;
   /** The event the settled time stands on, as TransportBar names it (undefined between events). */
   eventText: string | undefined;
+  /** Between events, the next one with its reading («Siguiente: … · t = …»); none after the last. */
+  nextText?: string;
   /** The t readout of the settled time («t = 312 s»). */
   timeText: string;
-  /** «t = …» of any time, in the run's unit. */
+  /** «t = …» of any clock time, as the transport reads it. */
   timeTextOf: (t: number) => string;
+  /** The widest reading of the run: the readout reserves its width (transportReading.ts). */
+  widestTime: string;
 }
 
 /**
@@ -162,14 +174,15 @@ function useEventNavigation({ clock, markers, tolerance, timeTextOf }: EventRowP
 
 /**
  * «Evento anterior», «Evento siguiente», the event the settled time stands on (a visual copy of
- * the timeline's aria-valuetext, two lines at most) and the t readout; the row wraps (the readout
- * first) only by its width, so its height holds while playing.
+ * the timeline's aria-valuetext) or, between events, the next one in a muted tone (what the marks
+ * are, before a jump), two lines at most; and the t readout. The row wraps (the readout first)
+ * only by its width, so its height holds while playing.
  */
 export function EventRow(props: EventRowProps): JSX.Element {
-  const { clock, eventText, timeText, timeTextOf } = props;
+  const { eventText, nextText, timeText, widestTime } = props;
   const { announcement, isEnabled, goTo } = useEventNavigation(props);
   // The readout is as wide as its longest text (mono): the row wraps by its width, never by t.
-  const longestTime = `${[...timeTextOf(clock.state.duration)].length}ch`;
+  const longestTime = `${[...widestTime].length}ch`;
   const button = (direction: Direction, label: string, icon: JSX.Element) => (
     <button
       type="button"
@@ -185,14 +198,14 @@ export function EventRow(props: EventRowProps): JSX.Element {
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      {button('previous', 'Evento anterior', <PreviousIcon />)}
-      {button('next', 'Evento siguiente', <NextIcon />)}
+      {button('previous', 'Evento anterior', <EventIcon direction="previous" />)}
+      {button('next', 'Evento siguiente', <EventIcon direction="next" />)}
       <span
-        data-transport-event=""
+        data-transport-event={eventText === undefined ? (nextText ? 'next' : '') : 'at'}
         aria-hidden="true"
-        className="line-clamp-2 min-w-24 flex-1 text-xs text-fg-muted"
+        className={`line-clamp-2 min-w-24 flex-1 text-xs ${eventText === undefined ? 'text-fg-muted' : 'text-fg'}`}
       >
-        {eventText}
+        {eventText ?? nextText}
       </span>
       <span style={{ minWidth: longestTime }} className="font-mono text-sm tabular-nums">
         {timeText}

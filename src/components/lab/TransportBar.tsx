@@ -1,14 +1,14 @@
 import { useMemo, useRef, type JSX } from 'react';
 import { ICON_BUTTON } from './iconButton';
 import { EventRow, RANGE_WITH_MARKS, TIMELINE_WITH_MARKS, TimelineMarks } from './TransportEvents';
+import { markerTolerance, normalizeMarkers, type TransportMarker } from './transportMarkers';
 import {
-  markersAt,
-  markersText,
-  markerTolerance,
-  normalizeMarkers,
-  type TransportMarker,
-} from './transportMarkers';
-import { TIMELINE_STEPS, transportTimeText, type TransportTimeUnitChoice } from './transportTime';
+  readingFormatter,
+  transportTexts,
+  widestReading,
+  type TransportTimeFormat,
+} from './transportReading';
+import { TIMELINE_STEPS, type TransportTimeUnitChoice } from './transportTime';
 import { useFrameEffect } from './useFrameTime';
 import type { SimClock } from './useSimClock';
 
@@ -31,6 +31,12 @@ export interface TransportBarProps {
    * time this way. 0 (default), or any value that is not a finite number, shifts nothing.
    */
   timeOrigin?: number;
+  /**
+   * The lab's own reading of a time (s, already shifted by `timeOrigin`), for the readout,
+   * aria-valuetext and the event announcements: «t = 22,52 h» of orbit for a clock that counts
+   * playback seconds. Reading only, like `timeOrigin`; an empty text falls back to «t = …».
+   */
+  formatTime?: TransportTimeFormat;
 }
 
 const NO_MARKERS: readonly TransportMarker[] = [];
@@ -133,6 +139,14 @@ function Timeline({ clock, valueText, className }: TimelineProps): JSX.Element {
   );
 }
 
+/** The bar's root: a named group that tells whether it plays. */
+const transportRoot = (playing: boolean) =>
+  ({
+    role: 'group',
+    'aria-label': 'Reproducción',
+    'data-playing': playing ? 'true' : 'false',
+  }) as const;
+
 /**
  * Play/Pause, Reiniciar and a timeline scrubber with a t readout in the run's unit (s, min, h or d,
  * or the lab's timeUnit; the clock and the range stay in seconds); nothing when duration is 0.
@@ -140,30 +154,24 @@ function Timeline({ clock, valueText, className }: TimelineProps): JSX.Element {
  * the readout (TransportEvents.tsx).
  *
  * The thumb follows the live time (Timeline), while the text and aria-valuetext read the settled
- * time the clock syncs CLOCK_SYNC_HZ times a second, shifted by `timeOrigin` when the lab gives one.
+ * time the clock syncs CLOCK_SYNC_HZ times a second, shifted by `timeOrigin` and written by
+ * `formatTime` when the lab gives them (transportReading.ts).
  */
 export default function TransportBar({
   clock,
   timeUnit = 'auto',
   markers = NO_MARKERS,
-  timeOrigin = 0,
+  timeOrigin,
+  formatTime,
 }: TransportBarProps): JSX.Element | null {
   const { t, duration, playing } = clock.state;
   const events = useMemo(() => normalizeMarkers(markers, duration), [markers, duration]);
   if (duration === 0) return null;
 
-  const origin = Number.isFinite(timeOrigin) ? timeOrigin : 0;
-  // The unit and its decimals come from the run's duration; only the time read is shifted.
-  const timeTextOf = (time: number) => transportTimeText(origin + time, duration, timeUnit);
-  const timeText = timeTextOf(t);
-  const tolerance = markerTolerance(duration);
-  const event = markersText(events, markersAt(events, t, tolerance));
-  const valueText = event === undefined ? timeText : `${timeText} · ${event}`;
-  const rootProps = {
-    role: 'group',
-    'aria-label': 'Reproducción',
-    'data-playing': playing ? 'true' : 'false',
-  } as const;
+  // The default unit and its decimals come from the run's duration; only the reading changes.
+  const textOf = readingFormatter({ duration, timeUnit, timeOrigin, formatTime });
+  const { timeText, event, valueText, next } = transportTexts({ events, t, duration, textOf });
+  const rootProps = transportRoot(playing);
 
   if (events.length === 0) {
     return (
@@ -186,10 +194,12 @@ export default function TransportBar({
       <EventRow
         clock={clock}
         markers={events}
-        tolerance={tolerance}
+        tolerance={markerTolerance(duration)}
         eventText={event}
+        nextText={next}
         timeText={timeText}
-        timeTextOf={timeTextOf}
+        timeTextOf={textOf}
+        widestTime={widestReading(textOf, duration)}
       />
     </div>
   );

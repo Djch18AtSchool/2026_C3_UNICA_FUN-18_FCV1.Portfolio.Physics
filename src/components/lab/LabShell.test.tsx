@@ -191,6 +191,15 @@ describe('LabShell', () => {
     );
   });
 
+  test('passes its formatTime to the transport, which reads t in the lab’s format', () => {
+    renderShell({ clock: fakeClock({ duration: 40, t: 10 }), formatTime: (t) => `t = ${t * 2} h` });
+
+    expect(screen.getByRole('slider', { name: 'Línea de tiempo' })).toHaveAttribute(
+      'aria-valuetext',
+      't = 20 h',
+    );
+  });
+
   test('markers that none fall in the run leave the plain transport', () => {
     const { container } = renderShell({
       clock: fakeClock({ duration: 10 }),

@@ -196,13 +196,16 @@ function Panel({ levels, readouts, onReset }: PanelProps): JSX.Element {
 }
 
 /** The stage, in its cell: the canvas, then the transport when the lab has a clock. */
+type TransportProps = Pick<
+  LabShellProps,
+  'clock' | 'timeUnit' | 'markers' | 'timeOrigin' | 'formatTime'
+>;
+
 function Stage({
   clock,
-  timeUnit,
-  markers,
-  timeOrigin,
   children,
-}: Pick<LabShellProps, 'clock' | 'timeUnit' | 'markers' | 'timeOrigin' | 'children'>): JSX.Element {
+  ...reading
+}: TransportProps & Pick<LabShellProps, 'children'>): JSX.Element {
   const [ref, fits] = useFitsInWindow<HTMLDivElement>(`var(${LAB_STAGE_TOP})`);
   return (
     <div className={LAB_STAGE_CELL}>
@@ -217,12 +220,7 @@ function Stage({
         </div>
         {clock ? (
           <div data-lab-transport="" className={TRANSPORT}>
-            <TransportBar
-              clock={clock}
-              timeUnit={timeUnit}
-              markers={markers}
-              timeOrigin={timeOrigin}
-            />
+            <TransportBar clock={clock} {...reading} />
           </div>
         ) : null}
       </div>
@@ -232,10 +230,6 @@ function Stage({
 
 export default function LabShell({
   title,
-  clock,
-  timeUnit,
-  markers,
-  timeOrigin,
   readouts,
   levels,
   canvasNotes,
@@ -243,6 +237,7 @@ export default function LabShell({
   onReset,
   testId,
   children,
+  ...transport
 }: LabShellProps): JSX.Element {
   const drawer = useLabDrawer();
   return (
@@ -251,14 +246,12 @@ export default function LabShell({
       aria-labelledby={drawer.titleId}
       data-testid={testId}
       data-lab-shell="tiered"
-      data-playing={clock?.state.playing ?? false}
+      data-playing={transport.clock?.state.playing ?? false}
       className={LAB_CARD}
     >
       <Header title={title} drawer={drawer} display={levels.display} />
       <div data-lab-columns="" className={LAB_COLUMNS}>
-        <Stage clock={clock} timeUnit={timeUnit} markers={markers} timeOrigin={timeOrigin}>
-          {children}
-        </Stage>
+        <Stage {...transport}>{children}</Stage>
         <div className={LAB_PANEL_CELL}>
           <Panel levels={levels} readouts={readouts} onReset={onReset} />
         </div>
