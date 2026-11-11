@@ -2,30 +2,9 @@
   "src/components/controls/Readout.tsx": {
     "spacing pb-1.5": 1
   },
-  "src/components/controls/Slider.tsx": {
-    "spacing gap-1.5": 1
-  },
-  "src/components/lab/ChoiceField.tsx": {
-    "size min-h-9": 1
-  },
-  "src/components/lab/ParamField.tsx": {
-    "size h-9": 1,
-    "size w-24": 1,
-    "spacing gap-1.5": 2
-  },
   "src/components/lab/SettingsDrawer.tsx": {
     "size size-[18px]": 1,
     "size w-[22rem]": 1
-  },
-  "src/components/lab/SettingsFields.tsx": {
-    "radius rounded-[1px]": 1,
-    "size min-h-9": 1,
-    "size min-w-9": 1,
-    "spacing gap-y-1.5": 1,
-    "spacing left-[3px]": 1,
-    "spacing pr-9": 1,
-    "spacing right-[13px]": 1,
-    "spacing top-[3px]": 1
   },
   "src/components/lab/TransportBar.tsx": {
     "size size-[18px]": 3

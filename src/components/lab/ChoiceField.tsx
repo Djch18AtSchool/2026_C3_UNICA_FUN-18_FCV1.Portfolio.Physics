@@ -43,7 +43,7 @@ function ChoiceField<T extends string>({
               onChange={() => onChange(option.value)}
               className="peer sr-only"
             />
-            <span className="flex min-h-9 cursor-pointer items-center rounded-base border border-border px-3 text-sm text-fg-muted transition-colors peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-fg peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent peer-not-checked:hover:border-fg-muted hover:text-fg">
+            <span className="flex min-h-10 cursor-pointer items-center rounded-base border border-border px-3 text-sm text-fg-muted transition-colors peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-fg peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent peer-not-checked:hover:border-fg-muted hover:text-fg">
               {option.label}
             </span>
           </label>

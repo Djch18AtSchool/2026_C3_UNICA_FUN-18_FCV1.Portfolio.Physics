@@ -7,14 +7,22 @@ import { withStableCallbacks } from './withStableCallbacks';
 const PEER_FOCUS =
   'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent';
 
-const SWITCH_TRACK = `relative h-6 w-10 shrink-0 rounded-base border border-border bg-bg transition-colors after:absolute after:top-[3px] after:left-[3px] after:size-4 after:rounded-[1px] after:bg-fg-muted after:transition-transform peer-checked:border-accent peer-checked:bg-accent peer-checked:after:translate-x-4 peer-checked:after:bg-accent-fg ${PEER_FOCUS}`;
+/**
+ * A 24 × 40 track and a square 16 px thumb 4 px from the track's outer edge on every side it
+ * touches, off and on (it travels 16 px). The thumb sits inside the 1 px border, so its offset is
+ * that gap less the border; square, as the track's 4 px radius less the 4 px gap leaves none.
+ */
+const SWITCH_TRACK = `relative h-6 w-10 shrink-0 rounded-base border border-border bg-bg transition-colors after:absolute after:top-[calc(var(--space-1)-var(--border-thin))] after:left-[calc(var(--space-1)-var(--border-thin))] after:size-4 after:rounded-none after:bg-fg-muted after:transition-transform peer-checked:border-accent peer-checked:bg-accent peer-checked:after:translate-x-4 peer-checked:after:bg-accent-fg ${PEER_FOCUS}`;
 
 const SELECT =
-  'min-h-11 max-w-full min-w-0 appearance-none rounded-base border border-border bg-bg-elevated pr-9 pl-3 text-sm text-fg';
+  'min-h-10 max-w-full min-w-0 appearance-none rounded-base border border-border bg-bg-elevated pr-8 pl-3 text-sm text-fg';
 
-/** Sits 13 px from the right edge, vertically centred; the select reserves it with pr-9. */
+/**
+ * Sits 12 px from the right edge (as the text from the left), vertically centred; the select
+ * reserves it and 4 px before it with pr-8.
+ */
 const SELECT_CHEVRON =
-  'pointer-events-none absolute top-1/2 right-[13px] size-4 -translate-y-1/2 text-fg-muted';
+  'pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-fg-muted';
 
 export interface SwitchFieldProps {
   id: string;
@@ -27,7 +35,7 @@ export interface SwitchFieldProps {
 /** A checkbox exposed as role="switch", drawn as a track with a square thumb. */
 function SwitchFieldBase({ id, label, checked, onChange }: SwitchFieldProps): JSX.Element {
   return (
-    <label htmlFor={id} className="flex min-h-11 cursor-pointer items-center justify-between gap-3">
+    <label htmlFor={id} className="flex min-h-10 cursor-pointer items-center justify-between gap-3">
       <span className="text-sm font-medium">
         <InlineMath text={label} />
       </span>
@@ -76,7 +84,7 @@ export interface SelectFieldProps {
   stacked?: boolean;
 }
 
-const SELECT_ROW = 'flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5';
+const SELECT_ROW = 'flex flex-wrap items-center justify-between gap-x-3 gap-y-2';
 const SELECT_STACK = 'flex flex-col items-start gap-2';
 
 const isGroup = (entry: SelectOption | SelectOptionGroup): entry is SelectOptionGroup =>
@@ -176,7 +184,7 @@ function SegmentedFieldBase<T extends string | number>({
               className="peer sr-only"
             />
             <span
-              className={`flex min-h-9 min-w-9 cursor-pointer items-center justify-center rounded-base border border-transparent px-2 font-mono text-sm tabular-nums text-fg-muted transition-colors hover:text-fg peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-fg ${PEER_FOCUS}`}
+              className={`flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-base border border-transparent px-2 font-mono text-sm tabular-nums text-fg-muted transition-colors hover:text-fg peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-fg ${PEER_FOCUS}`}
             >
               {option}
             </span>

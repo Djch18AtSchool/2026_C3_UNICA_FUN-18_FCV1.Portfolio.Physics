@@ -100,12 +100,12 @@ function ParamField({
   };
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
         <label id={labelId} htmlFor={id} className="text-sm font-medium">
           {typeof label === 'string' ? <InlineMath text={label} /> : label}
         </label>
-        <span className="flex items-center gap-1.5">
+        <span className="flex items-center gap-2">
           <input
             id={numberId}
             type="text"
@@ -120,7 +120,7 @@ function ParamField({
             onKeyDown={(event) => {
               if (event.key === 'Enter') commitDraft();
             }}
-            className="h-9 w-24 rounded-base border border-border bg-bg px-2 text-right font-mono text-sm tabular-nums text-fg"
+            className="h-10 w-16 rounded-base border border-border bg-bg px-1 text-right font-mono text-sm tabular-nums text-fg"
           />
           {/* A unit box of one width in every field (none is longer than «m/s²»), empty without
               a unit, so the number boxes of a level line up in a column. */}
