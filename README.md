@@ -52,7 +52,7 @@ Los cuatro temas del Avance 2 siguen el mismo formato, cada uno con su laborator
 - `src/components/lab/`: el armazón de los laboratorios (`LabShell`, `LabPresets`, `LabNotes`, `StatusChips`, `LegendKey`, `SettingsDrawer`, `ParamField`, `TransportBar`, `useSimClock`; ver «Laboratorios por niveles»), las gráficas SVG (`SvgPlot` con su cursor, ejes y marcas), los ajustes de reproducción comunes (`clockSettings`), `useDrag`, `OverlayMarks`, `PlotPoints`, `scrollLock` y `useSettledText`.
 - `src/components/controls/`: `Readout` (una lectura) y `Slider`.
 - `src/components/charts/`: `ChartFrame` (el marco con título y nota de toda gráfica) y `chartTheme`/`chartScale` (tokens de color y tipografía, formato de marcas); las gráficas mismas son `SvgPlot`, en `src/components/lab/`.
-- `src/components/nav/`: navegación: barra lateral con búsqueda (`SidebarSearch`), `TopicTools`, el pie (identidad, icono de GitHub y botón de tema) y `BackToTop.astro`, el botón flotante "Volver arriba", que aparece al bajar y se detiene sobre el pie.
+- `src/components/nav/`: navegación: barra lateral con búsqueda (`SidebarSearch`), `TopicTools`, el pie (identidad, icono de GitHub y botón de tema) y `BackToTop.astro`, el botón flotante "Volver arriba", que aparece al bajar, se detiene sobre el pie y se esconde mientras hay un laboratorio bajo él (en el móvil, mientras se lee uno: no tapa sus campos).
 - `src/components/hooks/`: hooks de React compartidos.
 - `src/components/topics/`: laboratorios y figuras de cada tema (`DroneLab`, `JumpLab`, `HabitatLab`, `TyreLab`, `TriggerLab`, `RegenLab`, `BounceLab`, `WheelLab`, `FlybyLab`).
 - `src/layouts/`: plantillas de página.
