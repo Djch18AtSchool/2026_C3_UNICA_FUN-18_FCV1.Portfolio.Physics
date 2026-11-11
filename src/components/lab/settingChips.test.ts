@@ -50,6 +50,32 @@ describe('settingChips', () => {
     expect(settingChips([speed])).toEqual([{ key: 'speed', text: '0,5×', name: 'Velocidad 0,5×' }]);
   });
 
+  test('an option may give its chip in TeX: the native <option> keeps its plain label', () => {
+    const damping: SettingOption = {
+      key: 'damping',
+      label: 'Amortiguación',
+      kind: 'select',
+      value: 'critica',
+      options: [
+        {
+          value: 'critica',
+          label: 'Crítica, c = 2 raíz(k m)',
+          chip: 'Crítica, $c = 2\\sqrt{k m}$',
+        },
+      ],
+      chip: 'Amortiguación',
+      onChange: noop,
+    };
+
+    expect(settingChips([damping])).toEqual([
+      {
+        key: 'damping',
+        text: 'Crítica, $c = 2\\sqrt{k m}$',
+        name: 'Amortiguación Crítica, c = 2 raíz de (k m)',
+      },
+    ]);
+  });
+
   test('a select whose value has no option shows the raw value rather than nothing', () => {
     expect(settingChips([{ ...speed, value: '3' }])).toEqual([
       { key: 'speed', text: '3', name: 'Velocidad 3' },

@@ -31,7 +31,11 @@ export type SettingOption =
   | (SettingBase & {
       kind: 'select';
       value: string;
-      options: { value: string; label: string }[];
+      /**
+       * `label` is plain text (a native <option> takes no markup); `chip`, when given, is what the
+       * chip by the gear shows for that option, with KaTeX between `$…$`.
+       */
+      options: { value: string; label: string; chip?: string }[];
       onChange(v: string): void;
     })
   | (SettingBase & {

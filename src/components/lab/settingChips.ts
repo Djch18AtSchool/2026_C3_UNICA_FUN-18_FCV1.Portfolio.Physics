@@ -27,7 +27,7 @@ function chipOf(option: SettingOption): SettingChip | undefined {
       return option.value ? named(chip, chip) : undefined;
     case 'select': {
       const choice = option.options.find(({ value }) => value === option.value);
-      const text = choice?.label ?? option.value;
+      const text = choice?.chip ?? choice?.label ?? option.value;
       return named(text, `${chip} ${text}`);
     }
     case 'range': {

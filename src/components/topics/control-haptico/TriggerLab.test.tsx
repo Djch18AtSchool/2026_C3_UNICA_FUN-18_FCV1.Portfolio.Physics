@@ -168,7 +168,7 @@ describe('TriggerLab', () => {
       within(screen.getByRole('group', { name: 'Ajustes activos' }))
         .getAllByRole('button')
         .map((chip) => chip.getAttribute('aria-label'));
-    expect(chips()).toEqual(['Amortiguación Crítica, c = 2 raíz(k m)']);
+    expect(chips()).toEqual(['Amortiguación Crítica, c = 2 raíz de (k m)']);
 
     fireEvent.change(dampingSelect(), { target: { value: 'subamortiguada' } });
 

@@ -60,8 +60,13 @@ const GRID_DECIMALS = 1;
 /** Share of the critical damping c = 2√(k m) each setting applies. */
 const DAMPING_RATIOS: Record<Damping, number> = { critica: 1, subamortiguada: 0.3 };
 
-export const DAMPING_OPTIONS: { value: Damping; label: string }[] = [
-  { value: 'critica', label: 'Crítica, c = 2 raíz(k m)' },
+export const DAMPING_OPTIONS: { value: Damping; label: string; chip?: string }[] = [
+  // The native <option> stays plain text; the chip by the gear typesets the formula.
+  {
+    value: 'critica',
+    label: 'Crítica, c = 2 raíz(k m)',
+    chip: String.raw`Crítica, $c = 2\sqrt{k m}$`,
+  },
   { value: 'subamortiguada', label: 'Subamortiguada, 0,3 del valor crítico' },
 ];
 
