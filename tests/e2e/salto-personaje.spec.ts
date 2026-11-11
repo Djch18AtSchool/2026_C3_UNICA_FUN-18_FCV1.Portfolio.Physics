@@ -8,6 +8,8 @@ const MS_PER_S = 1000;
 const STILL_AT_END_MS = 500;
 /** The lab must fill the reading column (spec §6): at least this share of the article width. */
 const MIN_WIDTH_SHARE = 0.9;
+/** How far the dragged knob may sit from the pointer (snapping of v₀ and vₓ to their grid). */
+const KNOB_FOLLOW_SLACK_PX = 8;
 
 /** Spanish-formatted number ("3,26 m", "−0,5 s") → 3.26. */
 function parseSpanish(text: string): number {
@@ -86,6 +88,35 @@ test('arrastrar el manejador del vector con el ratón cambia la altura máxima',
 
   await expect.poll(() => readoutText(page, 'Altura máxima')).not.toBe(before);
   expect(await readoutValue(page, 'Altura máxima')).toBeGreaterThan(parseSpanish(before));
+});
+
+test('arrastrar el vector con el escenario apoyado en el pie de su celda: el manejador sigue al puntero', async ({
+  page,
+}) => {
+  // 1 280 × 900, scrolled until the stage rides its cell's foot (the last stretch of the row,
+  // where the readouts at the panel's foot are read): the edit that leaves the preset must not
+  // shrink the panel and move the stage under the pointer.
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.locator(LAB).evaluate((node) => {
+    const stage = node.querySelector('[data-lab-stage]') as HTMLElement;
+    const cell = (stage.parentElement as HTMLElement).getBoundingClientRect();
+    window.scrollTo(0, window.scrollY + cell.bottom - stage.getBoundingClientRect().height - 20);
+  });
+  const knob = page.getByTestId('launch-handle').locator('[data-knob]');
+  const start = await knob.boundingBox();
+  expect(start).not.toBeNull();
+  const x = (start?.x ?? 0) + (start?.width ?? 0) / 2;
+  const y = (start?.y ?? 0) + (start?.height ?? 0) / 2;
+
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y - 30, { steps: 6 });
+  const moved = await knob.boundingBox();
+  await page.mouse.up();
+
+  // The knob went up with the pointer, about 30 px, not 30 px plus a jump of the stage.
+  const rise = y - ((moved?.y ?? 0) + (moved?.height ?? 0) / 2);
+  expect(Math.abs(rise - 30)).toBeLessThanOrEqual(KNOB_FOLLOW_SLACK_PX);
 });
 
 test('mover la gravedad recalcula la altura máxima', async ({ page }) => {

@@ -8,11 +8,11 @@
  * Both forms are named «Valores de referencia» (the glyph guard finds them by `data-lab-presets`).
  * A native <option> cannot hold KaTeX, so a preset named with `$…$` needs a plain `optionLabel`
  * once its list passes four (a missing one throws, so the build fails rather than print TeX).
- * `groups` splits the select into <optgroup>s by each preset's `group` (Tema 7's thirteen);
- * `basedOnId` keeps the last chosen preset's note after an edit, led by «Partí de «…» y cambié
- * algún valor.».
+ * `groups` splits the select into <optgroup>s by each preset's `group` (Tema 7's thirteen).
+ * After an edit the last active preset's note stays, led by «Partí de «…» y cambié algún valor.»,
+ * and the note line never shrinks when that happens.
  */
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
 import { hasInlineMath, inlineMathToSpeech } from '../../lib/inlineMath';
 import type { Preset, PresetGroup } from '../../lib/presets';
 import InlineMath from './InlineMath';
@@ -25,6 +25,7 @@ export const PRESETS_LABEL = 'Valores de referencia';
 /** The select's option while the values match no preset (an edit left the preset). */
 const MODIFIED_LABEL = 'Personalizado';
 const SOURCE_LEAD = 'Fuente: ';
+const NOTE = 'm-0 text-sm text-fg-muted';
 const modifiedLead = (name: string) => `Partí de «${name}» y cambié algún valor. `;
 
 export interface LabPresetsProps<T> {
@@ -38,7 +39,9 @@ export interface LabPresetsProps<T> {
   label?: string;
   /** The select's <optgroup>s, in order; every preset's `group` must name one. */
   groups?: readonly PresetGroup[];
-  /** The last preset chosen: while none is active, its note stays, marked as modified. */
+  /**
+   * The preset an edit left, when the lab tracks it itself; by default the last one active here.
+   */
   basedOnId?: string;
 }
 
@@ -146,34 +149,63 @@ function Source({ label, url }: { label: string; url?: string }): JSX.Element {
   );
 }
 
-/**
- * «note Fuente: source» on one line, led by «Partí de…» when the preset is the one an edit left;
- * nothing without note and source.
- */
-function NoteLine<T>({
-  preset,
-  isModified,
-}: {
-  preset?: Preset<T>;
-  isModified: boolean;
-}): JSX.Element | null {
-  if (!preset || (!preset.note && !preset.sourceLabel)) return null;
+/** The note's text: «Partí de…» when edited, the note, then «Fuente:» and its source. */
+function NoteText<T>({ preset, isModified }: { preset: Preset<T>; isModified: boolean }) {
   const { note, sourceLabel, sourceUrl } = preset;
   return (
-    <p data-testid="preset-note" className="m-0 text-sm text-fg-muted">
+    <>
       {isModified ? <InlineMath text={modifiedLead(preset.name)} /> : null}
       {note ? <InlineMath text={note} /> : null}
       {note && sourceLabel ? ' ' : null}
       {sourceLabel ? <Source label={sourceLabel} url={sourceUrl} /> : null}
-    </p>
+    </>
   );
+}
+
+/**
+ * «note Fuente: source», led by «Partí de…» once an edit leaves the preset; nothing without note
+ * and source. The line never shrinks on an edit, so nothing below it (the readouts, or a stage
+ * riding its cell's foot) moves under the reader: while the preset is active, its edited version
+ * sits in the same grid cell, invisible and hidden from assistive tech, and holds its room.
+ */
+function NoteLine<T>({ preset, isModified }: { preset?: Preset<T>; isModified: boolean }) {
+  if (!preset || (!preset.note && !preset.sourceLabel)) return null;
+  return (
+    <div className="grid">
+      <p data-testid="preset-note" className={`${NOTE} [grid-area:1/1]`}>
+        <NoteText preset={preset} isModified={isModified} />
+      </p>
+      {isModified ? null : (
+        <p
+          data-preset-note-reserve=""
+          aria-hidden="true"
+          className={`${NOTE} invisible [grid-area:1/1]`}
+        >
+          <NoteText preset={preset} isModified />
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The preset an edit left: the one named by `basedOnId`, else the last one this component saw
+ * active (so every lab keeps its note, led by «Partí de…», without tracking it itself).
+ */
+function useBasedOn<T>(presets: readonly Preset<T>[], activeId?: string, basedOnId?: string) {
+  const known = (id?: string) => presets.find((preset) => preset.id === id);
+  const [lastActive, setLastActive] = useState(() => known(activeId)?.id);
+  const active = known(activeId);
+  // Derived state, updated while rendering: the next render already sees it.
+  if (active && active.id !== lastActive) setLastActive(active.id);
+  return active ? undefined : known(basedOnId ?? lastActive);
 }
 
 function LabPresetsBase<T>(props: LabPresetsProps<T>): JSX.Element {
   const { presets, activeId, basedOnId, label = PRESETS_LABEL } = props;
   const isSelect = presets.length > MAX_PRESET_CHIPS;
   const active = presets.find((preset) => preset.id === activeId);
-  const basedOn = active ? undefined : presets.find((preset) => preset.id === basedOnId);
+  const basedOn = useBasedOn(presets, activeId, basedOnId);
   return (
     <div data-lab-presets={isSelect ? 'select' : 'chips'} className="flex flex-col gap-2">
       {isSelect ? (

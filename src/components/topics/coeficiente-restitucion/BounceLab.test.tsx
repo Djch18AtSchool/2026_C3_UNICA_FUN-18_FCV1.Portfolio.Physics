@@ -438,7 +438,7 @@ describe('BounceLab', () => {
     await choosePreset('mezcla');
 
     expect(screen.getByTestId('bounce-summary')).toHaveTextContent(/suma recortada/);
-    expect(screen.getByText(/0,675/)).toBeInTheDocument();
+    expect(screen.getByTestId('preset-note')).toHaveTextContent(/0,675/);
   });
 
   test('keyboard shortcuts: Space plays, R rewinds, the period steps one engine frame', async () => {

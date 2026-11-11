@@ -382,6 +382,35 @@ for (const { path, testId } of LABS) {
       });
     }
 
+    test('al editar un valor que deja el preajuste, la nota sigue («Partí de…») y el panel no cambia de alto', async ({
+      page,
+    }) => {
+      await page.setViewportSize(SPLIT_VIEWPORTS[0].size);
+      const lab = await openTiered(page, path, testId);
+      const presets = lab.locator('[data-lab-presets]');
+      if ((await presets.count()) === 0) return; // Tema 1 has no presets.
+      const note = lab.getByTestId('preset-note');
+      // A lab that opens on its own values (Temas 3 and 4): choose its first preset.
+      if ((await note.count()) === 0) {
+        const chip = presets.getByRole('button').first();
+        if ((await chip.count()) > 0) await chip.click();
+        else await presets.locator('select').selectOption({ index: 1 });
+        await expect(note).toBeVisible();
+      }
+      const panel = lab.locator('[data-lab-panel]');
+      const before = (await boxOf(panel)).height;
+
+      const field = lab
+        .getByRole('region', { name: 'Parámetros' })
+        .locator('input[type="range"]')
+        .first();
+      await field.focus();
+      await page.keyboard.press('ArrowRight');
+
+      await expect(note).toHaveText(/^Partí de «.+» y cambié algún valor\./);
+      expect(Math.abs((await boxOf(panel)).height - before)).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
+    });
+
     test('las notas del lienzo no tienen controles y la rejilla no deja huecos', async ({
       page,
     }) => {

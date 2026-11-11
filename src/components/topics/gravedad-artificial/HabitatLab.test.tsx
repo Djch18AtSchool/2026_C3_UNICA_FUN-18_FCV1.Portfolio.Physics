@@ -236,7 +236,7 @@ describe('HabitatLab', () => {
     expect(lockSwitch()).not.toBeChecked();
     expect(radiusField()).toHaveValue('830');
     expect(readout('Gravedad aparente $a_c/g$')).toBe('0,93 g');
-    expect(screen.getByText(/0,95 ± 0,05 g/)).toBeInTheDocument();
+    expect(screen.getByTestId('preset-note')).toHaveTextContent(/0,95 ± 0,05 g/);
 
     await user.click(screen.getByRole('button', { name: /^Centrífuga pequeña/ }));
     expect(readout('Diferencia cabeza–pies h/r')).toBe('18,00 %');

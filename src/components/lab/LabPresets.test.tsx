@@ -208,6 +208,37 @@ describe('LabPresets', () => {
     );
   });
 
+  test('every lab gets «Partí de…»: after an edit the last preset’s note stays, with no prop', () => {
+    const notes = FEW.map((item) => ({ ...item, note: `Nota ${item.id}.` }));
+    const { rerender } = render(
+      <LabPresets id="p" presets={notes} activeId="luna" onSelect={vi.fn()} />,
+    );
+
+    rerender(<LabPresets id="p" presets={notes} onSelect={vi.fn()} />);
+
+    expect(noteLine().textContent).toBe(
+      'Partí de «Planeta luna» y cambié algún valor. Nota luna. Fuente: NASA',
+    );
+  });
+
+  test('the note line never shrinks on an edit: it already holds the room of its edited version', () => {
+    const notes = FEW.map((item) => ({ ...item, note: `Nota ${item.id}.` }));
+    const { container } = render(
+      <LabPresets id="p" presets={notes} activeId="luna" onSelect={vi.fn()} />,
+    );
+
+    // The visible note and, in the same grid cell, its edited version hidden from everyone.
+    const cell = noteLine().parentElement as HTMLElement;
+    expect(cell).toHaveClass('grid');
+    const reserve = cell.querySelector('[data-preset-note-reserve]') as HTMLElement;
+    expect(reserve).toHaveAttribute('aria-hidden', 'true');
+    expect(reserve).toHaveClass('invisible');
+    expect(reserve.textContent).toBe(
+      'Partí de «Planeta luna» y cambié algún valor. Nota luna. Fuente: NASA',
+    );
+    expect(container.querySelectorAll('[data-testid="preset-note"]')).toHaveLength(1);
+  });
+
   test('the select’s label sits above it, as every choice of a lab’s levels', () => {
     render(<LabPresets id="p" presets={MANY} activeId="a" onSelect={vi.fn()} />);
 

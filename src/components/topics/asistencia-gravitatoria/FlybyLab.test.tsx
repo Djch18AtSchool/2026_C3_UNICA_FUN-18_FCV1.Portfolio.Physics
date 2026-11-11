@@ -334,7 +334,10 @@ describe('FlybyLab', () => {
     expect(screen.getByText(/el dato de la Voyager ya no aplica/)).toBeInTheDocument();
     expect(presetSelect()).toHaveValue('');
     expect(within(presetSelect()).getByRole('option', { name: 'Personalizado' })).toBeDisabled();
-    expect(screen.queryByTestId('preset-note')).toBeNull();
+    // The preset's note stays, led by «Partí de…»: where the values came from (LabPresets).
+    expect(screen.getByTestId('preset-note')).toHaveTextContent(
+      /^Partí de «.+» y cambié algún valor\./,
+    );
   });
 
   test('r_p cannot go below 1 R_J: a typed 0,5 stays at 1 R_J with a warning', async () => {
