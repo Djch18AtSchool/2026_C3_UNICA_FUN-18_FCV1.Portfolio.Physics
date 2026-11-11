@@ -1,29 +1,27 @@
 /**
- * Where the planet frame's time-scale badge goes: in the text band at the top, to the right of the
- * V⃗_p key and clear of the r_p value at the right corner, so it never moves while r_p is dragged
- * (the V_p key is the only text it follows, and that one does not change). Its boxes are the
- * obstacles the v∞ labels keep off. Pure, in the frame's pixels.
+ * Where the planet frame's time-scale badge goes: in the text band at the top, centred between the
+ * V⃗_p key and the widest r_p value the frame prints (so it neither reads as part of the key nor
+ * moves while r_p is dragged), clear of both. Its boxes are the obstacles the v∞ labels keep off.
+ * Pure, in the frame's pixels.
  */
 import { mathTextWidth } from '../../../lib/mathNotation';
 import { textBox, type Box } from '../../lab/labelClearance';
 import { formatTimeScale, timeScaleLabel } from '../../lab/timeScaleFormat';
 
-/** The badge's own sizes (TimeScaleBadgeSvg): the factor 14 px, its words 12 px, 16 px below. */
-const FACTOR_SIZE = 14;
-const WORDS_SIZE = 12;
-const LINE_GAP = 16;
+/**
+ * TimeScaleBadgeSvg's own sizes, copied (it does not export them): the factor 14 px, its words
+ * 12 px, the words one LINE_GAP below. A test renders the shared badge and compares.
+ */
+export const FACTOR_SIZE = 14;
+export const WORDS_SIZE = 12;
+export const LINE_GAP = 16;
 /**
  * Baseline of the factor: low enough that its line box (14 px of Plex Mono reaches 14,4 px above
  * the baseline) stays inside the svg, which a check of the figures' texts requires.
  */
 const FACTOR_BASELINE = 16;
-/** Gap between the V_p key's text and the badge. */
-const KEY_GAP = 12;
-/**
- * The lowest the badge's boxes reach: the words' descenders go a few px past PlanetFrame's 30 px
- * text band, where the drawing starts, so the e2e checks that no stroke or text meets it.
- */
-export const SCALE_BAND_BOTTOM = 36;
+/** The least gap to the V_p key and to the r_p value. */
+const MIN_GAP = 8;
 
 export interface ScaleBadgeSpot {
   /** Start of both lines and baseline of the first (the second is LINE_GAP below). */
@@ -32,15 +30,20 @@ export interface ScaleBadgeSpot {
   boxes: readonly Box[];
 }
 
-export function scaleBadgeSpot(keyRight: number, factor: number): ScaleBadgeSpot {
-  const x = keyRight + KEY_GAP;
+export function scaleBadgeSpot(
+  keyRight: number,
+  valueLeft: number,
+  factor: number,
+): ScaleBadgeSpot {
   const y = FACTOR_BASELINE;
   const words = timeScaleLabel(factor);
-  const wordsBox = (): Box => {
-    const at = { x, y: y + LINE_GAP };
-    const base = textBox(at, words ?? '', WORDS_SIZE, 'start');
-    return { ...base, right: x + mathTextWidth(words ?? '', WORDS_SIZE, 'sans') };
-  };
-  const factorBox = textBox({ x, y }, formatTimeScale(factor), FACTOR_SIZE, 'start');
-  return { x, y, boxes: words === undefined ? [factorBox] : [factorBox, wordsBox()] };
+  const factorText = formatTimeScale(factor);
+  const factorWidth = textBox({ x: 0, y }, factorText, FACTOR_SIZE, 'start').right;
+  const wordsWidth = words === undefined ? 0 : mathTextWidth(words, WORDS_SIZE, 'sans');
+  const width = Math.max(factorWidth, wordsWidth);
+  const x = keyRight + Math.max(MIN_GAP, (valueLeft - keyRight - width) / 2);
+  const factorBox = textBox({ x, y }, factorText, FACTOR_SIZE, 'start');
+  if (words === undefined) return { x, y, boxes: [factorBox] };
+  const base = textBox({ x, y: y + LINE_GAP }, words, WORDS_SIZE, 'start');
+  return { x, y, boxes: [factorBox, { ...base, right: x + wordsWidth }] };
 }

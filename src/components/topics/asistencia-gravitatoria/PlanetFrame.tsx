@@ -14,7 +14,14 @@ import {
 } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import type { FrameStore } from '../../lab/frameStore';
-import { segmentsOf, spotsAround, spotsBeside, textBox, type Box } from '../../lab/labelClearance';
+import {
+  segmentsOf,
+  spotsAround,
+  spotsBeside,
+  textBox,
+  type Box,
+  type Segment,
+} from '../../lab/labelClearance';
 import { Arrow, Knob, LABEL_SIZE, Label, type Point } from '../../lab/OverlayMarks';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
 import { useFrameDerived } from '../../lab/useFrameTime';
@@ -93,6 +100,8 @@ const KNOB_CLEARANCE = 11;
 const TEXT_BAND = 30;
 /** The scale bar is at most this share of the side. */
 const SCALE_BAR_SHARE = 0.3;
+/** The widest r_p value the frame prints (100 radii): the badge keeps clear of it. */
+const WIDEST_RP_VALUE = 'r_p = 100,00 R_J';
 const DECIMALS_E = 3;
 const DEG = 180 / Math.PI;
 const ORIGIN: Point = { x: 0, y: 0 };
@@ -172,6 +181,54 @@ function ProbeLayer({ live, hyperbola, track, trackPx, toPx, showVectors }: Prob
   );
 }
 
+/** The track's ends the v∞ arrows hang on: where they start and end, and the way they point. */
+interface VInfEnds {
+  first: Point;
+  last: Point;
+  inTail: Point;
+  outTip: Point;
+  inDir: Point;
+  outDir: Point;
+}
+
+interface VInfLabelInput {
+  ends: VInfEnds;
+  /** Every line drawn still: the track and the periapsis line. */
+  lines: Segment[];
+  texts: Box[];
+  barLine: Segment;
+  panel: { width: number; height: number };
+}
+
+/**
+ * The v∞ labels keep off every line drawn still and off every text; the moving probe and v_rel
+ * are left out, so a label does not jump while the pass plays. Out first, then in.
+ */
+function placeVInfLabels({ ends, lines, texts, barLine, panel }: VInfLabelInput) {
+  const { first, last, inTail, outTip, inDir, outDir } = ends;
+  return placeLabels(
+    [
+      {
+        text: 'vec v_∞,out',
+        spots: (size) => [
+          ...spotsBeside(last, outTip, size, LABEL_GAP),
+          ...spotsAround(outTip, outDir, size, LABEL_GAP),
+        ],
+      },
+      {
+        text: 'vec v_∞,in',
+        spots: (size) => [
+          ...spotsBeside(inTail, first, size, LABEL_GAP),
+          ...spotsAround(inTail, negate(inDir), size, LABEL_GAP),
+        ],
+      },
+    ],
+    [...lines, [inTail, first], [last, outTip], barLine],
+    texts,
+    panel,
+  );
+}
+
 /**
  * The flyby in the planet frame, to the scale the log bar sets: the planet (enlarged only when it
  * would vanish), the hyperbola out to where v∞ is drawn, the probe at τ from periapsis by
@@ -222,37 +279,13 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
   const cornerY = CORNER + CORNER_BASELINE;
   const vpText = { x: CORNER + VP_ARROW + VP_TEXT_GAP, y: cornerY };
   const vpBox = { ...textBox(vpText, VP_KEY, NOTE_SIZE, 'start'), left: CORNER };
-  const scale = scaleBadgeSpot(vpBox.right, clock.rate);
-  // The v∞ labels keep off every line drawn still and off every text; the moving probe and v_rel
-  // are left out, so a label does not jump while the pass plays.
-  const [outLabel, inLabel] = placeLabels(
-    [
-      {
-        text: 'vec v_∞,out',
-        spots: (size) => [
-          ...spotsBeside(last, outTip, size, LABEL_GAP),
-          ...spotsAround(outTip, outDir, size, LABEL_GAP),
-        ],
-      },
-      {
-        text: 'vec v_∞,in',
-        spots: (size) => [
-          ...spotsBeside(inTail, first, size, LABEL_GAP),
-          ...spotsAround(inTail, negate(inDir), size, LABEL_GAP),
-        ],
-      },
-    ],
-    [
-      ...segmentsOf(trackPx),
-      [c, periapsis],
-      [inTail, first],
-      [last, outTip],
-      [
-        { x: CORNER, y: side - CORNER },
-        { x: CORNER + bar.px, y: side - CORNER },
-      ],
-    ],
-    [
+  // The badge centres between the key and the widest r_p value, so it stays put while r_p is dragged.
+  const widestRp = textBox({ x: width - CORNER, y: cornerY }, WIDEST_RP_VALUE, NOTE_SIZE, 'end');
+  const scale = scaleBadgeSpot(vpBox.right, widestRp.left, clock.rate);
+  const [outLabel, inLabel] = placeVInfLabels({
+    ends: { first, last, inTail, outTip, inDir, outDir },
+    lines: [...segmentsOf(trackPx), [c, periapsis]],
+    texts: [
       vpBox,
       ...scale.boxes,
       textBox({ x: width - CORNER, y: cornerY }, rpValue, NOTE_SIZE, 'end'),
@@ -269,8 +302,12 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
         knobLabel.anchor,
       ),
     ],
-    { width, height: side },
-  );
+    barLine: [
+      { x: CORNER, y: side - CORNER },
+      { x: CORNER + bar.px, y: side - CORNER },
+    ],
+    panel: { width, height: side },
+  });
 
   const drag = useDrag(({ x, y, phase }: DragPoint) => {
     if (phase === 'start') setHeldCentre(c);
