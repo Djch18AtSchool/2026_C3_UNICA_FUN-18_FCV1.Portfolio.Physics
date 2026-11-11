@@ -62,6 +62,7 @@ describe('scale.css', () => {
     expect(scale.get('--rule')).toBe('var(--rule-width) solid var(--rule-color)');
     expect(px('--rule-width')).toBe(1);
     expect(scale.get('--rule-color')).toBe('var(--border)');
+    expect(scale.get('--rule-heavy')).toBe('var(--border-thick) solid var(--rule-color)');
   });
 
   test('the double rule: one named 3 px width, the only exception to borders 1 and 2', () => {

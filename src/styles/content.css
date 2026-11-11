@@ -295,8 +295,9 @@
   .content-table tbody tr + tr > * {
     border-top: var(--rule);
   }
+  /* The header row stands on the same stroke at 2 px: anchored without a second color. */
   .content-table thead th {
-    border-bottom: var(--rule);
+    border-bottom: var(--rule-heavy);
     font-weight: 600;
     white-space: nowrap;
   }

@@ -42,6 +42,8 @@
   --rule-width: 1px;
   --rule-color: var(--border);
   --rule: var(--rule-width) solid var(--rule-color);
+  /* The same stroke at the second border width, under a table's header row. */
+  --rule-heavy: var(--border-thick) solid var(--rule-color);
   /*
    * The notebook's double rule (margin notes, class callouts; the site header, footer and topic
    * cards in their sweep): a double border paints two 1 px lines with a 1 px gap, so it needs

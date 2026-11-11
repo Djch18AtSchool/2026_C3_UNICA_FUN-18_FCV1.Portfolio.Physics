@@ -92,6 +92,25 @@ for (const viewport of VIEWPORTS) {
       });
     });
 
+    test('la cabecera de una tabla se apoya en el mismo trazo a 2 px; las filas, a 1 px', async ({
+      page,
+    }) => {
+      await page.goto(TOPIC_PAGES[2].path);
+      const rules = await page
+        .locator('.content-table')
+        .first()
+        .evaluate((table) => {
+          const head = getComputedStyle(table.querySelector('thead th')!);
+          const row = getComputedStyle(table.querySelector('tbody tr + tr > *')!);
+          return {
+            head: [head.borderBottomWidth, head.borderBottomStyle, head.borderBottomColor],
+            row: [row.borderTopWidth, row.borderTopStyle, row.borderTopColor],
+          };
+        });
+      expect(rules.head).toEqual(['2px', 'solid', rules.row[2]]);
+      expect(rules.row.slice(0, 2)).toEqual(['1px', 'solid']);
+    });
+
     for (const { number, path } of TOPIC_PAGES) {
       test(`tema ${number}: Why sin borde, etiqueta en mono de 12 px, 24 px entre partes y 8 px hasta el texto`, async ({
         page,
