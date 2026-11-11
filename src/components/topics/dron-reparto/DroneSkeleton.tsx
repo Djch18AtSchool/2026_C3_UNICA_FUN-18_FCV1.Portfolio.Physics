@@ -48,7 +48,9 @@ const CHIP_PLACES = 3;
  * canvas notes go from three lines to two (17,1) and to one (31,7), «Parámetros» loses a line of
  * each field label (17,6 and 19,7), the transport's second row stops wrapping the time reading
  * onto a third line (19,55). Measured on the loaded lab at a 17 px root; the e2e checks them at
- * 16 px too (phase C), where they hold.
+ * 16 px too (phase C), where they hold. The transport's step, in window widths: at a 16 px root the
+ * lab and the skeleton change together at 394 px; at 17 px the lab changes at 417 px and the
+ * skeleton at 418 (a 1 px band where it is a line taller); the e2e checks both widths.
  */
 const STEPS = ['s17-1', 's17-6', 's19-55', 's19-7', 's31-7'] as const;
 type Step = (typeof STEPS)[number];

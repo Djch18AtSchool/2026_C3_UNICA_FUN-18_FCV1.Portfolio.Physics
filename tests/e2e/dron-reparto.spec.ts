@@ -168,13 +168,14 @@ test('«Cómo se usa» y «Qué deja fuera el modelo» abren cerrados y dicen el
   const leftOut = lab.locator('details[data-lab-note="left-out"]');
   await expect(usage).not.toHaveAttribute('open');
   await expect(leftOut).not.toHaveAttribute('open');
-  await expect(usage.getByText(/vista «Tramo» reproduce/)).toBeHidden();
+  await expect(usage.getByText(/«Tramo» va a velocidad real/)).toBeHidden();
 
   await usage.locator('summary').click();
   await leftOut.locator('summary').press('Enter');
 
-  await expect(usage.getByText(/vista «Tramo» reproduce/)).toBeVisible();
-  await expect(usage).toContainText('«Ruta», la ruta entera 4 veces más rápida');
+  await expect(usage.getByText(/«Tramo» va a velocidad real/)).toBeVisible();
+  await expect(usage).toContainText('«Ruta», 4 veces más rápida que el vuelo');
+  await expect(usage).toContainText('con movimiento reducido');
   await expect(usage).toContainText('Arrastra las paradas A, B y C');
   for (const left of ['2,5 m/s²', 'vértice', 'viento', 'diferencias centrales']) {
     await expect(leftOut).toContainText(left);
@@ -228,10 +229,14 @@ const STOP_POSITIONS = {
   C: { x: '300,00 m', y: '1 100,00 m' },
   Depósito: { x: '0,00 m', y: '0,00 m' },
 } as const;
-/** Real time to let a view play, and the route time that long a play covers at ×1 and at ×4. */
-const PLAY_MS = 1500;
-const TRAMO_PLAYED_S = { min: 0.8, max: 2.5 };
-const RUTA_PLAYED_S = { min: 3.2, max: 9 };
+/**
+ * Clock seconds a view plays before the real seconds that took are read, and the real seconds
+ * allowed: at ×1 and ×4 reaching them takes about 1,5 s and 1,5 s (at the other speed, 0,4 s or
+ * 6 s), so the bounds tell the two apart with room for a loaded machine.
+ */
+const TRAMO_REACH_S = { clock: 1.5, realMin: 1.2, realMax: 4 };
+const RUTA_REACH_S = { clock: 6, realMin: 0.8, realMax: 3.5 };
+const POLL_INTERVAL_MS = 50;
 /** The settled marks under the timeline of each view (the mark count is the model's). */
 const TRAMO_MARKS = 4;
 const RUTA_MARKS = 5;
@@ -274,7 +279,7 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
     );
     expect(box?.y ?? 0).toBeGreaterThanOrEqual(map?.y ?? Infinity);
     await expect(page.getByTestId('drone-view-note')).toHaveText(
-      /Sale en t = 0,0\s*s de la ruta y dura 67,3\s*s\./,
+      /Sale en t = 0,0\s*s de la ruta y dura 67,2\s*s\./,
     );
   });
 
@@ -298,22 +303,27 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
 
   test('«Tramo» corre a velocidad real y «Ruta» cuatro veces más rápido', async ({ page }) => {
     const lab = page.locator(LAB);
-    await lab.getByRole('button', { name: 'Reiniciar' }).click();
-    await lab.getByRole('button', { name: 'Reproducir' }).click();
-    await page.waitForTimeout(PLAY_MS);
-    await lab.getByRole('button', { name: 'Pausar' }).click();
-    const played = await timelineSeconds(page);
-    expect(played).toBeGreaterThanOrEqual(TRAMO_PLAYED_S.min);
-    expect(played).toBeLessThanOrEqual(TRAMO_PLAYED_S.max);
+    /** Real seconds the timeline takes to read `clock` seconds after pressing play. */
+    async function realSecondsToReach(clock: number): Promise<number> {
+      await lab.getByRole('button', { name: 'Reiniciar' }).click();
+      const started = Date.now();
+      await lab.getByRole('button', { name: 'Reproducir' }).click();
+      await expect
+        .poll(() => timelineSeconds(page), { intervals: [POLL_INTERVAL_MS] })
+        .toBeGreaterThanOrEqual(clock);
+      const elapsed = (Date.now() - started) / 1000;
+      await lab.getByRole('button', { name: 'Pausar' }).click();
+      return elapsed;
+    }
+
+    const tramo = await realSecondsToReach(TRAMO_REACH_S.clock);
+    expect(tramo).toBeGreaterThanOrEqual(TRAMO_REACH_S.realMin);
+    expect(tramo).toBeLessThanOrEqual(TRAMO_REACH_S.realMax);
 
     await chooseView(page, 'Ruta');
-    await lab.getByRole('button', { name: 'Reiniciar' }).click();
-    await lab.getByRole('button', { name: 'Reproducir' }).click();
-    await page.waitForTimeout(PLAY_MS);
-    await lab.getByRole('button', { name: 'Pausar' }).click();
-    const fast = await timelineSeconds(page);
-    expect(fast).toBeGreaterThanOrEqual(RUTA_PLAYED_S.min);
-    expect(fast).toBeLessThanOrEqual(RUTA_PLAYED_S.max);
+    const ruta = await realSecondsToReach(RUTA_REACH_S.clock);
+    expect(ruta).toBeGreaterThanOrEqual(RUTA_REACH_S.realMin);
+    expect(ruta).toBeLessThanOrEqual(RUTA_REACH_S.realMax);
   });
 
   test('«Evento siguiente» y «Evento anterior» con el teclado recorren las paradas de la ruta', async ({
@@ -331,7 +341,8 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
       // The mark is the instant the drone is on the stop (the 0,1 s samples leave it a hair off).
       expect(await readoutText(page, 'Posición x')).toBe(STOP_POSITIONS[stop].x);
       expect(await readoutText(page, 'Posición y')).toBe(STOP_POSITIONS[stop].y);
-      if (stop !== 'Depósito') expect(await readoutText(page, 'Aceleración |a|')).toBe('0,00 m/s²');
+      expect(await readoutText(page, 'Rapidez |v|')).toBe('0,00 m/s');
+      expect(await readoutText(page, 'Aceleración |a|')).toBe('0,00 m/s²');
       await expect(page.locator(LAB).getByRole('status').filter({ hasText: arrival })).toHaveCount(
         1,
       );
@@ -377,13 +388,18 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
     await leg.selectOption({ label: 'De B a C' });
 
     await expect(page.getByTestId('drone-view-note')).toHaveText(
-      /Sale en t = 178,3\s*s de la ruta y dura 71,2\s*s\./,
+      /Sale en t = 178,3\s*s de la ruta y dura 71,1\s*s\./,
     );
     await expect(
       page.locator(`${LAB} [data-lab-canvas-notes] p`, { hasText: 'Fase:' }),
     ).toContainText('crucero');
     await expect(marksOf(page)).toHaveCount(TRAMO_MARKS);
     expect(await readoutText(page, 'Instante en la ruta')).toBe('208,30 s');
+    // The charts below read the same instant of the route, not the leg's own clock.
+    await expect(page.locator('[data-profile-marker]').first()).toHaveAttribute(
+      'data-marker-t',
+      /^208\.3/,
+    );
   });
 
   test('las flechas del teclado cambian la vista y el dron queda dentro del tramo', async ({
@@ -446,11 +462,12 @@ const SKELETON_SLACK_PX = 8;
 /** The map's height may move by this much while it mounts: rounding of a fractional width. */
 const MAP_GROWTH_SLACK_PX = 1;
 /**
- * Windows where the skeleton is checked: phones (360–414 px: four of its five steps fall there),
+ * Windows where the skeleton is checked: phones (360–417 px: four of its five steps fall there; 394
+ * and 417 are where the transport's second row changes at a 16 px and a 17 px root),
  * 540 (the other labs' hydration check), 559 and 562 (the map's svg at 478,5 and 481,5 px, around
  * SvgPlot's switch), 900 (one column, the panel in two) and 1 280 (two columns).
  */
-const SKELETON_WIDTHS = [360, 375, 390, 400, 414, 540, 559, 562, 900, 1280] as const;
+const SKELETON_WIDTHS = [360, 375, 390, 394, 400, 414, 417, 540, 559, 562, 900, 1280] as const;
 /** Phase C sets the root to 16 px (the site is at 17 today): the steps are in rem, check both. */
 const PHASE_C_ROOT_PX = 16;
 const PHASE_C_WIDTHS = [360, 390, 414, 900, 1280] as const;
