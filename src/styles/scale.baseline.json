@@ -42,23 +42,6 @@
   "src/components/nav/TopicTools.tsx": {
     "spacing gap-1.5": 2
   },
-  "src/components/topics/asistencia-gravitatoria/RpField.tsx": {
-    "size h-9": 1,
-    "size w-24": 1,
-    "spacing gap-1.5": 2
-  },
-  "src/components/topics/asistencia-gravitatoria/VoyagerSpeedChart.tsx": {
-    "size size-2.5": 1,
-    "spacing py-1.5": 1
-  },
-  "src/components/topics/coeficiente-restitucion/BounceNotes.tsx": {
-    "spacing gap-y-0.5": 1,
-    "spacing pb-1.5": 1,
-    "spacing pl-5": 1
-  },
-  "src/components/topics/coeficiente-restitucion/CollisionMode.tsx": {
-    "spacing pl-5": 1
-  },
   "src/components/topics/control-haptico/HapticVideo.tsx": {
     "size min-h-9": 1,
     "size size-3.5": 1,
@@ -72,40 +55,11 @@
   "src/components/topics/dron-reparto/DroneProfilesMarker.tsx": {
     "spacing gap-1.5": 2
   },
-  "src/components/topics/frenado-regenerativo/EnergyBalanceChart.tsx": {
-    "spacing gap-y-1.5": 1
-  },
-  "src/components/topics/frenado-regenerativo/EnergyBars.tsx": {
-    "radius rounded-[2px]": 1,
-    "size grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)_auto]": 1,
-    "spacing gap-1.5": 1
-  },
-  "src/components/topics/frenado-regenerativo/RegenScene.tsx": {
-    "radius rounded-[2px]": 1,
-    "size size-2.5": 1,
-    "spacing pr-40": 1
-  },
   "src/components/topics/gravedad-artificial/ApparentWeightDiagram.tsx": {
     "size max-w-[30rem]": 1
   },
   "src/components/topics/gravedad-artificial/HabitatDiagram.astro": {
     "size max-width: 30rem": 1
-  },
-  "src/components/topics/ruedas-reaccion/ExchangeDiagram.tsx": {
-    "size max-w-[30rem]": 1
-  },
-  "src/components/topics/ruedas-reaccion/MomentumGauge.tsx": {
-    "size w-[3px]": 1,
-    "spacing gap-1.5": 1
-  },
-  "src/components/topics/ruedas-reaccion/WheelDiagram.astro": {
-    "size max-width: 30rem": 1,
-    "size max-width: 62rem": 1,
-    "text font-size: 17px": 1
-  },
-  "src/components/topics/ruedas-reaccion/WheelStatus.tsx": {
-    "border border-l-[3px]": 1,
-    "size min-h-9": 1
   },
   "src/components/ui/ResourceBadge.astro": {
     "radius rounded-[1px]": 1,
