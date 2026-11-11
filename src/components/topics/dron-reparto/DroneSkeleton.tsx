@@ -46,10 +46,11 @@ const CHIP_PLACES = 3;
  * The widths of the card's content box (rem; the container query's width, the card less its 1 rem
  * padding on each side) where a part of the loaded lab changes height, as its text rewraps: the
  * canvas notes go from three lines to two (17,1) and to one (31,7), «Parámetros» loses a line of
- * each field label (17,6 and 19,7), the transport fits one line (20,75). Measured on the loaded
- * lab at a 17 px root; the e2e checks them at 16 px too (phase C), where they hold.
+ * each field label (17,6 and 19,7), the transport's second row stops wrapping the time reading
+ * onto a third line (19,55). Measured on the loaded lab at a 17 px root; the e2e checks them at
+ * 16 px too (phase C), where they hold.
  */
-const STEPS = ['s17-1', 's17-6', 's19-7', 's20-75', 's31-7'] as const;
+const STEPS = ['s17-1', 's17-6', 's19-55', 's19-7', 's31-7'] as const;
 type Step = (typeof STEPS)[number];
 
 /**
@@ -57,7 +58,7 @@ type Step = (typeof STEPS)[number];
  * with hyphens: Tailwind reads an underscore in an arbitrary value as a space).
  */
 const PLACE_HEIGHT =
-  'h-(--place-narrow) @min-[17.1rem]/lab:h-(--place-s17-1) @min-[17.6rem]/lab:h-(--place-s17-6) @min-[19.7rem]/lab:h-(--place-s19-7) @min-[20.75rem]/lab:h-(--place-s20-75) @min-[31.7rem]/lab:h-(--place-s31-7) lab-split:h-(--place-split)';
+  'h-(--place-narrow) @min-[17.1rem]/lab:h-(--place-s17-1) @min-[17.6rem]/lab:h-(--place-s17-6) @min-[19.55rem]/lab:h-(--place-s19-55) @min-[19.7rem]/lab:h-(--place-s19-7) @min-[31.7rem]/lab:h-(--place-s31-7) lab-split:h-(--place-split)';
 
 /**
  * A place's height in rem: on a phone's narrow card, from each step where it changes (a step left
@@ -81,10 +82,14 @@ function placeStyle({ narrow, from = {}, split }: PlaceHeights): CSSProperties {
   ]) as CSSProperties;
 }
 
-/** The transport: two lines on a phone, one from 20,75 rem, and pinned with its padding in two columns. */
-const TRANSPORT: PlaceHeights = { narrow: 4.75, from: { 's20-75': 2.75 }, split: 4.3 };
-/** «Parámetros» with v_máx and a_máx, and «Lecturas» with its four cells. */
+/**
+ * The transport with events: two rows (the time reading on a third line on a phone, up to 19,55
+ * rem), and pinned with its padding in two columns.
+ */
+const TRANSPORT: PlaceHeights = { narrow: 8.25, from: { 's19-55': 6.25 }, split: 7.8125 };
+/** «Parámetros» with v_máx and a_máx, «Escenario» with the view and the leg, and «Lecturas». */
 const PARAMS: PlaceHeights = { narrow: 16.75, from: { 's17-6': 16.4, 's19-7': 16 } };
+const SCENARIO: PlaceHeights = { narrow: 15.1875 };
 const READOUTS: PlaceHeights = { narrow: 15 };
 /** The canvas notes: legend, phase and route notes, from three lines down to one. */
 const NOTES: PlaceHeights = { narrow: 6.25, from: { 's17-1': 4.75, 's31-7': 3.25 } };
@@ -144,12 +149,13 @@ function StagePlace({ status }: Pick<DroneSkeletonProps, 'status'>): JSX.Element
   );
 }
 
-/** The panel's two blocks, beside the stage in two columns, side by side in a wide panel. */
+/** The panel's three blocks, beside the stage in two columns, in two columns in a wide panel. */
 function PanelPlace(): JSX.Element {
   return (
     <div data-skeleton="panel" aria-hidden="true" className={LAB_PANEL_CELL}>
       <div className={LAB_PANEL}>
         <Place heights={PARAMS} className={LAB_LEVEL_IN_COLUMNS} />
+        <Place heights={SCENARIO} className={LAB_LEVEL_IN_COLUMNS} />
         <Place heights={READOUTS} className={LAB_LEVEL_IN_COLUMNS} />
       </div>
     </div>

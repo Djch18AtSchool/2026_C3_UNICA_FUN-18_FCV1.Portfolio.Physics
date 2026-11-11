@@ -168,26 +168,29 @@ test('«Cómo se usa» y «Qué deja fuera el modelo» abren cerrados y dicen el
   const leftOut = lab.locator('details[data-lab-note="left-out"]');
   await expect(usage).not.toHaveAttribute('open');
   await expect(leftOut).not.toHaveAttribute('open');
-  await expect(usage.getByText(/20 veces más rápida/)).toBeHidden();
+  await expect(usage.getByText(/vista «Tramo» reproduce/)).toBeHidden();
 
   await usage.locator('summary').click();
   await leftOut.locator('summary').press('Enter');
 
-  await expect(usage.getByText(/20 veces más rápida/)).toBeVisible();
+  await expect(usage.getByText(/vista «Tramo» reproduce/)).toBeVisible();
+  await expect(usage).toContainText('«Ruta», la ruta entera 4 veces más rápida');
   await expect(usage).toContainText('Arrastra las paradas A, B y C');
   for (const left of ['2,5 m/s²', 'vértice', 'viento', 'diferencias centrales']) {
     await expect(leftOut).toContainText(left);
   }
 });
 
-test('el laboratorio va por niveles, sin escenario: v_máx y a_máx, las lecturas y las fichas del cajón', async ({
+test('el laboratorio va por niveles: v_máx y a_máx, el escenario con la vista, las lecturas y las fichas del cajón', async ({
   page,
 }) => {
   const lab = page.locator(LAB);
   const params = lab.getByRole('region', { name: 'Parámetros' });
   await expect(params.getByRole('slider', { name: /^Rapidez máxima/ })).toBeVisible();
   await expect(params.getByRole('slider', { name: /^Aceleración máxima/ })).toBeVisible();
-  await expect(lab.getByRole('region', { name: 'Escenario' })).toHaveCount(0);
+  const scenario = lab.getByRole('region', { name: 'Escenario' });
+  await expect(scenario.getByRole('radio', { name: 'Tramo' })).toBeChecked();
+  await expect(scenario.getByRole('radio', { name: 'Ruta' })).not.toBeChecked();
   await expect(lab.getByRole('region', { name: 'Lecturas' })).toBeVisible();
   const chips = lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button');
   await expect(chips).toHaveCount(3);
@@ -216,6 +219,201 @@ test('la página cumple la estructura del tema', async ({ page }) => {
   expect(await page.locator('[data-testid="sources"] li').count()).toBeGreaterThanOrEqual(4);
   await expect(page.getByTestId('connections')).toBeVisible();
   expect(await page.locator('.katex-display').count()).toBeGreaterThanOrEqual(4);
+});
+
+/** The stops of the declared route, in m: where a mark says the drone is at rest. */
+const STOP_POSITIONS = {
+  A: { x: '600,00 m', y: '200,00 m' },
+  B: { x: '900,00 m', y: '800,00 m' },
+  C: { x: '300,00 m', y: '1 100,00 m' },
+  Depósito: { x: '0,00 m', y: '0,00 m' },
+} as const;
+/** Real time to let a view play, and the route time that long a play covers at ×1 and at ×4. */
+const PLAY_MS = 1500;
+const TRAMO_PLAYED_S = { min: 0.8, max: 2.5 };
+const RUTA_PLAYED_S = { min: 3.2, max: 9 };
+/** The settled marks under the timeline of each view (the mark count is the model's). */
+const TRAMO_MARKS = 4;
+const RUTA_MARKS = 5;
+
+const timelineOf = (page: Page) =>
+  page.locator(LAB).getByRole('slider', { name: 'Línea de tiempo' });
+const marksOf = (page: Page) => page.locator(`${LAB} [data-transport-mark]`);
+const badgeOf = (page: Page) => page.locator(`${LAB} [data-time-scale-badge]`);
+const eventButton = (page: Page, name: 'Evento anterior' | 'Evento siguiente') =>
+  page.locator(LAB).getByRole('button', { name });
+const chooseView = (page: Page, view: 'Tramo' | 'Ruta') =>
+  page
+    .locator(LAB)
+    .getByRole('region', { name: 'Escenario' })
+    .getByText(view, { exact: true })
+    .click();
+
+/** The t of the transport's reading («t = 4,00 s · …»), in s. */
+async function timelineSeconds(page: Page): Promise<number> {
+  const text = (await timelineOf(page).getAttribute('aria-valuetext')) ?? '';
+  return Number(
+    /t = ([\d\s\u202f]+(?:,\d+)?)/u
+      .exec(text)?.[1]
+      .replace(/[\s\u202f]/gu, '')
+      .replace(',', '.'),
+  );
+}
+
+test.describe('las vistas «Tramo» y «Ruta»', () => {
+  test('abre en «Tramo»: cuatro marcas y «×1 velocidad real» sobre el mapa', async ({ page }) => {
+    await expect(marksOf(page)).toHaveCount(TRAMO_MARKS);
+    const badge = badgeOf(page);
+    await expect(badge).toContainText('×1');
+    await expect(badge).toContainText('velocidad real');
+    const map = await page.getByTestId('route-map').boundingBox();
+    const box = await badge.boundingBox();
+    expect(box?.x ?? 0).toBeGreaterThanOrEqual(map?.x ?? Infinity);
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(
+      (map?.x ?? 0) + (map?.width ?? 0),
+    );
+    expect(box?.y ?? 0).toBeGreaterThanOrEqual(map?.y ?? Infinity);
+    await expect(page.getByTestId('drone-view-note')).toHaveText(
+      /Sale en t = 0,0\s*s de la ruta y dura 67,2\s*s\./,
+    );
+  });
+
+  test('«Ruta» pasa a ×4, con una marca por salida y llegada, sin soltar al dron', async ({
+    page,
+  }) => {
+    const before = await readoutText(page, 'Posición x');
+
+    await chooseView(page, 'Ruta');
+
+    await expect(marksOf(page)).toHaveCount(RUTA_MARKS);
+    await expect(badgeOf(page)).toContainText('×4');
+    await expect(badgeOf(page)).toContainText('cámara rápida');
+    expect(await readoutText(page, 'Posición x')).toBe(before);
+    await expect(page.locator(LAB).getByRole('combobox', { name: 'Tramo mostrado' })).toHaveCount(
+      0,
+    );
+    await chooseView(page, 'Tramo');
+    await expect(badgeOf(page)).toContainText('×1');
+  });
+
+  test('«Tramo» corre a velocidad real y «Ruta» cuatro veces más rápido', async ({ page }) => {
+    const lab = page.locator(LAB);
+    await lab.getByRole('button', { name: 'Reiniciar' }).click();
+    await lab.getByRole('button', { name: 'Reproducir' }).click();
+    await page.waitForTimeout(PLAY_MS);
+    await lab.getByRole('button', { name: 'Pausar' }).click();
+    const played = await timelineSeconds(page);
+    expect(played).toBeGreaterThanOrEqual(TRAMO_PLAYED_S.min);
+    expect(played).toBeLessThanOrEqual(TRAMO_PLAYED_S.max);
+
+    await chooseView(page, 'Ruta');
+    await lab.getByRole('button', { name: 'Reiniciar' }).click();
+    await lab.getByRole('button', { name: 'Reproducir' }).click();
+    await page.waitForTimeout(PLAY_MS);
+    await lab.getByRole('button', { name: 'Pausar' }).click();
+    const fast = await timelineSeconds(page);
+    expect(fast).toBeGreaterThanOrEqual(RUTA_PLAYED_S.min);
+    expect(fast).toBeLessThanOrEqual(RUTA_PLAYED_S.max);
+  });
+
+  test('«Evento siguiente» y «Evento anterior» con el teclado recorren las paradas de la ruta', async ({
+    page,
+  }) => {
+    await chooseView(page, 'Ruta');
+    await page.locator(LAB).getByRole('button', { name: 'Reiniciar' }).click();
+    const next = eventButton(page, 'Evento siguiente');
+    await next.focus();
+
+    for (const stop of ['A', 'B', 'C', 'Depósito'] as const) {
+      await page.keyboard.press('Enter');
+      const arrival = stop === 'Depósito' ? 'Llegada al depósito' : `Llegada a ${stop}`;
+      await expect(timelineOf(page)).toHaveAttribute('aria-valuetext', new RegExp(`· ${arrival}$`));
+      // The mark is the instant the drone is on the stop (the 0,1 s samples leave it a hair off).
+      expect(await readoutText(page, 'Posición x')).toBe(STOP_POSITIONS[stop].x);
+      expect(await readoutText(page, 'Posición y')).toBe(STOP_POSITIONS[stop].y);
+      await expect(page.locator(LAB).getByRole('status').filter({ hasText: arrival })).toHaveCount(
+        1,
+      );
+    }
+    await expect(next).toHaveAttribute('aria-disabled', 'true');
+    await expect(next).toBeFocused();
+
+    const previous = eventButton(page, 'Evento anterior');
+    await previous.focus();
+    await page.keyboard.press('Enter');
+    await expect(timelineOf(page)).toHaveAttribute('aria-valuetext', /· Llegada a C$/);
+  });
+
+  test('en «Tramo» las marcas cuentan cómo acelera, cruza y frena entre dos paradas', async ({
+    page,
+  }) => {
+    await page.locator(LAB).getByRole('button', { name: 'Reiniciar' }).click();
+    const next = eventButton(page, 'Evento siguiente');
+    await next.focus();
+    const heard: string[] = [];
+    const phase = page.locator(`${LAB} [data-lab-canvas-notes] p`, { hasText: 'Fase:' });
+    const phases: string[] = [];
+
+    for (let i = 0; i < TRAMO_MARKS - 1; i += 1) {
+      await page.keyboard.press('Enter');
+      heard.push((await timelineOf(page).getAttribute('aria-valuetext')) ?? '');
+      phases.push((await phase.textContent()) ?? '');
+    }
+
+    expect(heard.map((text) => text.replace(/^.* · /u, ''))).toEqual([
+      'Fin de la aceleración',
+      'Inicio del frenado',
+      'Llegada a A',
+    ]);
+    // Where the acceleration jumps the 0,1 s samples are interpolated, so a mark reads the phase
+    // on one side of it or the other; at the start of braking, a force against the velocity.
+    expect(phases[1]).toContain('frenando');
+  });
+
+  test('cambiar de tramo abre el nuevo en crucero y dice cuándo sale en la ruta', async ({
+    page,
+  }) => {
+    const leg = page.locator(LAB).getByRole('combobox', { name: 'Tramo mostrado' });
+
+    await leg.selectOption({ label: 'De B a C' });
+
+    await expect(page.getByTestId('drone-view-note')).toHaveText(
+      /Sale en t = 178,3\s*s de la ruta y dura 71,1\s*s\./,
+    );
+    await expect(
+      page.locator(`${LAB} [data-lab-canvas-notes] p`, { hasText: 'Fase:' }),
+    ).toContainText('crucero');
+    await expect(marksOf(page)).toHaveCount(TRAMO_MARKS);
+    expect(await readoutText(page, 'Instante en la ruta')).toBe('208,33 s');
+  });
+
+  test('las flechas del teclado cambian la vista y el dron queda dentro del tramo', async ({
+    page,
+  }) => {
+    const tramo = page.locator(LAB).getByRole('radio', { name: 'Tramo' });
+    await tramo.focus();
+
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator(LAB).getByRole('radio', { name: 'Ruta' })).toBeChecked();
+    await page.keyboard.press('ArrowLeft');
+    await expect(tramo).toBeChecked();
+
+    const drone = page.getByTestId('drone-marker');
+    await drone.focus();
+    await page.keyboard.press('End');
+    expect(Number(await drone.getAttribute('aria-valuenow'))).toBeLessThanOrEqual(67.3);
+  });
+
+  test('mover una parada con el teclado sigue marcando la ruta como modificada en las dos vistas', async ({
+    page,
+  }) => {
+    await chooseView(page, 'Ruta');
+    await page.getByTestId('stop-A').focus();
+    await page.keyboard.press('Shift+ArrowRight');
+
+    await expect(page.getByTestId('route-modified')).toBeVisible();
+    await expect(marksOf(page)).toHaveCount(RUTA_MARKS);
+  });
 });
 
 test.describe('con pantalla táctil', () => {
