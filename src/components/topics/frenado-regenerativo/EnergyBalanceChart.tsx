@@ -132,7 +132,7 @@ export default function EnergyBalanceChart({
         ariaLabel={`Energías acumuladas al final del ciclo: ${totalsText}; se disipan ${kwh(totals.conversionLoss + totals.friction)} (pérdidas de conversión más fricción) y la batería recupera el ${percent(totals.recoveredShare)} de la energía de tracción.`}
         testId="energy-balance-energies"
       />
-      <div data-testid="energy-balance-readout" className="grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+      <div data-testid="energy-balance-readout" className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
         <Readout label="Tiempo t" value={step.t} unit="s" precision={0} />
         <Readout
           label="Velocidad v"

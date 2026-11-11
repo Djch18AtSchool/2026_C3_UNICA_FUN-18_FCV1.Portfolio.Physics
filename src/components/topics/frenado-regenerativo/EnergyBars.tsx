@@ -84,7 +84,7 @@ export default function EnergyBars({ at, scale }: EnergyBarsProps): JSX.Element 
       <p className="m-0 text-sm font-medium">
         {title} <span className="font-normal text-fg-muted">(escala de 0 a {scaleText})</span>
       </p>
-      <ul aria-label={title} className="m-0 flex list-none flex-col gap-1.5 p-0">
+      <ul aria-label={title} className="m-0 flex list-none flex-col gap-2 p-0">
         {ENERGY_SERIES.map((series) => {
           const value = at[series.key] / scale.joulesPerUnit;
           return (
@@ -92,14 +92,14 @@ export default function EnergyBars({ at, scale }: EnergyBarsProps): JSX.Element 
             <li
               key={series.key}
               data-energy={series.key}
-              className="m-0 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-sm @md:grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)_auto]"
+              className="m-0 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-sm @md:grid-cols-[minmax(0,8rem)_minmax(0,1fr)_auto]"
             >
               <span>
                 <InlineMath text={series.label} />
               </span>
               <span
                 aria-hidden="true"
-                className="col-span-2 row-start-2 h-3 overflow-hidden rounded-[2px] bg-grid @md:col-span-1 @md:col-start-2 @md:row-start-1"
+                className="col-span-2 row-start-2 h-3 overflow-hidden rounded-base bg-grid @md:col-span-1 @md:col-start-2 @md:row-start-1"
               >
                 <BarFill series={series} at={at} scale={scale} />
               </span>
