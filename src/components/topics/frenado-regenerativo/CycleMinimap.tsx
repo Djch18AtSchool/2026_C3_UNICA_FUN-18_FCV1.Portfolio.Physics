@@ -39,8 +39,10 @@ const STROKE = { vectorEffect: 'non-scaling-stroke' } as const;
 
 const px = (value: number) => Number(value.toFixed(PX_DECIMALS));
 /**
- * The playhead moves by tenths of a pixel: at real time it crosses the UDDS at about 0,24 px/s, and
- * finer steps would rewrite two attributes almost every frame for a move nobody sees.
+ * The playhead moves by tenths of a pixel. At real time it crosses the 1 369 s of the UDDS in the
+ * strip's width: about 0,24 px/s at 360 px (a 330 px strip) and 0,31 px/s at 1 280 px (421 px,
+ * the stage in two columns). Finer steps would rewrite two attributes almost every frame for a
+ * move nobody sees.
  */
 const PLAYHEAD_DECIMALS = 1;
 
