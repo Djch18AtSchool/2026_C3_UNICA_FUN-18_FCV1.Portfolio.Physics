@@ -27,6 +27,25 @@ describe('ScaleBar', () => {
     expect(line(container)?.style.width).toBe('150px');
   });
 
+  test('maxPx keeps the bar short on a narrow canvas: 500 km for 127 px per 1 000 km', () => {
+    const { container } = render(<ScaleBar pxPerUnit={0.127} units={KM} maxPx={112} />);
+
+    expect(bar(container)).toHaveTextContent(`500${NNBSP}km`, EXACT);
+    expect(line(container)?.style.width).toBe('63.5px');
+  });
+
+  test('maxPx reaches the words and the SVG bar too', () => {
+    const { container } = render(
+      <svg>
+        <ScaleBarSvg pxPerUnit={0.127} units={KM} maxPx={112} x={200} y={100} anchor="end" />
+      </svg>,
+    );
+    const words = render(<ScaleBarWords pxPerUnit={0.127} units={KM} maxPx={112} />);
+
+    expect(container.querySelector('path')?.getAttribute('d')).toBe('M136.5 92V100H200V92');
+    expect(words.container).toHaveTextContent(`500${NNBSP}km`, EXACT);
+  });
+
   test('follows the zoom: twice the scale, a shorter round length', () => {
     const { container, rerender } = render(<ScaleBar pxPerUnit={0.15} units={KM} />);
 

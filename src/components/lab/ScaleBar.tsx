@@ -37,6 +37,8 @@ export interface ScaleBarProps {
   pxPerUnit: number;
   /** From the smallest unit up; a single one is the usual case. */
   units: readonly ScaleUnit[];
+  /** The longest the bar may be, px (default 160): a narrow canvas asks for less. */
+  maxPx?: number;
 }
 
 const BOX =
@@ -51,9 +53,9 @@ const LABEL_SIZE = 12;
 const HALO = { color: SURFACE_COLOR, width: 4 } as const;
 
 /** The bar's length for these props, after checking the ladder (a bad one is a programming error). */
-function barFor({ pxPerUnit, units }: ScaleBarProps): ScaleBarLength | undefined {
+function barFor({ pxPerUnit, units, maxPx }: ScaleBarProps): ScaleBarLength | undefined {
   requireScaleUnits(units);
-  return scaleBarLength(pxPerUnit, units);
+  return scaleBarLength(pxPerUnit, units, maxPx);
 }
 
 /** The scale bar's words for screen readers, in HTML: «Barra de escala: 1 000 km». */

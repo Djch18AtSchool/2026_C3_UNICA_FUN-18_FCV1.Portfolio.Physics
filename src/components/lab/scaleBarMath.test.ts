@@ -32,6 +32,42 @@ describe('scaleBarLength', () => {
     },
   );
 
+  describe('with a shorter longest bar (maxPx)', () => {
+    test('a canvas too narrow for 160 px takes the round length below: 500 not 1 000', () => {
+      // 0,127 px per unit: 1 000 measure 127 px (too long for 112), 500 measure 63,5.
+      expect(scaleBarLength(0.127, KM)?.value).toBe(1000);
+      expect(scaleBarLength(0.127, KM, 112)).toEqual({
+        value: 500,
+        px: 63.5,
+        text: `500${NNBSP}km`,
+      });
+    });
+
+    test('is the same bar as the default one when maxPx is the default maximum', () => {
+      expect(scaleBarLength(0.25, KM, SCALE_BAR_MAX_PX)).toEqual(scaleBarLength(0.25, KM));
+    });
+
+    test.each([0.0007, 0.013, 0.2, 1, 3.3, 47, 999])(
+      'at %f px per unit the bar never passes maxPx and is round',
+      (pxPerUnit) => {
+        const bar = scaleBarLength(pxPerUnit, KM, 112)!;
+        const mantissa = bar.value / 10 ** Math.floor(Math.log10(bar.value));
+
+        expect(bar.px).toBeLessThanOrEqual(112 + 1e-9);
+        // 1·2·5 steps are at most 2,5 apart: the bar is at least 112 / 2,5 long.
+        expect(bar.px).toBeGreaterThanOrEqual(112 / 2.5 - 1e-9);
+        expect([1, 2, 5]).toContain(Number(mantissa.toPrecision(6)));
+      },
+    );
+
+    test.each([SCALE_BAR_MIN_PX - 1, 0, -10, Number.NaN, Number.POSITIVE_INFINITY])(
+      'maxPx %f is a programming error: the bar would have no room',
+      (maxPx) => {
+        expect(() => scaleBarLength(1, KM, maxPx)).toThrow(RangeError);
+      },
+    );
+  });
+
   test('a length that lands exactly on 160 px is taken', () => {
     expect(scaleBarLength(1.6, KM)).toEqual({ value: 100, px: 160, text: `100${NNBSP}km` });
   });
