@@ -459,17 +459,20 @@ test.describe('a stop under the zoom buttons', () => {
     for (let i = 0; i < 7; i += 1) await page.keyboard.press('Shift+ArrowRight');
     for (let i = 0; i < 2; i += 1) await page.keyboard.press('Shift+ArrowDown');
     await expect.poll(() => stopValues(page, 'stop-A')).toEqual({ x: 1300, y: 0 });
-    const centre = await knobCentre(page, 'stop-A');
+    // The box of what is inside the plot's foreignObject answers a frame late after a move: poll.
+    const ownerAtKnob = async () => {
+      const centre = await knobCentre(page, 'stop-A');
+      return page.evaluate(
+        ({ x, y }) =>
+          document.elementFromPoint(x, y)?.closest('[data-testid]')?.getAttribute('data-testid'),
+        centre,
+      );
+    };
     const controls = await box(page.locator(`${MAP} [data-zoom-controls]`));
+    const centre = await knobCentre(page, 'stop-A');
     expect(overlaps(controls, { x: centre.x, y: centre.y, width: 0, height: 0 })).toBe(true);
 
-    const owner = await page.evaluate(
-      ({ x, y }) =>
-        document.elementFromPoint(x, y)?.closest('[data-testid]')?.getAttribute('data-testid'),
-      centre,
-    );
-
-    expect(owner).toBe('stop-A');
+    await expect.poll(ownerAtKnob).toBe('stop-A');
   });
 
   test('can be dragged away from there with the mouse', async ({ page }) => {
