@@ -22,10 +22,15 @@ const MAX_SCALE = 8;
 /** Pixel slack of a read-back (positions are printed to hundredths; knobs are drawn at px). */
 const PX_SLACK = 1.5;
 const WHEEL_NOTCH_PX = 100;
-/** A pan follows the hand to within the width the margin fit can change the plot by (12 px of 322). */
-const PAN_SLACK_PX = 5;
-const DRAG = { x: -60, y: -40 } as const;
-const STOP_DRAG = { x: 40, y: 30 } as const;
+type Delta = { x: number; y: number };
+const DRAG: Delta = { x: -60, y: -40 };
+const STOP_DRAG: Delta = { x: 40, y: 30 };
+/** The room `reveal` leaves around a focused handle (REVEAL_MARGIN_PX). */
+const REVEAL_MARGIN_PX = 16;
+/** Widths from a small phone's to the desktop's, where the scale bar and stop C come close. */
+/** The air the scale bar keeps from a stop's knob at least (routeScaleBarMaxPx leaves 8 from its reach). */
+const BAR_AIR_PX = 6;
+const PHONE_AND_DESKTOP_WIDTHS = [320, 360, 375, 390, 414, 1280] as const;
 const DRAG_STEPS = 6;
 /** Stop C's default position (m) and the stops' key step (m). */
 const STOP_C = { x: 300, y: 1100 } as const;
@@ -130,6 +135,13 @@ const box = async (locator: Locator) => {
   return found as { x: number; y: number; width: number; height: number };
 };
 
+/** An element's own box (getBoundingClientRect): no stroke, so no halo of a text. */
+const clientBox = (locator: Locator) =>
+  locator.evaluate((element) => {
+    const { x, y, width, height } = element.getBoundingClientRect();
+    return { x, y, width, height };
+  });
+
 const overlaps = (
   a: { x: number; y: number; width: number; height: number },
   b: { x: number; y: number; width: number; height: number },
@@ -146,7 +158,7 @@ async function knobCentre(page: Page, testId: string): Promise<{ x: number; y: n
   return { x: found.x + found.width / 2, y: found.y + found.height / 2 };
 }
 
-async function mouseDrag(page: Page, from: { x: number; y: number }, by: typeof DRAG) {
+async function mouseDrag(page: Page, from: { x: number; y: number }, by: Delta) {
   await page.mouse.move(from.x, from.y);
   await page.mouse.down();
   await page.mouse.move(from.x + by.x / 2, from.y + by.y / 2, { steps: DRAG_STEPS });
@@ -297,9 +309,7 @@ test.describe('the mouse', () => {
     const bValues = await stopValues(page, 'stop-B');
     const plot = await box(viewport(page));
     const metreAtPointer = after.atOrigin + (target.x - plot.x) / after.pxPerMetre;
-    expect(Math.abs(metreAtPointer - bValues.x)).toBeLessThan(
-      (2 * PX_SLACK) / after.pxPerMetre + 12,
-    );
+    expect(Math.abs(metreAtPointer - bValues.x)).toBeLessThan((2 * PX_SLACK) / after.pxPerMetre);
   });
 
   test('dragging the background pans the map with the hand', async ({ page }) => {
@@ -315,26 +325,15 @@ test.describe('the mouse', () => {
     const after = await readAxes(page);
     // The map follows the hand: dragging left by 60 px moves the window right by 60 px of metres.
     const { pxPerMetre } = lineOf(after.x);
-    // (Within the few px the plot's margin fit may move the plot by: see PAN_SLACK_PX.)
     const moved = lineOf(after.x).atOrigin - lineOf(before.x).atOrigin;
-    expect(Math.abs(moved + DRAG.x / pxPerMetre)).toBeLessThan(PAN_SLACK_PX / pxPerMetre);
+    expect(Math.abs(moved + DRAG.x / pxPerMetre)).toBeLessThan(PX_SLACK / pxPerMetre);
     expect(lineOf(after.y).atOrigin).toBeLessThan(lineOf(before.y).atOrigin);
   });
 
   test('dragging a stop moves the stop, not the map, and keeps its offset to the pointer', async ({
     page,
   }) => {
-    await press(page, 'Acercar', STEPS_TO_X4);
-    await expect.poll(() => readFactor(page)).toBe('×4');
-    // Bring stop A into the window, then grab it.
-    await page.getByTestId('stop-A').focus();
-    await expect
-      .poll(async () => {
-        const knob = await box(page.getByTestId('stop-A').locator('[data-knob]'));
-        const plot = await box(viewport(page));
-        return knob.x >= plot.x && knob.x + knob.width <= plot.x + plot.width;
-      })
-      .toBe(true);
+    await zoomAbout(page, await knobCentre(page, 'stop-A'));
     const before = await readAxes(page);
     const valuesBefore = await stopValues(page, 'stop-A');
     const from = await knobCentre(page, 'stop-A');
@@ -345,14 +344,149 @@ test.describe('the mouse', () => {
     const { pxPerMetre } = lineOf((await readAxes(page)).x);
     const values = await stopValues(page, 'stop-A');
     expect(Math.abs(values.x - valuesBefore.x - STOP_DRAG.x / pxPerMetre)).toBeLessThan(
-      (3 * PX_SLACK) / pxPerMetre,
+      (2 * PX_SLACK) / pxPerMetre,
     );
     expect(Math.abs(values.y - valuesBefore.y + STOP_DRAG.y / pxPerMetre)).toBeLessThan(
-      (3 * PX_SLACK) / pxPerMetre,
+      (2 * PX_SLACK) / pxPerMetre,
     );
     // The window did not move with the stop: the same metres are at the same px.
     expect(lineOf((await readAxes(page)).x).atOrigin).toBeCloseTo(lineOf(before.x).atOrigin, 1);
     await expect(page.getByTestId('route-modified')).toBeVisible();
+  });
+});
+
+const nextFrames = (page: Page) =>
+  page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+
+/** Reaches a handle with the keyboard (Tab), so its focus is the one the browser shows. */
+async function tabTo(page: Page, testId: string): Promise<void> {
+  const handle = page.getByTestId(testId);
+  await handle.focus();
+  await page.keyboard.press('Shift+Tab');
+  // A reader presses Tab a frame or more apart; Chromium answers the box of what is inside the
+  // plot's foreignObject only after the frame that moved it.
+  await nextFrames(page);
+  await page.keyboard.press('Tab');
+  await expect(handle).toBeFocused();
+}
+
+/** Zooms about the pointer over `target` (page px) to ×4 with Ctrl and the wheel, keeping it in place. */
+async function zoomAbout(page: Page, target: { x: number; y: number }): Promise<void> {
+  await page.mouse.move(target.x, target.y);
+  await page.keyboard.down('Control');
+  for (let i = 0; i < STEPS_TO_X4; i += 1) await page.mouse.wheel(0, -WHEEL_NOTCH_PX);
+  await page.keyboard.up('Control');
+  await expect.poll(() => readFactor(page)).toBe('×4');
+}
+
+/** Pans the map by a background drag until `handle`'s centre is `edge` px from the plot's left edge. */
+async function panHandleToLeftEdge(page: Page, testId: string, edge: number): Promise<void> {
+  const plot = await box(viewport(page));
+  const knob = await knobCentre(page, testId);
+  await mouseDrag(page, await emptyPoint(page), { x: plot.x + edge - knob.x, y: 0 });
+  await expect
+    .poll(async () => (await knobCentre(page, testId)).x - plot.x)
+    .toBeLessThan(REVEAL_MARGIN_PX);
+}
+
+test.describe('a press on a handle near the edge', () => {
+  const EDGE_PX = 6;
+
+  test('does not move the view under the pointer: the stop follows the hand to the pixel', async ({
+    page,
+  }) => {
+    await zoomAbout(page, await knobCentre(page, 'stop-A'));
+    await panHandleToLeftEdge(page, 'stop-A', EDGE_PX);
+    const view = await readAxes(page);
+    const valuesBefore = await stopValues(page, 'stop-A');
+    const from = await knobCentre(page, 'stop-A');
+
+    await mouseDrag(page, from, STOP_DRAG);
+
+    await expect.poll(() => stopValues(page, 'stop-A')).not.toEqual(valuesBefore);
+    const { pxPerMetre, atOrigin } = lineOf((await readAxes(page)).x);
+    expect(atOrigin).toBeCloseTo(lineOf(view.x).atOrigin, 6);
+    const values = await stopValues(page, 'stop-A');
+    // The stop moved by what the hand moved, to the 10 m grid of the keys and the pixel of the drag.
+    expect(Math.abs(values.x - valuesBefore.x - STOP_DRAG.x / pxPerMetre)).toBeLessThan(
+      (2 * PX_SLACK) / pxPerMetre,
+    );
+    expect(Math.abs(values.y - valuesBefore.y + STOP_DRAG.y / pxPerMetre)).toBeLessThan(
+      (2 * PX_SLACK) / pxPerMetre,
+    );
+  });
+
+  test('does the same for the drone: the map stays and the clock follows the hand', async ({
+    page,
+  }) => {
+    await zoomAbout(page, await knobCentre(page, 'drone-marker'));
+    await panHandleToLeftEdge(page, 'drone-marker', EDGE_PX);
+    const view = lineOf((await readAxes(page)).x).atOrigin;
+    const timeBefore = await page.getByTestId('drone-marker').getAttribute('aria-valuetext');
+
+    await mouseDrag(page, await knobCentre(page, 'drone-marker'), { x: 30, y: 0 });
+
+    await expect
+      .poll(() => page.getByTestId('drone-marker').getAttribute('aria-valuetext'))
+      .not.toBe(timeBefore);
+    expect(lineOf((await readAxes(page)).x).atOrigin).toBeCloseTo(view, 6);
+  });
+
+  test('is still brought into view when the focus comes from the keyboard', async ({ page }) => {
+    await press(page, 'Acercar', STEPS_TO_LIMIT);
+    await tabTo(page, 'stop-C');
+
+    await expect
+      .poll(async () => {
+        const knob = await box(page.getByTestId('stop-C').locator('[data-knob]'));
+        const plot = await box(viewport(page));
+        return knob.x >= plot.x && knob.x + knob.width <= plot.x + plot.width;
+      })
+      .toBe(true);
+  });
+});
+
+test.describe('a stop under the zoom buttons', () => {
+  test('is the one the pointer reaches there, not the button below it', async ({ page }) => {
+    const stop = page.getByTestId('stop-A');
+    await stop.focus();
+    // To the corner of the map the buttons cover: (1 300, 0), by keys of 100 m.
+    for (let i = 0; i < 7; i += 1) await page.keyboard.press('Shift+ArrowRight');
+    for (let i = 0; i < 2; i += 1) await page.keyboard.press('Shift+ArrowDown');
+    await expect.poll(() => stopValues(page, 'stop-A')).toEqual({ x: 1300, y: 0 });
+    const centre = await knobCentre(page, 'stop-A');
+    const controls = await box(page.locator(`${MAP} [data-zoom-controls]`));
+    expect(overlaps(controls, { x: centre.x, y: centre.y, width: 0, height: 0 })).toBe(true);
+
+    const owner = await page.evaluate(
+      ({ x, y }) =>
+        document.elementFromPoint(x, y)?.closest('[data-testid]')?.getAttribute('data-testid'),
+      centre,
+    );
+
+    expect(owner).toBe('stop-A');
+  });
+
+  test('can be dragged away from there with the mouse', async ({ page }) => {
+    await page.getByTestId('stop-A').focus();
+    for (let i = 0; i < 7; i += 1) await page.keyboard.press('Shift+ArrowRight');
+    for (let i = 0; i < 2; i += 1) await page.keyboard.press('Shift+ArrowDown');
+    await expect.poll(() => stopValues(page, 'stop-A')).toEqual({ x: 1300, y: 0 });
+
+    await mouseDrag(page, await knobCentre(page, 'stop-A'), { x: -80, y: -60 });
+
+    await expect.poll(async () => (await stopValues(page, 'stop-A')).x).toBeLessThan(1300);
+  });
+
+  test('leaves the buttons clickable where no stop is over them', async ({ page }) => {
+    await zoomButton(page, 'Acercar').click();
+
+    await expect.poll(() => readFactor(page)).toBe('×1,4');
   });
 });
 
@@ -363,7 +497,7 @@ test.describe('the handles', () => {
     await press(page, 'Acercar', STEPS_TO_LIMIT);
     await expect.poll(() => readFactor(page)).toBe(`×${MAX_SCALE}`);
 
-    await page.getByTestId('stop-C').focus();
+    await tabTo(page, 'stop-C');
 
     await expect
       .poll(async () => {
@@ -417,6 +551,25 @@ test.describe('the handles', () => {
   });
 });
 
+for (const width of PHONE_AND_DESKTOP_WIDTHS) {
+  test.describe(`the scale bar at ${width} px`, () => {
+    test.use({ viewport: { width, height: 800 } });
+
+    test('does not touch any stop, nor the name beside it', async ({ page }) => {
+      await centreMap(page);
+      // Geometry without the text halos (the 4 px background stroke Playwright's box includes).
+      const bar = await clientBox(page.locator(`${MAP} [data-scale-bar]`));
+
+      for (const stop of DEFAULT_STOPS) {
+        const knob = await clientBox(page.getByTestId(stop).locator('[data-knob]'));
+        const name = await clientBox(page.getByTestId(stop).locator('text'));
+        expect(overlaps(bar, knob, BAR_AIR_PX), `${stop}'s knob`).toBe(false);
+        expect(overlaps(bar, name), `${stop}'s name`).toBe(false);
+      }
+    });
+  });
+}
+
 for (const size of VIEWPORTS) {
   test.describe(`at ${size.width} px`, () => {
     test.use({ viewport: size });
@@ -452,7 +605,7 @@ for (const size of VIEWPORTS) {
       expect(overlaps(badge, controls)).toBe(false);
     });
 
-    test('the buttons are 40 px and the plot keeps its height while zooming in', async ({
+    test('the buttons are 40 px and the figure and the plot keep their size at every zoom step', async ({
       page,
     }) => {
       await centreMap(page);
@@ -460,12 +613,17 @@ for (const size of VIEWPORTS) {
       expect(acercar.width).toBeCloseTo(40, 0);
       expect(acercar.height).toBeCloseTo(40, 0);
 
-      const heightBefore = (await box(page.locator(MAP))).height;
-      await press(page, 'Acercar', STEPS_TO_X4);
-      const heightAfter = (await box(page.locator(MAP))).height;
-
-      // SvgPlot fits its left margin to the widest y tick, a few px (see the report).
-      expect(Math.abs(heightAfter - heightBefore)).toBeLessThanOrEqual(16);
+      const before = { figure: await box(page.locator(MAP)), plot: await box(viewport(page)) };
+      const labBefore = await box(lab(page));
+      for (let step = 0; step < STEPS_TO_LIMIT; step += 1) {
+        await press(page, 'Acercar');
+        // Every step, and every pan across 1 000 m, leaves the figure and the plot as they were.
+        expect(await box(page.locator(MAP))).toEqual(before.figure);
+        expect(await box(viewport(page))).toEqual(before.plot);
+      }
+      await press(page, 'Ajustar');
+      expect(await box(page.locator(MAP))).toEqual(before.figure);
+      expect(await box(lab(page))).toEqual(labBefore);
     });
   });
 }
