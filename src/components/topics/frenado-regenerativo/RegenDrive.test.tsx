@@ -54,10 +54,19 @@ function renderDrive() {
   return frames;
 }
 
-/** Flushes frames every 100 ms from `from` to `to` (ms): the clock syncs at each. */
-function playFrames(frames: ReturnType<typeof installFrameQueue>, from: number, to: number) {
-  for (let now = from; now <= to; now += 100) frames.flush(now);
+/** Flushes frames every `step` ms (100 by default) from `from` to `to`: the clock syncs at each. */
+function playFrames(
+  frames: ReturnType<typeof installFrameQueue>,
+  from: number,
+  to: number,
+  step = 100,
+) {
+  for (let now = from; now <= to; now += step) frames.flush(now);
 }
+/** The longest frame the clock takes whole (MAX_FRAME_DT_S, 0,25 s): a long run in few frames. */
+const LONG_FRAME_MS = 250;
+/** A whole run of 26 s is a few hundred frames: under coverage and a full suite it takes seconds. */
+const WHOLE_RUN_TIMEOUT_MS = 20_000;
 
 describe('RegenLab «Conducir»', () => {
   let uninstall: () => void;
@@ -206,20 +215,24 @@ describe('RegenLab «Conducir»', () => {
     expect(readout(RECOVERED)).toMatch(/%$/);
   });
 
-  test('at the end it sums up the run against the cycle’s car: 75,0 % in the UDDS', () => {
-    const frames = renderDrive();
-    fireEvent.keyDown(pedal('Freno'), { key: 'ArrowDown' });
-    playFrames(frames, 1000, 6000);
-    fireEvent.keyUp(pedal('Freno'), { key: 'ArrowDown' });
-    playFrames(frames, 6100, 29_000);
+  test(
+    'at the end it sums up the run against the cycle’s car: 75,0 % in the UDDS',
+    () => {
+      const frames = renderDrive();
+      fireEvent.keyDown(pedal('Freno'), { key: 'ArrowDown' });
+      playFrames(frames, 1000, 6000);
+      fireEvent.keyUp(pedal('Freno'), { key: 'ArrowDown' });
+      playFrames(frames, 6250, 29_000, LONG_FRAME_MS);
 
-    expect(lab()).toHaveAttribute('data-playing', 'false');
-    expect(timelineText()).toBe('t = 402,00 s');
-    expect(statusText()).toMatch(/^Fin del tramo: recorriste \d+ m y te detuviste/);
-    expect(statusText()).toMatch(/el auto del UDDS en el tramo: 168,1 kJ y 75,0 %\.$/);
-    expect(readout(REFERENCE)).toBe('75,0 %');
-    expect(plexViolations(lab())).toEqual([]);
-  });
+      expect(lab()).toHaveAttribute('data-playing', 'false');
+      expect(timelineText()).toBe('t = 402,00 s');
+      expect(statusText()).toMatch(/^Fin del tramo: recorriste \d+ m y te detuviste/);
+      expect(statusText()).toMatch(/el auto del UDDS en el tramo: 168,1 kJ y 75,0 %\.$/);
+      expect(readout(REFERENCE)).toBe('75,0 %');
+      expect(plexViolations(lab())).toEqual([]);
+    },
+    WHOLE_RUN_TIMEOUT_MS,
+  );
 
   test('a cold battery (P_máx 10 kW) limits the brake: said once per run, the pads take the rest', () => {
     const frames = installFrameQueue();
