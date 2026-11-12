@@ -5,13 +5,14 @@ import type { RouteSample, RouteStop } from '../../../lib/data/droneRoute';
 import SvgPlot from '../../lab/SvgPlot';
 import type { Point } from '../../lab/OverlayMarks';
 import type { DragPoint } from '../../lab/useDrag';
-import { MAP_DOMAIN } from './droneScene';
 import RouteOverlay, {
   ROUTE_COLOR,
   type LiveFlight,
   type StopIndex,
   type TimeRange,
 } from './RouteOverlay';
+import RouteZoomLayer from './RouteZoomLayer';
+import type { RouteZoom } from './useRouteZoom';
 
 export interface RouteMapLabProps {
   stops: readonly RouteStop[];
@@ -28,6 +29,8 @@ export interface RouteMapLabProps {
   velocityScale: number;
   accelScale: number;
   decimals: number;
+  /** The map's zoom: the part of the window on show, its scale bar and its viewport. */
+  routeZoom: RouteZoom;
   onStopDrag(index: StopIndex, at: Point, phase: DragPoint['phase']): void;
   onSeek(t: number): void;
 }
@@ -44,10 +47,12 @@ function describeMap(now: RouteSample, decimals: number): string {
  * The route map on SvgPlot with equal aspect: the route through the stops, the trail, the drone
  * at t with its v and a vectors and draggable stops A, B and C. It is the lab's canvas; its
  * legend and notes are in RouteMapNotes. SvgPlot reserves its height in CSS until it measures its
- * width, so it does not grow then.
+ * width, so it does not grow then. The zoom moves the map window (the plot's domains, so the axes
+ * and the route stay in real metres) and keeps the window's aspect, so the plot's height stays.
  */
 export default function RouteMapLab(props: RouteMapLabProps): JSX.Element {
-  const { stops, now, decimals } = props;
+  const { routeZoom, ...overlayProps } = props;
+  const { stops, now, decimals } = overlayProps;
   return (
     <SvgPlot
       title="Mapa de la ruta"
@@ -63,12 +68,16 @@ export default function RouteMapLab(props: RouteMapLabProps): JSX.Element {
           color: ROUTE_COLOR,
         },
       ]}
-      xDomain={MAP_DOMAIN.x}
-      yDomain={MAP_DOMAIN.y}
+      xDomain={routeZoom.domains.x}
+      yDomain={routeZoom.domains.y}
       equalAspect
       ariaLabel={describeMap(now, decimals)}
       testId="route-map"
-      overlay={(scales) => <RouteOverlay {...props} scales={scales} />}
+      overlay={(scales) => (
+        <RouteZoomLayer scales={scales} routeZoom={routeZoom}>
+          <RouteOverlay {...overlayProps} scales={scales} onReveal={routeZoom.reveal} />
+        </RouteZoomLayer>
+      )}
     />
   );
 }

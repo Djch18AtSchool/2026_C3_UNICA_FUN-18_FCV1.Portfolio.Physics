@@ -15,7 +15,8 @@ import {
 } from './mapReserve';
 import { sampleAt } from './routeEdit';
 import DroneSkeleton from './DroneSkeleton';
-import RouteMapLab from './RouteMapLab';
+import RouteMapLab, { type RouteMapLabProps } from './RouteMapLab';
+import { useRouteZoom } from './useRouteZoom';
 
 let samples: RouteSample[] = [];
 beforeAll(async () => {
@@ -26,12 +27,17 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+/** The route map with its zoom, as DroneLab mounts it. */
+function MapWithZoom(props: Omit<RouteMapLabProps, 'routeZoom'>) {
+  return <RouteMapLab {...props} routeZoom={useRouteZoom()} />;
+}
+
 /** The route map at an svg width, as the browser would measure it. */
 function renderMapAt(svgWidth: number) {
   stubResizeObserver(svgWidth);
   const now = sampleAt(samples, 30);
   return render(
-    <RouteMapLab
+    <MapWithZoom
       stops={DRONE_ROUTE.stops}
       samples={samples}
       now={now}
@@ -123,7 +129,7 @@ describe('the skeleton’s placeholder of the map figure', { timeout: MAP_RENDER
     vi.stubGlobal('ResizeObserver', undefined);
     const now = sampleAt(samples, 30);
     const { container } = render(
-      <RouteMapLab
+      <MapWithZoom
         stops={DRONE_ROUTE.stops}
         samples={samples}
         now={now}

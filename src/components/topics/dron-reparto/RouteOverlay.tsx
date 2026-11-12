@@ -48,6 +48,8 @@ export interface RouteOverlayProps {
   /** A stop is being dragged to `at` (m): `end` commits it, `start` lets the lab pause. */
   onStopDrag(index: StopIndex, at: Point, phase: DragPoint['phase']): void;
   onSeek(t: number): void;
+  /** A key moved a stop or the drone to this map point (m): the zoom brings it into view. */
+  onReveal?(at: Point): void;
 }
 
 const DELIVERY_INDICES: readonly StopIndex[] = [1, 2, 3];
@@ -226,10 +228,11 @@ interface StopHandleProps {
   stop: RouteStop;
   scales: RouteOverlayProps['scales'];
   onStopDrag: RouteOverlayProps['onStopDrag'];
+  onReveal?: RouteOverlayProps['onReveal'];
 }
 
 /** A delivery stop: draggable with the pointer, moved 10 m (Shift: 100 m) per arrow key. */
-function StopHandle({ index, stop, scales, onStopDrag }: StopHandleProps): JSX.Element {
+function StopHandle({ index, stop, scales, onStopDrag, onReveal }: StopHandleProps): JSX.Element {
   const at = { x: scales.x.toPx(stop.x), y: scales.y.toPx(stop.y) };
   /** Pointer minus knob at grab time, so the stop keeps its offset instead of jumping. */
   const grabOffsetRef = useRef<Point>({ x: 0, y: 0 });
@@ -243,6 +246,7 @@ function StopHandle({ index, stop, scales, onStopDrag }: StopHandleProps): JSX.E
     if (!next) return;
     event.preventDefault();
     onStopDrag(index, next, 'end');
+    onReveal?.(next);
   };
   const metres = (value: number) => formatNumber(value, { precision: 0, unit: 'm' });
   return (
@@ -297,7 +301,9 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
     const next = moves[event.key];
     if (next === undefined) return;
     event.preventDefault();
-    onSeek(clampTime(next, timeRange));
+    const t = clampTime(next, timeRange);
+    onSeek(t);
+    props.onReveal?.(live.sampleAt(t));
   };
 
   return (
@@ -324,6 +330,7 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
           stop={stops[index]}
           scales={scales}
           onStopDrag={props.onStopDrag}
+          onReveal={props.onReveal}
         />
       ))}
       {/* Drawn after the stops: where the drone meets one, the drone stays grabbable. */}

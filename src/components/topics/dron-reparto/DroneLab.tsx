@@ -27,6 +27,7 @@ import type { StopIndex } from './RouteOverlay';
 import RouteViewFields from './RouteViewFields';
 import { useEditableRoute, type EditableRoute, type Limits } from './useEditableRoute';
 import { useRouteView, useViewFlight, type RouteViewState, type ViewFlight } from './useRouteView';
+import { useRouteZoom, type RouteZoom } from './useRouteZoom';
 
 /** Ranges of the main parameters (spec §8.3). */
 const V_MAX_RANGE = { min: 1, max: 15, step: 0.5 } as const;
@@ -42,6 +43,9 @@ type LoadState =
 /** «Cómo se usa»: the drag of the stops and its keys, before the MDX's text. */
 const DRAG_HINT =
   'Arrastra las paradas A, B y C, o enfócalas y muévelas con las flechas (10 m; con Mayús, 100 m). La ruta se recalcula al soltar.';
+/** The zoom's gestures, after the stops' drag: the map's own, as every canvas with a zoom says it. */
+const ZOOM_HINT =
+  'Acerca el mapa con los botones, con Ctrl y la rueda o pellizcando; arrastra el fondo para desplazarlo. Con el mapa enfocado con el teclado: + y − acercan y alejan, 0 ajusta y las flechas desplazan.';
 
 /**
  * The committed dataset (scripts/generate-drone-route.ts; 355 KB of JSON, about 43 KB gzipped)
@@ -161,10 +165,18 @@ interface DroneCanvasProps {
   flight: ViewFlight;
   display: DroneDisplay;
   decimals: number;
+  routeZoom: RouteZoom;
 }
 
 /** The lab's canvas: the route map, its leg in «Tramo», and the time scale in its corner. */
-function DroneCanvas({ editing, routeView, flight, display, decimals }: DroneCanvasProps) {
+function DroneCanvas({
+  editing,
+  routeView,
+  flight,
+  display,
+  decimals,
+  routeZoom,
+}: DroneCanvasProps) {
   const onStopDrag = (index: StopIndex, at: Point, phase: DragPoint['phase']) => {
     // Any edit, by pointer or by arrow key, pauses playback like a timeline drag.
     routeView.clock.pause();
@@ -184,6 +196,7 @@ function DroneCanvas({ editing, routeView, flight, display, decimals }: DroneCan
         velocityScale={display.vectorScale}
         accelScale={display.vectorScale * ACCEL_SCALE_FACTOR}
         decimals={decimals}
+        routeZoom={routeZoom}
         onStopDrag={onStopDrag}
         onSeek={flight.seekRoute}
       />
@@ -202,6 +215,10 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
   const routeView = useRouteView(route.def);
   const { clock, span, routeTime } = routeView;
   const flight = useViewFlight(route.samples, routeView);
+  const routeZoom = useRouteZoom();
+  const { fit: fitMap } = routeZoom.zoom;
+  // Another view of the route (a leg or the whole): the map goes back to its whole window.
+  useEffect(() => fitMap(), [routeView.selection.view, fitMap]);
   const notes = <DroneNotes now={flight.now} display={display} editing={editing} />;
 
   return (
@@ -215,14 +232,18 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
         readouts={droneReadouts(flight.now, routeTime, duration)}
         canvasNotes={notes}
         levels={droneLevels({ editing, routeView, display, onDisplayChange: setDisplay })}
-        notes={{ usage: [DRAG_HINT, ...(usage ? [usage] : [])], leftOut: leftOut ? [leftOut] : [] }}
+        notes={{
+          usage: [DRAG_HINT, ZOOM_HINT, ...(usage ? [usage] : [])],
+          leftOut: leftOut ? [leftOut] : [],
+        }}
         onReset={() => {
           editing.reset();
           routeView.reset();
+          fitMap();
         }}
         testId="drone-lab"
       >
-        <DroneCanvas {...{ editing, routeView, flight, display, decimals }} />
+        <DroneCanvas {...{ editing, routeView, flight, display, decimals, routeZoom }} />
       </LabShell>
       <DroneProfiles
         samples={route.samples}
