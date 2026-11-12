@@ -175,6 +175,38 @@ export function actualSizeView(view: ZoomView, frame: ZoomFrame): ZoomView {
   return placeAt(scale, toWorld(view, centre), centre, frame);
 }
 
+/** The room «reveal» leaves between a revealed box and the viewport's edge. */
+export const REVEAL_MARGIN_PX = 16;
+
+/** The pan (px) that brings [start, start + length] inside [margin, room − margin] on one axis. */
+function revealAxis(start: number, length: number, room: number, margin: number): number {
+  if (start < margin || length > room - 2 * margin) return margin - start;
+  const overshoot = start + length - (room - margin);
+  return overshoot > 0 ? -overshoot : 0;
+}
+
+/**
+ * The least pan that shows `box` (drawing units) with REVEAL_MARGIN_PX around it, at the same
+ * scale and clamped; a box larger than the viewport shows its top-left. For a focused handle or a
+ * point the lab moves out of view.
+ */
+export function revealView(
+  view: ZoomView,
+  box: ZoomBox,
+  frame: ZoomFrame,
+  margin: number = REVEAL_MARGIN_PX,
+): ZoomView {
+  const { viewport } = frame;
+  if (!isMeasured(viewport)) return { ...view };
+  const corner = toScreen(view, box);
+  const delta = {
+    x: revealAxis(corner.x, box.width * view.scale, viewport.width, margin),
+    y: revealAxis(corner.y, box.height * view.scale, viewport.height, margin),
+  };
+  if (delta.x === 0 && delta.y === 0) return { ...view };
+  return panBy(view, delta, frame);
+}
+
 const midpoint = ([a, b]: ZoomPair): ZoomPoint => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 const distance = ([a, b]: ZoomPair): number => Math.hypot(b.x - a.x, b.y - a.y);
 

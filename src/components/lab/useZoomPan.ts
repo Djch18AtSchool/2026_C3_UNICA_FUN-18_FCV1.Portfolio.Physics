@@ -19,7 +19,11 @@
  * desplazamiento».
  */
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type {
+  CSSProperties,
+  FocusEvent as ReactFocusEvent,
+  KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 import { motionReduced } from '../../lib/settingsStore';
 import { useGlobalSettings } from './useGlobalSettings';
 import { usePrefersReducedMotion } from './useSimClock';
@@ -32,6 +36,7 @@ import {
   interpolateView,
   panBy,
   requireZoomFrame,
+  revealView,
   toScreen,
   toWorld,
   viewsEqual,
@@ -85,6 +90,8 @@ export interface ZoomViewportProps extends Gestures {
   'data-zoom-panning': '' | undefined;
   style: CSSProperties;
   onKeyDown(event: ReactKeyboardEvent<HTMLElement>): void;
+  /** A focused handle outside the view is brought into it. */
+  onFocus(event: ReactFocusEvent<HTMLElement>): void;
 }
 
 export interface ZoomPan {
@@ -102,6 +109,12 @@ export interface ZoomPan {
   fit(): void;
   actualSize(): void;
   panBy(delta: ZoomPoint): void;
+  /**
+   * Brings a box of the drawing (drawing units) into view with the least pan, gliding unless
+   * motion is reduced: for a handle the lab moves out of view (its arrows). A focused handle is
+   * revealed by the canvas itself.
+   */
+  reveal(box: ZoomBox): void;
   /** Viewport px → drawing units (a pointer, as useDrag reports it) and back. */
   toWorld(point: ZoomPoint): ZoomPoint;
   toScreen(point: ZoomPoint): ZoomPoint;
@@ -262,6 +275,7 @@ export function useZoomPan(options: ZoomPanOptions): ZoomPan {
     fit: actions.fit,
     actualSize: actions.actualSize,
     panBy: actions.panBy,
+    reveal: actions.reveal,
     toWorld: (point) => toWorld(view, point),
     toScreen: (point) => toScreen(view, point),
     instructionsId,
@@ -277,6 +291,7 @@ export function useZoomPan(options: ZoomPanOptions): ZoomPan {
       'data-zoom-panning': isPanning ? '' : undefined,
       style: viewportStyle(isPannable, isPanning),
       onKeyDown: actions.onKeyDown,
+      onFocus: actions.onFocus,
       ...gestures,
     },
   };
@@ -337,9 +352,29 @@ function useZoomActions(
     },
     [commit, frameRef, stop, viewRef],
   );
+  const reveal = useCallback(
+    (box: ZoomBox) => animateTo(revealView(viewRef.current, box, frameRef.current)),
+    [animateTo, frameRef, viewRef],
+  );
+  const onFocus = useCallback(
+    (event: ReactFocusEvent<HTMLElement>) => {
+      if (event.target === event.currentTarget) return;
+      const box = focusedBox(event.target, event.currentTarget, viewRef.current);
+      reveal(box);
+    },
+    [reveal, viewRef],
+  );
   const keyActions = useMemo(() => ({ zoomIn, zoomOut, fit, pan }), [zoomIn, zoomOut, fit, pan]);
   const onKeyDown = useZoomKeys(keyActions, viewRef, destination);
-  return { zoomIn, zoomOut, fit, actualSize, panBy: pan, onKeyDown };
+  return { zoomIn, zoomOut, fit, actualSize, panBy: pan, reveal, onFocus, onKeyDown };
+}
+
+/** The focused element's box in drawing units, from its box on screen and the view. */
+function focusedBox(target: Element, viewport: Element, view: ZoomView): ZoomBox {
+  const box = target.getBoundingClientRect();
+  const origin = viewport.getBoundingClientRect();
+  const corner = toWorld(view, { x: box.left - origin.left, y: box.top - origin.top });
+  return { ...corner, width: box.width / view.scale, height: box.height / view.scale };
 }
 
 interface KeyActions {

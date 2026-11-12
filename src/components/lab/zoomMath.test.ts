@@ -9,6 +9,8 @@ import {
   IDENTITY_VIEW,
   interpolateView,
   pinchView,
+  REVEAL_MARGIN_PX,
+  revealView,
   panBy,
   requireZoomFrame,
   toScreen,
@@ -209,6 +211,49 @@ describe('actualSizeView («1:1»)', () => {
     expect(actualSizeView(view(3, -30, -20), frame({ viewport: { width: 0, height: 0 } }))).toEqual(
       view(1, -30, -20),
     );
+  });
+});
+
+describe('revealView', () => {
+  // At ×2 about the centre: x in [−400, 0], y in [−300, 0]; the view shows drawing x 100–300.
+  const zoomed = view(2, -200, -150);
+
+  test('a box already in view, with its margin, leaves the view alone', () => {
+    expect(revealView(zoomed, { x: 150, y: 100, width: 20, height: 20 }, frame())).toEqual(zoomed);
+  });
+
+  test('a box off the left edge comes in by the least pan, to the margin', () => {
+    const revealed = revealView(zoomed, { x: 40, y: 100, width: 10, height: 10 }, frame());
+
+    expect(toScreen(revealed, { x: 40, y: 100 }).x).toBe(REVEAL_MARGIN_PX);
+    expect(revealed.y).toBe(zoomed.y);
+    expect(revealed.scale).toBe(2);
+  });
+
+  test('a box off the right and the bottom edges comes in to the margin there', () => {
+    const revealed = revealView(zoomed, { x: 330, y: 260, width: 10, height: 10 }, frame());
+    const corner = toScreen(revealed, { x: 340, y: 270 });
+
+    expect(corner.x).toBe(VIEWPORT.width - REVEAL_MARGIN_PX);
+    expect(corner.y).toBe(VIEWPORT.height - REVEAL_MARGIN_PX);
+  });
+
+  test('a box larger than the viewport shows its start (top-left)', () => {
+    const revealed = revealView(zoomed, { x: 20, y: 20, width: 300, height: 10 }, frame());
+
+    expect(toScreen(revealed, { x: 20, y: 20 }).x).toBe(REVEAL_MARGIN_PX);
+  });
+
+  test('the pan stays inside the drawing', () => {
+    const revealed = revealView(zoomed, { x: 0, y: 0, width: 4, height: 4 }, frame());
+
+    expect(revealed).toEqual(view(2, 0, 0));
+  });
+
+  test('an unmeasured viewport leaves the view alone', () => {
+    const unmeasured = frame({ viewport: { width: 0, height: 0 } });
+
+    expect(revealView(zoomed, { x: 0, y: 0, width: 4, height: 4 }, unmeasured)).toEqual(zoomed);
   });
 });
 

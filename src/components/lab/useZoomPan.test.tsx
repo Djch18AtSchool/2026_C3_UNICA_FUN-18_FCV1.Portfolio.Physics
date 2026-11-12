@@ -427,7 +427,13 @@ describe('useZoomPan', () => {
       act(() => latest.zoomIn());
       const target = getByTestId('background');
       const mouse = { pointerId: 1, pointerType: 'mouse' };
-      fireEvent.pointerDown(target, { ...mouse, button: 0, buttons: 1, clientX: 200, clientY: 150 });
+      fireEvent.pointerDown(target, {
+        ...mouse,
+        button: 0,
+        buttons: 1,
+        clientX: 200,
+        clientY: 150,
+      });
       fireEvent.pointerMove(target, { ...mouse, buttons: 1, clientX: 200 + DRAG_PX, clientY: 150 });
       const panned = latest.view;
 
@@ -450,6 +456,35 @@ describe('useZoomPan', () => {
 
       expect(latest.view).toEqual(panned);
       expect(viewport).not.toHaveAttribute('data-zoom-panning');
+    });
+  });
+
+  describe('reveal', () => {
+    test('zoom.reveal brings a box of the drawing into view', () => {
+      renderCanvas();
+      act(() => latest.zoomIn());
+      act(() => latest.zoomIn());
+
+      act(() => latest.reveal({ x: 20, y: 140, width: 10, height: 10 }));
+
+      expect(latest.toScreen({ x: 20, y: 140 }).x).toBeCloseTo(16, 9);
+    });
+
+    test('a handle focused outside the view is brought in; the canvas itself is not moved', () => {
+      const { viewport, getByTestId } = renderCanvas();
+      act(() => latest.zoomIn());
+      act(() => latest.zoomIn());
+      const zoomed = latest.view;
+      const handle = getByTestId('handle');
+      handle.getBoundingClientRect = () =>
+        ({ left: -100, top: 50, width: 20, height: 20, right: -80, bottom: 70 }) as DOMRect;
+
+      act(() => viewport.focus());
+      expect(latest.view).toEqual(zoomed);
+      act(() => handle.focus());
+
+      expect(latest.view.x).toBeCloseTo(zoomed.x + 116, 9);
+      expect(latest.view.y).toBe(zoomed.y);
     });
   });
 
