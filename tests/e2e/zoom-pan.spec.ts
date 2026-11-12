@@ -30,6 +30,8 @@ const DRAG_STEPS = 6;
 /** Sub-pixel slack of the pointer and of the transform's printed numbers. */
 const PX_SLACK = 1.5;
 const BUTTON_PX = 40;
+/** The room `reveal` leaves around a focused handle (REVEAL_MARGIN_PX). */
+const REVEAL_MARGIN_PX = 16;
 const GLYPH_PX = 20;
 /** The zoom's polite region speaks once a change holds this long (ZOOM_ANNOUNCE_DELAY_MS), and more. */
 const ANNOUNCE_SETTLED_MS = 1000;
@@ -405,6 +407,41 @@ test('arrastrar el fondo desplaza el dibujo; arrastrar el asidero lo mueve a él
   // A click on the background is a click: nothing moves.
   await page.mouse.click(point.x, point.y);
   expect(await viewOf(lab)).toEqual(panned);
+});
+
+test('pulsar un asidero a menos de 16 px del borde no desplaza la vista bajo el puntero', async ({
+  page,
+}) => {
+  const lab = await openFixture(page);
+  const knob = (await handle(lab).boundingBox())!;
+  const centre = { x: knob.x + knob.width / 2, y: knob.y + knob.height / 2 };
+  await page.mouse.move(centre.x, centre.y);
+  await page.keyboard.down('Control');
+  for (let i = 0; i < 4; i += 1) await page.mouse.wheel(0, -WHEEL_NOTCH_PX);
+  await page.keyboard.up('Control');
+  await expect(factor(lab)).toHaveText('×4');
+  // Pan the drawing until the handle sits a few px from the canvas' left edge.
+  const canvas = (await viewport(lab).boundingBox())!;
+  const edge = 6;
+  const before = (await handle(lab).boundingBox())!;
+  const dx = canvas.x + edge - (before.x + before.width / 2);
+  await dragMouse(page, await backgroundPoint(lab), { x: dx, y: 0 });
+  await expect
+    .poll(async () => {
+      const box = (await handle(lab).boundingBox())!;
+      return box.x + box.width / 2 - canvas.x;
+    })
+    .toBeLessThan(REVEAL_MARGIN_PX);
+  const nearEdge = (await handle(lab).boundingBox())!;
+  const grab = { x: nearEdge.x + nearEdge.width / 2, y: nearEdge.y + nearEdge.height / 2 };
+  const view = await viewOf(lab);
+
+  await dragMouse(page, grab, HANDLE_DRAG);
+
+  // The press focused the handle without showing the focus: the view stays where it was.
+  expect(await viewOf(lab)).toEqual(view);
+  const moved = (await handle(lab).boundingBox())!;
+  expect(Math.abs(moved.x + moved.width / 2 - (grab.x + HANDLE_DRAG.x))).toBeLessThan(PX_SLACK * 4);
 });
 
 test('un pellizco con dos dedos acerca en torno a su punto medio', async ({ page }) => {

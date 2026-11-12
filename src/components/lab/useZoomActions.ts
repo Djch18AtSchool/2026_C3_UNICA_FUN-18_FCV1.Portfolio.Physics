@@ -1,6 +1,6 @@
 /**
  * What useZoomPan does on request: steps about the centre, «Ajustar», «1:1», a pan, a reveal (and
- * the canvas' own reveal of a focused descendant), and the keys + − 0 and the arrows.
+ * the canvas' own reveal of a descendant focused from the keyboard), and the keys + − 0 and the arrows.
  */
 import { useCallback, useMemo } from 'react';
 import type { FocusEvent as ReactFocusEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
@@ -64,6 +64,19 @@ function focusedBox(target: Element, viewport: Element, view: ZoomView): ZoomBox
   return { ...corner, width: box.width / view.scale, height: box.height / view.scale };
 }
 
+/**
+ * Whether the browser shows the element's focus (:focus-visible): reached with the keyboard. A
+ * press on a handle focuses it too (useDrag does), and moving the view under the pointer then would
+ * leave the drag out of step with the hand; one without the selector says yes.
+ */
+function isFocusShown(element: Element): boolean {
+  try {
+    return element.matches(':focus-visible');
+  } catch {
+    return true;
+  }
+}
+
 /** Steps about the centre, «Ajustar» and «1:1», all gliding from where the view is heading. */
 function useZoomSteps({ frameRef }: Refs, glide: ViewTransition) {
   const { animateTo, destination } = glide;
@@ -102,6 +115,7 @@ function useZoomMoves({ frameRef, viewRef, commit }: Refs, glide: ViewTransition
   const onFocus = useCallback(
     (event: ReactFocusEvent<HTMLElement>) => {
       if (event.target === event.currentTarget) return;
+      if (!isFocusShown(event.target)) return;
       reveal(focusedBox(event.target, event.currentTarget, viewRef.current));
     },
     [reveal, viewRef],

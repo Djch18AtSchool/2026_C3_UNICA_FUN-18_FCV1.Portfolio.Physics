@@ -497,6 +497,11 @@ describe('useZoomPan', () => {
       const handle = getByTestId('handle');
       handle.getBoundingClientRect = () =>
         ({ left: -100, top: 50, width: 20, height: 20, right: -80, bottom: 70 }) as DOMRect;
+      // Reached with the keyboard: the browser shows the focus.
+      const matches = handle.matches.bind(handle);
+      vi.spyOn(handle, 'matches').mockImplementation((selector) =>
+        selector === ':focus-visible' ? true : matches(selector),
+      );
 
       act(() => viewport.focus());
       expect(latest.view).toEqual(zoomed);
@@ -504,6 +509,41 @@ describe('useZoomPan', () => {
 
       expect(latest.view.x).toBeCloseTo(zoomed.x + 116, 9);
       expect(latest.view.y).toBe(zoomed.y);
+    });
+
+    test('a handle a click or a drag focused (focus not shown) does not move the view', () => {
+      const { getByTestId } = renderCanvas();
+      act(() => latest.zoomIn());
+      act(() => latest.zoomIn());
+      const zoomed = latest.view;
+      const handle = getByTestId('handle');
+      handle.getBoundingClientRect = () =>
+        ({ left: -100, top: 50, width: 20, height: 20, right: -80, bottom: 70 }) as DOMRect;
+      const matches = handle.matches.bind(handle);
+      vi.spyOn(handle, 'matches').mockImplementation((selector) =>
+        selector === ':focus-visible' ? false : matches(selector),
+      );
+
+      act(() => handle.focus());
+
+      expect(latest.view).toEqual(zoomed);
+    });
+
+    test('a browser without :focus-visible still reveals the focused handle', () => {
+      const { getByTestId } = renderCanvas();
+      act(() => latest.zoomIn());
+      act(() => latest.zoomIn());
+      const zoomed = latest.view;
+      const handle = getByTestId('handle');
+      handle.getBoundingClientRect = () =>
+        ({ left: -100, top: 50, width: 20, height: 20, right: -80, bottom: 70 }) as DOMRect;
+      vi.spyOn(handle, 'matches').mockImplementation(() => {
+        throw new SyntaxError('not a valid selector');
+      });
+
+      act(() => handle.focus());
+
+      expect(latest.view.x).toBeCloseTo(zoomed.x + 116, 9);
     });
   });
 
