@@ -3,6 +3,7 @@
  * the 6U seen along its slew axis, angles counterclockwise on screen (SVG y points down), the
  * target dial's keyboard steps, the rate arcs and the L_w/L_max gauge.
  */
+import { FOCUS_RING_RADIUS } from '../../lab/OverlayMarks';
 import { CUBESAT_6U } from '../../../lib/data/reactionWheels';
 
 export type Point = { x: number; y: number };
@@ -24,8 +25,8 @@ export interface SceneGeometry {
 export const DEG = Math.PI / 180;
 /** Room outside the dial, px, for the knob and its focus ring: the dial's circle keeps this far from the edge. */
 export const DIAL_MARGIN = 34;
-/** The knob's focus ring (OverlayMarks' Knob draws it 11 px from the knob's centre). */
-const KNOB_RING_PX = 11;
+/** The knob's focus ring (OverlayMarks' Knob). */
+const KNOB_RING_PX = FOCUS_RING_RADIUS;
 /**
  * The band along the canvas' edges the corner texts (the note, the time-scale badge, the target's
  * text) live in: a reveal keeps the knob this far from every edge (plus the reveal's own margin),

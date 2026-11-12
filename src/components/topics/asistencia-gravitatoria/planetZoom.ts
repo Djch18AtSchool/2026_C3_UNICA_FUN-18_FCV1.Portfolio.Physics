@@ -6,21 +6,13 @@
  */
 import { mathTextWidth } from '../../../lib/mathNotation';
 import { textBox, type Box, type Point } from '../../lab/labelClearance';
+import { SCALE_BAR_LABEL_GAP, SCALE_BAR_LABEL_SIZE, SCALE_BAR_TICK } from '../../lab/ScaleBar';
 import { scaleBarLength, type ScaleBarLength, type ScaleUnit } from '../../lab/scaleBarMath';
 import { inlineMathToNotation } from '../../lab/timeScaleFormat';
 import { MIN_PLANET_PX } from './flybyScene';
 
 /** Room under the drawing's square, in the zoomed canvas, for the zoom buttons: 40 px + margins. */
 export const ZOOM_STRIP_PX = 48;
-
-/**
- * ScaleBarSvg's own sizes, copied until the shared piece exports them: ticks 8 up from the
- * baseline, the text 4 above the ticks in 12 px of the sans family. A test renders the shared bar
- * and compares.
- */
-const TICK = 8;
-const LABEL_GAP = 4;
-const LABEL_SIZE = 12;
 
 /** The bar's ladder: kilometres, then the planet's radius («$R_J$»), which is `radiusKm` of them. */
 export function planetScaleUnits(unit: string, radiusKm: number): readonly ScaleUnit[] {
@@ -76,10 +68,16 @@ export function isOnPanel(
 export function scaleBarObstacles(bar: ScaleBarLength, at: Point): readonly [Box, Box] {
   const text = inlineMathToNotation(bar.text);
   // textBox measures in the mono family and ScaleBarSvg writes in sans: keep its box, not its width.
-  const label = textBox({ x: at.x, y: at.y - TICK - LABEL_GAP }, text, LABEL_SIZE, 'start');
-  const width = mathTextWidth(text, LABEL_SIZE, 'sans');
+  const top = at.y - SCALE_BAR_TICK;
+  const label = textBox(
+    { x: at.x, y: top - SCALE_BAR_LABEL_GAP },
+    text,
+    SCALE_BAR_LABEL_SIZE,
+    'start',
+  );
+  const width = mathTextWidth(text, SCALE_BAR_LABEL_SIZE, 'sans');
   return [
-    { left: at.x, right: at.x + bar.px, top: at.y - TICK, bottom: at.y },
+    { left: at.x, right: at.x + bar.px, top, bottom: at.y },
     { ...label, right: label.left + width },
   ];
 }

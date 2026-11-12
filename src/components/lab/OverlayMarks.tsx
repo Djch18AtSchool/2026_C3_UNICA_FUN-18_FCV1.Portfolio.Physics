@@ -11,7 +11,8 @@ export type Point = { x: number; y: number };
 const KNOB_RADIUS = 7;
 /** Invisible hit circle: a 32 px touch target. A plot's `overlayBleed` uses it to keep knobs whole. */
 export const KNOB_HIT_RADIUS = 16;
-const FOCUS_RING_RADIUS = 11;
+/** A Knob's focus ring, px from its centre: what a label or a reveal keeps clear of. */
+export const FOCUS_RING_RADIUS = 11;
 const FOCUS_RING_COLOR = 'var(--accent)';
 const VECTOR_WIDTH = 2;
 const VECTOR_DASH = '6 3';

@@ -45,11 +45,14 @@ const BOX =
   'pointer-events-none flex flex-col gap-1 rounded-sm border border-border bg-bg/90 px-2 py-1';
 /** The bar: a 2 px line with 8 px ticks at both ends. */
 const LINE = 'block h-2 border-x-2 border-b-2 border-fg';
-/** SVG bar: 8-unit ticks, a 2-unit stroke, the text 4 units above the ticks in 12. */
-const TICK = 8;
+/**
+ * SVG bar: 8-unit ticks, a 2-unit stroke, the text 4 units above the ticks in 12 (sans). Exported
+ * for a scene that keeps its labels off the bar (Tema 9's planet frame).
+ */
+export const SCALE_BAR_TICK = 8;
 const STROKE = 2;
-const LABEL_GAP = 4;
-const LABEL_SIZE = 12;
+export const SCALE_BAR_LABEL_GAP = 4;
+export const SCALE_BAR_LABEL_SIZE = 12;
 const HALO = { color: SURFACE_COLOR, width: 4 } as const;
 
 /** The bar's length for these props, after checking the ladder (a bad one is a programming error). */
@@ -113,7 +116,7 @@ export function ScaleBarSvg({ x, y, anchor = 'start', ...props }: ScaleBarSvgPro
   return (
     <g data-scale-bar="" aria-hidden="true" pointerEvents="none">
       <path
-        d={`M${left} ${y - TICK}V${y}H${right}V${y - TICK}`}
+        d={`M${left} ${y - SCALE_BAR_TICK}V${y}H${right}V${y - SCALE_BAR_TICK}`}
         fill="none"
         stroke={TEXT_COLOR}
         strokeWidth={STROKE}
@@ -121,10 +124,10 @@ export function ScaleBarSvg({ x, y, anchor = 'start', ...props }: ScaleBarSvgPro
       <MathText
         source={inlineMathToNotation(bar.text)}
         x={anchor === 'start' ? left : right}
-        y={y - TICK - LABEL_GAP}
+        y={y - SCALE_BAR_TICK - SCALE_BAR_LABEL_GAP}
         anchor={anchor}
         family="sans"
-        fontSize={LABEL_SIZE}
+        fontSize={SCALE_BAR_LABEL_SIZE}
         fill={TICK_COLOR}
         halo={HALO}
       />

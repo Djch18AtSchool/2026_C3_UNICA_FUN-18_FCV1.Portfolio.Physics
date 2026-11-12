@@ -14,7 +14,7 @@ import {
   type Point,
   type Segment,
 } from '../../lab/labelClearance';
-import { LABEL_SIZE } from '../../lab/OverlayMarks';
+import { FOCUS_RING_RADIUS, LABEL_SIZE } from '../../lab/OverlayMarks';
 import { LABEL_BASELINE_DROP, LABEL_GAP, placeLabels, type PlacedLabel } from './flybyLabels';
 import { scaleBadgeSpot, type ScaleBadgeSpot } from './flybyScaleBadge';
 import { tipLabel, type TipLabelPlacement } from './flybyScene';
@@ -31,8 +31,8 @@ const CORNER_BASELINE = 10;
 const VP_TEXT_GAP = 6;
 /** The knob's label clears its focus ring (11 px) and the knob's halo. */
 const KNOB_LABEL_GAP = 22;
-/** The knob's focus ring (11 px, Knob's): what a label keeps clear of, and a reveal leaves around it. */
-export const KNOB_CLEARANCE = 11;
+/** The knob's focus ring (Knob's): what a label keeps clear of, and a reveal leaves around it. */
+export const KNOB_CLEARANCE = FOCUS_RING_RADIUS;
 /** The widest r_p value the frame prints (100 radii): the badge keeps clear of it. */
 const WIDEST_RP_VALUE = 'r_p = 100,00 R_J';
 /** The scale bar's baseline is this far above the panel's bottom edge. */
