@@ -11,6 +11,7 @@ import RouteOverlay, {
   type StopIndex,
   type TimeRange,
 } from './RouteOverlay';
+import { ROUTE_Y_LABEL_CHARS } from './routeZoom';
 import RouteZoomLayer from './RouteZoomLayer';
 import type { RouteZoom } from './useRouteZoom';
 
@@ -48,7 +49,8 @@ function describeMap(now: RouteSample, decimals: number): string {
  * at t with its v and a vectors and draggable stops A, B and C. It is the lab's canvas; its
  * legend and notes are in RouteMapNotes. SvgPlot reserves its height in CSS until it measures its
  * width, so it does not grow then. The zoom moves the map window (the plot's domains, so the axes
- * and the route stay in real metres) and keeps the window's aspect, so the plot's height stays.
+ * and the route stay in real metres) and keeps the window's aspect and the plot's margins
+ * (minYLabelChars), so the plot's size, and the page below, stay put.
  */
 export default function RouteMapLab(props: RouteMapLabProps): JSX.Element {
   const { routeZoom, ...overlayProps } = props;
@@ -73,6 +75,7 @@ export default function RouteMapLab(props: RouteMapLabProps): JSX.Element {
       equalAspect
       ariaLabel={describeMap(now, decimals)}
       testId="route-map"
+      minYLabelChars={ROUTE_Y_LABEL_CHARS}
       overlay={(scales) => (
         <RouteZoomLayer scales={scales} routeZoom={routeZoom}>
           <RouteOverlay {...overlayProps} scales={scales} onReveal={routeZoom.reveal} />

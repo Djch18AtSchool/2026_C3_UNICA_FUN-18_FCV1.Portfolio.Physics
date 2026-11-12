@@ -17,6 +17,14 @@ export type PlotSize = ZoomSize;
 /** The map's scale bar counts in metres: the window is 1 600 m wide. */
 export const ROUTE_SCALE_UNITS: readonly ScaleUnit[] = [{ label: 'm', size: 1 }];
 
+/**
+ * Characters of the widest y tick label of any window the zoom can show, «1 250» of the whole map:
+ * SvgPlot reserves the left margin of a compact plot for it (minYLabelChars) at every zoom, so the
+ * plot's size, and the page below it, do not change when the labels do (routeZoom.test.ts walks
+ * the windows from ×1 to ×8 over the whole map to keep it true).
+ */
+export const ROUTE_Y_LABEL_CHARS = 5;
+
 const X_SPAN = MAP_DOMAIN.x.max - MAP_DOMAIN.x.min;
 const Y_SPAN = MAP_DOMAIN.y.max - MAP_DOMAIN.y.min;
 

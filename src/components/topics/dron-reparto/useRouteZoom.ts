@@ -4,11 +4,9 @@
  * the hook keeps its own to itself) turns the view into the part of the map window the plot shows
  * (routeZoom.ts) and the box `reveal` brings into view.
  *
- * SvgPlot fits its left margin to the widest y tick label, so the plot area changes by a few px
- * when a zoom or a pan changes the labels («1 250» to «600»). That size must not feed back into the
- * window it came from (a window near a label change could flip for ever), so the size the window
- * is computed from is kept until the plot changes by more than PLOT_SIZE_SLACK_PX: only a real
- * resize of the container moves it. The plot's own scales remain the truth for what is drawn.
+ * The plot area changes only when its container does: RouteMapLab gives SvgPlot the room of its
+ * widest y label at every zoom (ROUTE_Y_LABEL_CHARS), so the size the window is computed from does
+ * not depend on the window.
  */
 import { useCallback, useMemo, useState } from 'react';
 import type { Domain } from '../../lab/plotScales';
@@ -21,8 +19,6 @@ const REVEAL_RADIUS_PX = 12;
 /** Before the plot is measured (the server, the first render): nothing to scale or reveal. */
 const UNMEASURED: PlotSize = Object.freeze({ width: 0, height: 0 });
 const MAP_LABEL = 'Mapa de la ruta';
-/** The widest the margin fit moves the plot (its left margin: 52 to 40 px, and the height after it). */
-const PLOT_SIZE_SLACK_PX = 16;
 
 export interface RouteZoom {
   readonly zoom: ZoomPan;
@@ -53,20 +49,14 @@ function observingRef(hookRef: ObservedRef, setPlot: (size: PlotSize) => void): 
   };
 }
 
-/** The plot size to compute the window from: the last one, unless the plot really changed. */
-function settledSize(last: PlotSize, next: PlotSize): PlotSize {
-  const isMeasured = last.width > 0 && last.height > 0;
-  const isSlight =
-    Math.abs(next.width - last.width) <= PLOT_SIZE_SLACK_PX &&
-    Math.abs(next.height - last.height) <= PLOT_SIZE_SLACK_PX;
-  return isMeasured && isSlight ? last : next;
-}
-
 export function useRouteZoom(): RouteZoom {
   const zoom = useZoomPan({ label: MAP_LABEL });
   const [plot, setPlotState] = useState<PlotSize>(UNMEASURED);
   const setPlot = useCallback(
-    (next: PlotSize) => setPlotState((last) => settledSize(last, next)),
+    (next: PlotSize) =>
+      setPlotState((last) =>
+        last.width === next.width && last.height === next.height ? last : next,
+      ),
     [],
   );
   const hookRef = zoom.viewportProps.ref;

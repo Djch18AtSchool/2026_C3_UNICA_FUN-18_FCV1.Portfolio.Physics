@@ -5,9 +5,9 @@ import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { MAP_DOMAIN } from './droneScene';
 import { useRouteZoom, type RouteZoom } from './useRouteZoom';
 
-/** The plot area the first measure reports, and what a margin fit does to it (12 px). */
+/** The plot area the first measure reports, and two resizes of its container. */
 const PLOT = { width: 322, height: 292 };
-const MARGIN_FIT_PX = 12;
+const SMALL_RESIZE_PX = 6;
 const REAL_RESIZE_PX = 80;
 
 let latest: RouteZoom;
@@ -72,7 +72,7 @@ describe('useRouteZoom', () => {
     expect(spanOf(latest.domains.x)).toBeCloseTo(SPAN_X / 2, 6);
   });
 
-  test('keeps the plot size the window was computed from through a margin fit of a few px', () => {
+  test('follows the plot when its container resizes, by a few px or by many', () => {
     vi.stubGlobal('ResizeObserver', FakeResizeObserver);
     setSettings({ motion: 'reduced' });
     render(<Harness />);
@@ -81,23 +81,12 @@ describe('useRouteZoom', () => {
     act(() => latest.zoom.zoomIn());
     const before = latest.domains;
 
-    resize({ width: PLOT.width + MARGIN_FIT_PX, height: PLOT.height + MARGIN_FIT_PX });
-
-    expect(latest.domains).toEqual(before);
-  });
-
-  test('follows the plot when the container really resizes', () => {
-    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
-    setSettings({ motion: 'reduced' });
-    render(<Harness />);
-    resize(PLOT);
-    act(() => latest.zoom.zoomIn());
-    act(() => latest.zoom.zoomIn());
-    const before = latest.domains;
-
+    resize({ width: PLOT.width + SMALL_RESIZE_PX, height: PLOT.height + SMALL_RESIZE_PX });
+    const afterSmall = latest.domains;
     resize({ width: PLOT.width + REAL_RESIZE_PX, height: PLOT.height + REAL_RESIZE_PX });
 
-    expect(latest.domains).not.toEqual(before);
+    expect(afterSmall).not.toEqual(before);
+    expect(latest.domains).not.toEqual(afterSmall);
   });
 
   test('brings a map point into view, a 12 px margin around its knob and 16 px from the edge', () => {

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { linearScale } from '../../lab/plotScales';
-import { actualSizeView, fitView, IDENTITY_VIEW, zoomAt } from '../../lab/zoomMath';
+import { axisTicks, yTickLabelChars } from '../../lab/SvgPlotAxes';
+import { actualSizeView, fitView, IDENTITY_VIEW, panBy, zoomAt } from '../../lab/zoomMath';
 import type { ZoomFrame } from '../../lab/zoomMath';
 import { scaleBarLength } from '../../lab/scaleBarMath';
 import { MAP_DOMAIN } from './droneScene';
@@ -8,10 +9,12 @@ import {
   boxAroundPoint,
   ROUTE_SCALE_UNITS,
   plotPxPerMetre,
+  ROUTE_Y_LABEL_CHARS,
   zoomedWindow,
   type PlotSize,
 } from './routeZoom';
 
+const SQRT2 = Math.SQRT2;
 const SIZE: PlotSize = { width: 320, height: 290 };
 const X_SPAN = MAP_DOMAIN.x.max - MAP_DOMAIN.x.min;
 const Y_SPAN = MAP_DOMAIN.y.max - MAP_DOMAIN.y.min;
@@ -130,5 +133,52 @@ describe('boxAroundPoint', () => {
   test('is a box of nothing in the plot while it is not measured', () => {
     const box = boxAroundPoint({ x: 600, y: 200 }, { width: 0, height: 0 }, 10);
     expect(box).toEqual({ x: -10, y: -10, width: 20, height: 20 });
+  });
+});
+
+describe('ROUTE_Y_LABEL_CHARS', () => {
+  /** Plot areas the lab draws at: a phone's, the two-column stage's, a wide single column's. */
+  const PLOTS: PlotSize[] = [
+    { width: 174, height: 158 },
+    { width: 218, height: 198 },
+    { width: 322, height: 292 },
+    { width: 560, height: 507 },
+  ];
+  const SCALES = [1, 1.2, SQRT2, 2, 2.5, 2.8, 4, 5.7, 8];
+  const PAN_STEPS = 12;
+
+  /** The widest y tick label (chars) of every window a view of the plot can show at `scale`. */
+  function widestLabels(scale: number, plot: PlotSize): number[] {
+    const frame: ZoomFrame = {
+      viewport: plot,
+      bounds: { x: 0, y: 0, ...plot },
+      fit: { x: 0, y: 0, ...plot },
+      limits: { minScale: 1, maxScale: 8 },
+    };
+    const start = zoomAt(IDENTITY_VIEW, scale, { x: 0, y: 0 }, frame);
+    return Array.from({ length: PAN_STEPS + 1 }, (_, step) => {
+      // From the bottom of the map (y pan 0) to the top, at a few x as well.
+      const view = panBy(start, { x: 0, y: (plot.height * scale * step) / PAN_STEPS }, frame);
+      const { x, y } = zoomedWindow(view, plot);
+      const ticks = axisTicks(linearScale(x, [0, plot.width]), linearScale(y, [plot.height, 0]));
+      return yTickLabelChars(ticks.y);
+    });
+  }
+
+  test('is the widest y label of the whole map window, so ×1 keeps SvgPlot’s own margin', () => {
+    for (const plot of PLOTS) {
+      expect(widestLabels(1, plot)[0]).toBe(ROUTE_Y_LABEL_CHARS);
+    }
+  });
+
+  test('no window from ×1 to ×8, panned over the whole map, has a wider y label', () => {
+    for (const plot of PLOTS) {
+      for (const scale of SCALES) {
+        expect(
+          Math.max(...widestLabels(scale, plot)),
+          `×${scale} at ${plot.width} px`,
+        ).toBeLessThanOrEqual(ROUTE_Y_LABEL_CHARS);
+      }
+    }
   });
 });
