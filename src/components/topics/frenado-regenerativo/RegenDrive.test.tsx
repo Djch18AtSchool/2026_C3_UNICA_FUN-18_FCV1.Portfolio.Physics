@@ -94,11 +94,13 @@ describe('RegenLab «Conducir»', () => {
 
     fireEvent.keyDown(pedal('Freno'), { key: 'ArrowDown' });
     expect(lab()).toHaveAttribute('data-playing', 'true');
-    playFrames(frames, 1000, 3000);
-    const said = statusText();
-    playFrames(frames, 3100, 4000);
+    // While braking at speed (before f(v) hands the stop to the pads) the line says nothing.
+    playFrames(frames, 1000, 1500);
+    expect(statusText()).toBe('');
+    playFrames(frames, 1600, 2500);
+    expect(statusText()).toBe('');
+    playFrames(frames, 2600, 4000);
 
-    expect(statusText()).toBe(said);
     expect(depth('brake')).toMatch(/^scaleX\(1\.000\)|^scaleX\(0\.[5-9]/);
     expect(readout(BATTERY)).not.toBe('0,0 kJ');
     expect(Number.parseFloat(readout('Velocidad v').replace(',', '.'))).toBeLessThan(57.9);

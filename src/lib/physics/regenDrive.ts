@@ -102,7 +102,10 @@ export interface DriveState extends BalanceStep {
   isTractionPowerLimited: boolean;
   /** P_regen was held at P_máx: the battery took no more and the pads took the rest. */
   isRegenAtLimit: boolean;
-  /** Below P_máx the pads still braked: f(v) had faded the motor out near rest. */
+  /**
+   * Below P_máx the pads braked more than the motor: f(v) < ½ near rest (about 5 mph). FASTSim's
+   * 2 % at road speed (f = 0,98) is not this.
+   */
   isFadeFriction: boolean;
 }
 
@@ -222,6 +225,6 @@ export function driveStep(
     pBattery: regen.eta * last.pRegen,
     isTractionPowerLimited,
     isRegenAtLimit,
-    isFadeFriction: isBraking && !isRegenAtLimit,
+    isFadeFriction: isBraking && !isRegenAtLimit && moving.pFriction > moving.pRegen,
   };
 }

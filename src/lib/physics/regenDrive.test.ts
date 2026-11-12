@@ -233,6 +233,14 @@ describe('driveStep: the kernel integrates v(t) from the pedals', () => {
     expect(next.isRegenAtLimit).toBe(false);
   });
 
+  test('at road speed FASTSim’s 2 % to the pads (f = 0,98) is no fade: the motor brakes', () => {
+    const next = driveStep(pressed(startDrive(CRUISE, 0), { brake: 0.2 }), BRAKE, DT, CAR, DEFAULT_REGEN);
+
+    expect(next.pFriction).toBeGreaterThan(0);
+    expect(next.pFriction).toBeLessThan(next.pRegen);
+    expect(next.isFadeFriction).toBe(false);
+  });
+
   test('without f(v) and below P_máx, the brake is all regeneration: no flag', () => {
     const noFade = { ...DEFAULT_REGEN, lowSpeedFade: false };
     const next = driveStep(pressed(startDrive(1, 0), { brake: 0.1 }), BRAKE, DT, CAR, noFade);
