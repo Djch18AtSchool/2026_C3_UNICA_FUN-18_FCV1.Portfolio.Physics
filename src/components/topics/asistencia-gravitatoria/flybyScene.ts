@@ -24,7 +24,7 @@ const REACH_SHARE = 0.68;
 /** Length of the v∞ arrows at the ends of the track, px (fits in 1 − REACH_SHARE of 150 px). */
 export const ARROW_PX = 30;
 /** A planet smaller than this (px) is drawn at this radius, and the scene says so. */
-const MIN_PLANET_PX = 4;
+export const MIN_PLANET_PX = 4;
 /** Scale-bar lengths tried, in planet radii, longest that fits wins. */
 const SCALE_STEPS = [0.5, 1, 2, 5, 10, 20, 50, 100, 200];
 /** Room around the velocity triangle for the tip labels, px. */
