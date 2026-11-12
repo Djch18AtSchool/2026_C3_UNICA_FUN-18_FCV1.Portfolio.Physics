@@ -234,6 +234,48 @@ describe('RegenLab «Conducir»', () => {
     WHOLE_RUN_TIMEOUT_MS,
   );
 
+  test(
+    'at the end a pedal starts another drive, as «Cómo se usa» says (review D3, M8)',
+    () => {
+      const frames = renderDrive();
+      fireEvent.keyDown(pedal('Freno'), { key: 'ArrowDown' });
+      fireEvent.keyUp(pedal('Freno'), { key: 'ArrowDown' });
+      playFrames(frames, 1000, 28_000, LONG_FRAME_MS);
+      expect(lab()).toHaveAttribute('data-playing', 'false');
+      expect(statusText()).toMatch(/^Fin del tramo/);
+
+      fireEvent.keyDown(pedal('Acelerador'), { key: 'ArrowUp' });
+
+      expect(lab()).toHaveAttribute('data-playing', 'true');
+      expect(timelineText()).toBe('t = 376,00 s');
+      expect(statusText()).toBe('');
+    },
+    WHOLE_RUN_TIMEOUT_MS,
+  );
+
+  test(
+    'with «Repetir» on, each lap ends with its summary and the next starts afresh (M9)',
+    () => {
+      const frames = renderDrive();
+      fireEvent.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+      fireEvent.click(within(screen.getByRole('dialog')).getByRole('switch', { name: 'Repetir' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Cerrar ajustes' }));
+      fireEvent.keyDown(pedal('Freno'), { key: 'ArrowDown' });
+      playFrames(frames, 1000, 6000, LONG_FRAME_MS);
+      fireEvent.keyUp(pedal('Freno'), { key: 'ArrowDown' });
+
+      playFrames(frames, 6250, 28_500, LONG_FRAME_MS);
+
+      expect(lab()).toHaveAttribute('data-playing', 'true');
+      expect(statusText()).toMatch(/^Fin del tramo: recorriste \d+\sm y te detuviste/);
+      expect(statusText()).toMatch(/el auto del UDDS en el tramo: 168,1\skJ y 75,0\s%\.$/);
+      // The next lap has started from the stretch's start, a new run far from the line.
+      expect(timelineText()).toMatch(/^t = 37[67],\d\d s$/);
+      expect(Number.parseFloat(readout('Hasta la línea de detención'))).toBeGreaterThan(200);
+    },
+    WHOLE_RUN_TIMEOUT_MS,
+  );
+
   test('a cold battery (P_máx 10 kW) limits the brake: said once per run, the pads take the rest', () => {
     const frames = installFrameQueue();
     render(<RegenLab />);

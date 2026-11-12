@@ -47,7 +47,7 @@ function statusText({ session, steps, distances, course, cycle, regen }: DriveCa
       return noticeText(message.notice, regen);
     case 'summary':
       return driveSummary({
-        own: driveBalance(stateAt(session.run, message.t), course),
+        own: driveBalance(message.final ?? stateAt(session.run, message.t), course),
         reference: referenceAt(steps, distances, course, message.t),
         course,
         cycleName: cycle.name,

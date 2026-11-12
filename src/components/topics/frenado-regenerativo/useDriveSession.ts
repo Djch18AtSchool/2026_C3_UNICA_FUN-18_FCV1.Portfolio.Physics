@@ -40,7 +40,11 @@ import {
 export type DriveMessage =
   | { kind: 'hint' }
   | { kind: 'notice'; notice: DriveNotice }
-  | { kind: 'summary'; t: number }
+  /**
+   * At the instant t of the run; `final` holds a lap's last state when a loop has already started
+   * the next lap (the run no longer has it).
+   */
+  | { kind: 'summary'; t: number; final?: DriveState }
   | { kind: 'none' };
 
 const HINT: DriveMessage = { kind: 'hint' };
@@ -130,13 +134,14 @@ function useFrameDrive(
 
 /**
  * Playing starts clean (no message); pausing or the end releases the pedals and says the summary;
- * back at t = 0 the hint returns; a loop that wraps starts a new run.
+ * back at t = 0 the hint returns; a loop that wraps says the lap's summary (its last state from
+ * `lapEnd`, driven to the end) and starts a new run.
  */
 function usePlaybackMessages(
   { isActive, clock }: Pick<DriveSessionInput, 'isActive' | 'clock'>,
   store: RunStore,
   say: (message: DriveMessage) => void,
-  releaseAll: () => void,
+  { releaseAll, lapEnd }: { releaseAll: () => void; lapEnd: () => DriveState },
 ) {
   const { playing, t } = clock.state;
   const previous = useRef({ playing, t });
@@ -146,7 +151,11 @@ function usePlaybackMessages(
     const before = previous.current;
     previous.current = { playing, t };
     if (!isActive) return;
-    if (playing && before.playing && t < before.t) replace(truncateRun(runRef.current, 0));
+    if (playing && before.playing && t < before.t) {
+      say({ kind: 'summary', t: clock.state.duration, final: lapEnd() });
+      replace(truncateRun(runRef.current, 0));
+      return;
+    }
     if (playing === before.playing) {
       if (!playing && t === 0) say(HINT);
       return;
@@ -157,7 +166,7 @@ function usePlaybackMessages(
     }
     releaseAll();
     say(t === 0 ? HINT : { kind: 'summary', t: frame.get() });
-  }, [isActive, playing, t, frame, runRef, replace, say, releaseAll]);
+  }, [isActive, playing, t, frame, runRef, replace, say, releaseAll, lapEnd, clock.state.duration]);
 }
 
 /** The pedals let go when the page or the window loses the focus, or the view goes. */
@@ -209,12 +218,16 @@ export function useDriveSession(input: DriveSessionInput): DriveSession {
   }, []);
   const driveClock = useDriveClock(clock, store);
   useFrameDrive(input, store, latest, setMessage);
-  usePlaybackMessages(input, store, setMessage, releaseAll);
+  const lapEnd = useCallback(() => {
+    const { course: lapCourse, model: lapModel, held } = latest.current;
+    return stateAhead(store.runRef.current, lapCourse.duration, held(), lapCourse, lapModel);
+  }, [store.runRef]);
+  usePlaybackMessages(input, store, setMessage, { releaseAll, lapEnd });
   useReleaseOnLeave(isActive, releaseAll);
   const press = (pedal: PedalId, source: PedalSource) => {
     sourcesRef.current = pressPedal(sourcesRef.current, pedal, source);
-    const isBeforeEnd = clock.frame.get() < clock.state.duration;
-    if (!clock.state.playing && isBeforeEnd) driveClock.play();
+    // Paused, or at the end: play (at the end, driveClock.play starts another drive).
+    if (!clock.state.playing) driveClock.play();
   };
   const release = (pedal: PedalId, source: PedalSource) => {
     sourcesRef.current = releasePedal(sourcesRef.current, pedal, source);

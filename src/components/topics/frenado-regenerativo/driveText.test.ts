@@ -164,7 +164,12 @@ describe('the mode’s own notes («Cómo se usa», «Qué deja fuera el modelo�
     expect(text).toMatch(/detenerte en la línea/);
     expect(text).toMatch(/↓ y ↑/);
     expect(text).toMatch(/hasta el fondo en 2 s y vuelve en 0,5 s/);
-    expect(text).toMatch(/Pulsar un pedal arranca/);
+    expect(text).toMatch(
+      /Pulsar un pedal arranca la reproducción; al final del tramo, empieza otra conducción\./,
+    );
+    expect(text).toMatch(
+      /Con «Repetir», cada vuelta termina con su resumen y la siguiente empieza de nuevo\./,
+    );
   });
 
   test('what it leaves out names the sources’ numbers: μ = 0,7, 59 %, 4,65 m/s² and 239 kW', () => {
