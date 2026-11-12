@@ -148,9 +148,13 @@ export function driveReadouts(
   ];
 }
 
-/** The road of the course: from its start past the line, a tick every 50 m, the line drawn. */
+/**
+ * The road of the course: from its start past the line, a tick every 50 m, the line drawn. Its note
+ * gives the road's length, as «Tramo»'s does (a longer one runs into the end labels at 360 px);
+ * the distance to the line is a readout.
+ */
 export function driveRoad(course: DriveCourse): RoadRange {
-  const toLine = formatNumber(course.stopLine - course.startDistance, {
+  const length = formatNumber(course.roadEnd - course.startDistance, {
     precision: LINE_PRECISION,
     unit: 'm',
   });
@@ -158,7 +162,7 @@ export function driveRoad(course: DriveCourse): RoadRange {
     from: course.startDistance,
     to: course.roadEnd,
     tickEvery: ROAD_TICK_M,
-    note: `línea a ${toLine} · auto no a escala`,
+    note: `${length} · auto no a escala`,
     line: course.stopLine,
   };
 }

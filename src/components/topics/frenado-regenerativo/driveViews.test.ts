@@ -131,11 +131,12 @@ describe('driveReadouts', () => {
 });
 
 describe('driveRoad and driveEnergyScale', () => {
-  test('the road: from the start past the line, every 50 m, saying how far the line is', () => {
+  test('the road: from the start past the line, every 50 m, its length said as in «Tramo»', () => {
     const road = driveRoad(COURSE);
 
     expect(road).toMatchObject({ from: COURSE.startDistance, to: COURSE.roadEnd, tickEvery: 50 });
-    expect(road.note).toBe('línea a 236\u202fm · auto no a escala');
+    // 24 characters, as «Tramo»'s: at 360 px a longer note runs into the end labels.
+    expect(road.note).toBe('295\u202fm · auto no a escala');
     expect(road.line).toBe(COURSE.stopLine);
   });
 
