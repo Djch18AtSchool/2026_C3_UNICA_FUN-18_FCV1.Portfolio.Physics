@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
-import { LINE_WIDTH, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
+import { LINE_WIDTH, SURFACE_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
@@ -45,7 +45,9 @@ const FALLBACK_WIDTH = 720;
 const MAX_RING_AREA = 440;
 /**
  * Room outside the largest ring for the outward vector, the ω arrow and their labels, so that at
- * the lab's own framing nothing the ring turns through leaves its square (the canvas clips there).
+ * the lab's own framing what the ring turns through stays within a pixel of its square (the
+ * canvas clips there). It is a constant margin: the largest ring is 5 % smaller than with 64 px at
+ * 440 px of canvas, 8 % at 360 and 10,7 % at 320.
  */
 const OUTER_ROOM = 72;
 /** Spokes in the ring's own frame (deg, SVG angles); none at the person, who stands at 90°. */
@@ -225,7 +227,7 @@ function SpinningParts({
 function describeScene({ r, rpm, gRatio, decimals }: HabitatSceneProps): string {
   const n = (value: number, unit: string, precision = decimals) =>
     formatNumber(value, { precision, unit });
-  return `Anillo del hábitat de radio ${n(r, 'm', 1)}, a escala solo en el radio, girando a ${n(rpm, 'RPM')}, con una persona de pie sobre el piso. La aceleración centrípeta apunta hacia el eje y la gravedad aparente hacia afuera, ambas de ${n(gRatio, 'g')}.`;
+  return `Anillo del hábitat de radio ${n(r, 'm', 1)}, con el radio a escala (la barra de escala lo mide) y la persona y el aro simbólicos, girando a ${n(rpm, 'RPM')}, con una persona de pie sobre el piso. La aceleración centrípeta apunta hacia el eje y la gravedad aparente hacia afuera, ambas de ${n(gRatio, 'g')}.`;
 }
 
 /** The radius bar's height: to the track, under it, and a second caption line on a phone. */
@@ -288,6 +290,42 @@ function RingBody({ ring }: { ring: ScreenRing }): JSX.Element {
   );
 }
 
+/** What the drawing is to scale and what is a symbol, one short line each. */
+const NOTE_LINES = ['radio a escala (ver barra)', 'persona y aro, simbólicos'] as const;
+const NOTE_BASELINE = 16;
+const NOTE_LINE_HEIGHT = 14;
+const NOTE_HALO = 4;
+
+/**
+ * The scale note at the top left. Painted last, with a halo of the surface, so the ring and the
+ * turning parts never cover it, whatever the zoom: it is the warning about the scale.
+ */
+function ScaleNote(): JSX.Element {
+  return (
+    <g
+      data-testid="habitat-note"
+      fontFamily={TICK_FONT_FAMILY}
+      fontSize={NOTE_SIZE}
+      fill={TICK_COLOR}
+      className="pointer-events-none"
+    >
+      {NOTE_LINES.map((line, index) => (
+        <text
+          key={line}
+          x={8}
+          y={NOTE_BASELINE + index * NOTE_LINE_HEIGHT}
+          stroke={SURFACE_COLOR}
+          strokeWidth={NOTE_HALO}
+          strokeLinejoin="round"
+          paintOrder="stroke"
+        >
+          {line}
+        </text>
+      ))}
+    </g>
+  );
+}
+
 interface RingDrawingProps {
   props: HabitatSceneProps;
   /** The ring through the zoom's view, and the viewBox's width and height. */
@@ -308,9 +346,6 @@ function RingDrawing({ props, ring, width, side }: RingDrawingProps): JSX.Elemen
       className="block h-full w-full"
     >
       <g role="img" aria-label={describeScene(props)}>
-        <text x={8} y={16} fontFamily={TICK_FONT_FAMILY} fontSize={NOTE_SIZE} fill={TICK_COLOR}>
-          a escala solo el radio
-        </text>
         <RingBody ring={ring} />
         <OmegaArrow c={c} radius={ring.ring + ring.band + OMEGA_ARC.gap * ring.scale} />
         <SpinningParts
@@ -330,6 +365,7 @@ function RingDrawing({ props, ring, width, side }: RingDrawingProps): JSX.Elemen
           strokeWidth={1.5}
         />
         <circle cx={c.x} cy={c.y} r={2.5} fill={RING_STROKE} />
+        <ScaleNote />
       </g>
     </svg>
   );

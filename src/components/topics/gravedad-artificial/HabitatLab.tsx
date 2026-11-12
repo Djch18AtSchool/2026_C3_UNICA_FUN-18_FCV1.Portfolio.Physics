@@ -41,7 +41,7 @@ const USAGE_HINT =
 
 /** «Cómo se usa», after the drag hint: the ring's zoom, so the person can be seen close up. */
 const ZOOM_HINT =
-  'El anillo se acerca con los botones, con Ctrl y la rueda o pellizcando, y se desplaza arrastrando el fondo; con el lienzo enfocado con el teclado, + y − acercan y alejan, 0 ajusta y las flechas desplazan (entonces también la rueda sola acerca). Con la reproducción en pausa puedes acercarte a la persona; la barra de escala mide el radio $r$. «Ajustar» vuelve al anillo entero, igual que elegir un preajuste o «Restablecer».';
+  'El anillo se acerca con los botones, con Ctrl y la rueda o pellizcando, y se desplaza arrastrando el fondo; con el lienzo enfocado con el teclado, + y − acercan y alejan, 0 ajusta y las flechas desplazan (entonces también la rueda sola acerca). Con la reproducción en pausa puedes acercarte a la persona con Ctrl y la rueda sobre ella; la persona es un símbolo: la barra de escala mide solo el radio $r$. «Ajustar» vuelve al anillo entero, igual que elegir un preajuste o «Restablecer».';
 
 export interface HabitatLabProps {
   /** «Cómo se usa», after the drag hint: the time lapse and the t readout, from the topic's MDX. */

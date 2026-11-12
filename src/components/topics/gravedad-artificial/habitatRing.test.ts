@@ -109,4 +109,27 @@ describe('spinLayout', () => {
 
     expect(spinLayout(small, 1).person).toBeCloseTo(14, 6);
   });
+
+  test('the vectors sit a fixed 9 px (times the zoom) to each side of the hub', () => {
+    const at4 = spinLayout(screenRing(BASE, ZOOMED), 1);
+
+    expect(at4.ac.from.x - screenRing(BASE, ZOOMED).c.x).toBe(9 * 4);
+    expect(screenRing(BASE, ZOOMED).c.x - at4.gap.from.x).toBe(9 * 4);
+  });
+
+  test('the g_ap label clears the floor by the band, which grows with the zoom, when the vector is short', () => {
+    const ring = screenRing(BASE, ZOOMED);
+
+    const { labels, floorY } = spinLayout(ring, 0.01);
+
+    // 13 px of gap under the band's outer edge.
+    expect(labels.gap.y).toBeCloseTo(floorY + RING_BAND * 4 + 13, 6);
+  });
+
+  test('1 g is `unit` px long at ×1 and the label of g_ap sits below the vector tip when it is long', () => {
+    const { length, labels, gap } = spinLayout(screenRing(BASE, IDENTITY_VIEW), 1);
+
+    expect(length).toBe(BASE.unit);
+    expect(labels.gap.y).toBeCloseTo(Math.max(gap.toY, 320 + RING_BAND) + 13, 6);
+  });
 });

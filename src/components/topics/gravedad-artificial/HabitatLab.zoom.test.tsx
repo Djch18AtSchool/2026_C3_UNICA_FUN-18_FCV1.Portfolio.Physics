@@ -47,8 +47,12 @@ describe('the habitat lab zoom', () => {
 
     const usage = container.querySelector('details[data-lab-note="usage"]');
     expect(usage).toHaveTextContent('El anillo se acerca con los botones');
-    expect(usage).toHaveTextContent('Con la reproducción en pausa puedes acercarte a la persona');
-    expect(usage).toHaveTextContent('la barra de escala mide el radio r');
+    expect(usage).toHaveTextContent(
+      'Con la reproducción en pausa puedes acercarte a la persona con Ctrl y la rueda sobre ella',
+    );
+    expect(usage).toHaveTextContent(
+      'la persona es un símbolo: la barra de escala mide solo el radio r',
+    );
     expect(plexViolations(container)).toEqual([]);
   });
 

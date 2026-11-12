@@ -189,4 +189,113 @@ describe('the habitat scene zoom', () => {
 
     expect(ringRadius()).toBeLessThan(large);
   });
+
+  test('the largest ring leaves 72 px between its floor and the square, for the outward vector and the labels', () => {
+    renderScene({ r: 4000 });
+
+    // 400 px square: the floor of the largest ring is 200 − 72 = 128 px from the hub.
+    expect(ringRadius()).toBeCloseTo(128, 6);
+  });
+});
+
+describe('the habitat scene vectors', () => {
+  beforeEach(() => {
+    setSettings({ motion: 'reduced' });
+    stubResizeObserver();
+  });
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+    localStorage.clear();
+    resetSettingsForTests();
+  });
+
+  /** The shaft of a vector: where it starts and how long it is, in screen px. */
+  function shaft(name: 'ac' | 'gap') {
+    const line = document.querySelector(`[data-vector="${name}"] line`) as SVGLineElement;
+    const [x1, y1, y2] = ['x1', 'y1', 'y2'].map((key) => Number(line.getAttribute(key)));
+    return { x: x1, length: Math.abs(y2 - y1) };
+  }
+  const hubX = () => Number((document.querySelector('[data-hub]') as Element).getAttribute('cx'));
+
+  test('1 g is drawn 0,3 of the largest ring radius long, and a_c and g_ap sit 9 px to each side of the person', () => {
+    renderScene({ r: 4000, gRatio: 1 });
+
+    // The largest ring is 128 px, so 1 g is 38,4 px.
+    expect(shaft('ac').length).toBeCloseTo(38.4, 6);
+    expect(shaft('gap').length).toBeCloseTo(38.4, 6);
+    expect(shaft('ac').x - hubX()).toBeCloseTo(9, 6);
+    expect(hubX() - shaft('gap').x).toBeCloseTo(9, 6);
+  });
+
+  test('the vectors and their separation grow with the zoom', () => {
+    renderScene({ r: 4000, gRatio: 1 });
+
+    zoomIn(2);
+
+    expect(shaft('ac').length).toBeCloseTo(38.4 * 2, 6);
+    expect(shaft('ac').x - hubX()).toBeCloseTo(9 * 2, 6);
+    expect(hubX() - shaft('gap').x).toBeCloseTo(9 * 2, 6);
+  });
+
+  test('a vector longer than 1,5 g is drawn at 1,5 g', () => {
+    renderScene({ r: 4000, gRatio: 4.5 });
+
+    expect(shaft('ac').length).toBeCloseTo(1.5 * 38.4, 6);
+  });
+});
+
+describe('the habitat scene scale note', () => {
+  beforeEach(() => {
+    setSettings({ motion: 'reduced' });
+    stubResizeObserver();
+  });
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+    localStorage.clear();
+    resetSettingsForTests();
+  });
+
+  const note = () => screen.getByTestId('habitat-note');
+
+  test('says what is to scale and what is a symbol, in two short lines', () => {
+    renderScene();
+
+    const lines = [...note().querySelectorAll('text')].map((line) => line.textContent);
+    expect(lines).toEqual(['radio a escala (ver barra)', 'persona y aro, simbólicos']);
+  });
+
+  test('the accessible description says the same', () => {
+    renderScene({ r: 894.6 });
+
+    const description = (screen.getByRole('img').getAttribute('aria-label') ?? '').replace(
+      /\s/gu,
+      ' ',
+    );
+    expect(description).toContain('de radio 894,6 m');
+    expect(description).toContain('con el radio a escala (la barra de escala lo mide)');
+    expect(description).toContain('la persona y el aro simbólicos');
+    expect(description).not.toContain('no a escala');
+  });
+
+  test('is painted after the ring, the turning parts and the hub, so the ring never covers it', () => {
+    renderScene();
+
+    const after = (earlier: Element) =>
+      Boolean(earlier.compareDocumentPosition(note()) & Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(after(screen.getByTestId('habitat-ring'))).toBe(true);
+    expect(after(document.querySelector('[data-spinning]') as Element)).toBe(true);
+    expect(after(document.querySelector('[data-hub]') as Element)).toBe(true);
+  });
+
+  test('has a halo of the surface, drawn under the text, to read over the ring', () => {
+    renderScene();
+
+    for (const line of note().querySelectorAll('text')) {
+      expect(line).toHaveAttribute('paint-order', 'stroke');
+      expect(line.getAttribute('stroke')).toMatch(/--bg-elevated|surface/u);
+      expect(Number(line.getAttribute('stroke-width'))).toBeGreaterThanOrEqual(3);
+    }
+  });
 });
