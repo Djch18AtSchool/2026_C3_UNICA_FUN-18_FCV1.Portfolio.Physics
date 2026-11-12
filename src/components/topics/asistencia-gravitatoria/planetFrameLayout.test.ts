@@ -139,6 +139,30 @@ describe('labelObstacles', () => {
     expect(withAll).toContain(corners.noteBox);
     expect(without).not.toContain(corners.noteBox);
   });
+
+  test('the labels keep off Saturn’s whole ring system, not only the planet’s disc', () => {
+    const saturn = PLANETS.saturn;
+    const pass = flybyHyperbola({
+      vInf: 10,
+      rp: 2.67 * saturn.radiusKm,
+      GM: saturn.gm,
+      thetaIn: 100 * DEG,
+      side: 'behind',
+    });
+    const world = frameWorld(pass, saturn, WIDEST.width, WIDEST.height);
+    const screen = screenFrame(world, world.fitted, IDENTITY_VIEW, pass, saturn);
+    const corners = cornerTexts(WIDEST, RP_VALUE, RATE);
+    const outer = screen.rings[screen.rings.length - 1].outerPx;
+
+    expect(
+      labelObstacles(corners, scaleBarSpot(undefined, WIDEST), screen, undefined, false),
+    ).toContainEqual({
+      left: screen.centre.x - outer,
+      right: screen.centre.x + outer,
+      top: screen.centre.y - outer,
+      bottom: screen.centre.y + outer,
+    });
+  });
 });
 
 describe('placeVInfLabels over every encounter, side, zoom and pan', () => {

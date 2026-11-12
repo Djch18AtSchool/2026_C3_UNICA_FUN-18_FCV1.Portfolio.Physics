@@ -1,6 +1,6 @@
 /**
- * Where the planet frame puts its texts and labels on screen, clear of the drawing at whatever
- * zoom: the corner texts (the V⃗_p key, the r_p value, the time badge, «planeta agrandado»), the
+ * Where the planet frame puts its texts and labels on screen, clear of the drawing (the planet with
+ * its rings) at whatever zoom: the corner texts (the V⃗_p key, the r_p value, the time badge, «planeta agrandado»), the
  * scale bar's boxes, the knob's label and the v∞ labels. A label whose arrow has left the panel
  * is not placed at all. Pure, in the frame's pixels.
  */
@@ -217,7 +217,11 @@ export function labelObstacles(
     corners.rpBox,
     ...bar.boxes,
     ...(isNoteShown ? [corners.noteBox] : []),
-    squareAround(screen.centre, screen.planet.radiusPx),
+    // The planet and its rings, if any.
+    squareAround(
+      screen.centre,
+      Math.max(screen.planet.radiusPx, ...screen.rings.map((r) => r.outerPx)),
+    ),
     squareAround(screen.periapsis, KNOB_CLEARANCE),
     ...(knob ? [knob.box] : []),
   ];

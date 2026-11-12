@@ -78,6 +78,13 @@ sources:
     publisher: 'Cengage Learning'
     url: 'https://cengagelatam.editorialdc.com/libros/fisica-para-ciencias-e-ingenieria-vol-1/'
     accessed: '2026-10-08'
+  - id: nssdca-saturn-rings
+    title: 'Saturnian Rings Fact Sheet'
+    authors: 'D. R. Williams, NASA Space Science Data Coordinated Archive (NSSDCA)'
+    year: 2022
+    publisher: 'NASA Goddard Space Flight Center (hoja actualizada el 19 de abril de 2022)'
+    url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/satringfact.html'
+    accessed: '2026-11-12'
 related: ['coeficiente-restitucion', 'ruedas-reaccion', 'gravedad-artificial']
 classRefs:
   - module: 'Módulo 4'
@@ -303,7 +310,9 @@ Tras Neptuno, con <Equation inline latex="\varepsilon \approx 110\ \mathrm{km^2/
   type="simulacion"
   showBadge={false}
   caption="Laboratorio del sobrevuelo con las ecuaciones (9.2) y (9.3): hipérbola en el marco del planeta, triángulo de velocidades en el del Sol. Para la V2 en Júpiter la ganancia es máxima cerca de 3 radios, con $\vec v_\infty$ paralela a $\vec V_p$ y $|\vec v|$ = 20,37 km/s; más cerca se gana menos. Por delante, a 20 radios, saldría frenada, a 6,76 km/s."
-  source={{ text: 'Simulación del autor sobre src/lib/physics/gravitation.ts' }}
+  source={{
+    text: 'Simulación del autor sobre src/lib/physics/gravitation.ts; radios de los anillos de Saturno de la NSSDCA de la NASA (fuente 11)',
+  }}
 >
   <FlybyLab
     client:visible

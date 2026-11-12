@@ -58,6 +58,7 @@ import {
   TEXT_BAND,
   type ScreenFrame,
 } from './planetGeometry';
+import { describeRings, type RingOnScreen } from './planetRings';
 import { frameScaleBar, planetScaleUnits, ZOOM_STRIP_PX } from './planetZoom';
 import { rpText } from './RpField';
 
@@ -110,6 +111,14 @@ const PX_DECIMALS = 2;
  * keys and the keyboard's focus reveal it (useKnobReveal); a press to drag it never pans (R30).
  */
 const KNOB_REVEAL_RADIUS = KNOB_CLEARANCE + TEXT_BAND;
+/**
+ * The corner texts are painted over the drawing (a zoomed Saturn's rings reach the corners): the
+ * V_p key on a backdrop of the surface (its arrow has the planet's color, the rings' own), the
+ * other texts with the surface halo of the badge and the scale bar.
+ */
+const HUD_HALO = { color: SURFACE_COLOR, width: 4 } as const;
+const HUD_PAD = 4;
+const HUD_RADIUS = 4;
 
 const toPath = (points: Point[]) =>
   points.map((p, k) => `${k === 0 ? 'M' : 'L'}${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ');
@@ -118,7 +127,12 @@ function describe({ hyperbola, planet, rp, unit }: PlanetFrameProps): string {
   const n = (value: number, precision: number, suffix = '') =>
     formatNumber(value, { precision, unit: suffix });
   return mathTextToString(
-    `Sobrevuelo en el marco de ${planet.name}: la sonda llega con v_∞ = ${n(hyperbola.vInf, 2, 'km/s')} y pasa por ${SIDE_NAMES[hyperbola.sense < 0 ? 'behind' : 'front']} a r_p = ${n(rp, 2, unit)}. La hipérbola tiene e = ${n(hyperbola.e, DECIMALS_E)} y gira la velocidad δ = ${n(hyperbola.delta * DEG, 1, '°')}; lejos del planeta sale con la misma rapidez v_∞.`,
+    [
+      `Sobrevuelo en el marco de ${planet.name}: la sonda llega con v_∞ = ${n(hyperbola.vInf, 2, 'km/s')} y pasa por ${SIDE_NAMES[hyperbola.sense < 0 ? 'behind' : 'front']} a r_p = ${n(rp, 2, unit)}. La hipérbola tiene e = ${n(hyperbola.e, DECIMALS_E)} y gira la velocidad δ = ${n(hyperbola.delta * DEG, 1, '°')}; lejos del planeta sale con la misma rapidez v_∞.`,
+      describeRings(planet, rp, unit),
+    ]
+      .filter(Boolean)
+      .join(' '),
   );
 }
 
@@ -180,11 +194,20 @@ interface CornersProps {
   scaleBar: ReactNode;
 }
 
-/** The texts at the panel's corners: they stay where they are while the drawing zooms. */
+/** The texts at the panel's corners: they stay where they are while the drawing zooms, over it. */
 function Corners({ corners, rpValue, clock, planetColor, isNoteShown, scaleBar }: CornersProps) {
-  const { vpText, badge, rpAt, noteAt } = corners;
+  const { vpText, vpBox, badge, rpAt, noteAt } = corners;
   return (
     <g fontFamily={TICK_FONT_FAMILY} fontSize={NOTE_SIZE} className="pointer-events-none">
+      <rect
+        data-hud-backdrop
+        x={vpBox.left - HUD_PAD}
+        y={vpBox.top - HUD_PAD}
+        width={vpBox.right - vpBox.left + 2 * HUD_PAD}
+        height={vpBox.bottom - vpBox.top + 2 * HUD_PAD}
+        rx={HUD_RADIUS}
+        fill={SURFACE_COLOR}
+      />
       <Arrow
         from={{ x: CORNER, y: CORNER + 6 }}
         to={{ x: CORNER + VP_ARROW, y: CORNER + 6 }}
@@ -200,14 +223,47 @@ function Corners({ corners, rpValue, clock, planetColor, isNoteShown, scaleBar }
           fontSize={NOTE_SIZE}
           fill={TEXT_COLOR}
           anchor="end"
+          halo={HUD_HALO}
         />
       </g>
       {isNoteShown ? (
-        <text x={noteAt.x} y={noteAt.y} fill={TICK_COLOR} textAnchor="end">
+        <text
+          x={noteAt.x}
+          y={noteAt.y}
+          fill={TICK_COLOR}
+          textAnchor="end"
+          stroke={HUD_HALO.color}
+          strokeWidth={HUD_HALO.width}
+          paintOrder="stroke"
+        >
           {NOTE_TEXT}
         </text>
       ) : null}
       {scaleBar}
+    </g>
+  );
+}
+
+/**
+ * The planet's main rings, each a circle at its middle radius as wide as the ring: drawn first, so
+ * the planet, the periapsis line, the track and the probe go over them.
+ */
+function Rings({ rings, centre }: { rings: readonly RingOnScreen[]; centre: Point }) {
+  if (rings.length === 0) return null;
+  return (
+    <g data-testid="flyby-rings">
+      {rings.map(({ id, innerPx, outerPx, color }) => (
+        <circle
+          key={id}
+          data-ring={id}
+          cx={centre.x}
+          cy={centre.y}
+          r={(innerPx + outerPx) / 2}
+          fill="none"
+          strokeWidth={outerPx - innerPx}
+          style={{ stroke: color }}
+        />
+      ))}
     </g>
   );
 }
@@ -219,11 +275,12 @@ interface DrawingProps {
   labels: VInfLabels;
 }
 
-/** The planet, the periapsis line, the track and the v∞ arrows with their labels. */
+/** The rings, the planet, the periapsis line, the track and the v∞ arrows with their labels. */
 function Drawing({ screen, planetColor, showVectors, labels }: DrawingProps) {
   const { centre, periapsis, trackPx, first, last, inTail, outTip } = screen;
   return (
     <>
+      <Rings rings={screen.rings} centre={centre} />
       <circle
         data-testid="flyby-planet"
         cx={centre.x}
@@ -385,7 +442,7 @@ interface FrameSvgProps {
   model: FrameModel;
 }
 
-/** The drawing's SVG: corner texts and scale bar, the planet and the track, the probe, the knob. */
+/** The drawing's SVG: the rings, the planet and the track, the probe, then the corner texts and scale bar over them, and the knob. */
 function FrameSvg({ props, panel, model }: FrameSvgProps): JSX.Element {
   const { hyperbola, planet, unit, live, showVectors, clock } = props;
   const { world, screen, bar, barSpot, pxPerKm, corners, rpValue, isNoteShown } = model;
@@ -406,14 +463,6 @@ function FrameSvg({ props, panel, model }: FrameSvgProps): JSX.Element {
       className="block h-auto"
     >
       <g role="img" aria-label={describe(props)}>
-        <Corners
-          corners={corners}
-          rpValue={rpValue}
-          clock={clock}
-          planetColor={planetColor}
-          isNoteShown={isNoteShown}
-          scaleBar={scaleBar}
-        />
         <Drawing
           screen={screen}
           planetColor={planetColor}
@@ -427,6 +476,14 @@ function FrameSvg({ props, panel, model }: FrameSvgProps): JSX.Element {
           trackPx={screen.trackPx}
           toPx={screen.toPx}
           showVectors={showVectors}
+        />
+        <Corners
+          corners={corners}
+          rpValue={rpValue}
+          clock={clock}
+          planetColor={planetColor}
+          isNoteShown={isNoteShown}
+          scaleBar={scaleBar}
         />
       </g>
       <PeriapsisHandle

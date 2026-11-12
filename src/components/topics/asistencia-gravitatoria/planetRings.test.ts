@@ -11,6 +11,7 @@ import { frameWorld, screenFrame, TEXT_BAND } from './planetGeometry';
 import {
   bodyRadius,
   C_RING_SHADE,
+  describeRings,
   ringColor,
   ringPassage,
   ringsOnScreen,
@@ -70,6 +71,24 @@ describe('ringPassage', () => {
     expect(ringPassage(saturn, 2.0)).toBe('across');
     expect(ringPassage(saturn, 1.1)).toBe('inside');
     expect(ringPassage(PLANETS.jupiter, 2.0)).toBeUndefined();
+  });
+});
+
+describe('describeRings', () => {
+  test('gives the span from the data, the plane, and where r_p falls; nothing without rings', () => {
+    const span =
+      'Los anillos principales, de 1,24 a 2,27 R_S, van a escala de distancia al centro, dibujados en el plano del sobrevuelo; su plano real está inclinado.';
+
+    expect(describeRings(saturn, 2.67, 'R_S')).toBe(
+      `${span} La máxima aproximación queda por fuera del anillo A.`,
+    );
+    expect(describeRings(saturn, 2, 'R_S')).toBe(
+      `${span} La máxima aproximación cae a la distancia de los anillos.`,
+    );
+    expect(describeRings(saturn, 1, 'R_S')).toBe(
+      `${span} La máxima aproximación queda por dentro del anillo C.`,
+    );
+    expect(describeRings(PLANETS.neptune, 1.18, 'R_N')).toBe('');
   });
 });
 

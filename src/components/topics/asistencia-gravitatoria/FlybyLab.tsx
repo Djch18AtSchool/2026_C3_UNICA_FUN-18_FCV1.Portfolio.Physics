@@ -50,6 +50,11 @@ const DRAG_HINT =
 const ZOOM_HINT =
   'El marco del planeta se acerca con los botones, Ctrl y la rueda, o pellizcando, y se desplaza arrastrando el fondo; con el lienzo enfocado desde el teclado, + y − acercan y alejan, 0 ajusta y las flechas desplazan (entonces la rueda sola también acerca). La barra de escala se recalcula con el zoom. «Ajustar» vuelve al encuadre del encuentro, igual que elegir otro encuentro o «Restablecer».';
 const ARRIVAL_HINT = String.raw`Un preajuste fija la llegada: $V_p$, $v_\infty$ y $\theta_\text{in}$, el ángulo entre $\vec V_p$ y $\vec v_{\infty,\text{in}}$; $r_p$ y el lado son tuyos.`;
+/**
+ * «Qué deja fuera», after the MDX's text: how the rings are drawn (their radii are data, their plane
+ * is not the flyby's) and what is not data (the planets' colors) or not drawn at all.
+ */
+const RINGS_LEFT_OUT = String.raw`Los anillos principales de Saturno (C, B y A, con la división de Cassini entre B y A) van a escala de distancia al centro, de 1,24 a 2,27 $R_\mathrm{S}$ según la NASA, pero dibujados como si estuvieran en el plano del sobrevuelo: su plano real está inclinado respecto al de la trayectoria, y proyectados se verían como elipses. Así el dibujo conserva la distancia al centro, la que se compara con $r_p$. Los colores de los planetas son ilustrativos; no se dibujan las bandas de Júpiter ni los anillos y el eje tumbado de Urano, porque el modelo no sabe cómo se verían desde este plano.`;
 const SIDE_OPTIONS = (['behind', 'front'] as const).map((value) => ({
   value,
   label: SIDE_NAMES[value],
@@ -266,7 +271,7 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
       }}
       notes={{
         usage: [DRAG_HINT, ZOOM_HINT, ARRIVAL_HINT, ...(usage ? [usage] : [])],
-        leftOut: leftOut ? [leftOut] : [],
+        leftOut: [...(leftOut ? [leftOut] : []), RINGS_LEFT_OUT],
       }}
       onReset={onReset}
       testId="flyby-lab"

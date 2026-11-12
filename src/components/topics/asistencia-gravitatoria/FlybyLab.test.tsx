@@ -263,13 +263,18 @@ describe('FlybyLab', () => {
     expect(chips()).toEqual(['círculo', '1×']);
   });
 
-  test('without the MDX texts it still says how to use it, and drops the empty disclosure', () => {
+  test('without the MDX texts it still says how to use it and what the drawing leaves out', () => {
     const { container } = render(<FlybyLab />);
 
     const notes = [...container.querySelectorAll('details')];
-    expect(notes.map((details) => details.getAttribute('data-lab-note'))).toEqual(['usage']);
+    expect(notes.map((details) => details.getAttribute('data-lab-note'))).toEqual([
+      'usage',
+      'left-out',
+    ]);
     // The drag, the zoom and the arrival: three hints, none of them from the MDX.
     expect(notes[0].querySelectorAll('p')).toHaveLength(3);
+    // The rings and the colors: the lab's own paragraph, after the MDX's when there is one.
+    expect(notes[1].querySelectorAll('p')).toHaveLength(1);
   });
 
   test('how to use it and what the model leaves out wait in two closed disclosures', () => {
@@ -281,6 +286,11 @@ describe('FlybyLab', () => {
     expect(mathSourceText(usage)).toContain('$r_p$ y el lado son tuyos.');
     expect(usage).toHaveTextContent(USAGE);
     expect(leftOut).toHaveTextContent(LEFT_OUT);
+    // The MDX's paragraph comes first; the lab's own on the rings and the colors follows it.
+    expect([...leftOut.querySelectorAll('p')].map((p) => p.textContent?.slice(0, 18))).toEqual([
+      LEFT_OUT.slice(0, 18),
+      'Los anillos princi',
+    ]);
   });
 
   test('the preset shows the planar model next to the Horizons value, both labelled', () => {

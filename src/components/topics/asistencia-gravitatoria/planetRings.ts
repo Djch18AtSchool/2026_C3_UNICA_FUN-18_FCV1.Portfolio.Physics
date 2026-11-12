@@ -7,6 +7,7 @@
  * distance from the centre, the one r_p is. Pure, in the frame's pixels.
  */
 import type { Planet, RingBand } from '../../../lib/data/planets';
+import { formatNumber } from '../../../lib/format';
 
 /**
  * Share of the planet's color the C ring keeps, mixed with black (CSS color-mix in sRGB): the C
@@ -15,6 +16,8 @@ import type { Planet, RingBand } from '../../../lib/data/planets';
  */
 export const C_RING_SHADE = 0.7;
 const PERCENT = 100;
+/** Decimals of the rings' radii in the frame's description (1,24 to 2,27 R_S). */
+const RADII_DECIMALS = 2;
 
 export type RingId = RingBand['id'];
 
@@ -60,4 +63,24 @@ export function ringPassage(planet: Planet, rpRadii: number): RingPassage | unde
   if (rpKm > Math.max(...bands.map(({ outerKm }) => outerKm))) return 'outside';
   if (rpKm < Math.min(...bands.map(({ innerKm }) => innerKm))) return 'inside';
   return 'across';
+}
+
+const PASSAGE_TEXT: Record<RingPassage, string> = {
+  outside: 'La máxima aproximación queda por fuera del anillo A.',
+  across: 'La máxima aproximación cae a la distancia de los anillos.',
+  inside: 'La máxima aproximación queda por dentro del anillo C.',
+};
+
+/**
+ * The frame's spoken words on the rings (MathText notation, `unit` as «R_S»): their span, the plane
+ * they are drawn in, and where r_p falls. Empty for a planet without rings.
+ */
+export function describeRings(planet: Planet, rpRadii: number, unit: string): string {
+  const passage = ringPassage(planet, rpRadii);
+  const bands = planet.rings?.bands ?? [];
+  if (passage === undefined) return '';
+  const radii = (km: number) => formatNumber(km / planet.radiusKm, { precision: RADII_DECIMALS });
+  const inner = radii(Math.min(...bands.map(({ innerKm }) => innerKm)));
+  const outer = radii(Math.max(...bands.map(({ outerKm }) => outerKm)));
+  return `Los anillos principales, de ${inner} a ${outer} ${unit}, van a escala de distancia al centro, dibujados en el plano del sobrevuelo; su plano real está inclinado. ${PASSAGE_TEXT[passage]}`;
 }

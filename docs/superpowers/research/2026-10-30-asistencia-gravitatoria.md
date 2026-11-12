@@ -81,6 +81,8 @@ y 96 para la V1).
 | monte | Monte | JPL MDN | s. f. | NASA/JPL | https://montepy.jpl.nasa.gov | CONFIRMADO (solo descripción) |
 | gmat | General Mission Analysis Tool | NASA GSFC | — | NASA | (docs oficiales no accesibles) | NO CONFIRMADO |
 | serway | Física para ciencias e ingeniería, cap. 13 (gravitación universal) | Serway y Jewett | 2018 | Cengage | (ya en el repo) | — |
+| nssdca-saturn-rings | Saturnian Rings Fact Sheet, «Last Updated: 19 April 2022, DRW» | D. R. Williams (NSSDCA) | 2022 | NASA GSFC | https://nssdc.gsfc.nasa.gov/planetary/factsheet/satringfact.html | CONFIRMADO 2026-11-12 (§10) |
+| nssdca-uranus-rings | Uranian Rings Fact Sheet, «Last Updated: 14 October 2015, DRW» | D. R. Williams (NSSDCA) | 2015 | NASA GSFC | https://nssdc.gsfc.nasa.gov/planetary/factsheet/uranringfact.html | CONFIRMADO 2026-11-12 (§10; no se cita en la página) |
 
 Citas textuales útiles (≤ 25 palabras):
 - Horizons, cabecera V2: «A patched conic mission-design type trajectory in which the conics were constructed to approximately match specific events (such satellite encounters), providing a rough accuracy.» (tramo 1977-Aug-20 a 1989-Aug-29)
@@ -317,3 +319,51 @@ Requisitos de la casa: controles de reproducción, línea de tiempo, ajustes y p
 - **GM**: usar el del cuerpo (Horizons) en el marco planetocéntrico; el de sistema (DE440) en el
   heliocéntrico si se modelan los planetas como masas puntuales.
 - **GMAT**: no citar ecuaciones de GMAT sin abrir su documentación oficial.
+
+---
+
+## 10. Anillos de Saturno y detalles «ilustrativos» del marco del planeta (D2, 2026-11-12)
+
+Fuente primaria abierta y leída el 2026-11-12: NSSDCA, *Saturnian Rings Fact Sheet* (D. R. Williams,
+V1.0 del 17-07-1995, «Last Updated: 19 April 2022, DRW»),
+https://nssdc.gsfc.nasa.gov/planetary/factsheet/satringfact.html. Radio ecuatorial de referencia
+60 268 km (el mismo de Horizons en `planets.ts`).
+
+| Borde | km | R_S (hoja) | Profundidad óptica | Albedo |
+|---|---|---|---|---|
+| C interior | 74 658 | 1,239 | 0,05–0,35 | 0,12–0,30 |
+| C exterior = B interior | 91 975 | 1,526 | — | — |
+| B exterior | 117 507 | 1,950 | 0,4–2,5 | 0,4–0,6 |
+| División de Cassini | (entre B y A) | 1,950–2,030 | 0–0,1 | 0,2–0,4 |
+| A interior | 122 340 | 2,030 | 0,4–1,0 | 0,4–0,6 |
+| A exterior | 136 780 | 2,270 | — | — |
+
+Confirmación de las cifras de la auditoría (§8): las de radios (1,24; 1,95–2,03; 2,27 R_S) se
+confirman. **Dos cifras en km no coinciden con la hoja**: el borde interior del C es **74 658 km**,
+no 74 490 (74 510 km es el borde exterior del anillo D), y el exterior del A, **136 780 km**, no
+136 775. Se usan las de la hoja. Se omiten los anillos tenues D, F, G y E y los huecos de menos de
+1 000 km (Encke, Keeler), que la hoja da solo por su radio interior.
+
+r_p de los presets (Horizons, `src/data/voyager-speed.json`): V2 160 691 km = **2,67 R_S**; V1
+184 031 km = **3,05 R_S** (la auditoría decía 3,09, que sale de sumar el radio a la cifra
+redondeada de NASA para la V1, «126 000 km»: (126 000 + 60 268)/60 268 = 3,09; el laboratorio usa
+la distancia al centro de Horizons). Ambas por fuera del borde del A (2,27 R_S), a
+0,40 y 0,78 R_S (24 000 y 47 000 km). El laboratorio lo muestra a escala y `planetRings.test.ts` lo
+fija a ×1, ×2, ×4 y ×8.
+
+Decisiones de honestidad del dibujo:
+
+- **Plano**: los anillos se dibujan como círculos en el plano del sobrevuelo (abatidos), no como su
+  proyección, que sería una elipse de semiejes R y R·cos i con una inclinación i que el modelo plano
+  no tiene. El círculo conserva la distancia al centro, que es lo que se compara con r_p; la nota
+  «Qué deja fuera» lo dice.
+- **Color**: B y A con el token `--saturn`; C más oscuro (`color-mix` con negro al 70 %) porque su
+  albedo es menor (0,12–0,30 frente a 0,4–0,6). La división de Cassini queda vacía en el dibujo
+  (profundidad óptica 0–0,1).
+- **Urano**: hoja *Uranian Rings Fact Sheet* (D. R. Williams, «Last Updated: 14 October 2015»): anillo ε
+  a 51 149 km = 2,006 R_U, de 20 a 96 km de ancho y albedo ~0,018; oblicuidad 97,77° (*Uranus Fact Sheet* de la
+  NSSDCA). **No se dibujan**: el ε mediría menos de 1 px incluso a ×8 (habría que inventarle el
+  ancho) y el eje tumbado necesita la orientación 3D que el modelo plano no tiene.
+- **Júpiter (bandas, Gran Mancha Roja) y el tono de Neptuno**: no se dibujan bandas (el lienzo mira
+  el plano del sobrevuelo desde su normal, y el modelo no sabe qué cara del planeta se vería); los
+  colores de los planetas se declaran «ilustrativos» en la nota.
