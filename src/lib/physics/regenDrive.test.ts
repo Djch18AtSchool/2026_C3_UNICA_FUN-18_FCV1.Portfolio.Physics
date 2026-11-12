@@ -234,7 +234,13 @@ describe('driveStep: the kernel integrates v(t) from the pedals', () => {
   });
 
   test('at road speed FASTSim’s 2 % to the pads (f = 0,98) is no fade: the motor brakes', () => {
-    const next = driveStep(pressed(startDrive(CRUISE, 0), { brake: 0.2 }), BRAKE, DT, CAR, DEFAULT_REGEN);
+    const next = driveStep(
+      pressed(startDrive(CRUISE, 0), { brake: 0.2 }),
+      BRAKE,
+      DT,
+      CAR,
+      DEFAULT_REGEN,
+    );
 
     expect(next.pFriction).toBeGreaterThan(0);
     expect(next.pFriction).toBeLessThan(next.pRegen);
@@ -338,6 +344,34 @@ describe('driveStep closes the energy books (input work − losses = what is sto
     },
   );
 
+  /**
+   * The pedals' work Σ F Δx, from the pedal model alone (not the kernel's books, which close by
+   * construction for any speeds): the brake overrides, the accelerator is its depth times the
+   * traction limit, never more than P/v at the step's start speed.
+   */
+  function pedalWork(regen: RegenParams, steps: number) {
+    let state = startDrive(CRUISE, 0);
+    let work = 0;
+    for (let i = 0; i < steps; i += 1) {
+      const next = driveStep(state, script(i), DT, CAR, regen);
+      const powerForce = state.v > 0 ? CAR.tractionPowerMax / state.v : Number.POSITIVE_INFINITY;
+      const force =
+        next.brake > 0
+          ? -next.brake * CAR.brakeForceMax
+          : Math.min(next.throttle * CAR.tractionForceMax, powerForce);
+      work += force * (next.distance - state.distance);
+      state = next;
+    }
+    return { work, end: state };
+  }
+
+  test.each(cases)('%s: the pedals’ work Σ F Δx is E_tracción − E_freno', (_, regen) => {
+    const { work, end } = pedalWork(regen, 1800);
+    const scale = Math.max(end.eTraction, kinetic(CRUISE));
+
+    expect(Math.abs(work - (end.eTraction - end.eBrake)) / scale).toBeLessThan(RELATIVE_CLOSURE);
+  });
+
   test('every accumulated energy never decreases and the speed never goes negative', () => {
     const states = Array.from({ length: 1800 }, (_, i) => i).reduce<DriveState[]>(
       (acc, i) => [...acc, driveStep(acc[acc.length - 1], script(i), DT, CAR, DEFAULT_REGEN)],
@@ -357,5 +391,22 @@ describe('driveStep closes the energy books (input work − losses = what is sto
     expect(CRUISE / (0.7 * G_EARTH)).toBeCloseTo(2.34, 2);
     expect(run(floored, BRAKE, 225).v).toBeGreaterThan(0);
     expect(run(floored, BRAKE, 240).v).toBe(0);
+  });
+});
+
+describe('driveStep converges in dt', () => {
+  /** The brake on the floor from 58 km/h until the car stops, with steps of dt. */
+  function stoppingDistance(dt: number): number {
+    let state = pressed(startDrive(CRUISE, 0), { brake: 1 });
+    while (state.v > 0) state = driveStep(state, BRAKE, dt, CAR, DEFAULT_REGEN);
+    return state.distance;
+  }
+
+  test('the stopping distance with dt = 0,001, 0,01 and 0,1 s agrees within 1 cm (18,61 m)', () => {
+    const [fine, used, coarse] = [0.001, DT, 0.1].map(stoppingDistance);
+
+    expect(used).toBeCloseTo(18.61, 2);
+    expect(Math.abs(used - fine)).toBeLessThan(0.01);
+    expect(Math.abs(coarse - fine)).toBeLessThan(0.01);
   });
 });
