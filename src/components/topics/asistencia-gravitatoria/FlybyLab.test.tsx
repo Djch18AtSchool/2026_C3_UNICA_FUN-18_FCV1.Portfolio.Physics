@@ -268,7 +268,8 @@ describe('FlybyLab', () => {
 
     const notes = [...container.querySelectorAll('details')];
     expect(notes.map((details) => details.getAttribute('data-lab-note'))).toEqual(['usage']);
-    expect(notes[0].querySelectorAll('p')).toHaveLength(2);
+    // The drag, the zoom and the arrival: three hints, none of them from the MDX.
+    expect(notes[0].querySelectorAll('p')).toHaveLength(3);
   });
 
   test('how to use it and what the model leaves out wait in two closed disclosures', () => {

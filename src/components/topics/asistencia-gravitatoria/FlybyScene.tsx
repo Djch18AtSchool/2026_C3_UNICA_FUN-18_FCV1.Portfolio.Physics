@@ -33,6 +33,8 @@ export interface FlybySceneProps {
   /** The closest approach: its time on the clock and what is said after the jump to it. */
   periapsis: Pick<PeriapsisJumpProps, 'periapsisT' | 'summary'>;
   onRpRequest(rp: number): void;
+  /** A counter: each change frames the planet frame again (a new encounter, a reset). */
+  refit: number;
 }
 
 const SECONDS_PER_HOUR = 3600;
@@ -42,6 +44,10 @@ const SECONDS_PER_HOUR = 3600;
  * Sun frame (velocity triangles) once the canvas is 32rem wide, stacked when narrower (a phone, or
  * the stage of the two-column lab), each with its clock line. Only the planet frame moves, so it
  * alone declares the time scale, next to the probe, and carries the jump to the closest approach.
+ * It is also the only one that zooms: it is a map of positions, whose scale (the bar) and size of
+ * the planet change with the view. The Sun frame is a velocity triangle fitted whole to its panel,
+ * closing the sum v = V_p + v∞: zooming would lose the sum and add a second set of buttons for no
+ * detail the diagram has.
  * What reads them (legend, model versus data) is FlybyNotes, under the lab's columns.
  */
 export default function FlybyScene(props: FlybySceneProps): JSX.Element {
@@ -68,6 +74,7 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
             showVectors={display.showVectors}
             clock={clock}
             onRpRequest={props.onRpRequest}
+            refit={props.refit}
           />
           <TimeScaleStatus clock={clock} />
           <p

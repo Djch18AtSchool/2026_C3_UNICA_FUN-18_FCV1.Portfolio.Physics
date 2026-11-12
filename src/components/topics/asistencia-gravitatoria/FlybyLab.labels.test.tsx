@@ -25,6 +25,8 @@ const PRESETS = [
 /** The labels in the MathText notation they are written in (data-notation on the <text>). */
 const PLANET_LABELS = ['vec v_∞,in', 'vec v_∞,out'];
 const SUN_LABELS = ['vec v antes', 'vec v después', 'δ'];
+/** The scale bar's text: a round count of radii or kilometres («20 R_J», «5 000 km»). */
+const BAR_TEXT = /^[\d,\s]+\s(R_[A-Z]|km)$/u;
 /** Corner texts inherit 12 px from their group; Labels set 13 px themselves. */
 const CORNER_FONT = 12;
 /** Room the drawing leaves around a corner text, px: it must not even graze it. */
@@ -50,7 +52,7 @@ function labelBox(frame: Element, label: string): Box {
   return boxOf(text as SVGTextElement);
 }
 
-/** Straight strokes of a frame (arrow shafts, the periapsis line, the scale bar), except v_rel. */
+/** Straight strokes of a frame (arrow shafts and the periapsis line), except v_rel. */
 function linesOf(frame: Element): Segment[] {
   return [...frame.querySelectorAll('line')]
     .filter((line) => !line.closest('[data-vector="vrel"]'))
@@ -89,7 +91,7 @@ function expectCornersClear(frame: Element): void {
     frame.querySelector('[data-testid="flyby-rp-value"] text') as SVGTextElement,
   );
   const bar = boxOf(
-    textsOf(frame).find((text) => /^\d+(,\d)? R_[A-Z]$/.test(notationOf(text))) as SVGTextElement,
+    textsOf(frame).find((text) => BAR_TEXT.test(notationOf(text))) as SVGTextElement,
   );
   const d = frame.querySelector('path')?.getAttribute('d') ?? '';
   const track = [...d.matchAll(/[ML]([-\d.]+) ([-\d.]+)/g)].map(([, x, y]) => ({
