@@ -3,13 +3,18 @@ import { linearScale } from '../../lab/plotScales';
 import { axisTicks, yTickLabelChars } from '../../lab/SvgPlotAxes';
 import { actualSizeView, fitView, IDENTITY_VIEW, panBy, zoomAt } from '../../lab/zoomMath';
 import type { ZoomFrame } from '../../lab/zoomMath';
-import { scaleBarLength } from '../../lab/scaleBarMath';
+import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX, scaleBarLength } from '../../lab/scaleBarMath';
+import { DRONE_ROUTE } from '../../../lib/data/droneRoute';
 import { MAP_DOMAIN } from './droneScene';
 import {
   boxAroundPoint,
   ROUTE_SCALE_UNITS,
   plotPxPerMetre,
   ROUTE_Y_LABEL_CHARS,
+  ROUTE_BAR_GAP_PX,
+  ROUTE_BAR_INSET_PX,
+  ROUTE_KNOB_RADIUS_PX,
+  routeScaleBarMaxPx,
   zoomedWindow,
   type PlotSize,
 } from './routeZoom';
@@ -182,3 +187,41 @@ describe('ROUTE_Y_LABEL_CHARS', () => {
     }
   });
 });
+
+describe('routeScaleBarMaxPx', () => {
+  const STOP_C_X = DRONE_ROUTE.stops[3].x;
+  /** Where stop C's knob ends, px from the plot's left edge, at the whole window. */
+  const cRight = (plotWidth: number) =>
+    ((STOP_C_X - MAP_DOMAIN.x.min) / X_SPAN) * plotWidth + ROUTE_KNOB_RADIUS_PX;
+  const WIDTHS = [174, 178, 200, 218, 250, 322, 400, 560];
+
+  test.each(WIDTHS)(
+    'at a plot %i px wide the bar at the top right clears stop C by the gap',
+    (width) => {
+      const px = routePxPerMetreAtWhole(width);
+      const bar = scaleBarLength(px, ROUTE_SCALE_UNITS, routeScaleBarMaxPx(width))!;
+      const barLeft = width - ROUTE_BAR_INSET_PX - bar.px;
+
+      expect(barLeft - cRight(width)).toBeGreaterThanOrEqual(ROUTE_BAR_GAP_PX - 1e-9);
+    },
+  );
+
+  test.each(WIDTHS)(
+    'is never longer than the shared maximum nor shorter than the minimum',
+    (width) => {
+      const max = routeScaleBarMaxPx(width);
+
+      expect(max).toBeLessThanOrEqual(SCALE_BAR_MAX_PX);
+      expect(max).toBeGreaterThanOrEqual(SCALE_BAR_MIN_PX);
+    },
+  );
+
+  test('leaves the shared maximum alone where there is room (a wide plot)', () => {
+    expect(routeScaleBarMaxPx(560)).toBe(SCALE_BAR_MAX_PX);
+  });
+});
+
+/** px per metre of a plot `width` wide showing the whole window. */
+function routePxPerMetreAtWhole(width: number): number {
+  return width / X_SPAN;
+}

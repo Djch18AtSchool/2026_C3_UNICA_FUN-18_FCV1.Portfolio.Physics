@@ -12,7 +12,12 @@ import type { Scale } from '../../lab/plotScales';
 import { ScaleBarSvg, ScaleBarWords } from '../../lab/ScaleBar';
 import ZoomControls from '../../lab/ZoomControls';
 import type { RouteZoom } from './useRouteZoom';
-import { plotPxPerMetre, ROUTE_SCALE_UNITS } from './routeZoom';
+import {
+  plotPxPerMetre,
+  ROUTE_BAR_INSET_PX,
+  routeScaleBarMaxPx,
+  ROUTE_SCALE_UNITS,
+} from './routeZoom';
 
 export interface RouteZoomLayerProps {
   scales: { x: Scale; y: Scale };
@@ -35,7 +40,6 @@ const VIEWPORT = 'relative size-full -outline-offset-2';
  * name are to the left and in the middle).
  */
 const SCALE_BAR_BASELINE = 28;
-const SCALE_BAR_INSET = 8;
 
 /** The plot area in the svg's user units: its left and top edges and its size. */
 function plotArea({ x, y }: RouteZoomLayerProps['scales']) {
@@ -51,7 +55,11 @@ export default function RouteZoomLayer({
 }: RouteZoomLayerProps): JSX.Element {
   const { left, top, width, height } = plotArea(scales);
   const { zoom, viewportProps } = routeZoom;
-  const bar = { pxPerUnit: plotPxPerMetre(scales.x), units: ROUTE_SCALE_UNITS };
+  const bar = {
+    pxPerUnit: plotPxPerMetre(scales.x),
+    units: ROUTE_SCALE_UNITS,
+    maxPx: routeScaleBarMaxPx(width),
+  };
   return (
     <foreignObject x={left} y={top} width={width} height={height}>
       <div {...viewportProps} className={VIEWPORT}>
@@ -65,7 +73,7 @@ export default function RouteZoomLayer({
           {children}
           <ScaleBarSvg
             {...bar}
-            x={left + width - SCALE_BAR_INSET}
+            x={left + width - ROUTE_BAR_INSET_PX}
             y={top + SCALE_BAR_BASELINE}
             anchor="end"
           />

@@ -7,7 +7,8 @@
  * its height does not change with the zoom. No React.
  */
 import type { Domain, Scale } from '../../lab/plotScales';
-import type { ScaleUnit } from '../../lab/scaleBarMath';
+import { DRONE_ROUTE } from '../../../lib/data/droneRoute';
+import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX, type ScaleUnit } from '../../lab/scaleBarMath';
 import type { ZoomBox, ZoomPoint, ZoomSize, ZoomView } from '../../lab/zoomMath';
 import { MAP_DOMAIN } from './droneScene';
 
@@ -73,4 +74,22 @@ export function boxAroundPoint(at: ZoomPoint, plot: PlotSize, radiusPx: number):
     width: 2 * radiusPx,
     height: 2 * radiusPx,
   };
+}
+
+/** The scale bar's right inset in the plot, and the air it keeps from stop C's knob (px). */
+export const ROUTE_BAR_INSET_PX = 8;
+export const ROUTE_BAR_GAP_PX = 8;
+/** A stop's knob, with its focus ring, reaches this far from its centre (px). */
+export const ROUTE_KNOB_RADIUS_PX = 10;
+
+/**
+ * The longest scale bar (px) that, at the top right of a plot `plotWidth` px wide, stays clear of
+ * stop C's knob in the declared route's whole window: C is the stop nearest that corner, and on a
+ * phone's plot the 1·2·5 bar of 160 px would reach it. At most the shared maximum.
+ */
+export function routeScaleBarMaxPx(plotWidth: number): number {
+  const stopC = DRONE_ROUTE.stops[3];
+  const cRight = ((stopC.x - MAP_DOMAIN.x.min) / X_SPAN) * plotWidth + ROUTE_KNOB_RADIUS_PX;
+  const room = plotWidth - ROUTE_BAR_INSET_PX - ROUTE_BAR_GAP_PX - cRight;
+  return Math.min(SCALE_BAR_MAX_PX, Math.max(SCALE_BAR_MIN_PX, room));
 }
