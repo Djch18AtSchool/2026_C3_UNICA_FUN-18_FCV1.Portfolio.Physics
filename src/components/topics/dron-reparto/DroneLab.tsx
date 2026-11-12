@@ -45,7 +45,7 @@ const DRAG_HINT =
   'Arrastra las paradas A, B y C, o enfócalas y muévelas con las flechas (10 m; con Mayús, 100 m). La ruta se recalcula al soltar.';
 /** The zoom's gestures, after the stops' drag: the map's own, as every canvas with a zoom says it. */
 const ZOOM_HINT =
-  'Acerca el mapa con los botones, con Ctrl y la rueda o pellizcando; arrastra el fondo para desplazarlo. Con el mapa enfocado con el teclado: + y − acercan y alejan, 0 ajusta y las flechas desplazan.';
+  'Acerca el mapa con los botones, con Ctrl y la rueda o pellizcando; arrastra el fondo para desplazarlo. Con el foco del teclado en el mapa: + y − acercan y alejan, 0 ajusta y las flechas desplazan.';
 
 /**
  * The committed dataset (scripts/generate-drone-route.ts; 355 KB of JSON, about 43 KB gzipped)
@@ -217,8 +217,9 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
   const flight = useViewFlight(route.samples, routeView);
   const routeZoom = useRouteZoom();
   const { fit: fitMap } = routeZoom.zoom;
-  // Another view of the route (a leg or the whole): the map goes back to its whole window.
-  useEffect(() => fitMap(), [routeView.selection.view, fitMap]);
+  // Another view of the route or another leg of it: the map goes back to its whole window.
+  const { view: selectedView, leg: selectedLeg } = routeView.selection;
+  useEffect(() => fitMap(), [selectedView, selectedLeg, fitMap]);
   const notes = <DroneNotes now={flight.now} display={display} editing={editing} />;
 
   return (

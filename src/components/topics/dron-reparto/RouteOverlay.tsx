@@ -163,7 +163,7 @@ function FlightLayer(props: FlightLayerProps): JSX.Element {
         />
       ) : null}
       {showVectors ? (
-        <g data-vectors="" transform={translate(drone)}>
+        <g data-vectors="" className="pointer-events-none" transform={translate(drone)}>
           <DroneVector tip={velocityTip} color={VELOCITY_COLOR} text="vec v" />
           <DroneVector tip={accelTip} color={ACCEL_COLOR} text="vec a" />
         </g>
@@ -307,7 +307,9 @@ export default function RouteOverlay(props: RouteOverlayProps): JSX.Element {
   };
 
   return (
-    <g>
+    // The layer above it lets the pointer through (RouteZoomLayer): only the stops and the drone,
+    // drawn over the zoom's buttons, take it.
+    <g className="pointer-events-auto">
       <g className="pointer-events-none">
         {props.leg ? <ShownLeg leg={props.leg} scales={scales} /> : null}
         <Depot at={depot} />

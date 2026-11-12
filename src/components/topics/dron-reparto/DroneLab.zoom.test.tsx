@@ -140,6 +140,18 @@ describe('the route map zoom', { timeout: TEST_TIMEOUT_MS }, () => {
     await waitFor(() => expect(axisNumbers(container)).toEqual(whole));
   });
 
+  test('another leg inside «Tramo» also takes the map back to its whole window', async () => {
+    const { container } = await renderLab();
+    const whole = axisNumbers(container);
+
+    await userEvent.click(button('Acercar'));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Tramo mostrado' }), {
+      target: { value: '1' },
+    });
+
+    await waitFor(() => expect(axisNumbers(container)).toEqual(whole));
+  });
+
   test('a key that moves a stop out of the zoomed window brings it back into view', async () => {
     const { container } = await renderLab();
     for (let step = 0; step < 6; step += 1) await userEvent.click(button('Acercar'));
@@ -166,6 +178,24 @@ describe('the route map zoom', { timeout: TEST_TIMEOUT_MS }, () => {
 
     // «Tramo» opens on the first leg: its end is stop A (600 m, 200 m), and the window moves to it.
     await waitFor(() => expect(Math.min(...axisNumbers(container))).toBeLessThanOrEqual(A_Y));
+  });
+
+  test('the marks are painted over the buttons and take the pointer, the rest of the layer lets it through', async () => {
+    await renderLab();
+
+    const marks = screen.getByTestId('stop-A').closest('svg')!;
+    const buttons = within(viewport()).getByRole('group', { name: 'Zoom' });
+
+    // A stop under the buttons stays grabbable: its svg is above them in the stacking and inert
+    // except for the marks (the stops and the drone take the pointer; the vectors, trail and
+    // depot, which are decoration, do not).
+    expect(marks.getAttribute('class')).toMatch(/\bz-10\b/);
+    expect(marks.getAttribute('class')).toMatch(/\bpointer-events-none\b/);
+    expect(marks.compareDocumentPosition(buttons) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByTestId('stop-A').closest('g[class~="pointer-events-auto"]')).not.toBeNull();
+    const vectors = marks.querySelector('[data-vectors]')!;
+    expect(vectors.closest('[class~="pointer-events-none"]')).not.toBeNull();
+    expect(vectors.getAttribute('class')).toMatch(/\bpointer-events-none\b/);
   });
 
   test('says the gestures in «Cómo se usa», after the drag of the stops', async () => {

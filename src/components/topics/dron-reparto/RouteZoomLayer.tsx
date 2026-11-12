@@ -20,6 +20,12 @@ export interface RouteZoomLayerProps {
   children: ReactNode;
 }
 
+/**
+ * The marks' svg, above the buttons and inert: a stop dropped under the buttons stays grabbable,
+ * and what is not a mark (the background, the buttons not under one) goes to what is below.
+ */
+const MARKS = 'pointer-events-none relative z-10 block';
+
 /** The viewport fills the plot area; its focus ring is drawn inside, where the clip keeps it. */
 const VIEWPORT = 'relative size-full -outline-offset-2';
 /**
@@ -53,7 +59,7 @@ export default function RouteZoomLayer({
           viewBox={`${left} ${top} ${width} ${height}`}
           width={width}
           height={height}
-          className="block"
+          className={MARKS}
           role="presentation"
         >
           {children}
