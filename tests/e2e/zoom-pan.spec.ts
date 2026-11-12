@@ -444,6 +444,113 @@ test('pulsar un asidero a menos de 16 px del borde no desplaza la vista bajo el 
   expect(Math.abs(moved.x + moved.width / 2 - (grab.x + HANDLE_DRAG.x))).toBeLessThan(PX_SLACK * 4);
 });
 
+/** At ×4 about the handle, the drawing panned until the handle's centre sits `edge` px from the left. */
+async function handleNearEdge(page: Page, lab: Locator, edge: number) {
+  const knob = (await handle(lab).boundingBox())!;
+  const centre = { x: knob.x + knob.width / 2, y: knob.y + knob.height / 2 };
+  await page.mouse.move(centre.x, centre.y);
+  await page.keyboard.down('Control');
+  for (let i = 0; i < 4; i += 1) await page.mouse.wheel(0, -WHEEL_NOTCH_PX);
+  await page.keyboard.up('Control');
+  await expect(factor(lab)).toHaveText(/×4$/);
+  const canvas = (await viewport(lab).boundingBox())!;
+  const before = (await handle(lab).boundingBox())!;
+  const dx = canvas.x + edge - (before.x + before.width / 2);
+  await dragMouse(page, await backgroundPoint(lab), { x: dx, y: 0 });
+  await expect
+    .poll(async () => {
+      const box = (await handle(lab).boundingBox())!;
+      return Math.abs(box.x + box.width / 2 - canvas.x - edge);
+    })
+    .toBeLessThan(PX_SLACK);
+  const near = (await handle(lab).boundingBox())!;
+  return { x: near.x + near.width / 2, y: near.y + near.height / 2 };
+}
+
+/** More frames than a glide lasts (ZOOM_TRANSITION_MS = 200 ms at 60 fps is 12). */
+const GLIDE_FRAMES = 20;
+
+/** Waits `count` animation frames (a clock-free settle). */
+async function frames(page: Page, count: number): Promise<void> {
+  await page.evaluate(async (n) => {
+    for (let i = 0; i < n; i += 1) await new Promise((done) => requestAnimationFrame(done));
+  }, count);
+}
+
+type Step = (page: Page, lab: Locator) => Promise<void>;
+const NOTHING: Step = async () => undefined;
+
+/**
+ * What the reader did before pressing the handle (R30: the focus' origin, not :focus-visible, which
+ * Chromium sets on useDrag's script focus after any key): before zooming in, and last of all.
+ */
+const BEFORE_THE_PRESS: Readonly<Record<string, { first: Step; last: Step }>> = {
+  'enfocar el lienzo con el teclado': { first: NOTHING, last: tabToCanvas },
+  'enfocar un control con el teclado': {
+    first: NOTHING,
+    last: async (page, lab) => {
+      await lab.getByRole('button', { name: 'Ajustes del simulador' }).focus();
+      await page.keyboard.press('Shift');
+    },
+  },
+  'enfocar el asidero con el ratón': {
+    first: async (page, lab) => {
+      const knob = (await handle(lab).boundingBox())!;
+      await page.mouse.click(knob.x + knob.width / 2, knob.y + knob.height / 2);
+      await expect(handle(lab)).toBeFocused();
+    },
+    last: async (_page, lab) => expect(viewport(lab)).toBeFocused(),
+  },
+};
+
+for (const [before, steps] of Object.entries(BEFORE_THE_PRESS)) {
+  for (const edge of [6, 9]) {
+    test(`tras ${before}, pulsar y arrastrar un asidero a ${edge} px del borde a ×4 no desplaza la vista (R30)`, async ({
+      page,
+    }) => {
+      const lab = await openFixture(page);
+      await steps.first(page, lab);
+      const grab = await handleNearEdge(page, lab, edge);
+      await steps.last(page, lab);
+      const view = await viewOf(lab);
+
+      await page.mouse.move(grab.x, grab.y);
+      await page.mouse.down();
+      await expect(handle(lab)).toBeFocused();
+      // A reveal would have started its glide by now.
+      await frames(page, 2);
+      expect(await viewOf(lab)).toEqual(view);
+      await page.mouse.move(grab.x + HANDLE_DRAG.x, grab.y + HANDLE_DRAG.y, { steps: DRAG_STEPS });
+      await page.mouse.up();
+      await frames(page, GLIDE_FRAMES);
+
+      expect(await viewOf(lab)).toEqual(view);
+      const moved = (await handle(lab).boundingBox())!;
+      expect(Math.abs(moved.x + moved.width / 2 - (grab.x + HANDLE_DRAG.x))).toBeLessThan(
+        PX_SLACK * 4,
+      );
+    });
+  }
+}
+
+test('tras pulsar con el ratón, el Tab a un asidero fuera de la vista lo trae (R30)', async ({
+  page,
+}) => {
+  const lab = await openFixture(page);
+  const grab = await handleNearEdge(page, lab, 6);
+  await dragMouse(page, grab, HANDLE_DRAG);
+  // Pan the handle out of view with the mouse, then reach it from the keyboard.
+  await dragMouse(page, await backgroundPoint(lab), { x: -160, y: 0 });
+  const canvas = (await viewport(lab).boundingBox())!;
+  await expect.poll(async () => isInside((await handle(lab).boundingBox())!, canvas)).toBe(false);
+
+  await tabToCanvas(page, lab);
+  await page.keyboard.press('Tab');
+
+  await expect(handle(lab)).toBeFocused();
+  await expect.poll(async () => isInside((await handle(lab).boundingBox())!, canvas)).toBe(true);
+});
+
 test('un pellizco con dos dedos acerca en torno a su punto medio', async ({ page }) => {
   const lab = await openFixture(page);
   const box = (await viewport(lab).boundingBox())!;

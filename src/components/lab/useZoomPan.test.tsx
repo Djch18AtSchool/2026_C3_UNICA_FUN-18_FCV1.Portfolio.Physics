@@ -511,39 +511,90 @@ describe('useZoomPan', () => {
       expect(latest.view.y).toBe(zoomed.y);
     });
 
-    test('a handle a click or a drag focused (focus not shown) does not move the view', () => {
-      const { getByTestId } = renderCanvas();
+    /** The handle sits outside the view at ×2, and the browser may show its focus or not. */
+    function zoomedWithHandleOut(isFocusShown: boolean) {
+      const rendered = renderCanvas();
       act(() => latest.zoomIn());
       act(() => latest.zoomIn());
-      const zoomed = latest.view;
-      const handle = getByTestId('handle');
-      handle.getBoundingClientRect = () =>
-        ({ left: -100, top: 50, width: 20, height: 20, right: -80, bottom: 70 }) as DOMRect;
-      const matches = handle.matches.bind(handle);
-      vi.spyOn(handle, 'matches').mockImplementation((selector) =>
-        selector === ':focus-visible' ? false : matches(selector),
-      );
+      for (const id of ['handle', 'inner-button']) {
+        const element = rendered.getByTestId(id);
+        element.getBoundingClientRect = () =>
+          ({ left: -100, top: 50, width: 20, height: 20, right: -80, bottom: 70 }) as DOMRect;
+        const matches = element.matches.bind(element);
+        vi.spyOn(element, 'matches').mockImplementation((selector) =>
+          selector === ':focus-visible' ? isFocusShown : matches(selector),
+        );
+      }
+      return { ...rendered, zoomed: latest.view };
+    }
 
+    test('a press on a handle never moves the view, even when the browser shows its focus', () => {
+      // Chromium shows a script focus after any key: useDrag's focus on pointerdown looks like Tab's.
+      const { getByTestId, zoomed } = zoomedWithHandleOut(true);
+      const handle = getByTestId('handle');
+
+      fireEvent.pointerDown(handle, { pointerId: 1, button: 0 });
       act(() => handle.focus());
 
       expect(latest.view).toEqual(zoomed);
+      expect(latest.isPointerPressing()).toBe(true);
     });
 
-    test('a browser without :focus-visible still reveals the focused handle', () => {
-      const { getByTestId } = renderCanvas();
-      act(() => latest.zoomIn());
-      act(() => latest.zoomIn());
-      const zoomed = latest.view;
-      const handle = getByTestId('handle');
-      handle.getBoundingClientRect = () =>
-        ({ left: -100, top: 50, width: 20, height: 20, right: -80, bottom: 70 }) as DOMRect;
-      vi.spyOn(handle, 'matches').mockImplementation(() => {
-        throw new SyntaxError('not a valid selector');
-      });
+    test('a tap on a button inside the canvas does not move the view (its focus comes with the mousedown after the pointerup)', () => {
+      const { getByTestId, zoomed } = zoomedWithHandleOut(true);
+      const button = getByTestId('inner-button');
 
-      act(() => handle.focus());
+      fireEvent.pointerDown(button, { pointerId: 1, pointerType: 'touch' });
+      fireEvent.pointerUp(button, { pointerId: 1, pointerType: 'touch' });
+      fireEvent.mouseDown(button);
+      act(() => button.focus());
+      fireEvent.mouseUp(button);
+
+      expect(latest.view).toEqual(zoomed);
+      expect(latest.isPointerPressing()).toBe(false);
+    });
+
+    test('once the press ends, even outside the canvas, a focus from the keyboard reveals again', () => {
+      const { getByTestId, viewport, zoomed } = zoomedWithHandleOut(true);
+      fireEvent.pointerDown(getByTestId('background'), { pointerId: 1, button: 0 });
+      fireEvent.pointerUp(window, { pointerId: 1 });
+      expect(latest.isPointerPressing()).toBe(false);
+
+      act(() => viewport.focus());
+      act(() => getByTestId('handle').focus());
 
       expect(latest.view.x).toBeCloseTo(zoomed.x + 116, 9);
+    });
+
+    test('a key ends a press whose release the page never saw', () => {
+      const { getByTestId, zoomed } = zoomedWithHandleOut(true);
+      fireEvent.pointerDown(getByTestId('background'), { pointerId: 1, button: 0 });
+
+      fireEvent.keyDown(window, { key: 'Tab' });
+      act(() => getByTestId('handle').focus());
+
+      expect(latest.view.x).toBeCloseTo(zoomed.x + 116, 9);
+    });
+
+    test('a focus a script gives with no press reveals even when the browser does not show it', () => {
+      // `:focus-visible` is not the test: false after a mouse click, a script's focus must still be seen.
+      const { getByTestId, zoomed } = zoomedWithHandleOut(false);
+
+      act(() => getByTestId('handle').focus());
+
+      expect(latest.view.x).toBeCloseTo(zoomed.x + 116, 9);
+    });
+
+    test('the window listeners go away with the canvas', () => {
+      const remove = vi.spyOn(window, 'removeEventListener');
+      const { unmount } = renderCanvas();
+
+      unmount();
+
+      const removed = remove.mock.calls.map(([type]) => type);
+      expect(removed).toEqual(
+        expect.arrayContaining(['pointerup', 'mouseup', 'touchend', 'keydown']),
+      );
     });
   });
 

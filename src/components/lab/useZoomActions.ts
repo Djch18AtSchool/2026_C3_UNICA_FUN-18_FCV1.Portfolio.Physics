@@ -1,6 +1,7 @@
 /**
  * What useZoomPan does on request: steps about the centre, «Ajustar», «1:1», a pan, a reveal (and
- * the canvas' own reveal of a descendant focused from the keyboard), and the keys + − 0 and the arrows.
+ * the canvas' own reveal of a focused descendant, unless a pointer pressing gave the focus), and
+ * the keys + − 0 and the arrows.
  */
 import { useCallback, useMemo } from 'react';
 import type { FocusEvent as ReactFocusEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
@@ -43,6 +44,8 @@ interface Refs {
   frameRef: { current: ZoomFrame };
   viewRef: { current: ZoomView };
   commit(view: ZoomView): void;
+  /** Whether a pointer is pressing inside the canvas (usePointerPress). */
+  isPressing(): boolean;
 }
 
 export interface ZoomActions {
@@ -62,19 +65,6 @@ function focusedBox(target: Element, viewport: Element, view: ZoomView): ZoomBox
   const origin = viewport.getBoundingClientRect();
   const corner = toWorld(view, { x: box.left - origin.left, y: box.top - origin.top });
   return { ...corner, width: box.width / view.scale, height: box.height / view.scale };
-}
-
-/**
- * Whether the browser shows the element's focus (:focus-visible): reached with the keyboard. A
- * press on a handle focuses it too (useDrag does), and moving the view under the pointer then would
- * leave the drag out of step with the hand; one without the selector says yes.
- */
-function isFocusShown(element: Element): boolean {
-  try {
-    return element.matches(':focus-visible');
-  } catch {
-    return true;
-  }
 }
 
 /** Steps about the centre, «Ajustar» and «1:1», all gliding from where the view is heading. */
@@ -98,8 +88,14 @@ function useZoomSteps({ frameRef }: Refs, glide: ViewTransition) {
   return { zoomIn, zoomOut, fit, actualSize };
 }
 
-/** A pan (immediate), a reveal (gliding) and the reveal of a focused descendant. */
-function useZoomMoves({ frameRef, viewRef, commit }: Refs, glide: ViewTransition) {
+/**
+ * A pan (immediate), a reveal (gliding) and the reveal of a focused descendant. A focus given by a
+ * press (useDrag focuses its handle on pointerdown; a button takes it on mousedown) never reveals:
+ * moving the view under the pointer would leave the drag out of step with the hand. Any other
+ * focus does (Tab, a script), whatever `:focus-visible` says: Chromium sets it on a press's script
+ * focus after any key, and clears it on a script's focus after a click (R30).
+ */
+function useZoomMoves({ frameRef, viewRef, commit, isPressing }: Refs, glide: ViewTransition) {
   const { animateTo, stop } = glide;
   const pan = useCallback(
     (delta: ZoomPoint) => {
@@ -114,11 +110,10 @@ function useZoomMoves({ frameRef, viewRef, commit }: Refs, glide: ViewTransition
   );
   const onFocus = useCallback(
     (event: ReactFocusEvent<HTMLElement>) => {
-      if (event.target === event.currentTarget) return;
-      if (!isFocusShown(event.target)) return;
+      if (event.target === event.currentTarget || isPressing()) return;
       reveal(focusedBox(event.target, event.currentTarget, viewRef.current));
     },
-    [reveal, viewRef],
+    [reveal, viewRef, isPressing],
   );
   return { pan, reveal, onFocus };
 }

@@ -20,6 +20,7 @@
  */
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { FocusEvent as ReactFocusEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { usePointerPress, type PointerPress, type PointerPressProps } from './usePointerPress';
 import { useViewTransition } from './useViewTransition';
 import { useZoomActions, type ZoomActions } from './useZoomActions';
 import { useZoomGestures, type ZoomGestureHost, type ZoomGestures } from './useZoomGestures';
@@ -77,7 +78,7 @@ export interface ZoomPanOptions {
 type Gestures = Omit<ZoomGestures, 'isPanning' | 'onWheel'>;
 
 /** Spread on the canvas element (a div that holds the svg at its top-left corner). */
-export interface ZoomViewportProps extends Gestures {
+export interface ZoomViewportProps extends Gestures, PointerPressProps {
   ref(element: HTMLDivElement | null): () => void;
   tabIndex: 0;
   role: 'group';
@@ -89,7 +90,7 @@ export interface ZoomViewportProps extends Gestures {
   'data-zoom-panning': '' | undefined;
   style: CSSProperties;
   onKeyDown(event: ReactKeyboardEvent<HTMLElement>): void;
-  /** A focused handle outside the view is brought into it. */
+  /** A handle focused outside the view is brought into it, unless a pointer's press focused it. */
   onFocus(event: ReactFocusEvent<HTMLElement>): void;
 }
 
@@ -108,6 +109,13 @@ export interface ZoomPan extends Omit<ZoomActions, 'onFocus' | 'onKeyDown'> {
   readonly hasActualSize: boolean;
   /** Whether the drawing is larger than the viewport, so a drag can move it. */
   readonly isPannable: boolean;
+  /**
+   * Whether a pointer is pressing inside the canvas now (R30): a handle with a reveal of its own
+   * (useKnobReveal) asks it in its focus, as the canvas' own reveal does.
+   */
+  isPointerPressing(): boolean;
+  /** The canvas' measured size (0 × 0 before it is measured: on the server, at the first render). */
+  readonly viewportSize: ZoomSize;
   /** Viewport px → drawing units (a pointer, as useDrag reports it) and back. */
   toWorld(point: ZoomPoint): ZoomPoint;
   toScreen(point: ZoomPoint): ZoomPoint;
@@ -152,6 +160,7 @@ interface ZoomPanParts {
   options: ZoomPanOptions;
   actions: ZoomActions;
   gestures: Gestures;
+  press: PointerPress;
   isPanning: boolean;
   ref: ZoomViewportProps['ref'];
   instructionsId: string;
@@ -159,7 +168,7 @@ interface ZoomPanParts {
 
 /** The hook's result, from its parts. */
 function zoomPanOf(parts: ZoomPanParts): ZoomPan {
-  const { view, frame, options, actions, gestures, isPanning, ref, instructionsId } = parts;
+  const { view, frame, options, actions, gestures, press, isPanning, ref, instructionsId } = parts;
   const { onFocus, onKeyDown, ...requests } = actions;
   const isPannable = isPannableAt(view, frame);
   return {
@@ -172,6 +181,8 @@ function zoomPanOf(parts: ZoomPanParts): ZoomPan {
     hasActualSize: options.fit !== undefined || options.bounds !== undefined,
     isPannable,
     ...requests,
+    isPointerPressing: press.isPressing,
+    viewportSize: frame.viewport,
     toWorld: (point) => toWorld(view, point),
     toScreen: (point) => toScreen(view, point),
     instructionsId,
@@ -188,6 +199,7 @@ function zoomPanOf(parts: ZoomPanParts): ZoomPan {
       style: viewportStyle(isPannable, isPanning),
       onKeyDown,
       onFocus,
+      ...press.props,
       ...gestures,
     },
   };
@@ -207,7 +219,11 @@ export function useZoomPan(options: ZoomPanOptions): ZoomPan {
   const viewport = useZoomViewport(onWheel);
   const frame = buildFrame(viewport.size, options);
   frameRef.current = frame;
-  const actions = useZoomActions({ frameRef, viewRef, commit }, glide);
+  const press = usePointerPress();
+  const actions = useZoomActions(
+    { frameRef, viewRef, commit, isPressing: press.isPressing },
+    glide,
+  );
 
   // A resized viewport may leave the pan outside the drawing: pull it back.
   useEffect(() => {
@@ -218,5 +234,15 @@ export function useZoomPan(options: ZoomPanOptions): ZoomPan {
   }, [viewport.size, commit, stop, viewRef]);
 
   const ref = viewport.ref;
-  return zoomPanOf({ view, frame, options, actions, gestures, isPanning, ref, instructionsId });
+  return zoomPanOf({
+    view,
+    frame,
+    options,
+    actions,
+    gestures,
+    press,
+    isPanning,
+    ref,
+    instructionsId,
+  });
 }
