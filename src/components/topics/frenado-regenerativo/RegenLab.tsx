@@ -124,7 +124,7 @@ function regenLevels({ state, view, shownClock: clock, update, changeView }: Reg
 
 /** The readouts of the view: the cycle's or the stretch's balance, or your run against the cycle's car. */
 function labReadouts(lab: RegenLabModel) {
-  const { view, state, steps, distances, stretch, at, cycle, clock } = lab;
+  const { view, steps, distances, stretch, at, cycle, clock } = lab;
   if (view !== 'conducir') {
     return readoutsFor(shownBalance(at, view, stretch, steps, distances), view);
   }
