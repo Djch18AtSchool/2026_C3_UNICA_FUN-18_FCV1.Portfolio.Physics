@@ -67,8 +67,13 @@ function playFrames(
 const LONG_FRAME_MS = 250;
 /** A whole run of 26 s is a few hundred frames: under coverage and a full suite it takes seconds. */
 const WHOLE_RUN_TIMEOUT_MS = 20_000;
+/**
+ * Every test here plays tens of frames (0,7–0,9 s alone under coverage, three to five times that
+ * with the full suite in parallel): an explicit limit instead of the default 5 s.
+ */
+const DRIVE_TEST_TIMEOUT_MS = 15_000;
 
-describe('RegenLab «Conducir»', () => {
+describe('RegenLab «Conducir»', { timeout: DRIVE_TEST_TIMEOUT_MS }, () => {
   let uninstall: () => void;
   beforeEach(() => {
     uninstall = installDialogPolyfill();
