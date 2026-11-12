@@ -8,7 +8,6 @@ import {
   rpFromDistance,
   rpKeyTarget,
   rpToSlider,
-  scaleBar,
   sliderToRp,
   tipLabel,
   triangleLayout,
@@ -110,19 +109,6 @@ describe('planetView', () => {
 
     expect(rpFromDistance(view.periapsisPx, 150)).toBeCloseTo(10.09, 2);
     expect(rpFromDistance(0, 150)).toBeLessThan(1);
-  });
-});
-
-describe('scaleBar', () => {
-  test('picks the longest 1-2-5 length in planet radii that fits', () => {
-    const bar = scaleBar(1 / 1000, R_J, 80);
-
-    expect(bar.radii).toBe(1);
-    expect(bar.px).toBeCloseTo(71.492, 6);
-  });
-
-  test('falls back to the smallest step when even that is too long', () => {
-    expect(scaleBar(1, R_J, 80).radii).toBe(0.5);
   });
 });
 

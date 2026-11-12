@@ -1,7 +1,8 @@
 /**
  * Pure geometry of the flyby laboratory: the logarithmic r_p scale (1 to 100 planet radii) and its
  * keys, the planet-frame drawing scale (the periapsis handle sits on that log scale, so dragging
- * it is the slider), the scale bar, and the Sun-frame velocity triangle fitted into its panel.
+ * it is the slider), and the Sun-frame velocity triangle fitted into its panel (the planet
+ * frame's scale bar is planetZoom.ts's, derived from the zoomed scale).
  */
 import type { Point } from '../../lab/OverlayMarks';
 
@@ -25,8 +26,6 @@ const REACH_SHARE = 0.68;
 export const ARROW_PX = 30;
 /** A planet smaller than this (px) is drawn at this radius, and the scene says so. */
 export const MIN_PLANET_PX = 4;
-/** Scale-bar lengths tried, in planet radii, longest that fits wins. */
-const SCALE_STEPS = [0.5, 1, 2, 5, 10, 20, 50, 100, 200];
 /** Room around the velocity triangle for the tip labels, px. */
 const TRIANGLE_PAD = { x: 44, y: 30 } as const;
 const PATH_DECIMALS = 2;
@@ -118,17 +117,6 @@ export function planetView(size: number, rpKm: number, radiusKm: number): Planet
 export function rpFromDistance(distancePx: number, half: number): number {
   const u = (distancePx / half - PERIAPSIS_SHARE.min) / (PERIAPSIS_SHARE.max - PERIAPSIS_SHARE.min);
   return sliderToRp(u);
-}
-
-/** The longest scale-bar length in planet radii (1-2-5 steps) not longer than maxPx. */
-export function scaleBar(
-  scale: number,
-  radiusKm: number,
-  maxPx: number,
-): { radii: number; px: number } {
-  const fits = SCALE_STEPS.filter((radii) => radii * radiusKm * scale <= maxPx);
-  const radii = fits[fits.length - 1] ?? SCALE_STEPS[0];
-  return { radii, px: radii * radiusKm * scale };
 }
 
 export interface TriangleLayout {
