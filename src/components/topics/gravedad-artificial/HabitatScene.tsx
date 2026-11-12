@@ -288,6 +288,53 @@ function RingBody({ ring }: { ring: ScreenRing }): JSX.Element {
   );
 }
 
+interface RingDrawingProps {
+  props: HabitatSceneProps;
+  /** The ring through the zoom's view, and the viewBox's width and height. */
+  ring: ScreenRing;
+  width: number;
+  side: number;
+}
+
+/** The ring square's svg: the note, the ring, the ω arrow, the turning parts and the hub. */
+function RingDrawing({ props, ring, width, side }: RingDrawingProps): JSX.Element {
+  const { omega, frame, gRatio, showVectors } = props;
+  const { c } = ring;
+  return (
+    <svg
+      data-testid="habitat-scene"
+      viewBox={`0 0 ${width} ${side}`}
+      width="100%"
+      className="block h-full w-full"
+    >
+      <g role="img" aria-label={describeScene(props)}>
+        <text x={8} y={16} fontFamily={TICK_FONT_FAMILY} fontSize={NOTE_SIZE} fill={TICK_COLOR}>
+          a escala solo el radio
+        </text>
+        <RingBody ring={ring} />
+        <OmegaArrow c={c} radius={ring.ring + ring.band + OMEGA_ARC.gap * ring.scale} />
+        <SpinningParts
+          ring={ring}
+          omega={omega}
+          frame={frame}
+          gRatio={gRatio}
+          showVectors={showVectors}
+        />
+        <circle
+          data-hub=""
+          cx={c.x}
+          cy={c.y}
+          r={ring.hub}
+          style={{ fill: 'var(--bg-elevated)' }}
+          stroke={RING_STROKE}
+          strokeWidth={1.5}
+        />
+        <circle cx={c.x} cy={c.y} r={2.5} fill={RING_STROKE} />
+      </g>
+    </svg>
+  );
+}
+
 /**
  * The habitat lab's canvas: the ring turning at the clock's angle with a person on the floor, the
  * live a_c and apparent-gravity vectors (to scale up to 1,5 g) and the radius bar on a log scale.
@@ -297,57 +344,18 @@ function RingBody({ ring }: { ring: ScreenRing }): JSX.Element {
  * strip sits under it. The viewBoxes follow the measured width, so text keeps its pixel size.
  */
 export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
-  const { r, omega, frame, gRatio, showVectors, refit, onRadiusChange } = props;
+  const { r, refit, onRadiusChange } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const zoom = useZoomPan({ label: 'Anillo del hábitat' });
   useRefit(zoom, refit);
   const side = Math.min(width, MAX_RING_AREA);
   const base = ringBase(r, width, side);
-  const ring = screenRing(base, zoom.view);
-  const { c } = ring;
-  const barX1 = width - BAR_SIDE_PAD;
 
   return (
     <div className="@container w-full">
       <div ref={wrapperRef} className="w-full" style={{ height: RESERVED_HEIGHT }}>
         <div {...zoom.viewportProps} style={{ ...zoom.viewportProps.style, height: RING_AREA }}>
-          <svg
-            data-testid="habitat-scene"
-            viewBox={`0 0 ${width} ${side}`}
-            width="100%"
-            className="block h-full w-full"
-          >
-            <g role="img" aria-label={describeScene(props)}>
-              <text
-                x={8}
-                y={16}
-                fontFamily={TICK_FONT_FAMILY}
-                fontSize={NOTE_SIZE}
-                fill={TICK_COLOR}
-              >
-                a escala solo el radio
-              </text>
-              <RingBody ring={ring} />
-              <OmegaArrow c={c} radius={ring.ring + ring.band + OMEGA_ARC.gap * ring.scale} />
-              <SpinningParts
-                ring={ring}
-                omega={omega}
-                frame={frame}
-                gRatio={gRatio}
-                showVectors={showVectors}
-              />
-              <circle
-                data-hub=""
-                cx={c.x}
-                cy={c.y}
-                r={ring.hub}
-                style={{ fill: 'var(--bg-elevated)' }}
-                stroke={RING_STROKE}
-                strokeWidth={1.5}
-              />
-              <circle cx={c.x} cy={c.y} r={2.5} fill={RING_STROKE} />
-            </g>
-          </svg>
+          <RingDrawing props={props} ring={screenRing(base, zoom.view)} width={width} side={side} />
         </div>
         <svg
           viewBox={`0 0 ${width} ${barHeight(width)}`}
@@ -358,7 +366,7 @@ export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
           <RadiusBar
             r={r}
             x0={BAR_SIDE_PAD}
-            x1={barX1}
+            x1={width - BAR_SIDE_PAD}
             y={BAR_TOP_GAP}
             onRadiusChange={onRadiusChange}
           />
