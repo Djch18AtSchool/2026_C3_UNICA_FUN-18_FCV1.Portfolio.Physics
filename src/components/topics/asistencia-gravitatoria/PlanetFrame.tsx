@@ -1,9 +1,11 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
   type JSX,
+  type FocusEvent,
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
@@ -102,8 +104,11 @@ const DECIMALS_E = 3;
 const DEG = 180 / Math.PI;
 /** Decimals of the probe's coordinates: a stable attribute string per frame. */
 const PX_DECIMALS = 2;
-/** The knob (7 px, its focus ring 11) a reveal brings into the view, in screen px. */
-const KNOB_REVEAL_RADIUS = 11;
+/**
+ * The room a reveal gives the knob, in screen px: its focus ring (11) and the band of the corner
+ * texts (TEXT_BAND), so a revealed knob is never under the key, the badge or the bar.
+ */
+const KNOB_REVEAL_RADIUS = 11 + TEXT_BAND;
 
 const toPath = (points: Point[]) =>
   points.map((p, k) => `${k === 0 ? 'M' : 'L'}${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ');
@@ -269,7 +274,16 @@ function useRefit(zoom: ZoomPan, refit: number): void {
   }, [refit, fit]);
 }
 
-interface KnobKeysInput {
+/** Whether the element's focus is shown (:focus-visible); a browser without the selector says yes. */
+function isFocusShown(element: Element): boolean {
+  try {
+    return element.matches(':focus-visible');
+  } catch {
+    return true;
+  }
+}
+
+interface KnobRevealInput {
   rp: number;
   onRpRequest(rp: number): void;
   zoom: ZoomPan;
@@ -278,26 +292,40 @@ interface KnobKeysInput {
 }
 
 /**
- * The knob's keys. A key moves the handle out of the view at a zoom: once r_p has changed, and the
- * knob with it, the view brings it back (reveal), as it does for a focused handle. A drag does not:
- * the knob is under the pointer.
+ * The knob in the view, clear of the texts of the corners. A key that moves it, or the focus
+ * that takes it, can leave it out of the view or under those texts at a zoom: the view then
+ * pans it back with the texts' band around it. A drag does not: the knob is under the pointer.
+ * The canvas reveals any focused handle itself (16 px of margin); the focus asks again, after it,
+ * for this larger margin, which wins.
  */
-function useKnobKeys({ rp, onRpRequest, zoom, knobAt }: KnobKeysInput) {
+function useKnobReveal({ rp, onRpRequest, zoom, knobAt }: KnobRevealInput) {
   const isRevealPending = useRef(false);
   const { reveal } = zoom;
   const radius = KNOB_REVEAL_RADIUS / zoom.view.scale;
+  const revealKnob = useCallback(
+    () =>
+      reveal({ x: knobAt.x - radius, y: knobAt.y - radius, width: 2 * radius, height: 2 * radius }),
+    [reveal, knobAt.x, knobAt.y, radius],
+  );
+  const latest = useRef(revealKnob);
+  latest.current = revealKnob;
   useEffect(() => {
     if (!isRevealPending.current) return;
     isRevealPending.current = false;
-    reveal({ x: knobAt.x - radius, y: knobAt.y - radius, width: 2 * radius, height: 2 * radius });
-  }, [knobAt.x, knobAt.y, radius, reveal]);
-  return (event: KeyboardEvent<SVGGElement>) => {
+    revealKnob();
+  }, [revealKnob]);
+  const onKeyDown = (event: KeyboardEvent<SVGGElement>) => {
     const next = rpKeyTarget(event.key, event.shiftKey, rp);
     if (next === undefined) return;
     event.preventDefault();
     isRevealPending.current = next !== rp;
     onRpRequest(next);
   };
+  const onFocus = (event: FocusEvent<SVGGElement>) => {
+    // Only a focus that shows (the keyboard's): a press on the knob to drag it must not pan the view.
+    if (isFocusShown(event.currentTarget)) queueMicrotask(() => latest.current());
+  };
+  return { onKeyDown, onFocus };
 }
 
 interface FrameBodyProps {
@@ -335,7 +363,7 @@ function useFrameModel({ props, panel, zoom }: FrameBodyProps) {
     onRpRequest(rpFromDistance(Math.hypot(at.x - centre.x, at.y - centre.y), half));
   });
   const knobAt = along(centre, screen.periDir, world.view.periapsisPx);
-  const onKeyDown = useKnobKeys({ rp, onRpRequest, zoom, knobAt });
+  const { onKeyDown, onFocus } = useKnobReveal({ rp, onRpRequest, zoom, knobAt });
   return {
     world,
     screen,
@@ -349,6 +377,7 @@ function useFrameModel({ props, panel, zoom }: FrameBodyProps) {
     labels,
     drag,
     onKeyDown,
+    onFocus,
   };
 }
 
@@ -358,10 +387,11 @@ interface HandleProps {
   label: KnobLabel | undefined;
   drag: DragHandlers;
   onKeyDown(event: KeyboardEvent<SVGGElement>): void;
+  onFocus(event: FocusEvent<SVGGElement>): void;
 }
 
 /** The periapsis handle, a slider on the log r_p scale, and the knob's name beside it. */
-function PeriapsisHandle({ props, at, label, drag, onKeyDown }: HandleProps) {
+function PeriapsisHandle({ props, at, label, drag, onKeyDown, onFocus }: HandleProps) {
   const { rp, unit, planet } = props;
   return (
     <>
@@ -376,6 +406,7 @@ function PeriapsisHandle({ props, at, label, drag, onKeyDown }: HandleProps) {
         aria-valuetext={mathTextToString(`r_p = ${rpText(rp, unit, planet.radiusKm)}`)}
         className="group cursor-grab outline-none"
         onKeyDown={onKeyDown}
+        onFocus={onFocus}
         {...drag}
       >
         <Knob at={at} fill={TEXT_COLOR} />
@@ -438,6 +469,7 @@ function Frame({ props, panel, zoom }: FrameBodyProps): JSX.Element {
           label={model.knob}
           drag={model.drag}
           onKeyDown={model.onKeyDown}
+          onFocus={model.onFocus}
         />
       </svg>
       <ScaleBarWords pxPerUnit={pxPerKm} units={units} />

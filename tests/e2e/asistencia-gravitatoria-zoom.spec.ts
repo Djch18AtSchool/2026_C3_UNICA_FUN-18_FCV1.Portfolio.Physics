@@ -23,6 +23,9 @@ const GLYPH_PX = 20;
 /** What the factor reads after 0 to 6 presses of «Acercar» (steps of √2). */
 const FACTORS = ['×1', '×1,4', '×2', '×2,8', '×4', '×5,7', '×8'] as const;
 const PX_SLACK = 1.5;
+/** The key of V_p at the top-left corner, and the band of texts at the top (PlanetFrame). */
+const V_P_KEY_WIDTH_PX = 70;
+const TEXT_BAND_PX = 30;
 const DRAG_STEPS = 6;
 const BAR_MIN_PX = 64;
 const BAR_MAX_PX = 160;
@@ -84,6 +87,19 @@ const isInside = (inner: Box, outer: Box) =>
   inner.y >= outer.y &&
   inner.x + inner.width <= outer.x + outer.width &&
   inner.y + inner.height <= outer.y + outer.height;
+
+/** The texts of the corners the knob overlaps: the key, the time badge, the r_p value, the bar. */
+async function knobHudOverlaps(lab: Locator): Promise<string[]> {
+  const svg = (await frame(lab).boundingBox())!;
+  const knobBox = (await knob(lab).locator('[data-knob]').boundingBox())!;
+  const hud: [string, Box][] = [
+    ['clave de V_p', { x: svg.x, y: svg.y, width: V_P_KEY_WIDTH_PX, height: TEXT_BAND_PX }],
+    ['insignia', (await frame(lab).locator('g[data-time-scale-badge]').boundingBox())!],
+    ['valor de r_p', (await lab.getByTestId('flyby-rp-value').boundingBox())!],
+    ['barra de escala', (await frame(lab).locator('g[data-scale-bar]').boundingBox())!],
+  ];
+  return hud.filter(([, box]) => !isApart(knobBox, box)).map(([name]) => name);
+}
 
 async function chooseEncounter(lab: Locator, label: string): Promise<void> {
   const arrival = lab.getByTestId('flyby-arrival');
@@ -291,6 +307,9 @@ test.describe('el marco del planeta, con zoom', () => {
     await page.keyboard.press('End');
     await expect.poll(isKnobInView).toBe(true);
     await expect(factor(lab)).toHaveText('×8');
+
+    // Revealed, the knob is not under the texts of the corners either (they stay where they are).
+    await expect.poll(() => knobHudOverlaps(lab)).toEqual([]);
   });
 
   test('«planeta agrandado» se va cuando el zoom lleva el planeta a su tamaño verdadero', async ({

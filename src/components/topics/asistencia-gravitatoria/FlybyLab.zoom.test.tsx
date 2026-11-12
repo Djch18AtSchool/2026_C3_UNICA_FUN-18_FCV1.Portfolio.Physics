@@ -240,6 +240,23 @@ describe('the planet frame zoom', () => {
     expect(button('Ajustar')).not.toHaveAttribute('aria-disabled');
   });
 
+  test('a key that moves the knob out of the view brings it back, clear of the corner texts', () => {
+    renderLab();
+    zoomIn(6);
+    // At ×8 about the centre the knob (45 px from the planet at ×1) is far off the panel.
+    expect(knobCentre().x).toBeLessThan(0);
+
+    fireEvent.keyDown(handle(), { key: 'Home' });
+
+    const at = knobCentre();
+    // The 11 px of its ring, the 30 px band of the corner texts and the view's 16 px of margin.
+    const margin = 11 + 30 + 16;
+    expect(at.x).toBeGreaterThanOrEqual(margin);
+    expect(at.x).toBeLessThanOrEqual(WIDTH - margin);
+    expect(at.y).toBeGreaterThanOrEqual(margin);
+    expect(at.y).toBeLessThanOrEqual(CANVAS_HEIGHT - margin);
+  });
+
   test('the planet is «agrandado» only while its true size is under 4 px on screen', () => {
     renderLab();
     fireEvent.keyDown(handle(), { key: 'End' });
