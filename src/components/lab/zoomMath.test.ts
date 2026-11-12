@@ -370,9 +370,9 @@ describe('formatZoomFactor and zoomSpoken', () => {
   });
 
   test('says the factor in words', () => {
-    expect(zoomSpoken(1)).toBe('Zoom: tamaño real');
-    expect(zoomSpoken(2.5)).toBe('Zoom: 2,5 veces el tamaño real');
-    expect(zoomSpoken(0.5)).toBe('Zoom: 0,5 veces el tamaño real');
-    expect(zoomSpoken(1000)).toBe(`Zoom: 1${NNBSP}000 veces el tamaño real`);
+    expect(zoomSpoken(1)).toBe('Zoom: escala del dibujo');
+    expect(zoomSpoken(2.5)).toBe('Zoom: 2,5 veces la escala del dibujo');
+    expect(zoomSpoken(0.5)).toBe('Zoom: 0,5 veces la escala del dibujo');
+    expect(zoomSpoken(1000)).toBe(`Zoom: 1${NNBSP}000 veces la escala del dibujo`);
   });
 });

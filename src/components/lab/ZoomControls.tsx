@@ -1,7 +1,8 @@
 /**
  * The zoom buttons of a canvas (auditoría §12.3): «Acercar», «Alejar», «Ajustar» and «Tamaño real
  * 1:1» with the zoom factor («×2,5») over them, the same group in every scene, in a corner of the
- * canvas (bottom-right by default; `corner` and `orientation` move it off what matters). Buttons
+ * canvas (bottom-right by default; `corner` and `orientation` move it off what matters). «1:1» is
+ * left out when it would repeat «Ajustar» (zoom.hasActualSize: the lab declared no fit). Buttons
  * are 40 px with 20 px glyphs; one with nothing to do is inert with aria-disabled and keeps its
  * focus. It also holds the canvas' instructions (the viewport's aria-describedby), so a canvas
  * with useZoomPan always renders it:
@@ -39,7 +40,7 @@ const DIRECTION: Readonly<Record<ZoomControlsOrientation, string>> = {
   row: 'flex-row divide-x divide-border',
 };
 const BUTTON =
-  'inline-flex size-10 items-center justify-center text-fg-muted transition-colors hover:bg-bg hover:text-fg aria-disabled:cursor-not-allowed aria-disabled:text-fg-muted/50 aria-disabled:hover:bg-transparent';
+  'inline-flex size-10 items-center justify-center text-fg-muted transition-colors hover:text-fg aria-disabled:cursor-not-allowed aria-disabled:text-fg-muted/50 aria-disabled:hover:text-fg-muted/50';
 const FACTOR =
   'flex h-8 min-w-10 items-center justify-center px-1 font-mono text-xs font-medium whitespace-nowrap text-fg tabular-nums';
 
@@ -129,14 +130,16 @@ export default function ZoomControls({
         <ZoomButton label="Ajustar" title="Ajustar (0)" isEnabled={zoom.canFit} onPress={zoom.fit}>
           <Icon d={FIT} />
         </ZoomButton>
-        <ZoomButton
-          label="Tamaño real 1:1"
-          title="Tamaño real (1:1)"
-          isEnabled={zoom.canActualSize}
-          onPress={zoom.actualSize}
-        >
-          <span className="font-mono text-xs font-medium">1:1</span>
-        </ZoomButton>
+        {zoom.hasActualSize ? (
+          <ZoomButton
+            label="Tamaño real 1:1"
+            title="Tamaño real (1:1)"
+            isEnabled={zoom.canActualSize}
+            onPress={zoom.actualSize}
+          >
+            <span className="font-mono text-xs font-medium">1:1</span>
+          </ZoomButton>
+        ) : null}
       </div>
       <span data-zoom-words="" className="sr-only">
         {spoken}

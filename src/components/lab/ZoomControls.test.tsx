@@ -9,11 +9,13 @@ import type { CanvasCorner } from './canvasCorner';
 import { useZoomPan, type ZoomPanOptions } from './useZoomPan';
 
 const NAMES = ['Acercar', 'Alejar', 'Ajustar', 'Tamaño real 1:1'] as const;
+/** A lab that declares what «Ajustar» frames: «1:1» is then a button of its own. */
+const WITH_FIT = { fit: { x: 0, y: 0, width: 400, height: 300 } };
 
 function Canvas({
   corner,
   orientation,
-  options = {},
+  options = WITH_FIT,
 }: {
   corner?: CanvasCorner;
   orientation?: 'column' | 'row';
@@ -132,7 +134,9 @@ describe('ZoomControls', () => {
     const { container } = render(<Canvas />);
 
     expect(container.querySelector('[data-zoom-factor]')).toHaveAttribute('aria-hidden', 'true');
-    expect(container.querySelector('[data-zoom-words]')).toHaveTextContent('Zoom: tamaño real');
+    expect(container.querySelector('[data-zoom-words]')).toHaveTextContent(
+      'Zoom: escala del dibujo',
+    );
   });
 
   test('says a new zoom once it settles, never at load', () => {
@@ -145,7 +149,7 @@ describe('ZoomControls', () => {
     fireEvent.click(button('Acercar'));
     act(() => vi.advanceTimersByTime(ZOOM_ANNOUNCE_DELAY_MS));
 
-    expect(status(container)).toHaveTextContent('Zoom: 2 veces el tamaño real');
+    expect(status(container)).toHaveTextContent('Zoom: 2 veces la escala del dibujo');
   });
 
   test('holds the canvas’ instructions under the id the canvas names', () => {
@@ -195,6 +199,17 @@ describe('ZoomControls', () => {
     expect(getByTestId('viewport')).not.toHaveAttribute('data-zoom-panning');
     expect(getByTestId('transform').textContent).toBe(before);
     expect(factor(container)).toBe('×2');
+  });
+
+  test('without a fit or bounds of its own the group leaves «1:1» out (it would repeat «Ajustar»)', () => {
+    render(<Canvas options={{}} />);
+
+    const group = screen.getByRole('group', { name: 'Zoom' });
+    const names = [...group.querySelectorAll('button')].map((node) =>
+      node.getAttribute('aria-label'),
+    );
+
+    expect(names).toEqual(NAMES.slice(0, 3));
   });
 
   test('every character is one IBM Plex draws', () => {

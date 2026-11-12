@@ -124,7 +124,11 @@ describe('useZoomPan', () => {
       const { viewport } = renderCanvas();
 
       expect(viewport).toHaveAttribute('aria-describedby', latest.instructionsId);
-      expect(viewport.getAttribute('aria-keyshortcuts')).toContain('ArrowLeft');
+      // ARIA spells the plus key «Plus»: a bare «+» is its separator of modifiers.
+      expect(viewport).toHaveAttribute(
+        'aria-keyshortcuts',
+        'Plus - 0 ArrowUp ArrowDown ArrowLeft ArrowRight',
+      );
     });
 
     test('rejects limits out of order, with the fix', () => {
@@ -167,16 +171,31 @@ describe('useZoomPan', () => {
       expect(latest.view).toEqual(IDENTITY_VIEW);
     });
 
-    test('fit («Ajustar») and actualSize («1:1») go back to the lab’s framing', () => {
+    test('without a fit or bounds of its own, «1:1» would repeat «Ajustar»: the hook says so', () => {
       renderCanvas();
       act(() => latest.zoomIn());
+      expect(latest.hasActualSize).toBe(false);
 
       act(() => latest.fit());
       expect(latest.view).toEqual(IDENTITY_VIEW);
+    });
 
+    test('with a drawing larger than the canvas, «Ajustar» frames it and «1:1» keeps the centre', () => {
+      const whole = { x: 0, y: 0, width: 800, height: 600 };
+      renderCanvas({ bounds: whole, fit: whole, minScale: 0.5 });
+      expect(latest.hasActualSize).toBe(true);
       act(() => latest.zoomIn());
+      act(() => latest.zoomIn());
+      act(() => latest.panBy({ x: -100, y: -40 }));
+      const centre = latest.toWorld({ x: 200, y: 150 });
+
       act(() => latest.actualSize());
-      expect(latest.view).toEqual(IDENTITY_VIEW);
+      expect(latest.view.scale).toBe(1);
+      expect(latest.toScreen(centre).x).toBeCloseTo(200, 9);
+      expect(latest.toScreen(centre).y).toBeCloseTo(150, 9);
+
+      act(() => latest.fit());
+      expect(latest.view).toEqual({ scale: 0.5, x: 0, y: 0 });
     });
 
     test('fit frames the box the lab gives', () => {

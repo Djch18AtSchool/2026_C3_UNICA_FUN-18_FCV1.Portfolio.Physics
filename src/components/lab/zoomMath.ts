@@ -65,7 +65,7 @@ const WHEEL_MAX_FACTOR = 2;
 /** Views closer than this are the same view (rounding, sub-pixel noise). */
 const SCALE_EPSILON = 1e-6;
 const OFFSET_EPSILON_PX = 0.01;
-/** Within this of ×1 the zoom reads «tamaño real». */
+/** Within this of ×1 the zoom reads «escala del dibujo». */
 const ACTUAL_SIZE_SLACK = 0.005;
 
 const isPositive = (value: number) => Number.isFinite(value) && value > 0;
@@ -276,8 +276,11 @@ export function formatZoomFactor(scale: number): string {
   return `${TIMES_SIGN}${factorNumber(scale)}`;
 }
 
-/** «Zoom: 2,5 veces el tamaño real»; «Zoom: tamaño real» at ×1. */
+/**
+ * «Zoom: 2,5 veces la escala del dibujo»; «Zoom: escala del dibujo» at ×1. The drawing's scale,
+ * not «tamaño real»: ×1 of a map of Jupiter is not Jupiter's size.
+ */
 export function zoomSpoken(scale: number): string {
-  if (Math.abs(scale - 1) < ACTUAL_SIZE_SLACK) return 'Zoom: tamaño real';
-  return `Zoom: ${factorNumber(scale)} veces el tamaño real`;
+  if (Math.abs(scale - 1) < ACTUAL_SIZE_SLACK) return 'Zoom: escala del dibujo';
+  return `Zoom: ${factorNumber(scale)} veces la escala del dibujo`;
 }
