@@ -99,7 +99,7 @@ describe('requireScaleUnits', () => {
   test.each([
     ['an empty ladder', []],
     ['a size of zero', [{ label: 'm', size: 0 }]],
-    ['sizes out of order', [...METRES_AND_KM].reverse()],
+    ['sizes out of order', [...METRES_AND_KM, { label: 'hm', size: 100 }]],
     ['an empty label', [{ label: '', size: 1 }]],
     ['no base unit of size 1 (what pxPerUnit counts)', [{ label: 'km', size: 1000 }]],
   ])('throws with %s, naming the fix', (_name, units) => {
