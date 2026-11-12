@@ -24,6 +24,7 @@ import {
   BODY_HALF_DIAGONAL,
   bodyCorners,
   DEG,
+  DIAL_MARGIN,
   pointerToDegrees,
   pointsAttribute,
   polar,
@@ -51,8 +52,6 @@ const RATE_COLOR = 'var(--accent)';
  */
 const MAX_SIDE = 400;
 const FALLBACK_WIDTH = MAX_SIDE;
-/** Room outside the dial for the knob and its degree labels. */
-const DIAL_MARGIN = 34;
 /** Gap between the body's corners and the dial, where the body's rate arc runs. */
 const BODY_GAP = 18;
 /** The wheel is drawn as this share of the body's short side: not to scale. */
@@ -70,6 +69,9 @@ const WHEEL_ARC_GAP = 6;
 const ZERO_LABEL_GAP = 6;
 const TARGET_PRECISION = 0;
 const TEXT_INSET = 8;
+const NOTE_BASELINE = 16;
+/** A halo as wide as the badge's and the labels': the note reads over a body or a wheel. */
+const NOTE_HALO = 4;
 /** Decimals of the turned groups' angles: a stable attribute string per frame. */
 const ANGLE_DECIMALS = 2;
 /**
@@ -319,8 +321,7 @@ function TargetHandle({
       aria-valuenow={targetDeg}
       aria-valuetext={mathTextToString(targetText(targetDeg))}
       className="group cursor-grab outline-none active:cursor-grabbing"
-      onKeyDown={keys.onKeyDown}
-      onFocus={keys.onFocus}
+      {...keys}
       {...drag}
     >
       <Knob at={knob} fill={TEXT_COLOR} stroke={SURFACE_COLOR} />
@@ -410,6 +411,29 @@ function ScaleBadge({ factor, side }: ScaleBadgeProps): JSX.Element {
   );
 }
 
+/**
+ * What is to scale. Painted after the body and the wheel, with the badge: zoomed in, they fill the
+ * canvas, and the note that says the bar is the body's, not the wheel's, must not go under them.
+ */
+function ScaleNote(): JSX.Element {
+  return (
+    <text
+      data-scale-note=""
+      x={TEXT_INSET}
+      y={NOTE_BASELINE}
+      fontFamily={TICK_FONT_FAMILY}
+      fontSize={NOTE_SIZE}
+      fill={TICK_COLOR}
+      stroke={SURFACE_COLOR}
+      strokeWidth={NOTE_HALO}
+      paintOrder="stroke"
+      className="pointer-events-none"
+    >
+      6U a escala; rueda no a escala
+    </text>
+  );
+}
+
 interface SceneSvgProps {
   props: WheelSceneProps;
   geometry: Geometry;
@@ -430,9 +454,6 @@ function SceneSvg({ props, geometry, keys }: SceneSvgProps): JSX.Element {
       className="block h-auto"
     >
       <g role="img" aria-label={describeScene(props)}>
-        <text x={8} y={16} fontFamily={TICK_FONT_FAMILY} fontSize={NOTE_SIZE} fill={TICK_COLOR}>
-          6U a escala; rueda no a escala
-        </text>
         {!isManeuver && props.actuator === 'magnetopar' ? <FieldLines {...geometry} /> : null}
         <Dial {...geometry} />
         {isManeuver ? <TargetSweep {...geometry} targetDeg={targetDeg} /> : null}
@@ -447,6 +468,7 @@ function SceneSvg({ props, geometry, keys }: SceneSvgProps): JSX.Element {
         {isManeuver ? null : (
           <DisturbanceMarks geometry={geometry} actuator={props.actuator} dumping={props.dumping} />
         )}
+        <ScaleNote />
         <ScaleBadge factor={props.timeScale} side={side} />
       </g>
       {isManeuver ? (

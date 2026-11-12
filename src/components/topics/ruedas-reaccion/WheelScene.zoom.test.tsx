@@ -5,8 +5,8 @@ import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
 import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX } from '../../lab/scaleBarMath';
 import WheelLab from './WheelLab';
-import { BODY_FOOTPRINT, DEG } from './wheelScene';
-import { KNOB_REVEAL_RADIUS, ZOOM_ROW_PX } from './wheelZoom';
+import { BODY_FOOTPRINT, DEG, TEXT_BAND } from './wheelScene';
+import { ZOOM_ROW_PX } from './wheelZoom';
 
 /** The widest scene (MAX_SIDE): every observed element is 400 px wide, the zoom's canvas 400 tall. */
 const SIDE = 400;
@@ -33,13 +33,21 @@ function stubResizeObserver(): void {
  * jsdom has no layout: the canvas fills the square at the page's origin and everything else sits
  * well inside it, so focusing the knob does not make the view reveal it by itself.
  */
-function stubRects(): void {
+function stubRects(knobAt: Point = { x: SIDE / 2, y: SIDE / 2 }): void {
   const rect = (left: number, top: number, width: number, height: number) =>
     ({ left, top, width, height, right: left + width, bottom: top + height }) as DOMRect;
   vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
     return this.hasAttribute('data-zoom-viewport')
       ? rect(0, 0, SIDE, SIDE)
-      : rect(SIDE / 2, SIDE / 2, 8, 8);
+      : rect(knobAt.x, knobAt.y, 8, 8);
+  });
+}
+
+/** A browser that calls every focus visible (Chromium does after the keyboard was used, even for a press). */
+function showEveryFocus(): void {
+  const matches = Element.prototype.matches;
+  vi.spyOn(Element.prototype, 'matches').mockImplementation(function (this: Element, selector) {
+    return selector === ':focus-visible' ? true : matches.call(this, selector);
   });
 }
 
@@ -57,8 +65,6 @@ function renderLab() {
   mockIdentityCtm();
   return view;
 }
-
-type Point = { x: number; y: number };
 
 const scene = () => screen.getByTestId('wheel-scene');
 const handle = () => screen.getByTestId('target-handle');
@@ -99,6 +105,8 @@ function scaleBar() {
     text,
   };
 }
+
+type Point = { x: number; y: number };
 
 describe('the wheel scene zoom', () => {
   let uninstall: () => void;
@@ -239,7 +247,7 @@ describe('the wheel scene zoom', () => {
     fireEvent.keyDown(handle(), { key: 'End' });
 
     expect(handle()).toHaveAttribute('aria-valuenow', '180');
-    expect(band(knobCentre())).toBeGreaterThanOrEqual(KNOB_REVEAL_RADIUS - 1);
+    expect(band(knobCentre())).toBeGreaterThanOrEqual(TEXT_BAND - 1);
   });
 
   test('the knob’s angle is still the pointer’s: the dial’s centre moves with the pan', () => {
@@ -277,5 +285,63 @@ describe('the wheel scene zoom', () => {
     zoomIn(6);
 
     expect(arrows().length).toBeLessThan(before);
+  });
+
+  test('a press on the knob 8 px from the edge does not pan the view, whatever the focus looks like', async () => {
+    // The press focuses the knob (useDrag does) and a browser may call that focus visible: neither
+    // the knob's own reveal nor the canvas' may move the view under the pointer.
+    vi.restoreAllMocks();
+    stubRects({ x: 4, y: SIDE / 2 });
+    showEveryFocus();
+    renderLab();
+    zoomIn(4);
+    const before = dialCentre();
+    const start = knobCentre();
+
+    fireEvent.pointerDown(handle(), { pointerId: 1, clientX: start.x, clientY: start.y });
+    await Promise.resolve();
+    fireEvent.pointerMove(handle(), { pointerId: 1, clientX: start.x + 0.5, clientY: start.y });
+    fireEvent.pointerUp(handle(), { pointerId: 1, clientX: start.x + 0.5, clientY: start.y });
+
+    expect(dialCentre()).toEqual(before);
+  });
+
+  test('the keyboard’s focus on the knob does reveal it, and a press that ended does not leave the knob deaf to it', async () => {
+    vi.restoreAllMocks();
+    stubRects({ x: 4, y: SIDE / 2 });
+    showEveryFocus();
+    renderLab();
+    zoomIn(4);
+    const start = knobCentre();
+    fireEvent.pointerDown(handle(), { pointerId: 1, clientX: start.x, clientY: start.y });
+    fireEvent.pointerUp(handle(), { pointerId: 1, clientX: start.x, clientY: start.y });
+    handle().blur();
+    const before = dialCentre();
+
+    handle().focus();
+    await Promise.resolve();
+
+    expect(dialCentre()).not.toEqual(before);
+  });
+
+  test('the note on the scale is painted after the body, the wheel and the dial, next to the badge', () => {
+    renderLab();
+
+    const note = screen.getByText('6U a escala; rueda no a escala');
+    for (const under of ['[data-body="live"]', '[data-wheel]', '[data-dial]']) {
+      const node = scene().querySelector(under) as Element;
+      expect(
+        node.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING,
+        under,
+      ).toBeTruthy();
+    }
+    const badge = scene().querySelector('g[data-time-scale-badge]') as Element;
+    expect(note.compareDocumentPosition(badge) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  test('the bar says whose length it is, in words and on the page: «de la nave»', () => {
+    renderLab();
+
+    expect(screen.getByText('de la nave')).toBeVisible();
   });
 });

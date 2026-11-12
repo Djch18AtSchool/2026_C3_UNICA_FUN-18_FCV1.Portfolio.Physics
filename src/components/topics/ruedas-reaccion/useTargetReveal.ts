@@ -45,13 +45,23 @@ export interface TargetRevealInput {
 export interface TargetKnobHandlers {
   onKeyDown(event: ReactKeyboardEvent<SVGGElement>): void;
   onFocus(event: ReactFocusEvent<SVGGElement>): void;
+  /** In the capture phase, so they run before useDrag's own pointerdown (which focuses the knob). */
+  onPointerDownCapture(): void;
+  onPointerUpCapture(): void;
+  onPointerCancelCapture(): void;
 }
 
 /**
- * The knob's keys (arrows 1°, Shift 10°, Page keys, Home and End) and its reveal: after a key that
+ * The knob's keys (arrows 1°, Shift 10°, Page keys, Home and End) and its reveal. After a key that
  * moves it, and when the keyboard focuses it, the view pans it back with the band of the corner
- * texts around it. A drag does not: the knob is under the pointer. The canvas reveals any focused
- * handle itself (16 px of margin); the focus asks again, after it, for the larger one, which wins.
+ * texts around it.
+ *
+ * A press to drag it must not pan the view, or the knob leaves the pointer. useDrag focuses the
+ * knob on pointerdown, and a browser may call that focus visible (Chromium does after any use of
+ * the keyboard), so `:focus-visible` cannot tell a press from the keyboard: the knob remembers it
+ * is being pressed, from pointerdown to pointerup, and in that focus it neither reveals nor lets
+ * the canvas' own reveal (16 px, a focus event that bubbles) run. This stands in until the zoom
+ * canvas knows the pointer's modality itself (R30).
  */
 export function useTargetReveal({
   targetDeg,
@@ -60,6 +70,7 @@ export function useTargetReveal({
   knobAt,
 }: TargetRevealInput): TargetKnobHandlers {
   const isRevealPending = useRef(false);
+  const isPressed = useRef(false);
   const { reveal } = zoom;
   const zoomScale = zoom.view.scale;
   const { x, y } = knobAt;
@@ -68,8 +79,8 @@ export function useTargetReveal({
     [reveal, x, y, zoomScale],
   );
   const latest = useRef(revealKnob);
-  latest.current = revealKnob;
   useEffect(() => {
+    latest.current = revealKnob;
     if (!isRevealPending.current) return;
     isRevealPending.current = false;
     revealKnob();
@@ -83,8 +94,22 @@ export function useTargetReveal({
       if (next !== targetDeg) onTargetChange(next);
     },
     onFocus: (event) => {
-      // Only a focus that shows (the keyboard's): a press on the knob to drag it must not pan the view.
+      if (isPressed.current) {
+        event.stopPropagation();
+        return;
+      }
+      // The canvas reveals the focused knob itself (16 px of margin); asking again, after it, for
+      // the larger one wins.
       if (isFocusShown(event.currentTarget)) queueMicrotask(() => latest.current());
+    },
+    onPointerDownCapture: () => {
+      isPressed.current = true;
+    },
+    onPointerUpCapture: () => {
+      isPressed.current = false;
+    },
+    onPointerCancelCapture: () => {
+      isPressed.current = false;
     },
   };
 }

@@ -24,6 +24,10 @@ const GLYPH_PX = 20;
 const FACTORS = ['×1', '×1,4', '×2', '×2,8', '×4', '×5,7', '×8'] as const;
 const PX_SLACK = 1.5;
 const DRAG_STEPS = 6;
+/** How far the knob is from the canvas' edge when it is pressed: inside the 16 px of the shared reveal. */
+const EDGE_GAP_PX = 8;
+/** The band of the corner texts a revealed knob keeps (TEXT_BAND). */
+const TEXT_BAND_PX = 45;
 const BAR_MIN_PX = 64;
 const BAR_MAX_PX = 160;
 /** The 6U's long side seen along the slew axis (m): 366,0 mm. */
@@ -308,6 +312,82 @@ test.describe('la escena de la rueda, con zoom', () => {
       await expect.poll(() => knobHudOverlaps(lab), { message: key }).toEqual([]);
     }
     await expect(factor(lab)).toHaveText('×8');
+  });
+
+  test('pulsar la perilla con el ratón a 8 px del borde, a ×4, no desplaza la vista ni mueve el valor', async ({
+    page,
+  }) => {
+    // Sin deslizamiento, la vista leída tras la pulsación es la final.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const lab = await openLab(page);
+    await zoomTo(lab, 4);
+    await tabToCanvas(page, lab);
+    await page.keyboard.press('Tab');
+    await expect(knob(lab)).toBeFocused();
+    // El teclado ya se usó: el navegador da por visible cualquier foco que venga después.
+    await page.keyboard.press('End');
+    // The keyboard scrolled the page to the focus: bring the canvas back to the middle for the mouse.
+    await canvas(lab).evaluate((element) => element.scrollIntoView({ block: 'center' }));
+    const area = (await canvas(lab).boundingBox())!;
+    const centreOf = (box: Box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
+    // Revealed by the key: its centre is the band's width from the left edge.
+    await expect
+      .poll(async () => centreOf(await knobBox(lab)).x - area.x)
+      .toBeCloseTo(TEXT_BAND_PX, 0);
+
+    // Arrastra el fondo hasta dejar la perilla a 8 px del borde.
+    const grabAt = { x: area.x + area.width * 0.6, y: area.y + area.height / 2 };
+    const toEdge = area.x + EDGE_GAP_PX - centreOf(await knobBox(lab)).x;
+    await dragMouse(page, grabAt, { x: toEdge, y: 0 });
+    await page.mouse.up();
+    // El foco pasa al lienzo con el teclado: un foco visible. La pulsación sobre la perilla la
+    // enfocará por script desde ahí, y Chromium da ese foco por visible aunque venga del ratón.
+    await tabToCanvas(page, lab);
+    await canvas(lab).evaluate((element) => element.scrollIntoView({ block: 'center' }));
+    await expect
+      .poll(async () => centreOf(await knobBox(lab)).x - area.x)
+      .toBeCloseTo(EDGE_GAP_PX, 0);
+
+    const view = await dialCentre(lab);
+    const value = Number(await knob(lab).getAttribute('aria-valuenow'));
+    const grip = centreOf(await knobBox(lab));
+    await page.mouse.move(grip.x, grip.y);
+    await page.mouse.down();
+    await page.mouse.move(grip.x + 0.5, grip.y);
+
+    await expect(knob(lab)).toBeFocused();
+    expect(await dialCentre(lab)).toEqual(view);
+    expect(
+      Math.abs(Number(await knob(lab).getAttribute('aria-valuenow')) - value),
+    ).toBeLessThanOrEqual(1);
+    await page.mouse.up();
+    expect(await dialCentre(lab)).toEqual(view);
+  });
+
+  test('la nota «6U a escala; rueda no a escala» se pinta después del cuerpo, la rueda y el dial, y la barra dice «de la nave», a cada zoom', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const lab = await openLab(page);
+
+    for (let click = 0; click <= MAX_ZOOM_CLICKS; click += 1) {
+      if (click > 0) await zoomButton(lab, 'Acercar').click();
+      await expect(factor(lab)).toHaveText(FACTORS[click]);
+      // The elements are `pointer-events: none`, so painting order is read from the DOM's: the
+      // later one is on top.
+      const isOnTop = await scene(lab).evaluate((svg) => {
+        const note = svg.querySelector('[data-scale-note]')!;
+        return ['[data-body="live"]', '[data-wheel]', '[data-dial]'].map(
+          (selector) =>
+            !!(
+              svg.querySelector(selector)!.compareDocumentPosition(note) &
+              Node.DOCUMENT_POSITION_FOLLOWING
+            ),
+        );
+      });
+      expect(isOnTop, `paso ${click}`).toEqual([true, true, true]);
+      await expect(lab.locator('[data-wheel-zoom-strip]').getByText('de la nave')).toBeVisible();
+    }
   });
 
   test('«Restablecer» vuelve a encuadrar la escena; cambiar de modo conserva el zoom', async ({
