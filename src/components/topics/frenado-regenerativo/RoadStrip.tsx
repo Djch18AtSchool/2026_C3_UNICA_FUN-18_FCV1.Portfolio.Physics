@@ -160,9 +160,13 @@ function GhostLive(props: RoadStripProps & { ghost: LiveBalance }): JSX.Element 
   );
 }
 
-/** The stop line of «Conducir», where the cycle's car stops: a bar across the road. */
-function StopLine({ range, x0, x1, y }: RoadStripProps & { range: { line: number } }) {
-  const x = roadPosition(range.line - range.from, range.to - range.from, x0, x1);
+/**
+ * The stop line of «Conducir», where the cycle's car stops: a bar across the road, on the cars'
+ * scale (carX), so a car standing on the line is drawn centred on it.
+ */
+function StopLine(props: RoadStripProps & { range: { line: number } }) {
+  const { range, y } = props;
+  const x = carX(props, range.line);
   return (
     <line
       data-testid="regen-stop-line"
