@@ -64,6 +64,33 @@ describe('scaleBarLength', () => {
   });
 });
 
+describe('scaleBarLength with a ladder that is not decimal (km, then R_J = 71 492 km)', () => {
+  const KM_AND_JUPITER = [
+    { label: 'km', size: 1 },
+    { label: '$R_J$', size: 71_492 },
+  ];
+
+  test.each([0.0012, 0.0008, 0.0002, 0.00003, 0.003, 0.02])(
+    'at %f px per km the bar is a round count of its unit, exactly as long as it says',
+    (pxPerUnit) => {
+      const bar = scaleBarLength(pxPerUnit, KM_AND_JUPITER)!;
+      const unit = KM_AND_JUPITER.find((candidate) => bar.text.endsWith(candidate.label))!;
+      const mantissa = bar.value / 10 ** Math.floor(Math.log10(bar.value));
+
+      expect(bar.px / pxPerUnit / unit.size).toBeCloseTo(bar.value, 9);
+      expect([1, 2, 5]).toContain(Number(mantissa.toPrecision(6)));
+      expect(bar.px).toBeGreaterThanOrEqual(SCALE_BAR_MIN_PX - 1e-9);
+      expect(bar.px).toBeLessThanOrEqual(SCALE_BAR_MAX_PX + 1e-9);
+    },
+  );
+
+  test('«1 $R_J$» once a whole radius fits; below that, kilometres', () => {
+    expect(scaleBarLength(0.0012, KM_AND_JUPITER)?.text).toBe(`1${NNBSP}$R_J$`);
+    expect(scaleBarLength(0.0008, KM_AND_JUPITER)?.text).toBe(`2${NNBSP}$R_J$`);
+    expect(scaleBarLength(0.003, KM_AND_JUPITER)?.text).toBe(`50${NNBSP}000${NNBSP}km`);
+  });
+});
+
 describe('requireScaleUnits', () => {
   test('accepts a ladder from small to large with positive sizes', () => {
     expect(() => requireScaleUnits(METRES_AND_KM)).not.toThrow();
@@ -74,6 +101,7 @@ describe('requireScaleUnits', () => {
     ['a size of zero', [{ label: 'm', size: 0 }]],
     ['sizes out of order', [...METRES_AND_KM].reverse()],
     ['an empty label', [{ label: '', size: 1 }]],
+    ['no base unit of size 1 (what pxPerUnit counts)', [{ label: 'km', size: 1000 }]],
   ])('throws with %s, naming the fix', (_name, units) => {
     expect(() => requireScaleUnits(units)).toThrow(/ScaleBar/u);
   });

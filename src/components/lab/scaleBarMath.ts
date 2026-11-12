@@ -8,7 +8,10 @@ import { formatNumber } from '../../lib/format';
 import { inlineMathToSpeech, splitInlineMath } from '../../lib/inlineMath';
 import { rawNotationMarks } from '../../lib/typography';
 
-/** One unit of a ladder: its label (words, formulas between $…$) and its size in base units. */
+/**
+ * One unit of a ladder: its label (words, formulas between $…$) and its size in base units. The
+ * first unit is the base (size 1, the one pxPerUnit counts); the ratios need not be powers of 10.
+ */
 export interface ScaleUnit {
   readonly label: string;
   readonly size: number;
@@ -37,6 +40,11 @@ export function requireScaleUnits(units: readonly ScaleUnit[]): void {
     if (unit.label.trim() === '') throw new RangeError('ScaleBar: una unidad sin nombre.');
     if (!(Number.isFinite(unit.size) && unit.size > 0)) {
       throw new RangeError(`ScaleBar: la unidad «${unit.label}» necesita un tamaño positivo.`);
+    }
+    if (index === 0 && unit.size !== 1) {
+      throw new RangeError(
+        `ScaleBar: la primera unidad («${unit.label}») es la que cuenta pxPerUnit y mide 1.`,
+      );
     }
     if (index > 0 && unit.size <= units[index - 1].size) {
       throw new RangeError('ScaleBar: las unidades van de la menor a la mayor.');
@@ -73,20 +81,25 @@ function largestRoundLength(pxPerUnit: number): number {
 const decimalsFor = (value: number) => Math.max(0, -Math.floor(Math.log10(value)));
 
 /**
- * The bar for `pxPerUnit` CSS px per base unit (the lab's own scale times the zoom). With a ladder
- * of units (m, km), the largest unit the length reaches; undefined when the scale is not a
- * positive finite number.
+ * The bar for `pxPerUnit` CSS px per base unit (the lab's own scale times the zoom). The round
+ * length is sought in each unit of the ladder, from the largest down: the first unit in which a
+ * whole round count (1, 2, 5, 10…) fits is the one written, so a ladder need not be decimal (km
+ * then $R_J$ reads «1 $R_J$», never 1,4 radii rounded to «1»). The base unit takes any round
+ * length, below one too («0,5 km»). Undefined when the scale is not a positive finite number.
  */
 export function scaleBarLength(
   pxPerUnit: number,
   units: readonly ScaleUnit[],
 ): ScaleBarLength | undefined {
   if (!(Number.isFinite(pxPerUnit) && pxPerUnit > 0)) return undefined;
-  const length = largestRoundLength(pxPerUnit);
-  const unit = [...units].reverse().find((candidate) => candidate.size <= length) ?? units[0];
-  const value = length / unit.size;
+  const lengths = [...units].reverse().map((unit) => ({
+    unit,
+    value: largestRoundLength(pxPerUnit * unit.size),
+  }));
+  const { unit, value } =
+    lengths.find((candidate) => candidate.value >= 1) ?? lengths[lengths.length - 1];
   const text = formatNumber(value, { precision: decimalsFor(value), unit: unit.label });
-  return { value, px: length * pxPerUnit, text };
+  return { value, px: value * unit.size * pxPerUnit, text };
 }
 
 /** «Barra de escala: 1 000 km», a formula said in words («1 R sub J»). */
