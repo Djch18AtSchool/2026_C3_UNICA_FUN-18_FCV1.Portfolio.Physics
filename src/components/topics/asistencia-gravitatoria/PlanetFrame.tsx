@@ -37,6 +37,7 @@ import { SIDE_NAMES } from './flybyPresets';
 import {
   CORNER,
   cornerTexts,
+  KNOB_CLEARANCE,
   knobLabel,
   labelObstacles,
   NOTE_SIZE,
@@ -108,7 +109,7 @@ const PX_DECIMALS = 2;
  * The room a reveal gives the knob, in screen px: its focus ring (11) and the band of the corner
  * texts (TEXT_BAND), so a revealed knob is never under the key, the badge or the bar.
  */
-const KNOB_REVEAL_RADIUS = 11 + TEXT_BAND;
+const KNOB_REVEAL_RADIUS = KNOB_CLEARANCE + TEXT_BAND;
 
 const toPath = (points: Point[]) =>
   points.map((p, k) => `${k === 0 ? 'M' : 'L'}${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ');
@@ -292,11 +293,14 @@ interface KnobRevealInput {
 }
 
 /**
- * The knob in the view, clear of the texts of the corners. A key that moves it, or the focus
- * that takes it, can leave it out of the view or under those texts at a zoom: the view then
- * pans it back with the texts' band around it. A drag does not: the knob is under the pointer.
- * The canvas reveals any focused handle itself (16 px of margin); the focus asks again, after it,
- * for this larger margin, which wins.
+ * The knob in the view, clear of the texts of the corners. A key that moves it, or the keyboard's
+ * focus that takes it, can leave it out of the view or under those texts at a zoom: the view then
+ * pans it back with the texts' band around it (the canvas' own reveal of a focused handle leaves
+ * only 16 px). The knob's focus does not reach the canvas' handler (stopPropagation), so this is
+ * the only reveal for it, and only a focus that shows (:focus-visible) makes one: pressing the
+ * knob to drag it does not pan the view, whichever way the shared canvas reveals on a click's
+ * focus. That covers the knob only; the zoom buttons and other descendants keep the canvas'
+ * own reveal until the shared piece ignores a focus that does not show.
  */
 function useKnobReveal({ rp, onRpRequest, zoom, knobAt }: KnobRevealInput) {
   const isRevealPending = useRef(false);
@@ -307,8 +311,6 @@ function useKnobReveal({ rp, onRpRequest, zoom, knobAt }: KnobRevealInput) {
       reveal({ x: knobAt.x - radius, y: knobAt.y - radius, width: 2 * radius, height: 2 * radius }),
     [reveal, knobAt.x, knobAt.y, radius],
   );
-  const latest = useRef(revealKnob);
-  latest.current = revealKnob;
   useEffect(() => {
     if (!isRevealPending.current) return;
     isRevealPending.current = false;
@@ -322,8 +324,8 @@ function useKnobReveal({ rp, onRpRequest, zoom, knobAt }: KnobRevealInput) {
     onRpRequest(next);
   };
   const onFocus = (event: FocusEvent<SVGGElement>) => {
-    // Only a focus that shows (the keyboard's): a press on the knob to drag it must not pan the view.
-    if (isFocusShown(event.currentTarget)) queueMicrotask(() => latest.current());
+    event.stopPropagation();
+    if (isFocusShown(event.currentTarget)) revealKnob();
   };
   return { onKeyDown, onFocus };
 }
@@ -420,59 +422,78 @@ function PeriapsisHandle({ props, at, label, drag, onKeyDown, onFocus }: HandleP
   );
 }
 
-/** The flyby in the planet frame, to the scale the log bar sets, through the zoom's view. */
-function Frame({ props, panel, zoom }: FrameBodyProps): JSX.Element {
+type FrameModel = ReturnType<typeof useFrameModel>;
+
+interface FrameSvgProps {
+  props: PlanetFrameProps;
+  panel: Panel;
+  model: FrameModel;
+}
+
+/** The drawing's SVG: corner texts and scale bar, the planet and the track, the probe, the knob. */
+function FrameSvg({ props, panel, model }: FrameSvgProps): JSX.Element {
   const { hyperbola, planet, unit, live, showVectors, clock } = props;
-  const model = useFrameModel({ props, panel, zoom });
   const { world, screen, bar, barSpot, pxPerKm, corners, rpValue, isNoteShown } = model;
   const planetColor = `var(${planet.token})`;
-  const units = planetScaleUnits(unit, planet.radiusKm);
+  const scaleBar = bar ? (
+    <ScaleBarSvg
+      pxPerUnit={pxPerKm}
+      units={planetScaleUnits(unit, planet.radiusKm)}
+      x={barSpot.at.x}
+      y={barSpot.at.y}
+    />
+  ) : null;
+  return (
+    <svg
+      data-testid="flyby-planet-frame"
+      viewBox={`0 0 ${panel.width} ${panel.height}`}
+      width="100%"
+      className="block h-auto"
+    >
+      <g role="img" aria-label={describe(props)}>
+        <Corners
+          corners={corners}
+          rpValue={rpValue}
+          clock={clock}
+          planetColor={planetColor}
+          isNoteShown={isNoteShown}
+          scaleBar={scaleBar}
+        />
+        <Drawing
+          screen={screen}
+          planetColor={planetColor}
+          showVectors={showVectors}
+          labels={model.labels}
+        />
+        <ProbeLayer
+          live={live}
+          hyperbola={hyperbola}
+          track={world.track}
+          trackPx={screen.trackPx}
+          toPx={screen.toPx}
+          showVectors={showVectors}
+        />
+      </g>
+      <PeriapsisHandle
+        props={props}
+        at={screen.periapsis}
+        label={model.knob}
+        drag={model.drag}
+        onKeyDown={model.onKeyDown}
+        onFocus={model.onFocus}
+      />
+    </svg>
+  );
+}
+
+/** The flyby in the planet frame, to the scale the log bar sets, through the zoom's view. */
+function Frame({ props, panel, zoom }: FrameBodyProps): JSX.Element {
+  const model = useFrameModel({ props, panel, zoom });
+  const units = planetScaleUnits(props.unit, props.planet.radiusKm);
   return (
     <>
-      <svg
-        data-testid="flyby-planet-frame"
-        viewBox={`0 0 ${panel.width} ${panel.height}`}
-        width="100%"
-        className="block h-auto"
-      >
-        <g role="img" aria-label={describe(props)}>
-          <Corners
-            corners={corners}
-            rpValue={rpValue}
-            clock={clock}
-            planetColor={planetColor}
-            isNoteShown={isNoteShown}
-            scaleBar={
-              bar ? (
-                <ScaleBarSvg pxPerUnit={pxPerKm} units={units} x={barSpot.at.x} y={barSpot.at.y} />
-              ) : null
-            }
-          />
-          <Drawing
-            screen={screen}
-            planetColor={planetColor}
-            showVectors={showVectors}
-            labels={model.labels}
-          />
-          <ProbeLayer
-            live={live}
-            hyperbola={hyperbola}
-            track={world.track}
-            trackPx={screen.trackPx}
-            toPx={screen.toPx}
-            showVectors={showVectors}
-          />
-        </g>
-        <PeriapsisHandle
-          props={props}
-          at={screen.periapsis}
-          label={model.knob}
-          drag={model.drag}
-          onKeyDown={model.onKeyDown}
-          onFocus={model.onFocus}
-        />
-      </svg>
-      <ScaleBarWords pxPerUnit={pxPerKm} units={units} />
+      <FrameSvg props={props} panel={panel} model={model} />
+      <ScaleBarWords pxPerUnit={model.pxPerKm} units={units} />
     </>
   );
 }
@@ -484,7 +505,7 @@ function Frame({ props, panel, zoom }: FrameBodyProps): JSX.Element {
  * logarithmic r_p scale: drag it, or use the arrow keys, Page keys, Home and End. The canvas
  * zooms (useZoomPan, ZoomControls): the drawing, its scale bar and the planet's size follow the
  * view; the texts of the corners, the arrows' size and the knob do not. The buttons sit in a
- * strip under the square, so they never cover the drawing at the lab's own framing.
+ * strip under the square, outside the zoom's canvas, so they never cover the drawing nor pan it.
  */
 export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
@@ -497,9 +518,11 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
     <div ref={wrapperRef} className="w-full" style={{ maxWidth: MAX_SIDE }}>
       <div {...zoom.viewportProps} className="relative">
         <Frame props={props} panel={{ width, height: side }} zoom={zoom} />
-        <div className="flex items-center justify-end px-2" style={{ height: ZOOM_STRIP_PX }}>
-          <ZoomControls zoom={zoom} corner="inline" orientation="row" />
-        </div>
+      </div>
+      {/* Outside the canvas: the zoom measures the drawing's square (bounds, the buttons' pivot, the
+          reveal's margins), and focusing or pressing a button must not pan the drawing. */}
+      <div className="flex items-center justify-end px-2" style={{ height: ZOOM_STRIP_PX }}>
+        <ZoomControls zoom={zoom} corner="inline" orientation="row" />
       </div>
     </div>
   );

@@ -82,6 +82,22 @@ describe('screenFrame', () => {
     expect(screen.planet.radiusPx).toBeCloseTo(2 * base.planet.radiusPx, 9);
   });
 
+  test("about any other point the planet's centre moves with the view, and so does everything on it", () => {
+    const about = { x: 300, y: 60 };
+    const view = zoomed(2, about);
+    const base = screenFrame(world, drawn, IDENTITY_VIEW, hyperbola, planet);
+    const screen = screenFrame(world, drawn, view, hyperbola, planet);
+
+    // screen = drawing · scale + (x, y): the centre is not where it was.
+    expect(screen.centre.x).toBeCloseTo(drawn.x * 2 + view.x, 9);
+    expect(screen.centre.y).toBeCloseTo(drawn.y * 2 + view.y, 9);
+    expect(screen.centre.x).not.toBeCloseTo(drawn.x, 3);
+    expect(screen.periapsis.x - screen.centre.x).toBeCloseTo(
+      2 * (base.periapsis.x - base.centre.x),
+      9,
+    );
+  });
+
   test('the v∞ arrows keep their length at any zoom: they are a velocity, not a distance', () => {
     for (const scale of [1, 2, 8]) {
       const screen = screenFrame(world, drawn, zoomed(scale, drawn), hyperbola, planet);

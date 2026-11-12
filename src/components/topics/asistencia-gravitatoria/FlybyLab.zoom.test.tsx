@@ -8,20 +8,26 @@ import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX } from '../../lab/scaleBarMath';
 import FlybyLab from './FlybyLab';
 import { ZOOM_STRIP_PX } from './planetZoom';
 
-/** The widest frame (MAX_SIDE) and the canvas the zoom measures: the square and its strip. */
+/** The widest frame (MAX_SIDE): the drawing's square, which is also the canvas the zoom measures. */
 const WIDTH = 380;
-const CANVAS_HEIGHT = WIDTH + ZOOM_STRIP_PX;
 const ZOOM_STEP = Math.SQRT2;
 const PX_SLACK = 0.5;
 
-/** Every observed element is 380 px wide; the zoom's canvas also has the buttons' strip under it. */
+/**
+ * What jsdom cannot lay out: every element is a 380 px square, except a canvas that holds the
+ * buttons' strip, which is that much taller. The strip belongs outside the canvas: inside it the
+ * zoom would measure the square and the strip together.
+ */
+const canvasHeight = (element: Element) =>
+  WIDTH + (element.querySelector('[data-zoom-controls]') ? ZOOM_STRIP_PX : 0);
+
 function stubResizeObserver(): void {
   vi.stubGlobal(
     'ResizeObserver',
     class {
       constructor(private readonly callback: ResizeObserverCallback) {}
       observe(target: Element) {
-        const contentRect = { width: WIDTH, height: CANVAS_HEIGHT };
+        const contentRect = { width: WIDTH, height: canvasHeight(target) };
         this.callback([{ target, contentRect } as ResizeObserverEntry], this as never);
       }
       unobserve() {}
@@ -34,12 +40,15 @@ function stubResizeObserver(): void {
  * jsdom has no layout: the canvas is at the page's origin and everything else sits well inside
  * it, so focusing the knob (a drag starts by focusing it) does not make the view reveal it.
  */
+let isKnobAtEdge = false;
 function stubRects(): void {
   const rect = (left: number, top: number, width: number, height: number) =>
     ({ left, top, width, height, right: left + width, bottom: top + height }) as DOMRect;
   vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
-    return this.hasAttribute('data-zoom-viewport')
-      ? rect(0, 0, WIDTH, CANVAS_HEIGHT)
+    if (this.hasAttribute('data-zoom-viewport')) return rect(0, 0, WIDTH, canvasHeight(this));
+    // The knob 4 px from the left edge: the canvas' own reveal (16 px of margin) would pan for it.
+    return this.getAttribute('data-testid') === 'periapsis-handle' && isKnobAtEdge
+      ? rect(4, WIDTH / 2, 8, 8)
       : rect(WIDTH / 2, WIDTH / 2, 8, 8);
   });
 }
@@ -112,6 +121,7 @@ describe('the planet frame zoom', () => {
     uninstall = installDialogPolyfill();
     setSettings({ motion: 'reduced' });
     stubResizeObserver();
+    isKnobAtEdge = false;
     stubRects();
   });
   afterEach(() => {
@@ -129,7 +139,10 @@ describe('the planet frame zoom', () => {
     const canvas = screen.getByRole('group', { name: 'Marco de Júpiter' });
     expect(canvas).toHaveAttribute('aria-roledescription', 'lienzo con zoom');
     expect(canvas).toContainElement(frame());
-    const zoom = within(canvas).getByRole('group', { name: 'Zoom' });
+    // The buttons are the canvas' sibling, in the same box: the zoom's canvas is the drawing's square.
+    const zoom = screen.getByRole('group', { name: 'Zoom' });
+    expect(canvas).not.toContainElement(zoom);
+    expect(canvas.parentElement).toContainElement(zoom);
     for (const name of ['Acercar', 'Alejar', 'Ajustar']) {
       expect(within(zoom).getByRole('button', { name })).toBeInTheDocument();
     }
@@ -254,7 +267,18 @@ describe('the planet frame zoom', () => {
     expect(at.x).toBeGreaterThanOrEqual(margin);
     expect(at.x).toBeLessThanOrEqual(WIDTH - margin);
     expect(at.y).toBeGreaterThanOrEqual(margin);
-    expect(at.y).toBeLessThanOrEqual(CANVAS_HEIGHT - margin);
+    expect(at.y).toBeLessThanOrEqual(WIDTH - margin);
+  });
+
+  test('focusing the knob at the edge of the view does not pan it: a press to drag it keeps the view', () => {
+    renderLab();
+    zoomIn(4);
+    isKnobAtEdge = true;
+    const before = centre('flyby-planet');
+
+    fireEvent.focus(handle());
+
+    expect(centre('flyby-planet')).toEqual(before);
   });
 
   test('the planet is «agrandado» only while its true size is under 4 px on screen', () => {

@@ -3,6 +3,7 @@ import { PLANETS } from '../../../lib/data/planets';
 import { boxesOverlap } from '../../lab/labelClearance';
 import { IDENTITY_VIEW, type ZoomView } from '../../lab/zoomMath';
 import { flybyHyperbola } from './flybyOrbit';
+import { FLYBY_PRESETS } from './flybyPresets';
 import {
   BAR_INSET,
   cornerTexts,
@@ -137,5 +138,68 @@ describe('labelObstacles', () => {
     expect(withAll.length - without.length).toBe(2);
     expect(withAll).toContain(corners.noteBox);
     expect(without).not.toContain(corners.noteBox);
+  });
+});
+
+describe('placeVInfLabels over every encounter, side, zoom and pan', () => {
+  const ZOOMS = [1, Math.SQRT2, 2, 4, 8];
+  /** Arrow-key presses of the canvas (48 px each) in every direction, and the view as it opens. */
+  const PANS = [
+    { x: 0, y: 0 },
+    { x: 48, y: 0 },
+    { x: -48, y: 0 },
+    { x: 0, y: 48 },
+    { x: 0, y: -48 },
+    { x: -96, y: 48 },
+    { x: 96, y: -96 },
+  ];
+
+  test('no label is drawn cut by the panel: its whole box is inside', () => {
+    const cut: string[] = [];
+    let drawn = 0;
+    for (const { name, values } of FLYBY_PRESETS) {
+      const p = PLANETS[values.encounter.planet];
+      for (const side of ['behind', 'front'] as const) {
+        const h = flybyHyperbola({
+          vInf: values.encounter.vInf,
+          rp: values.rp * p.radiusKm,
+          GM: p.gm,
+          thetaIn: values.encounter.thetaInDeg * DEG,
+          side,
+        });
+        const world = frameWorld(h, p, WIDEST.width, WIDEST.height);
+        for (const scale of ZOOMS) {
+          for (const pan of PANS) {
+            const view = { ...zoomedAbout(scale, WIDEST) };
+            const moved = { scale, x: view.x + pan.x, y: view.y + pan.y };
+            const screen = screenFrame(world, world.fitted, moved, h, p);
+            const corners = cornerTexts(WIDEST, RP_VALUE, RATE);
+            const bar = scaleBarSpot(undefined, WIDEST);
+            const obstacles = labelObstacles(corners, bar, screen, knobLabel(screen, WIDEST), true);
+            const labels = placeVInfLabels({
+              screen,
+              world,
+              panel: WIDEST,
+              obstacles,
+              barLine: bar.line,
+            });
+            for (const label of [labels.in, labels.out]) {
+              if (!label) continue;
+              drawn += 1;
+              const { box } = label;
+              const isWhole =
+                box.left >= 0 &&
+                box.top >= 0 &&
+                box.right <= WIDEST.width &&
+                box.bottom <= WIDEST.height;
+              if (!isWhole) cut.push(`${name} ${side} ×${scale} ${pan.x},${pan.y}`);
+            }
+          }
+        }
+      }
+    }
+
+    expect(drawn).toBeGreaterThan(0);
+    expect(cut).toEqual([]);
   });
 });

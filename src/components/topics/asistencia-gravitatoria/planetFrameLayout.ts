@@ -31,8 +31,8 @@ const CORNER_BASELINE = 10;
 const VP_TEXT_GAP = 6;
 /** The knob's label clears its focus ring (11 px) and the knob's halo. */
 const KNOB_LABEL_GAP = 22;
-/** The knob's focus ring (11 px) that a label keeps clear of. */
-const KNOB_CLEARANCE = 11;
+/** The knob's focus ring (11 px, Knob's): what a label keeps clear of, and a reveal leaves around it. */
+export const KNOB_CLEARANCE = 11;
 /** The widest r_p value the frame prints (100 radii): the badge keeps clear of it. */
 const WIDEST_RP_VALUE = 'r_p = 100,00 R_J';
 /** The scale bar's baseline is this far above the panel's bottom edge. */
@@ -136,6 +136,9 @@ export function knobLabel(screen: ScreenFrame, panel: Panel): KnobLabel | undefi
   return { ...placed, box };
 }
 
+const isWholeOnPanel = (box: Box, panel: Panel): boolean =>
+  box.left >= 0 && box.top >= 0 && box.right <= panel.width && box.bottom <= panel.height;
+
 export interface VInfLabels {
   out?: PlacedLabel;
   in?: PlacedLabel;
@@ -153,7 +156,7 @@ interface VInfInput {
 /**
  * The v∞ labels keep off every line drawn still and off every text; the moving probe and v_rel
  * are left out, so a label does not jump while the pass plays. Out first, then in; an arrow whose
- * far end is off the panel has no label (the legend names it).
+ * far end is off the panel has no label (the legend names it), nor has one that would be cut.
  */
 export function placeVInfLabels({
   screen,
@@ -192,7 +195,12 @@ export function placeVInfLabels({
     barLine,
   ];
   const placed = placeLabels(requests, lines, obstacles, panel);
-  return Object.fromEntries(requests.map(({ key }, index) => [key, placed[index]]));
+  // With no clear spot placeLabels falls back to its first candidate, which may be cut by the
+  // panel's edge: such a label is not drawn (the legend names the arrow).
+  const whole = requests.flatMap(({ key }, index) =>
+    isWholeOnPanel(placed[index].box, panel) ? [[key, placed[index]] as const] : [],
+  );
+  return Object.fromEntries(whole);
 }
 
 /** The boxes the v∞ labels keep clear of, besides the labels themselves. */

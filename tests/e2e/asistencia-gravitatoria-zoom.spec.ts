@@ -18,6 +18,8 @@ const ZOOM_STEP = Math.SQRT2;
 const MAX_ZOOM_CLICKS = 6;
 const WHEEL_NOTCH_PX = 100;
 const PAN_STEP_PX = 48;
+/** Enough arrow presses to push a ×8 drawing past the canvas' edge. */
+const PAN_PRESSES = 12;
 const BUTTON_PX = 40;
 const GLYPH_PX = 20;
 /** What the factor reads after 0 to 6 presses of «Acercar» (steps of √2). */
@@ -103,9 +105,12 @@ async function knobHudOverlaps(lab: Locator): Promise<string[]> {
 
 async function chooseEncounter(lab: Locator, label: string): Promise<void> {
   const arrival = lab.getByTestId('flyby-arrival');
+  const presets = lab.getByRole('combobox', { name: 'Valores de referencia' });
   const before = await arrival.textContent();
-  await lab.getByRole('combobox', { name: 'Valores de referencia' }).selectOption({ label });
-  await expect(arrival).not.toHaveText(before ?? '');
+  const isCurrent = (await presets.locator('option:checked').textContent()) === label;
+  await presets.selectOption({ label });
+  // The arrival line is what changes with a new encounter; the one already chosen changes nothing.
+  if (!isCurrent) await expect(arrival).not.toHaveText(before ?? '');
   await expect(planet(lab)).toBeVisible();
 }
 
@@ -312,6 +317,64 @@ test.describe('el marco del planeta, con zoom', () => {
     await expect.poll(() => knobHudOverlaps(lab)).toEqual([]);
   });
 
+  test('el punto de máxima aproximación revelado desde cualquier lado no queda bajo los textos de las esquinas, con todos los encuentros y lados', async ({
+    page,
+  }) => {
+    const lab = await openLab(page);
+    const options = await lab
+      .getByRole('combobox', { name: 'Valores de referencia' })
+      .locator('option')
+      .allTextContents();
+    const isKnobInView = async () =>
+      isInside((await knob(lab).boundingBox())!, (await canvas(lab).boundingBox())!);
+
+    for (const encounter of options) {
+      await chooseEncounter(lab, encounter);
+      for (const side of ['detrás', 'delante']) {
+        await lab.getByRole('radio', { name: side }).check({ force: true });
+        await zoomButton(lab, 'Ajustar').click({ force: true });
+        for (let click = 0; click < MAX_ZOOM_CLICKS; click += 1) {
+          await zoomButton(lab, 'Acercar').click();
+        }
+        await expect(factor(lab)).toHaveText('×8');
+        // The drawing is pushed down (ArrowUp), so the knob is left near or below the bottom edge.
+        await tabToCanvas(page, lab);
+        for (let press = 0; press < PAN_PRESSES; press += 1) await page.keyboard.press('ArrowUp');
+        await page.keyboard.press('Tab');
+        await expect(knob(lab)).toBeFocused();
+
+        await expect.poll(isKnobInView, { message: `${encounter}, ${side}` }).toBe(true);
+        await expect
+          .poll(() => knobHudOverlaps(lab), { message: `${encounter}, ${side}` })
+          .toEqual([]);
+        await zoomButton(lab, 'Ajustar').click();
+        await expect(factor(lab)).toHaveText('×1');
+      }
+    }
+  });
+
+  test('enfocar un botón de zoom, o pulsarlo, no desplaza el dibujo', async ({ page }) => {
+    const lab = await openLab(page);
+    for (let click = 0; click < 4; click += 1) await zoomButton(lab, 'Acercar').click();
+    await expect(factor(lab)).toHaveText('×4');
+    await tabToCanvas(page, lab);
+    for (let press = 0; press < 3; press += 1) await page.keyboard.press('ArrowLeft');
+    const before = await planetCentre(lab);
+
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await expect(zoomButton(lab, 'Acercar')).toBeFocused();
+    expect(await planetCentre(lab)).toEqual(before);
+
+    // A press on «Alejar», not yet released: the focus it takes must not pan the drawing either.
+    const box = (await zoomButton(lab, 'Alejar').boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await expect(zoomButton(lab, 'Alejar')).toBeFocused();
+    expect(await planetCentre(lab)).toEqual(before);
+    await page.mouse.up();
+  });
+
   test('«planeta agrandado» se va cuando el zoom lleva el planeta a su tamaño verdadero', async ({
     page,
   }) => {
@@ -409,7 +472,9 @@ for (const size of [DESKTOP, PHONE, NARROW]) {
         .getByRole('button', { name: 'Ir a la máxima aproximación' })
         .boundingBox())!;
       const svg = (await frame(lab).boundingBox())!;
-      const area = (await canvas(lab).boundingBox())!;
+      // The buttons are the zoom canvas' sibling, in the frame's own box.
+      const area = (await canvas(lab).locator('xpath=..').boundingBox())!;
+      const zoomCanvas = (await canvas(lab).boundingBox())!;
 
       for (const name of ['Acercar', 'Alejar', 'Ajustar']) {
         const box = (await zoomButton(lab, name).boundingBox())!;
@@ -420,6 +485,9 @@ for (const size of [DESKTOP, PHONE, NARROW]) {
         expect((await glyph.boundingBox())!.width).toBe(GLYPH_PX);
       }
       expect(isInside(controls, area)).toBe(true);
+      // Outside the canvas the zoom measures: it is the drawing's square, and the buttons are not part of it.
+      expect(isApart(controls, zoomCanvas)).toBe(true);
+      expect(zoomCanvas.height).toBeCloseTo(svg.height, 0);
       // Under the drawing's square, so at the lab's own framing they cover none of it.
       expect(isApart(controls, svg)).toBe(true);
       expect(isApart(controls, jump)).toBe(true);
