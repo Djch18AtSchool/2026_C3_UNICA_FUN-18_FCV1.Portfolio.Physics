@@ -23,6 +23,7 @@ function Canvas({
   return (
     <div data-testid="viewport" {...zoom.viewportProps}>
       <ZoomControls zoom={zoom} corner={corner} orientation={orientation} />
+      <span data-testid="transform">{zoom.transform}</span>
     </div>
   );
 }
@@ -174,6 +175,26 @@ describe('ZoomControls', () => {
     expect(html).toContain('data-zoom-controls');
     expect(html).toContain('×1');
     expect(html).toContain('aria-label="Acercar"');
+  });
+
+  test('a drag that starts on the factor or the group’s edge does not pan the drawing', () => {
+    const { container, getByTestId } = render(<Canvas />);
+    fireEvent.click(button('Acercar'));
+    fireEvent.click(button('Acercar'));
+    getByTestId('viewport').getBoundingClientRect = () =>
+      ({ left: 0, top: 0, width: 400, height: 300 }) as DOMRect;
+    const before = getByTestId('transform').textContent;
+
+    for (const start of ['[data-zoom-factor]', '[data-zoom-controls]']) {
+      const target = container.querySelector(start)!;
+      fireEvent.pointerDown(target, { pointerId: 1, button: 0, clientX: 380, clientY: 200 });
+      fireEvent.pointerMove(target, { pointerId: 1, clientX: 300, clientY: 120 });
+      fireEvent.pointerUp(target, { pointerId: 1, clientX: 300, clientY: 120 });
+    }
+
+    expect(getByTestId('viewport')).not.toHaveAttribute('data-zoom-panning');
+    expect(getByTestId('transform').textContent).toBe(before);
+    expect(factor(container)).toBe('×2');
   });
 
   test('every character is one IBM Plex draws', () => {

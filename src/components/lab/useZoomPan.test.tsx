@@ -385,9 +385,77 @@ describe('useZoomPan', () => {
 
       expect(latest.view).toEqual(before);
     });
+
+    test('a mouse that comes back with no button pressed (released outside) ends the drag', () => {
+      const { viewport, getByTestId } = renderCanvas();
+      act(() => latest.zoomIn());
+      const before = latest.view;
+      const target = getByTestId('background');
+      const mouse = { pointerId: 1, pointerType: 'mouse' };
+
+      fireEvent.pointerDown(target, { ...mouse, button: 0, buttons: 1, clientX: 200, clientY: 5 });
+      fireEvent.pointerMove(target, { ...mouse, buttons: 1, clientX: 200, clientY: 3 });
+      // The button went up outside the canvas, before any capture: no pointerup here.
+      fireEvent.pointerMove(target, { ...mouse, buttons: 0, clientX: 200, clientY: 100 });
+      fireEvent.pointerMove(target, { ...mouse, buttons: 0, clientX: 260, clientY: 140 });
+
+      expect(latest.view).toEqual(before);
+      expect(viewport).not.toHaveAttribute('data-zoom-panning');
+    });
+
+    test('a pan whose button is found up stops where it was', () => {
+      const { viewport, getByTestId } = renderCanvas();
+      act(() => latest.zoomIn());
+      const target = getByTestId('background');
+      const mouse = { pointerId: 1, pointerType: 'mouse' };
+      fireEvent.pointerDown(target, { ...mouse, button: 0, buttons: 1, clientX: 200, clientY: 150 });
+      fireEvent.pointerMove(target, { ...mouse, buttons: 1, clientX: 200 + DRAG_PX, clientY: 150 });
+      const panned = latest.view;
+
+      fireEvent.pointerMove(target, { ...mouse, buttons: 0, clientX: 300, clientY: 200 });
+
+      expect(latest.view).toEqual(panned);
+      expect(viewport).not.toHaveAttribute('data-zoom-panning');
+    });
+
+    test('a lost capture with no pointerup ends the pan, and later moves do nothing', () => {
+      const { viewport, getByTestId } = renderCanvas();
+      act(() => latest.zoomIn());
+      const target = getByTestId('background');
+      fireEvent.pointerDown(target, { pointerId: 1, button: 0, clientX: 200, clientY: 150 });
+      fireEvent.pointerMove(target, { pointerId: 1, clientX: 200 + DRAG_PX, clientY: 150 });
+      const panned = latest.view;
+
+      fireEvent.lostPointerCapture(viewport, { pointerId: 1 });
+      fireEvent.pointerMove(target, { pointerId: 1, clientX: 300, clientY: 150 });
+
+      expect(latest.view).toEqual(panned);
+      expect(viewport).not.toHaveAttribute('data-zoom-panning');
+    });
   });
 
   describe('pinch', () => {
+    test('a finger cancelled mid-pinch hands over to the other, and cancelling both ends it', () => {
+      const { viewport, getByTestId } = renderCanvas();
+      const target = getByTestId('background');
+      const touch = { pointerType: 'touch' };
+      fireEvent.pointerDown(target, { ...touch, pointerId: 1, clientX: 150, clientY: 150 });
+      fireEvent.pointerDown(target, { ...touch, pointerId: 2, clientX: 250, clientY: 150 });
+      fireEvent.pointerMove(target, { ...touch, pointerId: 2, clientX: 350, clientY: 150 });
+      fireEvent.pointerCancel(target, { ...touch, pointerId: 2 });
+      const afterPinch = latest.view;
+
+      fireEvent.pointerMove(target, { ...touch, pointerId: 1, clientX: 140, clientY: 150 });
+      expect(latest.view.scale).toBe(afterPinch.scale);
+      expect(latest.view.x).toBeCloseTo(afterPinch.x - 10, 9);
+
+      fireEvent.pointerCancel(target, { ...touch, pointerId: 1 });
+      const ended = latest.view;
+      fireEvent.pointerMove(target, { ...touch, pointerId: 1, clientX: 100, clientY: 150 });
+      expect(latest.view).toEqual(ended);
+      expect(viewport).not.toHaveAttribute('data-zoom-panning');
+    });
+
     test('two fingers spread to twice their distance double the scale about their midpoint', () => {
       const { getByTestId } = renderCanvas();
       const target = getByTestId('background');

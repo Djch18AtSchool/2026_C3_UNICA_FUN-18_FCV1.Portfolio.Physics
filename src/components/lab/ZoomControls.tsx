@@ -102,6 +102,7 @@ export default function ZoomControls({
     <>
       <div
         data-zoom-controls=""
+        data-zoom-ignore=""
         role="group"
         aria-label="Zoom"
         className={`${GROUP} ${DIRECTION[orientation]} ${CANVAS_CORNER[corner]}`}
