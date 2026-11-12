@@ -1,6 +1,7 @@
 /**
  * The zoom buttons of a canvas (auditoría §12.3): «Acercar», «Alejar», «Ajustar» and «Tamaño real
- * 1:1» with the zoom factor («×2,5») over them, the same group in every scene, in a corner of the
+ * 1:1» with the zoom factor («Zoom ×2,5»: never a bare «×2,5», which reads like the time badge's
+ * «×4 cámara rápida», R31) before them, the same group in every scene, in a corner of the
  * canvas (bottom-right by default; `corner` and `orientation` move it off what matters). «1:1» is
  * left out when it would repeat «Ajustar» (zoom.hasActualSize: the lab declared no fit). Buttons
  * are 40 px with 20 px glyphs; one with nothing to do is inert with aria-disabled and keeps its
@@ -44,6 +45,34 @@ const BUTTON =
   'inline-flex size-10 items-center justify-center text-fg-muted transition-colors hover:text-fg aria-disabled:cursor-not-allowed aria-disabled:text-fg-muted/50 aria-disabled:hover:text-fg-muted/50';
 const FACTOR =
   'flex h-8 min-w-10 items-center justify-center px-1 font-mono text-xs font-medium whitespace-nowrap text-fg tabular-nums';
+/**
+ * «Zoom» and the number: on one line in a row, the number 4 characters wide whatever it says, so
+ * the buttons never move; stacked in a column (two 16 px lines in the 32 px cell), which keeps
+ * the column 40 px wide.
+ */
+const FACTOR_LAYOUT: Readonly<Record<ZoomControlsOrientation, { box: string; number: string }>> = {
+  row: { box: 'gap-1', number: 'min-w-[4ch] text-left' },
+  column: { box: 'flex-col leading-4', number: 'text-center' },
+};
+
+/** The factor as drawn: «Zoom ×2,8». Hidden: ZoomControls says it in words. */
+function ZoomFactor({
+  scale,
+  orientation,
+}: {
+  scale: number;
+  orientation: ZoomControlsOrientation;
+}) {
+  const layout = FACTOR_LAYOUT[orientation];
+  return (
+    <span data-zoom-factor-label="" aria-hidden="true" className={`${FACTOR} ${layout.box}`}>
+      <span className="text-fg-muted">Zoom</span>{' '}
+      <span data-zoom-factor="" className={layout.number}>
+        {formatZoomFactor(scale)}
+      </span>
+    </span>
+  );
+}
 
 function Icon({ d }: { d: string }): JSX.Element {
   return (
@@ -146,9 +175,7 @@ export default function ZoomControls({
         aria-label="Zoom"
         className={`${GROUP} ${DIRECTION[orientation]} ${placementClasses(corner)}`}
       >
-        <span data-zoom-factor="" aria-hidden="true" className={FACTOR}>
-          {formatZoomFactor(zoom.view.scale)}
-        </span>
+        <ZoomFactor scale={zoom.view.scale} orientation={orientation} />
         <ZoomButtons zoom={zoom} />
       </div>
       <span data-zoom-words="" className="sr-only">

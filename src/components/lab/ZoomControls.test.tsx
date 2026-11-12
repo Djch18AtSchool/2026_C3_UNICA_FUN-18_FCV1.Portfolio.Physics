@@ -130,10 +130,33 @@ describe('ZoomControls', () => {
     }
   });
 
+  test.each(['row', 'column'] as const)(
+    'in a %s, the factor reads «Zoom ×1», not a bare «×1» like the time badge’s (R31)',
+    (orientation) => {
+      const { container } = render(<Canvas orientation={orientation} />);
+      const label = container.querySelector('[data-zoom-factor-label]');
+
+      expect(label).toHaveTextContent(/^Zoom ×1$/u);
+      expect(label?.querySelector('[data-zoom-factor]')).toHaveTextContent('×1');
+      fireEvent.click(button('Acercar'));
+      expect(label).toHaveTextContent(/^Zoom ×1,4$/u);
+    },
+  );
+
+  test('in a row, the factor keeps its width from ×1 to ×5,7, so the buttons never move', () => {
+    const { container } = render(<Canvas orientation="row" />);
+
+    const number = container.querySelector('[data-zoom-factor]');
+
+    expect(number?.className).toMatch(/min-w-\[4ch\]/u);
+  });
+
   test('the factor is drawing only; its words are read in the canvas', () => {
     const { container } = render(<Canvas />);
 
-    expect(container.querySelector('[data-zoom-factor]')).toHaveAttribute('aria-hidden', 'true');
+    expect(
+      container.querySelector('[data-zoom-factor]')?.closest('[aria-hidden="true"]'),
+    ).not.toBeNull();
     expect(container.querySelector('[data-zoom-words]')).toHaveTextContent(
       'Zoom: escala del dibujo',
     );

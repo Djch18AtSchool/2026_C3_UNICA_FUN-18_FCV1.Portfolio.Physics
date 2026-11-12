@@ -6,7 +6,8 @@ import { SCALE_UNITS } from './habitatRing';
 
 /**
  * Below this width (px) the strip stacks its two rows. The scale bar is at most about 178 px
- * wide and the row of buttons 202, with 8 px on each side: 396 px side by side. Tailwind reads the
+ * wide and the row of buttons 192 (the factor reads «Zoom ×5,7»), with 8 px on each side: 402 px
+ * side by side. Tailwind reads the
  * breakpoint as a literal class, so the literal below must stay equal to this number.
  */
 export const STRIP_STACK_BELOW = 408;

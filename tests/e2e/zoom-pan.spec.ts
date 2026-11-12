@@ -198,6 +198,32 @@ for (const size of VIEWPORTS) {
       });
     }
 
+    for (const selector of [LAB, ROW_LAB]) {
+      test(`${selector}: el factor se lee «Zoom ×…» y los botones no se mueven al cambiar de zoom (R31)`, async ({
+        page,
+      }) => {
+        const lab = await openFixture(page, 'light', selector);
+        const label = lab.locator('[data-zoom-factor-label]');
+        // Relative to the canvas: a click may scroll the page.
+        const buttonsAt = async () => {
+          const canvas = (await viewport(lab).boundingBox())!;
+          const boxes = [];
+          for (const name of ZOOM_NAMES) boxes.push((await zoomButton(lab, name).boundingBox())!);
+          return boxes.map(({ x, y }) => ({ x: x - canvas.x, y: y - canvas.y }));
+        };
+        await expect(label).toHaveText('Zoom ×1');
+        const atOne = await buttonsAt();
+        const factorBox = (await label.boundingBox())!;
+
+        for (const reading of ['×1,4', '×2', '×2,8', '×4', '×5,7', '×8']) {
+          await zoomButton(lab, 'Acercar').click();
+          await expect(label).toHaveText(`Zoom ${reading}`);
+          expect(await buttonsAt(), reading).toEqual(atOne);
+          expect((await label.boundingBox())!.width, reading).toBe(factorBox.width);
+        }
+      });
+    }
+
     test('la barra de escala da una longitud redonda de 64 a 160 px y se recalcula con el zoom', async ({
       page,
     }) => {
