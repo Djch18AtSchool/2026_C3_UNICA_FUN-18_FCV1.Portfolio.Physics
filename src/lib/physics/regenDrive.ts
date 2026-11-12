@@ -54,8 +54,9 @@ export interface DriveCar {
 
 /**
  * The pedals' limits for a car of the lab: the FASTSim Model 3's traction limit and motor, and
- * brakes up to μ m g with the same μ, applied to the car's own mass (the LEAF keeps the Model 3's
- * chassis: the lab says so in «Qué deja fuera el modelo»).
+ * brakes up to μ m g with the same μ, applied to the car's own mass. The LEAF keeps the Model 3's
+ * chassis and its 239 kW motor (the topic has no figure of its own): the lab says so in «Qué deja
+ * fuera el modelo».
  */
 export function driveCar(vehicle: Vehicle, chassis: Chassis = FASTSIM_MODEL3_CHASSIS): DriveCar {
   requirePositive('m', vehicle.m);

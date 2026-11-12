@@ -57,7 +57,7 @@ describe('noticeText', () => {
   test.each<[DriveNotice, string]>([
     [
       'regenLimit',
-      'Freno limitado por la batería: pasa de $P_\\text{máx}$ = 10 kW y el resto lo disipan las pastillas.',
+      'Freno limitado por $P_\\text{máx}$ = 10 kW: el resto lo disipan las pastillas.',
     ],
     ['fade', 'Casi detenido, $f(v)$ apaga el freno del motor: las pastillas terminan la frenada.'],
     ['traction', 'El acelerador llegó a la potencia del motor, 239 kW.'],
@@ -175,6 +175,8 @@ describe('the mode’s own notes («Cómo se usa», «Qué deja fuera el modelo�
     expect(text).toMatch(/4,65 m\/s²/);
     expect(text).toMatch(/239 kW/);
     expect(text).toMatch(/rueda libre/);
+    // The LEAF gets the Model 3's motor too, not only its chassis (review D3, M4).
+    expect(text).toMatch(/El LEAF usa el mismo chasis y el mismo motor de 239 kW\./);
   });
 
   test('the canvas note tells the two cars and the two curves apart without color', () => {

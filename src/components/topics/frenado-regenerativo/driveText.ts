@@ -47,7 +47,8 @@ const kw = (watts: number) =>
 export function noticeText(kind: DriveNotice, regen: RegenParams): string {
   switch (kind) {
     case 'regenLimit':
-      return `Freno limitado por la batería: pasa de $P_\\text{máx}$ = ${kw(regen.pMax)} y el resto lo disipan las pastillas.`;
+      // P_máx is the motor's by default and the battery's only in the cold-battery preset: name the limit.
+      return `Freno limitado por $P_\\text{máx}$ = ${kw(regen.pMax)}: el resto lo disipan las pastillas.`;
     case 'fade':
       return 'Casi detenido, $f(v)$ apaga el freno del motor: las pastillas terminan la frenada.';
     case 'traction':
@@ -176,7 +177,7 @@ export const DRIVE_USAGE = `En «Conducir» conduces tú el tramo: el auto sale 
 const { wheelFricCoef, driveAxleWeightFrac } = FASTSIM_MODEL3_CHASSIS;
 
 /** «Qué deja fuera el modelo» of «Conducir»: where the pedals' limits come from, and what is left out. */
-export const DRIVE_LEFT_OUT = `En «Conducir», el acelerador empuja como mucho con la adherencia del eje trasero del Model 3 de FASTSim: $\\mu$ = ${formatNumber(wheelFricCoef, { precision: 1 })} y el ${formatNumber(driveAxleWeightFrac * PERCENT, { precision: 0, unit: '%' })} del peso sobre ese eje, con la transferencia de carga al acelerar, dan ${formatNumber(tractionAccelMax(), { precision: 2, unit: 'm/s²' })}; y nunca con más de los ${kw(FASTSIM_MOTOR_PMAX_W)} del motor. El freno llega a $\\mu n = \\mu m g$ en las cuatro ruedas. El LEAF usa el mismo chasis. El motor no tiene un límite de par propio y la adherencia del eje trasero no limita la regeneración. Sin pedal el auto rueda libre: lo frena solo la carga en carretera, sin el freno regenerativo al soltar el acelerador que traen muchos eléctricos.`;
+export const DRIVE_LEFT_OUT = `En «Conducir», el acelerador empuja como mucho con la adherencia del eje trasero del Model 3 de FASTSim: $\\mu$ = ${formatNumber(wheelFricCoef, { precision: 1 })} y el ${formatNumber(driveAxleWeightFrac * PERCENT, { precision: 0, unit: '%' })} del peso sobre ese eje, con la transferencia de carga al acelerar, dan ${formatNumber(tractionAccelMax(), { precision: 2, unit: 'm/s²' })}; y nunca con más de los ${kw(FASTSIM_MOTOR_PMAX_W)} del motor. El freno llega a $\\mu n = \\mu m g$ en las cuatro ruedas. El LEAF usa el mismo chasis y el mismo motor de ${kw(FASTSIM_MOTOR_PMAX_W)}. El motor no tiene un límite de par propio y la adherencia del eje trasero no limita la regeneración. Sin pedal el auto rueda libre: lo frena solo la carga en carretera, sin el freno regenerativo al soltar el acelerador que traen muchos eléctricos.`;
 
 /** The canvas note of «Conducir»: which car and which curve is whose, not by color alone. */
 export const DRIVE_CANVAS_NOTE =

@@ -245,7 +245,7 @@ describe('RegenLab «Conducir»', () => {
     playFrames(frames, 1000, 2000);
 
     expect(statusText()).toBe(
-      'Freno limitado por la batería: pasa de $P_\\text{máx}$ = 10 kW y el resto lo disipan las pastillas.',
+      'Freno limitado por $P_\\text{máx}$ = 10 kW: el resto lo disipan las pastillas.',
     );
     expect(readout(FRICTION)).not.toBe('0,0 kJ');
     expect(plexViolations(lab())).toEqual([]);
