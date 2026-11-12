@@ -263,9 +263,18 @@ describe('useZoomPan', () => {
       expect(latest.view).toEqual(IDENTITY_VIEW);
     });
 
-    test('alone on the focused canvas it zooms', () => {
-      const { viewport } = renderCanvas();
+    /** Focus as the browser shows it: from the keyboard (:focus-visible) or from a click (not). */
+    const focusFrom = (viewport: HTMLElement, from: 'keyboard' | 'click') => {
       viewport.focus();
+      const matches = viewport.matches.bind(viewport);
+      vi.spyOn(viewport, 'matches').mockImplementation((selector) =>
+        selector === ':focus-visible' ? from === 'keyboard' : matches(selector),
+      );
+    };
+
+    test('alone on the canvas focused from the keyboard it zooms', () => {
+      const { viewport } = renderCanvas();
+      focusFrom(viewport, 'keyboard');
 
       const event = wheel(viewport, { deltaY: -100, clientX: 200, clientY: 150 });
 
@@ -273,9 +282,19 @@ describe('useZoomPan', () => {
       expect(latest.view.scale).toBeGreaterThan(1);
     });
 
+    test('alone on a canvas a click focused (focus not shown) the page scrolls', () => {
+      const { viewport } = renderCanvas();
+      focusFrom(viewport, 'click');
+
+      const event = wheel(viewport, { deltaY: -100, clientX: 200, clientY: 150 });
+
+      expect(event.defaultPrevented).toBe(false);
+      expect(latest.view).toEqual(IDENTITY_VIEW);
+    });
+
     test('alone at a limit it lets the page scroll; with Ctrl it still keeps the page from zooming', () => {
       const { viewport } = renderCanvas();
-      viewport.focus();
+      focusFrom(viewport, 'keyboard');
 
       expect(wheel(viewport, { deltaY: 100 }).defaultPrevented).toBe(false);
       expect(wheel(viewport, { deltaY: 100, ctrlKey: true }).defaultPrevented).toBe(true);

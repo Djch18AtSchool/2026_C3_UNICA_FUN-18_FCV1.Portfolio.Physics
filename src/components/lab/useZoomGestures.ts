@@ -1,7 +1,7 @@
 /**
  * The pointer and wheel side of useZoomPan: a background drag pans (past a threshold, so a click
  * stays a click), two pointers pinch (zoomGestureState.ts holds the steps), and the wheel zooms
- * with Ctrl, or alone while the canvas has the focus. A press that starts on a control inside the
+ * with Ctrl, or alone while the canvas shows its focus (:focus-visible: reached with the keyboard). A press that starts on a control inside the
  * canvas (a draggable handle, a button, anything focusable or marked data-zoom-ignore) or whose
  * default a handle already prevented (useDrag) is never taken: the handle keeps its drag. A mouse
  * found moving with no button pressed (released outside the canvas) ends its gesture.
@@ -131,10 +131,23 @@ function usePointerGestures(host: ZoomGestureHost) {
   return { isPanning, onPointerDown, onPointerMove, endPointer, onClickCapture };
 }
 
+/**
+ * Whether the canvas itself has a focus the browser shows (:focus-visible): reached with the
+ * keyboard, or a key pressed after a click. A click alone focuses it without showing it, and must
+ * not turn the wheel into a zoom under a reader who only wanted to scroll past.
+ */
+function hasVisibleFocus(viewport: HTMLElement): boolean {
+  if (viewport.ownerDocument.activeElement !== viewport) return false;
+  try {
+    return viewport.matches(':focus-visible');
+  } catch {
+    return false;
+  }
+}
+
 /** The wheel zoom, or nothing when the page should scroll (see useWheelZoom). */
 function wheelZoom(event: WheelEvent, viewport: HTMLElement, host: ZoomGestureHost) {
-  const isFocused = viewport.ownerDocument.activeElement === viewport;
-  if (!event.ctrlKey && !isFocused) return undefined;
+  if (!event.ctrlKey && !hasVisibleFocus(viewport)) return undefined;
   const delta = wheelDeltaPx(event.deltaY, event.deltaMode, window.innerHeight);
   const current = host.view();
   const next = zoomAt(current, wheelZoomFactor(delta), localPoint(event, viewport), host.frame());

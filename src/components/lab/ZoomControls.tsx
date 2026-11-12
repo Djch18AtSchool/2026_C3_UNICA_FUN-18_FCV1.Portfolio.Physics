@@ -23,7 +23,7 @@ import { formatZoomFactor, zoomSpoken } from './zoomMath';
 /** A glide or a held key changes the zoom many times; it is said once it holds this long. */
 export const ZOOM_ANNOUNCE_DELAY_MS = 500;
 export const ZOOM_INSTRUCTIONS =
-  'Con el lienzo enfocado: + y − acercan y alejan, 0 ajusta el dibujo y las flechas lo desplazan. Con el ratón: Ctrl y la rueda (o la rueda sola con el lienzo enfocado) y arrastrar el fondo. En pantalla táctil: pellizcar y arrastrar con un dedo.';
+  'Con el lienzo enfocado: + y − acercan y alejan, 0 ajusta el dibujo y las flechas lo desplazan; enfocado con el teclado, también la rueda sola. Con el ratón: Ctrl y la rueda, y arrastrar el fondo. En pantalla táctil: pellizcar y arrastrar con un dedo.';
 
 export type ZoomControlsOrientation = 'column' | 'row';
 
