@@ -8,10 +8,9 @@
  * zoom. The vectors are velocities, not distances: they keep their length on screen. No React.
  */
 import type { Domain, Scale } from '../../lab/plotScales';
-import type { ScaleUnit } from '../../lab/scaleBarMath';
+import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX, type ScaleUnit } from '../../lab/scaleBarMath';
 import {
   IDENTITY_VIEW,
-  toWorld,
   viewsEqual,
   type ZoomBox,
   type ZoomPoint,
@@ -36,10 +35,15 @@ export const JUMP_SCALE_UNITS: readonly ScaleUnit[] = [{ label: 'm', size: 1 }];
 /** Height of the strip under the plot that holds the zoom buttons (a 42 px row and 3 px of air). */
 export const ZOOM_STRIP_PX = 48;
 
-const isMeasured = ({ width, height }: PlotSize) => width > 0 && height > 0;
+/**
+ * Characters of the widest y tick label of any window the zoom can show, «3,25»: SvgPlot reserves
+ * the left margin of a compact plot for it (minYLabelChars) at every zoom, so the plot's size, and
+ * the page below it, do not change when the labels do (jumpZoom.test.ts walks the windows of the
+ * presets and of the corners of every slider, from ×1 to ×8, to keep it true).
+ */
+export const JUMP_Y_LABEL_CHARS = 4;
 
-/** The scene's domains as the window the plot shows at ×1. */
-export const sceneWindow = ({ x, y }: SceneWindow): SceneWindow => ({ x, y });
+const isMeasured = ({ width, height }: PlotSize) => width > 0 && height > 0;
 
 /** The part of `domain` an axis of `size` px shows at this scale and pan offset (screen px). */
 function slice(domain: Domain, offset: number, scale: number, size: number): Domain {
@@ -56,7 +60,7 @@ function slice(domain: Domain, offset: number, scale: number, size: number): Dom
  * upward on the plot and downward on the screen.
  */
 export function zoomedWindow(base: SceneWindow, view: ZoomView, plot: PlotSize): SceneWindow {
-  if (!isMeasured(plot) || viewsEqual(view, IDENTITY_VIEW)) return sceneWindow(base);
+  if (!isMeasured(plot) || viewsEqual(view, IDENTITY_VIEW)) return { x: base.x, y: base.y };
   const x = slice(base.x, view.x, view.scale, plot.width);
   const fromTop = slice({ min: -base.y.max, max: -base.y.min }, view.y, view.scale, plot.height);
   return { x, y: { min: -fromTop.max, max: -fromTop.min } };
@@ -83,12 +87,62 @@ export function steadyLengthPerMs(
   return launchLengthPerMs(baseY, limits) / scale;
 }
 
+/** Sub-pixel rounding between the size SvgPlot computes and the one the browser reports. */
+const SIZE_SLACK_PX = 0.5;
+
+/** Whether the plot the zoom measured is the one SvgPlot draws (it measures a frame later). */
+export function isPlotDrawn(measured: PlotSize, drawn: PlotSize): boolean {
+  return (
+    isMeasured(measured) &&
+    Math.abs(measured.width - drawn.width) < SIZE_SLACK_PX &&
+    Math.abs(measured.height - drawn.height) < SIZE_SLACK_PX
+  );
+}
+/** The plot area's size and corner in the svg's user units, from the plot's scales. */
+export function plotAreaOf({ x, y }: { x: Scale; y: Scale }) {
+  const [left, right] = [Math.min(...x.range), Math.max(...x.range)];
+  const [top, bottom] = [Math.min(...y.range), Math.max(...y.range)];
+  return { left, top, width: right - left, height: bottom - top };
+}
+
 /**
- * The box of 2·`radiusPx` (screen px) around a point of the plot area, given in px from its
- * top-left corner, as the zoom's drawing units: what `reveal` brings into view for a knob.
+ * The square of side 2·`radiusPx` (screen px at `scale`) centred where the point `at` (m) is drawn
+ * in the window `base` at ×1, in the zoom's drawing space: what `reveal` brings into view for a
+ * handle. From metres, so it does not depend on the window of the render that asks for it.
  */
-export function plotPointBox(point: ZoomPoint, view: ZoomView, radiusPx: number): ZoomBox {
-  const centre = toWorld(view, point);
-  const radius = radiusPx / view.scale;
+export function metresBox(
+  at: ZoomPoint,
+  base: SceneWindow,
+  plot: PlotSize,
+  radiusPx: number,
+  scale: number,
+): ZoomBox {
+  const centre = {
+    x: ((at.x - base.x.min) / (base.x.max - base.x.min)) * plot.width,
+    y: ((base.y.max - at.y) / (base.y.max - base.y.min)) * plot.height,
+  };
+  const radius = radiusPx / scale;
   return { x: centre.x - radius, y: centre.y - radius, width: 2 * radius, height: 2 * radius };
+}
+
+/** Where the launch vector's tip is (m from the launch point) when a m/s is drawn `lengthPerMs` long. */
+export function launchTipMetres(
+  { v0, vx }: { v0: number; vx: number },
+  lengthPerMs: number,
+): ZoomPoint {
+  return { x: vx * lengthPerMs, y: v0 * lengthPerMs };
+}
+
+/** The scale bar's right inset in the plot (px) and its baseline from the plot's top: see below. */
+export const SCALE_BAR_INSET_PX = 8;
+export const SCALE_BAR_BASELINE_PX = 32;
+/** The longest bar is this share of the plot's width, so on a phone's plot it stays short. */
+const SCALE_BAR_WIDTH_SHARE = 0.5;
+
+/**
+ * The longest scale bar (px) for a plot `plotWidth` px wide: half its width at most, between the
+ * shared minimum and maximum. A phone's 230 px plot gets 115 px bars instead of 160.
+ */
+export function jumpScaleBarMaxPx(plotWidth: number): number {
+  return Math.min(SCALE_BAR_MAX_PX, Math.max(SCALE_BAR_MIN_PX, plotWidth * SCALE_BAR_WIDTH_SHARE));
 }

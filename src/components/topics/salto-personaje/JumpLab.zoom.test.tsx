@@ -4,36 +4,68 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
+import { mathSourceText } from '../../../test-inline-math';
 import { readout } from '../../../test-readout';
 import JumpLab from './JumpLab';
 import { ZOOM_STRIP_PX } from './jumpZoom';
 
 /**
  * The plot reports the width it is laid out in (the wide layout); the zoom viewport, the plot area
- * that width leaves for Celeste's opening jump: 520 − 84 − 28 wide and half of that tall.
+ * the plot draws, as a browser's ResizeObserver does once the layout has settled: read from the
+ * clip rect, at the start and whenever the test calls `reportPlotSize` (the plot's height changes
+ * with the jump's shape, and the observer says so a render later).
  */
 const SVG_WIDTH = 520;
 const PLOT_AREA = { width: 408, height: 204 };
 const STEPS_TO_X4 = 4;
 const STEPS_TO_LIMIT = 6;
 const PX_SLACK = 0.01;
+const KEY_PRESSES = 24;
+
+type FakeObserver = { callback: ResizeObserverCallback; targets: Element[] };
+let observers: FakeObserver[] = [];
+
+/** The plot area the plot draws now, from its clip rect. */
+function drawnPlotArea(): { width: number; height: number } {
+  const rect = document.querySelector('[data-testid="jump-plot"] svg[role="img"] clipPath rect');
+  return rect
+    ? { width: Number(rect.getAttribute('width')), height: Number(rect.getAttribute('height')) }
+    : PLOT_AREA;
+}
+
+function entryFor(target: Element): ResizeObserverEntry {
+  const contentRect = target.hasAttribute('data-zoom-viewport')
+    ? drawnPlotArea()
+    : { width: SVG_WIDTH, height: PLOT_AREA.height };
+  return { target, contentRect } as unknown as ResizeObserverEntry;
+}
+
+/** What the browser does a frame after the plot changed size: every observer reports. */
+function reportPlotSize(): void {
+  act(() =>
+    observers.forEach((observer) =>
+      observer.callback(observer.targets.map(entryFor), observer as unknown as ResizeObserver),
+    ),
+  );
+}
 
 function stubObservers(): void {
+  observers = [];
   vi.stubGlobal(
     'ResizeObserver',
-    class {
-      constructor(private readonly callback: ResizeObserverCallback) {}
+    class implements FakeObserver {
+      targets: Element[] = [];
+      constructor(readonly callback: ResizeObserverCallback) {
+        observers.push(this);
+      }
       observe(target: Element) {
-        const contentRect = target.hasAttribute('data-zoom-viewport')
-          ? PLOT_AREA
-          : { width: SVG_WIDTH, height: PLOT_AREA.height };
-        this.callback(
-          [{ target, contentRect } as unknown as ResizeObserverEntry],
-          this as unknown as ResizeObserver,
-        );
+        this.targets.push(target);
+        this.callback([entryFor(target)], this as unknown as ResizeObserver);
       }
       unobserve() {}
-      disconnect() {}
+      disconnect() {
+        observers = observers.filter((observer) => observer !== (this as FakeObserver));
+      }
     },
   );
 }
@@ -51,6 +83,8 @@ function mockIdentityCtm(container: HTMLElement): void {
 function renderLab() {
   const view = render(<JumpLab />);
   mockIdentityCtm(view.container);
+  // The first report came with the server's 720 px layout; the browser reports again once measured.
+  reportPlotSize();
   return view;
 }
 
@@ -248,6 +282,31 @@ describe('the trajectory zoom', () => {
     expect(isInside(centre('launch-handle'))).toBe(true);
   });
 
+  test.each(['Tierra', 'Luna'])(
+    '%s at ×4: 24 ↑ and 24 ↓ leave the launch handle in view once the plot has settled, after each key',
+    async (world) => {
+      hideFocusRing();
+      const { container } = renderLab();
+      await userEvent.click(screen.getByRole('button', { name: new RegExp(`^${world}`) }));
+      reportPlotSize();
+      await zoomIn(STEPS_TO_X4);
+      const handle = screen.getByTestId('launch-handle');
+      act(() => handle.focus());
+
+      for (const key of ['ArrowUp', 'ArrowDown']) {
+        for (let i = 0; i < KEY_PRESSES; i += 1) {
+          fireEvent.keyDown(handle, { key });
+          reportPlotSize();
+          const area = plotArea(container);
+          const { x, y } = centre('launch-handle');
+          const isInside =
+            x >= area.x && x <= area.x + area.width && y >= area.y && y <= area.y + area.height;
+          expect(isInside, `${world}: ${key} ${i + 1}`).toBe(true);
+        }
+      }
+    },
+  );
+
   test('a key that seeks the marker out of the zoomed window brings it back into view', async () => {
     hideFocusRing();
     const { container } = renderLab();
@@ -290,10 +349,15 @@ describe('the trajectory zoom', () => {
   });
 
   test('says the gestures in «Cómo se usa», after the drag of the handles', () => {
-    renderLab();
+    const { container } = renderLab();
 
-    const usage = screen.getByText(/Acerca la gráfica con los botones/);
-    expect(usage.textContent).toContain('Ctrl y la rueda');
-    expect(usage.textContent).toContain('+ y − acercan y alejan, 0 ajusta');
+    const usage = container.querySelector('details[data-lab-note="usage"]') as HTMLElement;
+    const hint = mathSourceText(usage).replace(/\s/g, ' ');
+    expect(hint).toContain('Acerca la gráfica con los botones, Ctrl y la rueda, o pellizcando');
+    expect(hint).toContain('+ y − acercan y alejan, 0 ajusta');
+    expect(hint).toContain('Las flechas de $\\vec v_0$ y $\\vec v$ no crecen al acercar');
+    // One «con» in the first sentence, and the canvas is «enfocada desde el teclado».
+    expect(hint).not.toContain('con el teclado');
+    expect(hint.indexOf('Acerca la gráfica')).toBeGreaterThan(hint.indexOf('Inicio y Fin'));
   });
 });

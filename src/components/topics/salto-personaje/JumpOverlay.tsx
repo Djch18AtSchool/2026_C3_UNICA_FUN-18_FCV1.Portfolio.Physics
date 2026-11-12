@@ -1,4 +1,4 @@
-import { useEffect, useRef, type JSX, type KeyboardEvent } from 'react';
+import { useRef, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { mathTextToString } from '../../../lib/mathNotation';
 import { TEXT_COLOR } from '../../charts/chartTheme';
@@ -37,10 +37,11 @@ export interface JumpOverlayProps {
   onLaunchDragPhase(phase: 'start' | 'end'): void;
   onSeek(t: number): void;
   /**
-   * A key moved a handle: its place, in px from the plot area's top-left corner, so the zoom can
-   * bring it into view if the move took it out. The lab's zoom gives it; without one, no reveal.
+   * A key really moved a handle (not at a limit): the lab's zoom brings it into view once the plot
+   * has settled. Without a zoom, nothing. `onKeyDone` drops that when the handle loses the focus.
    */
-  onReveal?(at: Point): void;
+  onKeyMove?(moved: 'launch' | 'marker'): void;
+  onKeyDone?(): void;
 }
 
 /** Neutral, so the launch vector never reads as the dashed blue Earth reference (dark mode). */
@@ -118,7 +119,8 @@ export default function JumpOverlay({
   onLaunchChange,
   onLaunchDragPhase,
   onSeek,
-  onReveal,
+  onKeyMove,
+  onKeyDone,
 }: JumpOverlayProps): JSX.Element {
   const liveT = useFrameTime(frame);
   const origin = { x: scales.x.toPx(0), y: scales.y.toPx(0) };
@@ -134,17 +136,6 @@ export default function JumpOverlay({
   const grabOffsetRef = useRef<Point>({ x: 0, y: 0 });
   const format = (value: number, unit: string) =>
     formatNumber(value, { precision: decimals, unit });
-
-  /** The handle a key just moved, until the render that draws it in its new place. */
-  const keyMovedRef = useRef<'launch' | 'marker' | null>(null);
-  const plotCorner = { x: Math.min(...scales.x.range), y: Math.min(...scales.y.range) };
-  useEffect(() => {
-    const moved = keyMovedRef.current;
-    keyMovedRef.current = null;
-    if (!moved || !onReveal) return;
-    const at = moved === 'launch' ? tip : body;
-    onReveal({ x: at.x - plotCorner.x, y: at.y - plotCorner.y });
-  });
 
   const launchDrag = useDrag(({ x, y, phase }: DragPoint) => {
     if (phase === 'start') {
@@ -163,7 +154,7 @@ export default function JumpOverlay({
     const next = launchKeyTarget(event.key, settings);
     if (!next) return;
     event.preventDefault();
-    if (next.v0 !== settings.v0 || next.vx !== settings.vx) keyMovedRef.current = 'launch';
+    if (next.v0 !== settings.v0 || next.vx !== settings.vx) onKeyMove?.('launch');
     onLaunchChange(next);
   };
 
@@ -171,7 +162,7 @@ export default function JumpOverlay({
     const next = markerKeyTarget(event.key, t, live.tAir);
     if (next === undefined) return;
     event.preventDefault();
-    if (next !== t) keyMovedRef.current = 'marker';
+    if (next !== t) onKeyMove?.('marker');
     onSeek(next);
   };
 
@@ -213,6 +204,7 @@ export default function JumpOverlay({
         aria-valuetext={`t = ${format(t, 's')}`}
         className="group cursor-ew-resize outline-none"
         onKeyDown={onMarkerKeyDown}
+        onBlur={onKeyDone}
         {...markerDrag}
       >
         <g transform={translate(body)}>
@@ -233,6 +225,7 @@ export default function JumpOverlay({
         )}
         className="group cursor-move outline-none"
         onKeyDown={onLaunchKeyDown}
+        onBlur={onKeyDone}
         {...launchDrag}
       >
         <Knob at={tip} fill={LAUNCH_COLOR} />

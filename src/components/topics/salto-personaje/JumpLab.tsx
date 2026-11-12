@@ -1,43 +1,24 @@
-import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
-import { DEFAULT_JUMP_PRESET_ID, JUMP_PRESETS } from '../../../lib/data/jumpPresets';
+import { useEffect, useMemo, useState, type JSX } from 'react';
+import { JUMP_PRESETS } from '../../../lib/data/jumpPresets';
 import { formatNumber } from '../../../lib/format';
-import { clampSettings } from '../../../lib/limits';
 import { G_EARTH } from '../../../lib/physics';
-import { snapTo } from '../../lab/dragMath';
-import InlineMath from '../../lab/InlineMath';
 import LabPresets from '../../lab/LabPresets';
-import LabShell, { type LabReadout } from '../../lab/LabShell';
-import { KNOB_HIT_RADIUS } from '../../lab/OverlayMarks';
-import ParamField from '../../lab/ParamField';
-import type { Domain } from '../../lab/plotScales';
-import SvgPlot, { type PlotSeries } from '../../lab/SvgPlot';
+import LabShell from '../../lab/LabShell';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { useSimClock } from '../../lab/useSimClock';
+import JumpCanvas from './JumpCanvas';
 import JumpDesigner from './JumpDesigner';
 import { DEFAULT_DISPLAY, jumpLocalSettings, type JumpDisplay } from './jumpLabSettings';
-import {
-  computeJump,
-  computeJumpEuler,
-  EULER_DT,
-  JUMP_DEFAULTS,
-  JUMP_LIMITS,
-  type JumpResult,
-  type JumpSettings,
-} from './jumpModel';
-import JumpOverlay, { type LaunchSpeeds, V0_KEY_STEP, VX_KEY_STEP } from './JumpOverlay';
-import { sceneDomains } from './jumpScene';
-import { worldForGravity, worldForPreset } from './jumpWorlds';
-import { steadyLengthPerMs } from './jumpZoom';
-import JumpZoomLayer from './JumpZoomLayer';
-import JumpZoomStrip from './JumpZoomStrip';
-import { useJumpZoom } from './useJumpZoom';
+import { describePlot, jumpReadouts, jumpSeries } from './jumpLabView';
+import { computeJump, computeJumpEuler, EULER_DT, type JumpSettings } from './jumpModel';
+import { V0_KEY_STEP, VX_KEY_STEP } from './JumpOverlay';
+import JumpParams from './JumpParams';
+import { stateAt } from './jumpScene';
+import { worldForGravity } from './jumpWorlds';
+import { launchTipMetres } from './jumpZoom';
+import { useJumpFraming, useJumpState } from './useJumpState';
+import { useRevealOnKey } from './useRevealOnKey';
 
-type JumpKey = keyof JumpSettings;
-type Domains = { x: Domain; y: Domain };
-
-/** Slider steps; a dragged handle snaps to them too, so the fields never show float noise. */
-const STEPS: Record<JumpKey, number> = { v0: 0.1, g: 0.01, vx: 0.05, fallMultiplier: 0.1 };
-const SNAP_DECIMALS = 2;
 /** A key step in m/s with exactly its own decimals: «0,5 m/s», «0,25 m/s». */
 const stepText = (step: number) =>
   formatNumber(step, { precision: String(step).split('.')[1]?.length ?? 0, unit: 'm/s' });
@@ -49,44 +30,9 @@ const DRAG_HINT = `Arrastra la punta del vector de lanzamiento $\\vec v_0$, o en
  * do not grow with it; the framing of a new jump (a preset, the designer, «Restablecer») starts over.
  */
 const ZOOM_HINT =
-  'Acerca la gráfica con los botones, con Ctrl y la rueda o pellizcando; arrastra el fondo para desplazarla. Con la gráfica enfocada con el teclado: + y − acercan y alejan, 0 ajusta y las flechas desplazan (entonces también la rueda sola acerca). Los vectores no crecen con el zoom. «Ajustar» encuadra el salto entero, igual que elegir otro preajuste o «Restablecer».';
-
-/** The Earth reference wears Tierra's conventional color, dashed. */
-const EARTH_COLOR = worldForPreset('tierra').color;
-
-const FIELD_NAMES: Record<JumpKey, string> = {
-  v0: 'impulso $v_0$',
-  g: 'gravedad g',
-  vx: 'velocidad horizontal $v_x$',
-  fallMultiplier: 'multiplicador de caída',
-};
+  'Acerca la gráfica con los botones, Ctrl y la rueda, o pellizcando; arrastra el fondo para desplazarla. Enfocada desde el teclado, + y − acercan y alejan, 0 ajusta y las flechas desplazan (y la rueda sola también acerca). Las flechas de $\\vec v_0$ y $\\vec v$ no crecen al acercar. «Ajustar» encuadra el salto entero, igual que elegir otro preajuste o «Restablecer».';
 
 const EULER_NOTE = `Integrador: Euler semi-implícito con paso fijo Δt = 1/${Math.round(1 / EULER_DT)} s; las lecturas salen de la trayectoria muestreada.`;
-
-interface JumpState {
-  settings: JumpSettings;
-  presetId?: string;
-  clamped: JumpKey[];
-}
-
-const INITIAL_STATE: JumpState = {
-  settings: JUMP_DEFAULTS,
-  presetId: DEFAULT_JUMP_PRESET_ID,
-  clamped: [],
-};
-
-const snap = (value: number, key: JumpKey) =>
-  Number(snapTo(value, STEPS[key]).toFixed(SNAP_DECIMALS));
-
-const toXY = (result: JumpResult) => result.points.map(({ x, y }) => ({ x, y }));
-
-function describePlot(live: JumpResult, ghost: JumpResult | undefined): string {
-  const m = (value: number) => formatNumber(value, { unit: 'm' });
-  const own = `Trayectoria y(x): altura máxima ${m(live.hMax)}, alcance ${m(live.range)}`;
-  return ghost
-    ? `${own}; referencia terrestre: altura máxima ${m(ghost.hMax)}, alcance ${m(ghost.range)}.`
-    : `${own}.`;
-}
 
 /**
  * Tema 2's laboratory on LabShell: the jump plotted in metres with equal aspect, the Earth
@@ -102,12 +48,10 @@ export interface JumpLabProps {
 }
 
 export default function JumpLab({ usage, leftOut }: JumpLabProps): JSX.Element {
-  const [state, setState] = useState<JumpState>(INITIAL_STATE);
   const [display, setDisplay] = useState<JumpDisplay>(DEFAULT_DISPLAY);
-  /** The plot window held still while the launch vector is dragged, so the handle maps stably. */
-  const [heldDomains, setHeldDomains] = useState<Domains | null>(null);
   const { decimals } = useGlobalSettings();
-  const { settings, presetId, clamped } = state;
+  const { settings, presetId, clamped, setField, applyValues, onLaunchChange, reset } =
+    useJumpState();
 
   const live = useMemo(
     () => (display.integrator === 'euler' ? computeJumpEuler(settings) : computeJump(settings)),
@@ -118,68 +62,23 @@ export default function JumpLab({ usage, leftOut }: JumpLabProps): JSX.Element {
     [settings.v0, settings.vx],
   );
   const shownGhost = display.showGhost ? ghost : undefined;
-  // The window frames the live jump; a much larger Earth reference may run off the plot.
-  const fitted = useMemo(() => sceneDomains([live]), [live]);
-  // The zoom's ×1 is the framing of the live jump (held still while the handle is dragged); the
-  // plot shows the part of it the view says, and the vectors keep their length on screen.
-  const framing = heldDomains ?? fitted;
-  const jumpZoom = useJumpZoom(framing);
-  const { fit: refitZoom, view: zoomView } = jumpZoom.zoom;
-  const lengthPerMs = steadyLengthPerMs(framing.y, zoomView.scale, JUMP_LIMITS);
+  const { jumpZoom, lengthPerMs, onLaunchDragPhase } = useJumpFraming(live);
+  const { fit: refitZoom } = jumpZoom.zoom;
+  // A new jump (a preset, the designer, «Restablecer») starts over at the whole framing.
+  const applyAndRefit = (values: JumpSettings, id?: string) => {
+    applyValues(values, id);
+    refitZoom();
+  };
 
   const clock = useSimClock(live.tAir);
   const { reset: rewind } = clock;
   useEffect(() => rewind(), [live, rewind]);
-
-  const setField = (key: JumpKey, value: number) =>
-    setState({ settings: { ...settings, [key]: value }, clamped: [] });
-
-  // Presets and the designer may ask for values the sliders cannot show; clamp and say so.
-  const applyValues = (values: JumpSettings, id?: string) => {
-    const result = clampSettings<Record<JumpKey, number>>(values, JUMP_LIMITS);
-    setState({ settings: result.values, presetId: id, clamped: result.clamped });
-    refitZoom();
-  };
-
-  const onLaunchChange = ({ v0, vx }: LaunchSpeeds) =>
-    setState((previous) => ({
-      settings: { ...previous.settings, v0: snap(v0, 'v0'), vx: snap(vx, 'vx') },
-      clamped: [],
-    }));
-
-  const onLaunchDragPhase = useCallback(
-    (phase: 'start' | 'end') => setHeldDomains(phase === 'start' ? fitted : null),
-    [fitted],
-  );
-
-  const world = worldForGravity(settings.g);
-  const gravityText = (g: number) => formatNumber(g, { precision: decimals, unit: 'm/s²' });
-  const series: PlotSeries[] = [
-    ...(shownGhost
-      ? [
-          {
-            id: 'ghost',
-            label: `Referencia terrestre, g = ${gravityText(G_EARTH)}`,
-            points: toXY(shownGhost),
-            color: EARTH_COLOR,
-            dashed: true,
-          },
-        ]
-      : []),
-    {
-      id: 'live',
-      label: `${world.name}, g = ${gravityText(settings.g)}`,
-      points: toXY(live),
-      color: world.color,
-    },
-  ];
-
-  const readouts: LabReadout[] = [
-    { id: 'hMax', label: 'Altura máxima', value: live.hMax, unit: 'm' },
-    { id: 'tApex', label: 'Tiempo al ápice', value: live.tApex, unit: 's' },
-    { id: 'tAir', label: 'Tiempo en el aire', value: live.tAir, unit: 's' },
-    { id: 'range', label: 'Alcance', value: live.range, unit: 'm' },
-  ];
+  // After useJumpZoom's effects (the view is final), a key that moved a handle brings it into view.
+  const { onKeyMove, onKeyDone } = useRevealOnKey({
+    jumpZoom,
+    launch: launchTipMetres(settings, lengthPerMs),
+    marker: stateAt(live, clock.state.t),
+  });
 
   const localSettings = jumpLocalSettings({
     display,
@@ -189,44 +88,14 @@ export default function JumpLab({ usage, leftOut }: JumpLabProps): JSX.Element {
     clock,
   });
 
-  const params = (
-    <>
-      <ParamField
-        id="jump-v0"
-        label="Impulso de salto $v_0$"
-        unit="m/s"
-        min={JUMP_LIMITS.v0[0]}
-        max={JUMP_LIMITS.v0[1]}
-        step={STEPS.v0}
-        value={settings.v0}
-        onChange={(value) => setField('v0', value)}
-      />
-      <ParamField
-        id="jump-g"
-        label="Gravedad g"
-        unit="m/s²"
-        min={JUMP_LIMITS.g[0]}
-        max={JUMP_LIMITS.g[1]}
-        step={STEPS.g}
-        value={settings.g}
-        onChange={(value) => setField('g', value)}
-      />
-      {clamped.length > 0 ? (
-        <p data-testid="clamp-note" role="status" className="m-0 text-sm">
-          <InlineMath
-            text={`Valores ajustados al rango de los controles: ${clamped.map((key) => FIELD_NAMES[key]).join(', ')}.`}
-          />
-        </p>
-      ) : null}
-    </>
-  );
+  const params = <JumpParams settings={settings} clamped={clamped} onField={setField} />;
 
   const scenario = (
     <LabPresets
       id="jump-preset"
       presets={JUMP_PRESETS}
       activeId={presetId}
-      onSelect={(preset) => applyValues(preset.values, preset.id)}
+      onSelect={(preset) => applyAndRefit(preset.values, preset.id)}
     />
   );
 
@@ -235,7 +104,7 @@ export default function JumpLab({ usage, leftOut }: JumpLabProps): JSX.Element {
       <LabShell
         title="Laboratorio del salto"
         clock={clock}
-        readouts={readouts}
+        readouts={jumpReadouts(live)}
         levels={{ params, scenario, display: localSettings }}
         notes={{
           usage: [DRAG_HINT, ZOOM_HINT, ...(usage ? [usage] : [])],
@@ -245,52 +114,34 @@ export default function JumpLab({ usage, leftOut }: JumpLabProps): JSX.Element {
           ],
         }}
         onReset={() => {
-          setState(INITIAL_STATE);
+          reset();
           refitZoom();
         }}
         testId="jump-lab"
       >
-        <>
-          <SvgPlot
-            title="Trayectoria del salto"
-            xLabel="x"
-            xUnit="m"
-            yLabel="y"
-            yUnit="m"
-            series={series}
-            xDomain={jumpZoom.domains.x}
-            yDomain={jumpZoom.domains.y}
-            equalAspect
-            // The marker starts on the origin, at the plot's corner: keep its knob whole.
-            overlayBleed={KNOB_HIT_RADIUS}
-            ariaLabel={describePlot(live, shownGhost)}
-            testId="jump-plot"
-            overlay={(scales) => (
-              <JumpZoomLayer scales={scales} jumpZoom={jumpZoom}>
-                <JumpOverlay
-                  scales={scales}
-                  plotClipPath={scales.plotClipPath}
-                  settings={settings}
-                  live={live}
-                  t={clock.state.t}
-                  frame={clock.frame}
-                  lengthPerMs={lengthPerMs}
-                  color={world.color}
-                  showTrail={display.showTrail}
-                  showVelocity={display.showVelocity}
-                  decimals={decimals}
-                  onLaunchChange={onLaunchChange}
-                  onLaunchDragPhase={onLaunchDragPhase}
-                  onSeek={clock.seek}
-                  onReveal={jumpZoom.revealPoint}
-                />
-              </JumpZoomLayer>
-            )}
-          />
-          <JumpZoomStrip zoom={jumpZoom.zoom} />
-        </>
+        <JumpCanvas
+          jumpZoom={jumpZoom}
+          series={jumpSeries(settings, live, shownGhost, decimals)}
+          ariaLabel={describePlot(live, shownGhost)}
+          overlay={{
+            settings,
+            live,
+            t: clock.state.t,
+            frame: clock.frame,
+            lengthPerMs,
+            color: worldForGravity(settings.g).color,
+            showTrail: display.showTrail,
+            showVelocity: display.showVelocity,
+            decimals,
+            onLaunchChange,
+            onLaunchDragPhase,
+            onSeek: clock.seek,
+            onKeyMove,
+            onKeyDone,
+          }}
+        />
       </LabShell>
-      <JumpDesigner current={settings} onApply={(values) => applyValues(values)} />
+      <JumpDesigner current={settings} onApply={(values) => applyAndRefit(values)} />
     </div>
   );
 }

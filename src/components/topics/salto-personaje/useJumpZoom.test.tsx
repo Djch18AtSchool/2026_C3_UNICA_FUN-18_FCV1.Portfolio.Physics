@@ -7,7 +7,6 @@ import { useJumpZoom, type JumpZoom } from './useJumpZoom';
 /** The plot area the first measure reports, and what a margin fit does to it (12 px). */
 const PLOT = { width: 320, height: 160 };
 const MARGIN_FIT_PX = 12;
-const REAL_RESIZE_PX = 80;
 const BASE = { x: { min: -0.12, max: 3.0 }, y: { min: -0.06, max: 1.5 } };
 const OTHER_BASE = { x: { min: -0.2, max: 5.0 }, y: { min: -0.1, max: 2.5 } };
 
@@ -90,7 +89,7 @@ describe('useJumpZoom', () => {
     expect(spanOf(latest.domains.x)).toBeCloseTo(spanOf(OTHER_BASE.x) / 2, 6);
   });
 
-  test('keeps the plot size the window was computed from through a margin fit of a few px', () => {
+  test('follows every change of the plot size: the window is computed from the plot on screen', () => {
     vi.stubGlobal('ResizeObserver', FakeResizeObserver);
     setSettings({ motion: 'reduced' });
     render(<Harness />);
@@ -100,36 +99,39 @@ describe('useJumpZoom', () => {
 
     resize({ width: PLOT.width + MARGIN_FIT_PX, height: PLOT.height + MARGIN_FIT_PX });
 
-    expect(latest.domains).toEqual(before);
+    expect(latest.domains).not.toEqual(before);
+    expect(latest.plot).toEqual({
+      width: PLOT.width + MARGIN_FIT_PX,
+      height: PLOT.height + MARGIN_FIT_PX,
+    });
   });
 
-  test('follows the plot when the container really resizes', () => {
+  test('says the plot is settled once the observer reports the size SvgPlot drew', () => {
     vi.stubGlobal('ResizeObserver', FakeResizeObserver);
-    setSettings({ motion: 'reduced' });
     render(<Harness />);
     resize(PLOT);
-    zoomInTwice();
-    const before = latest.domains;
 
-    resize({ width: PLOT.width + REAL_RESIZE_PX, height: PLOT.height + REAL_RESIZE_PX });
+    act(() => latest.noteDrawn({ width: PLOT.width, height: PLOT.height + MARGIN_FIT_PX }));
+    expect(latest.isPlotSettled()).toBe(false);
 
-    expect(latest.domains).not.toEqual(before);
+    resize({ width: PLOT.width, height: PLOT.height + MARGIN_FIT_PX });
+    expect(latest.isPlotSettled()).toBe(true);
   });
 
-  test('brings a knob into view from its place on the plot, 12 px around it and 16 from the edge', () => {
+  test('brings a point in metres into view: 12 px around it and 16 from the edge', () => {
     vi.stubGlobal('ResizeObserver', FakeResizeObserver);
     setSettings({ motion: 'reduced' });
     render(<Harness />);
     resize(PLOT);
     for (let step = 0; step < 6; step += 1) act(() => latest.zoom.zoomIn());
     const before = latest.domains;
-    // Past the right edge of the plot, at its middle height.
-    const outside = { x: PLOT.width + 40, y: PLOT.height / 2 };
+    // Past the right edge of the window on show, at its middle height.
+    const outside = { x: before.x.max + 0.3, y: (before.y.min + before.y.max) / 2 };
 
-    act(() => latest.revealPoint(outside));
+    act(() => latest.revealAt(outside));
 
-    expect(latest.domains.x.max).toBeGreaterThan(before.x.max);
-    expect(latest.domains.y).toEqual(before.y);
+    expect(latest.domains.x.max).toBeGreaterThan(outside.x);
+    expect(latest.domains.y.min).toBeCloseTo(before.y.min, 6);
     expect(screen.getByTestId('viewport')).toBeInTheDocument();
   });
 
