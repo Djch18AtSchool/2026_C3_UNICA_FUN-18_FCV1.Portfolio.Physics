@@ -6,7 +6,7 @@
  */
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Browser, type Locator, type Page } from '@playwright/test';
-import { waitForIsland } from './helpers';
+import { seekTimeline, waitForIsland } from './helpers';
 
 const PAGE = './temas/salto-personaje/';
 const LAB = '[data-testid="jump-lab"]';
@@ -22,11 +22,11 @@ const MAX_SCALE = 8;
 /** Pixel slack of a read-back (positions are printed to hundredths; knobs are drawn at px). */
 const PX_SLACK = 1.5;
 const WHEEL_NOTCH_PX = 100;
-/** SvgPlot fits its left margin to the widest y tick on a phone: the plot moves by a few px. */
-const MARGIN_FIT_PX = 5;
 const DRAG = { x: -60, y: -30 } as const;
 const HANDLE_DRAG_PX = 24;
 const DRAG_STEPS = 6;
+/** The factor and the drawn scale agree to this share (the ticks are read to a hundredth of a px). */
+const DRAWN_SCALE_TOLERANCE = 0.005;
 const BUTTON_PX = 40;
 const GLYPH_PX = 20;
 const STRIP_PX = 48;
@@ -126,6 +126,12 @@ function lineOf(ticks: Tick[]): { pxPerMetre: number; atOrigin: number } {
   // Signed: the y axis runs the other way (values grow upward, px downward).
   const slope = (last.px - first.px) / (last.value - first.value);
   return { pxPerMetre: Math.abs(slope), atOrigin: first.value - first.px / slope };
+}
+
+/** px per metre from whichever axis has two ticks (a zoomed phone plot may show one on the other). */
+function drawnScale({ x, y }: Axes): number {
+  const [axis] = [x, y].filter((ticks) => ticks.length >= 2);
+  return lineOf(axis).pxPerMetre;
 }
 
 const readFactor = async (page: Page) => (await factor(page).textContent())?.trim() ?? '';
@@ -370,12 +376,10 @@ test.describe('the mouse', () => {
     const after = lineOf((await readAxes(page)).x);
     expect(after.pxPerMetre).toBeGreaterThan(before.pxPerMetre);
     expect(await page.evaluate(() => window.visualViewport?.scale)).toBe(1);
-    // The metre under the pointer stays under it (to the plot's margin fit and a px of read-back).
+    // The metre under the pointer stays under it (to a px of read-back).
     const plot = await box(viewport(page));
     const metreAt = (line: typeof before) => line.atOrigin + (target.x - plot.x) / line.pxPerMetre;
-    expect(Math.abs(metreAt(after) - metreAt(before))).toBeLessThan(
-      (MARGIN_FIT_PX + PX_SLACK) / after.pxPerMetre,
-    );
+    expect(Math.abs(metreAt(after) - metreAt(before))).toBeLessThan(PX_SLACK / after.pxPerMetre);
   });
 
   test('the wheel alone scrolls the page over a plot nobody focused', async ({ page }) => {
@@ -403,7 +407,7 @@ test.describe('the mouse', () => {
     // The plot follows the hand: dragging left by 60 px moves the window right by 60 px of metres.
     const { pxPerMetre } = lineOf(after.x);
     const moved = lineOf(after.x).atOrigin - lineOf(before.x).atOrigin;
-    expect(Math.abs(moved + DRAG.x / pxPerMetre)).toBeLessThan(MARGIN_FIT_PX / pxPerMetre);
+    expect(Math.abs(moved + DRAG.x / pxPerMetre)).toBeLessThan(PX_SLACK / pxPerMetre);
     // And up by 30 px: the window moves down, to smaller heights.
     expect(lineOf(after.y).atOrigin).toBeLessThan(lineOf(before.y).atOrigin);
   });
@@ -442,13 +446,11 @@ test.describe('the mouse', () => {
     expect((await readV0(page)) - v0Start).toBeCloseTo(atOne, 0);
   });
 
-  test('a press on the handle does not pan the view, even near the plot’s edge', async ({
-    page,
-  }) => {
+  /** Zoom to ×4 with the launch handle in view, then pan the plot so it sits 6 px from the left edge. */
+  async function panHandleToLeftEdge(page: Page): Promise<void> {
     await press(page, 'Acercar', STEPS_TO_X4);
     await focusWithKeyboard(page, page.getByTestId('launch-handle'));
     await expect.poll(() => isKnobInPlot(page, 'launch-handle')).toBe(true);
-    // Pan the plot so the handle sits 6 px from its left edge (the zoom's own reveal keeps 16).
     const plot = await box(viewport(page));
     const knob = await knobCentre(page, 'launch-handle');
     await page.getByTestId('launch-handle').blur();
@@ -456,17 +458,50 @@ test.describe('the mouse', () => {
     await expect
       .poll(async () => (await knobCentre(page, 'launch-handle')).x)
       .toBeLessThan(plot.x + 8);
-    const before = lineOf((await readAxes(page)).x);
-    const grab = await knobCentre(page, 'launch-handle');
+  }
 
+  /** Presses on the handle and moves 2 px: the window the plot shows during the press. */
+  async function windowDuringPress(page: Page): Promise<number> {
+    await settle(page);
+    const grab = await knobCentre(page, 'launch-handle');
     await page.mouse.move(grab.x, grab.y);
     await page.mouse.down();
     await page.mouse.move(grab.x, grab.y - 2);
-
-    const during = lineOf((await readAxes(page)).x);
+    const during = lineOf((await readAxes(page)).x).atOrigin;
     await page.mouse.up();
-    expect(during.atOrigin).toBeCloseTo(before.atOrigin, 3);
+    return during;
+  }
+
+  test('a press on the handle does not pan the view, even near the plot’s edge', async ({
+    page,
+  }) => {
+    await panHandleToLeftEdge(page);
+    const before = lineOf((await readAxes(page)).x).atOrigin;
+
+    expect(await windowDuringPress(page)).toBeCloseTo(before, 3);
   });
+
+  // R30 (controller): a script `focus()` inherits :focus-visible when the last thing the user did
+  // was a key, so after adjusting a slider with the keyboard the shared reveal still moves the view
+  // under the pointer. The closing's single piece (a pointer-gesture flag in useZoomPan) fixes it
+  // and turns this test.fail into a plain test.
+  test.fail(
+    'a press on the handle near the edge after a key on the slider does not pan the view (R30)',
+    async ({ page }) => {
+      test.info().annotations.push({
+        type: 'R30',
+        description:
+          'the shared reveal reads :focus-visible, which a key before the press leaves true',
+      });
+      await panHandleToLeftEdge(page);
+      const before = lineOf((await readAxes(page)).x).atOrigin;
+      await page.keyboard.press('Shift');
+      await v0Slider(page).focus();
+      await centrePlot(page);
+
+      expect(await windowDuringPress(page)).toBeCloseTo(before, 3);
+    },
+  );
 
   test('the origin’s knob keeps its whole hit target on the plot’s corner, past the plot area', async ({
     page,
@@ -525,6 +560,32 @@ for (const size of VIEWPORTS) {
       await expect.poll(() => readV0(page)).toBeCloseTo(start + KEY_PRESSES * 0.5, 5);
       await expect.poll(() => isKnobInPlot(page, 'launch-handle')).toBe(true);
     });
+
+    for (const world of ['Tierra', 'Luna']) {
+      for (const steps of [STEPS_TO_X4, STEPS_TO_LIMIT]) {
+        test(`${world} at ×${steps === STEPS_TO_X4 ? 4 : MAX_SCALE}: 24 ↑ and 24 ↓ on the launch handle leave it in view after each one`, async ({
+          page,
+        }) => {
+          await lab(page)
+            .getByRole('button', { name: new RegExp(`^${world}`) })
+            .click();
+          await press(page, 'Acercar', steps);
+          await focusWithKeyboard(page, page.getByTestId('launch-handle'));
+          await expect.poll(() => isKnobInPlot(page, 'launch-handle')).toBe(true);
+
+          // The jump changes shape with v0, so the plot's height does too: the handle must still be
+          // in view once the plot has settled, key after key.
+          for (const key of ['ArrowUp', 'ArrowDown']) {
+            for (let i = 0; i < KEY_PRESSES * 2; i += 1) {
+              await page.keyboard.press(key);
+              await expect
+                .poll(() => isKnobInPlot(page, 'launch-handle'), { message: `${key} ${i + 1}` })
+                .toBe(true);
+            }
+          }
+        });
+      }
+    }
 
     test('the marker follows its own key moves to the end of the jump', async ({ page }) => {
       await press(page, 'Acercar', STEPS_TO_LIMIT);
@@ -643,21 +704,97 @@ for (const size of VIEWPORTS) {
       }
     });
 
-    test('the figure keeps its height to a few px while zooming in', async ({ page }) => {
+    for (const world of ['Celeste', 'Tierra', 'Luna']) {
+      test(`${world}: the plot and the figure keep their size at every zoom and pan`, async ({
+        page,
+      }) => {
+        await lab(page)
+          .getByRole('button', { name: new RegExp(`^${world}`) })
+          .click();
+        await settle(page);
+        await centrePlot(page);
+        const sizes = async () => [
+          await box(viewport(page)),
+          await box(page.locator(PLOT)),
+          await box(page.locator(`${LAB} [data-lab-stage]`)),
+        ];
+        const whole = await sizes();
+        const same = async () =>
+          (await sizes()).every(
+            (now, i) =>
+              Math.abs(now.width - whole[i].width) < 0.5 &&
+              Math.abs(now.height - whole[i].height) < 0.5,
+          );
+
+        const wholeScale = drawnScale(await readAxes(page));
+
+        await focusWithKeyboard(page, viewport(page));
+        for (let step = 0; step < STEPS_TO_LIMIT; step += 1) {
+          await page.keyboard.press('+');
+          await settle(page);
+          expect(await same(), `${world} zoom step ${step + 1}`).toBe(true);
+          // What the factor says is what is drawn: √2 per step, to the read-back of the ticks.
+          const drawn = drawnScale(await readAxes(page)) / wholeScale;
+          expect(
+            Math.abs(drawn / Math.SQRT2 ** (step + 1) - 1),
+            `${world} step ${step + 1}`,
+          ).toBeLessThan(DRAWN_SCALE_TOLERANCE);
+        }
+        for (const key of ['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft']) {
+          for (let i = 0; i < 3; i += 1) {
+            await page.keyboard.press(key);
+            await settle(page);
+            expect(await same(), `${world} ${key} ${i + 1}`).toBe(true);
+          }
+        }
+      });
+    }
+  });
+}
+
+/** The jump seen at eleven instants, from take-off to landing: where the marker and the arrow are. */
+const INSTANTS = Array.from({ length: 11 }, (_, i) => String(i * 100));
+
+for (const size of [DESKTOP, PHONE, { width: 320, height: 800 }]) {
+  test.describe(`the scale bar through Luna's jump at ${size.width} px`, () => {
+    test.use({ viewport: size });
+
+    test('stays inside the plot and under the marker and the velocity arrow, at every instant', async ({
+      page,
+    }) => {
+      await lab(page).getByRole('button', { name: /^Luna/ }).click();
+      await settle(page);
       await centrePlot(page);
-      const heightBefore = (await box(page.locator(PLOT))).height;
-      const stageBefore = (await box(page.locator(`${LAB} [data-lab-stage]`))).height;
+      const timeline = lab(page).getByRole('slider', { name: 'Línea de tiempo' });
+      const plot = await box(viewport(page));
+      const bar = page.locator(`${PLOT} [data-scale-bar]`);
+      // Drawn first, so the marks that pass over it are painted over it.
+      const order = await bar.evaluate((element) => {
+        const above = (selector: string) =>
+          Boolean(
+            element.compareDocumentPosition(document.querySelector(selector)!) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+          );
+        return [above('[data-testid="jump-marker"]'), above('[data-velocity]')];
+      });
+      expect(order).toEqual([true, true]);
 
-      await press(page, 'Acercar', STEPS_TO_LIMIT);
-      await expect.poll(() => readFactor(page)).toBe(`×${MAX_SCALE}`);
-
-      // SvgPlot fits its left margin to the widest y tick on a phone: a character, 8 px, of width.
-      expect(Math.abs((await box(page.locator(PLOT))).height - heightBefore)).toBeLessThanOrEqual(
-        MARGIN_FIT_PX,
-      );
-      expect(
-        Math.abs((await box(page.locator(`${LAB} [data-lab-stage]`))).height - stageBefore),
-      ).toBeLessThanOrEqual(MARGIN_FIT_PX);
+      for (const value of INSTANTS) {
+        await seekTimeline(timeline, value);
+        await settle(page);
+        expect(isInside(await box(bar), plot), `bar at ${value}`).toBe(true);
+        const marker = await box(page.getByTestId('jump-marker').locator('[data-knob]'));
+        expect(
+          isInside(marker, {
+            ...plot,
+            x: plot.x - 16,
+            y: plot.y - 16,
+            width: plot.width + 32,
+            height: plot.height + 32,
+          }),
+          `marker at ${value}`,
+        ).toBe(true);
+      }
     });
   });
 }
