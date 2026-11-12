@@ -113,8 +113,10 @@ const PX_DECIMALS = 2;
 const KNOB_REVEAL_RADIUS = KNOB_CLEARANCE + TEXT_BAND;
 /**
  * The corner texts are painted over the drawing (a zoomed Saturn's rings reach the corners): the
- * V_p key on a backdrop of the surface (its arrow has the planet's color, the rings' own), the
- * other texts with the surface halo of the badge and the scale bar.
+ * V_p key on a backdrop of the surface (its arrow has the planet's color, the rings' own), the r_p
+ * value with the surface halo of the badge and the scale bar. «planeta agrandado» needs none: it
+ * shows only while the planet is under 4 px, when its rings reach 9 px from it, never the corner
+ * (and a halo would grow its box into the bar's ticks, which share its line).
  */
 const HUD_HALO = { color: SURFACE_COLOR, width: 4 } as const;
 const HUD_PAD = 4;
@@ -227,15 +229,7 @@ function Corners({ corners, rpValue, clock, planetColor, isNoteShown, scaleBar }
         />
       </g>
       {isNoteShown ? (
-        <text
-          x={noteAt.x}
-          y={noteAt.y}
-          fill={TICK_COLOR}
-          textAnchor="end"
-          stroke={HUD_HALO.color}
-          strokeWidth={HUD_HALO.width}
-          paintOrder="stroke"
-        >
+        <text x={noteAt.x} y={noteAt.y} fill={TICK_COLOR} textAnchor="end">
           {NOTE_TEXT}
         </text>
       ) : null}
