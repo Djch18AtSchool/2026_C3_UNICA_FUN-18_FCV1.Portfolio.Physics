@@ -3,13 +3,7 @@ import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX, scaleBarLength } from '../../lab/sc
 import { IDENTITY_VIEW } from '../../lab/zoomMath';
 import { CUBESAT_6U } from '../../../lib/data/reactionWheels';
 import { BODY_FOOTPRINT, DIAL_MARGIN, TEXT_BAND, type SceneGeometry } from './wheelScene';
-import {
-  BODY_SCALE_UNITS,
-  KNOB_REVEAL_RADIUS,
-  knobRevealBox,
-  pxPerCm,
-  zoomGeometry,
-} from './wheelZoom';
+import { BODY_SCALE_UNITS, KNOB_REVEAL_RADIUS, pxPerCm, zoomGeometry } from './wheelZoom';
 
 const CM_PER_M = 100;
 const BASE: SceneGeometry = {
@@ -106,24 +100,5 @@ describe('the text band', () => {
   test('is the dial’s margin plus the knob’s ring, and a reveal keeps the knob that far from the texts', () => {
     expect(TEXT_BAND).toBe(DIAL_MARGIN + 11);
     expect(KNOB_REVEAL_RADIUS).toBe(TEXT_BAND);
-  });
-});
-
-describe('knobRevealBox', () => {
-  test('is centred on the knob, in drawing units, with the text band around it', () => {
-    const box = knobRevealBox({ x: 300, y: 120 }, 1);
-
-    expect(box).toEqual({
-      x: 300 - KNOB_REVEAL_RADIUS,
-      y: 120 - KNOB_REVEAL_RADIUS,
-      width: 2 * KNOB_REVEAL_RADIUS,
-      height: 2 * KNOB_REVEAL_RADIUS,
-    });
-  });
-
-  test('is smaller in drawing units the more the view is zoomed (the band is in screen px)', () => {
-    const box = knobRevealBox({ x: 300, y: 120 }, 4);
-
-    expect(box.width).toBe((2 * KNOB_REVEAL_RADIUS) / 4);
   });
 });

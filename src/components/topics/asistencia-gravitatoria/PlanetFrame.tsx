@@ -1,8 +1,5 @@
 import {
-  useCallback,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type JSX,
   type FocusEvent,
@@ -28,6 +25,8 @@ import { Arrow, Knob, Label, type Point } from '../../lab/OverlayMarks';
 import { ScaleBarSvg, ScaleBarWords } from '../../lab/ScaleBar';
 import { useDrag, type DragHandlers, type DragPoint } from '../../lab/useDrag';
 import { useFrameDerived } from '../../lab/useFrameTime';
+import { useKnobReveal } from '../../lab/useKnobReveal';
+import { useRefit } from '../../lab/useRefit';
 import { useZoomPan, type ZoomPan } from '../../lab/useZoomPan';
 import ZoomControls from '../../lab/ZoomControls';
 import type { FlybyHyperbola, FlybyState } from './flybyOrbit';
@@ -107,7 +106,8 @@ const DEG = 180 / Math.PI;
 const PX_DECIMALS = 2;
 /**
  * The room a reveal gives the knob, in screen px: its focus ring (11) and the band of the corner
- * texts (TEXT_BAND), so a revealed knob is never under the key, the badge or the bar.
+ * texts (TEXT_BAND), so a revealed knob is never under the key, the badge or the bar. The knob's
+ * keys and the keyboard's focus reveal it (useKnobReveal); a press to drag it never pans (R30).
  */
 const KNOB_REVEAL_RADIUS = KNOB_CLEARANCE + TEXT_BAND;
 
@@ -264,27 +264,7 @@ function Drawing({ screen, planetColor, showVectors, labels }: DrawingProps) {
   );
 }
 
-/** Each change of `refit` frames the drawing again (not the first value: that is the initial view). */
-function useRefit(zoom: ZoomPan, refit: number): void {
-  const last = useRef(refit);
-  const { fit } = zoom;
-  useEffect(() => {
-    if (last.current === refit) return;
-    last.current = refit;
-    fit();
-  }, [refit, fit]);
-}
-
-/** Whether the element's focus is shown (:focus-visible); a browser without the selector says yes. */
-function isFocusShown(element: Element): boolean {
-  try {
-    return element.matches(':focus-visible');
-  } catch {
-    return true;
-  }
-}
-
-interface KnobRevealInput {
+interface KnobKeysInput {
   rp: number;
   onRpRequest(rp: number): void;
   zoom: ZoomPan;
@@ -292,42 +272,17 @@ interface KnobRevealInput {
   knobAt: Point;
 }
 
-/**
- * The knob in the view, clear of the texts of the corners. A key that moves it, or the keyboard's
- * focus that takes it, can leave it out of the view or under those texts at a zoom: the view then
- * pans it back with the texts' band around it (the canvas' own reveal of a focused handle leaves
- * only 16 px). The knob's focus does not reach the canvas' handler (stopPropagation), so this is
- * the only reveal for it, and only a focus that shows (:focus-visible) makes one: pressing the
- * knob to drag it does not pan the view, whichever way the shared canvas reveals on a click's
- * focus. That covers the knob only; the zoom buttons and other descendants keep the canvas'
- * own reveal until the shared piece ignores a focus that does not show.
- */
-function useKnobReveal({ rp, onRpRequest, zoom, knobAt }: KnobRevealInput) {
-  const isRevealPending = useRef(false);
-  const { reveal } = zoom;
-  const radius = KNOB_REVEAL_RADIUS / zoom.view.scale;
-  const revealKnob = useCallback(
-    () =>
-      reveal({ x: knobAt.x - radius, y: knobAt.y - radius, width: 2 * radius, height: 2 * radius }),
-    [reveal, knobAt.x, knobAt.y, radius],
-  );
-  useEffect(() => {
-    if (!isRevealPending.current) return;
-    isRevealPending.current = false;
-    revealKnob();
-  }, [revealKnob]);
+/** The knob's keys (arrows, Page keys, Home and End on the log r_p scale), and its reveal. */
+function useKnobKeys({ rp, onRpRequest, zoom, knobAt }: KnobKeysInput) {
+  const knob = useKnobReveal({ zoom, at: knobAt, radiusPx: KNOB_REVEAL_RADIUS });
   const onKeyDown = (event: KeyboardEvent<SVGGElement>) => {
     const next = rpKeyTarget(event.key, event.shiftKey, rp);
     if (next === undefined) return;
     event.preventDefault();
-    isRevealPending.current = next !== rp;
+    knob.revealAfterKey(next !== rp);
     onRpRequest(next);
   };
-  const onFocus = (event: FocusEvent<SVGGElement>) => {
-    event.stopPropagation();
-    if (isFocusShown(event.currentTarget)) revealKnob();
-  };
-  return { onKeyDown, onFocus };
+  return { onKeyDown, onFocus: knob.onFocus };
 }
 
 interface FrameBodyProps {
@@ -365,7 +320,7 @@ function useFrameModel({ props, panel, zoom }: FrameBodyProps) {
     onRpRequest(rpFromDistance(Math.hypot(at.x - centre.x, at.y - centre.y), half));
   });
   const knobAt = along(centre, screen.periDir, world.view.periapsisPx);
-  const { onKeyDown, onFocus } = useKnobReveal({ rp, onRpRequest, zoom, knobAt });
+  const { onKeyDown, onFocus } = useKnobKeys({ rp, onRpRequest, zoom, knobAt });
   return {
     world,
     screen,

@@ -481,27 +481,19 @@ test.describe('the mouse', () => {
     expect(await windowDuringPress(page)).toBeCloseTo(before, 3);
   });
 
-  // R30 (controller): a script `focus()` inherits :focus-visible when the last thing the user did
-  // was a key, so after adjusting a slider with the keyboard the shared reveal still moves the view
-  // under the pointer. The closing's single piece (a pointer-gesture flag in useZoomPan) fixes it
-  // and turns this test.fail into a plain test.
-  test.fail(
-    'a press on the handle near the edge after a key on the slider does not pan the view (R30)',
-    async ({ page }) => {
-      test.info().annotations.push({
-        type: 'R30',
-        description:
-          'the shared reveal reads :focus-visible, which a key before the press leaves true',
-      });
-      await panHandleToLeftEdge(page);
-      const before = lineOf((await readAxes(page)).x).atOrigin;
-      await page.keyboard.press('Shift');
-      await v0Slider(page).focus();
-      await centrePlot(page);
+  // R30: a script `focus()` inherits :focus-visible when the last thing the user did was a key, so
+  // :focus-visible cannot tell a press; the canvas' pointer flag (usePointerPress) can.
+  test('a press on the handle near the edge after a key on the slider does not pan the view (R30)', async ({
+    page,
+  }) => {
+    await panHandleToLeftEdge(page);
+    const before = lineOf((await readAxes(page)).x).atOrigin;
+    await page.keyboard.press('Shift');
+    await v0Slider(page).focus();
+    await centrePlot(page);
 
-      expect(await windowDuringPress(page)).toBeCloseTo(before, 3);
-    },
-  );
+    expect(await windowDuringPress(page)).toBeCloseTo(before, 3);
+  });
 
   test('the origin’s knob keeps its whole hit target on the plot’s corner, past the plot area', async ({
     page,

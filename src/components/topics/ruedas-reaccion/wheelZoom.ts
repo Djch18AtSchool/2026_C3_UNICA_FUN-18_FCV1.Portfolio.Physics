@@ -1,11 +1,11 @@
 /**
  * What the zoom adds to the reaction-wheel scene (wheelScene.ts is the drawing at ×1): the scene's
  * geometry through the zoom's view, the scale bar's length for the body (the one part drawn to
- * scale: 366,0 × 226,3 mm; the dial is an angle gauge and the wheel is not to scale) and the box a
- * revealed target knob keeps clear. Pure, in the canvas' px.
+ * scale: 366,0 × 226,3 mm; the dial is an angle gauge and the wheel is not to scale) and the room
+ * a revealed target knob keeps clear (useKnobReveal). Pure, in the canvas' px.
  */
 import type { ScaleUnit } from '../../lab/scaleBarMath';
-import { toScreen, type ZoomBox, type ZoomPoint, type ZoomView } from '../../lab/zoomMath';
+import { toScreen, type ZoomView } from '../../lab/zoomMath';
 import { TEXT_BAND, type SceneGeometry } from './wheelScene';
 
 const CM_PER_M = 100;
@@ -36,9 +36,3 @@ export function zoomGeometry(base: SceneGeometry, view: ZoomView): SceneGeometry
 /** CSS px per centimetre of the body, drawn at `pxPerMetre` at ×1 and seen at `zoomScale`. */
 export const pxPerCm = (pxPerMetre: number, zoomScale: number): number =>
   (pxPerMetre / CM_PER_M) * zoomScale;
-
-/** The box (drawing units) a reveal brings into view for a knob at `knobAt`, at this zoom. */
-export function knobRevealBox(knobAt: ZoomPoint, zoomScale: number): ZoomBox {
-  const radius = KNOB_REVEAL_RADIUS / zoomScale;
-  return { x: knobAt.x - radius, y: knobAt.y - radius, width: 2 * radius, height: 2 * radius };
-}

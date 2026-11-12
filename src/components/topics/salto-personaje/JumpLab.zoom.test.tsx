@@ -135,12 +135,11 @@ function plotArea(container: HTMLElement) {
   return { x, y, width, height };
 }
 
-/** jsdom shows every script focus (a press on a handle too); a browser shows only the keyboard's. */
-function hideFocusRing(): void {
-  const matches = Element.prototype.matches;
-  vi.spyOn(Element.prototype, 'matches').mockImplementation(function (this: Element, selector) {
-    return selector === ':focus-visible' ? false : matches.call(this, selector);
-  });
+/** Focuses `element` inside a press, so the canvas reveals nothing for the focus (R30). */
+function focusByPress(element: HTMLElement | SVGElement): void {
+  fireEvent.mouseDown(element);
+  act(() => element.focus());
+  fireEvent.mouseUp(element);
 }
 
 async function zoomIn(steps: number): Promise<void> {
@@ -242,7 +241,6 @@ describe('the trajectory zoom', () => {
   });
 
   test('a drag of the handle means the same change in v0 at ×4 as at ×1', async () => {
-    hideFocusRing();
     renderLab();
     const dragUp = (px: number) => {
       const handle = screen.getByTestId('launch-handle');
@@ -266,7 +264,6 @@ describe('the trajectory zoom', () => {
   });
 
   test('a key that moves the launch handle out of the zoomed window brings it back into view', async () => {
-    hideFocusRing();
     const { container } = renderLab();
     await zoomIn(STEPS_TO_LIMIT);
     const area = plotArea(container);
@@ -276,7 +273,7 @@ describe('the trajectory zoom', () => {
     expect(isInside(centre('launch-handle'))).toBe(false);
 
     const handle = screen.getByTestId('launch-handle');
-    act(() => handle.focus());
+    focusByPress(handle);
     fireEvent.keyDown(handle, { key: 'ArrowUp' });
 
     expect(isInside(centre('launch-handle'))).toBe(true);
@@ -285,13 +282,12 @@ describe('the trajectory zoom', () => {
   test.each(['Tierra', 'Luna'])(
     '%s at ×4: 24 ↑ and 24 ↓ leave the launch handle in view once the plot has settled, after each key',
     async (world) => {
-      hideFocusRing();
       const { container } = renderLab();
       await userEvent.click(screen.getByRole('button', { name: new RegExp(`^${world}`) }));
       reportPlotSize();
       await zoomIn(STEPS_TO_X4);
       const handle = screen.getByTestId('launch-handle');
-      act(() => handle.focus());
+      focusByPress(handle);
 
       for (const key of ['ArrowUp', 'ArrowDown']) {
         for (let i = 0; i < KEY_PRESSES; i += 1) {
@@ -308,7 +304,6 @@ describe('the trajectory zoom', () => {
   );
 
   test('a key that seeks the marker out of the zoomed window brings it back into view', async () => {
-    hideFocusRing();
     const { container } = renderLab();
     await zoomIn(STEPS_TO_LIMIT);
     const area = plotArea(container);
@@ -317,7 +312,7 @@ describe('the trajectory zoom', () => {
     expect(isInside(markerAt())).toBe(false);
 
     const marker = screen.getByTestId('jump-marker');
-    act(() => marker.focus());
+    focusByPress(marker);
     fireEvent.keyDown(marker, { key: 'End' });
 
     expect(isInside(markerAt())).toBe(true);

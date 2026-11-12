@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { useJumpZoom, type JumpZoom } from './useJumpZoom';
@@ -136,35 +136,29 @@ describe('useJumpZoom', () => {
   });
 
   describe('a handle that takes the focus', () => {
-    /** jsdom shows every script focus; a browser shows only the keyboard's. */
-    function focusShown(isShown: boolean) {
-      const matches = Element.prototype.matches;
-      vi.spyOn(Element.prototype, 'matches').mockImplementation(function (this: Element, selector) {
-        return selector === ':focus-visible' ? isShown : matches.call(this, selector);
-      });
-    }
-    function zoomedAndFocused() {
+    /** Zoomed in, the handle focused either by the keyboard (Tab) or inside a press (R30). */
+    function zoomedAndFocused(by: 'keyboard' | 'press') {
       vi.stubGlobal('ResizeObserver', FakeResizeObserver);
       setSettings({ motion: 'reduced' });
       render(<Harness />);
       resize(PLOT);
       for (let step = 0; step < 4; step += 1) act(() => latest.zoom.zoomIn());
       const before = latest.zoom.view;
-      act(() => screen.getByRole('button', { name: 'asidero' }).focus());
+      const handle = screen.getByRole('button', { name: 'asidero' });
+      if (by === 'press') fireEvent.mouseDown(handle);
+      act(() => handle.focus());
+      if (by === 'press') fireEvent.mouseUp(handle);
       return before;
     }
-    afterEach(() => vi.restoreAllMocks());
 
-    test('is brought into view when the browser shows its focus (Tab)', () => {
-      focusShown(true);
-      const before = zoomedAndFocused();
+    test('is brought into view when the keyboard focuses it (Tab)', () => {
+      const before = zoomedAndFocused('keyboard');
 
       expect(latest.zoom.view).not.toEqual(before);
     });
 
-    test('does not pan the view when the focus is a press on it (no focus ring)', () => {
-      focusShown(false);
-      const before = zoomedAndFocused();
+    test('does not pan the view when the focus comes with a press on it', () => {
+      const before = zoomedAndFocused('press');
 
       expect(latest.zoom.view).toEqual(before);
     });

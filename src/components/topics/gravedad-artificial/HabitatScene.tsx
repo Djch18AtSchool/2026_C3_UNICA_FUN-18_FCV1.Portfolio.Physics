@@ -19,7 +19,7 @@ import { angleAt, radiusToSlider, ringRadius } from './habitatScene';
 import HabitatPerson from './HabitatPerson';
 import HabitatZoomStrip, { STRIP_STACK_BELOW } from './HabitatZoomStrip';
 import RadiusBar, { CAPTION_LINE, COMPACT_BAR } from './RadiusBar';
-import { useRefit } from './useRefit';
+import { useRefit } from '../../lab/useRefit';
 
 const RING_FILL = 'color-mix(in srgb, var(--fg) 7%, var(--bg-elevated))';
 const RING_STROKE = 'var(--fg)';

@@ -38,7 +38,8 @@ import {
 import { DisturbanceMarks, FieldLines, RateArc } from './WheelSceneMarks';
 import { pxPerCm, zoomGeometry } from './wheelZoom';
 import WheelZoomStrip from './WheelZoomStrip';
-import { useRefit, useTargetReveal, type TargetKnobHandlers } from './useTargetReveal';
+import { useRefit } from '../../lab/useRefit';
+import { useTargetReveal, type TargetKnobHandlers } from './useTargetReveal';
 
 /** Neutral body and wheel; the rates in the accent, red when the wheel passes its top speed. */
 const BODY_FILL = 'color-mix(in srgb, var(--fg) 7%, var(--bg-elevated))';

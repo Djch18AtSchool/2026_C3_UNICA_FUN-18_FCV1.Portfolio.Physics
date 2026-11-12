@@ -276,9 +276,23 @@ describe('the planet frame zoom', () => {
     isKnobAtEdge = true;
     const before = centre('flyby-planet');
 
+    // A press: the canvas sees it start before useDrag focuses the knob (R30).
+    fireEvent.mouseDown(handle());
     fireEvent.focus(handle());
+    fireEvent.mouseUp(handle());
 
     expect(centre('flyby-planet')).toEqual(before);
+  });
+
+  test("the keyboard focusing the knob at the edge of the view brings it in with the texts' band", () => {
+    renderLab();
+    zoomIn(4);
+    isKnobAtEdge = true;
+    const before = centre('flyby-planet');
+
+    fireEvent.focus(handle());
+
+    expect(centre('flyby-planet')).not.toEqual(before);
   });
 
   test('the planet is «agrandado» only while its true size is under 4 px on screen', () => {
