@@ -389,13 +389,15 @@ test.describe('escala de tiempo en el lienzo', () => {
     expect(Date.now() - started).toBeLessThan(SAME_READING_SEEK_MS);
   });
 
-  test('sigue habiendo una sola región status en el laboratorio: la escala va en la descripción del dibujo', async ({
+  test('la escala de tiempo no abre una región status más: hay dos, la de la advertencia y la del zoom, y la escala va en la descripción del dibujo', async ({
     page,
   }) => {
     const lab = await openScene(page);
     await lab.getByRole('radio', { name: 'Perturbación y descarga' }).check({ force: true });
 
-    await expect(lab.getByRole('status')).toHaveCount(1);
+    await expect(lab.getByRole('status')).toHaveCount(2);
+    await expect(lab.locator('[data-wheel-zoom-strip]').getByRole('status')).toHaveCount(1);
+    await expect(lab.getByRole('status').filter({ hasText: /cámara rápida/u })).toHaveCount(0);
     await expect(lab.locator(`${SCENE} [role="img"]`)).toHaveAttribute(
       'aria-label',
       /Escala de tiempo: 7\s200 veces la velocidad real, cámara rápida\.$/u,
