@@ -10,6 +10,7 @@ import {
   resimulateRun,
   runEnd,
   speedTrace,
+  stateAhead,
   stateAt,
   stepAt,
   truncateRun,
@@ -157,5 +158,26 @@ describe('speedTrace', () => {
 
   test('a run that has not started is its first point', () => {
     expect(speedTrace(newRun(COURSE), COURSE, 0)).toEqual([{ x: 376, y: 16.1 * 3.6 }]);
+  });
+});
+
+describe('stateAhead: the state at a live time, without copying the run', () => {
+  const run = extendRun(newRun(COURSE), 1, BRAKE, COURSE, MODEL);
+
+  test('inside the recording it is the recorded state', () => {
+    expect(stateAhead(run, 0.5, GAS, COURSE, MODEL)).toBe(run.states[50]);
+  });
+
+  test('past it, the same state extendRun would record with the pedals held', () => {
+    const ahead = stateAhead(run, 1.03, GAS, COURSE, MODEL);
+
+    expect(ahead).toEqual(stateAt(extendRun(run, 1.03, GAS, COURSE, MODEL), 1.03));
+    expect(run.states).toHaveLength(101);
+  });
+
+  test('never past the course’s end', () => {
+    const end = stateAhead(run, 99, NONE, COURSE, MODEL);
+
+    expect(end).toEqual(extendRun(run, 99, NONE, COURSE, MODEL).states.at(-1));
   });
 });

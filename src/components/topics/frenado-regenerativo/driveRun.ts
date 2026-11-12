@@ -121,6 +121,28 @@ export function stateAt(run: DriveRun, t: number): DriveState {
   return run.states[Math.min(Math.max(stepAt(t), 0), lastStep(run))];
 }
 
+/**
+ * The state at instant t without recording it: the recorded one, or, past the recording, the run
+ * driven on with `held` one step at a time from its last state, never past the course's end. The
+ * same state extendRun would record, without copying the run (the moving layers read it per frame).
+ */
+export function stateAhead(
+  run: DriveRun,
+  t: number,
+  held: PedalsHeld,
+  course: DriveCourse,
+  { car, regen }: DriveModel,
+): DriveState {
+  const from = lastStep(run);
+  const target = Math.min(stepAt(t), stepAt(course.duration));
+  if (target <= from) return stateAt(run, t);
+  let current = run.states[from];
+  for (let step = from; step < target; step += 1) {
+    current = driveStep(current, held, DRIVE_STEP_S, car, regen);
+  }
+  return current;
+}
+
 /** The run cut at instant t: what was driven after it is dropped, to drive on from there. */
 export function truncateRun(run: DriveRun, t: number): DriveRun {
   const keep = Math.max(stepAt(t), 0);

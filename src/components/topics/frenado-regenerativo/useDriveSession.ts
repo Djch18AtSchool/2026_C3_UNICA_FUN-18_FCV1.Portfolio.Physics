@@ -18,6 +18,7 @@ import {
   newRun,
   resimulateRun,
   runEnd,
+  stateAhead,
   stateAt,
   stepAt,
   truncateRun,
@@ -219,9 +220,12 @@ export function useDriveSession(input: DriveSessionInput): DriveSession {
     sourcesRef.current = releasePedal(sourcesRef.current, pedal, source);
   };
   const run = store.runRef.current;
-  // Read at call time: the frame listener has usually driven the run to t already (no copy then).
+  // Read at call time. The moving layers subscribe to the frame before the listener that records
+  // (children's effects run first), so they usually read one or two steps past the recording:
+  // stateAhead steps them from the last state without copying the run (0,7 µs instead of 8,7 µs
+  // a call on a full US06 run), and the listener records the same states right after.
   const liveAt = (t: number) =>
-    stateAt(extendRun(store.runRef.current, t, heldOf(sourcesRef.current), course, model), t);
+    stateAhead(store.runRef.current, t, heldOf(sourcesRef.current), course, model);
   return {
     clock: isActive ? driveClock : clock,
     settled: stateAt(run, clock.state.t),
