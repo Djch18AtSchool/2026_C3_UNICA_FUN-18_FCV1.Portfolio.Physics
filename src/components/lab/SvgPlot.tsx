@@ -95,6 +95,11 @@ export interface SvgPlotProps {
   overlayBleed?: number;
   ariaLabel: string;
   testId?: string;
+  /**
+   * Characters the compact layout reserves for the y tick labels at least: a plot whose domains
+   * move (a zoom) keeps its left margin, and so its width and height, whatever the labels shown.
+   */
+  minYLabelChars?: number;
 }
 
 export type { Domain, Scale } from './plotScales';
@@ -250,7 +255,9 @@ function computeLayout(props: SvgPlotProps, measuredWidth: number) {
   let left = MIN_COMPACT_LEFT;
   let layout = layoutWith(props, width, { ...margin, left });
   for (let pass = 0; pass < COMPACT_PASSES; pass++) {
-    const needed = compactLeft(yTickLabelChars(axisTicks(layout.x, layout.y).y));
+    const needed = compactLeft(
+      Math.max(props.minYLabelChars ?? 0, yTickLabelChars(axisTicks(layout.x, layout.y).y)),
+    );
     if (needed <= left) break;
     left = needed;
     layout = layoutWith(props, width, { ...margin, left });

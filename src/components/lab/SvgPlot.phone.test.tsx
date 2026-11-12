@@ -78,6 +78,59 @@ describe('SvgPlot on a phone-width container', () => {
     expect(screen.getByText('y (m)')).toHaveAttribute('text-anchor', 'start');
   });
 
+  describe('minYLabelChars', () => {
+    /** The plot area's left edge (px) for a y domain, by what the overlay is handed. */
+    function leftFor(yMax: number, minYLabelChars?: number): number {
+      stubResizeObserver(300);
+      let captured: { x: Scale; y: Scale } | undefined;
+      render(
+        <SvgPlot
+          {...PROPS}
+          yDomain={{ min: 0, max: yMax }}
+          minYLabelChars={minYLabelChars}
+          overlay={(scales) => {
+            captured = scales;
+            return null;
+          }}
+        />,
+      );
+      cleanup();
+      return captured!.x.range[0];
+    }
+
+    test('reserves the room of that many characters at least, so a domain that moves keeps its margin', () => {
+      // A «0 … 4» axis has one-character labels (the 40 px minimum); five characters reserve 5 · 8 + 12.
+      expect(leftFor(4)).toBe(40);
+      expect(leftFor(4, 5)).toBe(52);
+    });
+
+    test('the same margin for a domain with short labels and one with long ones', () => {
+      expect(leftFor(4, 5)).toBe(leftFor(1250, 5));
+    });
+
+    test('never narrows a margin that the labels need: five characters stay five', () => {
+      expect(leftFor(1250)).toBe(52);
+      expect(leftFor(1250, 3)).toBe(52);
+    });
+
+    test('is ignored from 480 px up, where the margins are fixed', () => {
+      stubResizeObserver(600);
+      let captured: { x: Scale; y: Scale } | undefined;
+      render(
+        <SvgPlot
+          {...PROPS}
+          minYLabelChars={9}
+          overlay={(scales) => {
+            captured = scales;
+            return null;
+          }}
+        />,
+      );
+
+      expect(captured!.x.range[0]).toBe(84);
+    });
+  });
+
   /** Horizontal extent of a <text>, estimated as the plotter does: 0,6 em per mono character. */
   function textExtent(node: Element, fontSize: number): [number, number] {
     const x = Number(node.getAttribute('x'));
