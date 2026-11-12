@@ -1,7 +1,8 @@
 /**
  * The shared zoom pieces (D1) on a test page outside the site (tests/e2e/fixtures/lab-zoom):
- * useZoomPan, ZoomControls and ScaleBar in a LabShell whose canvas is a 40 km map with a draggable
- * handle. The labs that adopt them (D1.2 onwards) have their own specs.
+ * useZoomPan, ZoomOverlay (ScaleBar and ZoomControls) and the time badge in a LabShell whose canvas
+ * is a 40 km map with a draggable handle; a second lab has a short canvas with the buttons in a
+ * row. The labs that adopt them (D1.2 onwards) have their own specs.
  */
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
@@ -10,6 +11,9 @@ import { waitForIsland } from './helpers';
 import { expectSameHeightAfterHydration, HYDRATION_WIDTHS } from './hydrationStability';
 
 const LAB = '[data-testid="zoom-fixture-lab"]';
+const ROW_LAB = '[data-testid="zoom-fixture-lab-row"]';
+/** «Ajustar» frames the fixture's route: 37 of the map's 40 km across (ROUTE_BOX_KM). */
+const FIT_SCALE = 40 / 37;
 const BLOCKING_IMPACTS = ['serious', 'critical'];
 const VIEWPORTS = [
   { width: 1280, height: 800 },
@@ -41,10 +45,21 @@ test.afterAll(async () => {
   await site?.stop();
 });
 
-async function openFixture(page: Page, theme: 'light' | 'dark' = 'light'): Promise<Locator> {
+async function openFixture(
+  page: Page,
+  theme: 'light' | 'dark' = 'light',
+  selector: string = LAB,
+): Promise<Locator> {
   await page.goto(`${site.url}?theme=${theme}`);
-  await waitForIsland(page, LAB);
-  return page.locator(LAB);
+  await waitForIsland(page, selector);
+  return page.locator(selector);
+}
+
+/** Focuses the canvas from the keyboard (Tab from the gear), so its focus shows (:focus-visible). */
+async function tabToCanvas(page: Page, lab: Locator): Promise<void> {
+  await lab.getByRole('button', { name: 'Ajustes del simulador' }).focus();
+  await page.keyboard.press('Tab');
+  await expect(viewport(lab)).toBeFocused();
 }
 
 const viewport = (lab: Locator) => lab.locator('[data-zoom-viewport]');
@@ -73,6 +88,18 @@ async function settleAt(lab: Locator, scale: number): Promise<void> {
     .poll(async () => Math.abs((await viewOf(lab)).scale - scale), { message: `×${scale}` })
     .toBeLessThan(1e-9);
 }
+
+type Box = { x: number; y: number; width: number; height: number };
+
+/** Whether two boxes share no area. */
+const isApart = (a: Box, b: Box) =>
+  a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y;
+
+const isInside = (inner: Box, outer: Box) =>
+  inner.x >= outer.x &&
+  inner.y >= outer.y &&
+  inner.x + inner.width <= outer.x + outer.width &&
+  inner.y + inner.height <= outer.y + outer.height;
 
 /** A point of the canvas' background, away from the handle, the buttons and the scale bar. */
 async function backgroundPoint(lab: Locator): Promise<{ x: number; y: number }> {
@@ -112,8 +139,11 @@ for (const size of VIEWPORTS) {
       const lab = await openFixture(page);
 
       await expect(factor(lab)).toHaveText('×1');
-      await expect(zoomButton(lab, 'Acercar')).not.toHaveAttribute('aria-disabled');
-      for (const name of ZOOM_NAMES.slice(1)) {
+      // The route («Ajustar») is framed tighter than the lab's own frame; ×1 is the frame.
+      for (const name of ['Acercar', 'Ajustar']) {
+        await expect(zoomButton(lab, name)).not.toHaveAttribute('aria-disabled');
+      }
+      for (const name of ['Alejar', 'Tamaño real 1:1']) {
         await expect(zoomButton(lab, name)).toHaveAttribute('aria-disabled', 'true');
       }
 
@@ -127,45 +157,44 @@ for (const size of VIEWPORTS) {
       await expect.poll(async () => (await viewOf(lab)).scale).toBe(8);
 
       await zoomButton(lab, 'Ajustar').click();
-      await expect(factor(lab)).toHaveText('×1');
-      await expect.poll(() => viewOf(lab)).toEqual({ scale: 1, x: 0, y: 0 });
+      await expect(factor(lab)).toHaveText('×1,1');
+      await settleAt(lab, FIT_SCALE);
+      await expect(zoomButton(lab, 'Ajustar')).toHaveAttribute('aria-disabled', 'true');
 
-      await zoomButton(lab, 'Acercar').click();
-      await zoomButton(lab, 'Acercar').click();
-      await expect(factor(lab)).toHaveText('×2');
       await zoomButton(lab, 'Tamaño real 1:1').click();
       await expect(factor(lab)).toHaveText('×1');
+      await expect.poll(() => viewOf(lab)).toEqual({ scale: 1, x: 0, y: 0 });
       await zoomButton(lab, 'Alejar').click({ force: true });
       await expect(factor(lab)).toHaveText('×1');
     });
 
-    test('los botones miden 40 px con glifo de 20 y, con la barra de escala, quedan dentro del lienzo sin tocarse', async ({
-      page,
-    }) => {
-      const lab = await openFixture(page);
-      const canvas = (await viewport(lab).boundingBox())!;
-      const controls = (await lab.locator('[data-zoom-controls]').boundingBox())!;
-      const bar = (await lab.locator('div[data-scale-bar]').boundingBox())!;
+    for (const selector of [LAB, ROW_LAB]) {
+      test(`${selector}: botones de 40 px con glifo de 20; botones, barra de escala e insignia de tiempo dentro del lienzo sin tocarse`, async ({
+        page,
+      }) => {
+        const lab = await openFixture(page, 'light', selector);
+        const canvas = (await viewport(lab).boundingBox())!;
+        const controls = (await lab.locator('[data-zoom-controls]').boundingBox())!;
+        const bar = (await lab.locator('div[data-scale-bar]').boundingBox())!;
+        const badge = (await lab.locator('div[data-time-scale-badge]').boundingBox())!;
 
-      for (const name of ZOOM_NAMES) {
-        const box = (await zoomButton(lab, name).boundingBox())!;
-        expect(box.width).toBe(BUTTON_PX);
-        expect(box.height).toBe(BUTTON_PX);
-      }
-      for (const glyph of await lab.locator('[data-zoom-controls] svg').all()) {
-        expect((await glyph.boundingBox())!.width).toBe(GLYPH_PX);
-      }
-      for (const box of [controls, bar]) {
-        expect(box.x).toBeGreaterThanOrEqual(canvas.x);
-        expect(box.y).toBeGreaterThanOrEqual(canvas.y);
-        expect(box.x + box.width).toBeLessThanOrEqual(canvas.x + canvas.width);
-        expect(box.y + box.height).toBeLessThanOrEqual(canvas.y + canvas.height);
-      }
-      expect(bar.x + bar.width).toBeLessThan(controls.x);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-        size.width,
-      );
-    });
+        for (const name of ZOOM_NAMES) {
+          const box = (await zoomButton(lab, name).boundingBox())!;
+          expect(box.width).toBe(BUTTON_PX);
+          expect(box.height).toBe(BUTTON_PX);
+        }
+        for (const glyph of await lab.locator('[data-zoom-controls] svg').all()) {
+          expect((await glyph.boundingBox())!.width).toBe(GLYPH_PX);
+        }
+        for (const box of [controls, bar, badge]) expect(isInside(box, canvas)).toBe(true);
+        expect(isApart(controls, bar)).toBe(true);
+        expect(isApart(controls, badge)).toBe(true);
+        expect(isApart(bar, badge)).toBe(true);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+          size.width,
+        );
+      });
+    }
 
     test('la barra de escala da una longitud redonda de 64 a 160 px y se recalcula con el zoom', async ({
       page,
@@ -181,7 +210,7 @@ for (const size of VIEWPORTS) {
 
       await zoomButton(lab, 'Acercar').click();
       await zoomButton(lab, 'Acercar').click();
-      await expect(factor(lab)).toHaveText('×2');
+      await settleAt(lab, 2);
       const after = await read();
 
       for (const reading of [before, after]) {
@@ -200,10 +229,7 @@ test('con el teclado: el lienzo entra en el orden de foco y + − 0 y las flecha
   page,
 }) => {
   const lab = await openFixture(page);
-  await lab.getByRole('button', { name: 'Ajustes del simulador' }).focus();
-
-  await page.keyboard.press('Tab');
-  await expect(viewport(lab)).toBeFocused();
+  await tabToCanvas(page, lab);
   await expect(viewport(lab)).toHaveAttribute('aria-roledescription', 'lienzo con zoom');
   const described = await viewport(lab).getAttribute('aria-describedby');
   await expect(page.locator(`[id="${described}"]`)).toContainText('las flechas lo desplazan');
@@ -222,14 +248,15 @@ test('con el teclado: el lienzo entra en el orden de foco y + − 0 y las flecha
   await page.keyboard.press('-');
   await expect(factor(lab)).toHaveText('×1,4');
   await page.keyboard.press('0');
-  await settleAt(lab, 1);
+  await settleAt(lab, FIT_SCALE);
+  const fitted = await viewOf(lab);
 
   // Then the handle (its arrows move it, not the view), then the zoom buttons.
   await page.keyboard.press('Tab');
   await expect(handle(lab)).toBeFocused();
   await page.keyboard.press('ArrowRight');
   await expect(handle(lab)).toHaveAttribute('aria-valuetext', /^x = 11,0\skm$/u);
-  expect(await viewOf(lab)).toEqual({ scale: 1, x: 0, y: 0 });
+  expect(await viewOf(lab)).toEqual(fitted);
   await page.keyboard.press('Tab');
   await expect(zoomButton(lab, 'Acercar')).toBeFocused();
 });
@@ -269,22 +296,33 @@ test('la rueda con Ctrl acerca bajo el puntero y no deja que la página haga zoo
   expect(await page.evaluate(() => window.visualViewport?.scale)).toBe(1);
 });
 
-test('la rueda sola desplaza la página si el lienzo no tiene el foco, y acerca si lo tiene', async ({
+test('la rueda sola desplaza la página sin foco y tras un clic; acerca si el lienzo se enfocó con el teclado', async ({
   page,
 }) => {
   const lab = await openFixture(page);
   const point = await backgroundPoint(lab);
   await page.mouse.move(point.x, point.y);
-  const prevented = await watchWheel(page);
+  const unfocused = await watchWheel(page);
 
   await page.mouse.wheel(0, WHEEL_NOTCH_PX);
 
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
-  expect(await prevented()).toBe(false);
+  expect(await unfocused()).toBe(false);
+  await expect(factor(lab)).toHaveText('×1');
+
+  // A click focuses the canvas without showing it: the wheel still scrolls the page.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const clicked = await backgroundPoint(lab);
+  await page.mouse.click(clicked.x, clicked.y);
+  await expect(viewport(lab)).toBeFocused();
+  const afterClick = await watchWheel(page);
+  await page.mouse.wheel(0, WHEEL_NOTCH_PX);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  expect(await afterClick()).toBe(false);
   await expect(factor(lab)).toHaveText('×1');
 
   await page.evaluate(() => window.scrollTo(0, 0));
-  await viewport(lab).focus();
+  await tabToCanvas(page, lab);
   const again = await backgroundPoint(lab);
   await page.mouse.move(again.x, again.y);
   const zoomed = await watchWheel(page);
@@ -293,6 +331,45 @@ test('la rueda sola desplaza la página si el lienzo no tiene el foco, y acerca 
   await expect(factor(lab)).toHaveText('×1,4');
   expect(await zoomed()).toBe(true);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
+});
+
+test('un arrastre soltado fuera del lienzo no sigue al ratón cuando vuelve', async ({ page }) => {
+  const lab = await openFixture(page);
+  await zoomButton(lab, 'Acercar').click();
+  await zoomButton(lab, 'Acercar').click();
+  await settleAt(lab, 2);
+  const zoomed = await viewOf(lab);
+  const canvas = (await viewport(lab).boundingBox())!;
+  const start = { x: canvas.x + canvas.width * 0.45, y: canvas.y + 6 };
+
+  // Down near the top edge, one move out (no pan yet: under the threshold inside), up outside.
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(start.x, canvas.y - 40);
+  await page.mouse.up();
+  await page.mouse.move(start.x + 40, start.y + 100, { steps: DRAG_STEPS + 2 });
+
+  expect(await viewOf(lab)).toEqual(zoomed);
+  await expect(viewport(lab)).not.toHaveAttribute('data-zoom-panning');
+});
+
+test('a ×8, el Tab trae el asidero a la vista y sus flechas no lo sacan de ella', async ({
+  page,
+}) => {
+  const lab = await openFixture(page);
+  for (let i = 0; i < 6; i += 1) await zoomButton(lab, 'Acercar').click();
+  await settleAt(lab, 8);
+  const canvas = (await viewport(lab).boundingBox())!;
+  expect(isInside((await handle(lab).boundingBox())!, canvas)).toBe(false);
+
+  await tabToCanvas(page, lab);
+  await page.keyboard.press('Tab');
+  await expect(handle(lab)).toBeFocused();
+
+  await expect.poll(async () => isInside((await handle(lab).boundingBox())!, canvas)).toBe(true);
+  for (let i = 0; i < 5; i += 1) await page.keyboard.press('ArrowLeft');
+  await expect.poll(async () => isInside((await handle(lab).boundingBox())!, canvas)).toBe(true);
+  await expect(factor(lab)).toHaveText('×8');
 });
 
 test('arrastrar el fondo desplaza el dibujo; arrastrar el asidero lo mueve a él, no al dibujo', async ({
@@ -389,11 +466,14 @@ async function scalesDuringZoom(page: Page, lab: Locator): Promise<number[]> {
       attributes: true,
     });
   });
+  const seen = () => page.evaluate(() => (window as unknown as { seen: string[] }).seen);
+  const scaleOf = (transform: string) => Number(/scale\((\S+)\)/u.exec(transform)?.[1]);
   await zoomButton(lab, 'Acercar').click();
-  await expect(factor(lab)).toHaveText('×1,4');
-  await page.waitForTimeout(300);
-  const seen = await page.evaluate(() => (window as unknown as { seen: string[] }).seen);
-  return [...new Set(seen.map((t) => Number(/scale\((\S+)\)/u.exec(t)?.[1])))];
+  // The glide ends on ×√2: wait for the last transform to say so.
+  await expect
+    .poll(async () => Math.abs(scaleOf((await seen()).at(-1) ?? '') - Math.SQRT2))
+    .toBeLessThan(1e-9);
+  return [...new Set((await seen()).map(scaleOf))];
 }
 
 test('un botón desliza el zoom; con movimiento reducido salta, sin pasos intermedios', async ({
@@ -419,15 +499,17 @@ test('un botón desliza el zoom; con movimiento reducido salta, sin pasos interm
 });
 
 test('un cambio de zoom se anuncia una vez asentado; al cargar, nada', async ({ page }) => {
+  await page.clock.install();
   const lab = await openFixture(page);
   const status = lab.locator('[data-zoom-controls] ~ [role="status"]');
-  await page.waitForTimeout(ANNOUNCE_SETTLED_MS);
+  await page.clock.runFor(ANNOUNCE_SETTLED_MS);
   await expect(status).toBeEmpty();
 
   await zoomButton(lab, 'Acercar').click();
+  await page.clock.runFor(ANNOUNCE_SETTLED_MS);
 
-  await expect(status).toHaveText('Zoom: 1,4 veces el tamaño real');
-  await expect(lab.locator('[data-zoom-words]')).toHaveText('Zoom: 1,4 veces el tamaño real');
+  await expect(status).toHaveText('Zoom: 1,4 veces la escala del dibujo');
+  await expect(lab.locator('[data-zoom-words]')).toHaveText('Zoom: 1,4 veces la escala del dibujo');
 });
 
 test('el servidor pinta el encuadre inicial, con los botones y la barra', async ({ browser }) => {
@@ -449,6 +531,7 @@ test('el servidor pinta el encuadre inicial, con los botones y la barra', async 
 for (const width of HYDRATION_WIDTHS) {
   test(`a ${width} px el servidor y la página hidratada miden lo mismo`, async ({ browser }) => {
     await expectSameHeightAfterHydration(browser, site.url, LAB, width);
+    await expectSameHeightAfterHydration(browser, site.url, ROW_LAB, width);
   });
 }
 
