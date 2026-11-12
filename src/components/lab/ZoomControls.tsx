@@ -93,6 +93,43 @@ function ZoomButton({ label, title, isEnabled, onPress, children }: ZoomButtonPr
   );
 }
 
+/** The four buttons («1:1» only when it differs from «Ajustar»). */
+function ZoomButtons({ zoom }: { zoom: ZoomPan }): JSX.Element {
+  return (
+    <>
+      <ZoomButton
+        label="Acercar"
+        title="Acercar (+)"
+        isEnabled={zoom.canZoomIn}
+        onPress={zoom.zoomIn}
+      >
+        <Icon d={PLUS} />
+      </ZoomButton>
+      <ZoomButton
+        label="Alejar"
+        title="Alejar (−)"
+        isEnabled={zoom.canZoomOut}
+        onPress={zoom.zoomOut}
+      >
+        <Icon d={MINUS} />
+      </ZoomButton>
+      <ZoomButton label="Ajustar" title="Ajustar (0)" isEnabled={zoom.canFit} onPress={zoom.fit}>
+        <Icon d={FIT} />
+      </ZoomButton>
+      {zoom.hasActualSize ? (
+        <ZoomButton
+          label="Tamaño real 1:1"
+          title="Tamaño real (1:1)"
+          isEnabled={zoom.canActualSize}
+          onPress={zoom.actualSize}
+        >
+          <span className="font-mono text-xs font-medium">1:1</span>
+        </ZoomButton>
+      ) : null}
+    </>
+  );
+}
+
 export default function ZoomControls({
   zoom,
   corner = 'bottom-right',
@@ -112,35 +149,7 @@ export default function ZoomControls({
         <span data-zoom-factor="" aria-hidden="true" className={FACTOR}>
           {formatZoomFactor(zoom.view.scale)}
         </span>
-        <ZoomButton
-          label="Acercar"
-          title="Acercar (+)"
-          isEnabled={zoom.canZoomIn}
-          onPress={zoom.zoomIn}
-        >
-          <Icon d={PLUS} />
-        </ZoomButton>
-        <ZoomButton
-          label="Alejar"
-          title="Alejar (−)"
-          isEnabled={zoom.canZoomOut}
-          onPress={zoom.zoomOut}
-        >
-          <Icon d={MINUS} />
-        </ZoomButton>
-        <ZoomButton label="Ajustar" title="Ajustar (0)" isEnabled={zoom.canFit} onPress={zoom.fit}>
-          <Icon d={FIT} />
-        </ZoomButton>
-        {zoom.hasActualSize ? (
-          <ZoomButton
-            label="Tamaño real 1:1"
-            title="Tamaño real (1:1)"
-            isEnabled={zoom.canActualSize}
-            onPress={zoom.actualSize}
-          >
-            <span className="font-mono text-xs font-medium">1:1</span>
-          </ZoomButton>
-        ) : null}
+        <ZoomButtons zoom={zoom} />
       </div>
       <span data-zoom-words="" className="sr-only">
         {spoken}

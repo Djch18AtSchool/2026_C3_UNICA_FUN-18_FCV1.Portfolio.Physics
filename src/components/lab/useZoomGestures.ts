@@ -79,6 +79,19 @@ function capture(event: ViewportPointerEvent): void {
   if (typeof viewport.setPointerCapture === 'function') viewport.setPointerCapture(event.pointerId);
 }
 
+/** The click that ends a pan or a pinch belongs to the gesture: it never reaches the drawing. */
+function useSwallowedClick(state: { current: GestureState }) {
+  return useCallback(
+    (event: ReactMouseEvent<HTMLElement>) => {
+      if (!state.current.swallowClick) return;
+      state.current = { ...state.current, swallowClick: false };
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    [state],
+  );
+}
+
 /** The pointer gestures: the state lives in a ref, each step's effects go to the host. */
 function usePointerGestures(host: ZoomGestureHost) {
   const state = useRef<GestureState>(IDLE_GESTURE);
@@ -121,13 +134,7 @@ function usePointerGestures(host: ZoomGestureHost) {
     [apply, endPointer, host],
   );
 
-  const onClickCapture = useCallback((event: ReactMouseEvent<HTMLElement>) => {
-    if (!state.current.swallowClick) return;
-    state.current = { ...state.current, swallowClick: false };
-    event.preventDefault();
-    event.stopPropagation();
-  }, []);
-
+  const onClickCapture = useSwallowedClick(state);
   return { isPanning, onPointerDown, onPointerMove, endPointer, onClickCapture };
 }
 
