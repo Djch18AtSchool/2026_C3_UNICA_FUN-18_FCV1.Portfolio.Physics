@@ -85,7 +85,7 @@ const isInside = (inner: Box, outer: Box) =>
   inner.x + inner.width <= outer.x + outer.width &&
   inner.y + inner.height <= outer.y + outer.height;
 
-async function chooseEncounter(page: Page, lab: Locator, label: string): Promise<void> {
+async function chooseEncounter(lab: Locator, label: string): Promise<void> {
   const arrival = lab.getByTestId('flyby-arrival');
   const before = await arrival.textContent();
   await lab.getByRole('combobox', { name: 'Valores de referencia' }).selectOption({ label });
@@ -156,7 +156,7 @@ test.describe('el marco del planeta, con zoom', () => {
     page,
   }) => {
     const lab = await openLab(page);
-    await chooseEncounter(page, lab, 'V2 · Neptuno');
+    await chooseEncounter(lab, 'V2 · Neptuno');
     const radius = await planetRadius(lab);
     const readings: string[] = [];
 
@@ -316,7 +316,7 @@ test.describe('el marco del planeta, con zoom', () => {
     await zoomButton(lab, 'Acercar').click();
     await expect(factor(lab)).toHaveText('×2');
 
-    await chooseEncounter(page, lab, 'V2 · Saturno');
+    await chooseEncounter(lab, 'V2 · Saturno');
     await expect(factor(lab)).toHaveText('×1');
     await expect(canvas(lab)).toHaveAttribute('aria-label', 'Marco de Saturno');
 
