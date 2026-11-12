@@ -5,10 +5,21 @@ import { useElementWidth } from '../../hooks/useElementWidth';
 import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
 import { useFrameTime } from '../../lab/useFrameTime';
+import { useZoomPan } from '../../lab/useZoomPan';
 import { AC_COLOR, GAP_COLOR, OMEGA_COLOR } from './habitatColors';
-import { angleAt, radiusToSlider, ringRadius, vectorLength } from './habitatScene';
+import {
+  pxPerMetre,
+  screenRing,
+  SPOKE_WIDTH,
+  spinLayout,
+  type RingBase,
+  type ScreenRing,
+} from './habitatRing';
+import { angleAt, radiusToSlider, ringRadius } from './habitatScene';
 import HabitatPerson from './HabitatPerson';
+import HabitatZoomStrip, { STRIP_STACK_BELOW } from './HabitatZoomStrip';
 import RadiusBar, { CAPTION_LINE, COMPACT_BAR } from './RadiusBar';
+import { useRefit } from './useRefit';
 
 const RING_FILL = 'color-mix(in srgb, var(--fg) 7%, var(--bg-elevated))';
 const RING_STROKE = 'var(--fg)';
@@ -23,6 +34,8 @@ export interface HabitatSceneProps {
   gRatio: number;
   showVectors: boolean;
   decimals: number;
+  /** A counter: each change frames the ring again, as «Ajustar» does (a preset, a reset). */
+  refit: number;
   onRadiusChange(r: number): void;
 }
 
@@ -30,24 +43,15 @@ export interface HabitatSceneProps {
 const FALLBACK_WIDTH = 720;
 /** The ring lives in a square of at most this side; the bar runs under it. */
 const MAX_RING_AREA = 440;
-/** Room outside the largest ring for the outward vector, the ω arrow and their labels. */
-const OUTER_ROOM = 64;
-const RING_BAND = 9;
-const HUB_RADIUS = 9;
-const SPOKE_WIDTH = 3;
+/**
+ * Room outside the largest ring for the outward vector, the ω arrow and their labels, so that at
+ * the lab's own framing nothing the ring turns through leaves its square (the canvas clips there).
+ */
+const OUTER_ROOM = 72;
 /** Spokes in the ring's own frame (deg, SVG angles); none at the person, who stands at 90°. */
 const SPOKE_ANGLES = [-90, 30, 150];
-const PERSON_HEIGHT = 34;
-/** On a small drawn ring the person shrinks to this share of its radius, clear of the hub. */
-const PERSON_RING_SHARE = 0.35;
 /** One g is drawn as this share of the largest ring radius. */
 const VECTOR_UNIT_SHARE = 0.3;
-/** Each vector sits this far to one side of the person, so the two never overlap. */
-const VECTOR_OFFSET = 9;
-const VECTOR_LABEL_GAP = 13;
-const R_LABEL_SIDE = 10;
-const R_LABEL_AT = 0.5;
-const AC_LABEL_SIDE = 16;
 const CLIP_MARK = { at: 0.72, gap: 4, half: 5 } as const;
 const OMEGA_ARC = { from: -18, to: -66, gap: 16, head: 12 } as const;
 const BAR_SIDE_PAD = 30;
@@ -55,6 +59,8 @@ const BAR_SIDE_PAD = 30;
 const BAR_TOP_GAP = 34;
 /** Under the track: tick labels and captions. */
 const BAR_BOTTOM = 50;
+/** One row of the zoom strip: the scale bar or the buttons (40 px) with air around them. */
+const STRIP_ROW = 48;
 const NOTE_SIZE = 12;
 const DEG = Math.PI / 180;
 /** Decimals of the turn's angle attribute: a stable string per frame, a hundredth of a degree. */
@@ -106,12 +112,6 @@ function OmegaArrow({ c, radius }: { c: Point; radius: number }): JSX.Element {
   );
 }
 
-interface RingGeometry {
-  c: Point;
-  ring: number;
-  unit: number;
-}
-
 /** An upright label inside the turned group: counter-turned about its own anchor. */
 function UprightLabel({
   at,
@@ -131,46 +131,13 @@ function UprightLabel({
   );
 }
 
-/**
- * The moving layer: spokes, person, radius line, vectors and their labels, drawn with the person
- * at the bottom inside one group turned by the live angle (one attribute per frame), the labels
- * counter-turned so they stay upright.
- */
-function SpinningParts({
-  geometry,
-  omega,
-  frame,
-  gRatio,
-  showVectors,
-}: {
-  geometry: RingGeometry;
-  omega: number;
-  frame: FrameStore;
-  gRatio: number;
-  showVectors: boolean;
-}): JSX.Element {
-  const angle = angleAt(omega, useFrameTime(frame));
-  const degrees = angle / DEG;
-  const { c, ring, unit } = geometry;
-  const floorY = c.y + ring;
-  const { length, isClipped } = vectorLength(gRatio, unit);
-  const ac = { from: { x: c.x + VECTOR_OFFSET, y: floorY - 2 }, toY: floorY - 2 - length };
-  const person = Math.min(PERSON_HEIGHT, ring * PERSON_RING_SHARE);
-  const gapStart = floorY - person / 2;
-  const gap = { from: { x: c.x - VECTOR_OFFSET, y: gapStart }, toY: gapStart + length };
-  // Short vectors keep their labels clear of the person: above the head and below the floor.
-  const acLabelY = Math.min(ac.toY, floorY - person);
-  const gapLabelY = Math.max(gap.toY, floorY + RING_BAND) + VECTOR_LABEL_GAP;
-  // a_c's label sits beside its tip, on the side away from the r line.
-  const acTip = { x: ac.from.x + AC_LABEL_SIDE, y: acLabelY };
-  const gapTip = { x: gap.from.x, y: gapLabelY };
-  // The r label sits near the hub, clear of the vector labels by the floor.
-  const rLabel = { x: c.x - R_LABEL_SIDE, y: c.y + ring * R_LABEL_AT };
-
+/** The ring's three spokes, from the hub to the rim, at the zoom. */
+function Spokes({ ring }: { ring: ScreenRing }): JSX.Element {
+  const { c } = ring;
   return (
-    <g data-spinning="" transform={`rotate(${(-degrees).toFixed(ANGLE_DECIMALS)} ${c.x} ${c.y})`}>
+    <>
       {SPOKE_ANGLES.map((degrees) => {
-        const end = onCircle(c, ring, degrees);
+        const end = onCircle(c, ring.ring, degrees);
         return (
           <line
             key={degrees}
@@ -179,38 +146,74 @@ function SpinningParts({
             x2={end.x}
             y2={end.y}
             stroke={SPOKE_COLOR}
-            strokeWidth={SPOKE_WIDTH}
+            strokeWidth={SPOKE_WIDTH * ring.scale}
             strokeLinecap="round"
           />
         );
       })}
+    </>
+  );
+}
+
+/** a_c and the apparent gravity, side by side, each marked when longer than it is drawn. */
+function Vectors({ layout }: { layout: ReturnType<typeof spinLayout> }): JSX.Element {
+  const { ac, gap, isClipped, length } = layout;
+  return (
+    <>
+      <g data-vector="ac">
+        <Arrow from={ac.from} to={{ x: ac.from.x, y: ac.toY }} color={AC_COLOR} />
+        {isClipped ? (
+          <ClipMark x={ac.from.x} y={ac.from.y - CLIP_MARK.at * length} color={AC_COLOR} />
+        ) : null}
+      </g>
+      <g data-vector="gap">
+        <Arrow from={gap.from} to={{ x: gap.from.x, y: gap.toY }} color={GAP_COLOR} dashed />
+        {isClipped ? (
+          <ClipMark x={gap.from.x} y={gap.from.y + CLIP_MARK.at * length} color={GAP_COLOR} />
+        ) : null}
+      </g>
+    </>
+  );
+}
+
+/**
+ * The moving layer: spokes, person, radius line, vectors and their labels, drawn with the person
+ * at the bottom inside one group turned by the live angle (one attribute per frame), the labels
+ * counter-turned so they stay upright. `ring` is already through the zoom's view.
+ */
+function SpinningParts({
+  ring,
+  omega,
+  frame,
+  gRatio,
+  showVectors,
+}: {
+  ring: ScreenRing;
+  omega: number;
+  frame: FrameStore;
+  gRatio: number;
+  showVectors: boolean;
+}): JSX.Element {
+  const degrees = angleAt(omega, useFrameTime(frame)) / DEG;
+  const { c } = ring;
+  const layout = spinLayout(ring, gRatio);
+  const { floorY, labels } = layout;
+
+  return (
+    <g data-spinning="" transform={`rotate(${(-degrees).toFixed(ANGLE_DECIMALS)} ${c.x} ${c.y})`}>
+      <Spokes ring={ring} />
       <line x1={c.x} y1={c.y} x2={c.x} y2={floorY} stroke={TICK_COLOR} strokeDasharray="3 3" />
-      <HabitatPerson x={c.x} feetY={floorY} height={person} />
-      {showVectors ? (
-        <>
-          <g data-vector="ac">
-            <Arrow from={ac.from} to={{ x: ac.from.x, y: ac.toY }} color={AC_COLOR} />
-            {isClipped ? (
-              <ClipMark x={ac.from.x} y={ac.from.y - CLIP_MARK.at * length} color={AC_COLOR} />
-            ) : null}
-          </g>
-          <g data-vector="gap">
-            <Arrow from={gap.from} to={{ x: gap.from.x, y: gap.toY }} color={GAP_COLOR} dashed />
-            {isClipped ? (
-              <ClipMark x={gap.from.x} y={gap.from.y + CLIP_MARK.at * length} color={GAP_COLOR} />
-            ) : null}
-          </g>
-        </>
-      ) : null}
-      <UprightLabel at={rLabel} degrees={degrees}>
+      <HabitatPerson x={c.x} feetY={floorY} height={layout.person} />
+      {showVectors ? <Vectors layout={layout} /> : null}
+      <UprightLabel at={labels.r} degrees={degrees}>
         r
       </UprightLabel>
       {showVectors ? (
         <>
-          <UprightLabel at={acTip} degrees={degrees}>
+          <UprightLabel at={labels.ac} degrees={degrees}>
             a_c
           </UprightLabel>
-          <UprightLabel at={gapTip} degrees={degrees}>
+          <UprightLabel at={labels.gap} degrees={degrees}>
             g_ap
           </UprightLabel>
         </>
@@ -222,90 +225,145 @@ function SpinningParts({
 function describeScene({ r, rpm, gRatio, decimals }: HabitatSceneProps): string {
   const n = (value: number, unit: string, precision = decimals) =>
     formatNumber(value, { precision, unit });
-  return `Anillo del hábitat, no a escala, de radio ${n(r, 'm', 1)} girando a ${n(rpm, 'RPM')}, con una persona de pie sobre el piso. La aceleración centrípeta apunta hacia el eje y la gravedad aparente hacia afuera, ambas de ${n(gRatio, 'g')}.`;
+  return `Anillo del hábitat de radio ${n(r, 'm', 1)}, a escala solo en el radio, girando a ${n(rpm, 'RPM')}, con una persona de pie sobre el piso. La aceleración centrípeta apunta hacia el eje y la gravedad aparente hacia afuera, ambas de ${n(gRatio, 'g')}.`;
+}
+
+/** The radius bar's height: to the track, under it, and a second caption line on a phone. */
+function barHeight(width: number): number {
+  const barX1 = width - BAR_SIDE_PAD;
+  const captionRoom = barX1 - BAR_SIDE_PAD < COMPACT_BAR ? CAPTION_LINE : 0;
+  return BAR_TOP_GAP + BAR_BOTTOM + captionRoom;
 }
 
 /**
  * The drawing's height for a measured width: the ring's square (at most MAX_RING_AREA), the bar
- * under it and, on a phone, a second caption line.
+ * under it, on a phone a second caption line, and the zoom strip (one row of STRIP_ROW; on a phone
+ * the scale bar and the buttons each take one).
  */
 export function sceneHeight(width: number): number {
-  const barX1 = width - BAR_SIDE_PAD;
-  const captionRoom = barX1 - BAR_SIDE_PAD < COMPACT_BAR ? CAPTION_LINE : 0;
-  return Math.min(width, MAX_RING_AREA) + BAR_TOP_GAP + BAR_BOTTOM + captionRoom;
+  const stripRows = width < STRIP_STACK_BELOW ? 2 : 1;
+  return Math.min(width, MAX_RING_AREA) + barHeight(width) + stripRows * STRIP_ROW;
 }
 
 /** Below this width the bar is compact (COMPACT_BAR long) and carries the extra caption line. */
-const COMPACT_BELOW = COMPACT_BAR + 2 * BAR_SIDE_PAD;
+export const COMPACT_BELOW = COMPACT_BAR + 2 * BAR_SIDE_PAD;
 /** A step in CSS: a length times this, clamped, is 0 or a whole line within a hundredth of a px. */
 const STEP_SLOPE = 1000;
+/** `px` of extra height while the container is narrower than `below`, else none. */
+const step = (px: number, below: number) =>
+  `clamp(0px, (${below}px - 100cqw) * ${STEP_SLOPE}, ${px}px)`;
+const RING_AREA = `min(100cqw, ${MAX_RING_AREA}px)`;
+/** The radius bar's height in CSS, as barHeight. */
+const BAR_RESERVED = `calc(${BAR_TOP_GAP + BAR_BOTTOM}px + ${step(CAPTION_LINE, COMPACT_BELOW)})`;
 /**
  * sceneHeight written in CSS, from the width of the scene's own container (cqw), so the server
  * reserves the height the browser will measure: the drawing is sized by its width and would
  * otherwise grow when it hydrates (a layout shift on a phone). Keep the two in step.
  */
-export const RESERVED_HEIGHT = `calc(min(100cqw, ${MAX_RING_AREA}px) + ${BAR_TOP_GAP + BAR_BOTTOM}px + clamp(0px, (${COMPACT_BELOW}px - 100cqw) * ${STEP_SLOPE}, ${CAPTION_LINE}px))`;
+export const RESERVED_HEIGHT = `calc(${RING_AREA} + ${BAR_TOP_GAP + BAR_BOTTOM}px + ${step(CAPTION_LINE, COMPACT_BELOW)} + ${STRIP_ROW}px + ${step(STRIP_ROW, STRIP_STACK_BELOW)})`;
 
-/**
- * The habitat lab's canvas: the ring, not to scale, turning at the clock's angle with a person
- * on the floor, the live a_c and apparent-gravity vectors (to scale up to 1,5 g) and the radius
- * bar on a log scale. The viewBox follows the measured width, so text keeps its pixel size.
- */
-export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
-  const { r, omega, frame, gRatio, showVectors, onRadiusChange } = props;
-  const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
-  const side = Math.min(width, MAX_RING_AREA);
+/** The ring's drawing at the lab's own framing, in the square the canvas measures. */
+function ringBase(r: number, width: number, side: number): RingBase {
   const largest = side / 2 - OUTER_ROOM;
-  const geometry: RingGeometry = {
+  return {
     c: { x: width / 2, y: side / 2 },
     ring: ringRadius(radiusToSlider(r), largest),
     unit: largest * VECTOR_UNIT_SHARE,
   };
-  const { c, ring } = geometry;
-  const barY = side + BAR_TOP_GAP;
+}
+
+/** The ring itself: the band and its outline, then the hub, around the turning parts. */
+function RingBody({ ring }: { ring: ScreenRing }): JSX.Element {
+  const { c } = ring;
+  const outer = ring.ring + ring.band;
+  return (
+    <path
+      data-testid="habitat-ring"
+      d={`M${c.x - outer} ${c.y} a${outer} ${outer} 0 1 0 ${2 * outer} 0 a${outer} ${outer} 0 1 0 ${-2 * outer} 0 Z M${c.x - ring.ring} ${c.y} a${ring.ring} ${ring.ring} 0 1 0 ${2 * ring.ring} 0 a${ring.ring} ${ring.ring} 0 1 0 ${-2 * ring.ring} 0 Z`}
+      fillRule="evenodd"
+      style={{ fill: RING_FILL }}
+      stroke={RING_STROKE}
+      strokeWidth={1.5}
+    />
+  );
+}
+
+/**
+ * The habitat lab's canvas: the ring turning at the clock's angle with a person on the floor, the
+ * live a_c and apparent-gravity vectors (to scale up to 1,5 g) and the radius bar on a log scale.
+ * The ring zooms (useZoomPan, ZoomControls): it is drawn through the view, so the person, the
+ * band and the vectors grow while text, strokes and arrowheads keep their size; the scale bar
+ * measures the floor radius r. The radius bar is not part of the zoomed canvas, and the zoom's
+ * strip sits under it. The viewBoxes follow the measured width, so text keeps its pixel size.
+ */
+export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
+  const { r, omega, frame, gRatio, showVectors, refit, onRadiusChange } = props;
+  const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
+  const zoom = useZoomPan({ label: 'Anillo del hábitat' });
+  useRefit(zoom, refit);
+  const side = Math.min(width, MAX_RING_AREA);
+  const base = ringBase(r, width, side);
+  const ring = screenRing(base, zoom.view);
+  const { c } = ring;
   const barX1 = width - BAR_SIDE_PAD;
-  const height = sceneHeight(width);
 
   return (
     <div className="@container w-full">
       <div ref={wrapperRef} className="w-full" style={{ height: RESERVED_HEIGHT }}>
+        <div {...zoom.viewportProps} style={{ ...zoom.viewportProps.style, height: RING_AREA }}>
+          <svg
+            data-testid="habitat-scene"
+            viewBox={`0 0 ${width} ${side}`}
+            width="100%"
+            className="block h-full w-full"
+          >
+            <g role="img" aria-label={describeScene(props)}>
+              <text
+                x={8}
+                y={16}
+                fontFamily={TICK_FONT_FAMILY}
+                fontSize={NOTE_SIZE}
+                fill={TICK_COLOR}
+              >
+                a escala solo el radio
+              </text>
+              <RingBody ring={ring} />
+              <OmegaArrow c={c} radius={ring.ring + ring.band + OMEGA_ARC.gap * ring.scale} />
+              <SpinningParts
+                ring={ring}
+                omega={omega}
+                frame={frame}
+                gRatio={gRatio}
+                showVectors={showVectors}
+              />
+              <circle
+                data-hub=""
+                cx={c.x}
+                cy={c.y}
+                r={ring.hub}
+                style={{ fill: 'var(--bg-elevated)' }}
+                stroke={RING_STROKE}
+                strokeWidth={1.5}
+              />
+              <circle cx={c.x} cy={c.y} r={2.5} fill={RING_STROKE} />
+            </g>
+          </svg>
+        </div>
         <svg
-          data-testid="habitat-scene"
-          viewBox={`0 0 ${width} ${height}`}
+          viewBox={`0 0 ${width} ${barHeight(width)}`}
           width="100%"
-          className="block h-full w-full overflow-visible"
+          className="block w-full overflow-visible"
+          style={{ height: BAR_RESERVED }}
         >
-          <g role="img" aria-label={describeScene(props)}>
-            <text x={8} y={16} fontFamily={TICK_FONT_FAMILY} fontSize={NOTE_SIZE} fill={TICK_COLOR}>
-              no a escala
-            </text>
-            <path
-              d={`M${c.x - ring - RING_BAND} ${c.y} a${ring + RING_BAND} ${ring + RING_BAND} 0 1 0 ${2 * (ring + RING_BAND)} 0 a${ring + RING_BAND} ${ring + RING_BAND} 0 1 0 ${-2 * (ring + RING_BAND)} 0 Z M${c.x - ring} ${c.y} a${ring} ${ring} 0 1 0 ${2 * ring} 0 a${ring} ${ring} 0 1 0 ${-2 * ring} 0 Z`}
-              fillRule="evenodd"
-              style={{ fill: RING_FILL }}
-              stroke={RING_STROKE}
-              strokeWidth={1.5}
-            />
-            <OmegaArrow c={c} radius={ring + RING_BAND + OMEGA_ARC.gap} />
-            <SpinningParts
-              geometry={geometry}
-              omega={omega}
-              frame={frame}
-              gRatio={gRatio}
-              showVectors={showVectors}
-            />
-            <circle
-              cx={c.x}
-              cy={c.y}
-              r={HUB_RADIUS}
-              style={{ fill: 'var(--bg-elevated)' }}
-              stroke={RING_STROKE}
-              strokeWidth={1.5}
-            />
-            <circle cx={c.x} cy={c.y} r={2.5} fill={RING_STROKE} />
-          </g>
-          <RadiusBar r={r} x0={BAR_SIDE_PAD} x1={barX1} y={barY} onRadiusChange={onRadiusChange} />
+          <RadiusBar
+            r={r}
+            x0={BAR_SIDE_PAD}
+            x1={barX1}
+            y={BAR_TOP_GAP}
+            onRadiusChange={onRadiusChange}
+          />
         </svg>
+        <HabitatZoomStrip zoom={zoom} pxPerMetre={pxPerMetre(base.ring, r, zoom.view.scale)} />
       </div>
     </div>
   );

@@ -39,6 +39,10 @@ const FREE_NOTE = 'Sin 1 g fijo, r y RPM son libres y la gravedad aparente es la
 const USAGE_HINT =
   'Arrastra el manejador sobre la barra logarítmica, o enfócalo y muévelo con las flechas (1 % de la barra; con Mayús, 10 %). Un preajuste muestra el par ($r$, RPM) de su fuente y apaga «Fijar 1 g».';
 
+/** «Cómo se usa», after the drag hint: the ring's zoom, so the person can be seen close up. */
+const ZOOM_HINT =
+  'El anillo se acerca con los botones, con Ctrl y la rueda o pellizcando, y se desplaza arrastrando el fondo; con el lienzo enfocado con el teclado, + y − acercan y alejan, 0 ajusta y las flechas desplazan (entonces también la rueda sola acerca). Con la reproducción en pausa puedes acercarte a la persona; la barra de escala mide el radio $r$. «Ajustar» vuelve al anillo entero, igual que elegir un preajuste o «Restablecer».';
+
 export interface HabitatLabProps {
   /** «Cómo se usa», after the drag hint: the time lapse and the t readout, from the topic's MDX. */
   usage?: string;
@@ -55,6 +59,9 @@ export interface HabitatLabProps {
 export default function HabitatLab({ usage, leftOut }: HabitatLabProps): JSX.Element {
   const [state, setState] = useState<HabitatState>(INITIAL_HABITAT_STATE);
   const [display, setDisplay] = useState<HabitatDisplay>(DEFAULT_DISPLAY);
+  /** Each change frames the ring again: a preset and a reset start from «Ajustar». */
+  const [refit, setRefit] = useState(0);
+  const frameAgain = () => setRefit((count) => count + 1);
   const { decimals } = useGlobalSettings();
   const { settings, isLocked, presetId } = state;
   const solution = useMemo(() => solveHabitat(settings), [settings]);
@@ -71,6 +78,7 @@ export default function HabitatLab({ usage, leftOut }: HabitatLabProps): JSX.Ele
     clock.reset();
     setState(INITIAL_HABITAT_STATE);
     setDisplay(DEFAULT_DISPLAY);
+    frameAgain();
   };
 
   const readouts: LabReadout[] = [
@@ -125,7 +133,10 @@ export default function HabitatLab({ usage, leftOut }: HabitatLabProps): JSX.Ele
       id="habitat-preset"
       presets={HABITAT_PRESETS}
       activeId={presetId}
-      onSelect={(preset) => update(() => applyPreset(preset))}
+      onSelect={(preset) => {
+        update(() => applyPreset(preset));
+        frameAgain();
+      }}
     />
   );
 
@@ -142,7 +153,7 @@ export default function HabitatLab({ usage, leftOut }: HabitatLabProps): JSX.Ele
         display: habitatLocalSettings({ display, onDisplayChange: setDisplay, clock }),
       }}
       notes={{
-        usage: [USAGE_HINT, ...(usage ? [usage] : [])],
+        usage: [USAGE_HINT, ZOOM_HINT, ...(usage ? [usage] : [])],
         leftOut: leftOut ? [leftOut] : [],
       }}
       onReset={onReset}
@@ -156,6 +167,7 @@ export default function HabitatLab({ usage, leftOut }: HabitatLabProps): JSX.Ele
         gRatio={solution.gRatio}
         showVectors={display.showVectors}
         decimals={decimals}
+        refit={refit}
         onRadiusChange={(r) => update((previous) => setRadius(previous, r))}
       />
     </LabShell>
