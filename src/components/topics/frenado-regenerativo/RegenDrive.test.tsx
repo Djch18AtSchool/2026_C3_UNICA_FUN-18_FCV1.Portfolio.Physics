@@ -19,7 +19,13 @@ const statusText = () => mathSourceText(status()).replace(/\s/g, ' ');
 const depth = (id: 'brake' | 'throttle') =>
   (lab().querySelector(`[data-pedal="${id}"] [data-pedal-depth]`) as HTMLElement).style.transform;
 const carX = () => Number(screen.getByTestId('regen-car').getAttribute('data-x'));
-const ghostX = () => Number(screen.getByTestId('regen-ghost').getAttribute('data-x'));
+/** The ghost's x, from its translation (it carries no data-x: one attribute per frame). */
+const ghostX = () =>
+  Number(
+    /translate\(([-\d.]+)/.exec(
+      screen.getByTestId('regen-ghost').getAttribute('transform') ?? '',
+    )?.[1],
+  );
 const badgeText = () =>
   [...(lab().querySelector('[data-time-scale-badge]')?.children ?? [])]
     .map((part) => part.textContent?.replace(/\s/g, ' '))

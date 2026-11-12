@@ -38,6 +38,11 @@ const PX_DECIMALS = 2;
 const STROKE = { vectorEffect: 'non-scaling-stroke' } as const;
 
 const px = (value: number) => Number(value.toFixed(PX_DECIMALS));
+/**
+ * The playhead moves by tenths of a pixel: at real time it crosses the UDDS at about 0,24 px/s, and
+ * finer steps would rewrite two attributes almost every frame for a move nobody sees.
+ */
+const PLAYHEAD_DECIMALS = 1;
 
 /** The x (px) of a time of a cycle of `duration` s on a strip `width` px wide, clamped to it. */
 export function minimapX(duration: number, width: number): (t: number) => number {
@@ -82,7 +87,9 @@ function describeMap({ samples, stops, stretch, cycleName }: CycleMinimapProps):
 
 /** The moving layer: a line at the live time of the view, in the cycle. */
 function Playhead({ live, x }: { live: MinimapLive; x: (t: number) => number }): JSX.Element {
-  const cx = useFrameDerived(live.frame, (t) => x(live.toCycle(t)));
+  const cx = useFrameDerived(live.frame, (t) =>
+    Number(x(live.toCycle(t)).toFixed(PLAYHEAD_DECIMALS)),
+  );
   return (
     <line
       data-playhead=""

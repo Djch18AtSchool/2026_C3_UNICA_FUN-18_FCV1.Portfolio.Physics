@@ -146,12 +146,15 @@ function carX({ range, x0, x1 }: RoadStripProps, distance: number): number {
   return roadPosition(distance - range.from, length, x0 + CAR_HALF_LENGTH, x1 - CAR_HALF_LENGTH);
 }
 
-/** The cycle's car at the live time («Conducir»): one translation per frame. */
+/**
+ * The cycle's car at the live time («Conducir»): one attribute per frame, its translation (no
+ * `data-x`: «Conducir» keeps within the lab's budget of DOM mutations per frame).
+ */
 function GhostLive(props: RoadStripProps & { ghost: LiveBalance }): JSX.Element {
   const { ghost, y } = props;
   const x = useFrameDerived(ghost.frame, (t) => carX(props, ghost.atTime(t).distance));
   return (
-    <g data-testid="regen-ghost" data-x={x} transform={`translate(${x.toFixed(PX_DECIMALS)} 0)`}>
+    <g data-testid="regen-ghost" transform={`translate(${x.toFixed(PX_DECIMALS)} 0)`}>
       <GhostCar y={y} />
     </g>
   );

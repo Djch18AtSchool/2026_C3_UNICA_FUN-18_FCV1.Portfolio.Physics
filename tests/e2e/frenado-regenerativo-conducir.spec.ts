@@ -42,8 +42,13 @@ const depthOf = (lab: Locator, id: 'brake' | 'throttle') =>
       Number(/scaleX\(([\d.]+)\)/.exec((node as HTMLElement).style.transform)?.[1] ?? 0),
     );
 const statusOf = (lab: Locator) => lab.getByTestId('drive-status');
+/** A car's x on the road: the drawn translation (the ghost carries no data-x). */
 const xOf = (lab: Locator, testId: string) =>
-  lab.getByTestId(testId).evaluate((node) => Number(node.getAttribute('data-x')));
+  lab
+    .getByTestId(testId)
+    .evaluate((node) =>
+      Number(/translate\(([-\d.]+)/.exec(node.getAttribute('transform') ?? '')?.[1]),
+    );
 
 /** Opens the lab and picks «Conducir» in the drawer with the keyboard. */
 async function openDrive(page: Page): Promise<Locator> {

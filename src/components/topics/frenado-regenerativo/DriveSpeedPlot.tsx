@@ -1,7 +1,6 @@
 import { useMemo, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import type { CycleSample } from '../../../lib/physics/energy';
-import type { FrameStore } from '../../lab/frameStore';
 import SvgPlot, { type PlotAspect, type PlotSeries } from '../../lab/SvgPlot';
 import type { DriveCourse } from './driveRun';
 import { KMH_PER_MS } from './regenScene';
@@ -12,8 +11,7 @@ export interface DriveSpeedPlotProps {
   cycleName: string;
   /** Your v (km/h) against the cycle's time, up to the settled instant (speedTrace). */
   own: { x: number; y: number }[];
-  /** The live clock the instant's line follows, and the settled instant (s of the run). */
-  frame: FrameStore;
+  /** The settled instant (s of the run): the instant's line. */
   t: number;
 }
 
@@ -43,7 +41,6 @@ export default function DriveSpeedPlot({
   course,
   cycleName,
   own,
-  frame,
   t,
 }: DriveSpeedPlotProps): JSX.Element {
   const cycle = useMemo(() => courseSpeeds(samples, course), [samples, course]);
@@ -72,7 +69,9 @@ export default function DriveSpeedPlot({
         xDomain={{ min: course.offset, max: end }}
         yDomain={{ min: 0, max: top }}
         aspectRatio={SPEED_PLOT_ASPECT}
-        cursor={{ x: course.offset + t, follow: { frame, toX: (live) => course.offset + live } }}
+        // At the settled time (10 Hz), not every frame: the curve already shows the progress, and
+        // «Conducir» keeps within the lab's budget of DOM mutations per frame.
+        cursor={{ x: course.offset + t }}
         ariaLabel={`Velocidad en el tramo de ${seconds(course.offset)} a ${seconds(end)} s: el auto del ${cycleName}, dato real, en línea discontinua, y tu conducción, en línea continua, hasta el instante actual.`}
       />
     </div>

@@ -128,7 +128,6 @@ export default function DriveCanvas(props: DriveCanvasProps): JSX.Element {
         course={course}
         cycleName={cycle.name}
         own={speedTrace(session.run, course, t)}
-        frame={clock.frame}
         t={t}
       />
       <EnergyBars at={own} scale={driveEnergyScale(own, stretchAxis)} />

@@ -149,9 +149,20 @@ describe('CycleMinimap', () => {
     const { frame } = renderMap();
     const x = minimapX(1369, WIDTH);
 
-    expect(attr('[data-playhead]', 'x1')).toBeCloseTo(x(376), 6);
+    expect(attr('[data-playhead]', 'x1')).toBeCloseTo(x(376), 1);
     act(() => frame.set(21));
-    expect(attr('[data-playhead]', 'x1')).toBeCloseTo(x(397), 6);
+    expect(attr('[data-playhead]', 'x1')).toBeCloseTo(x(397), 1);
+  });
+
+  test('the playhead moves by tenths of a pixel: a frame that moves it less writes nothing', () => {
+    stubWidth(WIDTH);
+    const { frame } = renderMap();
+    const before = attr('[data-playhead]', 'x1');
+
+    act(() => frame.set(0.01));
+
+    expect(attr('[data-playhead]', 'x1')).toBe(before);
+    expect(Number.isInteger(attr('[data-playhead]', 'x1') * 10)).toBe(true);
   });
 
   test('is drawn at the width it measures, at a fixed height (no shift when it hydrates)', () => {
