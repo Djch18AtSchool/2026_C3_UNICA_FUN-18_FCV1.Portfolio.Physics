@@ -6,7 +6,7 @@
  */
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { waitForIsland } from './helpers';
+import { seekTimeline, waitForIsland } from './helpers';
 
 const PAGE = './temas/gravedad-artificial/';
 const LAB = '[data-testid="habitat-lab"]';
@@ -27,6 +27,10 @@ const PX_SLACK = 1.5;
 const DRAG_STEPS = 6;
 const BAR_MIN_PX = 64;
 const BAR_MAX_PX = 160;
+/** Positions of the timeline (of 1000) the ring is turned to: eight angles of the turn. */
+const TURN_STOPS = ['0', '125', '250', '375', '500', '625', '750', '875'] as const;
+/** The labels may poke out of the ring's square by this much (the box of the text, not its ink). */
+const LABEL_SLACK_PX = 1;
 /** What the factor reads after 0 to 6 presses of «Acercar» (steps of √2). */
 const FACTORS = ['×1', '×1,4', '×2', '×2,8', '×4', '×5,7', '×8'] as const;
 
@@ -366,8 +370,12 @@ test.describe('el anillo del hábitat, con zoom', () => {
     await usage.locator('summary').click();
 
     await expect(usage).toContainText('El anillo se acerca con los botones');
-    await expect(usage).toContainText('Con la reproducción en pausa puedes acercarte a la persona');
-    await expect(usage).toContainText('la barra de escala mide el radio');
+    await expect(usage).toContainText(
+      'Con la reproducción en pausa puedes acercarte a la persona con Ctrl y la rueda sobre ella',
+    );
+    await expect(usage).toContainText(
+      'la persona es un símbolo: la barra de escala mide solo el radio',
+    );
   });
 });
 
@@ -486,5 +494,51 @@ for (const theme of ['light', 'dark'] as const) {
     expect(
       violations.filter((violation) => BLOCKING_IMPACTS.includes(violation.impact ?? '')),
     ).toEqual([]);
+  });
+}
+
+/** Viewports whose canvas is ~280, ~320, ~440 (the widest square) and 422 px wide. */
+const LABEL_VIEWPORTS = [
+  { width: 320, height: 800 },
+  { width: 360, height: 800 },
+  { width: 600, height: 800 },
+  DESKTOP,
+] as const;
+
+for (const size of LABEL_VIEWPORTS) {
+  test(`a ${size.width} px, con r = 4 000 m y más de 1,5 g, ningún rótulo del anillo sale de su cuadrado a ningún ángulo`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(size);
+    const lab = await openLab(page);
+    await setRadius(lab, '4000');
+    const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
+
+    for (const stop of TURN_STOPS) {
+      await seekTimeline(timeline, stop);
+      // The boxes of every text of the drawing but the note, against the svg's own box.
+      const overflow = await scene(lab).evaluate((svg) => {
+        const box = svg.getBoundingClientRect();
+        return [...svg.querySelectorAll('text')]
+          .filter((text) => !text.closest('[data-testid="habitat-note"]'))
+          .map((text) => {
+            const rect = text.getBoundingClientRect();
+            return {
+              label: text.getAttribute('data-notation') ?? text.textContent,
+              out: Math.max(
+                box.left - rect.left,
+                rect.right - box.right,
+                box.top - rect.top,
+                rect.bottom - box.bottom,
+              ),
+            };
+          });
+      });
+
+      expect(overflow.length).toBeGreaterThanOrEqual(4);
+      for (const { label, out } of overflow) {
+        expect(out, `«${label}» a ${stop}/1000`).toBeLessThanOrEqual(LABEL_SLACK_PX);
+      }
+    }
   });
 }
