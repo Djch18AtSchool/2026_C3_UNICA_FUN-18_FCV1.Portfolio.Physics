@@ -22,6 +22,17 @@ export interface SceneGeometry {
 }
 
 export const DEG = Math.PI / 180;
+/** Room outside the dial, px, for the knob and its focus ring: the dial's circle keeps this far from the edge. */
+export const DIAL_MARGIN = 34;
+/** The knob's focus ring (OverlayMarks' Knob draws it 11 px from the knob's centre). */
+const KNOB_RING_PX = 11;
+/**
+ * The band along the canvas' edges the corner texts (the note, the time-scale badge, the target's
+ * text) live in: a revealed knob keeps its centre this far from every edge, and a field line that
+ * close to the top or bottom is left out.
+ */
+export const TEXT_BAND = DIAL_MARGIN + KNOB_RING_PX;
+
 /** The target angle's range (°): a half turn either way. */
 export const TARGET_LIMITS = [-180, 180] as const;
 /** Arrow keys move the target 1°; with Shift, or with the Page keys, 10°. */

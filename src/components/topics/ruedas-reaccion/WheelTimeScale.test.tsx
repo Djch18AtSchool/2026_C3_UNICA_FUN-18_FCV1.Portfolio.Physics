@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
@@ -114,11 +114,20 @@ describe('the time scale on the wheel lab canvas', () => {
     expect(sceneLabel()).toContain(
       'Escala de tiempo: 7 200 veces la velocidad real, cámara rápida',
     );
-    // The warning's region and the zoom's: none of them carries the time scale.
+    // Two regions, the warning's and the zoom's. The zoom's says its own news once it settles, and
+    // the time scale is never in either: it is read in the scene's description.
+    await user.click(screen.getByRole('button', { name: 'Acercar' }));
+    const zoomRegion = screen
+      .getAllByRole('status')
+      .find((region) => region.closest('[data-wheel-zoom-strip]') !== null) as HTMLElement;
+    await waitFor(() =>
+      expect(zoomRegion).toHaveTextContent('Zoom: 1,4 veces la escala del dibujo'),
+    );
     const regions = within(screen.getByTestId('wheel-lab')).getAllByRole('status');
     expect(regions).toHaveLength(2);
-    for (const region of regions)
-      expect(region).not.toHaveTextContent(/cámara rápida|escala de tiempo/i);
+    for (const region of regions) {
+      expect(region.textContent ?? '').not.toMatch(/cámara rápida|escala de tiempo/i);
+    }
   });
 
   test('the badge prints only characters IBM Plex draws, in both modes', async () => {

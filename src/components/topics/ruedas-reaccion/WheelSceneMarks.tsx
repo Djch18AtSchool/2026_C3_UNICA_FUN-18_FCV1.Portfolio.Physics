@@ -4,7 +4,14 @@ import { TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
 import MathText from '../../lab/MathText';
 import { Arrow, Label } from '../../lab/OverlayMarks';
 import type { DumpActuator } from './wheelLabModel';
-import { arcPath, BODY_FOOTPRINT, polar, type Point, type SceneGeometry } from './wheelScene';
+import {
+  arcPath,
+  BODY_FOOTPRINT,
+  polar,
+  TEXT_BAND,
+  type Point,
+  type SceneGeometry,
+} from './wheelScene';
 
 /** The Earth's field B wears the Earth blue (spec §4.3), as in Tema 2. */
 const FIELD_COLOR = 'var(--chart-1)';
@@ -85,7 +92,7 @@ export function RateArc({
  * The margin is the bands of the corner texts (the note on top, the time-scale badge below), so
  * a line never runs through them.
  */
-const FIELD_ROW_MARGIN = 44;
+const FIELD_ROW_MARGIN = TEXT_BAND;
 
 /**
  * Earth's field lines across the canvas, drawn under the body, with their B label. The lines

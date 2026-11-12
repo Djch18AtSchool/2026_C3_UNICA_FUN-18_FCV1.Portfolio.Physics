@@ -1,9 +1,15 @@
 import { describe, expect, test } from 'vitest';
-import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX } from '../../lab/scaleBarMath';
-import { IDENTITY_VIEW } from '../../lab/zoomMath';
+import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX, scaleBarLength } from '../../lab/scaleBarMath';
+import { IDENTITY_VIEW, REVEAL_MARGIN_PX } from '../../lab/zoomMath';
 import { CUBESAT_6U } from '../../../lib/data/reactionWheels';
-import { BODY_FOOTPRINT, type SceneGeometry } from './wheelScene';
-import { bodyScaleBar, KNOB_REVEAL_RADIUS, knobRevealBox, zoomGeometry } from './wheelZoom';
+import { BODY_FOOTPRINT, DIAL_MARGIN, TEXT_BAND, type SceneGeometry } from './wheelScene';
+import {
+  BODY_SCALE_UNITS,
+  KNOB_REVEAL_RADIUS,
+  knobRevealBox,
+  pxPerCm,
+  zoomGeometry,
+} from './wheelZoom';
 
 const CM_PER_M = 100;
 const BASE: SceneGeometry = {
@@ -44,7 +50,11 @@ describe('zoomGeometry', () => {
   });
 });
 
-describe('bodyScaleBar', () => {
+/** The bar ScaleBar draws for the body: its ladder and the px per centimetre at this zoom. */
+const bodyScaleBar = (pxPerMetre: number, zoomScale: number) =>
+  scaleBarLength(pxPerCm(pxPerMetre, zoomScale), BODY_SCALE_UNITS);
+
+describe('the body’s scale bar', () => {
   test('is written in centimetres and measures what the drawn body measures', () => {
     const bar = bodyScaleBar(BASE.scale, 1);
 
@@ -82,6 +92,20 @@ describe('bodyScaleBar', () => {
 
   test('says nothing when the scale is not a number (the scene is not measured)', () => {
     expect(bodyScaleBar(Number.NaN, 1)).toBeUndefined();
+  });
+});
+
+describe('pxPerCm', () => {
+  test('is the body’s px per metre over 100, times the zoom', () => {
+    expect(pxPerCm(688, 1)).toBeCloseTo(6.88, 12);
+    expect(pxPerCm(688, 8)).toBeCloseTo(55.04, 12);
+  });
+});
+
+describe('the text band', () => {
+  test('is the dial’s margin plus the knob’s ring, and a revealed knob keeps it, the reveal’s margin included', () => {
+    expect(TEXT_BAND).toBe(DIAL_MARGIN + 11);
+    expect(KNOB_REVEAL_RADIUS + REVEAL_MARGIN_PX).toBe(TEXT_BAND);
   });
 });
 

@@ -65,7 +65,7 @@ const DISTURBANCE_HINT =
 
 /** The scene's zoom, in «Cómo se usa»: the gestures, the keys, and what the scale bar measures. */
 const ZOOM_HINT =
-  'La escena se acerca con los botones, con Ctrl y la rueda o pellizcando, y se desplaza arrastrando el fondo; con el lienzo enfocado con el teclado, + y − acercan y alejan, 0 ajusta y las flechas desplazan (entonces también la rueda sola acerca). La barra de escala mide la nave, la única parte dibujada a escala, y se recalcula con el zoom; «Ajustar» y «Restablecer» vuelven al encuadre inicial.';
+  'La escena se acerca con los botones, Ctrl y la rueda, o pellizcando, y se desplaza arrastrando el fondo; con el lienzo enfocado desde el teclado, + y − acercan y alejan, 0 ajusta y las flechas desplazan (entonces la rueda sola también acerca). La barra de escala mide la nave, la única parte dibujada a escala, aunque con el zoom no se vea; la rueda y el dial no tienen escala de longitud. «Ajustar» y «Restablecer» vuelven al encuadre inicial.';
 
 export interface WheelLabProps {
   /** «Cómo se usa», after the mode's hint: the time-lapse and the dump's stretch, from the topic's MDX. */
