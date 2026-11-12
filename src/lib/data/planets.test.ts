@@ -68,3 +68,39 @@ describe('PLANETS', () => {
     expect(sphereOfInfluence(5.32 * AU_KM, gm, GM_SUN) / radiusKm).toBeCloseTo(690, -1);
   });
 });
+
+describe('Saturn’s main rings (NSSDCA Saturnian Rings Fact Sheet)', () => {
+  const rings = PLANETS.saturn.rings;
+
+  test('only Saturn carries ring data: the others have no ring the lab draws', () => {
+    expect(PLANET_IDS.filter((id) => PLANETS[id].rings !== undefined)).toEqual(['saturn']);
+  });
+
+  test('copies the edges of the C, B and A rings, in km, from the fact sheet', () => {
+    expect(rings?.bands).toEqual([
+      { id: 'C', innerKm: 74658, outerKm: 91975 },
+      { id: 'B', innerKm: 91975, outerKm: 117507 },
+      { id: 'A', innerKm: 122340, outerKm: 136780 },
+    ]);
+  });
+
+  test('in Saturn radii they are the sheet’s 1,239 · 1,526 · 1,950 · 2,030 · 2,270', () => {
+    const radii = (rings?.bands ?? []).flatMap(({ innerKm, outerKm }) => [innerKm, outerKm]);
+    const inSaturnRadii = radii.map((km) => Number((km / PLANETS.saturn.radiusKm).toFixed(3)));
+
+    expect(inSaturnRadii).toEqual([1.239, 1.526, 1.526, 1.95, 2.03, 2.27]);
+  });
+
+  test('the Cassini division is the gap between B and A, 1,95 to 2,03 R_S', () => {
+    const [, b, a] = rings?.bands ?? [];
+
+    expect(a.innerKm - b.outerKm).toBe(4833);
+  });
+
+  test('cites the sheet with its URL, its last update and the access date', () => {
+    expect(rings?.url).toBe('https://nssdc.gsfc.nasa.gov/planetary/factsheet/satringfact.html');
+    expect(rings?.source).toMatch(/Saturnian Rings Fact Sheet/);
+    expect(rings?.source).toMatch(/2022-04-19/);
+    expect(rings?.source).toMatch(/2026-11-12/);
+  });
+});

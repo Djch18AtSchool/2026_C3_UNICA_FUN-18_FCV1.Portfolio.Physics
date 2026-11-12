@@ -34,7 +34,40 @@ export interface Planet {
   /** Semantic color token (spec §4.3). */
   token: `--${PlanetId}`;
   source: string;
+  /** The main rings the planet frame draws to radial scale (Saturn only). */
+  rings?: PlanetRings;
 }
+
+/** One main ring between two distances from the planet's centre, km. */
+export interface RingBand {
+  id: 'C' | 'B' | 'A';
+  innerKm: number;
+  outerKm: number;
+}
+
+/** A planet's main rings, innermost first, with the source of their edges. */
+export interface PlanetRings {
+  bands: readonly RingBand[];
+  source: string;
+  url: string;
+}
+
+/**
+ * Saturn's C, B and A rings from the NSSDCA Saturnian Rings Fact Sheet (D. R. Williams, last
+ * updated 2022-04-19; radii over Saturn's 60 268 km equator): C 74 658–91 975 km, B 91 975–
+ * 117 507 km, A 122 340–136 780 km; the Cassini division is the gap between B and A (1,950 to
+ * 2,030 R_S). The faint D, F, G and E rings are left out. Research §10.
+ */
+const SATURN_RINGS: PlanetRings = {
+  bands: [
+    { id: 'C', innerKm: 74658, outerKm: 91975 },
+    { id: 'B', innerKm: 91975, outerKm: 117507 },
+    { id: 'A', innerKm: 122340, outerKm: 136780 },
+  ],
+  source:
+    'NASA NSSDCA, Saturnian Rings Fact Sheet (D. R. Williams, actualizada el 2022-04-19), consultado el 2026-11-12',
+  url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/satringfact.html',
+};
 
 const ACCESSED = 'consultado el 2026-10-30';
 
@@ -62,6 +95,7 @@ export const PLANETS: Readonly<Record<PlanetId, Planet>> = {
     massKg: 5.6834e26,
     token: '--saturn',
     source: horizonsSource('Saturno', '2022-01-26'),
+    rings: SATURN_RINGS,
   },
   uranus: {
     id: 'uranus',

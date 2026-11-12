@@ -10,6 +10,7 @@ import type { Point } from '../../lab/OverlayMarks';
 import { toScreen, type ZoomView } from '../../lab/zoomMath';
 import { sampleTrack, type FlybyHyperbola, type TrackPoint } from './flybyOrbit';
 import { ARROW_PX, centreOn, planetView, type PlanetView } from './flybyScene';
+import { bodyRadius, ringsOnScreen, type RingOnScreen } from './planetRings';
 import { planetOnScreen, type PlanetOnScreen } from './planetZoom';
 
 /**
@@ -54,8 +55,10 @@ export function frameWorld(
   const outDir = direction(hyperbola.thetaOut);
   const inTail = along(trackRel[0], inDir, -ARROW_PX);
   const outTip = along(trackRel[trackRel.length - 1], outDir, ARROW_PX);
-  const planetBox = [-view.planetPx, view.planetPx].map((d) => ({ x: d, y: d }));
-  const centred = centreOn([...trackRel, inTail, outTip, ...planetBox], width, drawSide);
+  // The planet with its rings, if any: the whole body is kept in the drawing.
+  const body = bodyRadius(planet, view.planetPx);
+  const bodyBox = [-body, body].map((d) => ({ x: d, y: d }));
+  const centred = centreOn([...trackRel, inTail, outTip, ...bodyBox], width, drawSide);
   return {
     view,
     track,
@@ -69,6 +72,8 @@ export function frameWorld(
 export interface ScreenFrame {
   centre: Point;
   planet: PlanetOnScreen;
+  /** The planet's main rings around `centre`, to the radial scale of the planet on screen. */
+  rings: readonly RingOnScreen[];
   /** The track on screen, sample by sample (`world.track`). */
   trackPx: Point[];
   first: Point;
@@ -99,9 +104,11 @@ export function screenFrame(
   const first = trackPx[0];
   const last = trackPx[trackPx.length - 1];
   const periDir = direction(hyperbola.periapsisAngle);
+  const onScreen = planetOnScreen(planet.radiusKm * view.scale, zoom.scale);
   return {
     centre: at(ORIGIN),
-    planet: planetOnScreen(planet.radiusKm * view.scale, zoom.scale),
+    planet: onScreen,
+    rings: ringsOnScreen(planet, onScreen.radiusPx),
     trackPx,
     first,
     last,
