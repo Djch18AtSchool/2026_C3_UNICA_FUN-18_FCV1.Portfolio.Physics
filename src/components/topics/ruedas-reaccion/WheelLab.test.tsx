@@ -50,6 +50,15 @@ const handle = () => screen.getByTestId('target-handle');
 const lab = () => screen.getByTestId('wheel-lab');
 const thetaField = () => screen.getByRole('textbox', { name: /^Ángulo objetivo theta/ });
 const durationField = () => screen.getByRole('textbox', { name: /^Duración de la maniobra T/ });
+/** The lab's live regions: the warning's, and the zoom's under the scene (its buttons' strip). */
+const zoomRegion = () =>
+  screen
+    .getAllByRole('status')
+    .find((region) => region.closest('[data-wheel-zoom-strip]') !== null) as HTMLElement;
+const warningRegion = () =>
+  screen
+    .getAllByRole('status')
+    .find((region) => region.closest('[data-wheel-zoom-strip]') === null) as HTMLElement;
 const timeline = () => screen.getByRole('slider', { name: 'Línea de tiempo' });
 const timelineText = () => (timeline().getAttribute('aria-valuetext') ?? '').replace(/\s/g, ' ');
 const preset = (name: RegExp) =>
@@ -238,18 +247,24 @@ describe('WheelLab', () => {
     expect(within(canvas).getByTestId('wheel-phase')).toHaveTextContent(/acumulando/i);
   });
 
-  test('the live region for the warning is in the canvas, once, and holds no space while empty', () => {
+  test('the canvas has two live regions, the warning’s and the zoom’s, and both are empty at load', () => {
     renderLab();
     const canvas = document.querySelector('[data-lab-canvas]') as HTMLElement;
 
-    expect(within(canvas).getAllByRole('status')).toHaveLength(1);
-    expect(screen.getAllByRole('status')).toHaveLength(1);
+    expect(within(canvas).getAllByRole('status')).toHaveLength(2);
+    expect(screen.getAllByRole('status')).toHaveLength(2);
+    expect(warningRegion()).toBeEmptyDOMElement();
+    expect(screen.getAllByRole('status').filter((region) => region !== warningRegion())).toEqual([
+      zoomRegion(),
+    ]);
+    expect(zoomRegion()).toBeEmptyDOMElement();
   });
 
   test('the scene is a square of at most 400, whatever the width of the stage', () => {
     renderLab();
 
-    const wrapper = scene().parentElement as HTMLElement;
+    // The svg is in the zoom's canvas, which is in the scene's capped wrapper.
+    const wrapper = scene().parentElement?.parentElement as HTMLElement;
     expect(wrapper.style.maxWidth).toBe('400px');
     expect(scene().getAttribute('viewBox')).toBe('0 0 400 400');
   });
@@ -306,13 +321,13 @@ describe('WheelLab', () => {
 
   test('T = 8 s is below T_min: the warning fills a live region already in the page, no NaN', () => {
     renderLab();
-    const region = screen.getByRole('status');
+    const region = warningRegion();
     expect(region).toBeEmptyDOMElement();
 
     typeInto(durationField(), '8');
     fireEvent.change(timeline(), { target: { value: '500' } });
 
-    expect(screen.getByRole('status')).toBe(region);
+    expect(warningRegion()).toBe(region);
     expect(region).toHaveTextContent(/la rueda no alcanza: se satura o le falta torque/i);
     expect(lab().textContent).not.toMatch(/NaN|Infinity/);
     expect(readoutNumber(SHARE)).toBeGreaterThan(100);

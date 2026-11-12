@@ -114,7 +114,11 @@ describe('the time scale on the wheel lab canvas', () => {
     expect(sceneLabel()).toContain(
       'Escala de tiempo: 7 200 veces la velocidad real, cámara rápida',
     );
-    expect(within(screen.getByTestId('wheel-lab')).getAllByRole('status')).toHaveLength(1);
+    // The warning's region and the zoom's: none of them carries the time scale.
+    const regions = within(screen.getByTestId('wheel-lab')).getAllByRole('status');
+    expect(regions).toHaveLength(2);
+    for (const region of regions)
+      expect(region).not.toHaveTextContent(/cámara rápida|escala de tiempo/i);
   });
 
   test('the badge prints only characters IBM Plex draws, in both modes', async () => {

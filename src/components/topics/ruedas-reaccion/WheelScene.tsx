@@ -1,4 +1,4 @@
-import type { JSX, KeyboardEvent } from 'react';
+import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { mathTextToString } from '../../../lib/mathNotation';
 import {
@@ -15,6 +15,7 @@ import { TimeScaleBadgeSvg } from '../../lab/TimeScaleBadge';
 import { timeScaleLabel, timeScaleSpoken } from '../../lab/timeScaleFormat';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
 import { useFrameDerived } from '../../lab/useFrameTime';
+import { useZoomPan } from '../../lab/useZoomPan';
 import { LIMIT_COLOR } from './MomentumGauge';
 import type { DumpActuator, WheelMode } from './wheelLabModel';
 import {
@@ -30,10 +31,13 @@ import {
   rotateAbout,
   spokeOpacity,
   TARGET_LIMITS,
-  targetKeyTarget,
   type Point,
+  type SceneGeometry,
 } from './wheelScene';
-import { DisturbanceMarks, FieldLines, RateArc, type SceneGeometry } from './WheelSceneMarks';
+import { DisturbanceMarks, FieldLines, RateArc } from './WheelSceneMarks';
+import { pxPerCm, zoomGeometry } from './wheelZoom';
+import WheelZoomStrip from './WheelZoomStrip';
+import { useRefit, useTargetReveal, type TargetKnobHandlers } from './useTargetReveal';
 
 /** Neutral body and wheel; the rates in the accent, red when the wheel passes its top speed. */
 const BODY_FILL = 'color-mix(in srgb, var(--fg) 7%, var(--bg-elevated))';
@@ -53,6 +57,7 @@ const DIAL_MARGIN = 34;
 const BODY_GAP = 18;
 /** The wheel is drawn as this share of the body's short side: not to scale. */
 const WHEEL_SHARE = 0.3;
+const ZOOM_LABEL = 'Escena de la nave y la rueda';
 const SPOKES = [0, 120, 240];
 const HUB_RADIUS = 3;
 const TICK_EVERY = 45;
@@ -109,6 +114,8 @@ export interface WheelSceneProps extends SpinState {
   /** Orbit (or maneuver) seconds per real second, the scale the badge declares (wheelTimeScale). */
   timeScale: number;
   onTargetChange(degrees: number): void;
+  /** A counter: each change frames the drawing again, as «Ajustar» does («Restablecer»). */
+  refit: number;
 }
 
 type Geometry = SceneGeometry;
@@ -118,6 +125,7 @@ interface ScaleBadgeProps {
   side: number;
 }
 
+/** The drawing as the lab frames it (×1): the view then maps it onto the screen. */
 function layout(width: number): { side: number; geometry: Geometry } {
   const side = Math.min(width, MAX_SIDE);
   const dial = side / 2 - DIAL_MARGIN;
@@ -129,6 +137,8 @@ function layout(width: number): { side: number; geometry: Geometry } {
       dial,
       scale,
       wheel: WHEEL_SHARE * BODY_FOOTPRINT.short * scale,
+      zoom: 1,
+      extent: { width, height: side },
     },
   };
 }
@@ -178,14 +188,15 @@ function Body({
   angle: number;
   isGhost?: boolean;
 }): JSX.Element {
-  const { c, scale } = geometry;
+  const { c, scale, zoom } = geometry;
   const radians = angle * DEG;
   const front = c.x + (BODY_FOOTPRINT.long / 2) * scale;
-  // The nose marks the front face (the instrument's side), drawn level and turned with the body.
+  // The nose marks the front face (the instrument's side), drawn level and turned with the body;
+  // it is part of the body, so it grows with the zoom.
   const nose = [
     { x: front, y: c.y },
-    { x: front - NOSE.depth, y: c.y - NOSE.half },
-    { x: front - NOSE.depth, y: c.y + NOSE.half },
+    { x: front - NOSE.depth * zoom, y: c.y - NOSE.half * zoom },
+    { x: front - NOSE.depth * zoom, y: c.y + NOSE.half * zoom },
   ].map((p) => rotateAbout(p, c, radians));
   return (
     <g data-body={isGhost ? 'target' : 'live'} className="pointer-events-none">
@@ -219,7 +230,7 @@ function Wheel({
   thetaW: number;
   spokeOpacity: number;
 }): JSX.Element {
-  const { c, wheel } = geometry;
+  const { c, wheel, zoom } = geometry;
   return (
     <g data-wheel="" className="pointer-events-none">
       <circle
@@ -246,7 +257,7 @@ function Wheel({
           );
         })}
       </g>
-      <circle cx={c.x} cy={c.y} r={HUB_RADIUS} fill={BODY_STROKE} />
+      <circle cx={c.x} cy={c.y} r={HUB_RADIUS * zoom} fill={BODY_STROKE} />
     </g>
   );
 }
@@ -275,23 +286,20 @@ function TargetHandle({
   geometry,
   targetDeg,
   onTargetChange,
+  keys,
 }: {
   geometry: Geometry;
   targetDeg: number;
   onTargetChange(degrees: number): void;
+  keys: TargetKnobHandlers;
 }): JSX.Element {
   const { c, dial } = geometry;
   const knob = polar(c, dial, targetDeg);
+  // The angle about the dial's centre is the same on screen and in the drawing: no zoom.toWorld.
   const drag = useDrag(({ x, y }: DragPoint) => {
     const next = pointerToDegrees(c, { x, y });
     if (next !== targetDeg) onTargetChange(next);
   });
-  const onKeyDown = (event: KeyboardEvent<SVGGElement>) => {
-    const next = targetKeyTarget(event.key, event.shiftKey, targetDeg);
-    if (next === undefined) return;
-    event.preventDefault();
-    if (next !== targetDeg) onTargetChange(next);
-  };
   return (
     <g
       data-testid="target-handle"
@@ -303,7 +311,8 @@ function TargetHandle({
       aria-valuenow={targetDeg}
       aria-valuetext={mathTextToString(targetText(targetDeg))}
       className="group cursor-grab outline-none active:cursor-grabbing"
-      onKeyDown={onKeyDown}
+      onKeyDown={keys.onKeyDown}
+      onFocus={keys.onFocus}
       {...drag}
     >
       <Knob at={knob} fill={TEXT_COLOR} stroke={SURFACE_COLOR} />
@@ -329,7 +338,7 @@ function SpinLayer({
   showArrows: boolean;
 }): JSX.Element {
   const { thetaS, omegaS, thetaW, omegaW } = useFrameDerived(live.frame, live.spinAt);
-  const { c, dial, wheel } = geometry;
+  const { c, dial, wheel, zoom } = geometry;
   const wheelArc = rateArcSweep(omegaW, rpmMax);
   const bodyArc = rateArcSweep(omegaS, omegaSReference, BODY_ARC_MAX);
   return (
@@ -342,7 +351,7 @@ function SpinLayer({
         <>
           <RateArc
             c={c}
-            radius={dial - BODY_GAP / 2}
+            radius={dial - (BODY_GAP / 2) * zoom}
             centreDeg={thetaS + 180}
             sweep={Math.sign(omegaS) * quantize(bodyArc.sweep, BODY_ARC_GRAIN_DEG)}
             color={RATE_COLOR}
@@ -350,7 +359,7 @@ function SpinLayer({
           />
           <RateArc
             c={c}
-            radius={wheel + WHEEL_ARC_GAP}
+            radius={wheel + WHEEL_ARC_GAP * zoom}
             centreDeg={90}
             sweep={Math.sign(omegaW) * quantize(wheelArc.sweep, WHEEL_ARC_GRAIN_DEG)}
             color={wheelArc.isOver ? LIMIT_COLOR : RATE_COLOR}
@@ -393,64 +402,92 @@ function ScaleBadge({ factor, side }: ScaleBadgeProps): JSX.Element {
   );
 }
 
+interface SceneSvgProps {
+  props: WheelSceneProps;
+  geometry: Geometry;
+  keys: TargetKnobHandlers;
+}
+
+/** The drawing, through the zoom's geometry: the moving layer, the marks, the badge and the knob. */
+function SceneSvg({ props, geometry, keys }: SceneSvgProps): JSX.Element {
+  const { mode, live, omegaSReference, rpmMax, targetDeg, showArrows } = props;
+  const { c, extent } = geometry;
+  const { width, height: side } = extent;
+  const isManeuver = mode === 'maniobra';
+  return (
+    <svg
+      data-testid="wheel-scene"
+      viewBox={`0 0 ${width} ${side}`}
+      width="100%"
+      className="block h-auto"
+    >
+      <g role="img" aria-label={describeScene(props)}>
+        <text x={8} y={16} fontFamily={TICK_FONT_FAMILY} fontSize={NOTE_SIZE} fill={TICK_COLOR}>
+          6U a escala; rueda no a escala
+        </text>
+        {!isManeuver && props.actuator === 'magnetopar' ? <FieldLines {...geometry} /> : null}
+        <Dial {...geometry} />
+        {isManeuver ? <TargetSweep {...geometry} targetDeg={targetDeg} /> : null}
+        {isManeuver ? <Body geometry={geometry} angle={targetDeg} isGhost /> : null}
+        <SpinLayer
+          geometry={geometry}
+          live={live}
+          omegaSReference={omegaSReference}
+          rpmMax={rpmMax}
+          showArrows={showArrows}
+        />
+        {isManeuver ? null : (
+          <DisturbanceMarks geometry={geometry} actuator={props.actuator} dumping={props.dumping} />
+        )}
+        <ScaleBadge factor={props.timeScale} side={side} />
+      </g>
+      {isManeuver ? (
+        <g data-testid="wheel-dial" data-cx={c.x} data-cy={c.y}>
+          <TargetHandle
+            geometry={geometry}
+            targetDeg={targetDeg}
+            onTargetChange={props.onTargetChange}
+            keys={keys}
+          />
+          <Label at={{ x: width - TEXT_INSET, y: side - TEXT_INSET }} dx={0} dy={0} anchor="end">
+            {targetText(targetDeg)}
+          </Label>
+        </g>
+      ) : null}
+    </svg>
+  );
+}
+
 /**
  * The laboratory's canvas: the 6U seen along its slew axis (to scale, 366,0 × 226,3 mm) turning
  * at θ_s inside a dial, the wheel (not to scale) spinning the other way at θ_w, the rate arcs
  * ω_s and ω_w, and the target knob with its dashed outline. In the disturbance mode the body is
  * held at 0° and the dial shows the disturbance and the dump actuator instead of the target.
+ *
+ * It zooms (useZoomPan): the dial, the body, the wheel and the lines of the field follow the
+ * view, and the scale bar, in centimetres of the body (the one part to scale), is recomputed
+ * with it; the texts, the strokes, the arrows' size and the knob keep theirs. The bar and the
+ * buttons sit in a strip under the square, so they never cover the dial or the knob; the
+ * square is the zoom's canvas, so the view's limits are the drawing's own.
  */
 export default function WheelScene(props: WheelSceneProps): JSX.Element {
-  const { mode, live, omegaSReference, rpmMax, targetDeg, showArrows } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
-  const { side, geometry } = layout(width);
-  const { c } = geometry;
-  const isManeuver = mode === 'maniobra';
-
+  const zoom = useZoomPan({ label: ZOOM_LABEL });
+  useRefit(zoom, props.refit);
+  const { geometry: base } = layout(width);
+  const geometry = zoomGeometry(base, zoom.view);
+  const keys = useTargetReveal({
+    targetDeg: props.targetDeg,
+    onTargetChange: props.onTargetChange,
+    zoom,
+    knobAt: polar(base.c, base.dial, props.targetDeg),
+  });
   return (
     <div ref={wrapperRef} className="mx-auto w-full" style={{ maxWidth: MAX_SIDE }}>
-      <svg
-        data-testid="wheel-scene"
-        viewBox={`0 0 ${width} ${side}`}
-        width="100%"
-        className="block h-auto overflow-visible"
-      >
-        <g role="img" aria-label={describeScene(props)}>
-          <text x={8} y={16} fontFamily={TICK_FONT_FAMILY} fontSize={NOTE_SIZE} fill={TICK_COLOR}>
-            6U a escala; rueda no a escala
-          </text>
-          {!isManeuver && props.actuator === 'magnetopar' ? <FieldLines {...geometry} /> : null}
-          <Dial {...geometry} />
-          {isManeuver ? <TargetSweep {...geometry} targetDeg={targetDeg} /> : null}
-          {isManeuver ? <Body geometry={geometry} angle={targetDeg} isGhost /> : null}
-          <SpinLayer
-            geometry={geometry}
-            live={live}
-            omegaSReference={omegaSReference}
-            rpmMax={rpmMax}
-            showArrows={showArrows}
-          />
-          {isManeuver ? null : (
-            <DisturbanceMarks
-              geometry={geometry}
-              actuator={props.actuator}
-              dumping={props.dumping}
-            />
-          )}
-          <ScaleBadge factor={props.timeScale} side={side} />
-        </g>
-        {isManeuver ? (
-          <g data-testid="wheel-dial" data-cx={c.x} data-cy={c.y}>
-            <TargetHandle
-              geometry={geometry}
-              targetDeg={targetDeg}
-              onTargetChange={props.onTargetChange}
-            />
-            <Label at={{ x: width - TEXT_INSET, y: side - TEXT_INSET }} dx={0} dy={0} anchor="end">
-              {targetText(targetDeg)}
-            </Label>
-          </g>
-        ) : null}
-      </svg>
+      <div {...zoom.viewportProps} className="relative">
+        <SceneSvg props={props} geometry={geometry} keys={keys} />
+      </div>
+      <WheelZoomStrip zoom={zoom} pxPerCm={pxPerCm(base.scale, zoom.view.scale)} />
     </div>
   );
 }

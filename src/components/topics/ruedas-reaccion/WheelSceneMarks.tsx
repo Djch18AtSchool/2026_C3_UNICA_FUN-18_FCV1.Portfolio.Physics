@@ -4,7 +4,7 @@ import { TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
 import MathText from '../../lab/MathText';
 import { Arrow, Label } from '../../lab/OverlayMarks';
 import type { DumpActuator } from './wheelLabModel';
-import { arcPath, BODY_FOOTPRINT, polar, type Point } from './wheelScene';
+import { arcPath, BODY_FOOTPRINT, polar, type Point, type SceneGeometry } from './wheelScene';
 
 /** The Earth's field B wears the Earth blue (spec §4.3), as in Tema 2. */
 const FIELD_COLOR = 'var(--chart-1)';
@@ -17,14 +17,9 @@ const ROD = { at: -0.62, length: 0.8, width: 6 } as const;
 const JET = { gap: 9, length: 28, plume: 14 } as const;
 const DISTURBANCE_ARC = { centre: 135, sweep: 32 } as const;
 const FORMULA_SIZE = 13;
+/** The formula's gap to the canvas' corner, and the τ_ext arc's to the dial (that one grows with the zoom). */
 const FORMULA_INSET = 8;
-
-export interface SceneGeometry {
-  c: Point;
-  dial: number;
-  scale: number;
-  wheel: number;
-}
+const DISTURBANCE_ARC_INSET = 8;
 
 /** Decimals of the arcs' angle attributes: a stable string per frame, a hundredth of a degree. */
 const ANGLE_DECIMALS = 2;
@@ -85,37 +80,51 @@ export function RateArc({
   );
 }
 
-/** Earth's field lines across the canvas, drawn under the body, with their B label. */
-export function FieldLines({ c, dial }: SceneGeometry): JSX.Element {
-  const width = 2 * c.x;
-  const rows = [-FIELD_LINE_SHARE, 0, FIELD_LINE_SHARE].map((share) => c.y + share * dial);
+/** A field line this close to the canvas' top or bottom (px) is out of the view: it is not drawn. */
+const FIELD_ROW_MARGIN = 4;
+
+/**
+ * Earth's field lines across the canvas, drawn under the body, with their B label. The lines
+ * follow the dial through the zoom and leave with it; B sits over the first one still in view.
+ */
+export function FieldLines({ c, dial, extent }: SceneGeometry): JSX.Element {
+  const rows = [-FIELD_LINE_SHARE, 0, FIELD_LINE_SHARE]
+    .map((share) => c.y + share * dial)
+    .filter((y) => y >= FIELD_ROW_MARGIN && y <= extent.height - FIELD_ROW_MARGIN);
   return (
     <g data-field="B" className="pointer-events-none" opacity={0.85}>
       {rows.map((y) => (
         <Arrow
           key={y}
           from={{ x: FIELD_PAD, y }}
-          to={{ x: width - FIELD_PAD, y }}
+          to={{ x: extent.width - FIELD_PAD, y }}
           color={FIELD_COLOR}
         />
       ))}
-      <Label at={{ x: width - FIELD_PAD, y: rows[0] }} dx={-4} dy={-8} anchor="end">
-        B
-      </Label>
+      {rows.length > 0 ? (
+        <Label at={{ x: extent.width - FIELD_PAD, y: rows[0] }} dx={-4} dy={-8} anchor="end">
+          B
+        </Label>
+      ) : null}
     </g>
   );
 }
 
 /** The magnetorquer rod m across the field (m ⊥ B, its best case), filled while it dumps. */
-function Magnetorquer({ c, scale, dumping }: SceneGeometry & { dumping: boolean }): JSX.Element {
+function Magnetorquer({
+  c,
+  scale,
+  zoom,
+  dumping,
+}: SceneGeometry & { dumping: boolean }): JSX.Element {
   const x = c.x + ROD.at * (BODY_FOOTPRINT.long / 2) * scale;
   const half = (ROD.length * BODY_FOOTPRINT.short * scale) / 2;
   return (
     <g data-actuator="magnetopar" className="pointer-events-none">
       <rect
-        x={x - ROD.width / 2}
+        x={x - (ROD.width * zoom) / 2}
         y={c.y - half}
-        width={ROD.width}
+        width={ROD.width * zoom}
         height={2 * half}
         rx={2}
         fill={dumping ? TEXT_COLOR : 'none'}
@@ -169,13 +178,13 @@ export function DisturbanceMarks({
   actuator: DumpActuator;
   dumping: boolean;
 }): JSX.Element {
-  const { c, dial } = geometry;
+  const { c, dial, zoom, extent } = geometry;
   const formula = actuator === 'magnetopar' ? 'τ = m × B' : 'τ = r × F';
   return (
     <g>
       <RateArc
         c={c}
-        radius={dial - FORMULA_INSET}
+        radius={dial - DISTURBANCE_ARC_INSET * zoom}
         centreDeg={DISTURBANCE_ARC.centre}
         sweep={DISTURBANCE_ARC.sweep}
         color={TICK_COLOR}
@@ -186,8 +195,8 @@ export function DisturbanceMarks({
         <g data-dump-law="">
           <MathText
             source={formula}
-            x={2 * c.x - FORMULA_INSET}
-            y={2 * c.y - FORMULA_INSET}
+            x={extent.width - FORMULA_INSET}
+            y={extent.height - FORMULA_INSET}
             fontSize={FORMULA_SIZE}
             fill={TEXT_COLOR}
             anchor="end"

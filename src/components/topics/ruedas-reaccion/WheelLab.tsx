@@ -63,6 +63,10 @@ const MANEUVER_HINT =
 const DISTURBANCE_HINT =
   'La nave se mantiene quieta: la rueda absorbe el torque externo hasta el umbral y otro actuador, que sí intercambia momento con algo externo, la vacía.';
 
+/** The scene's zoom, in «Cómo se usa»: the gestures, the keys, and what the scale bar measures. */
+const ZOOM_HINT =
+  'La escena se acerca con los botones, con Ctrl y la rueda o pellizcando, y se desplaza arrastrando el fondo; con el lienzo enfocado con el teclado, + y − acercan y alejan, 0 ajusta y las flechas desplazan (entonces también la rueda sola acerca). La barra de escala mide la nave, la única parte dibujada a escala, y se recalcula con el zoom; «Ajustar» y «Restablecer» vuelven al encuadre inicial.';
+
 export interface WheelLabProps {
   /** «Cómo se usa», after the mode's hint: the time-lapse and the dump's stretch, from the topic's MDX. */
   usage?: string;
@@ -204,6 +208,8 @@ function WheelParams({ settings, set }: WheelParamsProps): JSX.Element {
 export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element {
   const [settings, setSettings] = useState<WheelSettings>(DEFAULT_SETTINGS);
   const [display, setDisplay] = useState<WheelDisplay>(DEFAULT_DISPLAY);
+  /** Each reset frames the scene again, as the zoom's «Ajustar» does. */
+  const [refit, setRefit] = useState(0);
   const isManeuver = settings.mode === 'maniobra';
   const feasibility = useMemo(() => maneuverFeasibility(settings), [settings]);
 
@@ -254,6 +260,7 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
     clock.reset();
     setSettings(DEFAULT_SETTINGS);
     setDisplay(DEFAULT_DISPLAY);
+    setRefit((count) => count + 1);
   };
 
   const params = <WheelParams settings={settings} set={set} />;
@@ -292,7 +299,11 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
         display: wheelLocalSettings({ display, onDisplayChange: setDisplay, clock }),
       }}
       notes={{
-        usage: [isManeuver ? MANEUVER_HINT : DISTURBANCE_HINT, ...(usage ? [usage] : [])],
+        usage: [
+          isManeuver ? MANEUVER_HINT : DISTURBANCE_HINT,
+          ZOOM_HINT,
+          ...(usage ? [usage] : []),
+        ],
         leftOut: leftOut ? [leftOut] : [],
       }}
       onReset={onReset}
@@ -313,6 +324,7 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
           dumping={disturbance?.dumping ?? false}
           showArrows={display.showArrows}
           timeScale={timeScale}
+          refit={refit}
           onTargetChange={(thetaDeg) => set('thetaDeg', thetaDeg)}
         />
         <div className={CANVAS_INSET}>
