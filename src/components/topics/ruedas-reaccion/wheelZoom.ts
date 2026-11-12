@@ -5,13 +5,7 @@
  * revealed target knob keeps clear. Pure, in the canvas' px.
  */
 import type { ScaleUnit } from '../../lab/scaleBarMath';
-import {
-  REVEAL_MARGIN_PX,
-  toScreen,
-  type ZoomBox,
-  type ZoomPoint,
-  type ZoomView,
-} from '../../lab/zoomMath';
+import { toScreen, type ZoomBox, type ZoomPoint, type ZoomView } from '../../lab/zoomMath';
 import { TEXT_BAND, type SceneGeometry } from './wheelScene';
 
 const CM_PER_M = 100;
@@ -22,10 +16,10 @@ export const ZOOM_ROW_PX = 48;
 
 /**
  * The box a reveal brings into view is this far from the knob's centre; the reveal adds its own
- * margin (REVEAL_MARGIN_PX), so the revealed knob's centre is TEXT_BAND from the edges: never under
- * the note, the badge or the target's text.
+ * margin (16 px), so the revealed knob's centre ends 61 px from the edges: clear of the note, the
+ * time-scale badge (two lines, 38 px high) and the target's text, with its focus ring around it.
  */
-export const KNOB_REVEAL_RADIUS = TEXT_BAND - REVEAL_MARGIN_PX;
+export const KNOB_REVEAL_RADIUS = TEXT_BAND;
 
 /** The scene through the zoom's view: the dial, the body's scale and the wheel grow; the canvas does not. */
 export function zoomGeometry(base: SceneGeometry, view: ZoomView): SceneGeometry {

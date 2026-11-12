@@ -26,8 +26,8 @@ const PX_SLACK = 1.5;
 const DRAG_STEPS = 6;
 /** How far the knob is from the canvas' edge when it is pressed: inside the 16 px of the shared reveal. */
 const EDGE_GAP_PX = 8;
-/** The band of the corner texts a revealed knob keeps (TEXT_BAND). */
-const TEXT_BAND_PX = 45;
+/** Where a key's reveal leaves the knob's centre: TEXT_BAND (45) plus the reveal's own margin (16). */
+const REVEALED_KNOB_PX = 61;
 const BAR_MIN_PX = 64;
 const BAR_MAX_PX = 160;
 /** The 6U's long side seen along the slew axis (m): 366,0 mm. */
@@ -330,10 +330,10 @@ test.describe('la escena de la rueda, con zoom', () => {
     await canvas(lab).evaluate((element) => element.scrollIntoView({ block: 'center' }));
     const area = (await canvas(lab).boundingBox())!;
     const centreOf = (box: Box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
-    // Revealed by the key: its centre is the band's width from the left edge.
+    // Revealed by the key: its centre is the band plus the reveal margin from the left edge.
     await expect
       .poll(async () => centreOf(await knobBox(lab)).x - area.x)
-      .toBeCloseTo(TEXT_BAND_PX, 0);
+      .toBeCloseTo(REVEALED_KNOB_PX, 0);
 
     // Arrastra el fondo hasta dejar la perilla a 8 px del borde.
     const grabAt = { x: area.x + area.width * 0.6, y: area.y + area.height / 2 };

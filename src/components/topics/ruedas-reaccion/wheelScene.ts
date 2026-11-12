@@ -28,8 +28,8 @@ export const DIAL_MARGIN = 34;
 const KNOB_RING_PX = 11;
 /**
  * The band along the canvas' edges the corner texts (the note, the time-scale badge, the target's
- * text) live in: a revealed knob keeps its centre this far from every edge, and a field line that
- * close to the top or bottom is left out.
+ * text) live in: a reveal keeps the knob this far from every edge (plus the reveal's own margin),
+ * and a field line that close to the top or bottom is left out.
  */
 export const TEXT_BAND = DIAL_MARGIN + KNOB_RING_PX;
 

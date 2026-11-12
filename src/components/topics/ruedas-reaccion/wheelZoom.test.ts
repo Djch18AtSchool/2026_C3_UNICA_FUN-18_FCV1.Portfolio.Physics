@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX, scaleBarLength } from '../../lab/scaleBarMath';
-import { IDENTITY_VIEW, REVEAL_MARGIN_PX } from '../../lab/zoomMath';
+import { IDENTITY_VIEW } from '../../lab/zoomMath';
 import { CUBESAT_6U } from '../../../lib/data/reactionWheels';
 import { BODY_FOOTPRINT, DIAL_MARGIN, TEXT_BAND, type SceneGeometry } from './wheelScene';
 import {
@@ -103,9 +103,9 @@ describe('pxPerCm', () => {
 });
 
 describe('the text band', () => {
-  test('is the dial’s margin plus the knob’s ring, and a revealed knob keeps it, the reveal’s margin included', () => {
+  test('is the dial’s margin plus the knob’s ring, and a reveal keeps the knob that far from the texts', () => {
     expect(TEXT_BAND).toBe(DIAL_MARGIN + 11);
-    expect(KNOB_REVEAL_RADIUS + REVEAL_MARGIN_PX).toBe(TEXT_BAND);
+    expect(KNOB_REVEAL_RADIUS).toBe(TEXT_BAND);
   });
 });
 
