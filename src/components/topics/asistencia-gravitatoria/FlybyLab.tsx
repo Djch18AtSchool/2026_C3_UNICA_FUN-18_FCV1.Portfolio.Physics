@@ -48,7 +48,7 @@ const NO_WRAP = 'whitespace-nowrap';
 const DRAG_HINT =
   'Arrastra el punto de máxima aproximación en el dibujo, o enfócalo y muévelo con las flechas (1 % de la escala logarítmica; con Mayús, 10 %); Inicio y Fin lo llevan a 1 y 100 radios.';
 const ZOOM_HINT =
-  'El marco del planeta se acerca con los botones, con Ctrl y la rueda o pellizcando, y se desplaza arrastrando el fondo; con el lienzo enfocado con el teclado, + y − acercan y alejan, 0 ajusta y las flechas desplazan (entonces también la rueda sola acerca). La barra de escala se recalcula con el zoom. «Ajustar» vuelve al encuadre del encuentro, igual que elegir otro encuentro o «Restablecer».';
+  'El marco del planeta se acerca con los botones, Ctrl y la rueda, o pellizcando, y se desplaza arrastrando el fondo; con el lienzo enfocado desde el teclado, + y − acercan y alejan, 0 ajusta y las flechas desplazan (entonces la rueda sola también acerca). La barra de escala se recalcula con el zoom. «Ajustar» vuelve al encuadre del encuentro, igual que elegir otro encuentro o «Restablecer».';
 const ARRIVAL_HINT = String.raw`Un preajuste fija la llegada: $V_p$, $v_\infty$ y $\theta_\text{in}$, el ángulo entre $\vec V_p$ y $\vec v_{\infty,\text{in}}$; $r_p$ y el lado son tuyos.`;
 const SIDE_OPTIONS = (['behind', 'front'] as const).map((value) => ({
   value,
