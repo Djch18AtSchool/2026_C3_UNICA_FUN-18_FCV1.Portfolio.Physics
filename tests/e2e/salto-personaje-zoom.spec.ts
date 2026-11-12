@@ -36,6 +36,9 @@ const KEY_PRESSES = 12;
 const MIN_BAR_PX = 64;
 const MAX_BAR_PX = 160;
 
+// Buttons and keys glide; under reduced motion they jump, so a test reads the end at once.
+test.use({ reducedMotion: 'reduce' });
+
 test.beforeEach(async ({ page }) => {
   await page.goto(PAGE);
   await page.locator(LAB).scrollIntoViewIfNeeded();
@@ -55,12 +58,24 @@ const factor = (page: Page) => page.locator('[data-zoom-factor]');
 const zoomButton = (page: Page, name: string) =>
   lab(page).getByRole('group', { name: 'Zoom' }).getByRole('button', { name, exact: true });
 
+/**
+ * Two frames: Chromium answers getBoundingClientRect of what is inside the plot's foreignObject one
+ * frame late after a change, and a reveal by focus reads those boxes. (Frames, not a clock.)
+ */
+async function settle(page: Page): Promise<void> {
+  await page.evaluate(
+    () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+  );
+}
+
 async function press(page: Page, name: string, times = 1): Promise<void> {
   for (let i = 0; i < times; i += 1) await zoomButton(page, name).click({ force: true });
+  await settle(page);
 }
 
 /** Focus the way Tab does: a key first, so the browser shows the focus ring (:focus-visible). */
 async function focusWithKeyboard(page: Page, locator: Locator): Promise<void> {
+  await settle(page);
   await page.keyboard.press('Shift');
   await locator.focus();
 }
@@ -327,13 +342,15 @@ test.describe('the vectors', () => {
     const whole = await launchVectorPx(page);
     expect(whole).toBeGreaterThan(MIN_BAR_PX / 4);
 
+    const drift = async () => Math.abs((await launchVectorPx(page)) - whole);
+
     await press(page, 'Acercar', STEPS_TO_X4);
     await expect.poll(() => readFactor(page)).toBe('×4');
-    expect(Math.abs((await launchVectorPx(page)) - whole)).toBeLessThan(PX_SLACK);
+    await expect.poll(drift).toBeLessThan(PX_SLACK);
 
     await press(page, 'Acercar', STEPS_TO_LIMIT - STEPS_TO_X4);
     await expect.poll(() => readFactor(page)).toBe(`×${MAX_SCALE}`);
-    expect(Math.abs((await launchVectorPx(page)) - whole)).toBeLessThan(PX_SLACK);
+    await expect.poll(drift).toBeLessThan(PX_SLACK);
   });
 });
 
@@ -478,43 +495,47 @@ test.describe('the mouse', () => {
   });
 });
 
-test.describe('the handles', () => {
-  for (const handle of ['launch-handle', 'jump-marker']) {
-    test(`${handle} focused outside the window is brought into view (×8, Tab to it)`, async ({
+for (const size of VIEWPORTS) {
+  test.describe(`the handles at ${size.width} px`, () => {
+    test.use({ viewport: size });
+
+    for (const handle of ['launch-handle', 'jump-marker']) {
+      test(`${handle} focused outside the window is brought into view (×8, Tab to it)`, async ({
+        page,
+      }) => {
+        await press(page, 'Acercar', STEPS_TO_LIMIT);
+        await expect.poll(() => readFactor(page)).toBe(`×${MAX_SCALE}`);
+        expect(await isKnobInPlot(page, handle)).toBe(false);
+
+        await focusWithKeyboard(page, page.getByTestId(handle));
+
+        await expect.poll(() => isKnobInPlot(page, handle)).toBe(true);
+      });
+    }
+
+    test('an arrow key that moves the launch handle keeps it in view, 0,5 m/s at a time', async ({
       page,
     }) => {
       await press(page, 'Acercar', STEPS_TO_LIMIT);
-      await expect.poll(() => readFactor(page)).toBe(`×${MAX_SCALE}`);
-      expect(await isKnobInPlot(page, handle)).toBe(false);
+      await focusWithKeyboard(page, page.getByTestId('launch-handle'));
+      const start = await readV0(page);
 
-      await focusWithKeyboard(page, page.getByTestId(handle));
+      for (let i = 0; i < KEY_PRESSES; i += 1) await page.keyboard.press('ArrowUp');
 
-      await expect.poll(() => isKnobInPlot(page, handle)).toBe(true);
+      await expect.poll(() => readV0(page)).toBeCloseTo(start + KEY_PRESSES * 0.5, 5);
+      await expect.poll(() => isKnobInPlot(page, 'launch-handle')).toBe(true);
     });
-  }
 
-  test('an arrow key that moves the launch handle keeps it in view, 0,5 m/s at a time', async ({
-    page,
-  }) => {
-    await press(page, 'Acercar', STEPS_TO_LIMIT);
-    await focusWithKeyboard(page, page.getByTestId('launch-handle'));
-    const start = await readV0(page);
+    test('the marker follows its own key moves to the end of the jump', async ({ page }) => {
+      await press(page, 'Acercar', STEPS_TO_LIMIT);
+      await focusWithKeyboard(page, page.getByTestId('jump-marker'));
 
-    for (let i = 0; i < KEY_PRESSES; i += 1) await page.keyboard.press('ArrowUp');
+      await page.keyboard.press('End');
 
-    await expect.poll(() => readV0(page)).toBeCloseTo(start + KEY_PRESSES * 0.5, 5);
-    await expect.poll(() => isKnobInPlot(page, 'launch-handle')).toBe(true);
+      await expect.poll(() => isKnobInPlot(page, 'jump-marker')).toBe(true);
+    });
   });
-
-  test('the marker follows its own key moves to the end of the jump', async ({ page }) => {
-    await press(page, 'Acercar', STEPS_TO_LIMIT);
-    await focusWithKeyboard(page, page.getByTestId('jump-marker'));
-
-    await page.keyboard.press('End');
-
-    await expect.poll(() => isKnobInPlot(page, 'jump-marker')).toBe(true);
-  });
-});
+}
 
 /** The distinct plot shapes the trajectory takes in one click on «Acercar»: many glide, one jumps. */
 async function pathsDuringZoom(page: Page): Promise<number> {
