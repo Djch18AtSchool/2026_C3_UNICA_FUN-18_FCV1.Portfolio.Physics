@@ -106,7 +106,7 @@ const isInside = (inner: Box, outer: Box) =>
   inner.x + inner.width <= outer.x + outer.width &&
   inner.y + inner.height <= outer.y + outer.height;
 
-async function setRadius(page: Page, lab: Locator, metres: string): Promise<void> {
+async function setRadius(lab: Locator, metres: string): Promise<void> {
   await lab.getByRole('switch', { name: 'Fijar 1 g' }).uncheck({ force: true });
   const field = lab.getByRole('textbox', { name: /^Radio del piso/ });
   await field.fill(metres);
@@ -179,7 +179,7 @@ test.describe('el anillo del hábitat, con zoom', () => {
     const readings: string[] = [];
 
     for (const radius of ['5', '223.6', '894.6', '4000']) {
-      await setRadius(page, lab, radius);
+      await setRadius(lab, radius);
       await zoomButton(lab, 'Ajustar').click({ force: true });
       for (let click = 0; click <= MAX_ZOOM_CLICKS; click += 1) {
         if (click > 0) await zoomButton(lab, 'Acercar').click();
