@@ -13,4 +13,12 @@ export const CANVAS_CORNER: Readonly<Record<CanvasCorner, string>> = {
 };
 
 /** Whether the corner is on the right, so an overlay there aligns its content to the end. */
-export const isRightCorner = (corner: CanvasCorner): boolean => corner.endsWith('right');
+export const isRightCorner = (corner: CanvasPlacement): boolean => corner.endsWith('right');
+
+/** Where an overlay goes: a corner of the canvas, or `inline` inside a layout of its own (ZoomOverlay). */
+export type CanvasPlacement = CanvasCorner | 'inline';
+
+/** The classes that place an overlay: absolute in its corner, or nothing inline. */
+export function placementClasses(placement: CanvasPlacement): string {
+  return placement === 'inline' ? '' : `absolute ${CANVAS_CORNER[placement]}`;
+}

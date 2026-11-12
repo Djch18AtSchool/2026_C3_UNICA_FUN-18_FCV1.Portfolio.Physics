@@ -16,7 +16,7 @@
  * once it settles (never at load).
  */
 import type { JSX, ReactNode } from 'react';
-import { CANVAS_CORNER, type CanvasCorner } from './canvasCorner';
+import { placementClasses, type CanvasPlacement } from './canvasCorner';
 import type { ZoomPan } from './useZoomPan';
 import { useSettledText } from './useSettledText';
 import { formatZoomFactor, zoomSpoken } from './zoomMath';
@@ -30,11 +30,12 @@ export type ZoomControlsOrientation = 'column' | 'row';
 
 export interface ZoomControlsProps {
   zoom: ZoomPan;
-  corner?: CanvasCorner;
+  /** A corner of the canvas, or `inline` inside ZoomOverlay. */
+  corner?: CanvasPlacement;
   orientation?: ZoomControlsOrientation;
 }
 
-const GROUP = 'absolute flex rounded-base border border-border bg-bg-elevated';
+const GROUP = 'flex rounded-base border border-border bg-bg-elevated';
 const DIRECTION: Readonly<Record<ZoomControlsOrientation, string>> = {
   column: 'flex-col divide-y divide-border',
   row: 'flex-row divide-x divide-border',
@@ -106,7 +107,7 @@ export default function ZoomControls({
         data-zoom-ignore=""
         role="group"
         aria-label="Zoom"
-        className={`${GROUP} ${DIRECTION[orientation]} ${CANVAS_CORNER[corner]}`}
+        className={`${GROUP} ${DIRECTION[orientation]} ${placementClasses(corner)}`}
       >
         <span data-zoom-factor="" aria-hidden="true" className={FACTOR}>
           {formatZoomFactor(zoom.view.scale)}

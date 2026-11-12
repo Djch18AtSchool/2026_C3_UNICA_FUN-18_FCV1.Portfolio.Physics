@@ -20,7 +20,7 @@
  */
 import type { JSX } from 'react';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_COLOR } from '../charts/chartTheme';
-import { CANVAS_CORNER, isRightCorner, type CanvasCorner } from './canvasCorner';
+import { isRightCorner, placementClasses, type CanvasPlacement } from './canvasCorner';
 import InlineMath from './InlineMath';
 import MathText from './MathText';
 import {
@@ -40,7 +40,7 @@ export interface ScaleBarProps {
 }
 
 const BOX =
-  'pointer-events-none absolute flex flex-col gap-1 rounded-sm border border-border bg-bg/90 px-2 py-1';
+  'pointer-events-none flex flex-col gap-1 rounded-sm border border-border bg-bg/90 px-2 py-1';
 /** The bar: a 2 px line with 8 px ticks at both ends. */
 const LINE = 'block h-2 border-x-2 border-b-2 border-fg';
 /** SVG bar: 8-unit ticks, a 2-unit stroke, the text 4 units above the ticks in 12. */
@@ -67,11 +67,14 @@ export function ScaleBarWords(props: ScaleBarProps): JSX.Element | null {
   );
 }
 
-/** The HTML bar, in a corner of the canvas' positioned box (bottom-left by default). */
+/**
+ * The HTML bar, in a corner of the canvas' positioned box (bottom-left by default), or `inline` in
+ * a layout of its own (ZoomOverlay).
+ */
 export default function ScaleBar({
   corner = 'bottom-left',
   ...props
-}: ScaleBarProps & { corner?: CanvasCorner }): JSX.Element | null {
+}: ScaleBarProps & { corner?: CanvasPlacement }): JSX.Element | null {
   const bar = barFor(props);
   if (!bar) return null;
   const align = isRightCorner(corner) ? 'items-end' : 'items-start';
@@ -80,7 +83,7 @@ export default function ScaleBar({
       <div
         data-scale-bar=""
         aria-hidden="true"
-        className={`${BOX} ${align} ${CANVAS_CORNER[corner]}`}
+        className={`${BOX} ${align} ${placementClasses(corner)}`}
       >
         <span className="text-xs whitespace-nowrap text-fg tabular-nums">
           <InlineMath text={bar.text} />
