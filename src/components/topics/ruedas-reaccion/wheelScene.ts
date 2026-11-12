@@ -7,6 +7,20 @@ import { CUBESAT_6U } from '../../../lib/data/reactionWheels';
 
 export type Point = { x: number; y: number };
 
+/**
+ * Where the scene's parts are, in canvas px: the dial's centre and radius, the body's px per m
+ * and the wheel's radius, all through the zoom's view (`zoom` is its scale, ×1 at the lab's own
+ * framing), and the canvas' own size, which the view does not change.
+ */
+export interface SceneGeometry {
+  c: Point;
+  dial: number;
+  scale: number;
+  wheel: number;
+  zoom: number;
+  extent: { width: number; height: number };
+}
+
 export const DEG = Math.PI / 180;
 /** The target angle's range (°): a half turn either way. */
 export const TARGET_LIMITS = [-180, 180] as const;
