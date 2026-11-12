@@ -71,8 +71,7 @@ const dialCentre = (): Point => {
   const dial = screen.getByTestId('wheel-dial');
   return { x: Number(dial.dataset.cx), y: Number(dial.dataset.cy) };
 };
-const dialRadius = () =>
-  Number(scene().querySelector('circle[fill="none"][stroke-width="1.5"]')?.getAttribute('r'));
+const dialRadius = () => Number(scene().querySelector('[data-dial]')?.getAttribute('r'));
 const knob = () => handle().querySelector('[data-knob]') as SVGCircleElement;
 const knobCentre = (): Point => ({
   x: Number(knob().getAttribute('cx')),

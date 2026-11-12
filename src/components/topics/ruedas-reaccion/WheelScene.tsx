@@ -149,7 +149,15 @@ function Dial({ c, dial }: Geometry): JSX.Element {
   const zero = polar(c, dial + ZERO_LABEL_GAP, 0);
   return (
     <g className="pointer-events-none">
-      <circle cx={c.x} cy={c.y} r={dial} fill="none" stroke={AXIS_COLOR} strokeWidth={1.5} />
+      <circle
+        data-dial=""
+        cx={c.x}
+        cy={c.y}
+        r={dial}
+        fill="none"
+        stroke={AXIS_COLOR}
+        strokeWidth={1.5}
+      />
       {ticks.map((degrees) => {
         const inner = polar(c, dial - TICK_LENGTH, degrees);
         const outer = polar(c, dial, degrees);

@@ -80,8 +80,12 @@ export function RateArc({
   );
 }
 
-/** A field line this close to the canvas' top or bottom (px) is out of the view: it is not drawn. */
-const FIELD_ROW_MARGIN = 4;
+/**
+ * A field line this close to the canvas' top or bottom (px) is out of the view: it is not drawn.
+ * The margin is the bands of the corner texts (the note on top, the time-scale badge below), so
+ * a line never runs through them.
+ */
+const FIELD_ROW_MARGIN = 44;
 
 /**
  * Earth's field lines across the canvas, drawn under the body, with their B label. The lines
