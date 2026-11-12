@@ -1,4 +1,4 @@
-import { useRef, type JSX, type KeyboardEvent } from 'react';
+import { useEffect, useRef, type JSX, type KeyboardEvent } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { mathTextToString } from '../../../lib/mathNotation';
 import { TEXT_COLOR } from '../../charts/chartTheme';
@@ -26,7 +26,7 @@ export interface JumpOverlayProps {
   /** The settled time (the slider's aria values and keyboard steps) and the live one (the drawing). */
   t: number;
   frame: FrameStore;
-  /** Metres drawn per m/s, shared by the launch vector and the velocity vector. */
+  /** Metres drawn per m/s, shared by the launch vector and the velocity vector (steady in px). */
   lengthPerMs: number;
   color: string;
   showTrail: boolean;
@@ -36,6 +36,11 @@ export interface JumpOverlayProps {
   /** A launch-vector drag starts or ends (the lab holds the plot window still meanwhile). */
   onLaunchDragPhase(phase: 'start' | 'end'): void;
   onSeek(t: number): void;
+  /**
+   * A key moved a handle: its place, in px from the plot area's top-left corner, so the zoom can
+   * bring it into view if the move took it out. The lab's zoom gives it; without one, no reveal.
+   */
+  onReveal?(at: Point): void;
 }
 
 /** Neutral, so the launch vector never reads as the dashed blue Earth reference (dark mode). */
@@ -113,6 +118,7 @@ export default function JumpOverlay({
   onLaunchChange,
   onLaunchDragPhase,
   onSeek,
+  onReveal,
 }: JumpOverlayProps): JSX.Element {
   const liveT = useFrameTime(frame);
   const origin = { x: scales.x.toPx(0), y: scales.y.toPx(0) };
@@ -128,6 +134,17 @@ export default function JumpOverlay({
   const grabOffsetRef = useRef<Point>({ x: 0, y: 0 });
   const format = (value: number, unit: string) =>
     formatNumber(value, { precision: decimals, unit });
+
+  /** The handle a key just moved, until the render that draws it in its new place. */
+  const keyMovedRef = useRef<'launch' | 'marker' | null>(null);
+  const plotCorner = { x: Math.min(...scales.x.range), y: Math.min(...scales.y.range) };
+  useEffect(() => {
+    const moved = keyMovedRef.current;
+    keyMovedRef.current = null;
+    if (!moved || !onReveal) return;
+    const at = moved === 'launch' ? tip : body;
+    onReveal({ x: at.x - plotCorner.x, y: at.y - plotCorner.y });
+  });
 
   const launchDrag = useDrag(({ x, y, phase }: DragPoint) => {
     if (phase === 'start') {
@@ -146,6 +163,7 @@ export default function JumpOverlay({
     const next = launchKeyTarget(event.key, settings);
     if (!next) return;
     event.preventDefault();
+    if (next.v0 !== settings.v0 || next.vx !== settings.vx) keyMovedRef.current = 'launch';
     onLaunchChange(next);
   };
 
@@ -153,6 +171,7 @@ export default function JumpOverlay({
     const next = markerKeyTarget(event.key, t, live.tAir);
     if (next === undefined) return;
     event.preventDefault();
+    if (next !== t) keyMovedRef.current = 'marker';
     onSeek(next);
   };
 

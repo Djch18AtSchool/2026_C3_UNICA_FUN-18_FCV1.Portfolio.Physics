@@ -25,8 +25,12 @@ import {
   type JumpSettings,
 } from './jumpModel';
 import JumpOverlay, { type LaunchSpeeds, V0_KEY_STEP, VX_KEY_STEP } from './JumpOverlay';
-import { launchLengthPerMs, sceneDomains } from './jumpScene';
+import { sceneDomains } from './jumpScene';
 import { worldForGravity, worldForPreset } from './jumpWorlds';
+import { steadyLengthPerMs } from './jumpZoom';
+import JumpZoomLayer from './JumpZoomLayer';
+import JumpZoomStrip from './JumpZoomStrip';
+import { useJumpZoom } from './useJumpZoom';
 
 type JumpKey = keyof JumpSettings;
 type Domains = { x: Domain; y: Domain };
@@ -39,6 +43,13 @@ const stepText = (step: number) =>
   formatNumber(step, { precision: String(step).split('.')[1]?.length ?? 0, unit: 'm/s' });
 /** «Cómo se usa»: the two handles on the plot, by pointer and by keys (JumpOverlay's steps). */
 const DRAG_HINT = `Arrastra la punta del vector de lanzamiento $\\vec v_0$, o enfócala y muévela con las flechas: arriba y abajo cambian $v_0$ (${stepText(V0_KEY_STEP)}) y los lados, $v_x$ (${stepText(VX_KEY_STEP)}). El punto sobre la curva recorre el salto: arrástralo, o enfócalo y usa las flechas, Inicio y Fin.`;
+
+/**
+ * «Cómo se usa»: the zoom of the plot, after the handles' drag. The arrows are velocities, so they
+ * do not grow with it; the framing of a new jump (a preset, the designer, «Restablecer») starts over.
+ */
+const ZOOM_HINT =
+  'Acerca la gráfica con los botones, con Ctrl y la rueda o pellizcando; arrastra el fondo para desplazarla. Con la gráfica enfocada con el teclado: + y − acercan y alejan, 0 ajusta y las flechas desplazan (entonces también la rueda sola acerca). Los vectores no crecen con el zoom. «Ajustar» encuadra el salto entero, igual que elegir otro preajuste o «Restablecer».';
 
 /** The Earth reference wears Tierra's conventional color, dashed. */
 const EARTH_COLOR = worldForPreset('tierra').color;
@@ -109,8 +120,12 @@ export default function JumpLab({ usage, leftOut }: JumpLabProps): JSX.Element {
   const shownGhost = display.showGhost ? ghost : undefined;
   // The window frames the live jump; a much larger Earth reference may run off the plot.
   const fitted = useMemo(() => sceneDomains([live]), [live]);
-  const domains = heldDomains ?? fitted;
-  const lengthPerMs = launchLengthPerMs(domains.y, JUMP_LIMITS);
+  // The zoom's ×1 is the framing of the live jump (held still while the handle is dragged); the
+  // plot shows the part of it the view says, and the vectors keep their length on screen.
+  const framing = heldDomains ?? fitted;
+  const jumpZoom = useJumpZoom(framing);
+  const { fit: refitZoom, view: zoomView } = jumpZoom.zoom;
+  const lengthPerMs = steadyLengthPerMs(framing.y, zoomView.scale, JUMP_LIMITS);
 
   const clock = useSimClock(live.tAir);
   const { reset: rewind } = clock;
@@ -123,6 +138,7 @@ export default function JumpLab({ usage, leftOut }: JumpLabProps): JSX.Element {
   const applyValues = (values: JumpSettings, id?: string) => {
     const result = clampSettings<Record<JumpKey, number>>(values, JUMP_LIMITS);
     setState({ settings: result.values, presetId: id, clamped: result.clamped });
+    refitZoom();
   };
 
   const onLaunchChange = ({ v0, vx }: LaunchSpeeds) =>
@@ -222,48 +238,57 @@ export default function JumpLab({ usage, leftOut }: JumpLabProps): JSX.Element {
         readouts={readouts}
         levels={{ params, scenario, display: localSettings }}
         notes={{
-          usage: [DRAG_HINT, ...(usage ? [usage] : [])],
+          usage: [DRAG_HINT, ZOOM_HINT, ...(usage ? [usage] : [])],
           leftOut: [
             ...(display.integrator === 'euler' ? [EULER_NOTE] : []),
             ...(leftOut ? [leftOut] : []),
           ],
         }}
-        onReset={() => setState(INITIAL_STATE)}
+        onReset={() => {
+          setState(INITIAL_STATE);
+          refitZoom();
+        }}
         testId="jump-lab"
       >
-        <SvgPlot
-          title="Trayectoria del salto"
-          xLabel="x"
-          xUnit="m"
-          yLabel="y"
-          yUnit="m"
-          series={series}
-          xDomain={domains.x}
-          yDomain={domains.y}
-          equalAspect
-          // The marker starts on the origin, at the plot's corner: keep its knob whole.
-          overlayBleed={KNOB_HIT_RADIUS}
-          ariaLabel={describePlot(live, shownGhost)}
-          testId="jump-plot"
-          overlay={(scales) => (
-            <JumpOverlay
-              scales={scales}
-              plotClipPath={scales.plotClipPath}
-              settings={settings}
-              live={live}
-              t={clock.state.t}
-              frame={clock.frame}
-              lengthPerMs={lengthPerMs}
-              color={world.color}
-              showTrail={display.showTrail}
-              showVelocity={display.showVelocity}
-              decimals={decimals}
-              onLaunchChange={onLaunchChange}
-              onLaunchDragPhase={onLaunchDragPhase}
-              onSeek={clock.seek}
-            />
-          )}
-        />
+        <>
+          <SvgPlot
+            title="Trayectoria del salto"
+            xLabel="x"
+            xUnit="m"
+            yLabel="y"
+            yUnit="m"
+            series={series}
+            xDomain={jumpZoom.domains.x}
+            yDomain={jumpZoom.domains.y}
+            equalAspect
+            // The marker starts on the origin, at the plot's corner: keep its knob whole.
+            overlayBleed={KNOB_HIT_RADIUS}
+            ariaLabel={describePlot(live, shownGhost)}
+            testId="jump-plot"
+            overlay={(scales) => (
+              <JumpZoomLayer scales={scales} jumpZoom={jumpZoom}>
+                <JumpOverlay
+                  scales={scales}
+                  plotClipPath={scales.plotClipPath}
+                  settings={settings}
+                  live={live}
+                  t={clock.state.t}
+                  frame={clock.frame}
+                  lengthPerMs={lengthPerMs}
+                  color={world.color}
+                  showTrail={display.showTrail}
+                  showVelocity={display.showVelocity}
+                  decimals={decimals}
+                  onLaunchChange={onLaunchChange}
+                  onLaunchDragPhase={onLaunchDragPhase}
+                  onSeek={clock.seek}
+                  onReveal={jumpZoom.revealPoint}
+                />
+              </JumpZoomLayer>
+            )}
+          />
+          <JumpZoomStrip zoom={jumpZoom.zoom} />
+        </>
       </LabShell>
       <JumpDesigner current={settings} onApply={(values) => applyValues(values)} />
     </div>

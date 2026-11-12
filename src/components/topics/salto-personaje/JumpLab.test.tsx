@@ -321,7 +321,7 @@ describe('JumpLab', () => {
     const usage = container.querySelector('details[data-lab-note="usage"]') as HTMLElement;
     const paragraphs = [...usage.querySelectorAll('p')].map((p) => p.textContent);
     expect(paragraphs.at(-1)).toBe('Una nota del tema.');
-    expect(paragraphs).toHaveLength(2);
+    expect(paragraphs).toHaveLength(3);
   });
 
   test('the local settings hide the Earth reference and change the fall multiplier', async () => {
