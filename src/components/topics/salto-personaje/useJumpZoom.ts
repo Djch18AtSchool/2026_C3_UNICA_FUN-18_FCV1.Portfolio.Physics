@@ -1,7 +1,6 @@
 /**
  * The jump plot's zoom: useZoomPan on the plot area plus what the trajectory needs from it. The
- * plot area is the zoom's viewport and its size (measured by a second observer on the same
- * element, as the hook keeps its own to itself) turns the view into the part of the scene's window
+ * plot area is the zoom's viewport and its size (the hook's own measure, `viewportSize`) turns the view into the part of the scene's window
  * the plot shows (jumpZoom.ts) and the box `revealAt` brings into view. The same pattern as Tema
  * 1's route map (useRouteZoom), with a window that follows the jump instead of a fixed map.
  *
@@ -11,7 +10,7 @@
  * frame after SvgPlot draws a new size, so `isPlotDrawn` tells when the size the window is
  * computed from is the one on screen (a reveal waits for that).
  */
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 import { useZoomPan, type ZoomPan, type ZoomViewportProps } from '../../lab/useZoomPan';
 import type { ZoomPoint } from '../../lab/zoomMath';
 import { isPlotDrawn, metresBox, zoomedWindow, type PlotSize, type SceneWindow } from './jumpZoom';
@@ -24,7 +23,7 @@ const PLOT_LABEL = 'Trayectoria del salto';
 
 export interface JumpZoom {
   readonly zoom: ZoomPan;
-  /** The zoom's viewport props, with the plot's size observed too: spread on the viewport div. */
+  /** The zoom's viewport props: spread on the viewport div. */
   readonly viewportProps: ZoomViewportProps;
   /** The part of the scene's window on show, as the plot's domains (m). */
   readonly domains: SceneWindow;
@@ -38,38 +37,10 @@ export interface JumpZoom {
   readonly plot: PlotSize;
 }
 
-type ObservedRef = ZoomViewportProps['ref'];
-
-/** The hook's ref callback, plus an observer that keeps the element's size in `setPlot`. */
-function observingRef(hookRef: ObservedRef, setPlot: (size: PlotSize) => void): ObservedRef {
-  return (element) => {
-    const release = hookRef(element);
-    if (!element || typeof ResizeObserver === 'undefined') return release;
-    const observer = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      setPlot({ width, height });
-    });
-    observer.observe(element);
-    return () => {
-      release();
-      observer.disconnect();
-    };
-  };
-}
-
 /** `base` is the window the lab frames for the current jump: the zoom's ×1. */
 export function useJumpZoom(base: SceneWindow): JumpZoom {
   const zoom = useZoomPan({ label: PLOT_LABEL });
-  const [plot, setPlotState] = useState<PlotSize>(UNMEASURED);
-  const setPlot = useCallback(
-    (next: PlotSize) =>
-      setPlotState((last) =>
-        last.width === next.width && last.height === next.height ? last : next,
-      ),
-    [],
-  );
-  const hookRef = zoom.viewportProps.ref;
-  const ref = useMemo(() => observingRef(hookRef, setPlot), [hookRef, setPlot]);
+  const plot: PlotSize = zoom.viewportSize;
   const drawnRef = useRef<PlotSize>(UNMEASURED);
   const noteDrawn = useCallback((drawn: PlotSize) => {
     drawnRef.current = drawn;
@@ -82,7 +53,7 @@ export function useJumpZoom(base: SceneWindow): JumpZoom {
   );
   return {
     zoom,
-    viewportProps: { ...zoom.viewportProps, ref },
+    viewportProps: zoom.viewportProps,
     domains: zoomedWindow(base, view, plot),
     revealAt,
     noteDrawn,
