@@ -93,3 +93,69 @@ export function routeScaleBarMaxPx(plotWidth: number): number {
   const room = plotWidth - ROUTE_BAR_INSET_PX - ROUTE_BAR_GAP_PX - cRight;
   return Math.min(SCALE_BAR_MAX_PX, Math.max(SCALE_BAR_MIN_PX, room));
 }
+
+/**
+ * ZoomControls' column without «1:1» (README «Zoom y desplazamiento»: 42 × 154 px), in the plot's
+ * bottom-right corner, ROUTE_BAR_INSET_PX in.
+ */
+export const ROUTE_ZOOM_COLUMN_PX = { width: 42, height: 154 } as const;
+/**
+ * The scale bar's line, this far (px) below the plot's top: the 8 px ticks, the 4 px gap and the
+ * 12 px words above it, with 4 px of air.
+ */
+export const ROUTE_BAR_BASELINE_PX = 28;
+/** The least air (px) between the bar's line and the top of the button column under it. */
+const ROUTE_BAR_COLUMN_AIR_PX = 4;
+/**
+ * Over the plot, the bar's line sits this far (px) above the plot area, in its 30 px top margin:
+ * its words reach the svg's top, and its line clears the column, which at 320 px rises a pixel
+ * over the plot.
+ */
+const ROUTE_BAR_ABOVE_PX = 6;
+/**
+ * How far past the plot area the map's overlay may draw (SvgPlot overlayBleed): the bar over the
+ * plot reaches 30 px up (its line 6 px over the plot, 24 px of ticks and words), and 2 more of
+ * the words' halo. Only the bar uses it: the marks stay inside the foreign object, which clips.
+ */
+export const ROUTE_OVERLAY_BLEED_PX = 32;
+
+/** The plot area in the svg's user units: its left and top edges and its size. */
+export interface RoutePlotArea {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+/** Where ScaleBarSvg draws (its line's right end, anchor end) and how long it may be. */
+export interface RouteScaleBarSpot {
+  x: number;
+  y: number;
+  maxPx: number;
+  /** In the plot's top margin, right of the y title: the column fills the plot's right side. */
+  isAbovePlot: boolean;
+}
+
+/**
+ * The scale bar's place: the plot's top-right corner, clear of stop C (routeScaleBarMaxPx), while
+ * the button column in the bottom-right corner leaves it room; in a shorter plot (Tema 1 at 320
+ * to 355 px of window) the column reaches the corner, so the bar goes just over the plot, in the
+ * top margin, right-aligned with the plot and at its shortest maximum (the y title is on the left).
+ */
+export function routeScaleBarSpot(area: RoutePlotArea): RouteScaleBarSpot {
+  const columnTop = area.height - ROUTE_BAR_INSET_PX - ROUTE_ZOOM_COLUMN_PX.height;
+  if (columnTop >= ROUTE_BAR_BASELINE_PX + ROUTE_BAR_COLUMN_AIR_PX) {
+    return {
+      x: area.left + area.width - ROUTE_BAR_INSET_PX,
+      y: area.top + ROUTE_BAR_BASELINE_PX,
+      maxPx: routeScaleBarMaxPx(area.width),
+      isAbovePlot: false,
+    };
+  }
+  return {
+    x: area.left + area.width,
+    y: area.top - ROUTE_BAR_ABOVE_PX,
+    maxPx: SCALE_BAR_MIN_PX,
+    isAbovePlot: true,
+  };
+}

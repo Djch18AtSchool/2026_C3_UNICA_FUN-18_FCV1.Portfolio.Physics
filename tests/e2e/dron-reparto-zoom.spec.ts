@@ -14,6 +14,8 @@ const BLOCKING_IMPACTS = ['serious', 'critical'];
 const VIEWPORTS = [
   { width: 1280, height: 800 },
   { width: 360, height: 800 },
+  // The plot (161 px) is too short for the column under the bar: the bar goes over the plot.
+  { width: 320, height: 800 },
 ] as const;
 /** A button step is √2: four are ×4, six are ×8 (the limit). */
 const STEPS_TO_X4 = 4;
@@ -582,14 +584,30 @@ for (const size of VIEWPORTS) {
     }) => {
       await centreMap(page);
       const plot = await box(viewport(page));
+      const figure = await box(page.locator(`${MAP} svg[role="img"]`));
       const controls = await box(page.locator(`${MAP} [data-zoom-controls]`));
       const bar = await box(page.locator(`${MAP} [data-scale-bar]`));
+      const isInside = (piece: typeof plot, frame: typeof plot) =>
+        piece.x >= frame.x - PX_SLACK &&
+        piece.y >= frame.y - PX_SLACK &&
+        piece.x + piece.width <= frame.x + frame.width + PX_SLACK &&
+        piece.y + piece.height <= frame.y + frame.height + PX_SLACK;
 
-      for (const piece of [controls, bar]) {
-        expect(piece.x).toBeGreaterThanOrEqual(plot.x - PX_SLACK);
-        expect(piece.y).toBeGreaterThanOrEqual(plot.y - PX_SLACK);
-        expect(piece.x + piece.width).toBeLessThanOrEqual(plot.x + plot.width + PX_SLACK);
-        expect(piece.y + piece.height).toBeLessThanOrEqual(plot.y + plot.height + PX_SLACK);
+      expect(isInside(controls, plot), 'the buttons inside the plot').toBe(true);
+      // The bar: in the plot, or (a plot too short for the column under it) over the plot, in
+      // the figure's top margin, clear of the y title.
+      const isOverPlot = bar.y + bar.height <= plot.y + PX_SLACK;
+      // Its own box: the words' halo may be cut by the svg's top edge, which only hides background.
+      const barOwn = await clientBox(page.locator(`${MAP} [data-scale-bar]`));
+      expect(isInside(barOwn, isOverPlot ? figure : plot), 'the bar inside its frame').toBe(true);
+      expect(isOverPlot, 'the bar over the plot only where the plot is short').toBe(
+        size.width === 320,
+      );
+      if (isOverPlot) {
+        const yTitle = await clientBox(
+          page.locator(`${MAP} svg[role="img"] text`, { hasText: 'y (norte)' }),
+        );
+        expect(overlaps(bar, yTitle, BAR_AIR_PX), 'the bar beside the y title').toBe(false);
       }
       expect(overlaps(controls, bar)).toBe(false);
       for (const stop of DEFAULT_STOPS) {

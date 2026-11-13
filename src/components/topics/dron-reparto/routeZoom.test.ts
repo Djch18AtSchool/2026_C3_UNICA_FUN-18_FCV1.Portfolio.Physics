@@ -4,6 +4,7 @@ import { axisTicks, yTickLabelChars } from '../../lab/SvgPlotAxes';
 import { actualSizeView, fitView, IDENTITY_VIEW, panBy, zoomAt } from '../../lab/zoomMath';
 import type { ZoomFrame } from '../../lab/zoomMath';
 import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX, scaleBarLength } from '../../lab/scaleBarMath';
+import { SCALE_BAR_LABEL_GAP, SCALE_BAR_LABEL_SIZE, SCALE_BAR_TICK } from '../../lab/ScaleBar';
 import { DRONE_ROUTE } from '../../../lib/data/droneRoute';
 import { MAP_DOMAIN } from './droneScene';
 import {
@@ -15,6 +16,8 @@ import {
   ROUTE_BAR_INSET_PX,
   ROUTE_KNOB_RADIUS_PX,
   routeScaleBarMaxPx,
+  routeScaleBarSpot,
+  ROUTE_ZOOM_COLUMN_PX,
   zoomedWindow,
   type PlotSize,
 } from './routeZoom';
@@ -225,3 +228,42 @@ describe('routeScaleBarMaxPx', () => {
 function routePxPerMetreAtWhole(width: number): number {
   return width / X_SPAN;
 }
+
+describe('routeScaleBarSpot', () => {
+  /** The plot area's corner in the svg, as SvgPlot's compact layout puts it. */
+  const AREA = { left: 52, top: 30 };
+
+  test('in a plot tall enough for the column under it, the bar keeps its top-right corner', () => {
+    const height = ROUTE_ZOOM_COLUMN_PX.height + 64;
+    const spot = routeScaleBarSpot({ ...AREA, width: 218, height });
+
+    expect(spot.isAbovePlot).toBe(false);
+    expect(spot.x).toBe(AREA.left + 218 - ROUTE_BAR_INSET_PX);
+    expect(spot.y).toBeGreaterThan(AREA.top);
+    expect(spot.maxPx).toBe(routeScaleBarMaxPx(218));
+    // The column's top (bottom-right corner, 8 px in) stays below the bar's line.
+    const columnTop = AREA.top + height - ROUTE_BAR_INSET_PX - ROUTE_ZOOM_COLUMN_PX.height;
+    expect(columnTop).toBeGreaterThan(spot.y);
+  });
+
+  test('in a short plot (Tema 1 at 320 px: 178 × 161) the bar goes over the plot, never under the column', () => {
+    const spot = routeScaleBarSpot({ ...AREA, width: 178, height: 161 });
+
+    expect(spot.isAbovePlot).toBe(true);
+    expect(spot.x).toBe(AREA.left + 178);
+    expect(spot.y).toBeLessThan(AREA.top);
+    // Its words and ticks fit in the compact top margin (30 px).
+    expect(spot.y - SCALE_BAR_HEIGHT_PX).toBeGreaterThanOrEqual(0);
+    expect(spot.maxPx).toBe(SCALE_BAR_MIN_PX);
+  });
+
+  test('switches exactly where the column would reach the bar', () => {
+    const tallest = [150, 160, 170, 180, 190, 200, 210].map(
+      (height) => routeScaleBarSpot({ ...AREA, width: 200, height }).isAbovePlot,
+    );
+    expect(tallest).toEqual([true, true, true, true, true, false, false]);
+  });
+});
+
+/** The bar's ticks, gap and words above its line (ScaleBarSvg). */
+const SCALE_BAR_HEIGHT_PX = SCALE_BAR_TICK + SCALE_BAR_LABEL_GAP + SCALE_BAR_LABEL_SIZE;

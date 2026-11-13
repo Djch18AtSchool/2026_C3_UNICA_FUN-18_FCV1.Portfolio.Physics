@@ -11,7 +11,7 @@ import RouteOverlay, {
   type StopIndex,
   type TimeRange,
 } from './RouteOverlay';
-import { ROUTE_Y_LABEL_CHARS } from './routeZoom';
+import { ROUTE_OVERLAY_BLEED_PX, ROUTE_Y_LABEL_CHARS } from './routeZoom';
 import RouteZoomLayer from './RouteZoomLayer';
 import type { RouteZoom } from './useRouteZoom';
 
@@ -76,6 +76,7 @@ export default function RouteMapLab(props: RouteMapLabProps): JSX.Element {
       ariaLabel={describeMap(now, decimals)}
       testId="route-map"
       minYLabelChars={ROUTE_Y_LABEL_CHARS}
+      overlayBleed={ROUTE_OVERLAY_BLEED_PX}
       overlay={(scales) => (
         <RouteZoomLayer scales={scales} routeZoom={routeZoom}>
           <RouteOverlay {...overlayProps} scales={scales} onReveal={routeZoom.reveal} />

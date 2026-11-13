@@ -4,20 +4,17 @@
  * map's marks in a nested svg whose viewBox keeps the plot's own coordinates, so the stops' drag
  * and the plot's scales read the same pixels as before. The background drag, the wheel, the keys
  * and the reveal of a focused stop are the hook's; the scale bar and the buttons are laid over the
- * plot's right side, clear of the depot and the route's start in the default view. The foreign
- * object is the plot area, not the figure: the zoom's pointer and clamp maths are relative to it.
+ * plot's right side, clear of the depot and the route's start in the default view (the bar in the
+ * top-right corner, the buttons in the bottom-right one; in a plot too short for both, the bar
+ * goes over the plot, in its top margin: routeScaleBarSpot). The foreign object is the plot area,
+ * not the figure: the zoom's pointer and clamp maths are relative to it.
  */
 import type { JSX, ReactNode } from 'react';
 import type { Scale } from '../../lab/plotScales';
 import { ScaleBarSvg, ScaleBarWords } from '../../lab/ScaleBar';
 import ZoomControls from '../../lab/ZoomControls';
 import type { RouteZoom } from './useRouteZoom';
-import {
-  plotPxPerMetre,
-  ROUTE_BAR_INSET_PX,
-  routeScaleBarMaxPx,
-  ROUTE_SCALE_UNITS,
-} from './routeZoom';
+import { plotPxPerMetre, routeScaleBarSpot, ROUTE_SCALE_UNITS } from './routeZoom';
 
 export interface RouteZoomLayerProps {
   scales: { x: Scale; y: Scale };
@@ -33,14 +30,6 @@ const MARKS = 'pointer-events-none relative z-10 block';
 
 /** The viewport fills the plot area; its focus ring is drawn inside, where the clip keeps it. */
 const VIEWPORT = 'relative size-full -outline-offset-2';
-/**
- * The scale bar sits in the plot's top-right corner, its baseline this far (px) from the top: the
- * 8 px ticks, the 4 px gap and the 12 px words above it, with 4 px of air. The buttons are in the
- * bottom-right corner; the default route leaves both corners free (the stops, the depot and its
- * name are to the left and in the middle).
- */
-const SCALE_BAR_BASELINE = 28;
-
 /** The plot area in the svg's user units: its left and top edges and its size. */
 function plotArea({ x, y }: RouteZoomLayerProps['scales']) {
   const [left, right] = [Math.min(...x.range), Math.max(...x.range)];
@@ -55,32 +44,28 @@ export default function RouteZoomLayer({
 }: RouteZoomLayerProps): JSX.Element {
   const { left, top, width, height } = plotArea(scales);
   const { zoom, viewportProps } = routeZoom;
-  const bar = {
-    pxPerUnit: plotPxPerMetre(scales.x),
-    units: ROUTE_SCALE_UNITS,
-    maxPx: routeScaleBarMaxPx(width),
-  };
+  const spot = routeScaleBarSpot({ left, top, width, height });
+  const bar = { pxPerUnit: plotPxPerMetre(scales.x), units: ROUTE_SCALE_UNITS, maxPx: spot.maxPx };
+  const drawnBar = <ScaleBarSvg {...bar} x={spot.x} y={spot.y} anchor="end" />;
   return (
-    <foreignObject x={left} y={top} width={width} height={height}>
-      <div {...viewportProps} className={VIEWPORT}>
-        <svg
-          viewBox={`${left} ${top} ${width} ${height}`}
-          width={width}
-          height={height}
-          className={MARKS}
-          role="presentation"
-        >
-          {children}
-          <ScaleBarSvg
-            {...bar}
-            x={left + width - ROUTE_BAR_INSET_PX}
-            y={top + SCALE_BAR_BASELINE}
-            anchor="end"
-          />
-        </svg>
-        <ScaleBarWords {...bar} />
-        <ZoomControls zoom={zoom} corner="bottom-right" />
-      </div>
-    </foreignObject>
+    <>
+      <foreignObject x={left} y={top} width={width} height={height}>
+        <div {...viewportProps} className={VIEWPORT}>
+          <svg
+            viewBox={`${left} ${top} ${width} ${height}`}
+            width={width}
+            height={height}
+            className={MARKS}
+            role="presentation"
+          >
+            {children}
+            {spot.isAbovePlot ? null : drawnBar}
+          </svg>
+          <ScaleBarWords {...bar} />
+          <ZoomControls zoom={zoom} corner="bottom-right" />
+        </div>
+      </foreignObject>
+      {spot.isAbovePlot ? drawnBar : null}
+    </>
   );
 }
