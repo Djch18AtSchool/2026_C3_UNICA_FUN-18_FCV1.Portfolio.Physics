@@ -5,6 +5,7 @@
  * FIXTURE_BUILD_TIMEOUT_MS) and removed when it stops: the build folder and the .astro folder
  * Astro's build writes into the fixture's root (both ignored by git).
  */
+import { execFile } from 'node:child_process';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { join } from 'node:path';
@@ -38,25 +39,27 @@ async function freePort(): Promise<number> {
   });
 }
 
+/** The build script run in a process of its own (it reads the work and the root from argv). */
+const BUILD_SCRIPT = fileURLToPath(new URL('./fixtureBuild.mjs', import.meta.url));
+
 /**
- * Astro, its React renderer and React itself, loaded in production mode as `astro build` loads
- * them: React picks its build when first imported, and its server renderer and its elements must
- * agree. The mode is restored once they are loaded.
+ * `astro build` in a child process with NODE_ENV=production: React picks its development or its
+ * production build when first imported, and its server renderer and its elements must agree. In a
+ * Playwright worker another spec may already have imported React in development mode (a module
+ * cache the build would then share), so the build never runs in the worker's own process.
  */
-async function loadAstro() {
-  const mode = process.env.NODE_ENV;
-  process.env.NODE_ENV = 'production';
-  try {
-    const [astro, react, tailwind] = await Promise.all([
-      import('astro'),
-      import('@astrojs/react'),
-      import('@tailwindcss/vite'),
-    ]);
-    return { astro, react: react.default, tailwindcss: tailwind.default };
-  } finally {
-    if (mode === undefined) delete process.env.NODE_ENV;
-    else process.env.NODE_ENV = mode;
-  }
+function buildFixture(root: string, work: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    execFile(
+      process.execPath,
+      [BUILD_SCRIPT, root, work],
+      { env: { ...process.env, NODE_ENV: 'production' }, timeout: FIXTURE_BUILD_TIMEOUT_MS },
+      (error, _stdout, stderr) => {
+        if (error) reject(new Error(`the fixture build failed: ${stderr || error.message}`));
+        else resolve();
+      },
+    );
+  });
 }
 
 export async function startFixtureSite(name: string): Promise<FixtureSite> {
@@ -64,7 +67,6 @@ export async function startFixtureSite(name: string): Promise<FixtureSite> {
   await mkdir(WORK_ROOT, { recursive: true });
   const work = await mkdtemp(join(WORK_ROOT, `${name}-`));
   const port = await freePort();
-  const { astro, react, tailwindcss } = await loadAstro();
   const config: AstroInlineConfig = {
     root,
     configFile: false,
@@ -73,8 +75,6 @@ export async function startFixtureSite(name: string): Promise<FixtureSite> {
     outDir: join(work, 'dist'),
     cacheDir: join(work, 'cache'),
     devToolbar: { enabled: false },
-    integrations: [react()],
-    vite: { plugins: [tailwindcss()], cacheDir: join(work, 'vite') },
     server: { host: '127.0.0.1', port },
   };
   const cleanUp = () =>
@@ -83,8 +83,9 @@ export async function startFixtureSite(name: string): Promise<FixtureSite> {
       rm(join(root, '.astro'), { recursive: true, force: true }),
     ]);
   try {
-    await astro.build(config);
-    const server = await astro.preview(config);
+    await buildFixture(root, work);
+    const { preview } = await import('astro');
+    const server = await preview(config);
     return {
       url: `http://127.0.0.1:${port}/`,
       async stop() {
