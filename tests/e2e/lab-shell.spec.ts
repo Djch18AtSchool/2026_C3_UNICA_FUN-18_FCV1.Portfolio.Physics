@@ -612,7 +612,9 @@ for (const { path, testId } of LABS) {
 }
 
 /** The laboratories whose transport has events (a second row: buttons, event text, t reading). */
-const EVENT_LABS: ReadonlySet<string> = new Set(['drone-lab', 'regen-lab', 'flyby-lab']);
+const EVENT_LABS: ReadonlySet<string> = new Set(
+  TOPIC_PAGES.filter(({ hasEvents }) => hasEvents).map(({ labTestId }) => labTestId),
+);
 /**
  * Windows in two columns around the band where the stage is too narrow for the event row and its
  * t reading drops to a third line (1 058 to 1 069 px; to 1 077 in Tema 6: README), and 1 280.

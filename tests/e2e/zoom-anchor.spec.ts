@@ -5,7 +5,8 @@
  * useZoomPan.test and zoomMath.test; this checks each lab passes its anchor.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { waitForIsland } from './helpers';
+import { labOrPlaceholder, waitForIsland } from './helpers';
+import { TOPIC_PAGES } from './topicPages';
 
 /** Presses of «Acercar» (steps of √2) for ×2,8 and for ×8. */
 const STEPS = { 'x2.8': 3, x8: 6 } as const;
@@ -78,10 +79,7 @@ const CASES: readonly AnchorCase[] = [
 
 async function openLab(page: Page, { path, lab: testId }: AnchorCase): Promise<Locator> {
   await page.goto(path);
-  await page
-    .locator(`[data-testid="${testId}-loading"], [data-testid="${testId}"]`)
-    .first()
-    .scrollIntoViewIfNeeded();
+  await labOrPlaceholder(page, testId).scrollIntoViewIfNeeded();
   await waitForIsland(page, `[data-testid="${testId}"]`);
   return page.getByTestId(testId);
 }
@@ -94,6 +92,13 @@ const isInside = (
   point.x <= box.x + box.width &&
   point.y >= box.y &&
   point.y <= box.y + box.height;
+
+/** The registry's zoom labs (topicPages.ts) and these cases name the same laboratories. */
+test('hay un caso de ancla por cada laboratorio con zoom del registro', () => {
+  const zoomLabs = TOPIC_PAGES.filter(({ hasZoom }) => hasZoom).map(({ labTestId }) => labTestId);
+
+  expect(CASES.map(({ lab }) => lab).sort()).toEqual(zoomLabs.sort());
+});
 
 test.use({ reducedMotion: 'reduce' });
 

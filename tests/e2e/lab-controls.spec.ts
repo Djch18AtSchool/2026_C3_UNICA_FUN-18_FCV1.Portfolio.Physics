@@ -18,8 +18,10 @@ const CONTROL_PX = 40;
  * copy buttons are 32 px with a fine pointer (targets of at least 24 px, WCAG 2.5.8).
  */
 const COMPACT_CONTROL_PX = 32;
-/** The two laboratories without a clock: no transport to measure. */
-const LABS_WITHOUT_CLOCK: ReadonlySet<string> = new Set(['tyre-lab', 'trigger-lab']);
+/** The laboratories without a clock (the registry in topicPages.ts): no transport to measure. */
+const LABS_WITHOUT_CLOCK: ReadonlySet<string> = new Set(
+  TOPIC_PAGES.filter(({ hasClock }) => !hasClock).map(({ labTestId }) => labTestId),
+);
 /** Icon buttons at the touch size the laboratories use (`size-11`). */
 const ICON_BUTTON_PX = 44;
 /** A glyph inside an icon button (`size-5`). */

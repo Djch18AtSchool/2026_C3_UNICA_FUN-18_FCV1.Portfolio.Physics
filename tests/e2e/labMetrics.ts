@@ -4,6 +4,7 @@
  * costs in frames and DOM mutations.
  */
 import type { Locator, Page } from '@playwright/test';
+import { TOPIC_PAGES } from './topicPages';
 
 export interface ClockedLab {
   number: number;
@@ -12,16 +13,10 @@ export interface ClockedLab {
   testId: string;
 }
 
-/** The seven laboratories with a transport bar (Temas 4 and 5 have none). */
-export const CLOCKED_LABS: readonly ClockedLab[] = [
-  { number: 1, slug: 'dron-reparto', testId: 'drone-lab' },
-  { number: 2, slug: 'salto-personaje', testId: 'jump-lab' },
-  { number: 3, slug: 'gravedad-artificial', testId: 'habitat-lab' },
-  { number: 6, slug: 'frenado-regenerativo', testId: 'regen-lab' },
-  { number: 7, slug: 'coeficiente-restitucion', testId: 'bounce-lab' },
-  { number: 8, slug: 'ruedas-reaccion', testId: 'wheel-lab' },
-  { number: 9, slug: 'asistencia-gravitatoria', testId: 'flyby-lab' },
-];
+/** The laboratories with a transport bar, from the one registry (topicPages.ts; lab-registry.spec.ts). */
+export const CLOCKED_LABS: readonly ClockedLab[] = TOPIC_PAGES.filter(
+  ({ hasClock }) => hasClock,
+).map(({ number, slug, labTestId }) => ({ number, slug, testId: labTestId }));
 
 export interface FrameSample {
   frames: number;
