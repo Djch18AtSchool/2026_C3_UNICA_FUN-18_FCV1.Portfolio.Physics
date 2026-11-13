@@ -131,6 +131,15 @@ const CASING_EXTRA = 3;
 const TRACK_WIDTH = 1.5;
 const TRAVELLED_WIDTH = LINE_WIDTH + 0.5;
 const PERIAPSIS_LINE_WIDTH = 1;
+/**
+ * Under the frame of a ringed planet: what the rings are and how they are drawn, in words anyone
+ * reads (the frame's spoken description and «Qué deja fuera el modelo» say more). Text for Dylan.
+ */
+export const RINGS_NOTE =
+  'Anillos C, B y A, con la división de Cassini, a escala radial y abatidos sobre el plano del sobrevuelo: su plano real está inclinado.';
+/** Each ring band's outline in the planet's token, and a ringed globe's contour (px). */
+const RING_EDGE_WIDTH = 1;
+const GLOBE_CONTOUR_WIDTH = 1.5;
 const PERIAPSIS_DASH = '3 3';
 
 interface CasedProps {
@@ -306,26 +315,41 @@ function Corners({ corners, rpValue, clock, planetColor, isNoteShown, scaleBar }
 }
 
 /**
- * The planet's main rings, each a circle at its middle radius as wide as the ring: drawn first, so
- * the planet, the periapsis line, the track and the probe go over them.
+ * The planet's main rings, each a circle at its middle radius as wide as the ring, in its pale
+ * fill, then each band's two edges in the token (a 1 px outline): drawn first, so the planet, the
+ * periapsis line, the track and the probe go over them.
  */
 function Rings({ rings, centre }: { rings: readonly RingOnScreen[]; centre: Point }) {
   if (rings.length === 0) return null;
+  const at = { cx: centre.x, cy: centre.y, fill: 'none' } as const;
   return (
-    <g data-testid="flyby-rings">
-      {rings.map(({ id, innerPx, outerPx, color }) => (
-        <circle
-          key={id}
-          data-ring={id}
-          cx={centre.x}
-          cy={centre.y}
-          r={(innerPx + outerPx) / 2}
-          fill="none"
-          strokeWidth={outerPx - innerPx}
-          style={{ stroke: color }}
-        />
-      ))}
-    </g>
+    <>
+      <g data-testid="flyby-rings">
+        {rings.map(({ id, innerPx, outerPx, fill }) => (
+          <circle
+            key={id}
+            data-ring={id}
+            {...at}
+            r={(innerPx + outerPx) / 2}
+            strokeWidth={outerPx - innerPx}
+            style={{ stroke: fill }}
+          />
+        ))}
+      </g>
+      <g data-ring-edges="" strokeWidth={RING_EDGE_WIDTH}>
+        {rings.flatMap(({ id, innerPx, outerPx, color }) =>
+          [innerPx, outerPx].map((r) => (
+            <circle
+              key={`${id}-${r}`}
+              data-ring-edge={id}
+              {...at}
+              r={r}
+              style={{ stroke: color }}
+            />
+          )),
+        )}
+      </g>
+    </>
   );
 }
 
@@ -348,6 +372,9 @@ function Drawing({ screen, planetColor, showVectors, labels }: DrawingProps) {
         cy={centre.y}
         r={screen.planet.radiusPx}
         style={{ fill: planetColor }}
+        // A ringed globe is outlined, 3:1 apart from its rings' fills (planetRings.ts).
+        stroke={screen.rings.length > 0 ? TEXT_COLOR : undefined}
+        strokeWidth={screen.rings.length > 0 ? GLOBE_CONTOUR_WIDTH : undefined}
       />
       <Cased
         name="periapsis"
@@ -606,6 +633,11 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
       <div className="flex items-center justify-end px-2" style={{ height: ZOOM_STRIP_PX }}>
         <ZoomControls zoom={zoom} corner="inline" orientation="row" />
       </div>
+      {props.planet.rings ? (
+        <p data-testid="flyby-rings-note" className="m-0 px-2 text-xs text-fg-muted">
+          {RINGS_NOTE}
+        </p>
+      ) : null}
     </div>
   );
 }

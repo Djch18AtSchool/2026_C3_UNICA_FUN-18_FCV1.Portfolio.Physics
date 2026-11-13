@@ -13,6 +13,8 @@ import {
   C_RING_SHADE,
   describeRings,
   ringColor,
+  ringFill,
+  RING_FILL_SHARE,
   ringPassage,
   ringsOnScreen,
   type RingOnScreen,
@@ -239,6 +241,41 @@ describe('ring colors (real-world: Saturn’s sand; the C ring darker, as its lo
         expect(contrastRatio(tokens.saturn, surface)).toBeGreaterThanOrEqual(3);
       }
       expect(contrastRatio(c, tokens.saturn)).toBeGreaterThanOrEqual(1.5);
+    },
+  );
+});
+
+/** color-mix(in srgb, hex share, other): each gamma-encoded channel blended. */
+function blend(hex: string, share: number, other: string): string {
+  const channel = (h: string, i: number) => parseInt(h.slice(i, i + 2), 16);
+  const channels = [1, 3, 5].map((i) =>
+    Math.round(channel(hex, i) * share + channel(other, i) * (1 - share)),
+  );
+  return `#${channels.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+}
+
+describe('ring fills: paler than the globe, so a zoomed Saturn does not read as a target', () => {
+  test('each ring is filled with the planet’s token on the surface (C fainter), its edges keep the token', () => {
+    expect(ringFill('B', saturn.token)).toBe(
+      `color-mix(in srgb, var(--saturn) ${RING_FILL_SHARE.B * 100}%, var(--bg-elevated))`,
+    );
+    expect(ringFill('C', saturn.token)).toBe(
+      `color-mix(in srgb, var(--saturn) ${RING_FILL_SHARE.C * 100}%, var(--bg-elevated))`,
+    );
+    expect(RING_FILL_SHARE.C).toBeLessThan(RING_FILL_SHARE.B);
+    expect(ringsOnScreen(saturn, RADIUS_PX).map(({ fill }) => fill)).toEqual(
+      ['C', 'B', 'A'].map((id) => ringFill(id as 'C' | 'B' | 'A', saturn.token)),
+    );
+  });
+
+  test.each(['light', 'dark'] as const)(
+    'in the %s theme the globe’s contour (--fg) stands 3:1 apart from every ring fill',
+    (theme) => {
+      const tokens = themeTokens()[theme];
+      for (const id of ['C', 'B', 'A'] as const) {
+        const fill = blend(tokens.saturn, RING_FILL_SHARE[id], tokens['bg-elevated']);
+        expect(contrastRatio(tokens.fg, fill), `${theme} ${id}`).toBeGreaterThanOrEqual(3);
+      }
     },
   );
 });

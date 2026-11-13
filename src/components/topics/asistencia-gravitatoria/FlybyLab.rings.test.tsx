@@ -77,11 +77,45 @@ describe('Saturn’s rings in the planet frame', () => {
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
     expect(rings().map((ring) => ring.getAttribute('fill'))).toEqual(['none', 'none', 'none']);
+    // Paler fills than the globe (C fainter), each band outlined in the token (C darker).
     expect(rings().map((ring) => (ring as SVGElement).style.stroke)).toEqual([
+      'color-mix(in srgb, var(--saturn) 30%, var(--bg-elevated))',
+      'color-mix(in srgb, var(--saturn) 50%, var(--bg-elevated))',
+      'color-mix(in srgb, var(--saturn) 50%, var(--bg-elevated))',
+    ]);
+    const edges = [...document.querySelectorAll('[data-ring-edge]')];
+    expect(edges.map((edge) => (edge as SVGElement).style.stroke)).toEqual([
+      'color-mix(in srgb, var(--saturn) 70%, black)',
       'color-mix(in srgb, var(--saturn) 70%, black)',
       'var(--saturn)',
       'var(--saturn)',
+      'var(--saturn)',
+      'var(--saturn)',
     ]);
+    // The globe is outlined apart from its rings.
+    expect(screen.getByTestId('flyby-planet')).toHaveAttribute('stroke', 'var(--fg)');
+  });
+
+  test('under a ringed planet, a visible note says what the rings are and how they are drawn', async () => {
+    const user = userEvent.setup();
+    render(<FlybyLab />);
+    await user.selectOptions(presetSelect(), 'V2 · Júpiter');
+    expect(screen.queryByTestId('flyby-rings-note')).toBeNull();
+
+    await user.selectOptions(presetSelect(), 'V2 · Saturno');
+
+    expect(screen.getByTestId('flyby-rings-note')).toHaveTextContent(
+      /^Anillos C, B y A, con la división de Cassini, a escala radial y abatidos sobre el plano del sobrevuelo/,
+    );
+  });
+
+  test('a planet without rings keeps its plain globe', async () => {
+    const user = userEvent.setup();
+    render(<FlybyLab />);
+    await user.selectOptions(presetSelect(), 'V2 · Júpiter');
+
+    expect(screen.getByTestId('flyby-planet')).not.toHaveAttribute('stroke');
+    expect(document.querySelectorAll('[data-ring-edge]')).toHaveLength(0);
   });
 
   test('the corner texts go over the rings, legible on them: a backdrop for the key, halos for the texts', async () => {

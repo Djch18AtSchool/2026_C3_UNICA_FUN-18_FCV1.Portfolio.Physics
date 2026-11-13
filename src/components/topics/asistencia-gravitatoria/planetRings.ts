@@ -25,10 +25,27 @@ export interface RingOnScreen {
   id: RingId;
   innerPx: number;
   outerPx: number;
+  /** The edges' color: the planet's token (C darker), ≥ 3:1 on the page. */
   color: string;
+  /** The band's fill: paler than the globe (ringFill). */
+  fill: string;
 }
 
-/** The ring's color from the planet's token: B and A as the planet, C darker. */
+/**
+ * Share of the planet's color in each ring's fill, on the surface: the rings are paler than the
+ * globe (icy, and the C ring faint), so a zoomed Saturn reads as a globe in its rings, not as a
+ * target of one color. Their edges keep the token (ringColor), so each band still has a 3:1 outline
+ * on the page; the globe's contour (--fg) stands 3:1 apart from every fill in both themes
+ * (planetRings.test.ts).
+ */
+export const RING_FILL_SHARE: Readonly<Record<RingId, number>> = { C: 0.3, B: 0.5, A: 0.5 };
+
+/** The ring's fill: the planet's token on the surface, at its share. */
+export function ringFill(id: RingId, token: string): string {
+  return `color-mix(in srgb, var(${token}) ${RING_FILL_SHARE[id] * PERCENT}%, var(--bg-elevated))`;
+}
+
+/** The ring's edge color from the planet's token: B and A as the planet, C darker. */
 export function ringColor(id: RingId, token: string): string {
   const planetColor = `var(${token})`;
   if (id !== 'C') return planetColor;
@@ -43,6 +60,7 @@ export function ringsOnScreen(planet: Planet, radiusPx: number): readonly RingOn
     innerPx: innerKm * pxPerKm,
     outerPx: outerKm * pxPerKm,
     color: ringColor(id, planet.token),
+    fill: ringFill(id, planet.token),
   }));
 }
 
