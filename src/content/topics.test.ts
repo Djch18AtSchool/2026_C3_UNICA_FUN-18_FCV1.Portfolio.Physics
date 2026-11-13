@@ -13,6 +13,8 @@ const TOPICS_DIR = join(process.cwd(), 'src', 'content', 'topics');
 const BODY_MARKERS = ['<UseCase', '<Figure', '<Connections', '<Sources'] as const;
 /** Every topic is written in steps (spec §7.2): at least this many, no manual closings. */
 const MIN_STEPS = 3;
+/** «YYYY-MM-DD», the calendar-day prefix of an ISO timestamp. */
+const ISO_DAY_LENGTH = 10;
 const MANUAL_CLOSING_HEADINGS = /^## (Conexiones|Fuentes)\s*$/m;
 
 /** Opening tag of a Step (a ">" inside a quoted attribute does not end it); self-closing ends in "/". */
@@ -110,6 +112,15 @@ describe('topic files', () => {
     fileName,
     file: matter(readFileSync(join(TOPICS_DIR, fileName), 'utf8')),
   }));
+
+  test('ningún tema dice haberse actualizado antes de la última fuente que consultó', () => {
+    for (const fileName of fileNames) {
+      const data = topicSchema.parse(readFrontmatter(fileName));
+      const updated = data.updated.toISOString().slice(0, ISO_DAY_LENGTH);
+      const accessed = data.sources.flatMap((source) => source.accessed ?? []);
+      for (const day of accessed) expect(day <= updated, `${fileName}: ${day}`).toBe(true);
+    }
+  });
 
   test('hay al menos cinco temas', () => {
     expect(files.length).toBeGreaterThanOrEqual(5);
