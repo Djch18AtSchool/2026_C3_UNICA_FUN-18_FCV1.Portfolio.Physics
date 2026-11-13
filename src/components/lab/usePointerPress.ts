@@ -56,6 +56,6 @@ export function usePointerPress(): PointerPress {
         onTouchStartCapture: start,
       },
     }),
-    [start, end],
+    [start],
   );
 }

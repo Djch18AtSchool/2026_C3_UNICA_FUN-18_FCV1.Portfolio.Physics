@@ -3,6 +3,7 @@ import { formatNumber } from '../../lib/format';
 import { mathTextToString, mathTextWidth } from '../../lib/mathNotation';
 import { SURFACE_COLOR, TEXT_COLOR } from '../charts/chartTheme';
 import MathText from './MathText';
+import { FOCUS_RING_RADIUS } from './OverlayMarks';
 import type { Domain, Scale } from './plotScales';
 import type { PlotCursor } from './SvgPlot';
 import { svgPointFromClient } from './dragMath';
@@ -31,7 +32,6 @@ const FINE_STEP = 0.01;
 const COARSE_STEP = 0.1;
 const LINE_WIDTH = 1.5;
 const KNOB_RADIUS = 7;
-const FOCUS_RING_RADIUS = 11;
 const FOCUS_RING_COLOR = 'var(--accent)';
 /** Half the width of the invisible hit strip along the line: a 24 px target for mouse and pen. */
 const HIT_HALF_WIDTH = 12;
