@@ -607,7 +607,7 @@ function FrameSvg({ props, panel, model }: FrameSvgProps): JSX.Element {
 
 /** The flyby in the planet frame, to the scale the log bar sets, through the zoom's view. */
 function Frame(body: FrameBodyProps): JSX.Element {
-  const { props, panel, zoom } = body;
+  const { props, panel } = body;
   const model = useFrameModel(body);
   const units = planetScaleUnits(props.unit, props.planet.radiusKm);
   return (
