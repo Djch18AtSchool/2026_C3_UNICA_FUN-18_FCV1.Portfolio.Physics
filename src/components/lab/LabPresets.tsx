@@ -12,10 +12,11 @@
  * After an edit the last active preset's note stays, led by «Partí de «…» y cambié algún valor.»,
  * and the note line never shrinks when that happens.
  */
-import { useState, type JSX } from 'react';
+import { useContext, useLayoutEffect, useRef, useState, type JSX } from 'react';
 import { hasInlineMath, inlineMathToSpeech } from '../../lib/inlineMath';
 import type { Preset, PresetGroup } from '../../lib/presets';
 import InlineMath from './InlineMath';
+import { PresetTransitionContext } from './presetTransition';
 import { SelectField, type SelectOption, type SelectOptionGroup } from './SettingsFields';
 import { withStableCallbacks } from './withStableCallbacks';
 
@@ -204,17 +205,37 @@ function useBasedOn<T>(presets: readonly Preset<T>[], activeId?: string, basedOn
   return active ? undefined : known(basedOnId ?? lastActive);
 }
 
+/**
+ * `onSelect` that, when the choice is another preset, plays the lab's preset transition once the
+ * lab has drawn it: after the commit that makes it active, before that frame is painted. Only a
+ * choice made here plays it (not an edit, «Restablecer» or a lab's own change of preset), and any
+ * change of the active preset clears a request the lab did not follow, so none waits for later.
+ */
+function useTransitionOnSelect<T>({ activeId, onSelect }: LabPresetsProps<T>) {
+  const playTransition = useContext(PresetTransitionContext);
+  const isRequestedRef = useRef(false);
+  useLayoutEffect(() => {
+    if (isRequestedRef.current && activeId !== undefined) playTransition();
+    isRequestedRef.current = false;
+  }, [activeId, playTransition]);
+  return (preset: Preset<T>) => {
+    isRequestedRef.current = preset.id !== activeId;
+    onSelect(preset);
+  };
+}
+
 function LabPresetsBase<T>(props: LabPresetsProps<T>): JSX.Element {
   const { presets, activeId, basedOnId, label = PRESETS_LABEL } = props;
   const isSelect = presets.length > MAX_PRESET_CHIPS;
   const active = presets.find((preset) => preset.id === activeId);
   const basedOn = useBasedOn(presets, activeId, basedOnId);
+  const onSelect = useTransitionOnSelect(props);
   return (
     <div data-lab-presets={isSelect ? 'select' : 'chips'} className="flex flex-col gap-2">
       {isSelect ? (
-        <PresetSelect {...props} label={label} />
+        <PresetSelect {...props} label={label} onSelect={onSelect} />
       ) : (
-        <PresetChips {...props} label={label} />
+        <PresetChips {...props} label={label} onSelect={onSelect} />
       )}
       <NoteLine preset={active ?? basedOn} isModified={basedOn !== undefined} />
     </div>

@@ -4,9 +4,7 @@
  * where the first was heading (`destination`), so two quick presses add up.
  */
 import { useCallback, useEffect, useRef } from 'react';
-import { motionReduced } from '../../lib/settingsStore';
-import { useGlobalSettings } from './useGlobalSettings';
-import { usePrefersReducedMotion } from './useSimClock';
+import { useMotionReduced } from './useMotionReduced';
 import { interpolateView, viewsEqual, type ZoomView } from './zoomMath';
 
 /** A button or key zoom glides this long (auditoría §8: 200 ms), unless motion is reduced. */
@@ -26,7 +24,7 @@ export function useViewTransition(
   commit: (view: ZoomView) => void,
   viewRef: { current: ZoomView },
 ): ViewTransition {
-  const isReduced = motionReduced(useGlobalSettings(), usePrefersReducedMotion());
+  const isReduced = useMotionReduced();
   const isReducedRef = useRef(isReduced);
   isReducedRef.current = isReduced;
   const frameId = useRef<number | undefined>(undefined);

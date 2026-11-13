@@ -29,7 +29,7 @@
  * the canvas notes take the row under both, the disclosures follow. The shell owns only whether
  * the drawer is open; the simulation state belongs to the laboratory.
  */
-import { useId, type JSX, type ReactNode } from 'react';
+import { useCallback, useId, useRef, type JSX, type ReactNode, type RefObject } from 'react';
 import Readout from '../controls/Readout';
 import { useFitsInWindow } from '../hooks/useFitsInWindow';
 import { CANVAS_BLEED } from './canvasInset';
@@ -46,6 +46,8 @@ import {
 import InlineMath from './InlineMath';
 import LabNotes from './LabNotes';
 import { GearButton, ReadoutAnnouncer, useLabDrawer, type LabDrawer } from './labShellParts';
+import { PresetTransitionContext, playPresetTransition } from './presetTransition';
+import { useMotionReduced } from './useMotionReduced';
 import type { LabLevels, LabReadout, LabShellProps } from './labShellTypes';
 import SettingsDrawer from './SettingsDrawer';
 import { settingChips } from './settingChips';
@@ -205,8 +207,10 @@ type TransportProps = Pick<
 function Stage({
   clock,
   children,
+  canvasRef,
   ...reading
-}: TransportProps & Pick<LabShellProps, 'children'>): JSX.Element {
+}: TransportProps &
+  Pick<LabShellProps, 'children'> & { canvasRef: RefObject<HTMLDivElement | null> }): JSX.Element {
   const [ref, fits] = useFitsInWindow<HTMLDivElement>(`var(${LAB_STAGE_TOP})`);
   return (
     <div className={LAB_STAGE_CELL}>
@@ -216,7 +220,7 @@ function Stage({
         data-lab-stage-fits={fits === undefined ? undefined : String(fits)}
         className={STAGE}
       >
-        <div data-lab-canvas="" className={CANVAS}>
+        <div ref={canvasRef} data-lab-canvas="" className={CANVAS}>
           {children}
         </div>
         {clock ? (
@@ -227,6 +231,18 @@ function Stage({
       </div>
     </div>
   );
+}
+
+/**
+ * The preset transition on this lab's canvas (presetTransition.ts), for LabPresets: a stable
+ * callback that reads reduced motion when it plays, so the context never changes.
+ */
+function usePresetTransition(canvasRef: RefObject<HTMLDivElement | null>, isReduced: boolean) {
+  const isReducedRef = useRef(isReduced);
+  isReducedRef.current = isReduced;
+  return useCallback(() => {
+    playPresetTransition(canvasRef.current, isReducedRef.current);
+  }, [canvasRef]);
 }
 
 /** What the announcer says while a view speaks for itself (announceReadouts false). */
@@ -245,6 +261,9 @@ export default function LabShell({
   ...transport
 }: LabShellProps): JSX.Element {
   const drawer = useLabDrawer();
+  const isMotionReduced = useMotionReduced();
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const playTransition = usePresetTransition(canvasRef, isMotionReduced);
   return (
     <div
       role="group"
@@ -252,13 +271,18 @@ export default function LabShell({
       data-testid={testId}
       data-lab-shell="tiered"
       data-playing={transport.clock?.state.playing ?? false}
+      data-motion-reduced={isMotionReduced ? '' : undefined}
       className={LAB_CARD}
     >
       <Header title={title} drawer={drawer} display={levels.display} />
       <div data-lab-columns="" className={LAB_COLUMNS}>
-        <Stage {...transport}>{children}</Stage>
+        <Stage {...transport} canvasRef={canvasRef}>
+          {children}
+        </Stage>
         <div className={LAB_PANEL_CELL}>
-          <Panel levels={levels} readouts={readouts} onReset={onReset} />
+          <PresetTransitionContext value={playTransition}>
+            <Panel levels={levels} readouts={readouts} onReset={onReset} />
+          </PresetTransitionContext>
         </div>
         {canvasNotes ? (
           <div data-lab-canvas-notes="" className={LAB_CANVAS_NOTES}>
