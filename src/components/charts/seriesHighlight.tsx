@@ -218,16 +218,20 @@ export interface LegendEntry {
   swatch: ReactNode;
 }
 
-/** The list's look, as every chart legend had it. */
-export const LEGEND_ROW = 'flex-row flex-wrap gap-x-4 gap-y-1';
+/**
+ * The list's look, as every chart legend had it; the entries of a row share their text's baseline
+ * (an entry with a formula is taller, and centring left the next one 2–4 px lower: M9).
+ */
+export const LEGEND_ROW = 'flex-row flex-wrap items-baseline gap-x-4 gap-y-1';
 const LIST = 'mb-2 flex list-none p-0 text-sm';
 /**
- * The entry keeps the text's height (the 20 px line, rows 24 px apart: WCAG 2.5.8 by spacing), so
- * the legend measures what it did; its focus shows as the site's outline, the highlighted one is
- * underlined.
+ * The entry keeps the text's height (the 20 px line), so the legend measures what it did; an
+ * invisible area 4 px over it makes its target 24 px tall (WCAG 2.5.8, M6) without touching the
+ * row above (rows are 24 px apart). Its key is centred on the line, its text sits on the row's
+ * baseline. Its focus shows as the site's outline, the highlighted one is underlined.
  */
 const ENTRY =
-  'inline-flex cursor-pointer items-center gap-2 rounded-base text-left text-fg underline-offset-4 outline-accent focus-visible:outline-2 focus-visible:outline-offset-2 data-[highlighted]:underline';
+  "relative inline-flex cursor-pointer items-baseline gap-2 rounded-base text-left text-fg underline-offset-4 outline-accent before:absolute before:inset-x-0 before:-top-1 before:bottom-0 before:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 data-[highlighted]:underline";
 
 /**
  * A chart's legend: a toolbar of one button per series, in rows (`layout` LEGEND_ROW) or a column
@@ -253,7 +257,7 @@ export function SeriesLegend({
       className={`${LIST} ${layout}`}
     >
       {entries.map(({ id, label, swatch }) => (
-        <li key={id} role="none" className="flex items-center">
+        <li key={id} role="none" className="flex items-baseline">
           <button
             type="button"
             aria-label={hasInlineMath(label) ? inlineMathToSpeech(label) : undefined}
@@ -261,7 +265,7 @@ export function SeriesLegend({
             className={ENTRY}
             {...highlight.entry(id)}
           >
-            {swatch}
+            <span className="flex self-center">{swatch}</span>
             <span>
               <InlineMath text={label} />
             </span>
