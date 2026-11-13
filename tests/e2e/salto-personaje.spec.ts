@@ -39,7 +39,9 @@ test.beforeEach(async ({ page }) => {
 
 test('abre en el preajuste Celeste con la referencia terrestre a la vista', async ({ page }) => {
   await expect(page.getByRole('slider', { name: 'Gravedad g' })).toHaveValue('112.5');
-  await expect(page.getByRole('button', { name: /^Celeste/ })).toHaveAttribute(
+  // In the presets' group: the charts' legends have «Celeste» entries too (buttons since D4).
+  const presets = page.getByRole('group', { name: 'Valores de referencia' });
+  await expect(presets.getByRole('button', { name: /^Celeste/ })).toHaveAttribute(
     'aria-pressed',
     'true',
   );

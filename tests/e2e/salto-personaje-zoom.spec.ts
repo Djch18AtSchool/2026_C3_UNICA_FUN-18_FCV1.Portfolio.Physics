@@ -700,7 +700,9 @@ for (const size of VIEWPORTS) {
       test(`${world}: the plot and the figure keep their size at every zoom and pan`, async ({
         page,
       }) => {
+        // In the presets' group: the plot's legend has a «Celeste» entry too.
         await lab(page)
+          .getByRole('group', { name: 'Valores de referencia' })
           .getByRole('button', { name: new RegExp(`^${world}`) })
           .click();
         await settle(page);
