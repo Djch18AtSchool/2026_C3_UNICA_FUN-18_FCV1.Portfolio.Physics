@@ -19,6 +19,9 @@ const DIM_OPACITY = '0.25';
 const BLOCKING_IMPACTS = ['serious', 'critical'];
 const MIN_RING_CONTRAST = 3;
 const PX_SLACK = 0.5;
+/** A legend entry's line, and its pointer target with the invisible area over it (px). */
+const LEGEND_LINE_PX = 21.5;
+const LEGEND_TARGET_PX = 24;
 
 let site: FixtureSite;
 
@@ -227,6 +230,26 @@ test.describe('el realce de una serie desde su leyenda', () => {
       ).toEqual([]);
     });
   }
+});
+
+test.describe('el objetivo de una entrada de leyenda', () => {
+  test.use({ viewport: { width: 360, height: 800 } });
+
+  test('mide 24 px de alto para el puntero sin cambiar su caja (WCAG 2.5.8, M6)', async ({
+    page,
+  }) => {
+    const lab = await openFixture(page);
+    const entry = legendEntry(lab, 'Luna');
+    const box = (await entry.boundingBox())!;
+    expect(box.height).toBeLessThanOrEqual(LEGEND_LINE_PX + PX_SLACK);
+
+    // The invisible area reaches 4 px over the line: a press there is the entry's.
+    const hit = await page.evaluate(
+      ({ x, y }) => document.elementFromPoint(x, y)?.closest('button')?.textContent ?? '',
+      { x: box.x + box.width / 2, y: box.y + box.height - LEGEND_TARGET_PX + 1 },
+    );
+    expect(hit).toContain('Luna');
+  });
 });
 
 test.describe('el realce en pantalla táctil', () => {
