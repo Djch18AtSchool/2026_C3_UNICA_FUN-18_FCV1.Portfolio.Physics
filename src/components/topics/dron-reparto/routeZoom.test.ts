@@ -5,12 +5,12 @@ import { actualSizeView, fitView, IDENTITY_VIEW, panBy, zoomAt } from '../../lab
 import type { ZoomFrame } from '../../lab/zoomMath';
 import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX, scaleBarLength } from '../../lab/scaleBarMath';
 import { SCALE_BAR_LABEL_GAP, SCALE_BAR_LABEL_SIZE, SCALE_BAR_TICK } from '../../lab/ScaleBar';
+import { plotPxPerMetre } from '../../lab/plotScales';
 import { DRONE_ROUTE } from '../../../lib/data/droneRoute';
 import { MAP_DOMAIN } from './droneScene';
 import {
   boxAroundPoint,
   ROUTE_SCALE_UNITS,
-  plotPxPerMetre,
   ROUTE_Y_LABEL_CHARS,
   ROUTE_BAR_GAP_PX,
   ROUTE_BAR_INSET_PX,

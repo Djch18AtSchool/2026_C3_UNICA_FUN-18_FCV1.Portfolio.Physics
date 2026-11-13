@@ -14,7 +14,8 @@ import type { Scale } from '../../lab/plotScales';
 import { ScaleBarSvg, ScaleBarWords } from '../../lab/ScaleBar';
 import ZoomControls from '../../lab/ZoomControls';
 import type { RouteZoom } from './useRouteZoom';
-import { plotPxPerMetre, routeScaleBarSpot, ROUTE_SCALE_UNITS } from './routeZoom';
+import { plotPxPerMetre } from '../../lab/plotScales';
+import { routeScaleBarSpot, ROUTE_SCALE_UNITS } from './routeZoom';
 
 export interface RouteZoomLayerProps {
   scales: { x: Scale; y: Scale };

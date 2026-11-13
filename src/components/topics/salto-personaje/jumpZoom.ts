@@ -64,14 +64,6 @@ export function zoomedWindow(base: SceneWindow, view: ZoomView, plot: PlotSize):
 }
 
 /**
- * CSS px per metre along the plot's x axis as the plot draws it: the scale bar's scale, read from
- * the plot's own scale so the bar says what is drawn whatever the zoom or the plot's margins.
- */
-export function plotPxPerMetre(x: Scale): number {
-  return Math.abs(x.range[1] - x.range[0]) / (x.domain.max - x.domain.min);
-}
-
-/**
  * Metres drawn per m/s of the launch and velocity vectors at this zoom: the lab's own length
  * divided by the scale, so an arrow keeps the same length in px (a velocity is not a distance, and
  * a zoomed one would leave the plot and take its handle with it).

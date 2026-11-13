@@ -36,6 +36,16 @@ function clean(value: number): number {
   return Number.parseFloat(value.toPrecision(CLEAN_PRECISION));
 }
 
+/**
+ * CSS px per metre along the plot's x axis as the plot draws it: the scale bar's scale, read from
+ * the plot's own scale so the bar says what is drawn whatever the zoom or the plot's margins.
+ * (The zoom of Temas 1 and 2 moves the plot's domains, so this is the one place the bar's scale
+ * comes from.)
+ */
+export function plotPxPerMetre(x: Scale): number {
+  return Math.abs(x.range[1] - x.range[0]) / (x.domain.max - x.domain.min);
+}
+
 /** A linear map between a value domain and a pixel range; the range may run backwards. */
 export function linearScale(domain: Domain, range: [number, number]): Scale {
   assertDomain(domain, 'linearScale');

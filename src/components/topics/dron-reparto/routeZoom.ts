@@ -51,14 +51,6 @@ export function zoomedWindow(view: ZoomView, plot: PlotSize): { x: Domain; y: Do
   };
 }
 
-/**
- * CSS px per metre along the plot's x axis as the plot draws it: the scale bar's scale, read from
- * the plot's own scale so the bar says what is drawn whatever the zoom or the plot's margins.
- */
-export function plotPxPerMetre(x: Scale): number {
-  return Math.abs(x.range[1] - x.range[0]) / (x.domain.max - x.domain.min);
-}
-
 /** Where the map point `at` (m) is drawn at ×1, in the zoom's drawing space (plot px). */
 export function mapToDrawing(at: ZoomPoint, plot: PlotSize): ZoomPoint {
   return {

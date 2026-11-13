@@ -16,12 +16,12 @@
 import { useLayoutEffect, type CSSProperties, type JSX, type ReactNode } from 'react';
 import type { Scale } from '../../lab/plotScales';
 import { KNOB_HIT_RADIUS } from '../../lab/OverlayMarks';
+import { plotPxPerMetre } from '../../lab/plotScales';
 import { ScaleBarSvg, ScaleBarWords } from '../../lab/ScaleBar';
 import {
   JUMP_SCALE_UNITS,
   jumpScaleBarMaxPx,
   plotAreaOf,
-  plotPxPerMetre,
   SCALE_BAR_BASELINE_PX,
   SCALE_BAR_INSET_PX,
 } from './jumpZoom';

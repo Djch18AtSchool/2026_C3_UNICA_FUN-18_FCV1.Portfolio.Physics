@@ -15,11 +15,11 @@ import {
   metresBox,
   metresToDrawing,
   plotAreaOf,
-  plotPxPerMetre,
   steadyLengthPerMs,
   zoomedWindow,
   type PlotSize,
 } from './jumpZoom';
+import { plotPxPerMetre } from '../../lab/plotScales';
 
 const SQRT2 = Math.SQRT2;
 const SIZE: PlotSize = { width: 320, height: 160 };
