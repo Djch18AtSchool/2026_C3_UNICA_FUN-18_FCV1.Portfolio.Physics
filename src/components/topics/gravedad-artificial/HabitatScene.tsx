@@ -4,6 +4,7 @@ import { LINE_WIDTH, SURFACE_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../c
 import { useElementWidth } from '../../hooks/useElementWidth';
 import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
+import { monoTextWidth } from '../../lab/plotScales';
 import { useFrameTime } from '../../lab/useFrameTime';
 import { useZoomPan } from '../../lab/useZoomPan';
 import { AC_COLOR, GAP_COLOR, OMEGA_COLOR } from './habitatColors';
@@ -296,10 +297,30 @@ const NOTE_LINES = ['radio a escala (ver barra)', 'persona y aro, simbólicos'] 
 const NOTE_BASELINE = 16;
 const NOTE_LINE_HEIGHT = 14;
 const NOTE_HALO = 4;
+const NOTE_LEFT = 8;
+/** The plate under the note: its margin around the two lines and its corner radius. */
+const NOTE_PLATE_PAD = 4;
+const NOTE_PLATE_RADIUS = 4;
+/** The mono glyphs rise about this share of the font size above the baseline. */
+const NOTE_ASCENT = 0.8;
+
+/** The plate of the surface under the note's two lines, from their mono widths. */
+function notePlate() {
+  const width = Math.max(...NOTE_LINES.map((line) => monoTextWidth(line, NOTE_SIZE)));
+  const top = NOTE_BASELINE - NOTE_SIZE * NOTE_ASCENT - NOTE_PLATE_PAD;
+  const bottom = NOTE_BASELINE + (NOTE_LINES.length - 1) * NOTE_LINE_HEIGHT + NOTE_PLATE_PAD;
+  return {
+    x: NOTE_LEFT - NOTE_PLATE_PAD,
+    y: top,
+    width: width + 2 * NOTE_PLATE_PAD,
+    height: bottom - top,
+  };
+}
 
 /**
- * The scale note at the top left. Painted last, with a halo of the surface, so the ring and the
- * turning parts never cover it, whatever the zoom: it is the warning about the scale.
+ * The scale note at the top left. Painted last, on a plate of the surface (and with a halo), so
+ * the ring, its spokes and the turning parts never cross it, whatever the zoom: it is the warning
+ * about the scale.
  */
 function ScaleNote(): JSX.Element {
   return (
@@ -310,10 +331,16 @@ function ScaleNote(): JSX.Element {
       fill={TICK_COLOR}
       className="pointer-events-none"
     >
+      <rect
+        data-habitat-note-plate=""
+        {...notePlate()}
+        rx={NOTE_PLATE_RADIUS}
+        fill={SURFACE_COLOR}
+      />
       {NOTE_LINES.map((line, index) => (
         <text
           key={line}
-          x={8}
+          x={NOTE_LEFT}
           y={NOTE_BASELINE + index * NOTE_LINE_HEIGHT}
           stroke={SURFACE_COLOR}
           strokeWidth={NOTE_HALO}

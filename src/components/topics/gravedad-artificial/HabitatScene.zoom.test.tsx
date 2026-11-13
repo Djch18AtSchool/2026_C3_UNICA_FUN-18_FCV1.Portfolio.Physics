@@ -276,6 +276,25 @@ describe('the habitat scene scale note', () => {
     expect(lines).toEqual(['radio a escala (ver barra)', 'persona y aro, simbólicos']);
   });
 
+  test('sits on a plate of the surface that holds both lines, so the spokes never cross it', () => {
+    renderScene();
+
+    const plate = note().querySelector('[data-habitat-note-plate]');
+    expect(plate).toHaveAttribute('fill', 'var(--bg-elevated)');
+    expect(plate?.compareDocumentPosition(note().querySelector('text') as Node)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    const top = Number(plate?.getAttribute('y'));
+    const bottom = top + Number(plate?.getAttribute('height'));
+    for (const line of note().querySelectorAll('text')) {
+      const y = Number(line.getAttribute('y'));
+      expect(y).toBeGreaterThan(top);
+      expect(y).toBeLessThan(bottom);
+    }
+    // Wide enough for the longer line in 12 px mono (~7,2 px a glyph).
+    expect(Number(plate?.getAttribute('width'))).toBeGreaterThan(26 * 7);
+  });
+
   test('the accessible description says the same', () => {
     renderScene({ r: 894.6 });
 
