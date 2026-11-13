@@ -259,7 +259,7 @@ function StopHandle({ index, stop, scales, onStopDrag, onReveal }: StopHandlePro
       aria-valuemax={STOP_BOUNDS.x[1]}
       aria-valuenow={stop.x}
       aria-valuetext={`x = ${metres(stop.x)}, y = ${metres(stop.y)}`}
-      className="group cursor-move outline-none"
+      className="group cursor-grab outline-none"
       onKeyDown={onKeyDown}
       {...drag}
     >

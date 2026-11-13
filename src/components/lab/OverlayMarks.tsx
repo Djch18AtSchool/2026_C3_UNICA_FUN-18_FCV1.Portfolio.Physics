@@ -14,6 +14,10 @@ export const KNOB_HIT_RADIUS = 16;
 /** A Knob's focus ring, px from its centre: what a label or a reveal keeps clear of. */
 export const FOCUS_RING_RADIUS = 11;
 const FOCUS_RING_COLOR = 'var(--accent)';
+const FOCUS_RING_WIDTH = 2;
+/** The surface around the ring, on each side (px). */
+const FOCUS_RING_CASING = 1;
+const RING_VISIBILITY = 'opacity-0 group-focus-visible:opacity-100';
 const VECTOR_WIDTH = 2;
 const VECTOR_DASH = '6 3';
 /** Arrowhead length (px); an arrow at least this long gets a head. */
@@ -92,7 +96,44 @@ export function Label({
   );
 }
 
-/** Hit area, focus ring and knob of a draggable handle centred on `at`. */
+/**
+ * The focus ring of a handle centred on (cx, cy), shown while its group (`group`, the element
+ * with the tabindex) has a visible focus: the accent ring on a casing of the surface a pixel wider
+ * on each side, so the ring meets the surface on both edges whatever is drawn under it and keeps
+ * its contrast (≥ 3:1, tokens.test.ts; WCAG 2.4.11 and 1.4.11) in both themes.
+ */
+export function KnobRing({ cx, cy }: { cx: number; cy: number }): JSX.Element {
+  return (
+    <>
+      <circle
+        data-knob-ring-casing=""
+        cx={cx}
+        cy={cy}
+        r={FOCUS_RING_RADIUS}
+        fill="none"
+        stroke={SURFACE_COLOR}
+        strokeWidth={FOCUS_RING_WIDTH + 2 * FOCUS_RING_CASING}
+        className={RING_VISIBILITY}
+      />
+      <circle
+        data-knob-ring=""
+        cx={cx}
+        cy={cy}
+        r={FOCUS_RING_RADIUS}
+        fill="none"
+        stroke={FOCUS_RING_COLOR}
+        strokeWidth={FOCUS_RING_WIDTH}
+        className={RING_VISIBILITY}
+      />
+    </>
+  );
+}
+
+/**
+ * Hit area, focus ring and knob of a draggable handle centred on `at`. While dragged (useDrag
+ * marks the handle `data-dragging`), global.css grows the knob about its centre: the hit area and
+ * the drag's maths stay as they are.
+ */
 export function Knob({
   at,
   fill,
@@ -105,15 +146,7 @@ export function Knob({
   return (
     <>
       <circle cx={at.x} cy={at.y} r={KNOB_HIT_RADIUS} fill="transparent" />
-      <circle
-        cx={at.x}
-        cy={at.y}
-        r={FOCUS_RING_RADIUS}
-        fill="none"
-        stroke={FOCUS_RING_COLOR}
-        strokeWidth={2}
-        className="opacity-0 group-focus-visible:opacity-100"
-      />
+      <KnobRing cx={at.x} cy={at.y} />
       <circle
         data-knob=""
         cx={at.x}

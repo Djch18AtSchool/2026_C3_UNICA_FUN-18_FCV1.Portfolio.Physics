@@ -321,7 +321,7 @@ function TargetHandle({
       aria-valuemax={TARGET_LIMITS[1]}
       aria-valuenow={targetDeg}
       aria-valuetext={mathTextToString(targetText(targetDeg))}
-      className="group cursor-grab outline-none active:cursor-grabbing"
+      className="group cursor-grab outline-none"
       {...keys}
       {...drag}
     >

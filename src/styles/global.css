@@ -78,6 +78,41 @@
 }
 
 /*
+ * Durations of the labs' microinteractions (auditoría §8): a handle's feedback is quick, a change
+ * of scene a little slower (presetTransition.ts and the zoom's glide use 200 ms in TypeScript).
+ */
+:root {
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  /* How much a dragged knob grows: its 7 px radius to 8,75, its edge to the focus ring's inside. */
+  --knob-drag-scale: 1.25;
+}
+
+/*
+ * A dragged handle (useDrag and the plot cursor mark it data-dragging, dragMark.ts) shows the
+ * grabbing cursor and grows its knob about the knob's own centre, so neither the centre nor the
+ * hit area nor the drag's maths move. Unlayered, so the handles' cursor utilities give way. With
+ * reduced motion (the system's, below, or the site's: data-motion on the root) it grows at once.
+ */
+[data-dragging] {
+  cursor: grabbing;
+}
+
+[data-knob] {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform var(--motion-fast) ease-out;
+}
+
+[data-dragging] [data-knob] {
+  transform: scale(var(--knob-drag-scale));
+}
+
+:root[data-motion='reduced'] [data-knob] {
+  transition: none;
+}
+
+/*
  * In two columns the stage is the card less the 20 rem panel and its gap. Under 43.25 rem of card
  * it is too narrow for the event row (two 44 px buttons, the event's 128 px and the t reading),
  * and the reading drops to a third line: 32 px more (a 20 px line and the row's 12 px gap). The

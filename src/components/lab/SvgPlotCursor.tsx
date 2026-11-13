@@ -3,7 +3,8 @@ import { formatNumber } from '../../lib/format';
 import { mathTextToString, mathTextWidth } from '../../lib/mathNotation';
 import { SURFACE_COLOR, TEXT_COLOR } from '../charts/chartTheme';
 import MathText from './MathText';
-import { FOCUS_RING_RADIUS } from './OverlayMarks';
+import { KnobRing } from './OverlayMarks';
+import { markDragging } from './dragMark';
 import type { Domain, Scale } from './plotScales';
 import type { PlotCursor } from './SvgPlot';
 import { svgPointFromClient } from './dragMath';
@@ -32,7 +33,6 @@ const FINE_STEP = 0.01;
 const COARSE_STEP = 0.1;
 const LINE_WIDTH = 1.5;
 const KNOB_RADIUS = 7;
-const FOCUS_RING_COLOR = 'var(--accent)';
 /** Half the width of the invisible hit strip along the line: a 24 px target for mouse and pen. */
 const HIT_HALF_WIDTH = 12;
 /**
@@ -150,6 +150,7 @@ export default function SvgPlotCursor({
     const px = pointerViewBoxX(event);
     grabOffsetRef.current = px === undefined ? 0 : px - cx;
     isDraggingRef.current = true;
+    markDragging(handle, true);
   };
 
   const handlePointerMove = (event: PointerEvent<SVGGElement>) => {
@@ -162,6 +163,7 @@ export default function SvgPlotCursor({
   const endDrag = (event: PointerEvent<SVGGElement>) => {
     isDraggingRef.current = false;
     const handle = event.currentTarget;
+    markDragging(handle, false);
     if (
       typeof handle.hasPointerCapture === 'function' &&
       handle.hasPointerCapture(event.pointerId)
@@ -240,8 +242,9 @@ export default function SvgPlotCursor({
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        onLostPointerCapture={() => {
+        onLostPointerCapture={(event) => {
           isDraggingRef.current = false;
+          markDragging(event.currentTarget, false);
         }}
       >
         <rect
@@ -263,15 +266,7 @@ export default function SvgPlotCursor({
           className="touch-none"
         />
         {line}
-        <circle
-          cx={0}
-          cy={area.top}
-          r={FOCUS_RING_RADIUS}
-          fill="none"
-          stroke={FOCUS_RING_COLOR}
-          strokeWidth={2}
-          className="opacity-0 group-focus-visible:opacity-100"
-        />
+        <KnobRing cx={0} cy={area.top} />
         <circle
           data-knob=""
           cx={0}

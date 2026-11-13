@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { svgPointFromClient } from './dragMath';
+import { markDragging } from './dragMark';
 
 /** A point reported during a drag, in the owner svg's user units (its viewBox space). */
 export interface DragPoint {
@@ -73,6 +74,8 @@ export function useDrag(onDrag: (point: DragPoint) => void): DragHandlers {
   const isDraggingRef = useRef(false);
   /** The last point reported by `start`/`move`, used to fire `end` on cancel or lost capture. */
   const lastPointRef = useRef<{ x: number; y: number } | undefined>(undefined);
+  /** The handle being dragged, marked `data-dragging` until the drag ends (dragMark.ts). */
+  const handleRef = useRef<Element | null>(null);
 
   const onPointerDown = useCallback((event: ReactPointerEvent<SVGGraphicsElement>) => {
     if (!isPrimaryPointer(event)) return;
@@ -87,6 +90,8 @@ export function useDrag(onDrag: (point: DragPoint) => void): DragHandlers {
     lastPointRef.current = point;
     if (typeof target.setPointerCapture === 'function') target.setPointerCapture(event.pointerId);
     isDraggingRef.current = true;
+    handleRef.current = target;
+    markDragging(target, true);
     onDragRef.current({ ...point, phase: 'start' });
   }, []);
 
@@ -102,6 +107,8 @@ export function useDrag(onDrag: (point: DragPoint) => void): DragHandlers {
   const finishDrag = useCallback((point: { x: number; y: number } | undefined) => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
+    markDragging(handleRef.current, false);
+    handleRef.current = null;
     if (point) onDragRef.current({ ...point, phase: 'end' });
   }, []);
 

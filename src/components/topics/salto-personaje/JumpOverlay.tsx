@@ -223,7 +223,7 @@ export default function JumpOverlay({
         aria-valuetext={mathTextToString(
           `v_0 = ${format(settings.v0, 'm/s')}, v_x = ${format(settings.vx, 'm/s')}`,
         )}
-        className="group cursor-move outline-none"
+        className="group cursor-grab outline-none"
         onKeyDown={onLaunchKeyDown}
         onBlur={onKeyDone}
         {...launchDrag}
