@@ -137,16 +137,45 @@ export type ScaleBarSvgProps = ScaleBarProps & {
   x: number;
   y: number;
   anchor?: 'start' | 'end';
+  /**
+   * A plate of the surface under the bar and its words, for a bar over a drawing that moves under
+   * it (Tema 1's map, zoomed: the route and a stop's letter crossed it).
+   */
+  backdrop?: boolean;
 };
 
+/** The plate's margin around the bar and its words, its corner radius and its opacity. */
+const PLATE_PAD = 4;
+const PLATE_RADIUS = 4;
+const PLATE_OPACITY = 0.9;
+
 /** The SVG bar, a <g> inside a scene: drawing only (the scene adds ScaleBarWords in HTML). */
-export function ScaleBarSvg({ x, y, anchor = 'start', ...props }: ScaleBarSvgProps) {
+export function ScaleBarSvg({
+  x,
+  y,
+  anchor = 'start',
+  backdrop = false,
+  ...props
+}: ScaleBarSvgProps) {
   const bar = barFor(props);
   if (!bar) return null;
   const left = anchor === 'start' ? x : x - bar.px;
   const right = left + bar.px;
+  const top = y - SCALE_BAR_TICK - SCALE_BAR_LABEL_GAP - SCALE_BAR_LABEL_SIZE - PLATE_PAD;
   return (
     <g data-scale-bar="" aria-hidden="true" pointerEvents="none">
+      {backdrop ? (
+        <rect
+          data-scale-bar-plate=""
+          x={left - PLATE_PAD}
+          y={top}
+          width={bar.px + 2 * PLATE_PAD}
+          height={y + PLATE_PAD - top}
+          rx={PLATE_RADIUS}
+          fill={SURFACE_COLOR}
+          fillOpacity={PLATE_OPACITY}
+        />
+      ) : null}
       <path
         d={`M${left} ${y - SCALE_BAR_TICK}V${y}H${right}V${y - SCALE_BAR_TICK}`}
         fill="none"

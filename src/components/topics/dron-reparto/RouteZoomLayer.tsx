@@ -46,7 +46,7 @@ export default function RouteZoomLayer({
   const { zoom, viewportProps } = routeZoom;
   const spot = routeScaleBarSpot({ left, top, width, height });
   const bar = { pxPerUnit: plotPxPerMetre(scales.x), units: ROUTE_SCALE_UNITS, maxPx: spot.maxPx };
-  const drawnBar = <ScaleBarSvg {...bar} x={spot.x} y={spot.y} anchor="end" />;
+  const drawnBar = <ScaleBarSvg {...bar} x={spot.x} y={spot.y} anchor="end" backdrop />;
   return (
     <>
       <foreignObject x={left} y={top} width={width} height={height}>
@@ -58,8 +58,9 @@ export default function RouteZoomLayer({
             className={MARKS}
             role="presentation"
           >
-            {children}
+            {/* Under the stops and the drone: a stop dragged under the bar stays on top of it. */}
             {spot.isAbovePlot ? null : drawnBar}
+            {children}
           </svg>
           <ScaleBarWords {...bar} />
           <ZoomControls zoom={zoom} corner="bottom-right" />

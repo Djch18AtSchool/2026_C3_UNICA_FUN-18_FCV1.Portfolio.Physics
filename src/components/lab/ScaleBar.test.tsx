@@ -197,3 +197,32 @@ describe('ScaleBar with a note', () => {
     expect(container.querySelector('[data-scale-bar-words]')?.textContent).toMatch(/de la nave$/u);
   });
 });
+
+describe('ScaleBarSvg with a backdrop', () => {
+  afterEach(cleanup);
+
+  test('lays a plate of the surface under the bar and its words, only when asked', () => {
+    const units = [{ label: 'm', size: 1 }];
+    const { container, rerender } = render(
+      <svg>
+        <ScaleBarSvg pxPerUnit={1} units={units} x={10} y={40} />
+      </svg>,
+    );
+    expect(container.querySelector('[data-scale-bar-plate]')).toBeNull();
+
+    rerender(
+      <svg>
+        <ScaleBarSvg pxPerUnit={1} units={units} x={10} y={40} backdrop />
+      </svg>,
+    );
+    const plate = container.querySelector('[data-scale-bar-plate]');
+    const bar = container.querySelector('[data-scale-bar] path');
+    expect(plate).toHaveAttribute('fill', 'var(--bg-elevated)');
+    // Under the bar: drawn first, and around its whole length.
+    expect(plate?.compareDocumentPosition(bar as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(Number(plate?.getAttribute('x'))).toBeLessThan(10);
+    expect(
+      Number(plate?.getAttribute('y')) + Number(plate?.getAttribute('height')),
+    ).toBeGreaterThan(40);
+  });
+});
