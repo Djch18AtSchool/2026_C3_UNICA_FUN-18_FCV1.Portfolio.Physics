@@ -180,6 +180,8 @@ export default function RegenLab({ usage, leftOut }: RegenLabProps): JSX.Element
       timeOrigin={lab.timing.offset}
       timeUnit="s"
       readouts={labReadouts(lab)}
+      // «Conducir» says its own summary on a pause (useDriveSession): said once, not twice.
+      announceReadouts={lab.view !== 'conducir'}
       levels={regenLevels(lab)}
       canvasNotes={<RegenNotes view={lab.view} />}
       notes={{

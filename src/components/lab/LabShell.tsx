@@ -229,9 +229,13 @@ function Stage({
   );
 }
 
+/** What the announcer says while a view speaks for itself (announceReadouts false). */
+const NO_READOUTS: readonly LabReadout[] = Object.freeze([]);
+
 export default function LabShell({
   title,
   readouts,
+  announceReadouts = true,
   levels,
   canvasNotes,
   notes,
@@ -263,7 +267,7 @@ export default function LabShell({
         ) : null}
       </div>
       <LabNotes {...notes} />
-      <ReadoutAnnouncer readouts={readouts} />
+      <ReadoutAnnouncer readouts={announceReadouts ? readouts : NO_READOUTS} />
       <SettingsDrawer
         id={drawer.drawerId}
         open={drawer.isOpen}

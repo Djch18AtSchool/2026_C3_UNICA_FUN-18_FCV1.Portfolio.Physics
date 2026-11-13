@@ -48,6 +48,12 @@ export interface LabShellProps {
    */
   formatTime?: TransportTimeFormat;
   readouts: LabReadout[];
+  /**
+   * Whether the readouts are announced once they settle (default true). A view that says its own
+   * summary when it settles (Tema 6's «Conducir», on a pause) turns it off, so a pause is said
+   * once; the region stays in the DOM, empty.
+   */
+  announceReadouts?: boolean;
   onReset(): void;
   testId: string;
   /** The canvas: everything the lab draws (and what is dragged or pressed on it), nothing else. */

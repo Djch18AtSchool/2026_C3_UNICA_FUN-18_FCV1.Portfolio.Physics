@@ -6,6 +6,7 @@ import { installDialogPolyfill } from '../../../test-dialog';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
 import { readout } from '../../../test-readout';
+import { READOUT_ANNOUNCE_DELAY_MS } from '../../lab/LabShell';
 import RegenLab from './RegenLab';
 import { installFrameQueue } from './regenLabTestKit';
 
@@ -218,6 +219,24 @@ describe('RegenLab «Conducir»', { timeout: DRIVE_TEST_TIMEOUT_MS }, () => {
       /A la batería llegaron [\d,]+ kJ, el [\d,]+ % del frenado en las ruedas/,
     );
     expect(readout(RECOVERED)).toMatch(/%$/);
+  });
+
+  test('a pause is said once, by the summary: the shell does not announce the readouts after it', () => {
+    vi.useFakeTimers();
+    const frames = renderDrive();
+    fireEvent.keyDown(pedal('Freno'), { key: 'ArrowDown' });
+    playFrames(frames, 1000, 3000);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pausar' }));
+    act(() => vi.advanceTimersByTime(2 * READOUT_ANNOUNCE_DELAY_MS));
+
+    expect(statusText()).toMatch(/^En pausa/);
+    expect(screen.getByTestId('readout-announcer').textContent).toBe('');
+
+    // «Tramo» has no summary of its own: its readouts are announced as in every lab.
+    chooseView('tramo');
+    act(() => vi.advanceTimersByTime(2 * READOUT_ANNOUNCE_DELAY_MS));
+    expect(screen.getByTestId('readout-announcer').textContent).not.toBe('');
   });
 
   test(

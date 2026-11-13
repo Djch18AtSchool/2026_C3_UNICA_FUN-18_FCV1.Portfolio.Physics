@@ -252,6 +252,30 @@ describe('LabShell', () => {
       expect(announcer().textContent).toBe('Altura máxima: 3,00\u202fm');
     });
 
+    test('a view that says its own summary turns the announcer off: the region stays, empty', () => {
+      vi.useFakeTimers();
+      const shell = (value: number, announceReadouts: boolean) => (
+        <LabShell
+          {...shellProps({
+            announceReadouts,
+            readouts: [{ id: 'h', label: 'Altura máxima', value, unit: 'm' }],
+          })}
+        />
+      );
+      const { rerender } = render(shell(1, false));
+
+      rerender(shell(2, false));
+      act(() => vi.advanceTimersByTime(2 * READOUT_ANNOUNCE_DELAY_MS));
+
+      expect(announcer()).toHaveAttribute('aria-live', 'polite');
+      expect(announcer().textContent).toBe('');
+
+      // Back to a view that does not: the readouts are said again once they settle.
+      rerender(shell(3, true));
+      act(() => vi.advanceTimersByTime(READOUT_ANNOUNCE_DELAY_MS));
+      expect(announcer().textContent).toBe('Altura máxima: 3,00\u202fm');
+    });
+
     test('says a $…$ label in words, never as TeX', () => {
       vi.useFakeTimers();
       const shell = (value: number) => (
