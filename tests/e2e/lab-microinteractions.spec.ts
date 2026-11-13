@@ -111,19 +111,19 @@ for (const topic of KNOB_LABS) {
 interface LegendCase {
   name: string;
   topic: number;
-  /** The figure whose legend is tried, by its title. */
-  title: RegExp;
+  /** The figure whose legend is tried, by the start of its title. */
+  title: string;
 }
 
 const LEGENDS: readonly LegendCase[] = [
   {
     name: 'la gráfica de energías del laboratorio',
     topic: 6,
-    title: /^Energías acumuladas a lo largo/,
+    title: 'Energías acumuladas a lo largo',
   },
-  { name: 'la trayectoria del laboratorio', topic: 2, title: /^Trayectoria del salto/ },
-  { name: 'la gráfica de las Voyager', topic: 9, title: /^Rapidez de las Voyager respecto/ },
-  { name: 'la gráfica de los umbrales', topic: 7, title: /^Altura de cada rebote/ },
+  { name: 'la trayectoria del laboratorio', topic: 2, title: 'Trayectoria del salto' },
+  { name: 'la gráfica de las Voyager', topic: 9, title: 'Rapidez de las Voyager respecto' },
+  { name: 'la gráfica de los umbrales', topic: 7, title: 'Altura de cada rebote' },
 ];
 
 /** How many of the figure's series are drawn highlighted and faded. */
@@ -134,6 +134,23 @@ const emphasisCounts = (figure: Locator) =>
       marks.filter((mark) => mark.getAttribute('data-emphasis') === value).length;
     return { focus: count('focus'), dim: count('dim') };
   });
+
+/** Each series line's drawn stroke width, by its id (regions have none). */
+const strokeWidths = (figure: Locator) =>
+  figure.evaluate((node) =>
+    Object.fromEntries(
+      [...node.querySelectorAll('[data-series]')].map((mark) => [
+        mark.getAttribute('data-series'),
+        Number.parseFloat(getComputedStyle(mark).strokeWidth),
+      ]),
+    ),
+  );
+
+/** The ids drawn highlighted now. */
+const highlightedIds = (figure: Locator) =>
+  figure
+    .locator('[data-series][data-emphasis="focus"]')
+    .evaluateAll((marks) => marks.map((mark) => mark.getAttribute('data-series') ?? ''));
 
 for (const legend of LEGENDS) {
   const topic = TOPIC_PAGES.find(({ number }) => number === legend.topic)!;
@@ -146,20 +163,32 @@ for (const legend of LEGENDS) {
     }) => {
       await openLab(page, topic);
       // The chart's own figure: the innermost of those (a page's Figure wraps it).
-      const figure = page
-        .locator('figure')
-        .filter({ has: page.locator('figcaption', { hasText: legend.title }) })
-        .last();
+      const chart = `figure:has(> figcaption:has-text("${legend.title}"))`;
+      const figure = page.locator(chart).last();
       await figure.scrollIntoViewIfNeeded();
-      await waitForIsland(page, 'ul[aria-label="Leyenda"]');
-      const entries = figure.getByRole('list', { name: 'Leyenda' }).getByRole('button');
+      // The island that holds this chart's legend, not any island with a «Leyenda» (Tema 7's lab
+      // has one in its canvas notes) that a looser search could swap for another mid-hydration.
+      await waitForIsland(page, `${chart} [data-series-legend]`);
+      const entries = figure
+        .getByRole('toolbar', { name: 'Leyenda: realzar una serie' })
+        .getByRole('button');
       await expect(entries.first()).toBeVisible();
       expect(await emphasisCounts(figure)).toEqual({ focus: 0, dim: 0 });
+      const widths = await strokeWidths(figure);
 
       await entries.nth(1).hover();
 
       await expect.poll(async () => (await emphasisCounts(figure)).focus).toBeGreaterThan(0);
       expect((await emphasisCounts(figure)).dim).toBeGreaterThan(0);
+      // Not by opacity alone: the highlighted lines are drawn wider than they were.
+      const highlighted = await highlightedIds(figure);
+      expect(highlighted.length).toBeGreaterThan(0);
+      await expect
+        .poll(async () => {
+          const now = await strokeWidths(figure);
+          return highlighted.every((id) => now[id] > widths[id]);
+        })
+        .toBe(true);
 
       await page.mouse.move(0, 0);
       await expect.poll(() => emphasisCounts(figure)).toEqual({ focus: 0, dim: 0 });
@@ -180,7 +209,9 @@ for (const theme of ['light', 'dark'] as const) {
         await page.evaluate((value) => {
           document.documentElement.dataset.theme = value;
         }, theme);
-        const entries = page.getByRole('list', { name: 'Leyenda' }).getByRole('button');
+        const entries = page
+          .getByRole('toolbar', { name: 'Leyenda: realzar una serie' })
+          .getByRole('button');
         await entries.first().scrollIntoViewIfNeeded();
         await entries.first().click();
         const handle = await firstKnob(lab);

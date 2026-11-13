@@ -46,7 +46,9 @@ async function openFixture(
 }
 
 const legendEntry = (lab: Locator, name: string) =>
-  lab.getByRole('list', { name: 'Leyenda' }).getByRole('button', { name, exact: true });
+  lab
+    .getByRole('toolbar', { name: 'Leyenda: realzar una serie' })
+    .getByRole('button', { name, exact: true });
 const series = (lab: Locator, id: string) => lab.locator(`path[data-series="${id}"]`);
 const knob = (lab: Locator) => lab.getByTestId('micro-knob');
 const dot = (lab: Locator) => knob(lab).locator('[data-knob]');
@@ -79,11 +81,35 @@ test.describe('la transición de preajuste', () => {
   test('funde el lienzo en 200 ms y no deja nada; con movimiento reducido no hay transición', async ({
     page,
   }) => {
+    // Every Web Animation the page starts, kept (one that already ended is still counted).
+    await page.addInitScript(() => {
+      const animate = Element.prototype.animate;
+      const started: Animation[] = [];
+      Object.assign(window, { startedAnimations: started });
+      Element.prototype.animate = function (
+        this: Element,
+        ...args: Parameters<Element['animate']>
+      ) {
+        const animation = animate.apply(this, args);
+        if (this.matches('[data-lab-canvas]')) started.push(animation);
+        return animation;
+      };
+    });
     const lab = await openFixture(page);
     const canvas = lab.locator('[data-lab-canvas]');
+    const started = () =>
+      page.evaluate(() =>
+        (window as unknown as { startedAnimations: Animation[] }).startedAnimations.map(
+          (animation) => ({
+            id: animation.id,
+            duration: Number(animation.effect?.getTiming().duration),
+          }),
+        ),
+      );
 
     await lab.getByRole('button', { name: 'Medio' }).click();
 
+    await expect.poll(started).toEqual([{ id: TRANSITION_ID, duration: 200 }]);
     const transitions = () =>
       canvas.evaluate(
         (node, id) =>
@@ -93,9 +119,6 @@ test.describe('la transición de preajuste', () => {
             .map((animation) => Number(animation.effect?.getTiming().duration)),
         TRANSITION_ID,
       );
-    // It may already have ended under load: then it left nothing, which is what is checked last.
-    const running = await transitions();
-    expect(running.every((duration) => duration === 200)).toBe(true);
     await canvas.evaluate((node) => Promise.all(node.getAnimations().map((a) => a.finished)));
     expect(await transitions()).toEqual([]);
     await expect(canvas).toHaveCSS('opacity', '1');
@@ -107,6 +130,7 @@ test.describe('la transición de preajuste', () => {
       'true',
     );
     expect(await transitions()).toEqual([]);
+    expect(await started()).toHaveLength(1);
   });
 });
 
@@ -117,7 +141,9 @@ test.describe('el realce de una serie desde su leyenda', () => {
     const lab = await openFixture(page);
     // A formula in the label is named in words (mathAriaLabel), like the site's other controls.
     await expect(
-      lab.getByRole('list', { name: 'Leyenda' }).getByRole('button', { name: /^Suelo, y .*0$/u }),
+      lab
+        .getByRole('toolbar', { name: 'Leyenda: realzar una serie' })
+        .getByRole('button', { name: /^Suelo, y .*0$/u }),
     ).toBeVisible();
     const width = await series(lab, 'luna').evaluate((path) => getComputedStyle(path).strokeWidth);
     const spoken = await lab.locator('[aria-live], [role="status"]').allTextContents();
@@ -139,29 +165,38 @@ test.describe('el realce de una serie desde su leyenda', () => {
     await expect(series(lab, 'tierra')).toHaveCSS('opacity', '1');
   });
 
-  test('con el teclado: el foco realza su serie, Intro la fija y Escape la suelta', async ({
+  test('con el teclado: una sola parada; las flechas, Inicio y Fin recorren y realzan, Intro fija y Escape suelta', async ({
     page,
   }) => {
     const lab = await openFixture(page);
-    await legendEntry(lab, 'Tierra').focus();
+    const toolbar = lab.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
+    // From the knob, the next stop back is the legend: one stop, its first entry.
+    await knob(lab).focus();
     await page.keyboard.press('Shift+Tab');
-
-    await page.keyboard.press('Tab');
     await expect(legendEntry(lab, 'Tierra')).toBeFocused();
+    await expect(toolbar).toHaveAttribute('aria-orientation', 'horizontal');
     await expect.poll(() => emphases(lab)).toEqual(['focus', 'dim', 'dim']);
+
+    await page.keyboard.press('ArrowRight');
+    await expect(legendEntry(lab, 'Luna')).toBeFocused();
+    await expect.poll(() => emphases(lab)).toEqual(['dim', 'focus', 'dim']);
+    await page.keyboard.press('End');
+    await expect(toolbar.getByRole('button').last()).toBeFocused();
+    await page.keyboard.press('Home');
+    await expect(legendEntry(lab, 'Tierra')).toBeFocused();
 
     await page.keyboard.press('Enter');
     await expect(legendEntry(lab, 'Tierra')).toHaveAttribute('aria-pressed', 'true');
-    // The next entry, focused, shows its own series while it has the focus.
+    // One stop: Tab leaves the legend for the knob, and the pinned series stays.
     await page.keyboard.press('Tab');
-    await expect.poll(() => emphases(lab)).toEqual(['dim', 'focus', 'dim']);
-    // Pinned, «Tierra» stays once the focus leaves the legend.
-    await knob(lab).focus();
+    await expect(knob(lab)).toBeFocused();
     await expect.poll(() => emphases(lab)).toEqual(['focus', 'dim', 'dim']);
-    await legendEntry(lab, 'Tierra').focus();
+    // Back in, the stop is the pinned entry.
+    await page.keyboard.press('Shift+Tab');
+    await expect(legendEntry(lab, 'Tierra')).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(legendEntry(lab, 'Tierra')).toHaveAttribute('aria-pressed', 'false');
-    await knob(lab).focus();
+    await page.keyboard.press('Tab');
     await expect.poll(() => emphases(lab)).toEqual(['', '', '']);
   });
 
