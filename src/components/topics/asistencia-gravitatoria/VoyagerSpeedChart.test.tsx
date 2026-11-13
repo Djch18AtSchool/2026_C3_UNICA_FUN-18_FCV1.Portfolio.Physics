@@ -62,7 +62,7 @@ describe('VoyagerSpeedChart', () => {
 
   test('a legend names every line; the footnote explains Δ|v| and leaves the source to the Figure', () => {
     const { container } = render(<VoyagerSpeedChart />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
     expect(plexViolations(container)).toEqual([]);
     expect(mathSourceText(legend)).toContain('V2, $\\sqrt{2GM_\\odot/r}$');

@@ -35,7 +35,7 @@ describe('TyreFigure', () => {
 
   test('box: friction follows the push to 39,2 N, then drops to 29,4 N', () => {
     const { container } = render(<TyreFigure variant="caja" />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
     expect(legend).toHaveTextContent('Fricción sobre la caja f');
     expect(mathSourceText(legend)).toContain('Límite estático $\\mu_s n$');
@@ -47,7 +47,7 @@ describe('TyreFigure', () => {
 
   test('load: the linear and load-sensitive models cross at 4 000 N', () => {
     const { container } = render(<TyreFigure variant="carga" />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
     expect(mathSourceText(legend)).toContain('Modelo lineal $F = \\mu_0 F_z$');
     expect(mathSourceText(legend)).toContain('Con sensibilidad a la carga, $F = \\mu(F_z) F_z$');
@@ -70,7 +70,7 @@ describe('TyreFigure', () => {
 
   test("temperature: the six pairs of MUR's tcurve_F3soft.lut are drawn and named in the legend", () => {
     const { container } = render(<TyreFigure variant="temperatura" />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
     const pairs = container.querySelectorAll('[data-point^="lut-"]');
     const guide = container.querySelector('[data-series="lut-mur"]');
 

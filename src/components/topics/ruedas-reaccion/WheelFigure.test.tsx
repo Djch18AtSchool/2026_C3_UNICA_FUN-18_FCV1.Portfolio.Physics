@@ -128,7 +128,7 @@ describe('WheelFigure', () => {
 
   test('saturation: L_w ramps to the L_max line in the warning tone, with the turn peak for contrast', () => {
     const { container } = render(<WheelFigure variant="saturacion" />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
     expect(screen.getByRole('img', { name: /se satura/i })).toBeInTheDocument();
     expect(container.querySelector('[data-series="limite"]')?.getAttribute('stroke')).toBe(

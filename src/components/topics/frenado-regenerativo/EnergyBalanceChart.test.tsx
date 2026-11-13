@@ -48,13 +48,13 @@ describe('EnergyBalanceChart', () => {
 
   test('names the six energies of the lab in a visible legend, the losses apart from braking', () => {
     const { container } = render(<EnergyBalanceChart cycle="udds" />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
     const stroke = (key: string) =>
       container.querySelector(`[data-series="${key}"]`)?.getAttribute('stroke');
 
     expect(
       within(legend)
-        .getAllByRole('listitem')
+        .getAllByRole('button')
         .map((item) => mathSourceText(item)),
     ).toEqual(ENERGY_SERIES.map((s) => s.label));
     expect(stroke('eConversionLoss')).toBe('var(--chart-6)');

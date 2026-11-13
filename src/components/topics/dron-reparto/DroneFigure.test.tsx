@@ -30,7 +30,7 @@ describe('DroneFigure', () => {
 
   test('jumps: v_x and v_y step at eight instants, marked as infinite accelerations', () => {
     const { container } = render(<DroneFigure variant="saltos" />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
     expect(legend).toHaveTextContent('Saltos de v: a = dv/dt infinita');
     expect(mathSourceText(legend)).toContain('$v_x$');

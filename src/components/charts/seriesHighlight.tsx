@@ -1,10 +1,14 @@
 /**
- * Highlighting a chart's series from its legend (auditoría §8). Each legend entry is a button:
- * the mouse over it, or a keyboard focus on it, highlights its series while it lasts; a click or
- * a tap pins the highlight (aria-pressed) until the entry is pressed again, another one is, the
- * pointer goes down outside the legend or Escape is pressed on it. The highlighted series is drawn
- * wider and the others fade, so the change never rests on color alone; names do not change and
- * nothing is announced (the series are drawn in an image; the highlight is only visual). Usage:
+ * Highlighting a chart's series from its legend (auditoría §8). The legend is a toolbar,
+ * «Leyenda: realzar una serie», with one button per entry and one Tab stop (a roving tabindex,
+ * decision R32: the pinned entry, else the last focused, else the first): the arrows along it (←/→
+ * in a row, ↑/↓ in a column), Home and End move the focus between entries and preview each series.
+ * The mouse over an entry, or a keyboard focus on it, highlights its series while it lasts; a click,
+ * a tap, Enter or Space pins the highlight (aria-pressed) until the entry is pressed again, another
+ * one is, the pointer goes down outside the legend or Escape is pressed on it. The highlighted
+ * series is drawn wider and the others fade, so the change never rests on color alone; names do
+ * not change and nothing is announced (the series are drawn in an image; the highlight is only
+ * visual). Usage:
  *
  *   const highlight = useSeriesHighlight(series.map(({ id }) => id));
  *   <SeriesHighlightContext value={highlight.highlighted}>
@@ -78,9 +82,37 @@ export function useSeriesEmphasis(id: string): SeriesEmphasis {
   return seriesEmphasis(id, useContext(SeriesHighlightContext));
 }
 
+/** The toolbar's name: says once what its entries do, apart from a lab's presets. */
+export const LEGEND_LABEL = 'Leyenda: realzar una serie';
+
+/** A row of entries (←/→ move between them) or a column (↑/↓). */
+export type LegendOrientation = 'horizontal' | 'vertical';
+
+/** The keys that move the focus along a legend, by orientation: to the previous, to the next. */
+const STEP_KEYS: Readonly<Record<LegendOrientation, { back: string; forth: string }>> = {
+  horizontal: { back: 'ArrowLeft', forth: 'ArrowRight' },
+  vertical: { back: 'ArrowUp', forth: 'ArrowDown' },
+};
+
+/** The entry a key moves to from `index` among `count`, wrapping at the ends; none for others. */
+export function legendKeyTarget(
+  key: string,
+  index: number,
+  count: number,
+  orientation: LegendOrientation,
+): number | undefined {
+  const { back, forth } = STEP_KEYS[orientation];
+  if (key === forth) return (index + 1) % count;
+  if (key === back) return (index - 1 + count) % count;
+  if (key === 'Home') return 0;
+  if (key === 'End') return count - 1;
+  return undefined;
+}
+
 /** What a legend entry spreads on its button. */
 export interface LegendEntryProps {
   'aria-pressed': boolean;
+  tabIndex: 0 | -1;
   onPointerEnter(event: PointerEvent<HTMLButtonElement>): void;
   onPointerLeave(): void;
   onPointerDown(): void;
@@ -93,8 +125,9 @@ export interface LegendEntryProps {
 export interface SeriesHighlight {
   /** The series drawn highlighted: hovered, else focused from the keyboard, else pinned. */
   highlighted: string | undefined;
-  /** The legend's list: a press outside it lets a pinned highlight go. */
+  /** The legend: a press outside it lets a pinned highlight go; the arrows move within it. */
   listRef: RefObject<HTMLUListElement | null>;
+  orientation: LegendOrientation;
   entry(id: string): LegendEntryProps;
 }
 
@@ -118,10 +151,15 @@ function useReleaseOutside(
  * The legend's highlight over the series `ids` now drawn: an id that is not among them (a view
  * changed under a pinned entry) highlights nothing, rather than fading everything.
  */
-export function useSeriesHighlight(ids: readonly string[]): SeriesHighlight {
+export function useSeriesHighlight(
+  ids: readonly string[],
+  orientation: LegendOrientation = 'horizontal',
+): SeriesHighlight {
   const [hovered, setHovered] = useState<string>();
   const [focused, setFocused] = useState<string>();
   const [pinned, setPinned] = useState<string>();
+  /** The entry that last had the focus: the legend's Tab stop when none is pinned. */
+  const [roving, setRoving] = useState<string>();
   const listRef = useRef<HTMLUListElement>(null);
   /** A focus that comes with a press is the pointer's, not the keyboard's. */
   const isPressingRef = useRef(false);
@@ -129,8 +167,17 @@ export function useSeriesHighlight(ids: readonly string[]): SeriesHighlight {
   useReleaseOutside(listRef, pinned, release);
 
   const shown = hovered ?? focused ?? pinned;
+  const tabStop = [pinned, roving].find((id) => id !== undefined && ids.includes(id)) ?? ids[0];
+  /** Moves the focus to the entry a key names, if it names one. */
+  const moveFocus = (event: KeyboardEvent<HTMLButtonElement>, id: string) => {
+    const target = legendKeyTarget(event.key, ids.indexOf(id), ids.length, orientation);
+    if (target === undefined) return;
+    event.preventDefault();
+    listRef.current?.querySelectorAll<HTMLButtonElement>('button')[target]?.focus();
+  };
   const entry = (id: string): LegendEntryProps => ({
     'aria-pressed': pinned === id,
+    tabIndex: id === tabStop ? 0 : -1,
     onPointerEnter: (event) => {
       if (event.pointerType !== 'touch') setHovered(id);
     },
@@ -139,6 +186,7 @@ export function useSeriesHighlight(ids: readonly string[]): SeriesHighlight {
       isPressingRef.current = true;
     },
     onFocus: () => {
+      setRoving(id);
       if (!isPressingRef.current) setFocused(id);
     },
     onBlur: () => {
@@ -151,11 +199,13 @@ export function useSeriesHighlight(ids: readonly string[]): SeriesHighlight {
     },
     onKeyDown: (event) => {
       if (event.key === 'Escape') release();
+      else moveFocus(event, id);
     },
   });
   return {
     highlighted: shown !== undefined && ids.includes(shown) ? shown : undefined,
     listRef,
+    orientation,
     entry,
   };
 }
@@ -179,7 +229,11 @@ const LIST = 'mb-2 flex list-none p-0 text-sm';
 const ENTRY =
   'inline-flex cursor-pointer items-center gap-2 rounded-base text-left text-fg underline-offset-4 outline-accent focus-visible:outline-2 focus-visible:outline-offset-2 data-[highlighted]:underline';
 
-/** A chart's legend, «Leyenda»: one button per series, in a list (`layout`: rows or a column). */
+/**
+ * A chart's legend: a toolbar of one button per series, in rows (`layout` LEGEND_ROW) or a column
+ * (with `useSeriesHighlight(ids, 'vertical')`). The entries keep their list's look; the `li`s are
+ * presentational, so a screen reader hears the toolbar and its buttons only.
+ */
 export function SeriesLegend({
   entries,
   highlight,
@@ -190,9 +244,16 @@ export function SeriesLegend({
   layout?: string;
 }): JSX.Element {
   return (
-    <ul ref={highlight.listRef} aria-label="Leyenda" className={`${LIST} ${layout}`}>
+    <ul
+      ref={highlight.listRef}
+      role="toolbar"
+      aria-label={LEGEND_LABEL}
+      aria-orientation={highlight.orientation}
+      data-series-legend=""
+      className={`${LIST} ${layout}`}
+    >
       {entries.map(({ id, label, swatch }) => (
-        <li key={id} className="flex items-center">
+        <li key={id} role="none" className="flex items-center">
           <button
             type="button"
             aria-label={hasInlineMath(label) ? inlineMathToSpeech(label) : undefined}

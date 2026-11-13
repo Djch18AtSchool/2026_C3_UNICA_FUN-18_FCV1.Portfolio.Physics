@@ -265,7 +265,7 @@ describe('TyreLab', () => {
     expect(titles).toContain('Coeficiente de agarre $\\mu$ frente a la temperatura');
     expect(screen.getByText('Temperatura T (°C)')).toBeInTheDocument();
     expect(screen.getByText(svgText('Carga vertical Fz (N)'))).toBeInTheDocument();
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
     expect(mathSourceText(legend)).toContain('Modelo lineal $F = \\mu_0 f(T) F_z$');
     expect(mathSourceText(legend)).toContain(
       'Con sensibilidad a la carga, $F = \\mu(F_z) f(T) F_z$',

@@ -213,7 +213,7 @@ describe('BounceFigure', () => {
 
     test('the ideal series and both thresholds, each named in the legend', () => {
       const { container } = render(<BounceFigure variant="umbral" />);
-      const legend = screen.getByRole('list', { name: 'Leyenda' });
+      const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
       expect(mathSourceText(legend)).toContain('Ideal, sin umbral: $h_n = e^{2n} h_0$');
       expect(legend).toHaveTextContent(

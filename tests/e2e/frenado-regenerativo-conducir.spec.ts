@@ -117,23 +117,22 @@ test.describe('Conducir', () => {
     await page.keyboard.up('ArrowUp');
   });
 
-  test('el orden de foco va de los pedales a la leyenda de la gráfica y a la reproducción', async ({
+  test('el orden de foco va de los pedales a la leyenda de la gráfica (una parada) y a la reproducción', async ({
     page,
   }) => {
     const lab = await openDrive(page);
     const legend = lab
       .getByTestId('drive-speed-plot')
-      .getByRole('list', { name: 'Leyenda' })
-      .getByRole('button');
+      .getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
     await pedalOf(lab, 'Freno').focus();
 
     await page.keyboard.press('Tab');
     await expect(pedalOf(lab, 'Acelerador')).toBeFocused();
-    // The plot's legend entries (each highlights its series, D4) come next, in the canvas.
-    for (let entry = 0; entry < (await legend.count()); entry += 1) {
-      await page.keyboard.press('Tab');
-      await expect(legend.nth(entry)).toBeFocused();
-    }
+    // The plot's legend is one stop (R32): its first entry; the arrows move within it.
+    await page.keyboard.press('Tab');
+    await expect(legend.getByRole('button').first()).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect(legend.getByRole('button').nth(1)).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(lab.getByRole('button', { name: 'Reproducir' })).toBeFocused();
   });

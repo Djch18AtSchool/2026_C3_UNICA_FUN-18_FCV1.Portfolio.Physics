@@ -46,7 +46,7 @@ describe('HabitatFigure', () => {
 
   test('radius: a_c/g lines at 1 and 2 rpm, the Earth 1 g line and the marked points', () => {
     const { container } = render(<HabitatFigure variant="radio" />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
     expect(legend).toHaveTextContent('1 RPM');
     expect(legend).toHaveTextContent('2 RPM');

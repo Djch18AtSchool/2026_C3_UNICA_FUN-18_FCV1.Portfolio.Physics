@@ -37,7 +37,7 @@ describe('RegenFigure', () => {
 
   test('energia-cinetica: K(t) over the first 200 s, the drops marked and the largest labelled', () => {
     const { container } = render(<RegenFigure variant="energia-cinetica" />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
     expect(mathSourceText(legend)).toContain('Energía cinética $K = \\tfrac12 m v^2$');
     expect(legend).toHaveTextContent('Frenadas: K baja');
@@ -66,7 +66,7 @@ describe('RegenFigure', () => {
 
   test('carga-carretera: F_RL(v) and its three terms with the EPA coefficients', () => {
     const { container } = render(<RegenFigure variant="carga-carretera" />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
     for (const name of [
       '$F_\\text{RL} = A + Bv + Cv^2$',
@@ -84,7 +84,7 @@ describe('RegenFigure', () => {
 
   test('frenada: the largest UDDS stop with the site model, P_freno as the outer edge', () => {
     const { container } = render(<RegenFigure variant="frenada" />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
     const title = mathSourceText(container.querySelector('figcaption')).replace(/\s+/g, ' ');
     expect(title).toContain(regenModelText(DEFAULT_REGEN).replace(/\s+/g, ' '));

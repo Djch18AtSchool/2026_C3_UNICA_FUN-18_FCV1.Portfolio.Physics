@@ -41,7 +41,7 @@ describe('HapticFigure', () => {
 
   test('vibration: a constant 1,6 N reads the same at every x; the 400 N/m spring does not', () => {
     const { container } = render(<HapticFigure variant="vibracion" />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
     expect(mathSourceText(legend)).toContain('Vibración fija, amplitud $F_0$');
     expect(legend).toHaveTextContent('Resorte de 400 N/m, F = k x');

@@ -372,7 +372,7 @@ export default function ThresholdPlot(): JSX.Element {
   const clipId = `umbral-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const [ref, measuredWidth] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const { width, height, compact, area, x, y, ticks } = layout(measuredWidth);
-  const highlight = useSeriesHighlight(LEGEND_IDS);
+  const highlight = useSeriesHighlight(LEGEND_IDS, 'vertical');
   return (
     <ChartFrame title="Altura de cada rebote, sin umbral y con el umbral de dos motores">
       <SeriesHighlightContext value={highlight.highlighted}>

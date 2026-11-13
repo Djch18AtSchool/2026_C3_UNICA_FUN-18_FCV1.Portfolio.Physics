@@ -130,7 +130,9 @@ describe('DroneProfiles', () => {
     for (const axis of ['Posición (m)', 'Velocidad (m/s)', 'Aceleración (m/s²)', 'Longitud (m)']) {
       expect(within(root).getByText(axis)).toBeInTheDocument();
     }
-    expect(within(root).getAllByRole('list', { name: 'Leyenda' })).toHaveLength(4);
+    expect(
+      within(root).getAllByRole('toolbar', { name: 'Leyenda: realzar una serie' }),
+    ).toHaveLength(4);
     for (const stop of ['A', 'B', 'C']) {
       expect(root.querySelectorAll(`rect[data-band="${stop}"]`)).toHaveLength(4);
     }

@@ -166,7 +166,7 @@ for (const { name, path, testId } of LABS) {
             out.push(`lectura: ${name(row)}`);
           }
         }
-        for (const item of root.querySelectorAll('ul[aria-label="Leyenda"] li')) {
+        for (const item of root.querySelectorAll('[data-series-legend] li')) {
           const box = item.getBoundingClientRect();
           if (box.left < -slack || box.right > width + slack) out.push(`leyenda: ${name(item)}`);
         }

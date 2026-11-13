@@ -91,7 +91,9 @@ describe('SvgPlot', () => {
       />,
     );
 
-    expect(screen.getByRole('list', { name: 'Leyenda' })).toHaveTextContent('Tierra');
+    expect(screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' })).toHaveTextContent(
+      'Tierra',
+    );
   });
 
   test('a series drawn as arrows gets an arrow key in the legend; lines keep a plain line', () => {
@@ -104,7 +106,9 @@ describe('SvgPlot', () => {
         ]}
       />,
     );
-    const items = within(screen.getByRole('list', { name: 'Leyenda' })).getAllByRole('listitem');
+    const items = within(
+      screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' }),
+    ).getAllByRole('button');
 
     expect(items[0].querySelector('polygon')).toBeNull();
     expect(items[0].querySelector('line')).toBeInTheDocument();
@@ -121,7 +125,9 @@ describe('SvgPlot', () => {
   test('leaves a single series without a legend', () => {
     render(<SvgPlot {...PROPS} />);
 
-    expect(screen.queryByRole('list', { name: 'Leyenda' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('toolbar', { name: 'Leyenda: realzar una serie' }),
+    ).not.toBeInTheDocument();
   });
 
   test('breaks a series path at non-finite points', () => {
@@ -381,7 +387,9 @@ describe('SvgPlot notation', () => {
     );
 
     expect(
-      screen.getByRole('list', { name: 'Leyenda' }).querySelector('.inline-math'),
+      screen
+        .getByRole('toolbar', { name: 'Leyenda: realzar una serie' })
+        .querySelector('.inline-math'),
     ).not.toBeNull();
     const subscripts = [...container.querySelectorAll('svg[role="img"] tspan[font-size="75.0%"]')];
     expect(subscripts.map((tspan) => tspan.textContent)).toEqual(['x', 'y']);

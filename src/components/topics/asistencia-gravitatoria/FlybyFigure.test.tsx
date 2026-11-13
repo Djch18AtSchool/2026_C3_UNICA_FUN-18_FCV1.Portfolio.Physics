@@ -123,7 +123,7 @@ describe('FlybyFigure', () => {
 
   test('vis-viva: data dots on the bound orbit before Jupiter and on a hyperbolic one after', () => {
     const { container } = render(<FlybyFigure variant="vis-viva" />);
-    const legend = screen.getByRole('list', { name: 'Leyenda' });
+    const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
     expect(legend).toHaveTextContent('Datos de Horizons');
     expect(legend).toHaveTextContent('Solo el Sol antes de Júpiter');
@@ -144,18 +144,18 @@ describe('FlybyFigure', () => {
     expect(container.querySelector('[data-planet="jupiter"]')?.getAttribute('fill')).toBe(
       'var(--jupiter)',
     );
-    expect(screen.getByRole('list', { name: 'Leyenda' })).toHaveTextContent(
+    expect(screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' })).toHaveTextContent(
       'hipérbola con e = 1,330',
     );
     expect(screen.getByText(svgText('δ = 97,5°'))).toBeInTheDocument();
     expect(screen.getByText(svgText('rp = 10,09 RJ'))).toBeInTheDocument();
     expect(screen.getAllByText(svgText('v∞'))).toHaveLength(2);
-    expect(mathSourceText(screen.getByRole('list', { name: 'Leyenda' }))).toContain(
-      'Flechas $\\vec v_\\infty$ al entrar y al salir: 7,62\u202fkm/s',
-    );
+    expect(
+      mathSourceText(screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' })),
+    ).toContain('Flechas $\\vec v_\\infty$ al entrar y al salir: 7,62\u202fkm/s');
     // The v∞ arrows are keyed by an arrow, not by the trajectory's plain line.
-    const keys = within(screen.getByRole('list', { name: 'Leyenda' }))
-      .getAllByRole('listitem')
+    const keys = within(screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' }))
+      .getAllByRole('button')
       .map((item) => (item.querySelector('polygon') ? 'flecha' : 'línea'));
     expect(keys).toEqual(['línea', 'flecha', 'línea']);
     expect(screen.getByRole('img', { name: /721\u202f375\u202fkm/ })).toBeInTheDocument();
