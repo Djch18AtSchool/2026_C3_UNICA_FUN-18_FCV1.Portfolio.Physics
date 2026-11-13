@@ -46,7 +46,10 @@ export default function RouteZoomLayer({
   const { zoom, viewportProps } = routeZoom;
   const spot = routeScaleBarSpot({ left, top, width, height });
   const bar = { pxPerUnit: plotPxPerMetre(scales.x), units: ROUTE_SCALE_UNITS, maxPx: spot.maxPx };
-  const drawnBar = <ScaleBarSvg {...bar} x={spot.x} y={spot.y} anchor="end" backdrop />;
+  // Over the drawing it sits on a plate; over the plot, in the margin, there is nothing to cover.
+  const drawnBar = (
+    <ScaleBarSvg {...bar} x={spot.x} y={spot.y} anchor="end" backdrop={!spot.isAbovePlot} />
+  );
   return (
     <>
       <foreignObject x={left} y={top} width={width} height={height}>

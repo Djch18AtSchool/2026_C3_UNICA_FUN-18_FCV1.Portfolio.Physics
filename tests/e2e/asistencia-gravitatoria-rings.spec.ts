@@ -232,12 +232,36 @@ for (const theme of ['light', 'dark'] as const) {
             getComputedStyle(svg.ownerDocument.documentElement).getPropertyValue('--bg-elevated'),
           );
         const [c, b, a] = colors.map(toHex);
+        const edges = (
+          await lab
+            .locator(`${FRAME} [data-ring-edge]`)
+            .evaluateAll((circles) => circles.map((circle) => getComputedStyle(circle).stroke))
+        ).map(toHex);
+        const contour = toHex(
+          await lab
+            .getByTestId('flyby-planet')
+            .evaluate((circle) => getComputedStyle(circle).stroke),
+        );
 
-        expect(b).toBe(toHex(planet));
+        // The fills are paler than the globe (C fainter); each band keeps a 3:1 outline in the
+        // token (C darker), and the globe's contour stands 3:1 apart from every fill (round 2, I2).
+        expect(b).not.toBe(toHex(planet));
         expect(a).toBe(b);
         expect(c).not.toBe(b);
-        for (const ring of [c, b]) {
-          expect(contrastRatio(ring, surface.trim())).toBeGreaterThanOrEqual(NON_TEXT_MIN);
+        expect(edges.slice(2)).toEqual([
+          toHex(planet),
+          toHex(planet),
+          toHex(planet),
+          toHex(planet),
+        ]);
+        expect(edges[0]).not.toBe(toHex(planet));
+        for (const edge of [edges[0], edges[2]]) {
+          expect(contrastRatio(edge, surface.trim())).toBeGreaterThanOrEqual(NON_TEXT_MIN);
+        }
+        for (const fill of [c, b]) {
+          expect(contrastRatio(contour, fill), `contorno sobre ${fill}`).toBeGreaterThanOrEqual(
+            NON_TEXT_MIN,
+          );
         }
 
         const ringBox = (await lab.getByTestId('flyby-rings').boundingBox())!;
