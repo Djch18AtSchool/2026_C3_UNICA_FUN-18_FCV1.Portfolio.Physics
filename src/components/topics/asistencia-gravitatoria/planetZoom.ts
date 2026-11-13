@@ -17,9 +17,6 @@ import {
 import { inlineMathToNotation } from '../../lab/timeScaleFormat';
 import { MIN_PLANET_PX } from './flybyScene';
 
-/** Room under the drawing's square, in the zoomed canvas, for the zoom buttons: 40 px + margins. */
-export const ZOOM_STRIP_PX = 48;
-
 /** The bar's ladder: kilometres, then the planet's radius («$R_J$»), which is `radiusKm` of them. */
 export function planetScaleUnits(unit: string, radiusKm: number): readonly ScaleUnit[] {
   return [

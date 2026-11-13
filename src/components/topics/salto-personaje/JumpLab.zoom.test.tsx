@@ -7,7 +7,7 @@ import { installDialogPolyfill } from '../../../test-dialog';
 import { mathSourceText } from '../../../test-inline-math';
 import { readout } from '../../../test-readout';
 import JumpLab from './JumpLab';
-import { ZOOM_STRIP_PX } from './jumpZoom';
+import { ZOOM_STRIP_PX } from '../../lab/ZoomControls';
 
 /**
  * The plot reports the width it is laid out in (the wide layout); the zoom viewport, the plot area

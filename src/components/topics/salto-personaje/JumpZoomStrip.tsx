@@ -8,8 +8,7 @@
  */
 import type { JSX } from 'react';
 import type { ZoomPan } from '../../lab/useZoomPan';
-import ZoomControls from '../../lab/ZoomControls';
-import { ZOOM_STRIP_PX } from './jumpZoom';
+import ZoomControls, { ZOOM_STRIP_PX } from '../../lab/ZoomControls';
 
 export default function JumpZoomStrip({ zoom }: { zoom: ZoomPan }): JSX.Element {
   return (

@@ -6,6 +6,7 @@
  */
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { ZOOM_ROW_WIDTH_PX, ZOOM_STRIP_PX } from '../../src/components/lab/ZoomControls';
 import { seekTimeline, waitForIsland } from './helpers';
 
 const PAGE = './temas/gravedad-artificial/';
@@ -20,7 +21,6 @@ const WHEEL_NOTCH_PX = 100;
 const PAN_STEP_PX = 48;
 const BUTTON_PX = 40;
 const GLYPH_PX = 20;
-const STRIP_ROW_PX = 48;
 /** The width below which the strip stacks (HabitatZoomStrip) and the lab's own breakpoint. */
 const STACK_BELOW_PX = 293;
 const PX_SLACK = 1.5;
@@ -444,7 +444,7 @@ for (const size of [DESKTOP, PHONE, NARROW]) {
       // One row of 48 px when the lab is wide enough for both, two when it is not.
       const rows =
         (await lab.locator('[data-lab-canvas]').boundingBox())!.width < STACK_BELOW_PX ? 2 : 1;
-      expect(stripBox.height).toBe(rows * STRIP_ROW_PX);
+      expect(stripBox.height).toBe(rows * ZOOM_STRIP_PX);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         size.width,
       );
@@ -542,3 +542,16 @@ for (const size of LABEL_VIEWPORTS) {
     }
   });
 }
+
+test('la fila de botones mide lo que ZOOM_ROW_WIDTH_PX supone, a ×1 y a ×8', async ({ page }) => {
+  await page.setViewportSize(DESKTOP);
+  const lab = await openLab(page);
+  const group = lab.locator('[data-zoom-controls]');
+
+  expect((await group.boundingBox())?.width).toBeCloseTo(ZOOM_ROW_WIDTH_PX, 0);
+  for (let click = 0; click < MAX_ZOOM_CLICKS; click += 1) {
+    await zoomButton(lab, 'Acercar').click();
+  }
+  await expect(factor(lab)).toHaveText('×8');
+  expect((await group.boundingBox())?.width).toBeCloseTo(ZOOM_ROW_WIDTH_PX, 0);
+});

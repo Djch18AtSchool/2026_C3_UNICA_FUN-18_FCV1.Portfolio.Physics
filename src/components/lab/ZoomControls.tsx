@@ -27,6 +27,11 @@ import { formatZoomFactor, zoomSpoken } from './zoomMath';
  * desplazamiento»): what a strip leaves beside its scale bar (inlineScaleBarMaxPx).
  */
 export const ZOOM_ROW_WIDTH_PX = 191;
+/**
+ * Height of the strip of one row under a canvas (Temas 2, 3, 8 and 9): the buttons' 40 px with
+ * 4 px of air above and below, so the strip measures the same on the server and in the browser.
+ */
+export const ZOOM_STRIP_PX = 48;
 /** A glide or a held key changes the zoom many times; it is said once it holds this long. */
 export const ZOOM_ANNOUNCE_DELAY_MS = 500;
 export const ZOOM_INSTRUCTIONS =

@@ -29,7 +29,7 @@ import { useFrameDerived } from '../../lab/useFrameTime';
 import { useKnobReveal } from '../../lab/useKnobReveal';
 import { useRefit } from '../../lab/useRefit';
 import { useZoomPan, type ZoomPan } from '../../lab/useZoomPan';
-import ZoomControls from '../../lab/ZoomControls';
+import ZoomControls, { ZOOM_STRIP_PX } from '../../lab/ZoomControls';
 import type { FlybyHyperbola, FlybyState } from './flybyOrbit';
 import { ARROW_PX, RP_RANGE, rpFromDistance, rpKeyTarget } from './flybyScene';
 import { LABEL_BASELINE_DROP } from './flybyLabels';
@@ -60,7 +60,7 @@ import {
   type ScreenFrame,
 } from './planetGeometry';
 import { describeRings, type RingOnScreen } from './planetRings';
-import { barMaxBesideNote, frameScaleBar, planetScaleUnits, ZOOM_STRIP_PX } from './planetZoom';
+import { barMaxBesideNote, frameScaleBar, planetScaleUnits } from './planetZoom';
 import { rpText } from './RpField';
 
 /** Colors by meaning, shared with the Sun frame and the legend. */

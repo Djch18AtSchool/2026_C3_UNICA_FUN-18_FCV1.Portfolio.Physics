@@ -6,7 +6,7 @@ import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { installDialogPolyfill } from '../../../test-dialog';
 import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX } from '../../lab/scaleBarMath';
 import FlybyLab from './FlybyLab';
-import { ZOOM_STRIP_PX } from './planetZoom';
+import { ZOOM_STRIP_PX } from '../../lab/ZoomControls';
 
 /** The widest frame (MAX_SIDE): the drawing's square, which is also the canvas the zoom measures. */
 const WIDTH = 380;

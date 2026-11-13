@@ -8,6 +8,7 @@ import { monoTextWidth } from '../../lab/plotScales';
 import TimeScaleBadge from '../../lab/TimeScaleBadge';
 import { useFrameTime } from '../../lab/useFrameTime';
 import { useZoomPan } from '../../lab/useZoomPan';
+import { ZOOM_STRIP_PX } from '../../lab/ZoomControls';
 import { AC_COLOR, GAP_COLOR, OMEGA_COLOR } from './habitatColors';
 import {
   pxPerMetre,
@@ -66,8 +67,6 @@ const BAR_SIDE_PAD = 30;
 const BAR_TOP_GAP = 34;
 /** Under the track: tick labels and captions. */
 const BAR_BOTTOM = 50;
-/** One row of the zoom strip: the scale bar or the buttons (40 px) with air around them. */
-const STRIP_ROW = 48;
 const NOTE_SIZE = 12;
 const DEG = Math.PI / 180;
 /** Decimals of the turn's angle attribute: a stable string per frame, a hundredth of a degree. */
@@ -244,12 +243,12 @@ function barHeight(width: number): number {
 
 /**
  * The drawing's height for a measured width: the ring's square (at most MAX_RING_AREA), the bar
- * under it, on a phone a second caption line, and the zoom strip (one row of STRIP_ROW; on a phone
+ * under it, on a phone a second caption line, and the zoom strip (one row of ZOOM_STRIP_PX; on a phone
  * the scale bar and the buttons each take one).
  */
 export function sceneHeight(width: number): number {
   const stripRows = width < STRIP_STACK_BELOW ? 2 : 1;
-  return Math.min(width, MAX_RING_AREA) + barHeight(width) + stripRows * STRIP_ROW;
+  return Math.min(width, MAX_RING_AREA) + barHeight(width) + stripRows * ZOOM_STRIP_PX;
 }
 
 /** Below this width the bar is compact (COMPACT_BAR long) and carries the extra caption line. */
@@ -267,7 +266,7 @@ const BAR_RESERVED = `calc(${BAR_TOP_GAP + BAR_BOTTOM}px + ${step(CAPTION_LINE, 
  * reserves the height the browser will measure: the drawing is sized by its width and would
  * otherwise grow when it hydrates (a layout shift on a phone). Keep the two in step.
  */
-export const RESERVED_HEIGHT = `calc(${RING_AREA} + ${BAR_TOP_GAP + BAR_BOTTOM}px + ${step(CAPTION_LINE, COMPACT_BELOW)} + ${STRIP_ROW}px + ${step(STRIP_ROW, STRIP_STACK_BELOW)})`;
+export const RESERVED_HEIGHT = `calc(${RING_AREA} + ${BAR_TOP_GAP + BAR_BOTTOM}px + ${step(CAPTION_LINE, COMPACT_BELOW)} + ${ZOOM_STRIP_PX}px + ${step(ZOOM_STRIP_PX, STRIP_STACK_BELOW)})`;
 
 /** The ring's drawing at the lab's own framing, in the square the canvas measures. */
 function ringBase(r: number, width: number, side: number): RingBase {

@@ -5,6 +5,7 @@
  */
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { ROUTE_ZOOM_COLUMN_PX } from '../../src/components/topics/dron-reparto/routeZoom';
 import { labOrPlaceholder, waitForIsland } from './helpers';
 
 const PAGE = './temas/dron-reparto/';
@@ -687,4 +688,12 @@ test.describe('accessibility', () => {
     expect(outline.width).not.toBe('0px');
     expect(Number.parseFloat(outline.offset)).toBeLessThan(0);
   });
+});
+
+test('la columna de botones mide lo que ROUTE_ZOOM_COLUMN_PX supone', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const controls = await page.locator(`${MAP} [data-zoom-controls]`).boundingBox();
+
+  expect(controls?.width).toBeCloseTo(ROUTE_ZOOM_COLUMN_PX.width, 0);
+  expect(controls?.height).toBeCloseTo(ROUTE_ZOOM_COLUMN_PX.height, 0);
 });

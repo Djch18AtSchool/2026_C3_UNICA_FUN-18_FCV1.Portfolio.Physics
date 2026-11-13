@@ -32,9 +32,6 @@ export interface SceneWindow {
 /** The scale bar counts in metres: a jump is a few metres wide (down to centimetres zoomed in). */
 export const JUMP_SCALE_UNITS: readonly ScaleUnit[] = [{ label: 'm', size: 1 }];
 
-/** Height of the strip under the plot that holds the zoom buttons (a 42 px row and 3 px of air). */
-export const ZOOM_STRIP_PX = 48;
-
 /**
  * Characters of the widest y tick label of any window the zoom can show, «3,25»: SvgPlot reserves
  * the left margin of a compact plot for it (minYLabelChars) at every zoom, so the plot's size, and
