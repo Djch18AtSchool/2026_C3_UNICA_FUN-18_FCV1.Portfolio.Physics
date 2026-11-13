@@ -181,7 +181,7 @@ describe('the mode’s own notes («Cómo se usa», «Qué deja fuera el modelo�
     expect(text).toMatch(/239 kW/);
     expect(text).toMatch(/rueda libre/);
     // The LEAF gets the Model 3's motor too, not only its chassis (review D3, M4).
-    expect(text).toMatch(/El LEAF usa el mismo chasis y el mismo motor de 239 kW\./);
+    expect(text).toMatch(/En el modelo, el preajuste del LEAF usa el mismo chasis y el mismo motor de 239 kW que el del Model 3\./);
   });
 
   test('the canvas note tells the two cars and the two curves apart without color', () => {
