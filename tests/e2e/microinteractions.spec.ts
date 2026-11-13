@@ -284,7 +284,8 @@ test.describe('el asidero', () => {
     await page.mouse.down();
 
     await expect(knob(lab)).toHaveAttribute('data-dragging', '');
-    await expect(knob(lab)).toHaveCSS('cursor', 'grabbing');
+    // A handle on one axis keeps its axis cursor while dragged (M7, round 2).
+    await expect(knob(lab)).toHaveCSS('cursor', 'ew-resize');
     await expect(dot(lab)).toHaveCSS('transition-duration', FAST);
     await expect
       .poll(async () => (await centreOf(dot(lab))).width / before.width)

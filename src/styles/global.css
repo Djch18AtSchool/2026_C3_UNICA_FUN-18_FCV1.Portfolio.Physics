@@ -90,11 +90,12 @@
 
 /*
  * A dragged handle (useDrag and the plot cursor mark it data-dragging, dragMark.ts) shows the
- * grabbing cursor and grows its knob about the knob's own centre, so neither the centre nor the
+ * grabbing cursor (a handle on one axis keeps its ew/ns-resize: the axis is what it says while
+ * dragged too) and grows its knob about the knob's own centre, so neither the centre nor the
  * hit area nor the drag's maths move. Unlayered, so the handles' cursor utilities give way. With
  * reduced motion (the system's, below, or the site's: data-motion on the root) it grows at once.
  */
-[data-dragging] {
+[data-dragging]:not(.cursor-ew-resize, .cursor-ns-resize) {
   cursor: grabbing;
 }
 

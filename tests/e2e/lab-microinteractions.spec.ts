@@ -51,6 +51,33 @@ function contrast(a: string, b: string): number {
 }
 
 const KNOB_LABS = TOPIC_PAGES.filter(({ number }) => number !== 4 && number !== 6);
+const AXIS_CURSORS = ['ew-resize', 'ns-resize'];
+
+/** The labs with a handle on one axis (the jump's marker, the habitat's radius, the drop height). */
+const AXIS_LABS = TOPIC_PAGES.filter(({ number }) => [2, 3, 7].includes(number));
+
+for (const topic of AXIS_LABS) {
+  test(`Tema ${topic.number}: un asidero de un eje conserva su cursor de eje mientras se arrastra (M7)`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const lab = await openLab(page, topic);
+    const handle = lab
+      .locator('[data-lab-canvas] [role="slider"]:is(.cursor-ew-resize, .cursor-ns-resize)')
+      .first();
+    await handle.evaluate((node) => node.scrollIntoView({ block: 'center' }));
+    const resting = await handle.evaluate((node) => getComputedStyle(node).cursor);
+    expect(AXIS_CURSORS).toContain(resting);
+    const dot = await centreOf(handle.locator('[data-knob]'));
+
+    await page.mouse.move(dot.x, dot.y);
+    await page.mouse.down();
+
+    await expect(handle).toHaveAttribute('data-dragging', '');
+    await expect(handle).toHaveCSS('cursor', resting);
+    await page.mouse.up();
+  });
+}
 
 for (const topic of KNOB_LABS) {
   test.describe(`Tema ${topic.number}, el asidero`, () => {
@@ -64,12 +91,15 @@ for (const topic of KNOB_LABS) {
       if (!handle) throw new Error(`el Tema ${topic.number} no tiene asidero con perilla`);
       const dot = handle.locator('[data-knob]');
       const before = await centreOf(dot);
+      // A handle on one axis says it with its cursor, at rest and dragged; a free one grabs.
+      const resting = await handle.evaluate((node) => getComputedStyle(node).cursor);
+      const dragged = AXIS_CURSORS.includes(resting) ? resting : 'grabbing';
 
       await page.mouse.move(before.x, before.y);
       await page.mouse.down();
 
       await expect(handle).toHaveAttribute('data-dragging', '');
-      await expect(handle).toHaveCSS('cursor', 'grabbing');
+      await expect(handle).toHaveCSS('cursor', dragged);
       await expect
         .poll(async () => (await centreOf(dot)).width / before.width)
         .toBeCloseTo(KNOB_GROWTH, 2);
