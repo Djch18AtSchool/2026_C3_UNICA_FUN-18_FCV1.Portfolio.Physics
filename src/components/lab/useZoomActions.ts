@@ -1,5 +1,6 @@
 /**
- * What useZoomPan does on request: steps about the centre, «Ajustar», «1:1», a pan, a reveal (and
+ * What useZoomPan does on request: steps about the lab's anchor or the centre, «Ajustar», «1:1», a
+ * pan, a reveal (and
  * the canvas' own reveal of a focused descendant, unless a pointer pressing gave the focus), and
  * the keys + − 0 and the arrows.
  */
@@ -11,6 +12,7 @@ import {
   fitView,
   panBy,
   revealView,
+  stepPivot,
   toWorld,
   viewsEqual,
   zoomAt,
@@ -46,6 +48,8 @@ interface Refs {
   commit(view: ZoomView): void;
   /** Whether a pointer is pressing inside the canvas (usePointerPress). */
   isPressing(): boolean;
+  /** The lab's point to zoom about (useZoomPan's `anchor`), read at each step. */
+  anchorRef: { current: (() => ZoomPoint | undefined) | undefined };
 }
 
 export interface ZoomActions {
@@ -67,16 +71,19 @@ function focusedBox(target: Element, viewport: Element, view: ZoomView): ZoomBox
   return { ...corner, width: box.width / view.scale, height: box.height / view.scale };
 }
 
-/** Steps about the centre, «Ajustar» and «1:1», all gliding from where the view is heading. */
-function useZoomSteps({ frameRef }: Refs, glide: ViewTransition) {
+/**
+ * Steps about the lab's anchor (or the centre: stepPivot), «Ajustar» and «1:1», all gliding from
+ * where the view is heading.
+ */
+function useZoomSteps({ frameRef, anchorRef }: Refs, glide: ViewTransition) {
   const { animateTo, destination } = glide;
   const step = useCallback(
     (factor: number) => {
-      const { viewport } = frameRef.current;
-      const centre = { x: viewport.width / 2, y: viewport.height / 2 };
-      animateTo(zoomAt(destination(), factor, centre, frameRef.current));
+      const from = destination();
+      const pivot = stepPivot(from, frameRef.current.viewport, anchorRef.current?.());
+      animateTo(zoomAt(from, factor, pivot, frameRef.current));
     },
-    [animateTo, destination, frameRef],
+    [animateTo, anchorRef, destination, frameRef],
   );
   const zoomIn = useCallback(() => step(ZOOM_STEP), [step]);
   const zoomOut = useCallback(() => step(1 / ZOOM_STEP), [step]);

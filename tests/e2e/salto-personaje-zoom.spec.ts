@@ -522,6 +522,9 @@ test.describe('the mouse', () => {
   });
 });
 
+/** Arrow presses on the focused canvas that carry a ×8 view off the launch point (48 px each). */
+const PAN_AWAY_PRESSES = 8;
+
 for (const size of VIEWPORTS) {
   test.describe(`the handles at ${size.width} px`, () => {
     test.use({ viewport: size });
@@ -532,7 +535,11 @@ for (const size of VIEWPORTS) {
       }) => {
         await press(page, 'Acercar', STEPS_TO_LIMIT);
         await expect.poll(() => readFactor(page)).toBe(`×${MAX_SCALE}`);
-        expect(await isKnobInPlot(page, handle)).toBe(false);
+        // «Acercar» zooms about the launch point (R33), so the handles stay in view: pan away
+        // with the canvas' arrows first.
+        await viewport(page).focus();
+        for (let key = 0; key < PAN_AWAY_PRESSES; key += 1) await page.keyboard.press('ArrowRight');
+        await expect.poll(() => isKnobInPlot(page, handle)).toBe(false);
 
         await focusWithKeyboard(page, page.getByTestId(handle));
 

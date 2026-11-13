@@ -152,6 +152,49 @@ describe('useZoomPan', () => {
       expect(latest.canActualSize).toBe(true);
     });
 
+    test('with an anchor (R33), the buttons and the keys zoom about it, not about the centre', () => {
+      const anchor = { x: 60, y: 240 };
+      const { viewport } = renderCanvas({ anchor: () => anchor });
+
+      act(() => latest.zoomIn());
+      expect(latest.toScreen(anchor).x).toBeCloseTo(60, 9);
+      expect(latest.toScreen(anchor).y).toBeCloseTo(240, 9);
+      act(() => latest.zoomIn());
+      key(viewport, '+');
+      expect(latest.view.scale).toBeCloseTo(ZOOM_STEP ** 3, 9);
+      expect(latest.toScreen(anchor).x).toBeCloseTo(60, 9);
+      key(viewport, '-');
+      act(() => latest.zoomOut());
+      expect(latest.toScreen(anchor).y).toBeCloseTo(240, 9);
+    });
+
+    test('an anchor the reader panned out of view gives the centre back to the buttons', () => {
+      const anchor = { x: 20, y: 20 };
+      renderCanvas({ anchor: () => anchor });
+      act(() => {
+        for (let i = 0; i < 4; i += 1) latest.zoomIn();
+      });
+      act(() => latest.panBy({ x: -600, y: -400 }));
+      expect(latest.toScreen(anchor).x).toBeLessThan(0);
+      const centre = latest.toWorld({ x: 200, y: 150 });
+
+      act(() => latest.zoomOut());
+
+      expect(latest.toScreen(centre).x).toBeCloseTo(200, 9);
+      expect(latest.toScreen(centre).y).toBeCloseTo(150, 9);
+    });
+
+    test('the anchor is read when the button is pressed: a lab whose point moves gives the new one', () => {
+      let anchor = { x: 100, y: 100 };
+      renderCanvas({ anchor: () => anchor });
+      anchor = { x: 300, y: 200 };
+
+      act(() => latest.zoomIn());
+
+      expect(latest.toScreen(anchor).x).toBeCloseTo(300, 9);
+      expect(latest.toScreen(anchor).y).toBeCloseTo(200, 9);
+    });
+
     test('zoomIn stops at the maximum and says so', () => {
       renderCanvas();
 

@@ -1,4 +1,4 @@
-import type { JSX } from 'react';
+import { useRef, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { LINE_WIDTH, SURFACE_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
@@ -9,6 +9,7 @@ import { useZoomPan } from '../../lab/useZoomPan';
 import { AC_COLOR, GAP_COLOR, OMEGA_COLOR } from './habitatColors';
 import {
   pxPerMetre,
+  restingPerson,
   screenRing,
   SPOKE_WIDTH,
   spinLayout,
@@ -382,10 +383,14 @@ function RingDrawing({ props, ring, width, side }: RingDrawingProps): JSX.Elemen
 export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
   const { r, refit, onRadiusChange } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
-  const zoom = useZoomPan({ label: 'Anillo del hábitat' });
+  // The buttons and keys zoom about the person at rest, on the floor under the hub (R33): the ring
+  // turns with the clock, so its resting place is the one point of interest that does not move.
+  const anchorRef = useRef<Point | undefined>(undefined);
+  const zoom = useZoomPan({ label: 'Anillo del hábitat', anchor: () => anchorRef.current });
   useRefit(zoom, refit);
   const side = Math.min(width, MAX_RING_AREA);
   const base = ringBase(r, width, side);
+  anchorRef.current = restingPerson(base);
 
   return (
     <div className="@container w-full">

@@ -1,5 +1,6 @@
 import {
   useMemo,
+  useRef,
   useState,
   type JSX,
   type FocusEvent,
@@ -406,10 +407,12 @@ interface FrameBodyProps {
   props: PlanetFrameProps;
   panel: Panel;
   zoom: ZoomPan;
+  /** Where the planet's centre is drawn (drawing units): the point the zoom buttons keep (R33). */
+  anchorRef: { current: Point | undefined };
 }
 
 /** Everything the frame draws, from its props, the panel and the zoom's view. */
-function useFrameModel({ props, panel, zoom }: FrameBodyProps) {
+function useFrameModel({ props, panel, zoom, anchorRef }: FrameBodyProps) {
   const { hyperbola, planet, rp, unit, clock, onRpRequest } = props;
   const { width, height: side } = panel;
   const world = useMemo(
@@ -419,6 +422,7 @@ function useFrameModel({ props, panel, zoom }: FrameBodyProps) {
   /** While the handle is dragged the planet stays put, so the pointer maps to r_p stably. */
   const [heldCentre, setHeldCentre] = useState<Point | null>(null);
   const centre = heldCentre ?? world.fitted;
+  anchorRef.current = centre;
   const screen = screenFrame(world, centre, zoom.view, hyperbola, planet);
   const pxPerKm = world.view.scale * zoom.view.scale;
   const bar = frameScaleBar(pxPerKm, unit, planet.radiusKm);
@@ -559,8 +563,9 @@ function FrameSvg({ props, panel, model }: FrameSvgProps): JSX.Element {
 }
 
 /** The flyby in the planet frame, to the scale the log bar sets, through the zoom's view. */
-function Frame({ props, panel, zoom }: FrameBodyProps): JSX.Element {
-  const model = useFrameModel({ props, panel, zoom });
+function Frame(body: FrameBodyProps): JSX.Element {
+  const { props, panel, zoom } = body;
+  const model = useFrameModel(body);
   const units = planetScaleUnits(props.unit, props.planet.radiusKm);
   return (
     <>
@@ -582,14 +587,19 @@ function Frame({ props, panel, zoom }: FrameBodyProps): JSX.Element {
 export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const side = Math.min(width, MAX_SIDE);
-  const zoom = useZoomPan({ label: `Marco de ${props.planet.name}` });
+  // The buttons and keys zoom about the planet (R33), not the square's centre.
+  const anchorRef = useRef<Point | undefined>(undefined);
+  const zoom = useZoomPan({
+    label: `Marco de ${props.planet.name}`,
+    anchor: () => anchorRef.current,
+  });
   useRefit(zoom, props.refit);
   return (
     // Never wider than MAX_SIDE: the server draws at FALLBACK_WIDTH with the same proportions, so
     // a frame in a wide column (the two-column lab's stage) keeps its height on hydration (no CLS).
     <div ref={wrapperRef} className="w-full" style={{ maxWidth: MAX_SIDE }}>
       <div {...zoom.viewportProps} className="relative">
-        <Frame props={props} panel={{ width, height: side }} zoom={zoom} />
+        <Frame props={props} panel={{ width, height: side }} zoom={zoom} anchorRef={anchorRef} />
       </div>
       {/* Outside the canvas: the zoom measures the drawing's square (bounds, the buttons' pivot, the
           reveal's margins), and focusing or pressing a button must not pan the drawing. */}

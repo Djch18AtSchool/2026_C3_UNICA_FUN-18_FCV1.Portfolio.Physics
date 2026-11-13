@@ -17,6 +17,8 @@ import {
   ROUTE_KNOB_RADIUS_PX,
   routeScaleBarMaxPx,
   routeScaleBarSpot,
+  routeFocus,
+  mapToDrawing,
   ROUTE_ZOOM_COLUMN_PX,
   zoomedWindow,
   type PlotSize,
@@ -267,3 +269,30 @@ describe('routeScaleBarSpot', () => {
 
 /** The bar's ticks, gap and words above its line (ScaleBarSvg). */
 const SCALE_BAR_HEIGHT_PX = SCALE_BAR_TICK + SCALE_BAR_LABEL_GAP + SCALE_BAR_LABEL_SIZE;
+
+describe('routeFocus and mapToDrawing (R33: what the map zooms about)', () => {
+  const stops = [
+    { x: 0, y: 0 },
+    { x: 600, y: 200 },
+    { x: 900, y: 800 },
+    { x: 300, y: 1100 },
+  ];
+
+  test('in «Tramo», the middle of the leg; in «Ruta», the centroid of the stops', () => {
+    expect(routeFocus(stops, [stops[1], stops[2]])).toEqual({ x: 750, y: 500 });
+    expect(routeFocus(stops)).toEqual({ x: 450, y: 525 });
+  });
+
+  test('a map point lands in the plot where the ×1 window draws it, and boxAroundPoint is centred there', () => {
+    const plot = { width: 300, height: 300 };
+    const corner = mapToDrawing({ x: MAP_DOMAIN.x.min, y: MAP_DOMAIN.y.max }, plot);
+    const far = mapToDrawing({ x: MAP_DOMAIN.x.max, y: MAP_DOMAIN.y.min }, plot);
+    expect(corner).toEqual({ x: 0, y: 0 });
+    expect(far.x).toBeCloseTo(300, 9);
+    expect(far.y).toBeCloseTo(300, 9);
+    const box = boxAroundPoint({ x: 750, y: 500 }, plot, 10);
+    const centre = mapToDrawing({ x: 750, y: 500 }, plot);
+    expect(box.x + box.width / 2).toBeCloseTo(centre.x, 9);
+    expect(box.y + box.height / 2).toBeCloseTo(centre.y, 9);
+  });
+});

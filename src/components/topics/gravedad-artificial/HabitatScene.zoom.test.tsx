@@ -5,6 +5,7 @@ import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
 import { createFrameStore } from '../../lab/frameStore';
 import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX } from '../../lab/scaleBarMath';
 import HabitatScene, { type HabitatSceneProps } from './HabitatScene';
+import { personHeight } from './habitatRing';
 
 /** The scene measures 400 px: the ring square is 400 × 400 and the zoom's viewport is the same. */
 const WIDTH = 400;
@@ -105,18 +106,27 @@ describe('the habitat scene zoom', () => {
     expect(canvas).not.toContainElement(button('Acercar'));
   });
 
-  test('«Acercar» scales the ring and the person by √2 and keeps the hub at the centre', () => {
+  test('«Acercar» scales the ring and the person by √2 about the person at rest, not the hub (R33)', () => {
     renderScene();
     const ring = ringRadius();
     const head = personHead();
-
-    zoomIn(1);
-
-    expect(ringRadius()).toBeCloseTo(ring * ZOOM_STEP, 6);
-    expect(personHead()).toBeCloseTo(head * ZOOM_STEP, 6);
     const hub = document.querySelector('[data-hub]') as SVGCircleElement;
-    expect(Number(hub.getAttribute('cx'))).toBeCloseTo(WIDTH / 2, 6);
-    expect(Number(hub.getAttribute('cy'))).toBeCloseTo(WIDTH / 2, 6);
+    const hubAt = () => ({ x: Number(hub.getAttribute('cx')), y: Number(hub.getAttribute('cy')) });
+    // The middle of the person, on the floor under the hub: the point the buttons keep in place.
+    const middle = () => ({
+      x: hubAt().x,
+      y: hubAt().y + ringRadius() - (personHeight(ring) * ringRadius()) / ring / 2,
+    });
+    const start = middle();
+
+    for (let step = 1; step <= 3; step += 1) {
+      zoomIn(1);
+      expect(ringRadius()).toBeCloseTo(ring * ZOOM_STEP ** step, 6);
+      expect(middle().x).toBeCloseTo(start.x, 6);
+      expect(middle().y).toBeCloseTo(start.y, 6);
+    }
+    expect(personHead()).toBeCloseTo(head * ZOOM_STEP ** 3, 6);
+    expect(hubAt().y).toBeLessThan(WIDTH / 2);
   });
 
   test('the scale bar is as long, in metres, as the ring radius says: its px over the ring px', () => {

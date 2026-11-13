@@ -12,6 +12,7 @@ import {
   REVEAL_MARGIN_PX,
   revealView,
   panBy,
+  stepPivot,
   requireZoomFrame,
   toScreen,
   toWorld,
@@ -374,5 +375,31 @@ describe('formatZoomFactor and zoomSpoken', () => {
     expect(zoomSpoken(2.5)).toBe('Zoom: 2,5 veces la escala del dibujo');
     expect(zoomSpoken(0.5)).toBe('Zoom: 0,5 veces la escala del dibujo');
     expect(zoomSpoken(1000)).toBe(`Zoom: 1${NNBSP}000 veces la escala del dibujo`);
+  });
+});
+
+describe('stepPivot', () => {
+  test('without an anchor, the viewport centre', () => {
+    expect(stepPivot(view(2, -100, -50), VIEWPORT)).toEqual({ x: 200, y: 150 });
+  });
+
+  test('an anchor in view is where it is drawn now', () => {
+    expect(stepPivot(view(2, -100, -50), VIEWPORT, { x: 80, y: 60 })).toEqual({ x: 60, y: 70 });
+  });
+
+  test('an anchor out of view (the reader panned away) falls back to the centre', () => {
+    expect(stepPivot(view(4, -800, 0), VIEWPORT, { x: 50, y: 50 })).toEqual({ x: 200, y: 150 });
+    expect(stepPivot(IDENTITY_VIEW, VIEWPORT, { x: Number.NaN, y: 0 })).toEqual({ x: 200, y: 150 });
+  });
+
+  test('zooming about it keeps the anchor where it is on screen, step after step', () => {
+    const anchor = { x: 90, y: 220 };
+    let current: ZoomView = IDENTITY_VIEW;
+    for (let step = 0; step < 6; step += 1) {
+      current = zoomAt(current, Math.SQRT2, stepPivot(current, VIEWPORT, anchor), frame());
+      const onScreen = toScreen(current, anchor);
+      expect(onScreen.x).toBeCloseTo(90, 9);
+      expect(onScreen.y).toBeCloseTo(220, 9);
+    }
   });
 });

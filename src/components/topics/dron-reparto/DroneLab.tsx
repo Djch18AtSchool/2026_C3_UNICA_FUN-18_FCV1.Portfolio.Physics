@@ -27,6 +27,7 @@ import type { StopIndex } from './RouteOverlay';
 import RouteViewFields from './RouteViewFields';
 import { useEditableRoute, type EditableRoute, type Limits } from './useEditableRoute';
 import { useRouteView, useViewFlight, type RouteViewState, type ViewFlight } from './useRouteView';
+import { routeFocus } from './routeZoom';
 import { useRouteZoom, type RouteZoom } from './useRouteZoom';
 
 /** Ranges of the main parameters (spec §8.3). */
@@ -215,7 +216,9 @@ function DroneLabView({ declared, usage, leftOut }: DroneLabViewProps): JSX.Elem
   const routeView = useRouteView(route.def);
   const { clock, span, routeTime } = routeView;
   const flight = useViewFlight(route.samples, routeView);
-  const routeZoom = useRouteZoom();
+  const routeZoom = useRouteZoom(
+    routeFocus(editing.shownStops, shownLeg(routeView, editing.shownStops)),
+  );
   const { fit: fitMap } = routeZoom.zoom;
   // Another view of the route or another leg of it: the map goes back to its whole window.
   const { view: selectedView, leg: selectedLeg } = routeView.selection;

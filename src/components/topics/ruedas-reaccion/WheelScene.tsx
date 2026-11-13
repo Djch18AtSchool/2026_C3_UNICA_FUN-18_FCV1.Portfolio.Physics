@@ -1,4 +1,4 @@
-import type { JSX } from 'react';
+import { useRef, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { mathTextToString } from '../../../lib/mathNotation';
 import {
@@ -503,9 +503,12 @@ function SceneSvg({ props, geometry, keys }: SceneSvgProps): JSX.Element {
  */
 export default function WheelScene(props: WheelSceneProps): JSX.Element {
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
-  const zoom = useZoomPan({ label: ZOOM_LABEL });
+  // The buttons and keys zoom about the craft, the dial's centre (R33).
+  const anchorRef = useRef<Point | undefined>(undefined);
+  const zoom = useZoomPan({ label: ZOOM_LABEL, anchor: () => anchorRef.current });
   useRefit(zoom, props.refit);
   const { geometry: base } = layout(width);
+  anchorRef.current = base.c;
   const geometry = zoomGeometry(base, zoom.view);
   const keys = useTargetReveal({
     targetDeg: props.targetDeg,

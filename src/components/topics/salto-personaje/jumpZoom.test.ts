@@ -13,6 +13,7 @@ import {
   jumpScaleBarMaxPx,
   launchTipMetres,
   metresBox,
+  metresToDrawing,
   plotAreaOf,
   plotPxPerMetre,
   steadyLengthPerMs,
@@ -282,5 +283,26 @@ describe('JUMP_Y_LABEL_CHARS', () => {
       );
     });
     expect(Math.max(...reached)).toBe(JUMP_Y_LABEL_CHARS);
+  });
+});
+
+describe('metresToDrawing (R33: the launch point the buttons keep)', () => {
+  const PLOT: PlotSize = { width: 320, height: 160 };
+
+  test('the launch point lands where the ×1 window draws (0, 0), and the zoomed window keeps it there', () => {
+    const launch = metresToDrawing({ x: 0, y: 0 }, BASE, PLOT);
+    expect(launch.x).toBeCloseTo(((0 - BASE.x.min) / X_SPAN) * PLOT.width, 9);
+    expect(launch.y).toBeCloseTo(((BASE.y.max - 0) / Y_SPAN) * PLOT.height, 9);
+    // About that point, a ×4 view still shows (0, 0) at the same plot px.
+    const view = { scale: 4, x: launch.x - 4 * launch.x, y: launch.y - 4 * launch.y };
+    const window = zoomedWindow(BASE, view, PLOT);
+    expect(((0 - window.x.min) / (window.x.max - window.x.min)) * PLOT.width).toBeCloseTo(
+      launch.x,
+      9,
+    );
+    expect(((window.y.max - 0) / (window.y.max - window.y.min)) * PLOT.height).toBeCloseTo(
+      launch.y,
+      9,
+    );
   });
 });

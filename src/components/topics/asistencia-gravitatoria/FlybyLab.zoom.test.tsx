@@ -152,7 +152,21 @@ describe('the planet frame zoom', () => {
     expect(button('Ajustar')).toHaveAttribute('aria-disabled', 'true');
   });
 
-  test('«Acercar» scales the planet by √2 about the centre and keeps the probe and the knob on the track', () => {
+  test('«Acercar» and «Alejar» zoom about the planet (R33): its centre stays where it is drawn', () => {
+    renderLab();
+    choosePreset('V2 · Saturno');
+    const start = centre('flyby-planet');
+
+    for (let step = 0; step < 6; step += 1) {
+      zoomIn(1);
+      expect(centre('flyby-planet').x).toBeCloseTo(start.x, 6);
+      expect(centre('flyby-planet').y).toBeCloseTo(start.y, 6);
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Alejar' }));
+    expect(centre('flyby-planet').x).toBeCloseTo(start.x, 6);
+  });
+
+  test('«Acercar» scales the planet by √2 and keeps the probe and the knob on the track', () => {
     renderLab();
     choosePreset('V2 · Neptuno');
     const before = { planet: planetRadius(), centre: centre('flyby-planet') };

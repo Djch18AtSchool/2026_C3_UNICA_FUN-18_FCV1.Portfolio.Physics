@@ -44,6 +44,8 @@ async function renderLab() {
 
 const button = (name: string) => screen.getByRole('button', { name });
 const viewport = () => screen.getByRole('group', { name: 'Mapa de la ruta' });
+/** Arrow presses on the focused map that carry a ×8 view off the first leg. */
+const PAN_AWAY_PRESSES = 8;
 /** The text of the scale bar as a screen reader gets it, spaces plain. */
 const scaleBar = () =>
   (screen.getByText(/^Barra de escala:/).textContent ?? '').replace(/\s/g, ' ');
@@ -169,6 +171,11 @@ describe('the route map zoom', { timeout: TEST_TIMEOUT_MS }, () => {
   test('the drone marker keeps the map on it when a key seeks away', async () => {
     const { container } = await renderLab();
     for (let step = 0; step < 6; step += 1) await userEvent.click(button('Acercar'));
+    // The buttons zoom about the leg (R33): pan up, away from A, before seeking to it.
+    act(() => viewport().focus());
+    for (let press = 0; press < PAN_AWAY_PRESSES; press += 1) {
+      fireEvent.keyDown(viewport(), { key: 'ArrowUp' });
+    }
 
     const drone = screen.getByTestId('drone-marker');
     act(() => drone.focus());

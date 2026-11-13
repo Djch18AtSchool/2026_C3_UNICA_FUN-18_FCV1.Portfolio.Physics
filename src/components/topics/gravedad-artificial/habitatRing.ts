@@ -63,6 +63,19 @@ export function pxPerMetre(ringPx: number, radiusM: number, zoomScale: number): 
   return (ringPx / radiusM) * zoomScale;
 }
 
+/** The person's height at ×1 on a ring of `ring` px (it grows with the zoom like the ring). */
+export function personHeight(ring: number): number {
+  return Math.min(PERSON_HEIGHT, ring * PERSON_RING_SHARE);
+}
+
+/**
+ * The middle of the person at rest (angle 0), in drawing units: on the floor under the hub, half
+ * the person up. The point the zoom buttons keep (R33).
+ */
+export function restingPerson(base: RingBase): Point {
+  return { x: base.c.x, y: base.c.y + base.ring - personHeight(base.ring) / 2 };
+}
+
 /** Where the spinning parts sit, in screen px with the person at the bottom (angle 0). */
 export interface SpinLayout {
   floorY: number;
@@ -81,7 +94,7 @@ export function spinLayout(ring: ScreenRing, gRatio: number): SpinLayout {
   const floorY = c.y + ring.ring;
   const { length, isClipped } = vectorLength(gRatio, ring.unit);
   const offset = VECTOR_OFFSET * scale;
-  const person = Math.min(PERSON_HEIGHT * scale, ring.ring * PERSON_RING_SHARE);
+  const person = personHeight(ring.ring / scale) * scale;
   const gapStart = floorY - person / 2;
   const acFrom = { x: c.x + offset, y: floorY - 2 };
   const acToY = acFrom.y - length;

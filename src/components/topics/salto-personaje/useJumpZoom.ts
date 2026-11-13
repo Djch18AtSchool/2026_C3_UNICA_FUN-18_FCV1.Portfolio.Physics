@@ -14,7 +14,17 @@
 import { useCallback, useRef } from 'react';
 import { useZoomPan, type ZoomPan, type ZoomViewportProps } from '../../lab/useZoomPan';
 import type { ZoomPoint } from '../../lab/zoomMath';
-import { isPlotDrawn, metresBox, zoomedWindow, type PlotSize, type SceneWindow } from './jumpZoom';
+import {
+  isPlotDrawn,
+  metresBox,
+  metresToDrawing,
+  zoomedWindow,
+  type PlotSize,
+  type SceneWindow,
+} from './jumpZoom';
+
+/** The launch point, in m from itself: the jump's origin. */
+const LAUNCH_POINT: ZoomPoint = Object.freeze({ x: 0, y: 0 });
 
 /** A knob is 14 px across with a ring of 11 px: this far from its centre stays in view. */
 const REVEAL_RADIUS_PX = 12;
@@ -43,8 +53,11 @@ export interface JumpZoom {
 
 /** `base` is the window the lab frames for the current jump: the zoom's ×1. */
 export function useJumpZoom(base: SceneWindow): JumpZoom {
-  const zoom = useZoomPan({ label: PLOT_LABEL });
+  // The buttons and keys zoom about the launch point (R33), where every jump starts.
+  const anchorRef = useRef<ZoomPoint | undefined>(undefined);
+  const zoom = useZoomPan({ label: PLOT_LABEL, anchor: () => anchorRef.current });
   const plot: PlotSize = zoom.viewportSize;
+  anchorRef.current = metresToDrawing(LAUNCH_POINT, base, plot);
   const drawnRef = useRef<PlotSize>(UNMEASURED);
   const noteDrawn = useCallback((drawn: PlotSize) => {
     drawnRef.current = drawn;

@@ -73,6 +73,13 @@ export interface ZoomPanOptions {
   bounds?: ZoomBox;
   /** What «Ajustar» frames (start over); default `bounds`. */
   fit?: ZoomBox;
+  /**
+   * The point of interest the buttons and the keys zoom about (R33), in drawing units, read at
+   * each step (it may move with the lab: pass a function that reads the lab's latest). Used while
+   * it is in view; out of view, or without it, they zoom about the canvas' centre. The wheel and
+   * the pinch always zoom about the pointer.
+   */
+  anchor?: () => ZoomPoint | undefined;
 }
 
 type Gestures = Omit<ZoomGestures, 'isPanning' | 'onWheel'>;
@@ -220,8 +227,10 @@ export function useZoomPan(options: ZoomPanOptions): ZoomPan {
   const frame = buildFrame(viewport.size, options);
   frameRef.current = frame;
   const press = usePointerPress();
+  const anchorRef = useRef(options.anchor);
+  anchorRef.current = options.anchor;
   const actions = useZoomActions(
-    { frameRef, viewRef, commit, isPressing: press.isPressing },
+    { frameRef, viewRef, commit, isPressing: press.isPressing, anchorRef },
     glide,
   );
 

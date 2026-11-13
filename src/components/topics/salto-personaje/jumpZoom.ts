@@ -106,6 +106,17 @@ export function plotAreaOf({ x, y }: { x: Scale; y: Scale }) {
 }
 
 /**
+ * Where the point `at` (m from the launch point) is drawn at ×1, in the zoom's drawing space (plot
+ * px of the lab's window `base`). The launch point, (0, 0), is what the zoom buttons keep (R33).
+ */
+export function metresToDrawing(at: ZoomPoint, base: SceneWindow, plot: PlotSize): ZoomPoint {
+  return {
+    x: ((at.x - base.x.min) / (base.x.max - base.x.min)) * plot.width,
+    y: ((base.y.max - at.y) / (base.y.max - base.y.min)) * plot.height,
+  };
+}
+
+/**
  * The square of side 2·`radiusPx` (screen px at `scale`) centred where the point `at` (m) is drawn
  * in the window `base` at ×1, in the zoom's drawing space: what `reveal` brings into view for a
  * handle. From metres, so it does not depend on the window of the render that asks for it.
@@ -117,10 +128,7 @@ export function metresBox(
   radiusPx: number,
   scale: number,
 ): ZoomBox {
-  const centre = {
-    x: ((at.x - base.x.min) / (base.x.max - base.x.min)) * plot.width,
-    y: ((base.y.max - at.y) / (base.y.max - base.y.min)) * plot.height,
-  };
+  const centre = metresToDrawing(at, base, plot);
   const radius = radiusPx / scale;
   return { x: centre.x - radius, y: centre.y - radius, width: 2 * radius, height: 2 * radius };
 }

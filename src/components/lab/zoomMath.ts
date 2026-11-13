@@ -148,6 +148,19 @@ export function zoomAt(
   return placeAt(scale, toWorld(view, anchor), anchor, frame);
 }
 
+/**
+ * Where a button or key step zooms about (R33): the lab's `anchor` (drawing units) where it is
+ * drawn now, while that is inside the viewport; else (none, not a number, or panned out of view)
+ * the viewport's centre.
+ */
+export function stepPivot(view: ZoomView, viewport: ZoomSize, anchor?: ZoomPoint): ZoomPoint {
+  const centre = { x: viewport.width / 2, y: viewport.height / 2 };
+  if (!anchor || !Number.isFinite(anchor.x) || !Number.isFinite(anchor.y)) return centre;
+  const at = toScreen(view, anchor);
+  const isInView = at.x >= 0 && at.y >= 0 && at.x <= viewport.width && at.y <= viewport.height;
+  return isInView ? at : centre;
+}
+
 /** Moves the drawing by `delta` viewport px, clamped. */
 export function panBy(view: ZoomView, delta: ZoomPoint, frame: ZoomFrame): ZoomView {
   return clampPan({ scale: view.scale, x: view.x + delta.x, y: view.y + delta.y }, frame);

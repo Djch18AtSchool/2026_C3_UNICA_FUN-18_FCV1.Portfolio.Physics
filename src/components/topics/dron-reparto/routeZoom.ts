@@ -59,15 +59,33 @@ export function plotPxPerMetre(x: Scale): number {
   return Math.abs(x.range[1] - x.range[0]) / (x.domain.max - x.domain.min);
 }
 
+/** Where the map point `at` (m) is drawn at ×1, in the zoom's drawing space (plot px). */
+export function mapToDrawing(at: ZoomPoint, plot: PlotSize): ZoomPoint {
+  return {
+    x: ((at.x - MAP_DOMAIN.x.min) / X_SPAN) * plot.width,
+    y: ((MAP_DOMAIN.y.max - at.y) / Y_SPAN) * plot.height,
+  };
+}
+
+/**
+ * What the map's zoom buttons keep in place (R33), in m: the middle of the leg «Tramo» plays, or
+ * in «Ruta» the centroid of the stops (depot included), the middle of what is flown.
+ */
+export function routeFocus(
+  stops: readonly ZoomPoint[],
+  leg?: readonly [ZoomPoint, ZoomPoint],
+): ZoomPoint {
+  const points = leg ?? stops;
+  const sum = points.reduce((total, p) => ({ x: total.x + p.x, y: total.y + p.y }), { x: 0, y: 0 });
+  return { x: sum.x / points.length, y: sum.y / points.length };
+}
+
 /**
  * The square of side 2·`radiusPx` centred where the map point `at` (m) is drawn at ×1, in the
  * zoom's drawing space: what `reveal` brings into view when a stop or the drone moves out of it.
  */
 export function boxAroundPoint(at: ZoomPoint, plot: PlotSize, radiusPx: number): ZoomBox {
-  const centre = {
-    x: ((at.x - MAP_DOMAIN.x.min) / X_SPAN) * plot.width,
-    y: ((MAP_DOMAIN.y.max - at.y) / Y_SPAN) * plot.height,
-  };
+  const centre = mapToDrawing(at, plot);
   return {
     x: centre.x - radiusPx,
     y: centre.y - radiusPx,

@@ -142,6 +142,17 @@ function focusByPress(element: HTMLElement | SVGElement): void {
   fireEvent.mouseUp(element);
 }
 
+/** Arrow presses on the focused canvas that carry a ×8 view away from the launch point. */
+const PAN_AWAY_PRESSES = 6;
+
+/** Pans the zoomed plot to the right, as ArrowRight on the focused canvas does (48 px each). */
+function panRight(presses: number): void {
+  act(() => viewport().focus());
+  for (let press = 0; press < presses; press += 1) {
+    fireEvent.keyDown(viewport(), { key: 'ArrowRight' });
+  }
+}
+
 async function zoomIn(steps: number): Promise<void> {
   for (let i = 0; i < steps; i += 1) await userEvent.click(button('Acercar'));
 }
@@ -266,10 +277,11 @@ describe('the trajectory zoom', () => {
   test('a key that moves the launch handle out of the zoomed window brings it back into view', async () => {
     const { container } = renderLab();
     await zoomIn(STEPS_TO_LIMIT);
+    panRight(PAN_AWAY_PRESSES);
     const area = plotArea(container);
     const isInside = ({ x, y }: { x: number; y: number }) =>
       x >= area.x && x <= area.x + area.width && y >= area.y && y <= area.y + area.height;
-    // The window is now the centre of the scene; the tip is a vector's length from the origin, outside.
+    // Panned to the right of the launch point (the buttons zoom about it, R33), the tip is outside.
     expect(isInside(centre('launch-handle'))).toBe(false);
 
     const handle = screen.getByTestId('launch-handle');
@@ -306,6 +318,8 @@ describe('the trajectory zoom', () => {
   test('a key that seeks the marker out of the zoomed window brings it back into view', async () => {
     const { container } = renderLab();
     await zoomIn(STEPS_TO_LIMIT);
+    // About the launch point (R33) the marker, at the start, stays in view: pan away from it.
+    panRight(PAN_AWAY_PRESSES);
     const area = plotArea(container);
     const isInside = ({ x, y }: { x: number; y: number }) =>
       x >= area.x && x <= area.x + area.width && y >= area.y && y <= area.y + area.height;

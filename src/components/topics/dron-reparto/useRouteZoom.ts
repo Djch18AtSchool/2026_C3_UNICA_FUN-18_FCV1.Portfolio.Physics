@@ -8,11 +8,11 @@
  * widest y label at every zoom (ROUTE_Y_LABEL_CHARS), so the size the window is computed from does
  * not depend on the window.
  */
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import type { Domain } from '../../lab/plotScales';
 import { useZoomPan, type ZoomPan, type ZoomViewportProps } from '../../lab/useZoomPan';
 import type { ZoomPoint } from '../../lab/zoomMath';
-import { boxAroundPoint, zoomedWindow, type PlotSize } from './routeZoom';
+import { boxAroundPoint, mapToDrawing, zoomedWindow, type PlotSize } from './routeZoom';
 
 /** A stop's or the drone's knob is 20 px across: this far from its centre stays in view. */
 const REVEAL_RADIUS_PX = 12;
@@ -28,9 +28,15 @@ export interface RouteZoom {
   reveal(at: ZoomPoint): void;
 }
 
-export function useRouteZoom(): RouteZoom {
-  const zoom = useZoomPan({ label: MAP_LABEL });
+/**
+ * `focus` (m) is what the buttons and keys zoom about (R33; routeFocus): the leg's middle, or the
+ * route's centroid.
+ */
+export function useRouteZoom(focus?: ZoomPoint): RouteZoom {
+  const anchorRef = useRef<ZoomPoint | undefined>(undefined);
+  const zoom = useZoomPan({ label: MAP_LABEL, anchor: () => anchorRef.current });
   const plot: PlotSize = zoom.viewportSize;
+  anchorRef.current = focus ? mapToDrawing(focus, plot) : undefined;
   const { reveal: revealBox } = zoom;
   const reveal = useCallback(
     (at: ZoomPoint) => revealBox(boxAroundPoint(at, plot, REVEAL_RADIUS_PX)),
