@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { TOPICS } from '../../src/consigna';
 
 /**
@@ -106,3 +106,32 @@ test('la barra lateral conserva la fase futura, deshabilitada', async ({ page })
   await expect(nav.locator('[data-phase-future]')).toHaveCount(FUTURE_PHASE_LABELS.length);
   await expect(nav.locator('[data-phase-future]').getByRole('link')).toHaveCount(0);
 });
+
+/** A page's `<meta>` content by its `name` or `property`, or null when it has none. */
+const metaContent = (page: Page, key: string) =>
+  page.locator(`meta[name="${key}"], meta[property="${key}"]`).first().getAttribute('content');
+
+const OG_PAGES = [{ name: 'la portada', path: './', type: 'website' }].concat(
+  TOPICS.map(({ slug, number }) => ({
+    name: `el tema ${number}`,
+    path: `./temas/${slug}/`,
+    type: 'article',
+  })),
+);
+
+for (const { name, path, type } of OG_PAGES) {
+  test(`${name} lleva los metadatos Open Graph y Twitter de su título y su descripción`, async ({
+    page,
+  }) => {
+    await page.goto(path);
+
+    expect(await metaContent(page, 'og:title')).toBe(await page.title());
+    const description = await metaContent(page, 'description');
+    expect(description).toBeTruthy();
+    expect(await metaContent(page, 'og:description')).toBe(description);
+    expect(await metaContent(page, 'og:type')).toBe(type);
+    expect(await metaContent(page, 'og:locale')).toBe('es_CR');
+    expect(await metaContent(page, 'twitter:card')).toBe('summary');
+    expect(await page.locator('meta[property="og:image"]').count()).toBe(0);
+  });
+}

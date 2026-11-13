@@ -18,12 +18,17 @@ interface Props {
   description?: string;
   /** The 404 page is served for any missing path, so it has no canonical address. */
   hasCanonical?: boolean;
+  /** Open Graph type: `article` for a topic, `website` for the cover and the 404. */
+  ogType?: 'website' | 'article';
 }
 const {
   title,
   description = `Evidencias de aprendizaje de ${COURSE.name} (${COURSE.code}), ${COURSE.university}.`,
   hasCanonical = true,
+  ogType = 'website',
 } = Astro.props;
+/** Costa Rica's Spanish, as Open Graph writes a locale. */
+const OG_LOCALE = 'es_CR';
 const pageUrl = hasCanonical ? canonicalUrl(Astro.url.pathname, SITE_URL) : undefined;
 ---
 
@@ -33,6 +38,12 @@ const pageUrl = hasCanonical ? canonicalUrl(Astro.url.pathname, SITE_URL) : unde
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <meta name="description" content={description} />
+    <!-- Link previews (Teams, WhatsApp, Moodle): the page's own title and description, no image. -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:locale" content={OG_LOCALE} />
+    <meta name="twitter:card" content="summary" />
     <title>{title}</title>
     {pageUrl && <link rel="canonical" href={pageUrl} />}
     {pageUrl && <meta property="og:url" content={pageUrl} />}
