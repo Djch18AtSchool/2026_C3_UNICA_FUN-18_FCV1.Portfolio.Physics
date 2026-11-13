@@ -76,7 +76,7 @@ describe('BounceLab on the tiered shell', () => {
     expect(select.value).toBe('');
     expect(select.selectedOptions[0]).toHaveTextContent('Personalizado');
     expect(screen.getByTestId('preset-note')).toHaveTextContent(
-      /^Partí de «Tenis ITF \(tipo 2\)» y cambié algún valor\./,
+      /^Valores modificados a partir de «Tenis ITF \(tipo 2\)»; la nota describe el preajuste original\./,
     );
   });
 

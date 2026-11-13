@@ -345,9 +345,9 @@ describe('FlybyLab', () => {
     expect(screen.getByText(/el dato de la Voyager ya no aplica/)).toBeInTheDocument();
     expect(presetSelect()).toHaveValue('');
     expect(within(presetSelect()).getByRole('option', { name: 'Personalizado' })).toBeDisabled();
-    // The preset's note stays, led by «Partí de…»: where the values came from (LabPresets).
+    // The preset's note stays, led by «Valores modificados…»: where the values came from (LabPresets).
     expect(screen.getByTestId('preset-note')).toHaveTextContent(
-      /^Partí de «.+» y cambié algún valor\./,
+      /^Valores modificados a partir de «.+»; la nota describe el preajuste original\./,
     );
   });
 

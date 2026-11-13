@@ -193,7 +193,7 @@ describe('LabPresets', () => {
     error.mockRestore();
   });
 
-  test('after an edit, the preset it was based on keeps its note, led by «Partí de…»', () => {
+  test('after an edit, the preset it was based on keeps its note, led by «Valores modificados…»', () => {
     const notes = MANY.map((item) => ({ ...item, note: `Nota ${item.id}.`, sourceLabel: 'NASA' }));
     const { rerender } = render(
       <LabPresets id="p" presets={notes} activeId="b" basedOnId="b" onSelect={vi.fn()} />,
@@ -204,11 +204,11 @@ describe('LabPresets', () => {
 
     expect(screen.getByRole('combobox', { name: 'Valores de referencia' })).toHaveValue('');
     expect(noteLine().textContent).toBe(
-      'Partí de «Planeta b» y cambié algún valor. Nota b. Fuente: NASA',
+      'Valores modificados a partir de «Planeta b»; la nota describe el preajuste original. Nota b. Fuente: NASA',
     );
   });
 
-  test('every lab gets «Partí de…»: after an edit the last preset’s note stays, with no prop', () => {
+  test('every lab gets «Valores modificados…»: after an edit the last preset’s note stays, with no prop', () => {
     const notes = FEW.map((item) => ({ ...item, note: `Nota ${item.id}.` }));
     const { rerender } = render(
       <LabPresets id="p" presets={notes} activeId="luna" onSelect={vi.fn()} />,
@@ -217,7 +217,7 @@ describe('LabPresets', () => {
     rerender(<LabPresets id="p" presets={notes} onSelect={vi.fn()} />);
 
     expect(noteLine().textContent).toBe(
-      'Partí de «Planeta luna» y cambié algún valor. Nota luna. Fuente: NASA',
+      'Valores modificados a partir de «Planeta luna»; la nota describe el preajuste original. Nota luna. Fuente: NASA',
     );
   });
 
@@ -234,7 +234,7 @@ describe('LabPresets', () => {
     expect(reserve).toHaveAttribute('aria-hidden', 'true');
     expect(reserve).toHaveClass('invisible');
     expect(reserve.textContent).toBe(
-      'Partí de «Planeta luna» y cambié algún valor. Nota luna. Fuente: NASA',
+      'Valores modificados a partir de «Planeta luna»; la nota describe el preajuste original. Nota luna. Fuente: NASA',
     );
     expect(container.querySelectorAll('[data-testid="preset-note"]')).toHaveLength(1);
   });

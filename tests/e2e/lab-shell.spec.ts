@@ -414,7 +414,7 @@ for (const { path, testId } of LABS) {
       });
     }
 
-    test('al editar un valor que deja el preajuste, la nota sigue («Partí de…») y el panel no cambia de alto', async ({
+    test('al editar un valor que deja el preajuste, la nota sigue («Valores modificados…») y el panel no cambia de alto', async ({
       page,
     }) => {
       await page.setViewportSize(SPLIT_VIEWPORTS[0].size);
@@ -439,7 +439,7 @@ for (const { path, testId } of LABS) {
       await field.focus();
       await page.keyboard.press('ArrowRight');
 
-      await expect(note).toHaveText(/^Partí de «.+» y cambié algún valor\./);
+      await expect(note).toHaveText(/^Valores modificados a partir de «.+»; la nota describe el preajuste original\./);
       expect(Math.abs((await boxOf(panel)).height - before)).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
     });
 

@@ -9,7 +9,7 @@
  * A native <option> cannot hold KaTeX, so a preset named with `$…$` needs a plain `optionLabel`
  * once its list passes four (a missing one throws, so the build fails rather than print TeX).
  * `groups` splits the select into <optgroup>s by each preset's `group` (Tema 7's thirteen).
- * After an edit the last active preset's note stays, led by «Partí de «…» y cambié algún valor.»,
+ * After an edit the last active preset's note stays, led by «Valores modificados a partir de «…»; la nota describe el preajuste original.»,
  * and the note line never shrinks when that happens.
  */
 import { useContext, useLayoutEffect, useRef, useState, type JSX } from 'react';
@@ -27,7 +27,8 @@ export const PRESETS_LABEL = 'Valores de referencia';
 const MODIFIED_LABEL = 'Personalizado';
 const SOURCE_LEAD = 'Fuente: ';
 const NOTE = 'm-0 text-sm text-fg-muted';
-const modifiedLead = (name: string) => `Partí de «${name}» y cambié algún valor. `;
+const modifiedLead = (name: string) =>
+  `Valores modificados a partir de «${name}»; la nota describe el preajuste original. `;
 
 export interface LabPresetsProps<T> {
   /** Id of the select (and prefix of nothing else): unique in the page. */
@@ -150,7 +151,7 @@ function Source({ label, url }: { label: string; url?: string }): JSX.Element {
   );
 }
 
-/** The note's text: «Partí de…» when edited, the note, then «Fuente:» and its source. */
+/** The note's text: «Valores modificados…» when edited, the note, then «Fuente:» and its source. */
 function NoteText<T>({ preset, isModified }: { preset: Preset<T>; isModified: boolean }) {
   const { note, sourceLabel, sourceUrl } = preset;
   return (
@@ -164,7 +165,7 @@ function NoteText<T>({ preset, isModified }: { preset: Preset<T>; isModified: bo
 }
 
 /**
- * «note Fuente: source», led by «Partí de…» once an edit leaves the preset; nothing without note
+ * «note Fuente: source», led by «Valores modificados…» once an edit leaves the preset; nothing without note
  * and source. The line never shrinks on an edit, so nothing below it (the readouts, or a stage
  * riding its cell's foot) moves under the reader: while the preset is active, its edited version
  * sits in the same grid cell, invisible and hidden from assistive tech, and holds its room.
@@ -194,7 +195,7 @@ function NoteLine<T>({ preset, isModified }: { preset?: Preset<T>; isModified: b
 
 /**
  * The preset an edit left: the one named by `basedOnId`, else the last one this component saw
- * active (so every lab keeps its note, led by «Partí de…», without tracking it itself).
+ * active (so every lab keeps its note, led by «Valores modificados…», without tracking it itself).
  */
 function useBasedOn<T>(presets: readonly Preset<T>[], activeId?: string, basedOnId?: string) {
   const known = (id?: string) => presets.find((preset) => preset.id === id);
