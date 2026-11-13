@@ -1,8 +1,9 @@
 /**
  * The jump plot's zoom: useZoomPan on the plot area plus what the trajectory needs from it. The
- * plot area is the zoom's viewport and its size (the hook's own measure, `viewportSize`) turns the view into the part of the scene's window
- * the plot shows (jumpZoom.ts) and the box `revealAt` brings into view. The same pattern as Tema
- * 1's route map (useRouteZoom), with a window that follows the jump instead of a fixed map.
+ * plot area is the zoom's viewport and its size (the hook's own measure, `viewportSize`) turns the
+ * view into the part of the scene's window the plot shows (jumpZoom.ts) and the box `revealAt`
+ * brings into view. The same pattern as Tema 1's route map (useRouteZoom), with a window that
+ * follows the jump instead of a fixed map.
  *
  * The plot area changes only when its container does, and when the jump changes shape (equal
  * units: a taller jump makes a taller plot): JumpCanvas gives SvgPlot the room of its widest y
@@ -27,7 +28,10 @@ export interface JumpZoom {
   readonly viewportProps: ZoomViewportProps;
   /** The part of the scene's window on show, as the plot's domains (m). */
   readonly domains: SceneWindow;
-  /** Brings the point `at` (m from the launch point) into view, as the zoom's reveal does for a handle. */
+  /**
+   * Brings the point `at` (m from the launch point) into view, as the zoom's reveal does for a
+   * handle.
+   */
   revealAt(at: ZoomPoint): void;
   /** The plot layer says what size SvgPlot drew (in a layout effect, no render). */
   noteDrawn(drawn: PlotSize): void;
