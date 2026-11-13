@@ -132,6 +132,10 @@ describe('Saturn’s rings in the planet frame', () => {
       'fill',
       'var(--bg-elevated)',
     );
+    // The r_p value too, under its text: a track passing behind it no longer crosses it.
+    const rpBackdrop = document.querySelector('[data-hud-backdrop="rp-value"]');
+    expect(rpBackdrop).toHaveAttribute('fill', 'var(--bg-elevated)');
+    expect(after(rpBackdrop as Element, rpValue)).toBe(true);
     expect(rpValue.querySelector('[paint-order="stroke"]')).not.toBeNull();
   });
 

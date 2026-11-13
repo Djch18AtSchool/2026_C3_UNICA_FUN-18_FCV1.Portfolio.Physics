@@ -60,7 +60,7 @@ import {
   type ScreenFrame,
 } from './planetGeometry';
 import { describeRings, type RingOnScreen } from './planetRings';
-import { frameScaleBar, planetScaleUnits, ZOOM_STRIP_PX } from './planetZoom';
+import { barMaxBesideNote, frameScaleBar, planetScaleUnits, ZOOM_STRIP_PX } from './planetZoom';
 import { rpText } from './RpField';
 
 /** Colors by meaning, shared with the Sun frame and the legend. */
@@ -263,7 +263,7 @@ interface CornersProps {
 
 /** The texts at the panel's corners: they stay where they are while the drawing zooms, over it. */
 function Corners({ corners, rpValue, clock, planetColor, isNoteShown, scaleBar }: CornersProps) {
-  const { vpText, vpBox, badge, rpAt, noteAt, noteBox } = corners;
+  const { vpText, vpBox, badge, rpAt, rpBox, noteAt, noteBox } = corners;
   return (
     <g fontFamily={TICK_FONT_FAMILY} fontSize={NOTE_SIZE} className="pointer-events-none">
       <rect
@@ -282,6 +282,15 @@ function Corners({ corners, rpValue, clock, planetColor, isNoteShown, scaleBar }
       />
       <MathText source={VP_KEY} x={vpText.x} y={vpText.y} fontSize={NOTE_SIZE} fill={TEXT_COLOR} />
       <TimeScaleBadgeSvg clock={clock} x={badge.x} y={badge.y} />
+      <rect
+        data-hud-backdrop="rp-value"
+        x={rpBox.left - HUD_PAD}
+        y={rpBox.top - HUD_PAD}
+        width={rpBox.right - rpBox.left + 2 * HUD_PAD}
+        height={rpBox.bottom - rpBox.top + 2 * HUD_PAD}
+        rx={HUD_RADIUS}
+        fill={SURFACE_COLOR}
+      />
       <g data-testid="flyby-rp-value">
         <MathText
           source={rpValue}
@@ -452,12 +461,17 @@ function useFrameModel({ props, panel, zoom, anchorRef }: FrameBodyProps) {
   anchorRef.current = centre;
   const screen = screenFrame(world, centre, zoom.view, hyperbola, planet);
   const pxPerKm = world.view.scale * zoom.view.scale;
-  const bar = frameScaleBar(pxPerKm, unit, planet.radiusKm);
-  const barSpot = scaleBarSpot(bar, panel);
   const rpValue = `r_p = ${formatNumber(rp, { precision: 2, unit })}`;
   const corners = cornerTexts(panel, rpValue, clock.rate);
-  const knob = knobLabel(screen, panel);
   const isNoteShown = screen.planet.isEnlarged;
+  // The bar stops short of «planeta agrandado» on the same bottom line (it touched it at 900 px).
+  const barMaxPx = barMaxBesideNote(
+    scaleBarSpot(undefined, panel).at.x,
+    isNoteShown ? corners.noteBox.left - HUD_PAD : undefined,
+  );
+  const bar = frameScaleBar(pxPerKm, unit, planet.radiusKm, barMaxPx);
+  const barSpot = scaleBarSpot(bar, panel);
+  const knob = knobLabel(screen, panel);
   const obstacles = labelObstacles(corners, barSpot, screen, knob, isNoteShown);
   const labels = placeVInfLabels({ screen, world, panel, obstacles, barLine: barSpot.line });
   const half = (side - 2 * TEXT_BAND) / 2;
@@ -473,6 +487,7 @@ function useFrameModel({ props, panel, zoom, anchorRef }: FrameBodyProps) {
     world,
     screen,
     bar,
+    barMaxPx,
     barSpot,
     pxPerKm,
     rpValue,
@@ -542,6 +557,7 @@ function FrameSvg({ props, panel, model }: FrameSvgProps): JSX.Element {
     <ScaleBarSvg
       pxPerUnit={pxPerKm}
       units={planetScaleUnits(unit, planet.radiusKm)}
+      maxPx={model.barMaxPx}
       x={barSpot.at.x}
       y={barSpot.at.y}
     />
@@ -597,7 +613,7 @@ function Frame(body: FrameBodyProps): JSX.Element {
   return (
     <>
       <FrameSvg props={props} panel={panel} model={model} />
-      <ScaleBarWords pxPerUnit={model.pxPerKm} units={units} />
+      <ScaleBarWords pxPerUnit={model.pxPerKm} units={units} maxPx={model.barMaxPx} />
     </>
   );
 }

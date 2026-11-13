@@ -7,7 +7,13 @@
 import { mathTextWidth } from '../../../lib/mathNotation';
 import { textBox, type Box, type Point } from '../../lab/labelClearance';
 import { SCALE_BAR_LABEL_GAP, SCALE_BAR_LABEL_SIZE, SCALE_BAR_TICK } from '../../lab/ScaleBar';
-import { scaleBarLength, type ScaleBarLength, type ScaleUnit } from '../../lab/scaleBarMath';
+import {
+  SCALE_BAR_MAX_PX,
+  SCALE_BAR_MIN_PX,
+  scaleBarLength,
+  type ScaleBarLength,
+  type ScaleUnit,
+} from '../../lab/scaleBarMath';
 import { inlineMathToNotation } from '../../lab/timeScaleFormat';
 import { MIN_PLANET_PX } from './flybyScene';
 
@@ -27,8 +33,25 @@ export function frameScaleBar(
   pxPerKm: number,
   unit: string,
   radiusKm: number,
+  maxPx?: number,
 ): ScaleBarLength | undefined {
-  return scaleBarLength(pxPerKm, planetScaleUnits(unit, radiusKm));
+  return scaleBarLength(pxPerKm, planetScaleUnits(unit, radiusKm), maxPx);
+}
+
+/** Air between the scale bar's end and «planeta agrandado» on its backdrop (px). */
+const BAR_NOTE_GAP = 8;
+
+/**
+ * The longest scale bar that, from `barLeft`, stops BAR_NOTE_GAP before the note's backdrop at
+ * `noteLeft` (both on the bottom line of the frame); none to keep clear of without the note. At
+ * least the shared 64 px.
+ */
+export function barMaxBesideNote(
+  barLeft: number,
+  noteLeft: number | undefined,
+): number | undefined {
+  if (noteLeft === undefined) return undefined;
+  return Math.min(SCALE_BAR_MAX_PX, Math.max(SCALE_BAR_MIN_PX, noteLeft - BAR_NOTE_GAP - barLeft));
 }
 
 export interface PlanetOnScreen {

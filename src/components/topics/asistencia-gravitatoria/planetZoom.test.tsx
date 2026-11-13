@@ -8,6 +8,7 @@ import { requireScaleUnits, SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX } from '../../lab
 import { inlineMathToNotation } from '../../lab/timeScaleFormat';
 import { MIN_PLANET_PX, planetView } from './flybyScene';
 import {
+  barMaxBesideNote,
   frameScaleBar,
   isOnPanel,
   planetOnScreen,
@@ -152,5 +153,22 @@ describe('scaleBarObstacles', () => {
       mathTextWidth(inlineMathToNotation(bar.text), 12, 'sans'),
       6,
     );
+  });
+});
+
+describe('barMaxBesideNote (the bar never reaches «planeta agrandado»)', () => {
+  test('stops 8 px before the note, within the shared 64–160 px; no note, no limit', () => {
+    expect(barMaxBesideNote(8, 150)).toBe(134);
+    expect(barMaxBesideNote(8, 400)).toBe(SCALE_BAR_MAX_PX);
+    expect(barMaxBesideNote(8, 60)).toBe(SCALE_BAR_MIN_PX);
+    expect(barMaxBesideNote(8, undefined)).toBeUndefined();
+  });
+
+  test('a bar measured with it ends before the note', () => {
+    const maxPx = barMaxBesideNote(8, 170)!;
+    for (const pxPerKm of [1e-4, 3e-4, 1e-3, 3e-3]) {
+      const bar = frameScaleBar(pxPerKm, 'R_J', PLANETS.jupiter.radiusKm, maxPx);
+      if (bar) expect(8 + bar.px).toBeLessThanOrEqual(170 - 8);
+    }
   });
 });
