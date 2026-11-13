@@ -6,7 +6,7 @@ import { installDialogPolyfill } from '../../../test-dialog';
 import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX } from '../../lab/scaleBarMath';
 import WheelLab from './WheelLab';
 import { BODY_FOOTPRINT, DEG, TEXT_BAND } from './wheelScene';
-import { ZOOM_ROW_PX } from './wheelZoom';
+import { WHEEL_STRIP_ONE_ROW_FROM } from './WheelZoomStrip';
 
 /** The widest scene (MAX_SIDE): every observed element is 400 px wide, the zoom's canvas 400 tall. */
 const SIDE = 400;
@@ -98,7 +98,9 @@ function bodyLongPx(): number {
 function scaleBar() {
   const root = document.querySelector('[data-scale-bar]') as HTMLElement;
   const line = root.querySelector('[data-scale-bar-line]') as HTMLElement;
-  const text = (root.textContent ?? '').replace(/\s/gu, ' ');
+  // The length only: the box also says whose it is («de la nave»).
+  const note = root.querySelector('[data-scale-bar-note]')?.textContent ?? '';
+  const text = (root.textContent ?? '').replace(note, '').replace(/\s/gu, ' ').trim();
   return {
     px: parseFloat(line.style.width),
     value: Number(text.replace(' cm', '').replace(',', '.')),
@@ -264,12 +266,17 @@ describe('the wheel scene zoom', () => {
     expect(Math.atan2(c.y - knobCentre().y, knobCentre().x - c.x) / DEG).toBeCloseTo(90, 5);
   });
 
-  test('the bar and the buttons sit in two rows of fixed height under the square', () => {
+  test('the bar, saying whose length it is, and the buttons share one row of 48 px where the width allows', () => {
     renderLab();
 
     const strip = document.querySelector('[data-wheel-zoom-strip]') as HTMLElement;
-    const heights = [...strip.children].map((row) => (row as HTMLElement).style.height);
-    expect(heights).toEqual([`${ZOOM_ROW_PX}px`, `${ZOOM_ROW_PX}px`]);
+    expect(strip.className).toContain('@container');
+    const layout = strip.firstElementChild as HTMLElement;
+    expect(layout.className).toContain(`@min-[${WHEEL_STRIP_ONE_ROW_FROM}px]:flex-row`);
+    expect(layout.className).toContain('flex-col');
+    // Each part is one 48 px row: one row side by side, two stacked.
+    for (const row of layout.children) expect(row.className).toContain('h-12');
+    expect(strip.querySelector('[data-scale-bar]')).toHaveTextContent('de la nave');
     expect(strip.previousElementSibling).toContainElement(scene());
     expect(strip.previousElementSibling).not.toContainElement(strip);
   });

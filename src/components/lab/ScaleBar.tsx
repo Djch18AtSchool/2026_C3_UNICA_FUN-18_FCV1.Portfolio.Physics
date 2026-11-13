@@ -25,6 +25,8 @@ import InlineMath from './InlineMath';
 import MathText from './MathText';
 import {
   requireScaleUnits,
+  SCALE_BAR_MAX_PX,
+  SCALE_BAR_MIN_PX,
   scaleBarLength,
   scaleBarSpoken,
   type ScaleBarLength,
@@ -39,6 +41,23 @@ export interface ScaleBarProps {
   units: readonly ScaleUnit[];
   /** The longest the bar may be, px (default 160): a narrow canvas asks for less. */
   maxPx?: number;
+}
+
+/** The HTML bar's box around the bar: 8 px of padding and a 1 px border on each side. */
+export const SCALE_BAR_BOX_CHROME_PX = 18;
+/** A row that holds a bar and the zoom buttons: 8 px of padding a side and at least 4 px between. */
+const ROW_PADDING_PX = 16;
+const ROW_GAP_PX = 4;
+
+/**
+ * The longest bar that, with its box, fits a row `rowWidth` px wide beside `besidePx` of zoom
+ * buttons (I3 of the Phase D visual pass: one row where the width allows, not two): within the
+ * shared 64–160 px; a row too narrow for the shortest bar stacks (the strip's own breakpoint).
+ */
+export function inlineScaleBarMaxPx(rowWidth: number, besidePx: number): number {
+  const room = rowWidth - besidePx - SCALE_BAR_BOX_CHROME_PX - ROW_PADDING_PX - ROW_GAP_PX;
+  if (!Number.isFinite(room)) return SCALE_BAR_MAX_PX;
+  return Math.min(SCALE_BAR_MAX_PX, Math.max(SCALE_BAR_MIN_PX, room));
 }
 
 const BOX =
@@ -62,12 +81,15 @@ function barFor({ pxPerUnit, units, maxPx }: ScaleBarProps): ScaleBarLength | un
 }
 
 /** The scale bar's words for screen readers, in HTML: «Barra de escala: 1 000 km». */
-export function ScaleBarWords(props: ScaleBarProps): JSX.Element | null {
+export function ScaleBarWords({
+  note,
+  ...props
+}: ScaleBarProps & { note?: string }): JSX.Element | null {
   const bar = barFor(props);
   if (!bar) return null;
   return (
     <span data-scale-bar-words="" className="sr-only">
-      {scaleBarSpoken(bar.text)}
+      {note ? `${scaleBarSpoken(bar.text)} ${note}` : scaleBarSpoken(bar.text)}
     </span>
   );
 }
@@ -78,8 +100,13 @@ export function ScaleBarWords(props: ScaleBarProps): JSX.Element | null {
  */
 export default function ScaleBar({
   corner = 'bottom-left',
+  note,
   ...props
-}: ScaleBarProps & { corner?: CanvasPlacement }): JSX.Element | null {
+}: ScaleBarProps & {
+  corner?: CanvasPlacement;
+  /** Whose length it is, after the length in a muted tone («20 cm de la nave»). */
+  note?: string;
+}): JSX.Element | null {
   const bar = barFor(props);
   if (!bar) return null;
   const align = isRightCorner(corner) ? 'items-end' : 'items-start';
@@ -92,10 +119,15 @@ export default function ScaleBar({
       >
         <span className="text-xs whitespace-nowrap text-fg tabular-nums">
           <InlineMath text={bar.text} />
+          {note ? (
+            <span data-scale-bar-note="" className="text-fg-muted">
+              {` ${note}`}
+            </span>
+          ) : null}
         </span>
         <span data-scale-bar-line="" className={LINE} style={{ width: bar.px }} />
       </div>
-      <ScaleBarWords {...props} />
+      <ScaleBarWords {...props} note={note} />
     </>
   );
 }

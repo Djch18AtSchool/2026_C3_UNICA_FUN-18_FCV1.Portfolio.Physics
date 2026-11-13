@@ -9,8 +9,9 @@ import { STRIP_STACK_BELOW } from './HabitatZoomStrip';
 const NARROW_PHONE_WIDTH = 336;
 const COLUMN_WIDTH = 720;
 const WIDEST_COMPACT = 439;
-const WIDEST_STACKED = 407;
-const NARROWEST_ONE_ROW = 408;
+/** A 320 px phone's scene: the strip stacks there. */
+const WIDEST_STACKED = 292;
+const NARROWEST_ONE_ROW = 293;
 const NARROWEST_ROOMY = 440;
 
 describe('sceneHeight', () => {
@@ -21,14 +22,14 @@ describe('sceneHeight', () => {
     expect(sceneHeight(NARROWEST_ROOMY)).toBe(572);
   });
 
-  test('on a phone the square follows the width, the caption takes a second line and the strip two', () => {
-    // The strip stacks its scale bar over the buttons (2 × 48) below 408 px.
-    expect(sceneHeight(NARROW_PHONE_WIDTH)).toBe(NARROW_PHONE_WIDTH + 34 + 50 + 16 + 96);
+  test('below 293 px the square follows the width, the caption takes a second line and the strip two', () => {
+    // The strip stacks its scale bar over the buttons (2 × 48) below 293 px.
     expect(sceneHeight(WIDEST_STACKED)).toBe(WIDEST_STACKED + 34 + 50 + 16 + 96);
   });
 
-  test('between 408 and 440 px the caption still takes two lines but the strip is one row', () => {
+  test('from 293 to 440 px (a phone too) the caption takes two lines but the strip is one row', () => {
     expect(sceneHeight(NARROWEST_ONE_ROW)).toBe(NARROWEST_ONE_ROW + 34 + 50 + 16 + 48);
+    expect(sceneHeight(NARROW_PHONE_WIDTH)).toBe(NARROW_PHONE_WIDTH + 34 + 50 + 16 + 48);
     expect(sceneHeight(WIDEST_COMPACT)).toBe(WIDEST_COMPACT + 34 + 50 + 16 + 48);
   });
 });

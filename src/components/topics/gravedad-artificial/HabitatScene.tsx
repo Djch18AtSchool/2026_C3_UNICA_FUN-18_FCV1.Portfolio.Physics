@@ -412,7 +412,11 @@ export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
             onRadiusChange={onRadiusChange}
           />
         </svg>
-        <HabitatZoomStrip zoom={zoom} pxPerMetre={pxPerMetre(base.ring, r, zoom.view.scale)} />
+        <HabitatZoomStrip
+          zoom={zoom}
+          pxPerMetre={pxPerMetre(base.ring, r, zoom.view.scale)}
+          width={width}
+        />
       </div>
     </div>
   );

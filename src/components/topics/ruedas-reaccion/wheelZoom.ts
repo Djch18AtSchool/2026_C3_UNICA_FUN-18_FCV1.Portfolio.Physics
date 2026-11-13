@@ -11,8 +11,6 @@ import { TEXT_BAND, type SceneGeometry } from './wheelScene';
 const CM_PER_M = 100;
 /** The bar's only unit: the body is 36,6 cm long, so lengths run from 1 cm up to a few tens. */
 export const BODY_SCALE_UNITS: readonly ScaleUnit[] = [{ label: 'cm', size: 1 }];
-/** Each of the two rows under the drawing's square (the scale bar, then the buttons), px. */
-export const ZOOM_ROW_PX = 48;
 
 /**
  * The box a reveal brings into view is this far from the knob's centre; the reveal adds its own

@@ -26,6 +26,9 @@ const PX_SLACK = 1.5;
 const DRAG_STEPS = 6;
 /** How far the knob is from the canvas' edge when it is pressed: inside the 16 px of the shared reveal. */
 const EDGE_GAP_PX = 8;
+/** The strip's rows (WheelZoomStrip): one of 48 px from a 320 px strip, two below. */
+const ROW_PX = 48;
+const STRIP_ONE_ROW_FROM_PX = 320;
 /** Where a key's reveal leaves the knob's centre: TEXT_BAND (45) plus the reveal's own margin (16). */
 const REVEALED_KNOB_PX = 61;
 const BAR_MIN_PX = 64;
@@ -80,7 +83,9 @@ async function bodyLongPx(lab: Locator): Promise<number> {
 async function scaleBar(lab: Locator) {
   const bar = lab.locator('[data-scale-bar]');
   const px = (await bar.locator('[data-scale-bar-line]').boundingBox())!.width;
-  const text = ((await bar.textContent()) ?? '').replace(/\s+/gu, ' ').trim();
+  // The length only: the box also says whose it is («de la nave», its note).
+  const note = (await bar.locator('[data-scale-bar-note]').textContent()) ?? '';
+  const text = ((await bar.textContent()) ?? '').replace(note, '').replace(/\s+/gu, ' ').trim();
   return { px, value: Number(text.replace(/ cm$/u, '').replace(',', '.')), text };
 }
 
@@ -187,7 +192,7 @@ test.describe('la escena de la rueda, con zoom', () => {
     }
 
     expect(readings).toEqual(['20 cm', '10 cm', '5 cm', '2 cm']);
-    await expect(lab.locator('[data-scale-bar-words]')).toHaveText('Barra de escala: 2 cm');
+    await expect(lab.locator('[data-scale-bar-words]')).toHaveText('Barra de escala: 2 cm de la nave');
   });
 
   test('con el teclado: el lienzo entra en el orden de foco, + − 0 y las flechas lo manejan, y luego van la perilla y los botones', async ({
@@ -386,7 +391,10 @@ test.describe('la escena de la rueda, con zoom', () => {
         );
       });
       expect(isOnTop, `paso ${click}`).toEqual([true, true, true]);
-      await expect(lab.locator('[data-wheel-zoom-strip]').getByText('de la nave')).toBeVisible();
+      await expect(lab.locator('[data-wheel-zoom-strip] [data-scale-bar-note]')).toHaveText(
+        /de la nave/u,
+      );
+      await expect(lab.locator('[data-wheel-zoom-strip] [data-scale-bar-note]')).toBeVisible();
     }
   });
 
@@ -510,6 +518,11 @@ for (const size of [DESKTOP, PHONE, NARROW]) {
           isInside(bar, strip) && isInside(controls, strip),
           `en la franja, paso ${click}`,
         ).toBe(true);
+        // One row of 48 px where the row fits (from a 320 px strip), two below (I3, round 2).
+        expect(strip.height, `filas de la franja, paso ${click}`).toBeCloseTo(
+          strip.width >= STRIP_ONE_ROW_FROM_PX ? ROW_PX : 2 * ROW_PX,
+          0,
+        );
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         size.width,

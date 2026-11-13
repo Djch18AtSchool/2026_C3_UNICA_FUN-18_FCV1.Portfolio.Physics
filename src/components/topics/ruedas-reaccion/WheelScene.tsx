@@ -521,7 +521,11 @@ export default function WheelScene(props: WheelSceneProps): JSX.Element {
       <div {...zoom.viewportProps} className="relative">
         <SceneSvg props={props} geometry={geometry} keys={keys} />
       </div>
-      <WheelZoomStrip zoom={zoom} pxPerCm={pxPerCm(base.scale, zoom.view.scale)} />
+      <WheelZoomStrip
+        zoom={zoom}
+        pxPerCm={pxPerCm(base.scale, zoom.view.scale)}
+        width={Math.min(width, MAX_SIDE)}
+      />
     </div>
   );
 }

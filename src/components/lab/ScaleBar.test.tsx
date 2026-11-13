@@ -3,7 +3,13 @@ import { cleanup, render } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { plexViolations } from '../../test-glyphs';
-import ScaleBar, { ScaleBarSvg, ScaleBarWords } from './ScaleBar';
+import ScaleBar, {
+  inlineScaleBarMaxPx,
+  SCALE_BAR_BOX_CHROME_PX,
+  ScaleBarSvg,
+  ScaleBarWords,
+} from './ScaleBar';
+import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX } from './scaleBarMath';
 
 const NNBSP = ' ';
 /** jest-dom folds U+202F into a space unless told not to. */
@@ -156,5 +162,38 @@ describe('ScaleBarWords', () => {
     const { container } = render(<ScaleBarWords pxPerUnit={-1} units={KM} />);
 
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe('inlineScaleBarMaxPx (a bar beside the zoom buttons in one row)', () => {
+  test('leaves the bar what the row has after the buttons, the box and a gap, within 64–160 px', () => {
+    // 400 − 191 (buttons) − 18 (box) − 16 (row padding) − 4 (gap) = 171 → the shared 160.
+    expect(inlineScaleBarMaxPx(400, 191)).toBe(SCALE_BAR_MAX_PX);
+    expect(inlineScaleBarMaxPx(330, 191)).toBe(330 - 191 - SCALE_BAR_BOX_CHROME_PX - 16 - 4);
+    expect(inlineScaleBarMaxPx(280, 191)).toBe(SCALE_BAR_MIN_PX);
+    expect(inlineScaleBarMaxPx(Number.NaN, 191)).toBe(SCALE_BAR_MAX_PX);
+  });
+});
+
+describe('ScaleBar with a note', () => {
+  afterEach(cleanup);
+
+  test('says whose length it is inside its box, after the length, in a muted tone', () => {
+    const { container } = render(
+      <ScaleBar
+        pxPerUnit={10}
+        units={[{ label: 'cm', size: 1 }]}
+        corner="inline"
+        note="de la nave"
+      />,
+    );
+    const box = container.querySelector('[data-scale-bar]') as HTMLElement;
+    const note = box.querySelector('[data-scale-bar-note]');
+
+    expect(note).toHaveTextContent('de la nave');
+    expect(note?.className).toContain('text-fg-muted');
+    expect(box).toHaveTextContent(/cm\s*de la nave/u);
+    // The box is hidden from screen readers: its words say whose length it is too.
+    expect(container.querySelector('[data-scale-bar-words]')?.textContent).toMatch(/de la nave$/u);
   });
 });

@@ -22,7 +22,7 @@ const BUTTON_PX = 40;
 const GLYPH_PX = 20;
 const STRIP_ROW_PX = 48;
 /** The width below which the strip stacks (HabitatZoomStrip) and the lab's own breakpoint. */
-const STACK_BELOW_PX = 408;
+const STACK_BELOW_PX = 293;
 const PX_SLACK = 1.5;
 const DRAG_STEPS = 6;
 const BAR_MIN_PX = 64;

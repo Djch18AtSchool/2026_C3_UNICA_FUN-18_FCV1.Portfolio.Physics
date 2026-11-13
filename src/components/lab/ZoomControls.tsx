@@ -22,6 +22,11 @@ import type { ZoomPan } from './useZoomPan';
 import { useSettledText } from './useSettledText';
 import { formatZoomFactor, zoomSpoken } from './zoomMath';
 
+/**
+ * The group's width in a row without «1:1» («Zoom ×5,7» and three 40 px buttons; README, «Zoom y
+ * desplazamiento»): what a strip leaves beside its scale bar (inlineScaleBarMaxPx).
+ */
+export const ZOOM_ROW_WIDTH_PX = 191;
 /** A glide or a held key changes the zoom many times; it is said once it holds this long. */
 export const ZOOM_ANNOUNCE_DELAY_MS = 500;
 export const ZOOM_INSTRUCTIONS =
