@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { cssLengthPxIn, waitForIsland } from './helpers';
+import { cssLengthPxIn, labOrPlaceholder, waitForIsland } from './helpers';
 import {
   compareHydrated,
   drawingWidths,
@@ -69,10 +69,7 @@ async function openLab(page: Page, path: string, testId: string): Promise<Locato
   await page.goto(path);
   const lab = page.getByTestId(testId);
   // Tema 1's lab shows a placeholder while its dataset chunk loads.
-  await page
-    .locator(`[data-testid="${testId}"], [data-testid="drone-lab-loading"]`)
-    .first()
-    .scrollIntoViewIfNeeded();
+  await labOrPlaceholder(page, testId).scrollIntoViewIfNeeded();
   await expect(lab).toBeVisible();
   await waitForIsland(page, `[data-testid="${testId}"]`);
   return lab;
@@ -439,7 +436,9 @@ for (const { path, testId } of LABS) {
       await field.focus();
       await page.keyboard.press('ArrowRight');
 
-      await expect(note).toHaveText(/^Valores modificados a partir de «.+»; la nota describe el preajuste original\./);
+      await expect(note).toHaveText(
+        /^Valores modificados a partir de «.+»; la nota describe el preajuste original\./,
+      );
       expect(Math.abs((await boxOf(panel)).height - before)).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
     });
 

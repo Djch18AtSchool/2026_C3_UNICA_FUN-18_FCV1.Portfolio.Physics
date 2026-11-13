@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { waitForIsland } from './helpers';
+import { labOrPlaceholder, waitForIsland } from './helpers';
 import { TOPIC_PAGES } from './topicPages';
 
 /** Short selects every lab shows on the same row as its label (the global tab's). */
@@ -77,10 +77,7 @@ async function selectLongestAndMeasure(select: Locator): Promise<SelectMetrics> 
 
 async function openSettings(page: Page, testId: string): Promise<Locator> {
   const lab = page.getByTestId(testId);
-  await page
-    .locator(`[data-testid="${testId}"], [data-testid="drone-lab-loading"]`)
-    .first()
-    .scrollIntoViewIfNeeded();
+  await labOrPlaceholder(page, testId).scrollIntoViewIfNeeded();
   await expect(lab).toBeVisible();
   await waitForIsland(page, `[data-testid="${testId}"]`);
   await lab.getByRole('button', { name: 'Ajustes del simulador' }).click();

@@ -4,7 +4,7 @@
  * longest value of their grid.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { waitForIsland } from './helpers';
+import { labOrPlaceholder, waitForIsland } from './helpers';
 import { TOPIC_PAGES } from './topicPages';
 
 const VIEWPORTS = [
@@ -35,10 +35,7 @@ async function openLab(page: Page, path: string, testId: string): Promise<Locato
   await page.goto(path);
   const lab = page.getByTestId(testId);
   // Tema 1's lab shows a placeholder while its dataset chunk loads.
-  await page
-    .locator(`[data-testid="${testId}"], [data-testid="drone-lab-loading"]`)
-    .first()
-    .scrollIntoViewIfNeeded();
+  await labOrPlaceholder(page, testId).scrollIntoViewIfNeeded();
   await expect(lab).toBeVisible();
   await waitForIsland(page, `[data-testid="${testId}"]`);
   return lab;

@@ -5,7 +5,7 @@
  */
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { waitForIsland } from './helpers';
+import { labOrPlaceholder, waitForIsland } from './helpers';
 
 const PAGE = './temas/dron-reparto/';
 const LAB = '[data-testid="drone-lab"]';
@@ -44,10 +44,7 @@ test.use({ reducedMotion: 'reduce' });
 
 test.beforeEach(async ({ page }) => {
   await page.goto(PAGE);
-  await page
-    .locator('[data-testid="drone-lab-loading"], ' + LAB)
-    .first()
-    .scrollIntoViewIfNeeded();
+  await labOrPlaceholder(page, 'drone-lab').scrollIntoViewIfNeeded();
   await expect(page.locator(LAB)).toBeVisible();
   await waitForIsland(page, LAB);
   await centreMap(page);

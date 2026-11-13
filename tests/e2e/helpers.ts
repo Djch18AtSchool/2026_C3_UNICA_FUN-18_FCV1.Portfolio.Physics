@@ -2,6 +2,13 @@ import { expect, type Locator, type Page } from '@playwright/test';
 
 const SCROLL_STEP_PX = 600;
 
+/** Tema 1's lab shows this placeholder while its dataset chunk loads; the others never do. */
+export const LAB_LOADING_TEST_ID = 'drone-lab-loading';
+
+/** The lab with this test id, or the placeholder that stands in for it while it loads. */
+export const labOrPlaceholder = (page: Page, testId: string): Locator =>
+  page.locator(`[data-testid="${testId}"], [data-testid="${LAB_LOADING_TEST_ID}"]`).first();
+
 /** Set a native range input and fire the events React listens to. */
 export async function setRange(slider: Locator, value: string): Promise<void> {
   await slider.fill(value);

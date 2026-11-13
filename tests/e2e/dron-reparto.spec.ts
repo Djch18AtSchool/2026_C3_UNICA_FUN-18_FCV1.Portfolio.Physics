@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import {
+  labOrPlaceholder,
   mathSource,
   readoutText as readReadout,
   seekTimeline,
@@ -45,10 +46,7 @@ async function mouseDrag(page: Page, from: { x: number; y: number }, to: { x: nu
 test.beforeEach(async ({ page }) => {
   await page.goto(PAGE);
   // The island hydrates with client:visible and then loads the route; wait for both.
-  await page
-    .locator('[data-testid="drone-lab-loading"], ' + LAB)
-    .first()
-    .scrollIntoViewIfNeeded();
+  await labOrPlaceholder(page, 'drone-lab').scrollIntoViewIfNeeded();
   await expect(page.locator(LAB)).toBeVisible();
   await waitForIsland(page, LAB);
 });

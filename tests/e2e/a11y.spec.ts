@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { hydrateAllIslands, waitForIsland } from './helpers';
+import { hydrateAllIslands, labOrPlaceholder, waitForIsland } from './helpers';
 import { TOPIC_PAGES } from './topicPages';
 
 const TOPICS_SCANNED = TOPIC_PAGES.map(({ number, path }) => ({ name: `el tema ${number}`, path }));
@@ -81,10 +81,7 @@ test.describe('escritorio, búsqueda en la barra lateral', () => {
 async function openLabSettings(page: Page, testId: string): Promise<void> {
   const lab = page.getByTestId(testId);
   // Tema 1's lab shows a placeholder while its dataset chunk loads.
-  await page
-    .locator(`[data-testid="${testId}"], [data-testid="drone-lab-loading"]`)
-    .first()
-    .scrollIntoViewIfNeeded();
+  await labOrPlaceholder(page, testId).scrollIntoViewIfNeeded();
   await expect(lab).toBeVisible();
   await waitForIsland(page, `[data-testid="${testId}"]`);
   await lab.getByRole('button', { name: 'Ajustes del simulador' }).click();
