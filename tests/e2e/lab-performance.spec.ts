@@ -48,3 +48,36 @@ for (const lab of CLOCKED_LABS) {
     );
   });
 }
+
+/** The frames a stretch would have at this rate: the floor of a «per frame» count (see below). */
+const REFERENCE_FPS = 60;
+
+test(`Tema 6, «Conducir»: conducir con el freno pulsado cuesta ≤ ${MAX_MUTATIONS_PER_FRAME} mutaciones del DOM por cuadro`, async ({
+  page,
+}) => {
+  const lab = CLOCKED_LABS.find(({ testId }) => testId === 'regen-lab');
+  if (!lab) throw new Error('falta el laboratorio del Tema 6 en CLOCKED_LABS');
+  await page.goto(`./temas/${lab.slug}/`);
+  await hydratePage(page);
+  const root = await labRoot(page, lab);
+  await root.getByRole('button', { name: 'Ajustes del simulador' }).click();
+  await page.getByRole('dialog').getByRole('combobox', { name: 'Vista' }).selectOption('conducir');
+  await page.keyboard.press('Escape');
+  await root.getByRole('button', { name: 'Freno' }).focus();
+  await page.keyboard.down('ArrowDown');
+  await expect(root).toHaveAttribute('data-playing', 'true');
+
+  const driving = await measureFrames(page, `[data-testid="${lab.testId}"]`, PLAY_MS);
+  await page.keyboard.up('ArrowDown');
+
+  // The readouts, bars and flows sync at 10 Hz whatever the frame rate: on a loaded machine fewer
+  // frames would share the same syncs and the average per frame would rise with no change in the
+  // lab. So the count is over the frames the stretch has at 60 fps at least (the same number on a
+  // machine that keeps up).
+  const mutations = driving.mutationsPerFrame * driving.frames;
+  const frames = Math.max(driving.frames, driving.seconds * REFERENCE_FPS);
+  expect(driving.frames, 'frames measured').toBeGreaterThan(10);
+  expect(mutations / frames, 'mutations per frame while driving').toBeLessThanOrEqual(
+    MAX_MUTATIONS_PER_FRAME,
+  );
+});

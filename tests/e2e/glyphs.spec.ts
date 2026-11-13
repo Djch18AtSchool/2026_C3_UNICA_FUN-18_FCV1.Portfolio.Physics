@@ -65,6 +65,27 @@ const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
       },
     ],
   ],
+  // Last of the lab's own states: its view stays on «Conducir» for the disclosures that follow (the
+  // same text in every view; «Tramo»'s canvas notes are measured with the presets).
+  'frenado-regenerativo': [
+    [
+      '«Conducir», en pausa con su resumen',
+      async (page, lab) => {
+        await gear(lab).click();
+        await page
+          .getByRole('dialog')
+          .getByRole('combobox', { name: 'Vista' })
+          .selectOption('conducir');
+        await page.keyboard.press('Escape');
+        await lab.getByRole('button', { name: 'Freno' }).focus();
+        await page.keyboard.down('ArrowDown');
+        await expect(lab).toHaveAttribute('data-playing', 'true');
+        await page.keyboard.up('ArrowDown');
+        await lab.getByRole('button', { name: 'Pausar' }).click();
+        await expect(lab.getByTestId('drive-status')).toHaveText(/^En pausa/);
+      },
+    ],
+  ],
   'coeficiente-restitucion': [
     [
       'choque de dos cuerpos',
