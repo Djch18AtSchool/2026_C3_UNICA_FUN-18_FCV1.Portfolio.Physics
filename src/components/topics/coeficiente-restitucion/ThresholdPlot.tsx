@@ -1,6 +1,14 @@
 import { useId, type JSX } from 'react';
 import ChartFrame from '../../charts/ChartFrame';
 import {
+  emphasisProps,
+  SeriesHighlightContext,
+  SeriesLegend,
+  useSeriesEmphasis,
+  useSeriesHighlight,
+  type SeriesHighlight,
+} from '../../charts/seriesHighlight';
+import {
   CHART_COLORS,
   DASH_PATTERN,
   LINE_WIDTH,
@@ -11,7 +19,6 @@ import {
   TICK_FONT_SIZE,
 } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
-import InlineMath from '../../lab/InlineMath';
 import { Arrow } from '../../lab/OverlayMarks';
 import { linearScale, niceTicks, type Domain, type Scale } from '../../lab/plotScales';
 import { PlotAxes, PlotGrid, yTickLabelChars } from '../../lab/SvgPlotAxes';
@@ -154,32 +161,41 @@ interface LegendItem {
   dashed: boolean;
 }
 
-function Legend({ items }: { items: readonly LegendItem[] }) {
+function LegendSwatch({ item }: { item: LegendItem }) {
   return (
-    <ul aria-label="Leyenda" className="mb-2 flex list-none flex-col gap-1 p-0 text-sm">
-      {items.map((item) => (
-        <li key={item.id} className="flex items-center gap-2 text-fg">
-          <svg
-            aria-hidden="true"
-            width={LEGEND_KEY_WIDTH}
-            height={LEGEND_KEY_HEIGHT}
-            className="shrink-0"
-          >
-            <line
-              x1="1"
-              x2={LEGEND_KEY_WIDTH - 1}
-              y1={LEGEND_KEY_HEIGHT / 2}
-              y2={LEGEND_KEY_HEIGHT / 2}
-              stroke={item.color}
-              strokeWidth={item.width}
-              strokeDasharray={item.dashed ? DASH_PATTERN : undefined}
-            />
-          </svg>
-          <InlineMath text={item.label} />
-        </li>
-      ))}
-    </ul>
+    <svg
+      aria-hidden="true"
+      width={LEGEND_KEY_WIDTH}
+      height={LEGEND_KEY_HEIGHT}
+      className="shrink-0"
+    >
+      <line
+        x1="1"
+        x2={LEGEND_KEY_WIDTH - 1}
+        y1={LEGEND_KEY_HEIGHT / 2}
+        y2={LEGEND_KEY_HEIGHT / 2}
+        stroke={item.color}
+        strokeWidth={item.width}
+        strokeDasharray={item.dashed ? DASH_PATTERN : undefined}
+      />
+    </svg>
   );
+}
+
+/** The legend, one entry per line under the other; each highlights its series. */
+function Legend({
+  items,
+  highlight,
+}: {
+  items: readonly LegendItem[];
+  highlight: SeriesHighlight;
+}) {
+  const entries = items.map((item) => ({
+    id: item.id,
+    label: item.label,
+    swatch: <LegendSwatch item={item} />,
+  }));
+  return <SeriesLegend entries={entries} highlight={highlight} layout="flex-col gap-1" />;
 }
 
 const IDEAL_LEGEND = 'Ideal, sin umbral: $h_n = e^{2n} h_0$';
@@ -201,6 +217,8 @@ const LEGEND_ITEMS: readonly LegendItem[] = [
   })),
 ];
 
+const LEGEND_IDS = LEGEND_ITEMS.map(({ id }) => id);
+
 /** The height a threshold equals, v_th²/(2g), as a dotted line labelled at its right end. */
 function ThresholdLine({
   item,
@@ -216,8 +234,13 @@ function ThresholdLine({
   // Rounded, like every coordinate here: Math.log10 differs in its last bit between the server's
   // and the browser's engines, and React would warn at hydration.
   const level = px(y.toPx(item.thresholdHeight));
+  const {
+    'data-emphasis': emphasis,
+    opacity,
+    className,
+  } = emphasisProps(useSeriesEmphasis(item.id));
   return (
-    <g data-threshold={item.id}>
+    <g data-threshold={item.id} data-emphasis={emphasis} opacity={opacity} className={className}>
       <line
         x1={area.left}
         x2={area.right}
@@ -252,8 +275,13 @@ function StopMark({
 }) {
   const color = CASE_COLORS[item.id];
   const last = { x: px(x.toPx(item.bounces)), y: px(y.toPx(item.lastHeight)) };
+  const {
+    'data-emphasis': emphasis,
+    opacity,
+    className,
+  } = emphasisProps(useSeriesEmphasis(item.id));
   return (
-    <g data-stop={item.id}>
+    <g data-stop={item.id} data-emphasis={emphasis} opacity={opacity} className={className}>
       <Arrow
         from={last}
         to={{ x: px(x.toPx(item.bounces + 1)), y: px(area.bottom) }}
@@ -267,6 +295,57 @@ function StopMark({
         fill={color}
         stroke={SURFACE_COLOR}
         strokeWidth={2}
+      />
+    </g>
+  );
+}
+
+/** The ideal series, dashed, with a dot at every bounce. */
+function IdealSeries({ x, y }: { x: Scale; y: Scale }) {
+  const { opacity, ...emphasis } = emphasisProps(useSeriesEmphasis('ideal'));
+  return (
+    <g opacity={opacity} className={emphasis.className}>
+      <path
+        data-series="ideal"
+        d={linePath(IDEAL_POINTS, x, y)}
+        fill="none"
+        stroke={IDEAL_COLOR}
+        strokeWidth={LINE_WIDTH}
+        strokeDasharray={DASH_PATTERN}
+        {...emphasis}
+      />
+      <g fill={IDEAL_COLOR}>
+        {IDEAL_POINTS.map((point) => (
+          <circle key={point.x} cx={px(x.toPx(point.x))} cy={px(y.toPx(point.y))} r={DOT_RADIUS} />
+        ))}
+      </g>
+    </g>
+  );
+}
+
+/** One engine's series (the thin one on a casing of the surface, over the wide one). */
+function CaseSeries({ item, x, y }: { item: ThresholdFigureCase; x: Scale; y: Scale }) {
+  const width = CASE_WIDTHS[item.id];
+  const { opacity, ...emphasis } = emphasisProps(useSeriesEmphasis(item.id), width);
+  const d = linePath(item.points, x, y);
+  const line = { d, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+  return (
+    <g opacity={opacity} className={emphasis.className}>
+      {item.id === 'unity' ? (
+        <path
+          data-casing={item.id}
+          className={emphasis.className}
+          {...line}
+          stroke={SURFACE_COLOR}
+          strokeWidth={(emphasis.strokeWidth ?? width) + CASING_WIDTH}
+        />
+      ) : null}
+      <path
+        data-series={item.id}
+        {...line}
+        stroke={CASE_COLORS[item.id]}
+        strokeWidth={width}
+        {...emphasis}
       />
     </g>
   );
@@ -293,92 +372,57 @@ export default function ThresholdPlot(): JSX.Element {
   const clipId = `umbral-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const [ref, measuredWidth] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const { width, height, compact, area, x, y, ticks } = layout(measuredWidth);
+  const highlight = useSeriesHighlight(LEGEND_IDS);
   return (
     <ChartFrame title="Altura de cada rebote, sin umbral y con el umbral de dos motores">
-      <Legend items={LEGEND_ITEMS} />
-      <div ref={ref} className="w-full min-w-0">
-        <svg
-          role="img"
-          aria-label={ariaLabel()}
-          viewBox={`0 0 ${width} ${height}`}
-          width="100%"
-          className="block h-auto"
-        >
-          <defs>
-            <clipPath id={clipId}>
-              <rect
-                x={area.left}
-                y={area.top}
-                width={area.right - area.left}
-                height={area.bottom - area.top}
-              />
-            </clipPath>
-          </defs>
-          {settings.grid ? <PlotGrid ticks={ticks} x={x} y={y} area={area} /> : null}
-          <PlotAxes
-            ticks={ticks}
-            x={x}
-            y={y}
-            area={area}
-            xTitle="n (número de rebote)"
-            yTitle="h_n (cm, escala logarítmica)"
-            tickFontSize={TICK_SIZE}
-            titleFontSize={TITLE_SIZE}
-            compact={compact}
-            viewWidth={width}
-          />
-          <g clipPath={`url(#${clipId})`}>
-            {THRESHOLD_CASES.map((item) => (
-              <ThresholdLine key={item.id} item={item} x={x} y={y} area={area} />
-            ))}
-            <path
-              data-series="ideal"
-              d={linePath(IDEAL_POINTS, x, y)}
-              fill="none"
-              stroke={IDEAL_COLOR}
-              strokeWidth={LINE_WIDTH}
-              strokeDasharray={DASH_PATTERN}
-            />
-            <g fill={IDEAL_COLOR}>
-              {IDEAL_POINTS.map((point) => (
-                <circle
-                  key={point.x}
-                  cx={px(x.toPx(point.x))}
-                  cy={px(y.toPx(point.y))}
-                  r={DOT_RADIUS}
+      <SeriesHighlightContext value={highlight.highlighted}>
+        <Legend items={LEGEND_ITEMS} highlight={highlight} />
+        <div ref={ref} className="w-full min-w-0">
+          <svg
+            role="img"
+            aria-label={ariaLabel()}
+            viewBox={`0 0 ${width} ${height}`}
+            width="100%"
+            className="block h-auto"
+          >
+            <defs>
+              <clipPath id={clipId}>
+                <rect
+                  x={area.left}
+                  y={area.top}
+                  width={area.right - area.left}
+                  height={area.bottom - area.top}
                 />
+              </clipPath>
+            </defs>
+            {settings.grid ? <PlotGrid ticks={ticks} x={x} y={y} area={area} /> : null}
+            <PlotAxes
+              ticks={ticks}
+              x={x}
+              y={y}
+              area={area}
+              xTitle="n (número de rebote)"
+              yTitle="h_n (cm, escala logarítmica)"
+              tickFontSize={TICK_SIZE}
+              titleFontSize={TITLE_SIZE}
+              compact={compact}
+              viewWidth={width}
+            />
+            <g clipPath={`url(#${clipId})`}>
+              {THRESHOLD_CASES.map((item) => (
+                <ThresholdLine key={item.id} item={item} x={x} y={y} area={area} />
+              ))}
+              <IdealSeries x={x} y={y} />
+              {THRESHOLD_CASES.map((item) => (
+                <CaseSeries key={item.id} item={item} x={x} y={y} />
+              ))}
+              {THRESHOLD_CASES.map((item) => (
+                <StopMark key={item.id} item={item} x={x} y={y} area={area} />
               ))}
             </g>
-            {THRESHOLD_CASES.map((item) => (
-              <g key={item.id}>
-                {item.id === 'unity' ? (
-                  <path
-                    data-casing={item.id}
-                    d={linePath(item.points, x, y)}
-                    fill="none"
-                    stroke={SURFACE_COLOR}
-                    strokeWidth={CASE_WIDTHS[item.id] + CASING_WIDTH}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                ) : null}
-                <path
-                  data-series={item.id}
-                  d={linePath(item.points, x, y)}
-                  fill="none"
-                  stroke={CASE_COLORS[item.id]}
-                  strokeWidth={CASE_WIDTHS[item.id]}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </g>
-            ))}
-            {THRESHOLD_CASES.map((item) => (
-              <StopMark key={item.id} item={item} x={x} y={y} area={area} />
-            ))}
-          </g>
-        </svg>
-      </div>
+          </svg>
+        </div>
+      </SeriesHighlightContext>
     </ChartFrame>
   );
 }

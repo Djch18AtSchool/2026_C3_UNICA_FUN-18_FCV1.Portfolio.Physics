@@ -113,6 +113,20 @@
 }
 
 /*
+ * A chart's series highlighted from its legend (seriesHighlight.tsx): the others fade and it
+ * widens, eased like a handle's feedback, at once with reduced motion.
+ */
+.series-emphasis {
+  transition:
+    opacity var(--motion-fast) ease-out,
+    stroke-width var(--motion-fast) ease-out;
+}
+
+:root[data-motion='reduced'] .series-emphasis {
+  transition: none;
+}
+
+/*
  * In two columns the stage is the card less the 20 rem panel and its gap. Under 43.25 rem of card
  * it is too narrow for the event row (two 44 px buttons, the event's 128 px and the t reading),
  * and the reading drops to a third line: 32 px more (a 20 px line and the row's 12 px gap). The

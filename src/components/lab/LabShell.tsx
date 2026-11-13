@@ -261,9 +261,8 @@ export default function LabShell({
   ...transport
 }: LabShellProps): JSX.Element {
   const drawer = useLabDrawer();
-  const isMotionReduced = useMotionReduced();
   const canvasRef = useRef<HTMLDivElement>(null);
-  const playTransition = usePresetTransition(canvasRef, isMotionReduced);
+  const playTransition = usePresetTransition(canvasRef, useMotionReduced());
   return (
     <div
       role="group"
@@ -271,7 +270,6 @@ export default function LabShell({
       data-testid={testId}
       data-lab-shell="tiered"
       data-playing={transport.clock?.state.playing ?? false}
-      data-motion-reduced={isMotionReduced ? '' : undefined}
       className={LAB_CARD}
     >
       <Header title={title} drawer={drawer} display={levels.display} />

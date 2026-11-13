@@ -17,7 +17,12 @@ import {
   TICK_FONT_FAMILY,
   TICK_FONT_SIZE,
 } from '../../charts/chartTheme';
-import InlineMath from '../../lab/InlineMath';
+import {
+  emphasisProps,
+  SeriesLegend,
+  useSeriesEmphasis,
+  type SeriesHighlight,
+} from '../../charts/seriesHighlight';
 import MathText from '../../lab/MathText';
 import { fitCentre, monoTextWidth, type Scale } from '../../lab/plotScales';
 import type { PlotArea } from '../../lab/SvgPlotCursor';
@@ -114,6 +119,8 @@ export interface LineSpec {
   width?: number;
   /** A shaded area instead of a line (legend key only). */
   isArea?: boolean;
+  /** The legend entry it is drawn for, when another panel draws it under its own id. */
+  legendId?: string;
 }
 
 export function SeriesPath({
@@ -125,16 +132,19 @@ export function SeriesPath({
   points: readonly ChartPoint[];
   scales: Scales;
 }): JSX.Element {
+  const width = spec.width ?? LINE_WIDTH;
+  const emphasis = useSeriesEmphasis(spec.legendId ?? spec.id);
   return (
     <path
       data-series={spec.id}
       d={pathOf(points, scales)}
       fill="none"
       stroke={spec.color}
-      strokeWidth={spec.width ?? LINE_WIDTH}
+      strokeWidth={width}
       strokeDasharray={spec.dash}
       strokeLinecap="round"
       strokeLinejoin="round"
+      {...emphasisProps(emphasis, width)}
     />
   );
 }
@@ -151,8 +161,17 @@ export function Regions({
   color: string;
   scales: Scales;
 }): JSX.Element {
+  const { opacity, className, 'data-emphasis': emphasis } = emphasisProps(useSeriesEmphasis(id));
   return (
-    <g data-region={id} fill={color} fillOpacity={REGION_OPACITY} stroke="none">
+    <g
+      data-region={id}
+      data-emphasis={emphasis}
+      className={className}
+      fill={color}
+      fillOpacity={REGION_OPACITY}
+      opacity={opacity}
+      stroke="none"
+    >
       {regions.map((region) => (
         <path key={region[0].x} d={`${pathOf(region, scales)} Z`} />
       ))}
@@ -340,19 +359,20 @@ function LegendKey({ spec }: { spec: LineSpec }): JSX.Element {
   );
 }
 
-export function Legend({ specs }: { specs: readonly LineSpec[] }): JSX.Element {
-  return (
-    <ul aria-label="Leyenda" className="mb-2 flex list-none flex-wrap gap-x-4 gap-y-1 p-0 text-sm">
-      {specs.map((spec) => (
-        <li key={spec.id} className="flex items-center gap-2 text-fg">
-          <LegendKey spec={spec} />
-          <span>
-            <InlineMath text={spec.label} />
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
+/** The legend: one entry per line or region, which highlights it (seriesHighlight.tsx). */
+export function Legend({
+  specs,
+  highlight,
+}: {
+  specs: readonly LineSpec[];
+  highlight: SeriesHighlight;
+}): JSX.Element {
+  const entries = specs.map((spec) => ({
+    id: spec.id,
+    label: spec.label,
+    swatch: <LegendKey spec={spec} />,
+  }));
+  return <SeriesLegend entries={entries} highlight={highlight} />;
 }
 
 export interface EncounterLabel extends PlacedLabel {

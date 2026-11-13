@@ -70,8 +70,12 @@ export const MISSION_LINES: Readonly<Record<string, LineSpec>> = {
   },
 };
 
-/** The same line in the distance panel, under its own id. */
-const inDistance = (spec: LineSpec): LineSpec => ({ ...spec, id: `${spec.id}-r` });
+/** The same line in the distance panel, under its own id (its legend entry stays the line's). */
+const inDistance = (spec: LineSpec): LineSpec => ({
+  ...spec,
+  id: `${spec.id}-r`,
+  legendId: spec.id,
+});
 
 export interface MissionGeometry {
   width: number;

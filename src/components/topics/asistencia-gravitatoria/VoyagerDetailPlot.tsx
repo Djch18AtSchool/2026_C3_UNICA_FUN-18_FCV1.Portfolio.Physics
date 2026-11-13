@@ -6,6 +6,7 @@
  */
 import { memo, useId, type JSX } from 'react';
 import { DASH_PATTERN, SURFACE_COLOR, TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
+import { emphasisProps, useSeriesEmphasis } from '../../charts/seriesHighlight';
 import { Arrow } from '../../lab/OverlayMarks';
 import { fitCentre, linearScale, monoTextWidth, niceTicks, type Scale } from '../../lab/plotScales';
 import type { PlotArea } from '../../lab/SvgPlotCursor';
@@ -117,6 +118,7 @@ function Annotations({ detail, geometry }: { detail: EncounterDetail; geometry: 
   const peakLabelX = fitCentre(peakX, monoTextWidth(peakText, FONT_SIZE), area.left, area.right);
   const level = (value: number) => y.toPx(value);
   const jumpX = area.right - JUMP_ARROW_INSET;
+  const levels = useSeriesEmphasis(DETAIL_LINES.levels.id);
   return (
     <g className="pointer-events-none">
       <line
@@ -144,6 +146,7 @@ function Annotations({ detail, geometry }: { detail: EncounterDetail; geometry: 
           strokeWidth={THIN_LINE_WIDTH}
           strokeDasharray={DOT_DASH}
           strokeLinecap="round"
+          {...emphasisProps(levels, THIN_LINE_WIDTH)}
         />
       ))}
       <Arrow

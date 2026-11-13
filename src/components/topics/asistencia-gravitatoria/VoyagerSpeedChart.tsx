@@ -7,6 +7,7 @@
  */
 import { useMemo, useState, type JSX } from 'react';
 import ChartFrame from '../../charts/ChartFrame';
+import { SeriesHighlightContext, useSeriesHighlight } from '../../charts/seriesHighlight';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import SvgPlotCursor from '../../lab/SvgPlotCursor';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
@@ -122,40 +123,44 @@ export default function VoyagerSpeedChart({ detail }: VoyagerSpeedChartProps): J
         MISSION_LINES.sunOnly,
       ];
 
+  const highlight = useSeriesHighlight(lines.map(({ id }) => id));
+
   return (
     <ChartFrame title={TITLE} footnote={FOOTNOTE} testId="voyager-speed-chart">
       <ViewToggle view={view} onSelect={select} />
-      <Legend specs={lines} />
-      {/* On phones the plot bleeds into the frame's padding (as in LabShell): the 13 years need it. */}
-      <div className="-mx-3 sm:mx-0">
-        <div ref={wrapperRef} className="relative w-full min-w-0">
-          {encounter && zoomed ? (
-            <VoyagerDetailPlot detail={encounter} geometry={zoomed} />
-          ) : (
-            <VoyagerMissionPlot geometry={mission} />
-          )}
-          <svg
-            role="presentation"
-            viewBox={`0 0 ${geometry.width} ${geometry.height}`}
-            className="pointer-events-none absolute inset-0 block h-full w-full"
-          >
-            <SvgPlotCursor
-              cursor={{
-                x: cursor,
-                onChange: setCursor,
-                label: (jd) =>
-                  encounter ? formatOffset(jd - encounter.marker.caJd) : formatDate(jd),
-              }}
-              x={geometry.x}
-              area={cursorArea}
-              xLabel="Fecha"
-              xUnit="d"
-              decimals={decimals}
-              fontSize={FONT_SIZE}
-            />
-          </svg>
+      <SeriesHighlightContext value={highlight.highlighted}>
+        <Legend specs={lines} highlight={highlight} />
+        {/* On phones the plot bleeds into the frame's padding (as in LabShell): the 13 years need it. */}
+        <div className="-mx-3 sm:mx-0">
+          <div ref={wrapperRef} className="relative w-full min-w-0">
+            {encounter && zoomed ? (
+              <VoyagerDetailPlot detail={encounter} geometry={zoomed} />
+            ) : (
+              <VoyagerMissionPlot geometry={mission} />
+            )}
+            <svg
+              role="presentation"
+              viewBox={`0 0 ${geometry.width} ${geometry.height}`}
+              className="pointer-events-none absolute inset-0 block h-full w-full"
+            >
+              <SvgPlotCursor
+                cursor={{
+                  x: cursor,
+                  onChange: setCursor,
+                  label: (jd) =>
+                    encounter ? formatOffset(jd - encounter.marker.caJd) : formatDate(jd),
+                }}
+                x={geometry.x}
+                area={cursorArea}
+                xLabel="Fecha"
+                xUnit="d"
+                decimals={decimals}
+                fontSize={FONT_SIZE}
+              />
+            </svg>
+          </div>
         </div>
-      </div>
+      </SeriesHighlightContext>
       {encounter ? (
         <p data-testid="voyager-detail-numbers" className="mt-3 text-sm text-fg tabular-nums">
           {detailNumbers(encounter)}

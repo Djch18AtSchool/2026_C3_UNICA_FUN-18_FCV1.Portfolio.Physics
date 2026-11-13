@@ -1,5 +1,12 @@
 import { useId, useState, type ReactNode } from 'react';
 import ChartFrame from '../charts/ChartFrame';
+import {
+  emphasisProps,
+  seriesEmphasis,
+  SeriesLegend,
+  useSeriesHighlight,
+  type SeriesHighlight,
+} from '../charts/seriesHighlight';
 import { CHART_COLORS, DASH_PATTERN, LINE_WIDTH, TICK_FONT_SIZE } from '../charts/chartTheme';
 import type { FrameStore } from './frameStore';
 import { isFinitePoint, linearScale, padDomain, type Domain, type Scale } from './plotScales';
@@ -16,7 +23,6 @@ import {
   type PlotMargins,
 } from './svgPlotReserve';
 import { useElementWidth } from '../hooks/useElementWidth';
-import InlineMath from './InlineMath';
 import { useGlobalSettings } from './useGlobalSettings';
 
 export interface PlotSeries {
@@ -331,19 +337,14 @@ function LegendKey({ series, color }: { series: PlotSeries; color: string }) {
   );
 }
 
-function Legend({ series }: { series: PlotSeries[] }) {
-  return (
-    <ul aria-label="Leyenda" className="mb-2 flex list-none flex-wrap gap-x-4 gap-y-1 p-0 text-sm">
-      {series.map((s, index) => (
-        <li key={s.id} className="flex items-center gap-2 text-fg">
-          <LegendKey series={s} color={seriesColor(s, index)} />
-          <span>
-            <InlineMath text={s.label} />
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
+/** The legend: one entry per series, which highlights it (seriesHighlight.tsx). */
+function Legend({ series, highlight }: { series: PlotSeries[]; highlight: SeriesHighlight }) {
+  const entries = series.map((s, index) => ({
+    id: s.id,
+    label: s.label,
+    swatch: <LegendKey series={s} color={seriesColor(s, index)} />,
+  }));
+  return <SeriesLegend entries={entries} highlight={highlight} />;
 }
 
 type PlotLayout = ReturnType<typeof computeLayout>;
@@ -377,10 +378,12 @@ function SeriesPaths({
   series,
   layout,
   clipPath,
+  highlighted,
 }: {
   series: PlotSeries[];
   layout: PlotLayout;
   clipPath: string;
+  highlighted: string | undefined;
 }) {
   return (
     <g
@@ -397,6 +400,7 @@ function SeriesPaths({
           d={seriesPath(s.points, layout.x, layout.y)}
           stroke={seriesColor(s, index)}
           strokeDasharray={s.dashed ? DASH_PATTERN : undefined}
+          {...emphasisProps(seriesEmphasis(s.id, highlighted))}
         />
       ))}
     </g>
@@ -411,7 +415,8 @@ function FigureLayer({
   clipBase,
   showGrid,
   reserve,
-}: LayerProps & { showGrid: boolean; reserve: HeightReserve }) {
+  highlighted,
+}: LayerProps & { showGrid: boolean; reserve: HeightReserve; highlighted: string | undefined }) {
   const { x, y, area, width, compact, titleLift } = layout;
   const ticks = axisTicks(x, y);
   return (
@@ -439,7 +444,12 @@ function FigureLayer({
         titleFontSize={TITLE_SIZE}
         viewWidth={width}
       />
-      <SeriesPaths series={props.series} layout={layout} clipPath={`url(#${clipBase}-plot)`} />
+      <SeriesPaths
+        series={props.series}
+        layout={layout}
+        clipPath={`url(#${clipBase}-plot)`}
+        highlighted={highlighted}
+      />
       {props.marker ? <Marker marker={props.marker} x={x} y={y} /> : null}
     </svg>
   );
@@ -505,14 +515,17 @@ export default function SvgPlot(props: SvgPlotProps) {
   const [reserve] = useState(() => heightReserve(props));
   const layout = computeLayout(props, measuredWidth);
   const layer = { props, layout, viewBox: `0 0 ${layout.width} ${layout.height}`, clipBase };
+  const hasLegend = props.series.length >= MIN_SERIES_FOR_LEGEND;
+  const highlight = useSeriesHighlight(hasLegend ? props.series.map(({ id }) => id) : []);
   return (
     <ChartFrame title={props.title} testId={props.testId}>
-      {props.series.length >= MIN_SERIES_FOR_LEGEND ? <Legend series={props.series} /> : null}
+      {hasLegend ? <Legend series={props.series} highlight={highlight} /> : null}
       <div ref={wrapperRef} className="@container/plot relative w-full min-w-0">
         <FigureLayer
           {...layer}
           showGrid={props.showGrid ?? settings.grid}
           reserve={isMeasured ? MEASURED : reserve}
+          highlighted={highlight.highlighted}
         />
         <InteractiveLayer {...layer} decimals={settings.decimals} />
       </div>
