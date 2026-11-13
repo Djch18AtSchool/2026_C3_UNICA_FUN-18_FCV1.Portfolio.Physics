@@ -6,15 +6,18 @@ const CLEARANCE_PX = 2;
 const SAMPLE_STEP = 2;
 
 /**
- * What a canvas's time-scale badge (`g[data-time-scale-badge]` inside the svg) touches: every other
- * text whose box meets its box, and every drawn outline (path, line, circle, polygon) with a point
- * inside it, as sentences. Empty when the badge stands clear. Measured in the page, in client px,
- * so it holds at whatever width the svg is drawn.
+ * What a canvas's time-scale badge touches: every other text whose box meets its box, and every
+ * drawn outline (path, line, circle, polygon) with a point inside it, as sentences. Empty when the
+ * badge stands clear. Measured in the page, in client px, so it holds at whatever width the svg is
+ * drawn. The badge is `g[data-time-scale-badge]` inside the svg, or, for an HTML badge laid over
+ * the drawing (Temas 3 and 5), the element `htmlBadge` selects in the page.
  */
-export async function badgeTouches(svg: Locator): Promise<string[]> {
+export async function badgeTouches(svg: Locator, htmlBadge?: string): Promise<string[]> {
   return svg.evaluate(
-    (root, { clearance, step }) => {
-      const badge = root.querySelector('g[data-time-scale-badge]');
+    (root, { clearance, step, selector }) => {
+      const badge = selector
+        ? document.querySelector(selector)
+        : root.querySelector('g[data-time-scale-badge]');
       if (!badge) return ['no badge in the svg'];
       const frame = badge.getBoundingClientRect();
       const zone = {
@@ -53,6 +56,6 @@ export async function badgeTouches(svg: Locator): Promise<string[]> {
       }
       return touches;
     },
-    { clearance: CLEARANCE_PX, step: SAMPLE_STEP },
+    { clearance: CLEARANCE_PX, step: SAMPLE_STEP, selector: htmlBadge },
   );
 }

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
@@ -25,7 +25,9 @@ function stubResizeObserver(): void {
 }
 
 const button = (name: string) => screen.getByRole('button', { name });
-const zoomedBy = () => screen.getByText(/^×/u).textContent;
+/** The zoom's factor, in its strip: the time-scale badge on the canvas also starts with «×». */
+const zoomedBy = () =>
+  within(document.querySelector('[data-zoom-strip]') as HTMLElement).getByText(/^×/u).textContent;
 
 describe('the habitat lab zoom', () => {
   let uninstall: () => void;

@@ -5,6 +5,7 @@ import { useElementWidth } from '../../hooks/useElementWidth';
 import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
 import { monoTextWidth } from '../../lab/plotScales';
+import TimeScaleBadge from '../../lab/TimeScaleBadge';
 import { useFrameTime } from '../../lab/useFrameTime';
 import { useZoomPan } from '../../lab/useZoomPan';
 import { AC_COLOR, GAP_COLOR, OMEGA_COLOR } from './habitatColors';
@@ -38,6 +39,8 @@ export interface HabitatSceneProps {
   decimals: number;
   /** A counter: each change frames the ring again, as «Ajustar» does (a preset, a reset). */
   refit: number;
+  /** The clock's rate (simulated s per real s): the badge on the ring's square declares it. */
+  timeScale?: number;
   onRadiusChange(r: number): void;
 }
 
@@ -405,10 +408,11 @@ function RingDrawing({ props, ring, width, side }: RingDrawingProps): JSX.Elemen
  * The ring zooms (useZoomPan, ZoomControls): it is drawn through the view, so the person, the
  * band and the vectors grow while text, strokes and arrowheads keep their size; the scale bar
  * measures the floor radius r. The radius bar is not part of the zoomed canvas, and the zoom's
- * strip sits under it. The viewBoxes follow the measured width, so text keeps its pixel size.
+ * strip sits under it. The clock's time scale is a badge in the bottom-right corner of the ring's square
+ * (clear of the scale note, the ω arrow and the ring at the lab's own framing). The viewBoxes follow the measured width, so text keeps its pixel size.
  */
 export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
-  const { r, refit, onRadiusChange } = props;
+  const { r, refit, timeScale, onRadiusChange } = props;
   const [wrapperRef, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   // The buttons and keys zoom about the person at rest, on the floor under the hub (R33): the ring
   // turns with the clock, so its resting place is the one point of interest that does not move.
@@ -422,8 +426,24 @@ export default function HabitatScene(props: HabitatSceneProps): JSX.Element {
   return (
     <div className="@container w-full">
       <div ref={wrapperRef} className="w-full" style={{ height: RESERVED_HEIGHT }}>
-        <div {...zoom.viewportProps} style={{ ...zoom.viewportProps.style, height: RING_AREA }}>
-          <RingDrawing props={props} ring={screenRing(base, zoom.view)} width={width} side={side} />
+        <div className="relative" style={{ height: RING_AREA }}>
+          <div {...zoom.viewportProps} style={{ ...zoom.viewportProps.style, height: '100%' }}>
+            <RingDrawing
+              props={props}
+              ring={screenRing(base, zoom.view)}
+              width={width}
+              side={side}
+            />
+          </div>
+          {timeScale === undefined ? null : (
+            <div
+              data-habitat-badge-box=""
+              className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2"
+              style={{ width: RING_AREA }}
+            >
+              <TimeScaleBadge factor={timeScale} corner="bottom-right" />
+            </div>
+          )}
         </div>
         <svg
           viewBox={`0 0 ${width} ${barHeight(width)}`}

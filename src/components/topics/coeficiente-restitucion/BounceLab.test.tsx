@@ -321,7 +321,9 @@ describe('BounceLab', () => {
     expect(screen.getByTestId('bounce-summary')).toHaveTextContent(
       /promedio\(0,745; 0,000\) = 0,372/,
     );
-    expect(screen.getByTestId('preset-note')).toHaveTextContent(/Valores modificados a partir de «Tenis ITF/);
+    expect(screen.getByTestId('preset-note')).toHaveTextContent(
+      /Valores modificados a partir de «Tenis ITF/,
+    );
 
     await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Modo' }), 'collision');
 

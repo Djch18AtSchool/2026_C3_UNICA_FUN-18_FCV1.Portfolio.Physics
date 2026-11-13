@@ -168,6 +168,7 @@ export default function HabitatLab({ usage, leftOut }: HabitatLabProps): JSX.Ele
         showVectors={display.showVectors}
         decimals={decimals}
         refit={refit}
+        timeScale={clock.rate}
         onRadiusChange={(r) => update((previous) => setRadius(previous, r))}
       />
     </LabShell>

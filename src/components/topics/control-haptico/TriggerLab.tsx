@@ -9,6 +9,7 @@ import InlineMath from '../../lab/InlineMath';
 import ParamField from '../../lab/ParamField';
 import type { SettingOption } from '../../lab/SettingsDrawer';
 import SvgPlot, { STAGE_PLOT_ASPECT } from '../../lab/SvgPlot';
+import TimeScaleBadge from '../../lab/TimeScaleBadge';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { usePrefersReducedMotion } from '../../lab/useSimClock';
 import { HOOKE_COLOR, labPlot } from './hapticPlots';
@@ -247,13 +248,17 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
       testId="trigger-lab"
     >
       <div className="flex flex-col gap-4">
-        <TriggerLever
-          xMm={state.xMm}
-          x0Mm={state.x0Mm}
-          forceN={readings.force}
-          onPress={press}
-          onRelease={letGo}
-        />
+        <div className="relative">
+          <TriggerLever
+            xMm={state.xMm}
+            x0Mm={state.x0Mm}
+            forceN={readings.force}
+            onPress={press}
+            onRelease={letGo}
+          />
+          {/* The return plays SLOW_MOTION times slower; with reduced motion it is instant. */}
+          {isReduced ? null : <TimeScaleBadge factor={1 / SLOW_MOTION} corner="bottom-left" />}
+        </div>
         <ReleaseActions
           canRelease={state.xMm !== 0 && !release.isReleasing}
           canRepeat={state.lastReleaseMm !== undefined && !release.isReleasing}
