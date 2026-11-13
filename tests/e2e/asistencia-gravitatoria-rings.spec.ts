@@ -16,13 +16,23 @@ const DESKTOP = { width: 1280, height: 800 };
 const PHONE = { width: 360, height: 800 };
 const BLOCKING_IMPACTS = ['serious', 'critical'];
 const NON_TEXT_MIN = 3;
-/** The fact sheet's edges in R_S (C inner, B outer, A inner, A outer). */
+/** The A ring's outer edge in R_S: the fact sheet's 136 780 km over Saturn's 60 268 km. */
 const A_OUTER_RS = 136780 / 60268;
 const SATURN_PRESETS = [
   { label: 'V2 · Saturno', rp: 2.67 },
   { label: 'V1 · Saturno', rp: 3.05 },
 ] as const;
 const OTHER_PRESETS = ['V2 · Júpiter', 'V2 · Urano', 'V2 · Neptuno', 'V1 · Júpiter'];
+/** What the surface casing adds to a trace's width over the rings (1,5 px a side). */
+const CASING_EXTRA_PX = 3;
+const TRACES = ['track', 'travelled', 'periapsis'] as const;
+
+async function typeRp(lab: Locator, text: string): Promise<void> {
+  const field = lab.getByRole('textbox', { name: 'Máxima aproximación r sub p' });
+  await field.fill(text);
+  await field.press('Enter');
+  await expect(lab.getByTestId('flyby-rp-value')).toContainText(text);
+}
 
 async function openLab(page: Page, theme: 'light' | 'dark' = 'light'): Promise<Locator> {
   await page.addInitScript((value) => window.localStorage.setItem('theme', value), theme);
@@ -237,7 +247,7 @@ for (const theme of ['light', 'dark'] as const) {
           lab.locator(`${FRAME} g[data-time-scale-badge]`),
           lab.getByTestId('flyby-rp-value'),
           lab.locator(`${FRAME} g[data-scale-bar]`),
-          lab.locator(`${FRAME} [data-hud-backdrop]`),
+          lab.locator(`${FRAME} [data-hud-backdrop="vp-key"]`),
         ]) {
           expect(isApart(ringBox, (await hud.boundingBox())!)).toBe(true);
         }
@@ -247,6 +257,73 @@ for (const theme of ['light', 'dark'] as const) {
       );
     });
   }
+
+  test(`con r_p = 2 R_S (${theme}), la pista, el tramo recorrido y la línea de r_p se leen sobre los anillos: 3:1 contra su borde`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(DESKTOP);
+    const lab = await openLab(page, theme);
+    await chooseEncounter(lab, 'V2 · Saturno');
+    await typeRp(lab, '2');
+    // Halfway through the pass the probe is at periapsis: the stretch flown reaches the rings.
+    await lab.getByRole('slider', { name: 'Línea de tiempo' }).press('End');
+    const { centre, radius, rings: edges } = await drawn(lab);
+    const surface = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--bg-elevated').trim(),
+    );
+
+    for (const name of TRACES) {
+      const pair = await lab.locator(FRAME).evaluate((svg, traceName) => {
+        const trace = svg.querySelector(`[data-trace="${traceName}"]`) as SVGGeometryElement;
+        const casing = trace.previousElementSibling as SVGGeometryElement;
+        const at = (k: number) => trace.getPointAtLength((trace.getTotalLength() * k) / 64);
+        return {
+          casing: casing.getAttribute('data-casing'),
+          traceColor: getComputedStyle(trace).stroke,
+          casingColor: getComputedStyle(casing).stroke,
+          widths: [trace, casing].map((element) =>
+            Number(getComputedStyle(element).strokeWidth.replace('px', '')),
+          ),
+          points: Array.from({ length: 65 }, (_, k) => ({ x: at(k).x, y: at(k).y })),
+        };
+      }, name);
+      const overRings = pair.points.filter((point) => {
+        const r = distance(point, centre);
+        return edges.some(({ inner, outer }) => r >= inner && r <= outer);
+      });
+
+      expect(pair.casing, name).toBe(name);
+      expect(overRings.length, `${name} cruza los anillos`).toBeGreaterThan(0);
+      expect(toHex(pair.casingColor), name).toBe(surface);
+      expect(pair.widths[1] - pair.widths[0], name).toBeCloseTo(CASING_EXTRA_PX, 6);
+      expect(
+        contrastRatio(toHex(pair.traceColor), toHex(pair.casingColor)),
+        name,
+      ).toBeGreaterThanOrEqual(NON_TEXT_MIN);
+    }
+    expect(radius).toBeGreaterThan(0);
+  });
+
+  test(`«planeta agrandado» sobre su fondo, sin tocar las marcas de la barra (${theme})`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(PHONE);
+    const lab = await openLab(page, theme);
+    await chooseEncounter(lab, 'V2 · Saturno');
+    await typeRp(lab, '100');
+    const note = lab.locator(FRAME).getByText('planeta agrandado');
+    const backdrop = lab.locator(`${FRAME} [data-hud-backdrop="note"]`);
+
+    await expect(note).toBeVisible();
+    const fill = await backdrop.evaluate((rect) => getComputedStyle(rect).fill);
+    const surface = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--bg-elevated').trim(),
+    );
+    expect(toHex(fill)).toBe(surface);
+    expect(isInside((await note.boundingBox())!, (await backdrop.boundingBox())!)).toBe(true);
+    const ticks = (await lab.locator(`${FRAME} g[data-scale-bar] path`).boundingBox())!;
+    expect(isApart((await backdrop.boundingBox())!, ticks)).toBe(true);
+  });
 
   test(`sin violaciones graves de accesibilidad con Saturno (${theme})`, async ({ page }) => {
     await page.setViewportSize(DESKTOP);
