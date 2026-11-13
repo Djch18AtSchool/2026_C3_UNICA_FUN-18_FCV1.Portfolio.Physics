@@ -33,6 +33,15 @@ const BAR_MIN_PX = 64;
 const BAR_MAX_PX = 160;
 /** The radii of Neptune (R_N, km): its 1,18 R_N pass keeps the planet 15 px, true to scale. */
 const NEPTUNE_RADIUS_KM = 24764;
+/** How far from the canvas' left edge the knob is left for the press (px). */
+const EDGE_GAP_PX = 8;
+/** Where a key's reveal leaves the knob's centre: its ring and the texts' band (41) plus 16. */
+const REVEALED_KNOB_PX = 57;
+/**
+ * A press that does not move still reads r_p from the pointer, a hair off the knob's centre: less
+ * than this share of the value, under half an arrow key's step (1 % of the log bar, about 4,7 %).
+ */
+const PRESS_RP_SHARE = 0.02;
 
 async function openLab(page: Page, theme: 'light' | 'dark' = 'light'): Promise<Locator> {
   await page.addInitScript((value) => window.localStorage.setItem('theme', value), theme);
@@ -288,6 +297,63 @@ test.describe('el marco del planeta, con zoom', () => {
     expect(Number(await knob(lab).getAttribute('aria-valuenow'))).not.toBe(value);
     await page.mouse.up();
     await expect(factor(lab)).toHaveText('×2');
+  });
+
+  test('pulsar el punto de máxima aproximación con el ratón a 8 px del borde, a ×4 y tras usar el teclado, no desplaza la vista ni mueve r_p', async ({
+    page,
+  }) => {
+    // Sin deslizamiento, la vista leída tras la pulsación es la final.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const lab = await openLab(page);
+    for (let click = 0; click < 4; click += 1) await zoomButton(lab, 'Acercar').click();
+    await expect(factor(lab)).toHaveText('×4');
+    await tabToCanvas(page, lab);
+    await page.keyboard.press('Tab');
+    await expect(knob(lab)).toBeFocused();
+    // El teclado ya se usó: el navegador da por visible cualquier foco que venga después.
+    await page.keyboard.press('ArrowLeft');
+    await canvas(lab).evaluate((element) => element.scrollIntoView({ block: 'center' }));
+    const area = (await canvas(lab).boundingBox())!;
+    const knobCentre = async () => {
+      const box = (await knob(lab).locator('[data-knob]').boundingBox())!;
+      return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    };
+    await expect
+      .poll(async () => (await knobCentre()).x - area.x)
+      .toBeGreaterThanOrEqual(REVEALED_KNOB_PX - PX_SLACK);
+
+    // Arrastra el fondo (lejos de la perilla, los botones y los textos) hasta dejarla a 8 px del borde.
+    const grip0 = await knobCentre();
+    const grabAt = {
+      x: area.x + area.width - 60,
+      y: grip0.y < area.y + area.height / 2 ? grip0.y + 60 : grip0.y - 60,
+    };
+    await dragMouse(page, grabAt, { x: area.x + EDGE_GAP_PX - grip0.x, y: 0 });
+    await page.mouse.up();
+    // El foco pasa al lienzo con el teclado: un foco visible. La pulsación sobre la perilla la
+    // enfocará por script desde ahí, y Chromium da ese foco por visible aunque venga del ratón.
+    await tabToCanvas(page, lab);
+    await canvas(lab).evaluate((element) => element.scrollIntoView({ block: 'center' }));
+    const shown = (await canvas(lab).boundingBox())!;
+    await expect.poll(async () => (await knobCentre()).x - shown.x).toBeCloseTo(EDGE_GAP_PX, 0);
+
+    const view = await planetCentre(lab);
+    const value = Number(await knob(lab).getAttribute('aria-valuenow'));
+    const grip = await knobCentre();
+    await page.mouse.move(grip.x, grip.y);
+    await page.mouse.down();
+    await page.mouse.move(grip.x + 0.5, grip.y);
+
+    await expect(knob(lab)).toBeFocused();
+    expect(await planetCentre(lab)).toEqual(view);
+    expect(
+      Math.abs(Number(await knob(lab).getAttribute('aria-valuenow')) - value),
+    ).toBeLessThanOrEqual(value * PRESS_RP_SHARE);
+    await page.mouse.up();
+    // Released, the frame fits the new r_p again (the hair the press moved it): the planet may
+    // shift that much, never the 49 px a reveal to the knob's band would pan the view.
+    const after = await planetCentre(lab);
+    expect(Math.hypot(after.x - view.x, after.y - view.y)).toBeLessThan(EDGE_GAP_PX);
   });
 
   test('a ×8, el Tab trae el punto de máxima aproximación a la vista y sus flechas no lo sacan de ella', async ({
