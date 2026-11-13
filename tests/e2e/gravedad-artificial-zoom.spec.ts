@@ -313,7 +313,18 @@ test.describe('el anillo del hábitat, con zoom', () => {
     await page.keyboard.up('Control');
 
     await expect.poll(async () => (await feet()).height).toBeGreaterThan(start.height * 4);
-    const close = await feet();
+    // The last notch may still be processing: read the person once two reads agree.
+    let last = await feet();
+    await expect
+      .poll(async () => {
+        const next = await feet();
+        const isSteady =
+          Math.hypot(next.x - last.x, next.y - last.y, next.height - last.height) < 0.01;
+        last = next;
+        return isSteady;
+      })
+      .toBe(true);
+    const close = last;
     // The point under the pointer (the middle of the person) is still under it.
     expect(Math.abs(close.x - start.x)).toBeLessThan(PX_SLACK * 2);
     expect(Math.abs(close.y - close.height / 2 - (start.y - start.height / 2))).toBeLessThan(

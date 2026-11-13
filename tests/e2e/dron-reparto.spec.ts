@@ -228,13 +228,17 @@ const STOP_POSITIONS = {
   Depósito: { x: '0,00 m', y: '0,00 m' },
 } as const;
 /**
- * Clock seconds a view plays before the real seconds that took are read, and the real seconds
- * allowed: at ×1 and ×4 reaching them takes about 1,5 s and 1,5 s (at the other speed, 0,4 s or
- * 6 s), so the bounds tell the two apart with room for a loaded machine.
+ * The rate a view plays at (clock seconds per real second, both read in the page: the real ones
+ * with performance.now, so neither Playwright's latency nor the machine's load adds to them) over a
+ * span of clock seconds, and what it may be: «Tramo» at about ×1, «Ruta» four times that. The ratio
+ * between the two is what tells them apart; the absolute rate bounds are wide because a loaded
+ * machine skips frames (the clock caps each one).
  */
-const TRAMO_REACH_S = { clock: 1.5, realMin: 1.2, realMax: 4 };
-const RUTA_REACH_S = { clock: 6, realMin: 0.8, realMax: 3.5 };
+const RATE_SPAN_S = { tramo: 1, ruta: 4 };
+const TRAMO_RATE = { min: 0.6, max: 1.4 };
+const RUTA_TO_TRAMO_RATIO = { min: 3, max: 5 };
 const POLL_INTERVAL_MS = 50;
+const MS_PER_S = 1000;
 /** The settled marks under the timeline of each view (the mark count is the model's). */
 const TRAMO_MARKS = 4;
 const RUTA_MARKS = 5;
@@ -335,27 +339,34 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
 
   test('«Tramo» corre a velocidad real y «Ruta» cuatro veces más rápido', async ({ page }) => {
     const lab = page.locator(LAB);
-    /** Real seconds the timeline takes to read `clock` seconds after pressing play. */
-    async function realSecondsToReach(clock: number): Promise<number> {
+    const readSample = async () => ({
+      clock: await timelineSeconds(page),
+      realMs: await page.evaluate(() => performance.now()),
+    });
+    /** Clock seconds per real second over `span` clock seconds of playback from the start. */
+    async function playbackRate(span: number): Promise<number> {
       await lab.getByRole('button', { name: 'Reiniciar' }).click();
-      const started = Date.now();
       await lab.getByRole('button', { name: 'Reproducir' }).click();
       await expect
         .poll(() => timelineSeconds(page), { intervals: [POLL_INTERVAL_MS] })
-        .toBeGreaterThanOrEqual(clock);
-      const elapsed = (Date.now() - started) / 1000;
+        .toBeGreaterThan(0);
+      const from = await readSample();
+      await expect
+        .poll(() => timelineSeconds(page), { intervals: [POLL_INTERVAL_MS] })
+        .toBeGreaterThanOrEqual(from.clock + span);
+      const to = await readSample();
       await lab.getByRole('button', { name: 'Pausar' }).click();
-      return elapsed;
+      return ((to.clock - from.clock) * MS_PER_S) / (to.realMs - from.realMs);
     }
 
-    const tramo = await realSecondsToReach(TRAMO_REACH_S.clock);
-    expect(tramo).toBeGreaterThanOrEqual(TRAMO_REACH_S.realMin);
-    expect(tramo).toBeLessThanOrEqual(TRAMO_REACH_S.realMax);
+    const tramo = await playbackRate(RATE_SPAN_S.tramo);
+    expect(tramo).toBeGreaterThanOrEqual(TRAMO_RATE.min);
+    expect(tramo).toBeLessThanOrEqual(TRAMO_RATE.max);
 
     await chooseView(page, 'Ruta');
-    const ruta = await realSecondsToReach(RUTA_REACH_S.clock);
-    expect(ruta).toBeGreaterThanOrEqual(RUTA_REACH_S.realMin);
-    expect(ruta).toBeLessThanOrEqual(RUTA_REACH_S.realMax);
+    const ratio = (await playbackRate(RATE_SPAN_S.ruta)) / tramo;
+    expect(ratio).toBeGreaterThanOrEqual(RUTA_TO_TRAMO_RATIO.min);
+    expect(ratio).toBeLessThanOrEqual(RUTA_TO_TRAMO_RATIO.max);
   });
 
   test('«Evento siguiente» y «Evento anterior» con el teclado recorren las paradas de la ruta', async ({

@@ -72,8 +72,13 @@ export const HYDRATION_TIMEOUT_MS = 15_000;
  * that could move under a sticky stage the moment it engages, so that is waited for too.
  */
 export async function waitForIsland(page: Page, inner: string): Promise<void> {
-  const island = page.locator(`astro-island:has(${inner}):not([ssr])`).first();
-  await island.waitFor({ state: 'attached', timeout: HYDRATION_TIMEOUT_MS });
+  const islands = page.locator(`astro-island:has(${inner}):not([ssr])`);
+  await islands.first().waitFor({ state: 'attached', timeout: HYDRATION_TIMEOUT_MS });
+  // One island holds `inner`: a selector that matched two would make every read below depend on
+  // which one comes first, so fail by name instead of waiting on whichever that is.
+  const count = await islands.count();
+  if (count !== 1) throw new Error(`waitForIsland: ${count} islas contienen ${inner}, no una sola`);
+  const island = islands.first();
   await expect
     .poll(
       () =>
