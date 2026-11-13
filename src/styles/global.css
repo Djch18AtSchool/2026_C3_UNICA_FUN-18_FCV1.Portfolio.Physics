@@ -78,12 +78,12 @@
 }
 
 /*
- * Durations of the labs' microinteractions (auditoría §8): a handle's feedback is quick, a change
- * of scene a little slower (presetTransition.ts and the zoom's glide use 200 ms in TypeScript).
+ * The labs' quick microinteractions (auditoría §8): a handle's feedback and a legend's highlight.
+ * The 200 ms of a change of scene live where they run, in TypeScript (PRESET_TRANSITION_MS and the
+ * zoom's ZOOM_TRANSITION_MS): no CSS rule eases one.
  */
 :root {
   --motion-fast: 120ms;
-  --motion-base: 200ms;
   /* How much a dragged knob grows: its 7 px radius to 8,75, its edge to the focus ring's inside. */
   --knob-drag-scale: 1.25;
 }

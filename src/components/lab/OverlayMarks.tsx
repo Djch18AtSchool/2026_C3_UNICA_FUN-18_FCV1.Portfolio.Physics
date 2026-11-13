@@ -100,7 +100,7 @@ export function Label({
  * The focus ring of a handle centred on (cx, cy), shown while its group (`group`, the element
  * with the tabindex) has a visible focus: the accent ring on a casing of the surface a pixel wider
  * on each side, so the ring meets the surface on both edges whatever is drawn under it and keeps
- * its contrast (≥ 3:1, tokens.test.ts; WCAG 2.4.11 and 1.4.11) in both themes.
+ * its contrast (≥ 3:1, tokens.test.ts; WCAG 1.4.11, and 2.4.13 at AAA) in both themes.
  */
 export function KnobRing({ cx, cy }: { cx: number; cy: number }): JSX.Element {
   return (
