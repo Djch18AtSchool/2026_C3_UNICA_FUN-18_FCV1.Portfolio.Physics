@@ -45,6 +45,12 @@ const timeline = () => screen.getByRole('slider', { name: 'Línea de tiempo' });
 const v0Range = () => screen.getByRole('slider', { name: /Impulso de salto/ });
 const gear = () => screen.getByRole('button', { name: 'Ajustes del simulador' });
 
+/** A preset chip: the plot's legend has a «Celeste» entry too (a button since D4). */
+const presetChip = (name: RegExp) =>
+  within(screen.getByRole('group', { name: 'Valores de referencia' })).getByRole('button', {
+    name,
+  });
+
 describe('JumpLab', () => {
   let uninstall: () => void;
   beforeEach(() => {
@@ -60,10 +66,7 @@ describe('JumpLab', () => {
   test('opens on Celeste with its four readouts and the Earth reference', () => {
     renderLab();
 
-    expect(screen.getByRole('button', { name: /^Celeste/ })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    expect(presetChip(/^Celeste/)).toHaveAttribute('aria-pressed', 'true');
     expect(readout('Altura máxima')).toBe('0,76 m');
     expect(readout('Tiempo al ápice')).toBe('0,12 s');
     expect(readout('Tiempo en el aire')).toBe('0,23 s');
@@ -81,10 +84,7 @@ describe('JumpLab', () => {
     expect(Number(readout('Altura máxima').replace(',', '.').replace(' m', ''))).toBeGreaterThan(
       0.77,
     );
-    expect(screen.getByRole('button', { name: /^Celeste/ })).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    );
+    expect(presetChip(/^Celeste/)).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('dragging the handle to the left lowers vx and with it the range, not the height', () => {
@@ -175,10 +175,7 @@ describe('JumpLab', () => {
     await user.click(screen.getByRole('button', { name: 'Restablecer' }));
 
     expect(readout('Altura máxima')).toBe('0,76 m');
-    expect(screen.getByRole('button', { name: /^Celeste/ })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    expect(presetChip(/^Celeste/)).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('the readouts follow the global decimals setting', () => {
