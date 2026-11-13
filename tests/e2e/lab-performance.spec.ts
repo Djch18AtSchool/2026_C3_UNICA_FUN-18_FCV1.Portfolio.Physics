@@ -38,6 +38,7 @@ for (const lab of CLOCKED_LABS) {
     const playing = await measureFrames(page, selector, PLAY_MS);
     await pressPause(root);
     const paused = await measureFrames(page, selector, PLAY_MS / 2);
+    annotateFps(playing.fps);
 
     expect(playing.frames, 'frames measured').toBeGreaterThan(10);
     expect(playing.mutationsPerFrame, 'mutations per frame while playing').toBeLessThanOrEqual(
@@ -51,6 +52,18 @@ for (const lab of CLOCKED_LABS) {
 
 /** The frames a stretch would have at this rate: the floor of a «per frame» count (see below). */
 const REFERENCE_FPS = 60;
+/**
+ * Below this rate the floor would hide too much: at 30 fps it halves the cost per real frame, and a
+ * regression of the layers that change every frame (11 to 20 mutations) would still pass. From 50
+ * fps up the floor undercounts by at most 1 - 50/60, about 17 %; under it the test is skipped,
+ * saying why, instead of passing on numbers it cannot judge.
+ */
+const MIN_MEASURED_FPS = 50;
+
+/** Records the measured frame rate on the test, so a report says what the count was taken at. */
+function annotateFps(fps: number): void {
+  test.info().annotations.push({ type: 'fps', description: fps.toFixed(1) });
+}
 
 test(`Tema 6, «Conducir»: conducir con el freno pulsado cuesta ≤ ${MAX_MUTATIONS_PER_FRAME} mutaciones del DOM por cuadro`, async ({
   page,
@@ -69,6 +82,11 @@ test(`Tema 6, «Conducir»: conducir con el freno pulsado cuesta ≤ ${MAX_MUTAT
 
   const driving = await measureFrames(page, `[data-testid="${lab.testId}"]`, PLAY_MS);
   await page.keyboard.up('ArrowDown');
+  annotateFps(driving.fps);
+  test.skip(
+    driving.fps < MIN_MEASURED_FPS,
+    `la máquina dio ${driving.fps.toFixed(1)} fps (< ${MIN_MEASURED_FPS}): contar por cuadro a 60 fps escondería una regresión`,
+  );
 
   // The readouts, bars and flows sync at 10 Hz whatever the frame rate: on a loaded machine fewer
   // frames would share the same syncs and the average per frame would rise with no change in the
