@@ -83,7 +83,7 @@ y 96 para la V1).
 | serway | Física para ciencias e ingeniería, cap. 13 (gravitación universal) | Serway y Jewett | 2018 | Cengage | (ya en el repo) | — |
 | nssdca-saturn-rings | Saturnian Rings Fact Sheet, «Last Updated: 19 April 2022, DRW» | D. R. Williams (NSSDCA) | 2022 | NASA GSFC | https://nssdc.gsfc.nasa.gov/planetary/factsheet/satringfact.html | CONFIRMADO 2026-11-12 (§10) |
 | nssdca-jupiter-rings | Jupiter Rings Fact Sheet, «Last Updated: 14 October 2015, DRW» | D. R. Williams (NSSDCA) | 2015 | NASA GSFC | https://nssdc.gsfc.nasa.gov/planetary/factsheet/jupringfact.html | CONFIRMADO 2026-11-13 (§10; no se cita en la página) |
-| nssdca-neptune-rings | Neptunian Rings Fact Sheet (enlazada desde la *Neptune Fact Sheet*) | D. R. Williams (NSSDCA) | — | NASA GSFC | https://nssdc.gsfc.nasa.gov/planetary/factsheet/nepringfact.html | CONFIRMADO 2026-11-13 (§10; no se cita en la página) |
+| nssdca-neptune-rings | Neptunian Rings Fact Sheet, «Last Updated: 14 October 2015, DRW» | D. R. Williams (NSSDCA) | 2015 | NASA GSFC | https://nssdc.gsfc.nasa.gov/planetary/factsheet/nepringfact.html | CONFIRMADO 2026-11-13 (§10; no se cita en la página) |
 | nssdca-uranus-rings | Uranus Rings Fact Sheet, «Last Updated: 14 October 2015, DRW» | D. R. Williams (NSSDCA) | 2015 | NASA GSFC | https://nssdc.gsfc.nasa.gov/planetary/factsheet/uranringfact.html | CONFIRMADO 2026-11-12 (§10; no se cita en la página) |
 
 Citas textuales útiles (≤ 25 palabras):
