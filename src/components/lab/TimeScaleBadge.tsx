@@ -79,19 +79,23 @@ function badgeLabel(factor: number, label: string | null | undefined): string | 
 /**
  * What the live region says: nothing until the scale changes after it first settled, then the new
  * scale once it holds for SCALE_ANNOUNCE_DELAY_MS. So loading the page (and reduced motion
- * replacing the nominal rate right after mount) announces nothing; a change of speed does.
+ * replacing the nominal rate right after mount) announces nothing; a change of speed does. It also
+ * says when that baseline was taken (`isSettled`, shown as `data-settled`), so a test waits for it
+ * instead of for a fixed time.
  */
-function useScaleAnnouncement(spoken: string): string {
+function useScaleAnnouncement(spoken: string): { announced: string; isSettled: boolean } {
   const [announced, setAnnounced] = useState('');
+  const [isSettled, setIsSettled] = useState(false);
   const baseline = useRef<string | undefined>(undefined);
   useEffect(() => {
     const timer = setTimeout(() => {
       if (baseline.current !== undefined && spoken !== baseline.current) setAnnounced(spoken);
       baseline.current = spoken;
+      setIsSettled(true);
     }, SCALE_ANNOUNCE_DELAY_MS);
     return () => clearTimeout(timer);
   }, [spoken]);
-  return announced;
+  return { announced, isSettled };
 }
 
 /**
@@ -101,13 +105,13 @@ function useScaleAnnouncement(spoken: string): string {
 export function TimeScaleStatus(props: TimeScaleProps): JSX.Element {
   const factor = timeScaleFactor(props);
   const spoken = timeScaleSpoken(factor, badgeLabel(factor, props.label));
-  const announced = useScaleAnnouncement(spoken);
+  const { announced, isSettled } = useScaleAnnouncement(spoken);
   return (
     <>
       <span data-time-scale-words="" className="sr-only">
         {spoken}
       </span>
-      <p role="status" aria-live="polite" className="sr-only">
+      <p role="status" aria-live="polite" data-settled={isSettled} className="sr-only">
         {announced}
       </p>
     </>

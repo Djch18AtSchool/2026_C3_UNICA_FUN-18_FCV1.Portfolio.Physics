@@ -118,6 +118,17 @@ describe('TimeScaleBadge', () => {
     vi.useRealTimers();
   });
 
+  test('the live region says when the scale took its baseline: data-settled, false until then', () => {
+    vi.useFakeTimers();
+    render(<TimeScaleBadge factor={20} />);
+
+    expect(screen.getByRole('status')).toHaveAttribute('data-settled', 'false');
+    act(() => vi.advanceTimersByTime(SCALE_ANNOUNCE_DELAY_MS));
+
+    expect(screen.getByRole('status')).toHaveAttribute('data-settled', 'true');
+    vi.useRealTimers();
+  });
+
   test('a later change of scale is said once it settles', () => {
     vi.useFakeTimers();
     const { rerender } = render(<TimeScaleBadge factor={20} />);

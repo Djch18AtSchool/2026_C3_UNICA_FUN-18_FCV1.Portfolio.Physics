@@ -21,8 +21,6 @@ const LAST_STOP = 1360;
 const POSITION_SLACK = 1;
 /** Half the native thumb (16 px): the marks start below it. */
 const THUMB_HALF_PX = 8;
-/** The badge's status speaks a change once it holds this long (SCALE_ANNOUNCE_DELAY_MS), and more. */
-const SCALE_SETTLED_MS = 1000;
 const BLOCKING_IMPACTS = ['serious', 'critical'];
 const VIEWPORTS = [
   { width: 1280, height: 800 },
@@ -198,7 +196,7 @@ test('con movimiento reducido el factor pasa, tras hidratar, al paso que se repr
   // 91 times real time. The wait is for that one change after mount (README, «Escala de tiempo
   // y eventos»); the live region must stay silent through it.
   await expect(lab.locator('div[data-time-scale-badge]')).toHaveText(/^×91\s*cámara rápida$/u);
-  await page.waitForTimeout(SCALE_SETTLED_MS);
+  await expect(status).toHaveAttribute('data-settled', 'true');
   await expect(status).toBeEmpty();
   await live.close();
 });
@@ -206,9 +204,9 @@ test('con movimiento reducido el factor pasa, tras hidratar, al paso que se repr
 test('un cambio de velocidad sí se anuncia', async ({ page }) => {
   const lab = await openFixture(page);
   const status = lab.locator('[data-time-scale-badge] ~ [role="status"]');
-  // Nothing on the page tells when the badge took its baseline (the first scale that holds after
-  // mount): wait past it, as a reader would, so the change below is a change.
-  await page.waitForTimeout(SCALE_SETTLED_MS);
+  // The badge says when it took its baseline (the first scale that holds after mount): wait for
+  // that, as a reader would, so the change below is a change.
+  await expect(status).toHaveAttribute('data-settled', 'true');
 
   await lab.getByRole('button', { name: 'Velocidad 1×' }).click();
   await page.getByRole('dialog').getByRole('combobox', { name: 'Velocidad' }).selectOption('0.25');

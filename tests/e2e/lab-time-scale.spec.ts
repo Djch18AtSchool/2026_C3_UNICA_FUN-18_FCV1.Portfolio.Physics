@@ -15,8 +15,8 @@ const TRIGGER = { page: './temas/control-haptico/', lab: '[data-testid="trigger-
 const WIDTHS = [320, 360, 540, 1280] as const;
 const HEIGHT = 800;
 const BADGE = '[data-time-scale-badge]';
-/** The badge's status speaks a change once it holds this long (SCALE_ANNOUNCE_DELAY_MS), and more. */
-const SCALE_SETTLED_MS = 1000;
+/** The badge's status, which says (data-settled) when the scale took its baseline. */
+const STATUS = `${BADGE} ~ [role="status"]`;
 
 async function openLab(page: Page, { page: path, lab }: typeof HABITAT): Promise<void> {
   await page.goto(path);
@@ -37,25 +37,25 @@ test.describe('Tema 3: el giro a ×6', () => {
 
     await expect(lab.locator(`div${BADGE}`)).toHaveText(/^×6\s*cámara rápida$/u);
     await expect(lab.locator(BADGE)).toHaveCount(1);
-    await expect(lab.locator(`${BADGE} ~ [role="status"]`)).toHaveCount(1);
+    await expect(lab.locator(STATUS)).toHaveCount(1);
     await expect(lab.locator('[data-time-scale-words]')).toHaveText(
       'Escala de tiempo: 6 veces la velocidad real, cámara rápida',
     );
     // The first settling is silent.
-    await page.waitForTimeout(SCALE_SETTLED_MS);
-    await expect(lab.locator(`${BADGE} ~ [role="status"]`)).toBeEmpty();
+    await expect(lab.locator(STATUS)).toHaveAttribute('data-settled', 'true');
+    await expect(lab.locator(STATUS)).toBeEmpty();
   });
 
   test('seguir la velocidad: 2× dice ×12 y el cambio se anuncia', async ({ page }) => {
     await openLab(page, HABITAT);
     const lab = page.locator(HABITAT.lab);
-    await page.waitForTimeout(SCALE_SETTLED_MS);
+    await expect(lab.locator(STATUS)).toHaveAttribute('data-settled', 'true');
 
     await lab.getByRole('button', { name: 'Velocidad 1×' }).click();
     await page.getByRole('dialog').getByRole('combobox', { name: 'Velocidad' }).selectOption('2');
 
     await expect(lab.locator(`div${BADGE}`)).toHaveText(/^×12\s*cámara rápida$/u);
-    await expect(lab.locator(`${BADGE} ~ [role="status"]`)).toHaveText(
+    await expect(lab.locator(STATUS)).toHaveText(
       'Escala de tiempo: 12 veces la velocidad real, cámara rápida',
     );
   });
@@ -69,8 +69,8 @@ test.describe('Tema 3: el giro a ×6', () => {
     const lab = page.locator(HABITAT.lab);
 
     await expect(lab.locator(`div${BADGE}`)).toHaveText(/^×4\s*cámara rápida$/u);
-    await page.waitForTimeout(SCALE_SETTLED_MS);
-    await expect(lab.locator(`${BADGE} ~ [role="status"]`)).toBeEmpty();
+    await expect(lab.locator(STATUS)).toHaveAttribute('data-settled', 'true');
+    await expect(lab.locator(STATUS)).toBeEmpty();
     await context.close();
   });
 
@@ -129,12 +129,12 @@ test.describe('Tema 5: el retorno a ×0,1', () => {
 
     await expect(lab.locator(`div${BADGE}`)).toHaveText(/^×0,1\s*cámara lenta$/u);
     await expect(lab.locator(BADGE)).toHaveCount(1);
-    await expect(lab.locator(`${BADGE} ~ [role="status"]`)).toHaveCount(1);
+    await expect(lab.locator(STATUS)).toHaveCount(1);
     await expect(lab.locator('[data-time-scale-words]')).toHaveText(
       'Escala de tiempo: 0,1 veces la velocidad real, cámara lenta',
     );
-    await page.waitForTimeout(SCALE_SETTLED_MS);
-    await expect(lab.locator(`${BADGE} ~ [role="status"]`)).toBeEmpty();
+    await expect(lab.locator(STATUS)).toHaveAttribute('data-settled', 'true');
+    await expect(lab.locator(STATUS)).toBeEmpty();
   });
 
   test('con movimiento reducido el retorno es instantáneo: no hay escala que declarar', async ({
