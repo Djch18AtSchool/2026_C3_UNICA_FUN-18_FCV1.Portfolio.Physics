@@ -72,15 +72,24 @@ const PASSAGE_TEXT: Record<RingPassage, string> = {
 };
 
 /**
- * The frame's spoken words on the rings (MathText notation, `unit` as «R_S»): their span, the plane
- * they are drawn in, and where r_p falls. Empty for a planet without rings.
+ * The frame's spoken words on the rings (MathText notation, `unit` as «R_S»): their span, how they
+ * are drawn (to scale, or in proportion to an enlarged planet), the plane they are drawn in, and
+ * where r_p falls. Empty for a planet without rings.
  */
-export function describeRings(planet: Planet, rpRadii: number, unit: string): string {
+export function describeRings(
+  planet: Planet,
+  rpRadii: number,
+  unit: string,
+  isEnlarged = false,
+): string {
   const passage = ringPassage(planet, rpRadii);
   const bands = planet.rings?.bands ?? [];
   if (passage === undefined) return '';
   const radii = (km: number) => formatNumber(km / planet.radiusKm, { precision: RADII_DECIMALS });
   const inner = radii(Math.min(...bands.map(({ innerKm }) => innerKm)));
   const outer = radii(Math.max(...bands.map(({ outerKm }) => outerKm)));
-  return `Los anillos principales, de ${inner} a ${outer} ${unit}, van a escala de distancia al centro, dibujados en el plano del sobrevuelo; su plano real está inclinado. ${PASSAGE_TEXT[passage]}`;
+  const drawn = isEnlarged
+    ? 'van en proporción al planeta, que se dibuja agrandado, en el plano del sobrevuelo'
+    : 'van a escala de distancia al centro, dibujados en el plano del sobrevuelo';
+  return `Los anillos principales, de ${inner} a ${outer} ${unit}, ${drawn}; su plano real está inclinado. ${PASSAGE_TEXT[passage]}`;
 }

@@ -89,6 +89,9 @@ describe('describeRings', () => {
       `${span} La máxima aproximación queda por dentro del anillo C.`,
     );
     expect(describeRings(PLANETS.neptune, 1.18, 'R_N')).toBe('');
+    expect(describeRings(saturn, 100, 'R_S', true)).toBe(
+      'Los anillos principales, de 1,24 a 2,27 R_S, van en proporción al planeta, que se dibuja agrandado, en el plano del sobrevuelo; su plano real está inclinado. La máxima aproximación queda por fuera del anillo A.',
+    );
   });
 });
 

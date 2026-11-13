@@ -112,26 +112,81 @@ const PX_DECIMALS = 2;
  */
 const KNOB_REVEAL_RADIUS = KNOB_CLEARANCE + TEXT_BAND;
 /**
- * The corner texts are painted over the drawing (a zoomed Saturn's rings reach the corners): the
- * V_p key on a backdrop of the surface (its arrow has the planet's color, the rings' own), the r_p
- * value with the surface halo of the badge and the scale bar. «planeta agrandado» needs none: it
- * shows only while the planet is under 4 px, when its rings reach 9 px from it, never the corner
- * (and a halo would grow its box into the bar's ticks, which share its line).
+ * The corner texts are painted over the drawing (a zoomed Saturn's rings reach the corners, and a
+ * panned view can bring them under any corner): the V_p key and «planeta agrandado» on a backdrop
+ * of the surface (the key's arrow has the planet's color, the rings' own; the note's backdrop
+ * stops at its text's descent, so the scale bar's ticks on the line below keep their room), the
+ * r_p value with the surface halo of the badge and the scale bar.
  */
 const HUD_HALO = { color: SURFACE_COLOR, width: 4 } as const;
 const HUD_PAD = 4;
 const HUD_RADIUS = 4;
+/**
+ * What the surface casing under the track, the stretch flown and the periapsis line adds to their
+ * width (1,5 px a side): over Saturn's rings their own color has almost no contrast (1,06–1,9:1),
+ * against the casing it keeps the 4,5:1 of --fg-muted and --accent on the surface.
+ */
+const CASING_EXTRA = 3;
+const TRACK_WIDTH = 1.5;
+const TRAVELLED_WIDTH = LINE_WIDTH + 0.5;
+const PERIAPSIS_LINE_WIDTH = 1;
+const PERIAPSIS_DASH = '3 3';
+
+interface CasedProps {
+  /** Names the trace and its casing (`data-trace`, `data-casing`). */
+  name: string;
+  color: string;
+  width: number;
+  /** A path's `d`, or a line from → to. */
+  d?: string;
+  from?: Point;
+  to?: Point;
+  dash?: string;
+}
+
+/** A trace over a casing of the surface, same geometry and dashes, CASING_EXTRA wider. */
+function Cased({ name, color, width, d, from, to, dash }: CasedProps): JSX.Element {
+  const shape = (stroke: string, strokeWidth: number, mark: Record<string, string>) =>
+    d === undefined ? (
+      <line
+        {...mark}
+        x1={from?.x}
+        y1={from?.y}
+        x2={to?.x}
+        y2={to?.y}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+        strokeDasharray={dash}
+      />
+    ) : (
+      <path
+        {...mark}
+        d={d}
+        fill="none"
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+        strokeDasharray={dash}
+      />
+    );
+  return (
+    <>
+      {shape(SURFACE_COLOR, width + CASING_EXTRA, { 'data-casing': name })}
+      {shape(color, width, { 'data-trace': name })}
+    </>
+  );
+}
 
 const toPath = (points: Point[]) =>
   points.map((p, k) => `${k === 0 ? 'M' : 'L'}${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ');
 
-function describe({ hyperbola, planet, rp, unit }: PlanetFrameProps): string {
+/** The frame in words; `isEnlarged`: the planet (and its rings) drawn larger than to scale. */
+function describe({ hyperbola, planet, rp, unit }: PlanetFrameProps, isEnlarged: boolean): string {
   const n = (value: number, precision: number, suffix = '') =>
     formatNumber(value, { precision, unit: suffix });
   return mathTextToString(
     [
       `Sobrevuelo en el marco de ${planet.name}: la sonda llega con v_∞ = ${n(hyperbola.vInf, 2, 'km/s')} y pasa por ${SIDE_NAMES[hyperbola.sense < 0 ? 'behind' : 'front']} a r_p = ${n(rp, 2, unit)}. La hipérbola tiene e = ${n(hyperbola.e, DECIMALS_E)} y gira la velocidad δ = ${n(hyperbola.delta * DEG, 1, '°')}; lejos del planeta sale con la misma rapidez v_∞.`,
-      describeRings(planet, rp, unit),
+      describeRings(planet, rp, unit, isEnlarged),
     ]
       .filter(Boolean)
       .join(' '),
@@ -164,7 +219,7 @@ function ProbeLayer({ live, hyperbola, track, trackPx, toPx, showVectors }: Prob
   );
   return (
     <>
-      <path d={toPath(travelled)} fill="none" stroke={PROBE_COLOR} strokeWidth={LINE_WIDTH + 0.5} />
+      <Cased name="travelled" d={toPath(travelled)} color={PROBE_COLOR} width={TRAVELLED_WIDTH} />
       {showVectors ? (
         <g
           data-vector="vrel"
@@ -198,11 +253,11 @@ interface CornersProps {
 
 /** The texts at the panel's corners: they stay where they are while the drawing zooms, over it. */
 function Corners({ corners, rpValue, clock, planetColor, isNoteShown, scaleBar }: CornersProps) {
-  const { vpText, vpBox, badge, rpAt, noteAt } = corners;
+  const { vpText, vpBox, badge, rpAt, noteAt, noteBox } = corners;
   return (
     <g fontFamily={TICK_FONT_FAMILY} fontSize={NOTE_SIZE} className="pointer-events-none">
       <rect
-        data-hud-backdrop
+        data-hud-backdrop="vp-key"
         x={vpBox.left - HUD_PAD}
         y={vpBox.top - HUD_PAD}
         width={vpBox.right - vpBox.left + 2 * HUD_PAD}
@@ -229,9 +284,20 @@ function Corners({ corners, rpValue, clock, planetColor, isNoteShown, scaleBar }
         />
       </g>
       {isNoteShown ? (
-        <text x={noteAt.x} y={noteAt.y} fill={TICK_COLOR} textAnchor="end">
-          {NOTE_TEXT}
-        </text>
+        <>
+          <rect
+            data-hud-backdrop="note"
+            x={noteBox.left - HUD_PAD}
+            y={noteBox.top - HUD_PAD}
+            width={noteBox.right - noteBox.left + 2 * HUD_PAD}
+            height={noteBox.bottom - noteBox.top + HUD_PAD}
+            rx={HUD_RADIUS}
+            fill={SURFACE_COLOR}
+          />
+          <text x={noteAt.x} y={noteAt.y} fill={TICK_COLOR} textAnchor="end">
+            {NOTE_TEXT}
+          </text>
+        </>
       ) : null}
       {scaleBar}
     </g>
@@ -282,15 +348,15 @@ function Drawing({ screen, planetColor, showVectors, labels }: DrawingProps) {
         r={screen.planet.radiusPx}
         style={{ fill: planetColor }}
       />
-      <line
-        x1={centre.x}
-        y1={centre.y}
-        x2={periapsis.x}
-        y2={periapsis.y}
-        stroke={TICK_COLOR}
-        strokeDasharray="3 3"
+      <Cased
+        name="periapsis"
+        from={centre}
+        to={periapsis}
+        color={TICK_COLOR}
+        width={PERIAPSIS_LINE_WIDTH}
+        dash={PERIAPSIS_DASH}
       />
-      <path d={toPath(trackPx)} fill="none" stroke={TRACK_COLOR} strokeWidth={1.5} />
+      <Cased name="track" d={toPath(trackPx)} color={TRACK_COLOR} width={TRACK_WIDTH} />
       {showVectors ? (
         <>
           <g data-vector="vinf-in">
@@ -456,7 +522,7 @@ function FrameSvg({ props, panel, model }: FrameSvgProps): JSX.Element {
       width="100%"
       className="block h-auto"
     >
-      <g role="img" aria-label={describe(props)}>
+      <g role="img" aria-label={describe(props, isNoteShown)}>
         <Drawing
           screen={screen}
           planetColor={planetColor}
