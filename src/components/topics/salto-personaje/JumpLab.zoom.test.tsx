@@ -194,6 +194,13 @@ describe('the trajectory zoom', () => {
     expect(strip.style.height).toBe(`${ZOOM_STRIP_PX}px`);
   });
 
+  test('clips the viewport itself, with the knobs’ bleed, since WebKit ignores the plot’s clip inside a foreignObject', () => {
+    renderLab();
+
+    // 16 px: KNOB_HIT_RADIUS, what keeps a knob on the plot's edge whole (and its focus ring).
+    expect(viewport().style.clipPath).toBe('inset(-16px)');
+  });
+
   test('leaves «1:1» out: the whole jump is both the fit and the nominal scale', () => {
     renderLab();
 

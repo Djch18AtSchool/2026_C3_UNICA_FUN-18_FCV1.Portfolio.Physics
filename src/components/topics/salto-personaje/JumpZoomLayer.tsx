@@ -10,10 +10,12 @@
  *
  * The foreign object and the nested svg let what is drawn past the plot area show (overflow
  * visible), so the origin's knob keeps its whole hit target on the plot's corner as before:
- * SvgPlot's overlay clip, which has the knobs' bleed, is what cuts it.
+ * SvgPlot's overlay clip, which has the knobs' bleed, is what cuts it (and, in WebKit, which
+ * ignores that clip here, the viewport's own: CLIPS_AT_THE_BLEED).
  */
 import { useLayoutEffect, type CSSProperties, type JSX, type ReactNode } from 'react';
 import type { Scale } from '../../lab/plotScales';
+import { KNOB_HIT_RADIUS } from '../../lab/OverlayMarks';
 import { ScaleBarSvg, ScaleBarWords } from '../../lab/ScaleBar';
 import {
   JUMP_SCALE_UNITS,
@@ -34,6 +36,13 @@ export interface JumpZoomLayerProps {
 /** The viewport fills the plot area; its focus ring is drawn inside, where the clip keeps it. */
 const VIEWPORT = 'relative size-full -outline-offset-2';
 const SHOWS_OVERFLOW: CSSProperties = { overflow: 'visible' };
+/**
+ * The viewport clips its own contents, with the knobs' bleed around the plot area (what SvgPlot's
+ * overlay clip leaves a knob on the edge: its whole hit target and focus ring). Chromium also
+ * clips there, through the plot's clip-path; WebKit does not apply a SVG clip-path to what is
+ * inside a foreignObject, and drew the origin's marker, out of the window, below the plot.
+ */
+const CLIPS_AT_THE_BLEED: CSSProperties = { clipPath: `inset(-${KNOB_HIT_RADIUS}px)` };
 
 export default function JumpZoomLayer({
   scales,
@@ -51,7 +60,11 @@ export default function JumpZoomLayer({
   };
   return (
     <foreignObject x={left} y={top} width={width} height={height} style={SHOWS_OVERFLOW}>
-      <div {...jumpZoom.viewportProps} className={VIEWPORT}>
+      <div
+        {...jumpZoom.viewportProps}
+        className={VIEWPORT}
+        style={{ ...jumpZoom.viewportProps.style, ...CLIPS_AT_THE_BLEED }}
+      >
         <svg
           viewBox={`${left} ${top} ${width} ${height}`}
           width={width}

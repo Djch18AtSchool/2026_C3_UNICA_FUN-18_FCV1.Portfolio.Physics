@@ -522,6 +522,35 @@ test.describe('the mouse', () => {
   });
 });
 
+test.describe('the origin’s marker out of the window', () => {
+  // WebKit ignores the plot's SVG clip inside the foreignObject and drew the marker below the plot
+  // (verified there once, WPE port); the viewport clips itself too (CLIPS_AT_THE_BLEED).
+  test('is cut at the viewport, which clips its own contents with the knobs’ 16 px of bleed', async ({
+    page,
+  }) => {
+    await press(page, 'Acercar', STEPS_TO_LIMIT);
+    await viewport(page).focus();
+    for (let key = 0; key < PAN_AWAY_PRESSES; key += 1) await page.keyboard.press('ArrowRight');
+    await expect.poll(() => isKnobInPlot(page, 'jump-marker')).toBe(false);
+
+    await expect(viewport(page)).toHaveCSS('clip-path', /inset\(-16px\)/);
+    const knob = await knobCentre(page, 'jump-marker');
+    const plot = await box(viewport(page));
+    const isPastTheBleed =
+      knob.x < plot.x - HIT_INSIDE_PX ||
+      knob.x > plot.x + plot.width + HIT_INSIDE_PX ||
+      knob.y < plot.y - HIT_INSIDE_PX ||
+      knob.y > plot.y + plot.height + HIT_INSIDE_PX;
+    expect(isPastTheBleed, 'the marker is well outside the plot area').toBe(true);
+    const hit = await page.evaluate(
+      ({ x, y }) =>
+        document.elementFromPoint(x, y)?.closest('[data-testid]')?.getAttribute('data-testid'),
+      knob,
+    );
+    expect(hit).not.toBe('jump-marker');
+  });
+});
+
 /** The least air between the plot's card and the zoom buttons under it (px). */
 const CARD_GAP_PX = 6;
 
