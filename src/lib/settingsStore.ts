@@ -74,10 +74,20 @@ function currentStorage(): Storage | undefined {
 let state: GlobalSettings | undefined;
 const listeners = new Set<() => void>();
 
+/**
+ * Writes the motion setting on the page's root (`data-motion`), so CSS transitions stop with
+ * «Movimiento: reducido» as they do with `prefers-reduced-motion` (global.css). No page, nothing.
+ */
+function applyToRoot(s: GlobalSettings): void {
+  if (typeof document === 'undefined') return;
+  document.documentElement.dataset.motion = s.motion;
+}
+
 /** Lazily initializes the in-memory state from storage on first access. */
 function ensureInitialized(): GlobalSettings {
   if (state === undefined) {
     state = readSettings(currentStorage());
+    applyToRoot(state);
   }
   return state;
 }
@@ -89,6 +99,7 @@ export function getSettings(): GlobalSettings {
 export function setSettings(patch: Partial<GlobalSettings>): void {
   state = { ...ensureInitialized(), ...patch };
   writeSettings(currentStorage(), state);
+  applyToRoot(state);
   listeners.forEach((listener) => listener());
 }
 
@@ -116,4 +127,5 @@ export function resetSettingsForTests(): void {
     // Blocked storage keeps nothing to forget.
   }
   state = readSettings(storage);
+  applyToRoot(state);
 }
