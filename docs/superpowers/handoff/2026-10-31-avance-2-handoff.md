@@ -14,17 +14,24 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
   (`1069de1`, Avance 1 del 17 de octubre) queda en la historia. Las etiquetas `avance-1` y
   `avance-2` siguen sin crearse (pendientes 4 y 5; `git tag -l` está vacío). **Después:**
   `origin/main` avanzó a `6dc690b` (suma B1a, B1b y el plan de las fases B, C y D) y el 11 de
-  noviembre a `7c0abe6` (la fase B completa, integrada con avance rápido; ver «Fase B cerrada»);
-  la `main` local está en `7c0abe6`.
+  noviembre a `7c0abe6` (la fase B completa, integrada con avance rápido; ver «Fase B cerrada») y,
+  ese mismo día, a `ac48150` (la fase C, integrada con avance rápido; ver «Fase C cerrada»); la `main`
+  local está en `ac48150`.
 - **Fase B cerrada en `fase-b`** (`c26520a`, 11 de noviembre de 2026, 00:06 UTC−6; 212 commits
   sobre `6dc690b`; integrada en `main` como `7c0abe6`): B2 notación, B3 cascarón por niveles y B4 legibilidad a velocidad
   real, sobre B1a y B1b. Resumen, decisiones (FB-R1 a FB-R26), textos para Dylan, decisiones
   abiertas y deudas en la sección «Fase B cerrada».
 - **Fase C cerrada en `fase-c`** (`dc5ce55`, 11 de noviembre de 2026, 11:58 UTC−6; 46 commits sobre
-  `7c0abe6`, sin empujar): sistema de medidas (raíz y cuerpo a 16 px, escala 4/8, un solo trazo,
+  `7c0abe6`; integrada en `main` como `ac48150`): sistema de medidas (raíz y cuerpo a 16 px, escala 4/8, un solo trazo,
   `Why` sin borde) y un trinquete que lo vigila (`scale.test.ts`, lista de partida vacía). Resumen,
   decisiones (FC-R1 a FC-R45), cambios visibles, decisiones abiertas (27 a 39) y notas para la
   fase D en la sección «Fase C cerrada».
+- **Fase D cerrada en `fase-d`** (`8d91641`, 13 de noviembre de 2026, 09:15 UTC−6; 122 commits sobre
+  `ac48150`, sin empujar): zoom y desplazamiento compartidos con barra de escala en los Temas 1, 2, 3, 8 y 9,
+  anillos de Saturno a escala radial, modo «Conducir» del Tema 6 y microinteracciones. Resumen, decisiones
+  (FD-R1 a FD-R38), contratos, textos nuevos para Dylan, decisiones abiertas (40 a 69) y deudas en la sección
+  «Fase D cerrada». Falta la puerta del controlador, las revisiones finales de la rama, el CI y
+  `git push origin fase-d:main` (FD-R2).
 - **Contenido del Avance 2** (rama `avance-2`, ya en `main`). Reúne:
   - **Temas 6 a 9**, con el formato del Avance 1 (cuatro `Step` con ecuación numerada y `Why`,
     `UseCase`, `Callout` de clase, `Connections`, `Sources`), su recurso prescrito con insignia
@@ -92,14 +99,18 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
 | Pruebas e2e de los temas nuevos | `tests/e2e/{frenado-regenerativo,coeficiente-restitucion,ruedas-reaccion,asistencia-gravitatoria,data-table}.spec.ts` |
 | Comandos y estructura | `README.md` |
 | Escala de medidas (tokens, trinquete, aritmética revisada) | `src/styles/scale.css`, `scale.test.ts`, `scale*.ts`, `scale.baseline.json`, `scaleCalcReviewed.ts`; `README.md`, «Escala de medidas» |
+| Zoom y desplazamiento de un lienzo (hook, botones, barra de escala, reglas para migrar un laboratorio) | `src/components/lab/{useZoomPan,zoomMath,ZoomControls,ZoomOverlay,ScaleBar,scaleBarMath}.ts*` y sus piezas; geometría por tema en `src/components/topics/{dron-reparto,salto-personaje,gravedad-artificial,ruedas-reaccion,asistencia-gravitatoria}/`; `README.md`, «Zoom y desplazamiento» |
+| Anillos de Saturno (datos y fuente) | `src/lib/data/planets.ts`, `src/components/topics/asistencia-gravitatoria/planetRings.ts`; `docs/superpowers/research/2026-10-30-asistencia-gravitatoria.md` §10 |
+| Modo «Conducir» del Tema 6 | `src/lib/physics/regenDrive.ts`, `src/components/topics/frenado-regenerativo/{driveRun,driveViews,driveText,useDriveSession}.ts`, `DrivePedals.tsx`, `DriveCanvas.tsx` |
+| Microinteracciones (fundido de preajuste, realce de leyenda, asideros) | `src/components/lab/presetTransition.ts`, `src/components/charts/seriesHighlight.tsx`, `src/components/lab/OverlayMarks.tsx`; `README.md`, «Microinteracciones» |
 
 **No está en git (solo local):**
 
 - `.reference/class-material/`: material del curso. Para el Avance 2 se extrajo el Módulo 4,
   Gravitación (`04-gravitacion.md`), y `00-indice.md` registra la cobertura de los Temas 6 a 9.
-- `.superpowers/sdd/2026-10-31-fases-b-c-d/`: el libro de las fases B y C (`progress.md`,
-  rulings FB-R1 a FB-R26 y FC-R1 a FC-R45), los briefs, los informes `task-*-report.md` y las revisiones
-  `review-*-report.md`; las capturas están en `shots/`.
+- `.superpowers/sdd/2026-10-31-fases-b-c-d/`: el libro de las fases B, C y D (`progress.md`,
+  rulings FB-R1 a FB-R26, FC-R1 a FC-R45 y FD-R1 a FD-R38), los briefs, los informes `task-*-report.md` y las
+  revisiones `review-*-report.md`; las capturas están en `shots/`.
 - `.superpowers/sdd/2026-10-30-avance-2/`: el libro de decisiones (`progress.md`), los briefs,
   informes y paquetes de revisión de cada tarea. Lo vigente está resumido abajo.
 - Los worktrees de trabajo viven en el directorio temporal de la sesión de Claude Code
@@ -188,7 +199,8 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
    implicaría LS_EXPY = 0,49 como β (unas 20 palabras a recortar); raíz y cuerpo a 16 px
    (decidido por Dylan el 10 de noviembre; aplicado en la fase C); notación de vectores en texto
    plano (hecha en la fase B2); anillos de Saturno y realismo
-   (fase D); y la voz de las líneas de fuente (pendiente 7).
+   (hechos en la fase D, con Júpiter sin bandas y Urano sin eje: decisión abierta 53); y la voz de las
+   líneas de fuente (pendiente 7).
 
 10. **Leer los textos de la fase B** (sección «Fase B cerrada», apartado 4) y resolver las
     decisiones abiertas de su apartado 5. Los textos nuevos o cambiados son borradores de Claude,
@@ -196,6 +208,12 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
 11. **Mirar la fase C** (sección «Fase C cerrada», apartado 4: lo que se ve distinto) y resolver
     las decisiones abiertas 27 a 39 de su apartado 5. No cambió ninguna prosa ni ningún texto de
     interfaz.
+12. **Leer los textos de la fase D y mirar lo que cambia** (sección «Fase D cerrada», apartado 4: las frases
+    de zoom de «Cómo se usa» de los Temas 1, 2, 3, 8 y 9, la nota visible y la descripción hablada de los
+    anillos de Saturno, el párrafo nuevo de «Qué deja fuera» del Tema 9, todos los textos de «Conducir» del
+    Tema 6, «Zoom ×N», «radio a escala (ver barra)», «20 cm de la nave» y «Leyenda: realzar una serie») y
+    resolver las decisiones abiertas 40 a 69 de su apartado 5. Son borradores de Claude y no cuentan como
+    publicados hasta que Dylan los lea.
 
 ## Decisiones vigentes que condicionan el contenido
 
@@ -976,7 +994,8 @@ hidratación de los Temas 7 y 9 desaparecieron en el servidor de desarrollo de D
   `::-moz-range-thumb` y una sola constante, y que las marcas la usen (también hay un `forced-colors`
   cubierto por e2e).
 - **Banda del tramo en `SvgPlot` (m8):** un estilo de banda distinto del de las entregas.
-- **Lo que D1 (zoom) tocará.** `useZoomPan` y `ScaleBar` aún no existen; D1 los crea (plan, D1) y
+- **Lo que D1 (zoom) tocará.** *(Hecho en la fase D: `useZoomPan` y `ScaleBar` existen y cinco laboratorios
+  los usan; ver «Fase D cerrada».)* Antes: `useZoomPan` y `ScaleBar` aún no existen; D1 los crea (plan, D1) y
   empieza por el mapa del T1 y el marco del planeta del T9. Tocará el lienzo de cada laboratorio,
   `SvgPlot` (reserva de alto, cursor), `canvasNotes` (la escala) y, para la insignia, la caja
   `relative` de la escena (`TimeScaleBadge`). Los textos de D1 deben usar la escala 4/8.
@@ -1029,16 +1048,18 @@ documentación). Cierra el sistema de medidas de la auditoría (§6.2): raíz y 
 detenerse (libro de la fase, cabecera). Ningún commit lleva línea de coautor ni de atribución
 (`git log --format=%B 7c0abe6..HEAD | grep -ciE 'co-authored|claude-session'` da 0).
 
-- **Sin empujar.** `main` y `origin/main` siguen en `7c0abe6`; `fase-c` no existe en el remoto. La
-  integración (`git push origin fase-c:main`, avance rápido) espera la puerta completa del
-  controlador sobre `dc5ce55` y el CI en verde (FC-R26).
+- **Integrada en `main` (11 de noviembre).** `git push origin fase-c:main`, avance rápido `7c0abe6..ac48150`
+  (`8114ecd` y `ac48150` solo tocan documentación; el último de contenido es `dc5ce55`), tras la puerta
+  del controlador sobre `dc5ce55`; el CI y el despliegue terminaron y el sitio respondió 200 (FC-R26; libro de
+  la fase, primeras líneas de «Phase D»). `fase-c` y `main` están hoy en `ac48150`.
 - **Puerta del implementador sobre `dc5ce55`** (`task-C1-report.md`, ronda 1): `pnpm run check` sin
   errores, avisos ni sugerencias; 2 714 pruebas unitarias en 197 archivos; cobertura 99,02 % de
   sentencias y 94,78 % de ramas; `pnpm run build` con 11 páginas; `pnpm run scale:report` con total
   0, 0 nuevas, 0 ya limpias y 6 exenciones con nombre; e2e 855 pasan, 0 fallan (7,8 min,
   `--workers=2`, puerto 4322). Antes (puerta de B sobre `c26520a`): 2 646 pruebas en 193 archivos,
-  98,98 % y 94,64 %, e2e 756. **La corrida del controlador sobre el mismo commit no existía cuando
-  se escribió esto**: se anota al cerrar, como en B.
+  98,98 % y 94,64 %, e2e 756. La corrida del controlador sobre el mismo commit, ya hecha antes de
+  integrar, está en FC-R26 (check 0 errores; 197 archivos y 2 714 pruebas; 99,02 % y 94,78 %; build de
+  11 páginas; e2e 855 pasan en 8,0 min).
 - **Dónde está el detalle.** Libro de decisiones (`progress.md`, sección «Phase C»), el patrón y los
   briefs de los barridos (`c-sweep-pattern.md`, `task-C-{a,b,c,d}-brief.md`), seis informes de
   implementación (`task-C0-report.md`, `task-C-{a,b,c,d}-report.md`, `task-C1-report.md`) y tres de
@@ -1048,9 +1069,9 @@ detenerse (libro de la fase, cabecera). Ningún commit lleva línea de coautor n
   paréntesis el informe de donde salen («C0», «C-a»… son los de implementación; «rev. C0», «rev. C» y
   «rev. visual», las tres revisiones). El plan sigue siendo
   `docs/superpowers/plans/2026-10-31-fases-b-c-d.md`.
-- **Ramas de trabajo.** Quedan `fase-c-{a,b,c,d}` con sus worktrees en el directorio temporal de la
-  sesión; todo está integrado en `fase-c` por `cherry-pick` (los hashes difieren: el `561eeda` de
-  C-a es el `7aa6124` de `fase-c`). Borrarlas al integrar. `fase-b` es `main` (`7c0abe6`).
+- **Ramas de trabajo.** Quedan `fase-c-{a,b,c,d}`; todo está integrado en `fase-c` por `cherry-pick` (los
+  hashes difieren: el `561eeda` de C-a es el `7aa6124` de `fase-c`). `fase-b` es `7c0abe6` y `fase-c`,
+  `ac48150`, igual que `main`. Sus worktrees ya no están en disco (ver «Fase D cerrada», apartado 6).
 
 ### 1. Qué entregó la fase C
 
@@ -1273,7 +1294,8 @@ traspaso que ahí se enumeran.
 
 ### 6. Deudas y notas para la fase D
 
-- **Zoom (D1).** `useZoomPan` y `ScaleBar` aún no existen (ninguna aparición en `src`); D1 los crea y
+- **Zoom (D1).** *(Hecho en la fase D; ver «Fase D cerrada». Los botones de zoom quedaron en 40 px y no en 44:
+  FD-R20.)* Antes: `useZoomPan` y `ScaleBar` aún no existen (ninguna aparición en `src`); D1 los crea y
   empieza por el mapa del Tema 1 y el marco del planeta del Tema 9 (plan, D1). Con la escala de C:
   botones de zoom como botones de icono (`ICON_BUTTON`, 44 px con glifo `size-5`; README, «Iconos y
   controles»); `lab-controls.spec.ts` mide en cada laboratorio los botones de icono de 44 y los
@@ -1312,8 +1334,8 @@ traspaso que ahí se enumeran.
 - **Ecuaciones anchas.** Con la raíz de 16 px, a 360 y 375 px las demás ecuaciones numeradas que se
   desplazan lo hacen por 7 px o más (fórmulas anchas de verdad); ahora lo avisa la sombra de borde
   (C1 §2, FC-R45).
-- **Limpieza.** Borrar los worktrees y las ramas `fase-c-{a,b,c,d}` al integrar; el `stash@{0}` de
-  `v2` sigue ahí.
+- **Limpieza.** Borrar las ramas `fase-c-{a,b,c,d}` (los worktrees ya no existen en disco) ahora que `fase-c`
+  está integrada; el `stash@{0}` de `v2` sigue ahí. Ver «Fase D cerrada», apartado 6.
 - **Cómo correr la verificación.** La misma puerta, desde la raíz del repo:
   ```
   pnpm run check && pnpm run test:cov && pnpm run build && E2E_PORT=4322 pnpm run e2e
@@ -1354,11 +1376,488 @@ cambió arriba, en el lugar donde estaba:
   puertas; los vigentes son 2 714 pruebas unitarias en 197 archivos y 855 e2e (puerta del
   implementador sobre `dc5ce55`; la del controlador, al cerrar).
 
+## Fase D cerrada (11 a 13 de noviembre de 2026)
+
+Rama `fase-d`, de `ac48150` (`main`, con la fase C integrada) a `8d91641`: 122 commits (34 `feat`, 29 `fix`
+y 31 `test`; `git log --format=%s`), 186 archivos, +22 082 / −1 170 líneas (`git diff --shortstat
+ac48150..HEAD`), del 11 de noviembre a las 12:31 al 13 de noviembre a las 09:15 (UTC−6; `8d91641` es el
+último commit de contenido: el que registra este apartado solo toca documentación). Cierra la fase D de
+la auditoría (§8, §10, §12): zoom y desplazamiento compartidos con barra de escala, los anillos de Saturno
+a escala radial, el modo «Conducir» del Tema 6 y las microinteracciones. Dylan levantó el alto para B, C y D
+en el mismo acto y audita después con Fable (libro de la fase, cabecera). Ningún commit lleva línea de
+coautor ni de atribución (`git log --format=%B ac48150..HEAD | grep -ciE 'co-authored|claude-session'`
+da 0).
+
+- **Sin empujar.** `main` y `origin/main` siguen en `ac48150`; `fase-d` no existe en el remoto. La
+  integración (`git push origin fase-d:main`, avance rápido) espera la puerta completa del controlador
+  sobre el commit final, el CI y el despliegue en verde (FD-R2). **Cuando se escribió esto no había
+  informe de la corrida del controlador ni de las dos revisiones finales de toda la rama (arquitectura
+  y código; producto, textos y accesibilidad; Opus alto, solo lectura) en
+  `.superpowers/sdd/…`**: se anotan al cerrar, como en B y C. Si alguna halla algo, habrá commits
+  nuevos y los hashes de abajo cambian.
+- **Puerta del implementador sobre `8d91641`** (`task-D4-report.md`, ronda 2): `pnpm run check` con 0
+  errores, 0 avisos y 0 sugerencias; 233 archivos y 3 311 pruebas unitarias; cobertura 99,05 % de
+  sentencias (la ronda 2 no informa ramas; la de antes, 95,1 % con 3 286 pruebas); `pnpm run build` con 11
+  páginas; `pnpm run scale:report` con 0 nuevas (la lista de partida sigue en `{}`; sin exenciones
+  nuevas); e2e 1 149 pasan, 0 fallan (10,7 min, `--workers=2`, puerto 4322). Antes (puerta de C): 2 714
+  pruebas en 197 archivos, 99,02 % y 94,78 %, e2e 855. **La corrida del controlador sobre el mismo commit
+  no existía cuando se escribió esto**: se anota al cerrar.
+- **Dónde está el detalle.** Libro de decisiones (`progress.md`, sección «Phase D»), el patrón de las
+  migraciones (`d12-pattern.md`) y los briefs (`task-D*-brief.md`), diez informes de implementación
+  (`task-D1-report.md`, `task-D12a`, `D12b`, `D13a`, `D13b`, `D13c`, `D2`, `D3`, `DC`, `D4`) y once de
+  revisión (`review-D1-report.md`, `D12a`, `D12b`, `D13a`, `D13b`, `D13c`, `D2`, `D3`, `DC`, `D4` y
+  `review-D-visual-report.md`), con sus capturas en `shots/{d1,d1-r1,d12a,d12b,d13a,d13b,d13c,d2,d3,d4,d-c,d-visual}/`,
+  todo en `.superpowers/sdd/2026-10-31-fases-b-c-d/` (no está en git). Las cifras de abajo llevan entre
+  paréntesis el informe de donde salen («D1», «D12a»… son los de implementación; «r1» y «r2», sus rondas;
+  «rev. D1»… y «rev. visual», las revisiones). El plan sigue siendo
+  `docs/superpowers/plans/2026-10-31-fases-b-c-d.md`.
+- **Ramas de trabajo.** Quedan `fase-d-{12a,12b,13a,13b,13c,d2,d3}` (integradas en `fase-d` por
+  `cherry-pick`: los hashes difieren y git no las da por fusionadas); sus worktrees, en el directorio
+  temporal de la sesión, figuran como «prunable» salvo el de `fase-d-d2`, que se recreó (D2 r1). Ver la
+  limpieza en el apartado 6.
+
+### 1. Qué entregó la fase D
+
+| Etapa | Qué entregó | Cifras (informe) |
+|---|---|---|
+| **D1 · zoom compartido** | `useZoomPan` (vista inmutable `{scale, x, y}`, límites ×1 a ×8, paso √2), `ZoomControls` («Acercar», «Alejar», «Ajustar» y «Tamaño real 1:1» solo si difiere), `ScaleBar`, `ScaleBarSvg` y `ScaleBarWords` (longitud 1 · 2 · 5 × 10ⁿ de 64 a 160 px, con escalera de unidades), `ZoomOverlay` y `canvasCorner`. Gestos: Ctrl y la rueda, la rueda sola solo con el lienzo enfocado desde el teclado, pellizco, arrastre del fondo (umbral 4 px), `+` `−` `0` y flechas de 48 px, `reveal` de un asidero fuera de la vista; deslizamiento de 200 ms (salto con movimiento reducido). Página de prueba fuera del sitio (`lab-zoom`). | Entrega: 2 840 pruebas en 202 archivos, 98,98 %; e2e 876 (antes 855); `zoom-pan.spec.ts` 21/21 y 117/117 con `--repeat-each=3` (D1). Botones de 40 px con glifo de 20; columna de 42 × 194 px, fila de 202 × 42 (D1 r1). Revisión: 0 Critical, 5 Important, 9 Minor; entre ellos, una barra que rotulaba «1 R_J» para 1,399 R_J, un arrastre que se quedaba pegado al ratón, la rueda sola tras un clic y la falta de `reveal` (rev. D1). Ronda 1 (10 commits, `862d1f4`..`e6f2cb9`): rojo real primero en I-1 (6 pruebas), I-2 (2), I-3 (1), I-4 (8) e I-5, M-1 y M-3 (7); 2 867 pruebas, 98,97 %, e2e 880/880, `zoom-pan` 25/25 (D1 r1). Sin segunda revisión de esa ronda (FD-R4). |
+| **D1.2a · Tema 1, mapa de la ruta** | Zoom por **ventana de dominios**: `SvgPlot` recibe como `xDomain`/`yDomain` la parte de `MAP_DOMAIN` que muestra la vista, así que ejes, rejilla y ruta siguen en metros reales; barra de escala en metros; botones en columna sobre el plot. Ancla: punto medio del tramo en «Tramo», centroide de las paradas en «Ruta» (D4 r2). Reencuadra al cambiar de vista, de tramo y con «Restablecer». | Plot de 322 × 292 px a 1 280 y de 218 × 198 a 360; figura de 438 y 344 px en todos los zooms con `minYLabelChars` = 5 (sin él, el plot cambiaba 12 × 11 px y lo de abajo saltaba 11 px); barra de 1 000 m = 127 px a 360 px y, a ×8, la más larga que cabe es de 100 m (D12a). Sin «1:1». e2e propia 23 → 35 pruebas, 140/140 con `--repeat-each=4`; esqueleto y `mapReserve` intactos (D12a r1). Revisión: 0 Critical, 3 Important (arrastre inexacto cerca del borde, CLS de 11 px, paradas bajo los botones), 5 Minor (rev. D12a). Ronda 1 (9 commits) con las tres piezas compartidas de FD-R5; 3 092 pruebas, 99,00 %. |
+| **D1.2b · Tema 9, marco del planeta** | El dibujo pasa por la vista (la flecha de $v_\infty$, la sonda y el asidero no crecen); barra en radios del planeta (escalera km → $R_J$, $R_S$, $R_U$, $R_N$); botones en una franja de 48 px **bajo** el cuadrado; «planeta agrandado» solo mientras el radio verdadero mide menos de 4 px; el marco del Sol no lleva zoom. Ancla: el centro del planeta (D4 r2). | Barra entre 64 y 160 px de ×1 a ×8 en los seis encuentros; el marco crece exactamente 48 px, sin CLS (rev. D12b). e2e 19 pruebas, 57/57 con `--repeat-each=3` (D12b). Revisión: 0 Critical, 3 Important (la franja dentro del lienzo falseaba límites, pivote y `reveal` en 48 px; pulsar un asidero a 9 px del borde movía la vista 48 px; enfocar un botón movía el dibujo 12 px), 7 Minor; 14 de 344 rótulos de $v_\infty$ cortados por el borde en el barrido del revisor; el barrido propio de la ronda 1 dio 12 en rojo y 0 después (D12b r1). 3 051 pruebas, 99,01 %. |
+| **D1.3a · Tema 3, anillo del hábitat** | El dibujo pasa por la vista; barra de escala en metros del radio; la barra del radio queda fuera del lienzo y la franja de zoom va debajo; nota del lienzo «radio a escala (ver barra)» / «persona y aro, simbólicos». Ancla: la persona en reposo (D4 r2). | Relación barra/radio comprobada a 3 decimales con r = 5; 223,6; 894,6 y 4 000 m de ×1 a ×8; escenario 524 → 572 px (+48; +96 bajo 408 px) y luego, a 360 px, 606 → 558 con la tira en una fila desde 293 px de lienzo (antes 408) (D13a; D4 r2); `OUTER_ROOM` 64 → 72 (el anillo mayor queda 5 % menor a 440 px, 8 % a 360 y 10,7 % a 320: D13a r1). e2e 22 → 26 pruebas, 66/66 con `--repeat-each=3`. Revisión: Approved, 0 Critical, 0 Important, 8 Minor (rev. D13a). 3 131 pruebas, 99,02 %. |
+| **D1.3b · Tema 8, escena de la nave y la rueda** | El dibujo pasa por la vista; solo el cuerpo 6U (366,0 × 226,3 mm) está a escala, así que la barra mide **centímetros de la nave** y lo dice en su recuadro; botones en una franja bajo el cuadrado. Ancla: la nave (D4 r2). | Barra de «20 cm» a ×1, «10 cm» a ×2, «5 cm» a ×4 y «2 cm» a ×8 con 400 px; la e2e compara a cada zoom largo de la barra / largo del cuerpo = cm / 36,6. Escenario a 1 280 px: 1 002 → 1 098 (tira de dos filas, 96 px) → 1 050 con una fila (a 900: 992 → 1 088 → 1 040; a 360, 940 con dos filas) (D13b; D4 r2). e2e 19 pruebas, 57/57 con `--repeat-each=3`; e2e completa de la rama del tema 955/0 en 22,7 min (D13b). Revisión: 0 Critical, 2 Important (la perilla a 8 px del borde movía la vista 53 px al pulsar; la nota «6U a escala» quedaba bajo el cuerpo desde ×2,8), 8 Minor (rev. D13b). 3 123 pruebas, 99,00 %. |
+| **D1.3c · Tema 2, trayectoria del salto** | Zoom por ventana de dominios (como el Tema 1); barra en metros bajo las marcas; las flechas de $\vec v_0$ y $\vec v$ no crecen; botones en una franja de 48 px bajo la tarjeta de la gráfica. Ancla: el punto de lanzamiento (D4 r2). | Plot de Celeste de 334 × 167 px a 1 280 y de 230 × 115 a 360; barra de «1 m» (117 px) a ×1 y «0,1 m» a ×8; escenario +48 px (462 → 510 a 1 280; rev. D13c). `JUMP_Y_LABEL_CHARS` = 4 y tamaño del plot estricto (< 0,5 px en 6 pasos de zoom y 12 de desplazamiento; D13c r1). e2e 35 pruebas, 70/70 con `--repeat-each=2`. Revisión: 0 Critical, 2 Important (con Tierra o Luna a ×4 o más, 8 o 9 de 48 pulsaciones de flecha dejaban el asidero hasta 150 px fuera del plot; pulsar cerca del borde tras usar el teclado movía la vista 26 px), 7 Minor (rev. D13c). Ronda 1: e2e roja 7 de 8 y 2 unitarias antes de `useRevealOnKey`. 3 143 pruebas, 99,02 %. |
+| **D2 · anillos de Saturno (Tema 9)** | Anillos C, B y A con la división de Cassini a escala radial, de la hoja de la NSSDCA (fuente 11 en el MDX y en la línea de fuente de la figura); círculos «abatidos» sobre el plano del sobrevuelo; descripción hablada, nota visible (D4 r2) y párrafo en «Qué deja fuera». | Radio de Saturno 60 268 km; C 74 658–91 975 km (1,239–1,526 $R_S$); B 91 975–117 507 (1,526–1,950); A 122 340–136 780 (2,030–2,270); Cassini 4 833 km (hueco B–A) (D2; verificado por el revisor contra la hoja, «Last Updated: 19 April 2022», rev. D2). V2: $r_p$ = 160 691 km = 2,67 $R_S$; V1: 184 031 km = 3,05 $R_S$ (el 3,09 del brief sale de sumar el radio a «126 000 km»); ambas por fuera del A, a 0,40 y 0,78 $R_S$ (rev. D2). A 1 280 px, ×1, V2: planeta de 10,5 px de radio, A hasta 23,8 px, periapsis a 27,9 px; anchos C 3,0, B 4,4, Cassini 0,8 (6,7 a ×8) y A 2,5 px (D2). Unitarias nuevas 5 (`planets`) y 18 (`planetRings`); e2e 11; tres mutaciones del e2e en rojo. Revisión: 0 Critical, 2 Important (pista, tramo recorrido y línea de $r_p$ sobre los anillos con contraste de 1,06:1 en claro; razón falsa para no dibujar los anillos de Urano), 8 Minor (rev. D2). Ronda 1: 8 commits; 3 257 pruebas, 99,05 %. |
+| **D3 · «Conducir» (Tema 6)** | Tercera vista del cajón: el lector conduce el tramo de la figura 6.3 con «Freno ↓» y «Acelerador ↑» sobre **el mismo núcleo energético** (`stepBalance` reproduce `cycleBalance` del UDDS exactamente); auto del ciclo «fantasma», línea de detención, gráfica de velocidad propia frente al dato, lecturas y resumen al pausar o terminar; la corrida se graba y se repite. | Tracción máxima $a = \mu\varphi g / (1 - h\mu/L)$ = 4,65 m/s² con $\mu$ = 0,7, $\varphi$ = 0,59, $h$ = 0,53 m y $L$ = 2,875 28 m de FASTSim 3.1.0 (tracción trasera), tope $P/v$ con 239 kW; freno hasta $\mu m g$ (D3). Verificado: yaml `a66abe1b…` y `vehicle_model.rs` `b342f797…` (l. 966–986); 4,6517 m/s²; error del trabajo de los pedales ≤ 3,5·10⁻¹² para dt de 0,001 a 0,25 s; frenado a fondo desde 58 km/h en 18,61 m con cualquier dt (rev. D3). Tramos: UDDS 376 s, 57,9 km/h, 26 s, línea a 236 m; HWFET 729 s, 89,3 km/h, 36 s, 505 m; US06 92 s, 109,1 km/h, 41 s, 713 m (D3). Escenario de «Conducir» 1 244,81 px a 1 280 y 1 230,81 a 360; «Tramo» sin cambio (1 270,02 y 1 269,81). Mutaciones del DOM por cuadro conduciendo 13,5 → 10,8 (presupuesto 12); «Tramo» 8,5 → 7,5. e2e propia 14 pruebas, 42/42 con `--repeat-each=3`. Revisión: Approved, 0 Critical, 0 Important, 9 Minor (rev. D3). Ronda 1: 8 commits; 2 825 pruebas, 99,07 %. |
+| **D-C · cierre compartido** | La bandera del puntero (R30) en `useZoomPan`, `useRefit` y `useKnobReveal` en `lab/` (tres copias → una), el tamaño medido (`viewportSize`) en vez de un segundo observador, «Zoom ×8» (R31), `announceReadouts` de `LabShell`, presupuesto de «Conducir» en `lab-performance.spec.ts`, estado «Conducir» en la guardia de glifos y README. | Fila de zoom sin «1:1» 162 → 191 × 42 px; columna 42 × 154 sin cambio (D-C). 3 225 pruebas en 226 archivos, 99,05 % y 95,04 %; e2e 1 061 pasan (14,5 min). Revisión: Approved, 0 Critical, 0 Important, 7 Minor; con el ratón sobre un asidero a 6 y 9 px del borde a ×4 la vista se mueve 0,00 px; con la guarda quitada caen 9 pruebas unitarias y 5 e2e (rev. DC). |
+| **D4 · microinteracciones** | Fundido de 200 ms al elegir otro preajuste (solo opacidad, sobre `[data-lab-canvas]`); realce de serie desde la leyenda (+1,5 px de trazo y las demás a 25 % de opacidad); asideros con aro de foco sobre borde de superficie y que crecen ×1,25 mientras se arrastran. Ronda 1: una parada de Tab por leyenda (R32). Ronda 2 (pasada visual): ancla del zoom (R33), nota visible de los anillos, tira de zoom en una fila, pulido. | Transición: `lab-preset-transition.spec.ts` 19 pruebas en los 8 laboratorios con preajustes (el Tema 1 no tiene), rojas sobre la base. Contraste del aro de foco 8,3:1 en claro y 7,2:1 en oscuro (rev. D4); CLS 0 y alturas de leyenda idénticas a la base en los 9 temas a 1 280 y 360 px (rev. D4). Revisión: 0 Critical, 2 Important (cada entrada de leyenda era una parada de Tab: 90 nuevas en el sitio, 23 en el Tema 6; una e2e inestable), 7 Minor (rev. D4). Alturas del escenario tras la ronda 2: Tema 8 1 098 → 1 050 a 1 280 px, Tema 3 a 360 px 606 → 558, Tema 2 sin cambio (D4 r2). Puerta final: ver arriba. |
+| **Revisiones y pasada visual** | Once informes de revisión: 0 Critical, 22 Important, 84 Minor (suma de los encabezados). Pasada visual de la fase D frente al sitio de C: 457 capturas a 1 280, 900 y 360 px, claro y oscuro (rev. visual). | Veredicto «casi lista»: 3 Important (los botones acercan sobre el centro y no sobre lo que importa; los anillos sin explicación visible; la tira de escala y zoom partida en dos filas del Tema 8 a 1 280 y 900 y del Tema 3 a 360) y 9 Minor, que cerró la ronda 2 de D4; sin desbordamiento horizontal en ninguna combinación (rev. visual). Las rondas 1 y 2 de D4 no tuvieron re-revisión propia (FD-R11). |
+
+Cifras de conjunto: pruebas unitarias 2 714 → 3 311 (197 → 233 archivos); cobertura de sentencias 99,02 →
+99,05 %; e2e 855 → 1 149; infracciones de escala 0 → 0 (sin exenciones nuevas). Zoom en cinco de los nueve
+laboratorios (Temas 1, 2, 3, 8 y 9); los Temas 4, 5, 6 y 7 no lo llevan (README, «Quién las usa»). Leyendas
+con realce en unas 30 gráficas (D4).
+
+### 2. Decisiones del controlador de esta fase
+
+Las `Ruling` del libro con número (R26, R28 a R31 y R33; R32 la nombra el informe de D4) llevan entre paréntesis ese número; el prefijo **FD-R**
+evita chocar con R1–R50 de este traspaso y con FB-R y FC-R. El libro de la fase D no numeró más decisiones
+que esas (R26 es la del push de B, que el plan reutiliza para D): las demás, tomadas por los
+implementadores y aceptadas por el controlador al integrar, o surgidas de las revisiones, **se numeran aquí
+por orden de aparición**. Cuando el informe no anotó el costo, la celda dice cuál sale de la lectura.
+
+| N.º | Decisión | Por qué | Costo si estuviera equivocada |
+|---|---|---|---|
+| FD-R1 | D1 (compartido) en el checkout principal y D3 (Tema 6, archivos disjuntos) en un worktree, a la vez; T1 y T9 (D1.2a/b) en paralelo; luego T3, T8 y T2 (D1.3a/b/c) en paralelo; D2 tras la revisión del zoom del T9 (mismos archivos); D4 tras el cierre compartido. Modelos: D1, D2, D-C y D4 en Opus alto, D3 en Opus xhigh, migraciones en Sonnet alto; revisión independiente de cada tarea (los revisores de T3, T8 y T2 buscaban los mismos defectos hallados en T1 y T9). Integración por `cherry-pick`. | El plan y FB-R1 / FB-R6. | Un conflicto a mano. En la práctica, ninguno al integrar (D1.2, D1.3, D2, D3 sin conflictos); uno de README al rebasar D1.3b, resuelto por su agente (libro). |
+| FD-R2 (R26) | Empujar `fase-d` a `main` con avance rápido tras la puerta del controlador, el CI en verde y el visto bueno de las revisiones finales, bajo la instrucción permanente de Dylan del 30 de octubre («sube el código, luego continúa con las demás fases»). **No ejecutado al escribir esto.** | El mismo flujo dio el CI y el despliegue en verde en `6dc690b` y `7c0abe6`, y terminados en `ac48150`. | Los de FB-R26, **con más peso que en C**: aquí sí hay textos nuevos de Claude (frases de zoom, «Conducir», nota de los anillos; apartado 4) que quedarían publicados antes de la lectura de Dylan; `main` solo se revierte con `push --force`, que no se hará. |
+| FD-R3 (R28) | «Ajustar» encuadra `fit` (el «volver a empezar») y «1:1» vuelve a la escala nominal (×1) sin recentrar; si el laboratorio no declara `fit` ni `bounds`, el gancho dice que son la misma vista (`hasActualSize` falso) y `ZoomControls` omite «1:1». Se decide por las opciones, no por la medida, para que el servidor ya lo sepa. | Dos botones iguales serían un defecto (rev. D1, I-5). | Un laboratorio con una sola vista muestra un botón menos. Consecuencia: **ningún** laboratorio muestra «1:1» (decisión abierta 41); y uno que declare un `fit` igual al lienzo vería «Ajustar» y «1:1» repetidos (D1 r1). |
+| FD-R4 | La ronda 1 de D1 se aceptó sin segunda revisión (ronda guiada por la revisión, con rojo real primero; el controlador leyó el informe y el diffstat). | Ronda dirigida por hallazgos concretos y con pruebas rojas. | Se pagó: el `reveal` que esa ronda añadió (I-4) enfocaba también con un clic y movía la vista bajo el puntero; lo hallaron los revisores de T1, T9, T8 y T2 y dio FD-R5 y FD-R6. |
+| FD-R5 (R29) | En su ronda 1, el agente de T1 puede editar tres piezas compartidas, cada una con prueba roja primero: `SvgPlot.minYLabelChars`, el filtro `:focus-visible` de `useZoomActions.onFocus` y `scaleBarLength` con `maxPx` opcional; los agentes de T8, T3, T2 y T9 no las tocan. | Eran defectos de piezas compartidas hallados en la revisión de T1 (I-1, I-2, M-1); así el cierre no los rehace y los demás agentes no editan `lab/`. | Un conflicto al integrar en `lab/`. No ocurrió (12 commits, `b1d4f9a`..`a4fc58f`, sin conflictos). El filtro `:focus-visible` resultó insuficiente: FD-R6. |
+| FD-R6 (R30) | Un solo `reveal` que distingue el origen del gesto: bandera de pulsación en el lienzo (sube en `pointerdown`, `mousedown` y `touchstart` en captura; baja en `pointerup`, `pointercancel`, `mouseup`, `touchend`, `touchcancel` y con **cualquier tecla**); con la bandera, el foco que llega no desplaza la vista. Sustituye al filtro `:focus-visible`, a las evitaciones locales de T9, T8 y T2 y a las copias de `useRefit` y del `reveal` de la perilla (a `lab/`). | `:focus-visible` es verdadero en Chromium con un `focus()` por script tras usar el teclado, y falso tras un clic seguido de un foco por script (que quedaba fuera de la vista, WCAG 2.4.7) (rev. D13b, rev. D13c, D-C). | Una pieza compartida cambia de conducta en los cinco laboratorios. Límites conocidos, sin arreglo: un Tab durante un arrastre con el ratón revela el foco y mueve la vista bajo el asidero; una pulsación cuyo `pointerup` no llega deja la bandera puesta hasta la siguiente tecla (README). |
+| FD-R7 (R31) | El factor del zoom se pinta «Zoom ×8», nunca «×8» a secas; en fila, una línea con el número a 4 caracteres de ancho; en columna (Tema 1), dos líneas. | La insignia «×4 cámara rápida» y el factor «×8» se parecen en el mismo lienzo (rev. D13b, M-4). | Un prop: Dylan puede preferir el «×8» a secas. Costo medido: la fila 162 → 191 px; la holgura de la tira del Tema 3 a 408 px bajó de ~37 a 7 px (D-C), y D4 r2 acortó la barra (`inlineScaleBarMaxPx`) para que T3 y T8 quepan en una fila. |
+| FD-R8 | Los dos pedidos compartidos de D3 (`announceReadouts` y el presupuesto de «Conducir» en `lab-performance.spec.ts`) y los 7 Minor de la revisión del cierre se hacen en el cierre y en los primeros commits de D4, no en las ramas de tema. | Archivos compartidos y D4 los toca de todos modos. | Ninguno registrado. |
+| FD-R9 (R32) | Una parada de Tab por leyenda: `ul role="toolbar"` «Leyenda: realzar una serie», con *roving tabindex*; ←/→ (↑/↓ en la columna de umbrales del Tema 7), Inicio y Fin mueven el foco y previsualizan, Intro y Espacio fijan, Escape suelta. | Cada entrada era una parada y un botón conmutable que solo cambiaba lo visual: 90 paradas nuevas (rev. D4, I-1). | El teclado de las leyendas pide aprender las flechas; revertir es quitar el *roving* (decisión abierta 64). |
+| FD-R10 (R33) | Cada laboratorio con zoom declara un **ancla** (punto de interés, en unidades del dibujo) sobre la que acercan los botones y las teclas mientras esté a la vista (`stepPivot`); la rueda y el pellizco siguen en el puntero. T9 el planeta, T1 el tramo o las paradas, T2 el lanzamiento, T3 la persona en reposo, T8 la nave. | Con el centro, el objeto salía del cuadro en los Temas 1, 2, 3 y 9 (rev. visual, I1). | Un laboratorio sin ancla conserva el centro (una opción sin definir). |
+| FD-R11 | Los hallazgos de la pasada visual van a la ronda 2 de D4 (después de la ronda 1); ni la ronda 1 ni la 2 de D4 se re-revisaron por separado: las cubren las dos revisiones finales de la rama. Tampoco tuvieron re-revisión las rondas 1 de D1.2a/b, D1.3a/b/c, D2 y D3 (las cubre la pasada visual sobre `01cc1cc`). | El libro no anota el motivo; por lectura, la pasada visual y las revisiones finales recorren todo el árbol. | Un defecto de esas rondas sale en las revisiones finales, sin informe cuando se escribió esto. |
+| FD-R12 | Cierre de la fase: puerta del controlador en segundo plano sobre `8d91641`, este traspaso y dos revisores finales de toda la rama (Opus alto, solo lectura); se detuvo al agente de D4 (seguía avisando). | Igual que en B y C, más la revisión de toda la rama pedida por el plan. | Si alguna revisión halla algo, hay otra ronda y otra puerta. |
+| FD-R13 | Zoom por **ventana de dominios** en los Temas 1 y 2 (`SvgPlot` con `xDomain`/`yDomain`; viewport de zoom como `foreignObject` con un `svg` anidado), no por `transform`. | Escalar el dibujo habría dejado los ejes mintiendo (D12a). | Cada paso re-pinta `SvgPlot` (ejes y rejilla); en Chromium `getBBox` de lo de dentro responde un cuadro tarde (las pruebas usan `expect.poll`); Safari tiene fallos conocidos con HTML posicionado en `foreignObject` y el proyecto solo prueba Chromium (decisión abierta 69). |
+| FD-R14 | En los Temas 3, 8 y 9 el dibujo pasa por la vista (puntos y radios × zoom) en vez de un grupo transformado; el texto, el trazo, las flechas de fuerza o velocidad y los asideros conservan su tamaño. | Con `transform` todo crecería, también el texto (D12b, D13a, D13b). | Cada cuadro del deslizamiento re-pinta la escena; a ×8 la persona del Tema 3 mide 272 px con trazo de 2 px (D13a). |
+| FD-R15 | Los botones van en una **franja de alto fijo fuera del lienzo** (Temas 2, 3, 8 y 9) y no en `ZoomOverlay` sobre el dibujo; en el Tema 1, columna sobre el plot. | No hay esquina libre: el dibujo de T3 gira, el de T8 es un dial inscrito, el plot de T2 es plano y el cuadrado de T9 lo ocupa la hipérbola (D12b, D13a, D13b, D13c). | La escena crece 48 px (T2, T3, T9) y la de T8, 48 px sobre la de C tras la ronda 2 (1 002 → 1 050); la rev. visual recomienda una sola familia (decisión abierta 44). |
+| FD-R16 | Ningún laboratorio declara `fit` ni `bounds`: ninguno muestra «1:1» y los límites son ×1 a ×8. | Consecuencia de FD-R3: T9 y T3 reescalan el dibujo con $r_p$ o $r$, T8 con el ancho, T1 y T2 ya encuadran todo. | Quien quiera «1:1» debe declarar una escala física; en T1 el `fit` de la ruta daría ≈ ×1,1 (D12a). |
+| FD-R17 | Las flechas de velocidad no crecen con el zoom (T2: $\vec v_0$ y $\vec v$; T9: $v_\infty$ y $v_{rel}$); en T2 la misma distancia de arrastre da el mismo cambio de $v_0$ a ×1 y a ×4. | Son velocidades, no distancias: a ×8 un vector de 25 m/s mediría ocho veces el alto del plot y sacaría el asidero de la vista (D13c). | El vector deja de ser «a escala» con la trayectoria al acercar (su longitud ya era arbitraria); volver es quitar una división. |
+| FD-R18 | El zoom se conserva al cambiar un parámetro (r, $r_p$, un deslizador) y se reencuadra con un preajuste, un encuentro nuevo o «Restablecer» (`useRefit`). | La vista está en pantalla y el dibujo se reescala debajo. | A ×4, subir $g$ o cambiar $r_p$ muestra otra zona; «Ajustar» lo arregla (D12b, D13a, D13c). |
+| FD-R19 | El marco del Sol del Tema 9 no lleva zoom. | Es un triángulo de velocidades ajustado entero a su panel; acercarlo pierde la suma y duplicaría botones, región `status` y paradas de Tab (D12b). | Quien quiera acercarlo necesita otra tarea. |
+| FD-R20 | Los botones de zoom miden 40 px con glifo de 20, también en el teléfono, no los 44 de `ICON_BUTTON`; las entradas de leyenda ganan un área invisible de 4 px que da 24 px de objetivo sin cambiar su caja. | Tapan menos dibujo; con 44 la fila mediría ~203 px y la tira del Tema 3 volvería a dos filas a 360 px (D4 r2, M6). | Objetivos táctiles de 40 en vez de 44, por encima de los 24 de WCAG 2.5.8 (decisión abierta 42). |
+| FD-R21 | Se quitó el filtro `:focus-visible` del `reveal` por foco; la bandera baja con cualquier tecla y no con `lostpointercapture`. | Con la bandera es redundante y fallaba al revés (foco por script tras un clic); al tocar, la captura implícita pasa del círculo al `<g>` del asidero y dispararía `lostpointercapture` a mitad de la pulsación (D-C, decisiones 1 y 2). | Una tecla pulsada durante un arrastre con el ratón baja la bandera, sin efecto visible (D-C). |
+| FD-R22 | El texto del lienzo del Tema 3 «no a escala» pasó a dos líneas, «radio a escala (ver barra)» y «persona y aro, simbólicos»; en el Tema 8 la barra dice «20 cm de la nave». | Con una barra en metros, «no a escala» se contradecía (D13a); a ×2,8 o más la nave sale de campo y la barra podía engañar (rev. D13b, I-2). | Es prosa de interfaz de Claude: Dylan decide (apartado 4). |
+| FD-R23 | Las frases de zoom de «Cómo se usa» y el párrafo de «Qué deja fuera» del Tema 9 viven en los componentes, no en el MDX. | No cuentan para las 650 palabras y no tocan la prosa (D12a, D12b, D13a, D13b, D13c, D2). | Si Dylan las quiere en el MDX, cuentan para el tope y hay que quitar otro tanto (decisión abierta 49). |
+| FD-R24 | Anillos de Saturno con las cifras de la hoja de la NSSDCA (C interior 74 658 km, A exterior 136 780 km) y no con las del brief (74 490 y 136 775), y $r_p$ de la V1 de Horizons (3,05 $R_S$), no 3,09. | Las del brief no figuran en la hoja (74 510 km es el borde exterior del anillo D); 3,09 sale de sumar el radio a una cifra redondeada (D2; rev. D2). | Cambiar las constantes de `planets.ts`; la auditoría (`docs/superpowers/audits/2026-10-30-auditoria-integral.md`, l. 328–330) conserva las cifras del brief y no se editó. |
+| FD-R25 | Los anillos se dibujan «abatidos» como círculos en el plano del sobrevuelo, no como una «proyección». | Un anillo inclinado se proyectaría en una elipse con una inclinación que el modelo plano no tiene (D2, decisión 1). | Si Dylan quiere la palabra, una frase; si quiere elipses, calcular $i$ por encuentro desde Horizons (dato nuevo). |
+| FD-R26 | Sin bandas de Júpiter ni Gran Mancha Roja, sin eje tumbado ni anillo ε de Urano; los colores de los planetas se declaran «ilustrativos» en «Qué deja fuera», que da a cada cosa su razón real. | La vista es la normal al plano del sobrevuelo; el ε (20–96 km) mediría menos de 1 px incluso a ×8 (D2; rev. D2, I2). | Dylan lo marcó «deseable»: las bandas son un `<pattern>` y una palabra, ≈ 1 h (D2). |
+| FD-R27 | Colores de los anillos sin tokens nuevos: el C sale de `--saturn` con `color-mix`; en la ronda 2, rellenos más pálidos que el globo (50 % del token sobre la superficie en B y A, 30 % en C), borde de 1 px en el token y contorno de 1,5 px en el globo; una prueba exige 3:1 de los bordes. | El cuerpo y los anillos B y A compartían el ocre y de cerca parecía una diana (rev. visual, I2). | Los rellenos quedan a 1,77:1 en claro y 3,24:1 en oscuro de la superficie; solo los bordes cumplen 3:1 (D4 r2; decisión abierta 51). Un `--saturn-ring-c` sería un cambio en `tokens.css` (D2). |
+| FD-R28 | La pista, el tramo recorrido y la línea de $r_p$ van sobre un borde de la superficie 3 px más ancho (1,5 px por lado); la flecha $v_{rel}$ de la sonda queda sin borde; los textos de las esquinas se pintan encima del dibujo (la clave de $V_p$ sobre un fondo, el valor de $r_p$ con halo). | El trazo cruzaba los anillos con contraste de 1,06:1 en claro (rev. D2, I1); acercados, los anillos tapaban la clave (D2). | La sonda y la pista pasan ahora bajo la barra y la insignia; `VECTOR_WIDTH` no se exporta y la flecha compartida no admite borde (D2 r1). |
+| FD-R29 | «Conducir»: el reto es el tramo de la figura 6.3 (misma rapidez inicial, mismo punto de salida, misma línea y mismo reloj que «Tramo»), sin conducción libre ni puntos. | Con un modo libre, el «% recuperado» del lector y el del ciclo medirían viajes distintos (D3, decisión 1). | No hay conducción libre; añadirla sería otro `DriveCourse` más largo y sin línea. |
+| FD-R30 | Los límites de los pedales salen del archivo de FASTSim que ya cita el tema ($\mu$, $\varphi$, $h$, $L$ y 239 kW); el freno llega a $\mu m g$ con el mismo $\mu$ (0,7 g), lo único mío. El LEAF usa el chasis y el motor del Model 3, y se declara. | FASTSim sigue el ciclo y no limita la frenada (D3, decisión 2; rev. D3, M4). | Si Dylan prefiere otro tope de freno, una constante. |
+| FD-R31 | Los pedales tardan 2 s en hundirse y 0,5 s en volver (constantes de la interfaz); el freno anula el acelerador; sin pedal el auto rueda libre (sin freno regenerativo al soltar). | Con teclas de todo o nada no se frena suave; el freno que anula al acelerador mantiene exacta la contabilidad; el tema no trae el dato de la regeneración al soltar (D3, decisiones 3 a 5). | Sensación (dos constantes); lo de rodar libre se declara en «Qué deja fuera». |
+| FD-R32 | La línea de tiempo de «Conducir» se acota a lo conducido; un pedal al final empieza otra conducción; con «Repetir» cada vuelta termina con su resumen; cambiar $\eta$, $P_{máx}$, $f(v)$ o el auto recalcula la misma conducción. | Simular el hueco al saltar hacia delante exigiría inventar los pedales (D3, decisión 7; D3 r1, M8 y M9). | Arrastrar la línea más allá de lo conducido la devuelve al final de lo conducido. |
+| FD-R33 | En «Conducir» el anunciador de lecturas de `LabShell` se apaga (`announceReadouts`) y al pausar se oye solo el resumen. | Se oían dos anuncios, el resumen y 743 ms después las 8 lecturas (rev. D3, M2). | Las lecturas que cambien sin pasar por el resumen no se anuncian (rev. DC, 7). |
+| FD-R34 | Presupuesto de «Conducir» en `lab-performance.spec.ts`: ≤ 12 mutaciones del DOM por cuadro, contadas sobre `max(cuadros medidos, segundos × 60)`; por debajo de 50 fps la prueba se salta con motivo, y anota los fps de cada corrida. | La media por cuadro sube si bajan los fps, porque las sincronizaciones de 10 Hz son fijas (rev. DC, 1; D4). | Entre 50 y 60 fps la cifra subestima hasta 17 %; margen medido de ~1,1 (10,8 a 11,0 de 12). |
+| FD-R35 | Cambio de preajuste: una Web Animation de solo opacidad (0,4 → 1, 200 ms, `ease-out`) sobre todo el lienzo (también insignia y botones de zoom); `settingsStore` escribe `data-motion` en la raíz para que el movimiento reducido del sitio, no solo el del sistema, la detenga. | Una sola animación vale para los ocho laboratorios con preajustes, SVG y HTML (D4, decisiones 1, 2 y 4); `settingsStore.ts` y `global.css` están fuera de los globs de la tarea (rev. D4, M1). | Si se prefiere solo el dibujo, objetivos por laboratorio; los 200 ms viven en TypeScript (`PRESET_TRANSITION_MS`, `ZOOM_TRANSITION_MS`) y `--motion-base` se quitó por no usarse. |
+| FD-R36 | Realce de serie desde la leyenda: cada entrada es un botón dentro de la barra (ratón encima o foco previsualiza; clic, toque o Intro fija con `aria-pressed`); +1,5 px de trazo y 25 % de opacidad en las demás. Las leyendas de `canvasNotes` no son botones y las series del `overlay` (flechas) no se realzan. | No depende solo del color (D4, decisiones 5 y 6). | Quien lea las leyendas con un lector oye botones conmutables; las flechas no responden a la leyenda. |
+| FD-R37 | Asideros: aro de acento de 2 px sobre un borde de superficie, crecen ×1,25 sobre su centro en 120 ms mientras se arrastran (`data-dragging`, atributo y no estado de React); los de un eje conservan `ew-resize`/`ns-resize` también al arrastrar, los libres usan `grab` y `grabbing`. | El aro toca siempre la superficie y mantiene ≥ 3:1 (WCAG 1.4.11; la cita 2.4.11 era errónea: rev. D4, M5); el aviso del eje no debe perderse al arrastrar (rev. visual, M7). | Una clase por asidero si Dylan quiere `grab` en todos (D4, decisión 3). |
+| FD-R38 | Pulido de la ronda 2: a 320–355 px la barra del Tema 1 sube al margen del plot; las barras de T1, T9 y T3 llevan placa o fondo bajo el texto; la fila de la leyenda alinea por línea base (desfase de 4,7 px → 0; dos leyendas crecen 1,3 px); T8 y T3 en una fila. | Hallazgos Minor de la pasada visual (D4 r2). | La página crece 1–2 px donde la línea base de una entrada con fórmula es mayor (D4 r2). |
+
+### 3. Contratos y guardias nuevos
+
+El README ya los describe («Zoom y desplazamiento», «Reglas para quien migre un laboratorio», «Quién las
+usa», «Microinteracciones»); aquí solo dónde vive cada pieza.
+
+| Pieza | Archivo | Para qué |
+|---|---|---|
+| `useZoomPan` | `src/components/lab/useZoomPan.ts` (y `useViewTransition.ts`, `useZoomViewport.ts`, `useZoomActions.ts`, `useZoomGestures.ts`, `zoomGestureState.ts`) | Vista inmutable, límites, `bounds`, `fit`, `anchor`, `hasActualSize`, `reveal`, `isPointerPressing`, `viewportSize`, gestos y `viewportProps`. |
+| Matemáticas del zoom | `src/components/lab/zoomMath.ts`, `scaleBarMath.ts` | Puras: zoom sobre un punto, desplazamiento acotado, pellizco, `revealView`, `stepPivot` (R33), factor «Zoom ×2,5» y barra 1 · 2 · 5 × 10ⁿ de 64 a 160 px. |
+| `ZoomControls`, `ZoomOverlay`, `ScaleBar` | `src/components/lab/{ZoomControls,ZoomOverlay,ScaleBar}.tsx`, `canvasCorner.ts` | Botones de 40 px con glifo de 20 («Zoom ×8», FD-R7), tira con barra y botones, barra HTML o SVG (`inlineScaleBarMaxPx`, `maxPx`). |
+| Bandera del puntero (R30) | `src/components/lab/usePointerPress.ts` | Un foco que llega dentro de una pulsación no desplaza la vista. |
+| `useKnobReveal`, `useRefit` | `src/components/lab/useKnobReveal.ts`, `useRefit.ts` | Un asidero con banda de textos (Temas 8 y 9) y el reencuadre por contador (Temas 3, 8 y 9). |
+| Zoom por ventana de dominios | `dron-reparto/{routeZoom,useRouteZoom}.ts`, `RouteZoomLayer.tsx`; `salto-personaje/{jumpZoom,useJumpZoom,useRevealOnKey}.ts`, `JumpZoomLayer.tsx`; `SvgPlot.tsx` (`minYLabelChars`) | `ROUTE_Y_LABEL_CHARS` = 5 y `JUMP_Y_LABEL_CHARS` = 4, hallados con un barrido unitario: el plot no cambia de tamaño al acercar. |
+| Dibujo por la vista | `gravedad-artificial/{habitatRing,HabitatZoomStrip}`, `ruedas-reaccion/{wheelZoom,useTargetReveal,WheelZoomStrip}`, `asistencia-gravitatoria/{planetGeometry,planetZoom,planetFrameLayout}` | Geometría pura de cada escena a través de la vista y su franja de zoom. |
+| Anillos de Saturno | `src/lib/data/planets.ts` (`PLANETS.saturn.rings`), `asistencia-gravitatoria/planetRings.ts`, `RINGS_NOTE` en `PlanetFrame.tsx`, `RINGS_LEFT_OUT` en `FlybyLab.tsx`; `docs/superpowers/research/2026-10-30-asistencia-gravitatoria.md` §10 | Datos con su fuente y URL; `planetRings.test.ts` lee `tokens.css` y exige 3:1 de los bordes en ambos temas; la investigación guarda la tabla y las discrepancias. |
+| «Conducir» | `src/lib/physics/regenDrive.ts` (`driveStep`, `PEDAL_APPLY_S`, `PEDAL_RETURN_S`), `energy.ts` (`stepBalance`, `FASTSIM_MOTOR_PMAX_W`); `frenado-regenerativo/{driveRun,driveViews,driveText,pedalInput,useDriveSession}.ts`, `{DrivePedals,DriveCanvas,DriveSpeedPlot}.tsx` | Núcleo puro con conservación a 10⁻⁹ en cuatro modelos, corrida grabada cada 0,01 s, sesión sin render de React por cuadro. |
+| Un anuncio por vista | `src/components/lab/labShellTypes.ts`, `LabShell.tsx` (`announceReadouts`) | Una vista que dice su propio resumen apaga el anunciador de lecturas. |
+| Presupuesto de «Conducir» | `tests/e2e/lab-performance.spec.ts` | FD-R34. |
+| Transición de preajuste | `src/components/lab/{presetTransition,useMotionReduced}.ts`, `LabPresets.tsx`, `LabShell.tsx`; `data-motion` en `src/lib/settingsStore.ts` y `src/styles/global.css` | Fundido de 200 ms; ninguna con movimiento reducido del sistema o del sitio. |
+| Realce de serie | `src/components/charts/seriesHighlight.tsx` (`legendKeyTarget`), `SvgPlot.tsx` | Leyenda como barra de herramientas con una parada de Tab. |
+| Asideros | `src/components/lab/OverlayMarks.tsx` (`KnobRing`, `FOCUS_RING_RADIUS`), `dragMark.ts`, `SvgPlotCursor.tsx`; `src/styles/global.css` | Aro con borde de superficie y crecimiento ×1,25 al arrastrar. |
+| Páginas de prueba fuera del sitio | `tests/e2e/fixtures/lab-zoom/`, `lab-micro/` | Ejercitan zoom y microinteracciones sin tocar `MIGRATED_LABS` ni la guardia de glifos. |
+| e2e de zoom | `tests/e2e/zoom-pan.spec.ts` (35), `zoom-anchor.spec.ts`, `{dron-reparto,salto-personaje,gravedad-artificial,ruedas-reaccion,asistencia-gravitatoria}-zoom.spec.ts` | Botones, teclas, barra = longitud verdadera, asideros junto al borde, solapes a 320, 360 y 1 280 px, movimiento reducido y axe; ninguna usa `waitForTimeout`. |
+| e2e de anillos y de «Conducir» | `tests/e2e/asistencia-gravitatoria-rings.spec.ts`, `frenado-regenerativo-conducir.spec.ts` | Solo Saturno, ambas Voyager por fuera del A, contraste en claro y oscuro; pedales por teclas y puntero, soltado, comparación y resumen. |
+| e2e de microinteracciones | `tests/e2e/lab-preset-transition.spec.ts`, `microinteractions.spec.ts`, `lab-microinteractions.spec.ts` | Fundido en los 8 laboratorios, las tres piezas en la página de prueba y en laboratorios reales. |
+| Guardia de glifos | `tests/e2e/glyphs.spec.ts` (`EXTRA_STATES`) | Mide «Conducir», en pausa y con su resumen. |
+
+### 4. Cambios visibles y textos nuevos que Dylan debe revisar
+
+Lista única (capturas «antes» y «después» en `shots/`). Todos los textos son borradores de Claude; las
+frases de «Cómo se usa» y el párrafo de «Qué deja fuera» del Tema 9 viven en los componentes (FD-R23).
+**No cambió ninguna prosa de los MDX** salvo la fuente 11 y la línea de fuente de la figura del Tema 9. Los
+textos de «Conducir» llevan en su informe (D3) las cifras que salen de constantes o del cálculo del momento.
+
+**En los cinco laboratorios con zoom (Temas 1, 2, 3, 8 y 9)**
+
+- «Zoom» delante del factor: «Zoom ×2,8» (FD-R7). El texto oculto dice «Zoom: escala del dibujo» a ×1 y
+  «Zoom: 2,5 veces la escala del dibujo» (antes de la ronda 1 de D1, «tamaño real»; D1 r1).
+- Botones: «Acercar», «Alejar», «Ajustar»; «Tamaño real 1:1» existe pero ningún laboratorio lo muestra.
+- Instrucciones ocultas (las lee el lector): «Con el lienzo enfocado: + y − acercan y alejan, 0 ajusta el
+  dibujo y las flechas lo desplazan; enfocado con el teclado, también la rueda sola. Con el ratón: Ctrl y la
+  rueda, y arrastrar el fondo. En pantalla táctil: pellizcar y arrastrar con un dedo.»
+- Nombre accesible del lienzo, «lienzo con zoom» y: «Mapa de la ruta» (T1), «Trayectoria del salto» (T2),
+  «Anillo del hábitat» (T3), «Escena de la nave y la rueda» (T8), «Marco de Júpiter» o el planeta del
+  encuentro (T9). Barra, en palabras: «Barra de escala: 500 m», «…20 cm de la nave», «…20 R sub J».
+- Barra de escala visible en cada lienzo (longitud redonda que cambia con el zoom); el cursor pasa a «agarrar»
+  solo con zoom y la rueda sin Ctrl sigue desplazando la página.
+- Cada laboratorio gana una frase en «Cómo se usa» (texto final):
+  - **Tema 1:** «Acerca el mapa con los botones, con Ctrl y la rueda o pellizcando; arrastra el fondo para
+    desplazarlo. Con el foco del teclado en el mapa: + y − acercan y alejan, 0 ajusta y las flechas desplazan.»
+  - **Tema 2:** «Acerca la gráfica con los botones, Ctrl y la rueda, o pellizcando; arrastra el fondo para
+    desplazarla. Enfocada desde el teclado, + y − acercan y alejan, 0 ajusta y las flechas desplazan (y la
+    rueda sola también acerca). Las flechas de $\vec v_0$ y $\vec v$ no crecen al acercar. «Ajustar» encuadra
+    el salto entero, igual que elegir otro preajuste o «Restablecer».» (antes: no existía; «Cómo se usa» tiene
+    ahora tres párrafos).
+  - **Tema 3:** «El anillo se acerca con los botones, con Ctrl y la rueda o pellizcando, y se desplaza
+    arrastrando el fondo; con el lienzo enfocado con el teclado, + y − acercan y alejan, 0 ajusta y las
+    flechas desplazan (entonces también la rueda sola acerca). Con la reproducción en pausa puedes acercarte a
+    la persona con Ctrl y la rueda sobre ella; la persona es un símbolo: la barra de escala mide solo el radio
+    $r$. «Ajustar» vuelve al anillo entero, igual que elegir un preajuste o «Restablecer».»
+  - **Tema 8:** «La escena se acerca con los botones, Ctrl y la rueda, o pellizcando, y se desplaza
+    arrastrando el fondo; con el lienzo enfocado desde el teclado, + y − acercan y alejan, 0 ajusta y las
+    flechas desplazan (entonces la rueda sola también acerca). La barra de escala mide la nave, la única parte
+    dibujada a escala, aunque con el zoom no se vea; la rueda y el dial no tienen escala de longitud.
+    «Ajustar» y «Restablecer» vuelven al encuadre inicial.»
+  - **Tema 9:** «El marco del planeta se acerca con los botones, Ctrl y la rueda, o pellizcando, y se
+    desplaza arrastrando el fondo; con el lienzo enfocado desde el teclado, + y − acercan y alejan, 0 ajusta y
+    las flechas desplazan (entonces la rueda sola también acerca). La barra de escala se recalcula con el
+    zoom. «Ajustar» vuelve al encuadre del encuentro, igual que elegir otro encuentro o «Restablecer».»
+
+**Por tema**
+
+- **Tema 1:** barra en metros arriba a la derecha del plot; de 320 a ~355 px de ventana sube al margen del
+  plot, a la derecha del título del eje y (D4). Columna de zoom abajo a la derecha, bajo las paradas, que
+  siguen agarrables. Con el mapa acercado y el reloj en marcha el dron puede salir de la ventana y no se le
+  sigue (README).
+- **Tema 2:** barra en metros bajo las marcas; fila de zoom en una franja de 48 px bajo la tarjeta, al ras de
+  su borde derecho; el escenario mide 48 px más.
+- **Tema 3:** el texto del lienzo «no a escala» pasa a «radio a escala (ver barra)» / «persona y aro,
+  simbólicos» y su descripción accesible, de «Anillo del hábitat, no a escala, de radio 894,6 m girando a …» a
+  «Anillo del hábitat de radio 894,6 m, con el radio a escala (la barra de escala lo mide) y la persona y el
+  aro simbólicos, girando a …» (D13a r1); franja de zoom bajo la barra del radio (+48 px; ver apartado 1); el
+  anillo mayor es 5 a 10,7 % menor.
+- **Tema 8:** la barra mide «20 cm de la nave» (el recuadro lleva «de la nave» y el lector oye «Barra de
+  escala: 20 cm de la nave»; D4 r2); franja de una fila desde 320 px de franja; la nota «6U a escala; rueda no
+  a escala» se pinta sobre el cuerpo y la rueda, con halo (D13b r1).
+- **Tema 9, zoom:** el marco crece 48 px (franja de botones); «planeta agrandado» solo mientras el planeta
+  mida menos de 4 px; los rótulos de $v_\infty$ y de $r_p$ cuyo extremo sale del panel no se pintan.
+- **Tema 9, anillos de Saturno:**
+  - **Nota visible nueva**, bajo el marco y solo con anillos: «Anillos C, B y A, con la división de Cassini,
+    a escala radial y abatidos sobre el plano del sobrevuelo: su plano real está inclinado.» (D4 r2).
+  - **Descripción hablada nueva** del marco en Saturno: «Los anillos principales, de 1,24 a 2,27 R_S, van a
+    escala de distancia al centro, dibujados en el plano del sobrevuelo; su plano real está inclinado.», más
+    una de «La máxima aproximación queda por fuera del anillo A.» / «…cae a la distancia de los anillos.» /
+    «…queda por dentro del anillo C.»; con Saturno agrandado: «…van en proporción al planeta, que se dibuja
+    agrandado, en el plano del sobrevuelo; …» (D2 r1).
+  - **«Qué deja fuera el modelo», párrafo nuevo (el segundo):** «Los anillos principales de Saturno (C, B y A,
+    con la división de Cassini entre B y A) van a escala de distancia al centro, de 1,24 a 2,27 $R_\mathrm{S}$
+    según la NASA, pero dibujados como si estuvieran en el plano del sobrevuelo: su plano real está inclinado
+    respecto al de la trayectoria, y proyectados se verían como elipses. Así el dibujo conserva la distancia al
+    centro, la que se compara con $r_p$; que la pista cruce los anillos en el dibujo no quiere decir que la
+    sonda los atraviese. Los colores de los planetas son ilustrativos. No se dibujan las bandas de Júpiter ni
+    el eje tumbado de Urano, que dependen de desde dónde se mire el planeta, ni los anillos de Júpiter, Urano
+    y Neptuno, muy tenues o muy estrechos para verse a esta escala.» (D2 r1; la primera versión daba una
+    razón falsa para no dibujar los de Urano).
+  - **Fuente nueva 11** en «Fuentes»: «Saturnian Rings Fact Sheet», D. R. Williams, NSSDCA, 2022, NASA GSFC
+    (hoja actualizada el 19 de abril de 2022), consultada el 2026-11-12; la línea de fuente de la figura del
+    laboratorio añade «…; radios de los anillos de Saturno de la NSSDCA de la NASA (fuente 11)» (D2).
+  - **Colores:** anillos más pálidos que el globo, con borde en el ocre del planeta (el C, más oscuro); el
+    globo, con contorno oscuro en claro y claro en oscuro (D4 r2). Dylan revisa estos colores en las figuras.
+  - La pista, el tramo recorrido y la línea de $r_p$ llevan un borde de la superficie al cruzar los anillos.
+- **Tema 6, «Conducir»** (todo nuevo; D3 y D3 r1):
+  - **Ajustes, Vista:** «Conducir: el tramo con tus pedales»; ficha «Conducir» (nombre accesible «Vista
+    Conducir»). Solo se llega desde el cajón de ajustes (decisión abierta 61).
+  - **Pedales:** grupo «Pedales»; botones «Freno ↓» y «Acelerador ↑» (40 px, `aria-keyshortcuts`).
+  - **Línea de estado:** al abrir, «Mantén pulsado el freno o el acelerador para arrancar; el auto del ciclo
+    sale contigo.»; límites, una vez por corrida: «Freno limitado por $P_\text{máx}$ = 239 kW: el resto lo
+    disipan las pastillas.» (con la batería fría, «= 10 kW»; antes «…limitado por la batería: pasa de…»),
+    «Casi detenido, $f(v)$ apaga el freno del motor: las pastillas terminan la frenada.», «El acelerador llegó
+    a la potencia del motor, 239 kW.»; resumen al terminar, «Fin del tramo: recorriste 238 m y te detuviste 2 m
+    después de la línea. A la batería llegaron 160,2 kJ, el 74,2 % del frenado en las ruedas; el auto del UDDS
+    en el tramo: 168,1 kJ y 75,0 %.» (variantes «…y no te detuviste: vas a 18 km/h, 26 m antes de la línea.» y
+    «…te detuviste justo en la línea.»); al pausar, «En pausa en t = 381,00 s: llevas 80 m y vas a 58 km/h,
+    156 m antes de la línea. Todavía no frenaste: nada llegó a la batería; el auto del UDDS todavía no
+    frenó.» y, tras frenar, «…; el auto del UDDS hasta este instante: 78,0 kJ y 78,0 %.». Con «Repetir», cada
+    vuelta termina con su resumen. Las cifras son las del momento, no de constantes escritas a mano.
+  - **Lecturas:** «Energía a la batería en tu conducción», «Pérdidas de conversión en tu conducción»,
+    «Calor de fricción en tu conducción» (kJ), «Recuperado en tu conducción, % del frenado en las ruedas»,
+    «Recuperado en el tramo del UDDS, % del frenado en las ruedas», «Hasta la línea de detención» (m, negativa
+    si se pasó). Barras: «Energías acumuladas en tu conducción, hasta t (escala de 0 a 250 kJ)».
+  - **Escena y gráfica:** nota de la carretera «295 m · auto no a escala» (la de «Tramo» dice «236 m · …»);
+    gráfica «Velocidad: tu conducción y el auto del ciclo», series «Auto del UDDS (dato real)» y «Tu
+    conducción»; nombre de la escena, con «El auto de contorno discontinuo es el del UDDS: va a 36 km/h, 12 m
+    por delante. La línea de detención está 126 m adelante.» (y variantes «por detrás», «a tu altura»,
+    «Pasaste la línea de detención por 4 m.», «Estás en la línea de detención.»); nota del lienzo «En
+    «Conducir», el auto relleno es el tuyo y el de contorno discontinuo, el del ciclo; la barra que cruza la
+    carretera es la línea de detención. …».
+  - **«Cómo se usa», párrafo nuevo** (en las tres vistas): «En «Conducir» conduces tú el tramo: el auto sale a
+    la velocidad del ciclo y el reto es detenerte en la línea donde se detiene el auto del ciclo, para
+    comparar qué parte de tu frenado vuelve a la batería con la del ciclo, con la misma definición que en
+    «Tramo». Mantén pulsado el freno o el acelerador con el puntero, el dedo, Espacio o Intro, o usa ↓ y ↑ con
+    un pedal enfocado: un pedal mantenido se hunde hasta el fondo en 2 s y vuelve en 0,5 s al soltarlo, así
+    que los toques cortos frenan suave; el freno anula el acelerador. Pulsar un pedal arranca la reproducción;
+    al final del tramo, empieza otra conducción. La línea de tiempo solo recorre lo ya conducido: al volver
+    atrás y reproducir, sigues desde ahí. Al pausar o al terminar, un resumen dice la distancia, la energía a
+    la batería y el porcentaje recuperado, tuyos y del ciclo. Con «Repetir», cada vuelta termina con su resumen
+    y la siguiente empieza de nuevo.»
+  - **«Qué deja fuera el modelo», párrafo nuevo (el último):** «En «Conducir», el acelerador empuja como mucho
+    con la adherencia del eje trasero del Model 3 de FASTSim: $\mu$ = 0,7 y el 59 % del peso sobre ese eje, con
+    la transferencia de carga al acelerar, dan 4,65 m/s²; y nunca con más de los 239 kW del motor. El freno
+    llega a $\mu n = \mu m g$ en las cuatro ruedas. El LEAF usa el mismo chasis y el mismo motor de 239 kW. El
+    motor no tiene un límite de par propio y la adherencia del eje trasero no limita la regeneración. Sin
+    pedal el auto rueda libre: lo frena solo la carga en carretera, sin el freno regenerativo al soltar el
+    acelerador que traen muchos eléctricos.»
+  - **Para el lector de pantalla:** al pausar se oye solo el resumen, no también las 8 lecturas (FD-R33).
+  - **Docs:** dos viñetas nuevas en la investigación del Tema 6 con el chasis de FASTSim y su fórmula de
+    tracción, con archivo, líneas y sha256.
+
+**En todas las gráficas con leyenda (unas 30) y en los asideros**
+
+- Nombre accesible nuevo de cada leyenda: «Leyenda: realzar una serie» (barra de herramientas, una parada de
+  Tab; ←/→ dentro). Las entradas son botones conmutables con su nombre de siempre («Luna, botón de
+  alternancia, no presionado»; con fórmula, en palabras: «Velocidad vector v»).
+- Se ve: la entrada realzada se subraya y muestra contorno de foco; la serie realzada engrosa 1,5 px y las
+  demás bajan a 25 %; la leyenda se alinea por línea base.
+- Asideros: de 16 a 20 px al arrastrar, aro de foco con borde de superficie, cursor «agarrar» y «agarrando»
+  (los de un eje, `ew-resize` o `ns-resize`).
+- Al elegir otro preajuste, el lienzo funde de 0,4 a 1 de opacidad en 200 ms (no con movimiento reducido).
+
+### 5. Decisiones abiertas de Dylan
+
+Continúan la lista del apartado 5 de la fase C (27 a 39). «Recomendada» es la del informe de origen; donde
+ninguno la da y añado criterio propio, lo marco (mía). Ninguna se tocó.
+
+**Lo que la fase D movió de la lista anterior.** La 1 (laboratorio más ancho que el artículo): la fase D
+prometía que el zoom cubriera las escenas chicas, y lo hace en cinco laboratorios; la escena del Tema 6
+(432 × 170 px) y las de los Temas 4, 5 y 7 siguen sin zoom y la 1 sigue abierta (las medidas son las de
+raíz 17). La 2 (marcos del Tema 9 lado a lado): el marco del planeta mide 48 px más que el del Sol en dos
+columnas (D12b). La 5 (alturas de escenarios altos): T8 pasó de 1 002 a 1 050 px a 1 280. La 13 (pulgar
+nativo) y la 15 (estilo único de insignia) no se tocaron; la 34 (objetivos táctiles) suma los botones de
+zoom de 40 px y las leyendas.
+
+**Zoom y escala**
+
+40. **«Tamaño real 1:1» o «Escala 1:1».** El botón se llama «Tamaño real 1:1» (lo fijó el brief) y el
+    anuncio dice «escala del dibujo»; ×1 del mapa de Júpiter no es su tamaño real (rev. D1, M-1). Propuesta del
+    informe: «Escala 1:1» o «Escala del dibujo 1:1» (D1 r1). Hoy ningún laboratorio lo muestra. Recomendada (mía):
+    «Escala 1:1».
+41. **«1:1» ausente en los cinco laboratorios.** «Ajustar» equivale a ×1 en todos (FD-R3, FD-R16). Para tener
+    «1:1» un laboratorio declara una escala física (p. ej. el Tema 8 «a escala de la nave»). Recomendada (mía):
+    dejarlo.
+42. **Botones de zoom de 40 px en el teléfono y leyendas de 24 px de objetivo.** El transporte mide 44 en el
+    teléfono; con 44 la fila de zoom mediría ~203 px y la tira del Tema 3 volvería a dos filas a 360 px (D4 r2,
+    M6). Las entradas de leyenda miden 20–21 px de alto con 24 px de objetivo (rev. visual, M6). Recomendada
+    (D4 r2): dejarlo, documentado.
+43. **Factor «Zoom ×N» visible.** Lo pidió R31 contra la insignia «×4 cámara rápida»; en la columna del Tema 1
+    se lee en dos líneas y la fila crece de 162 a 191 px. Alternativa: «×8» a secas. Recomendada (D-C): dejarlo.
+44. **Tres colocaciones del grupo de zoom y tres tratamientos de la barra.** Columna dentro del gráfico (T1),
+    fila de 48 px bajo el lienzo (T2, T9), tira con la barra en recuadro (T3, T8); la barra, sin placa, en
+    recuadro con borde o como corchete SVG. La revisión visual recomienda una sola familia (tira bajo el lienzo,
+    barra a la izquierda y botones a la derecha, como el Tema 3 a 900 px); si se prefiere no sumar altura, la
+    columna dentro del lienzo con un fondo para la barra en todos (rev. visual, decisión 3). Hoy suman 48 px los
+    Temas 2, 3, 8 y 9.
+45. **Sin pista visible de Ctrl + rueda ni de arrastrar el fondo.** Solo están en «Cómo se usa», en el título
+    de los botones y en las instrucciones ocultas. Alternativa: un aviso breve sobre el lienzo la primera vez que
+    alguien usa la rueda sin Ctrl, o cuando el zoom pasa de ×1 (rev. visual, decisión 2). Recomendada (mía):
+    dejarlo; la rueda sola desplaza la página y está dicho.
+46. **Zoom solo en cinco laboratorios.** Los Temas 4, 5, 6 y 7 no lo llevan (el plan de D1 nombró T1, T2, T3,
+    T8 y T9). Recomendada (mía): dejarlo hasta que Dylan lo pida; se cruza con la 1.
+47. **La persona del Tema 3 gira con el anillo y el zoom no la sigue.** Con la reproducción en pausa se llega a
+    ella con Ctrl y la rueda sobre ella, arrastrando o con flechas (a ×8, unas 17 pulsaciones: rev. D13a); un
+    modo «seguir» sería una opción nueva del laboratorio. Recomendada (D13a): dejarlo.
+48. **El dron del Tema 1 no se sigue con el mapa acercado.** Con la reproducción en marcha puede salir de la
+    ventana; solo el teclado lo trae de vuelta (README, D12a r1). Recomendada (mía): dejarlo.
+49. **Frases de zoom y párrafos de «Qué deja fuera» en los componentes y no en el MDX** (FD-R23). Si Dylan los
+    quiere en el MDX cuentan para las 650 palabras y hay que quitar otro tanto (D13b, decisión 7).
+    Recomendada: dejarlos.
+50. **Anillo mayor del Tema 3 hasta 10,7 % menor** (`OUTER_ROOM` 64 → 72: 5 % a 440 px, 8 % a 360, 10,7 % a
+    320) para que ningún rótulo salga del cuadrado a ≥ 1,5 g (D13a r1). Recomendada: dejarlo.
+
+**Anillos de Saturno (Tema 9)**
+
+51. **Contraste de los rellenos de los anillos.** En claro, los rellenos quedan a 1,77:1 de la superficie
+    (3,24:1 en oscuro); solo los bordes en el token cumplen 3:1 (3,59:1 claro, 8,53:1 oscuro). El contorno del
+    globo los separa de él (8,53:1 claro, 3,70:1 oscuro). Si Dylan los prefiere más intensos, el contorno del
+    globo sigue separándolos (D4 r2). Recomendada (mía): dejarlos y revisarlos en las figuras.
+52. **Colores de Saturno.** Anillos pálidos con borde en el ocre y globo con contorno; ilustrativos (FD-R27). Dylan
+    revisa estos colores en las figuras (rev. visual, decisión 5; CLAUDE.md pide colores con significado real).
+53. **Júpiter sin bandas ni Gran Mancha Roja; Urano sin eje ni anillo ε.** Dylan los marcó «deseable»; las
+    bandas son un `<pattern>` recortado al disco y la palabra «ilustrativo» (≈ 1 h, D2). Recomendada (D2): no
+    dibujarlos.
+54. **«Abatidos» en lugar de «proyección»** (FD-R25). Recomendada (D2): dejarlo.
+55. **Cifras de la hoja y no las del brief** (74 658 y 136 780 km; $r_p$ de la V1 3,05 $R_S$ y no 3,09:
+    FD-R24). Confirmar que Dylan no usó las del brief en otro texto: la auditoría (l. 328–330) las conserva.
+
+**«Conducir» (Tema 6)**
+
+56. **El reto.** Parar en la línea del tramo de la figura 6.3, sin conducción libre ni puntos (FD-R29).
+    Recomendada (D3): dejarlo.
+57. **Tope del freno de $\mu m g$ con $\mu$ = 0,7** (0,7 g) y tracción de 4,65 m/s²; el tope del freno es mío, no de
+    FASTSim (FD-R30). Si Dylan prefiere otro, una constante.
+58. **Pedales de 2 s y 0,5 s; el freno anula el acelerador** (FD-R31). Dos constantes con nombre.
+59. **Soltar el acelerador = rodar libre.** Sin el freno regenerativo al soltar que traen muchos eléctricos;
+    declarado en «Qué deja fuera» (FD-R31). Recomendada (D3): dejarlo (el tema no trae ese dato).
+60. **El LEAF con el chasis y el motor de 239 kW del Model 3.** Declarado en «Qué deja fuera»; el tema no trae
+    la potencia del LEAF (rev. D3, M4). Recomendada: dejarlo.
+61. **«Conducir» solo se halla en Ajustes → Vista.** La insignia de la cabecera lo dice una vez activo; nada en
+    «Tramo» invita a probarlo. Alternativa: un enlace «Conducir tú el tramo →» o un selector Tramo / Ciclo /
+    Conducir visible (rev. visual, decisión 1). Sin recomendación en el informe; mía: añadir el acceso visible,
+    que cuesta poco.
+62. **Hueco fijo bajo el aviso de «Conducir»** (unos 60 px a 1 280 y 100 a 360) para que el resumen no empuje la
+    gráfica; mientras se conduce se ve un hueco. Alternativa: el resumen en la región de la gráfica o como una
+    ficha sobre la escena (rev. visual, decisión 7).
+63. **Conducir con movimiento reducido.** El reloj compartido avanza a pasos (insignia «×1,7») y conducir a saltos
+    de 0,43 s cada 250 ms es difícil; `useSimClock` es compartido y no se tocó (D3, preocupación 3; rev. D3).
+    Decide Dylan (o el reloj compartido).
+
+**Microinteracciones y accesibilidad**
+
+64. **Una parada de Tab por leyenda con flechas dentro** (FD-R9), frente a una por entrada. Recomendada: lo hecho.
+65. **El fundido de preajuste afecta a todo el lienzo** (insignia y botones incluidos), no solo al dibujo
+    (FD-R35). Alternativa: objetivos por laboratorio (D4, decisión 2).
+66. **Cursor de los asideros de un eje.** Conservan `ew-resize` o `ns-resize` también al arrastrar; los libres
+    pasan a `grab` y `grabbing` (FD-R37). Alternativa: `grab` en todos, una clase por asidero (D4, decisión 3).
+67. **Tema 8 a 360 px: la tira sigue en dos filas.** La franja mide 318 px y la fila necesita 319 (la barra dice
+    «20 cm de la nave», 90 px; D4 r2). Recomendada (mía): dejarlo; son +48 px solo en ese ancho.
+68. **Marcas de rebote del Tema 7.** La auditoría las nombra; el brief de D4 no las pidió y no se hicieron (D4;
+    README).
+69. **WebKit y Safari sin probar** (Web Animations, `transform-box`, y sobre todo HTML posicionado en
+    `foreignObject` de los Temas 1 y 2, FD-R13). Pasada de unos 10 minutos con Playwright `webkit` en cuatro pasos
+    (D12a r1, M-2); plan B: sacar el viewport a un `div` hermano del plot. Recomendada: hacerla antes de entregar,
+    como la medición de U+202F (12).
+
+**Heredados:** siguen igual los del apartado 5 de la fase B (1 a 26, con lo dicho arriba) y de la fase C (27 a
+39), incluidos los pendientes heredados del traspaso que ahí se enumeran.
+
+### 6. Deudas y notas finales
+
+- **Falta cerrar la fase.** Puerta del controlador sobre el commit final; las dos revisiones finales de toda
+  la rama; el CI y el despliegue tras `git push origin fase-d:main` (FD-R2). Después, la lectura de Dylan de los
+  textos del apartado 4 y la auditoría con Fable que pidió.
+- **Qué queda abierto de las tres fases.** B (apartado 6 de «Fase B cerrada»): el pulgar nativo de las marcas
+  (FB-R20), la banda del tramo en `SvgPlot` (m8) y las seis copias de `usePlotAspect` / `useFigureAspect`;
+  `COMPACT_WIDTH = 480` copiado en 10 archivos (C1). C: las decisiones 27 a 39; `--radius-card` y `--icon` sin uso
+  fuera de `scale.css` y su prueba. D: las decisiones 40 a 69.
+- **El zoom y el esqueleto del Tema 1.** El plot del mapa no cambia de tamaño con el zoom (`minYLabelChars` = 5),
+  así que el esqueleto de `DroneSkeleton.tsx` y `mapReserve` quedaron intactos (D12a r1); si alguien cambia un alto
+  del mapa, recalibrar con el procedimiento del comentario del archivo.
+- **Lo que depende de métricas y del navegador.** Las e2e de zoom leen cajas dentro de `foreignObject` un cuadro
+  tarde (`expect.poll`; D12a); las tiras de los Temas 3 y 8 caben en una fila por la longitud máxima de la barra
+  (`inlineScaleBarMaxPx`, 191 px del grupo) y un cambio de fuente que ensanche el mono podría romperlas (D4 r2); el presupuesto de «Conducir» tiene un margen de ~1,1 a 1,2
+  (10,8 a 11,0 de 12; D3, D-C).
+- **Pruebas sensibles a la carga.** `JumpLab.zoom.test.tsx` (Tema 2) superó una vez el límite de 5 s con carga 13,6
+  (D2 r1); `WheelLab` y `TriggerLab`, con carga 21 (D13c); pasan solas y con `--maxWorkers=4`. Una prueba sin
+  identificar falló una de seis veces en `test:cov` en D3 (candidatas de `RegenDrive.test.tsx`, que ahora lleva un
+  límite explícito de 15 s). `gravedad-artificial-zoom.spec.ts:297` falló una vez en la revisión del cierre y pasó
+  6/6 sola (rev. DC). Se suma la de la fase C, `dron-reparto.spec.ts:338`, que falló una vez con la CPU cargada.
+- **Para quien migre un laboratorio al zoom** (README): botones fuera del elemento del `viewportProps`;
+  `useDrag` da puntos del `svg` raíz, pásalos por `zoom.toWorld`; `useRefit` para reencuadrar; `minYLabelChars` en un
+  `SvgPlot`; la frase en `notes.usage`; el `svg` llena el lienzo desde su esquina y su `viewBox` mide lo que su caja;
+  el deslizamiento re-pinta el laboratorio 12 cuadros por pulsación (memoriza lo pesado).
+- **Lo que quedó sin hacer en la fase.** Minimapa del zoom (opcional en la auditoría §12.3); marcas de rebote del
+  Tema 7; exportar `VECTOR_WIDTH` para que la flecha $v_{rel}$ lleve borde (D2 r1); `--saturn-ring-c` como token si se
+  prefiere (D2).
+- **El stash antiguo.** `stash@{0}` de `v2` («stray TopicLayout edit of unknown origin», quita la línea «Tema N ·
+  Avance X»; ya resuelta en el Avance 1) sigue ahí; un agente de D3 intentó un `git stash pop` en un árbol limpio, chocó
+  con él y lo deshizo sin perder nada (D3, preocupación 7). Decidir si se descarta; no hacer `stash pop` sin mirar.
+- **Limpieza (no se borró nada).** Las ramas `fase-b`, `fase-c` (= `ac48150`, igual que `main`) y, por ancestría,
+  `avance-2`, `avance-2-{base-1,base-2,base-3,docs,old-a,old-b,shared,tema-6,tema-7,tema-8,tema-9}`,
+  `polish/ui-adjustments` y `v2` están fusionadas en `main`; `fase-c-{a,b,c,d}` y
+  `fase-d-{12a,12b,13a,13b,13c,d2,d3}` no lo están por hash (se integraron por `cherry-pick`; `git cherry -v fase-d
+  <rama>` marca como no equivalentes `634e6a8` de `fase-d-d3` y `9dcb399` y `8a42951` de `fase-d-d2`, que tocan README o
+  `docs/` y se integraron con ediciones del cierre: la viñeta de «Conducir» y la e2e de anillos están en `fase-d`) y se
+  pueden borrar con `git branch -D` tras comprobarlo; `avance-2-tema-{6,7,8,9}-fig` y `wip/quitar-linea-tema-avance` tampoco, y `git cherry fase-d <rama>` aún marca
+  commits sin equivalente (0 en `-6-fig`; 1 en `-7-fig`, `-8-fig` y la `wip`; 2 en `-9-fig`): revisarlos antes de
+  borrar o dejarlos. Los worktrees
+  `c-{a,b,c,d}`, `d-12a`, `d-12b`, `d-13a`, `d-13b`, `d-13c` y `d-3` ya no existen en disco (`git worktree prune`);
+  el de `d-2` sí (recreado) y se quita con `git worktree remove` tras integrar. El trabajo de todas está en `fase-d`.
+- **Cómo correr la verificación.** La misma puerta, desde la raíz del repo:
+  ```
+  pnpm run check && pnpm run test:cov && pnpm run build && E2E_PORT=4322 pnpm run e2e
+  ```
+  Más `pnpm run scale:report` (debe dar total 0). Bajo carga, `--workers=2`; si `test:cov` falla por tiempo,
+  `--maxWorkers=4`. En la fase D los agentes usaron e2e en 4322, 4336 a 4339 y previews entre 4324 y 4330 y,
+  las revisiones, entre 4388 y 4402; nunca el 4321. Parar un preview por su PID, no con `pkill -f` (un agente cerró su
+  propia sesión así).
+- **Qué hacer si Dylan pide la Entrega Final.** Esperar su consigna. Agregar sus temas a `TOPICS` en
+  `src/consigna.ts` y un MDX completo por tema con el esquema de siempre; una tabla por tema; el cascarón por
+  niveles (`LabShell`); `MathText` e `InlineMath`; la insignia de escala de tiempo; y, **ahora**, decidir para cada
+  lienzo si lleva zoom (`useZoomPan`, `ZoomControls`, barra de escala, ancla y `useRefit`: README, «Reglas para
+  quien migre un laboratorio»), declarar su ancla y su escala física (o decir qué no está a escala, como el
+  Tema 3). Las leyendas de `SvgPlot` y el fundido de preajuste (`LabPresets`) ya son automáticos. Todo longitud
+  nueva en la escala 4/8 (`scale.test.ts`); los `Cómo se usa` con la frase del zoom; las listas de las e2e que
+  enumeran laboratorios (`MIGRATED_LABS` en `lab-shell.spec.ts`, `lab-performance.spec.ts`, `zoom-anchor.spec.ts`,
+  `lab-preset-transition.spec.ts`, `lab-microinteractions.spec.ts`) y los estados de `glyphs.spec.ts`; y
+  `tests/e2e/site-pages.spec.ts` (páginas esperadas y nombres retirados). Leer el material de clase antes de
+  escribir las conexiones.
+
+### 7. Correcciones al texto anterior
+
+Lo que dejó de ser cierto con la fase D (y con la integración de C, que ya había ocurrido) y se cambió arriba,
+en el lugar donde estaba:
+
+- **«Estado»:** `origin/main` ya no es `7c0abe6` sino `ac48150` (la fase C integrada con avance rápido; CI y
+  despliegue terminados y sitio en 200 según el libro de la fase D); la fase C ya no está «sin empujar». Se añadió la línea de la
+  fase D.
+- **«Fase C cerrada»:** la viñeta «Sin empujar» y la frase «la corrida del controlador… no existía» (FC-R26 la
+  anota: check 0 errores; 197 archivos y 2 714 pruebas; 99,02 % y 94,78 %; build de 11 páginas; e2e 855 pasan en
+  8,0 min); la viñeta «Ramas de trabajo» (`fase-c` ya es `main`; `fase-c-{a,b,c,d}` quedan, sin worktree en
+  disco); en el apartado 6, el punto «Zoom (D1)» («`useZoomPan` y `ScaleBar` aún no existen») y «Limpieza».
+- **«Fase B cerrada», apartado 6:** «Lo que D1 (zoom) tocará» (`useZoomPan` y `ScaleBar` ya existen; ver la
+  sección de la fase D).
+- **Pendientes:** el 9 (anillos de Saturno y realismo: hechos en la fase D, con lo que quedó fuera en la 53); se
+  añadió el 12 (mirar la fase D). **Decisiones vigentes:** nada cambió de contenido; la prosa de los MDX no se
+  tocó salvo la fuente 11 del Tema 9.
+- **«Dónde está cada cosa»:** el libro es ahora «de las fases B, C y D» (FD-R1 a FD-R38) y hay filas del zoom, de
+  los anillos y de «Conducir».
+- **«Después del Avance 2»:** el estado de la fase C es «integrada», el de la D «cerrada en `fase-d`, sin
+  empujar»; ya no queda ninguna fase por hacer.
+- **Conteos de pruebas:** los de «Fase C cerrada» (2 714 pruebas en 197 archivos y 855 e2e) son los de su
+  puerta; los vigentes son 3 311 pruebas unitarias en 233 archivos y 1 149 e2e (puerta del implementador sobre
+  `8d91641`; la del controlador, al cerrar).
+- **Lo que no se editó:** la auditoría integral (l. 328–330) conserva las cifras del brief de los anillos (74 490
+  y 136 775 km; 3,09 $R_S$); la verdad está en la investigación del Tema 9, §10, y en `planets.ts`.
+
 ## Después del Avance 2
 
-- **Estado de la fase C:** cerrada en `fase-c` (`dc5ce55`, sin empujar); ver «Fase C cerrada».
-  Falta la puerta del controlador, el CI y `git push origin fase-c:main` (FC-R26); la fase D no
-  empezó.
+- **Estado de la fase D:** cerrada en `fase-d` (`8d91641`, sin empujar); ver «Fase D cerrada». Falta la
+  puerta del controlador, las revisiones finales de la rama, el CI y `git push origin fase-d:main`
+  (FD-R2); después, la lectura de Dylan de los textos y su auditoría con Fable.
+- **Estado de la fase C:** cerrada e integrada en `main` (`dc5ce55`, y `ac48150` con la documentación); ver
+  «Fase C cerrada».
 - **Estado de la fase B:** cerrada e integrada en `main` (B1a, B1b, B2, B3 y B4; `c26520a`, y
   `7c0abe6` con la documentación); ver la sección «Fase B cerrada». El alto antes de B2 que pidió
   Dylan el 31 de octubre se levantó el 10 de noviembre. Puerta de B1 sobre `0fa68f0`:
@@ -1371,9 +1870,9 @@ cambió arriba, en el lugar donde estaba:
   §10 y §12): B (hecha e integrada), rendimiento de las simulaciones (reloj fuera de React, memoización, Tema 1
   sin Recharts), notación de símbolos sin depender de la fuente de reserva, controles junto al
   lienzo en tres niveles y «legibilidad a 1×» (Temas 6 y 1); C, sistema de medidas (raíz 16 px,
-  escala 4/8, radios, separadores, `Why`; hecha en `fase-c`, sin integrar); D, zoom con botones en el lienzo y barra de escala,
-  anillos de Saturno, modo «Conducir» del Tema 6, microinteracciones. Falta D (notas en
-  «Fase C cerrada», apartado 6).
+  escala 4/8, radios, separadores, `Why`; hecha e integrada); D, zoom con botones en el lienzo y barra de
+  escala, anillos de Saturno, modo «Conducir» del Tema 6, microinteracciones (hecha en `fase-d`, sin integrar).
+  Con la fase D están hechas las tres (cierre en «Fase D cerrada»).
 
 - **Entrega Final:** esperar su consigna. Cuando llegue, agregar sus temas a `TOPICS` en
   `src/consigna.ts` y un MDX completo por tema, con el mismo esquema (`Step`/`Why`/`Figure`/
