@@ -25,6 +25,10 @@ const FAMILY_RANGES: Readonly<Record<PlexFamily, readonly CodeRange[]>> = {
  * platform, substitutes the font's own space at half its width (measured in Chromium 156 on
  * 2026-11-10: 0,30 em in Plex Mono, 0,12 em in Plex Sans, the platform font list naming only
  * IBM Plex). A space has no ink, so the reader sees Plex's spacing, not another family.
+ * Measured in WebKit (the WPE port of Playwright on Linux, 2026-11-13), not Chromium's way: a
+ * fallback font supplies it there, 0,20 em in both families (against 0,12 em in Plex Sans and
+ * 0,30 em in Plex Mono in Chromium). Cosmetic and inkless: a readout like «265,63 m» is a pixel
+ * or three wider or narrower, and nothing overflows or misaligns.
  */
 const SYNTHESIZED_SPACES: ReadonlySet<string> = new Set([' ']);
 
