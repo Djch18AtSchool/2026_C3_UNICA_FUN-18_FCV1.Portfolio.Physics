@@ -52,7 +52,7 @@ const ITF_TESTS: Source = {
   title: 'Ball Approval Tests',
   authors: 'ITF Technical Centre',
   year: 2019,
-  url: 'https://m.itftennis.com/media/2100/balls-ball-approval-tests.pdf',
+  url: 'https://www.itftennis.com/media/2100/balls-ball-approval-tests.pdf',
   accessed: ACCESSED,
 };
 
