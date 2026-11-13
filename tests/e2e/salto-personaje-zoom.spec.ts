@@ -522,6 +522,9 @@ test.describe('the mouse', () => {
   });
 });
 
+/** The least air between the plot's card and the zoom buttons under it (px). */
+const CARD_GAP_PX = 6;
+
 /** Arrow presses on the focused canvas that carry a ×8 view off the launch point (48 px each). */
 const PAN_AWAY_PRESSES = 8;
 
@@ -689,6 +692,10 @@ for (const size of VIEWPORTS) {
       expect(strip.height).toBeCloseTo(STRIP_PX, 0);
       expect(strip.y).toBeGreaterThanOrEqual(card.y + card.height - PX_SLACK);
       expect(strip.y + strip.height).toBeLessThanOrEqual(transport.y + PX_SLACK);
+      // Apart from the card, not hanging from its border, and flush with its right edge (M5).
+      const group = await box(page.locator(`${LAB} [data-zoom-controls]`));
+      expect(group.y - (card.y + card.height)).toBeGreaterThanOrEqual(CARD_GAP_PX - PX_SLACK);
+      expect(Math.abs(group.x + group.width - (card.x + card.width))).toBeLessThanOrEqual(PX_SLACK);
     });
 
     test('the scale bar is inside the plot and clear of both handles at ×1', async ({ page }) => {
