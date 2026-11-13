@@ -30,10 +30,18 @@ function describeDrift(drift: readonly BaselineDrift[]): string {
     .join('\n');
 }
 
+/** Fewer files than this scanned means the scan lost its root, and every guard below passes empty. */
+const MIN_SCANNED_FILES = 200;
+
 describe('the measurement scale over src', () => {
-  const actual = countViolations(scanTree(REPO_ROOT));
+  const scanned = scanTree(REPO_ROOT);
+  const actual = countViolations(scanned);
   const baseline = readBaseline(readFileSync(BASELINE_PATH, 'utf8'));
   const { added, stale } = compareToBaseline(actual, baseline);
+
+  test('the scan reads the source tree: it did not come back empty', () => {
+    expect(Object.keys(scanned).length).toBeGreaterThan(MIN_SCANNED_FILES);
+  });
 
   test('nothing new off the scale (fix it, or name an exception with scale-exempt)', () => {
     expect(describeDrift(added)).toBe('');
