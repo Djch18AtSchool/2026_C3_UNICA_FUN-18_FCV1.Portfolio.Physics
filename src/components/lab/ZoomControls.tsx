@@ -23,10 +23,10 @@ import { useSettledText } from './useSettledText';
 import { formatZoomFactor, zoomSpoken } from './zoomMath';
 
 /**
- * The group's width in a row without «1:1» («Zoom ×5,7» and three 40 px buttons; README, «Zoom y
+ * The group's width in a row without «1:1» («Zoom ×5,7» in Plex Sans and three 40 px buttons; README, «Zoom y
  * desplazamiento»): what a strip leaves beside its scale bar (inlineScaleBarMaxPx).
  */
-export const ZOOM_ROW_WIDTH_PX = 191;
+export const ZOOM_ROW_WIDTH_PX = 195;
 /**
  * Height of the strip of one row under a canvas (Temas 2, 3, 8 and 9): the buttons' 40 px with
  * 4 px of air above and below, so the strip measures the same on the server and in the browser.

@@ -167,8 +167,9 @@ test.describe('página', () => {
     const diagram = page.getByTestId('habitat-diagram');
 
     await expect(diagram).toBeVisible();
-    await expect(diagram.locator('text[data-notation="a_c = ω^2 r"]')).toBeAttached();
-    await expect(diagram.locator('text[data-notation="T = 2π/ω"]')).toBeAttached();
+    // The sources as written ($…$); a backslash is escaped once for JS and once for CSS.
+    await expect(diagram.locator('text[data-notation="$a_c = \\\\omega^2 r$"]')).toBeAttached();
+    await expect(diagram.locator('text[data-notation="$T = 2\\\\pi/\\\\omega$"]')).toBeAttached();
   });
 
   test('el diagrama dibuja sus textos solo con IBM Plex o KaTeX, según la fuente que el navegador usó', async ({
