@@ -39,7 +39,7 @@
 
 @theme {
   /* Plex, its θ closed in italic too, and the symbols it lacks in KaTeX's face (math.css). */
-  --font-sans: 'Plex Theta', 'IBM Plex Sans', 'Math Symbols', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Plex Theta', 'IBM Plex Sans', 'Plex Symbols', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 

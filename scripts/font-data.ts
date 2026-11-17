@@ -6,7 +6,7 @@
  *   400/500 upright). A character counts as covered by a family when every imported face draws
  *   it; for each face the browser may pick any @font-face subset whose `unicode-range` contains
  *   the character, so a face covers the union over its subsets of (cmap ∩ unicode-range). Also
- *   the symbols the «Math Symbols» face of src/styles/math.css draws where Plex Sans has none
+ *   the symbols the «Plex Symbols» face of src/styles/math.css draws where Plex Sans has none
  *   (KaTeX_Main's → ∞ ≈ ≤ ≥ …, every face of it, within its unicode-range).
  * - src/lib/glyphAdvances.ts: advance widths (thousandths of an em) of Plex Sans 400 upright and
  *   italic, of Plex Mono (one width: it is monospaced, checked here) and of those symbols, so a
@@ -28,9 +28,9 @@ type GlyphMap = Map<number, number>;
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const COVERAGE_OUTPUT = 'src/lib/plexCoverage.ts';
 export const ADVANCES_OUTPUT = 'src/lib/glyphAdvances.ts';
-/** The stylesheet that declares the «Math Symbols» face (KaTeX_Main for what Plex lacks). */
+/** The stylesheet that declares the «Plex Symbols» face (KaTeX_Main for what Plex lacks). */
 export const MATH_CSS = 'src/styles/math.css';
-export const MATH_SYMBOLS_FAMILY = 'Math Symbols';
+export const MATH_SYMBOLS_FAMILY = 'Plex Symbols';
 
 export type FontStyle = 'normal' | 'italic';
 
@@ -258,7 +258,7 @@ export interface SymbolFace {
 
 const PERCENT = 100;
 
-/** The «Math Symbols» faces of math.css: their KaTeX file, unicode-range and size-adjust. */
+/** The «Plex Symbols» faces of math.css: their KaTeX file, unicode-range and size-adjust. */
 export function parseSymbolFaces(css: string): SymbolFace[] {
   return [...css.matchAll(FACE_PATTERN)]
     .map(([, body]) => body)
@@ -267,7 +267,7 @@ export function parseSymbolFaces(css: string): SymbolFace[] {
       const file = /url\('[^']*\/([^'/]+)\.woff2'\)/.exec(body)?.[1];
       const range = /unicode-range:\s*([^;]+);/.exec(body)?.[1];
       const adjust = /size-adjust:\s*([\d.]+)%;/.exec(body)?.[1];
-      if (!file || !range || !adjust) throw new Error('font-data: incomplete Math Symbols face');
+      if (!file || !range || !adjust) throw new Error('font-data: incomplete Plex Symbols face');
       return {
         file: `${file}.woff`,
         ranges: parseUnicodeRange(range),
@@ -282,28 +282,45 @@ function symbolFaces(root: string): SymbolFace[] {
   return faces;
 }
 
+/** One face's symbols: code point → advance, within its unicode-range and where Plex has none. */
+function faceSymbols(
+  root: string,
+  face: SymbolFace,
+  plex: ReadonlySet<number>,
+): Map<number, number> {
+  const advances = advancesOf(
+    readFileSync(resolve(root, 'node_modules/katex/dist/fonts', face.file)),
+  );
+  return new Map(
+    [...advances].filter(([point]) => inRanges(point, face.ranges) && !plex.has(point)),
+  );
+}
+
 /**
- * Code point → advance of the symbols the «Math Symbols» faces draw where Plex Sans has no glyph:
- * every face draws them (cmap ∩ unicode-range); the advance is the regular face's, unscaled.
+ * Code point → advance of the symbols the «Plex Symbols» faces draw where Plex Sans has no glyph.
+ * Faces that share a unicode-range (a weight's Regular and Bold) must all draw a symbol; faces of
+ * different ranges (KaTeX_Main's symbols, KaTeX_Math's dotless ı and ȷ) add up. The advance is
+ * the first face's of its range (the regular one), before size-adjust.
  */
 function symbolAdvances(root: string): Map<number, number> {
   const plex = new Set(familyPoints('sans', root));
-  const [first, ...rest] = symbolFaces(root).map(({ file, ranges }) => {
-    const advances = advancesOf(readFileSync(resolve(root, 'node_modules/katex/dist/fonts', file)));
-    return new Map([...advances].filter(([point]) => inRanges(point, ranges) && !plex.has(point)));
+  const groups = Map.groupBy(symbolFaces(root), (face) => JSON.stringify(face.ranges));
+  const entries = [...groups.values()].flatMap((faces) => {
+    const [first, ...rest] = faces.map((face) => faceSymbols(root, face, plex));
+    return [...first].filter(([point]) => rest.every((face) => face.has(point)));
   });
-  return new Map([...first].filter(([point]) => rest.every((face) => face.has(point))));
+  return new Map(entries);
 }
 
-/** The code points the «Math Symbols» face draws for the site's sans stack. */
+/** The code points the «Plex Symbols» face draws for the site's sans stack. */
 export function deriveSymbolCoverage(root: string = ROOT): CodeRange[] {
   return toRanges([...symbolAdvances(root).keys()]);
 }
 
-/** size-adjust of the «Math Symbols» faces (one value: they must agree). */
+/** size-adjust of the «Plex Symbols» faces (one value: they must agree). */
 export function symbolSizeAdjust(root: string = ROOT): number {
   const adjusts = new Set(symbolFaces(root).map((face) => face.sizeAdjust));
-  if (adjusts.size !== 1) throw new Error('font-data: Math Symbols faces disagree on size-adjust');
+  if (adjusts.size !== 1) throw new Error('font-data: Plex Symbols faces disagree on size-adjust');
   return [...adjusts][0];
 }
 
@@ -364,7 +381,7 @@ export function coverageModule(
     ranges.map(([from, to]) => `  [${hex(from)}, ${hex(to)}],`).join('\n');
   return `${HEADER(`Code point ranges (inclusive) that every imported face of IBM Plex draws, read from the cmap
  * of the @fontsource WOFF files and limited to each face's unicode-range. Sans: 400, 500, 600,
- * upright and italic. Mono: 400, 500. And the symbols of the «Math Symbols» face (math.css).`)}
+ * upright and italic. Mono: 400, 500. And the symbols of the «Plex Symbols» face (math.css).`)}
 export type CodeRange = readonly [number, number];
 
 export const PLEX_SANS_RANGES: readonly CodeRange[] = [
@@ -375,7 +392,7 @@ export const PLEX_MONO_RANGES: readonly CodeRange[] = [
 ${literal(mono)}
 ];
 
-/** What KaTeX_Main draws, as «Math Symbols», after Plex Sans in the sans stack: Plex lacks it. */
+/** What KaTeX_Main draws, as «Plex Symbols», after Plex Sans in the sans stack: Plex lacks it. */
 export const MATH_SYMBOL_RANGES: readonly CodeRange[] = [
 ${literal(symbols)}
 ];
@@ -404,7 +421,7 @@ export const PLEX_SANS_ITALIC_ADVANCES: Readonly<Record<number, number>> = {
 ${points(data.sansItalic)}
 };
 
-/** «Math Symbols» (KaTeX_Main Regular), code point → advance before its size-adjust. */
+/** «Plex Symbols» (KaTeX_Main Regular), code point → advance before its size-adjust. */
 export const MATH_SYMBOL_ADVANCES: Readonly<Record<number, number>> = {
 ${points(data.symbols)}
 };

@@ -32,7 +32,7 @@ describe('the committed font data matches the installed font files', () => {
     expect(deriveFamilyCoverage('mono')).toEqual(PLEX_MONO_RANGES);
   });
 
-  test('the symbols of the «Math Symbols» face and its size-adjust (math.css)', () => {
+  test('the symbols of the «Plex Symbols» face and its size-adjust (math.css)', () => {
     expect(deriveSymbolCoverage()).toEqual(MATH_SYMBOL_RANGES);
     expect(symbolSizeAdjust()).toBe(MATH_SYMBOL_SIZE_ADJUST);
   });
@@ -111,8 +111,8 @@ describe('script helpers', () => {
     expect(text).toContain('0x0041: 620,');
   });
 
-  test('reads the «Math Symbols» faces of a stylesheet and refuses an incomplete one', () => {
-    const face = (body: string) => `@font-face { font-family: 'Math Symbols'; ${body} }`;
+  test('reads the «Plex Symbols» faces of a stylesheet and refuses an incomplete one', () => {
+    const face = (body: string) => `@font-face { font-family: 'Plex Symbols'; ${body} }`;
     const css = face(
       "src: url('../x/KaTeX_Main-Regular.woff2') format('woff2'); unicode-range: U+2190-22FF; size-adjust: 116.74%;",
     );

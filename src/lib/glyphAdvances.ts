@@ -592,7 +592,7 @@ export const PLEX_SANS_ITALIC_ADVANCES: Readonly<Record<number, number>> = {
   0x03c9: 729,
 };
 
-/** «Math Symbols» (KaTeX_Main Regular), code point → advance before its size-adjust. */
+/** «Plex Symbols» (KaTeX_Main Regular), code point → advance before its size-adjust. */
 export const MATH_SYMBOL_ADVANCES: Readonly<Record<number, number>> = {
   0x02c9: 500,
   0x02ca: 500,
@@ -684,4 +684,7 @@ export const MATH_SYMBOL_ADVANCES: Readonly<Record<number, number>> = {
   0x22ee: 278,
   0x22ef: 1172,
   0x22f1: 1282,
+  0xe020: 778,
+  0xe131: 322,
+  0xe237: 384,
 };
