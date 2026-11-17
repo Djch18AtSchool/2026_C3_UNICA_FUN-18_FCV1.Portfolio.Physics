@@ -156,6 +156,56 @@ test.describe('la guardia de glifos se activa', () => {
     expect(lines).not.toMatch(/Figura 3/);
   });
 
+  test('una variable latina recta, en una fórmula o en una figura, falla; una unidad, un nombre o una cursiva no', async ({
+    page,
+  }) => {
+    const cdp = await openFontSession(page);
+    await page.evaluate(() => {
+      document.body.insertAdjacentHTML(
+        'beforeend',
+        '<div id="latin" style="font-size: 16px">' +
+          '<p>Rigidez <span class="katex"><span class="mord mathnormal" style="font-style: normal">k</span></span></p>' +
+          '<svg width="320" height="160" font-size="14">' +
+          '<text x="8" y="16">T = 4,92 s</text>' +
+          '<text x="8" y="40"><tspan>t</tspan><tspan font-size="75%" dy="3">h</tspan><tspan dy="-3"> = 0,53 s</tspan></text>' +
+          '<text x="8" y="64"><tspan font-style="italic">r</tspan> = 223,6 m</text>' +
+          '<text x="8" y="88">A</text>' +
+          '<text x="8" y="112"><tspan font-style="italic">h</tspan><tspan font-size="75%" dy="3">0</tspan><tspan dy="-3"> = 4,00 m · 1 g</tspan></text>' +
+          '</svg></div>',
+      );
+    });
+
+    const lines = describeReport(await measureGlyphs(page, cdp, '#latin'), '#latin').join('\n');
+
+    expect(lines).toMatch(/variable latina de una fórmula, recta.*«k»/);
+    expect(lines).toMatch(/variable latina recta en una figura \(T;.*«T = 4,92 s»/);
+    expect(lines).toMatch(/variable latina recta en una figura \(t;.*«th = 0,53 s»/);
+    expect(lines).not.toMatch(/223,6|«A»|1 g/);
+  });
+
+  test('notación cruda en lo que se dice o se muestra al pasar (aria-label, aria-valuetext, title) falla', async ({
+    page,
+  }) => {
+    const cdp = await openFontSession(page);
+    await page.evaluate(() =>
+      document.body.insertAdjacentHTML(
+        'beforeend',
+        '<div id="spoken"><p>Texto</p>' +
+          '<svg role="img" aria-label="V_p = 5,40 km/s"></svg>' +
+          '<input type="range" aria-valuetext="10^-7 rad/s">' +
+          '<span title="$r_p$ de 1 a 30">r</span>' +
+          '<span aria-label="V sub p" title="https://x.com/a_b">ok</span></div>',
+      ),
+    );
+
+    const lines = describeReport(await measureGlyphs(page, cdp, '#spoken'), '#spoken').join('\n');
+
+    expect(lines).toMatch(/notación cruda: _ en svg\[aria-label\] «V_p/);
+    expect(lines).toMatch(/notación cruda: \^ en input\[aria-valuetext\]/);
+    expect(lines).toMatch(/notación cruda: \$ en span\[title\]/);
+    expect(lines).not.toMatch(/V sub p|x\.com/);
+  });
+
   test('(a) un laboratorio sin ningún estado que medir falla', () => {
     expect(() => requireStates('dron-reparto', [])).toThrow(/ningún estado/);
     expect(requireStates('dron-reparto', ['a'])).toEqual(['a']);

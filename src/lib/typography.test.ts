@@ -7,7 +7,9 @@ import {
   rawNotationMarks,
   inlineMathSizeViolation,
   typeRuleViolations,
+  uprightFigureVariables,
   type DrawnText,
+  type LabelRun,
 } from './typography';
 
 const NBSP = ' ';
@@ -124,6 +126,7 @@ describe('typeRuleViolations (the type rule of E3)', () => {
     fontStyle: 'normal',
     isNumbering: false,
     isLeaf: true,
+    isMathVariable: false,
     fonts: [plex(1)],
     ...over,
   });
@@ -164,6 +167,48 @@ describe('typeRuleViolations (the type rule of E3)', () => {
       expect.stringMatching(/griego/),
     ]);
     expect(typeRuleViolations(drawn({ text: 'Δv' }))).toEqual([]);
+  });
+
+  test('a Latin variable of an inline formula (KaTeX’s mathnormal) is italic: upright, it fails', () => {
+    const variable = drawn({ setting: 'inline-math', text: 'k', isMathVariable: true });
+
+    expect(typeRuleViolations(variable)).toEqual([expect.stringMatching(/variable latina/)]);
+    expect(typeRuleViolations({ ...variable, fontStyle: 'italic' })).toEqual([]);
+    // A unit or a \text{…} of the formula is not a variable: it stays upright.
+    expect(typeRuleViolations({ ...variable, isMathVariable: false })).toEqual([]);
+  });
+});
+
+describe('uprightFigureVariables (a figure label’s Latin variable is italic)', () => {
+  const up = (text: string): LabelRun => ({ text, isItalic: false, isScript: false });
+  const it = (text: string): LabelRun => ({ text, isItalic: true, isScript: false });
+  const sub = (text: string): LabelRun => ({ text, isItalic: false, isScript: true });
+
+  test.each([
+    ['T = 4,92 s', [up('T = 4,92 s')], ['T']],
+    ['2 RPM → r = 223,6 m', [up('2 RPM → r = 223,6 m')], ['r']],
+    ['m B ≈ 1,2·10⁻⁵ N·m', [up('m B ≈ 1,2·10⁻⁵ N·m')], ['B']],
+    ['K′ = 6 J', [up('K′ = 6 J')], ['K']],
+    ['t_h = 0,53 s', [up('t'), sub('h'), up(' = 0,53 s')], ['t']],
+    ['vec v_0', [up('v'), sub('0')], ['v']],
+    ['vec v', [up('v')], ['v']],
+    ['y(t)', [up('y(t)')], ['y']],
+  ])('finds the upright variable of «%s»', (_label, runs, letters) => {
+    expect(uprightFigureVariables(runs)).toEqual(letters);
+  });
+
+  test.each([
+    ['$T$ = 4,92 s', [it('T'), up(' = 4,92 s')]],
+    ['$t_h$ = 0,53 s', [it('t'), sub('h'), up(' = 0,53 s')]],
+    ['a unit after a number', [up('h₀ = 4,00 m'), up('1 g')]],
+    ['a word, an article or a conjunction', [up('Rebote y caída a la pared')]],
+    ['a unit in parentheses', [up('Tiempo (s)')]],
+    ['a name: the stops A, B and C', [up('A')]],
+    ['a name: the motor’s symbol M', [up('M')]],
+    ['an acronym or a model', [up('C3 · K2 · RPM')]],
+    ['a subscript’s own letter', [it('v'), sub('p')]],
+  ])('lets %s pass', (_why, runs) => {
+    expect(uprightFigureVariables(runs)).toEqual([]);
   });
 });
 

@@ -110,6 +110,8 @@ export interface DrawnText {
   isNumbering: boolean;
   /** No child element holds text: the fonts are its own (the browser adds an inline child's). */
   isLeaf: boolean;
+  /** A variable of an inline formula (KaTeX's `mathnormal`), not a unit or a `\text{…}`. */
+  isMathVariable: boolean;
   fonts: readonly DrawnFont[];
 }
 
@@ -132,6 +134,7 @@ export const NUMBERING_SELECTOR = [
 const KATEX_FONT = /^KaTeX_/;
 const MONO_FAMILY = /^IBM Plex Mono/;
 const LOWER_GREEK = /[α-ω]/u;
+const LATIN_LETTER = /[A-Za-z]/;
 const ITALIC = 'italic';
 
 /** Characters of `text` that Plex Sans has no glyph for (all occurrences, whitespace aside). */
@@ -157,7 +160,71 @@ export function typeRuleViolations(drawn: DrawnText): string[] {
     ...(LOWER_GREEK.test(drawn.text) && drawn.fontStyle !== ITALIC
       ? ['griego en minúscula, recto (una variable va en cursiva)']
       : []),
+    ...(drawn.isMathVariable && LATIN_LETTER.test(drawn.text) && drawn.fontStyle !== ITALIC
+      ? ['variable latina de una fórmula, recta (una variable va en cursiva)']
+      : []),
   ];
+}
+
+/** A stretch of a figure label (an SVG <text>) as the browser set it. */
+export interface LabelRun {
+  text: string;
+  isItalic: boolean;
+  /** A sub- or superscript (MathText's tspan at 75 %). */
+  isScript: boolean;
+}
+
+/**
+ * Whole labels that are names, not variables: the stops A, B and C of Tema 1's route, and M, the
+ * electrical symbol of the motor in Tema 6's power flow (a letter in a circle).
+ */
+const FIGURE_LETTER_NAMES: ReadonlySet<string> = new Set(['A', 'B', 'C', 'M']);
+/** After a variable, maybe past spaces: a relation (T = 4,92 s, K′ = 6 J, r ≈ 2). */
+const RELATION_AFTER = /^\s*[=≈≠<>≤≥′']/u;
+/** A letter or a figure next to the letter makes it part of a word, an acronym or a model. */
+const WORD_CHAR = /[\p{L}\p{N}]/u;
+
+interface LabelChar {
+  char: string;
+  isItalic: boolean;
+  isScript: boolean;
+}
+
+/** True when the upright base letter at `i` reads as a variable: a script, a relation or a call follows. */
+function readsAsVariable(chars: readonly LabelChar[], i: number): boolean {
+  const before = chars[i - 1];
+  const after = chars[i + 1];
+  if (before && !before.isScript && WORD_CHAR.test(before.char)) return false;
+  if (after?.isScript) return true;
+  if (after && WORD_CHAR.test(after.char)) return false;
+  if (after?.char === '(') return true;
+  const rest = chars
+    .slice(i + 1)
+    .map((c) => c.char)
+    .join('');
+  return RELATION_AFTER.test(rest);
+}
+
+/**
+ * The upright Latin letters of a figure label that name a variable (E3's rule: a variable is
+ * italic, in a figure as in the text): a single letter followed by a sub- or superscript
+ * («t_h», «vec v_0»), by a relation («T = 4,92 s», «m B ≈ …») or by a call («y(t)»), or a
+ * whole label of one letter («vec v») that is not a name (the stops A, B, C; the motor M). A unit after a
+ * number («4,00 m», «1 g»), a word («y», «a») and an acronym («C3», «RPM») pass.
+ */
+export function uprightFigureVariables(runs: readonly LabelRun[]): string[] {
+  const chars = runs.flatMap((run) =>
+    [...run.text].map((char) => ({ char, isItalic: run.isItalic, isScript: run.isScript })),
+  );
+  const label = chars
+    .map((c) => c.char)
+    .join('')
+    .trim();
+  return chars.flatMap((c, i) => {
+    if (c.isItalic || c.isScript || !LATIN_LETTER.test(c.char)) return [];
+    const isWholeLabel = label === c.char && !FIGURE_LETTER_NAMES.has(c.char);
+    return isWholeLabel || readsAsVariable(chars, i) ? [c.char] : [];
+  });
 }
 
 const DECIMALS = 2;

@@ -3,8 +3,11 @@
  * that IBM Plex does not draw, the notation written raw, through the DevTools protocol the fonts
  * the browser actually used for each element with visible text, and with those the site's type
  * rule (E3, src/styles/math.css; typeRuleViolations in src/lib/typography.ts): KaTeX's faces only
- * for what Plex lacks outside a display, Plex Mono only for the numbering, lowercase Greek
- * italic, and every inline formula at its text's size.
+ * for what Plex lacks outside a display, Plex Mono only for the numbering, lowercase Greek and
+ * every variable italic (a formula's Latin letter, and a figure label's one-letter variable:
+ * uprightFigureVariables), and every inline formula at its text's size. The notation written raw
+ * is looked for in the text and in what is spoken or shown on hover (aria-label,
+ * aria-valuetext, title).
  */
 import type { CDPSession, Locator, Page } from '@playwright/test';
 import {
@@ -13,8 +16,10 @@ import {
   rawNotationMarks,
   typeRuleViolations,
   uncoveredChars,
+  uprightFigureVariables,
   type DrawnFont,
   type DrawnText,
+  type LabelRun,
   type PlexFamily,
 } from '../../src/lib/typography';
 
@@ -90,6 +95,8 @@ function collectInPage({
       fontStyle: style.fontStyle,
       isNumbering: element.closest(numbering) !== null,
       isLeaf: ![...element.children].some((child) => (child.textContent ?? '').trim() !== ''),
+      isMathVariable:
+        element.closest('.katex') !== null && element.classList.contains('mathnormal'),
       where:
         `${element.tagName.toLowerCase()} ${element.closest('[data-testid]')?.getAttribute('data-testid') ?? ''}`.trim(),
     };
@@ -162,6 +169,102 @@ async function collectProbes(page: Page, rootSelector: string): Promise<Collecte
     hiddenBox: HIDDEN_BOX_PX,
     numbering: NUMBERING_SELECTOR,
   });
+}
+
+/** An SVG <text> as the browser set it, run by run, with where it is. */
+interface FigureLabel {
+  runs: LabelRun[];
+  where: string;
+}
+
+/**
+ * Runs in the page. Every SVG <text> under the root (drawn or not: computed style needs no
+ * layout), outside the numbering, as runs of its text nodes: italic or not, and a script when its
+ * size is under the label's (MathText's tspan at 75 %).
+ */
+function collectFigureLabelsInPage({
+  rootSelector,
+  numbering,
+}: {
+  rootSelector: string;
+  numbering: string;
+}): FigureLabel[] {
+  const root = document.querySelector(rootSelector);
+  if (!root) return [];
+  return [...root.querySelectorAll('svg text')]
+    .filter((label) => label.closest(numbering) === null)
+    .map((label) => {
+      const labelSize = parseFloat(getComputedStyle(label).fontSize);
+      const walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
+      const runs: LabelRun[] = [];
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const style = getComputedStyle(node.parentElement ?? label);
+        runs.push({
+          text: node.textContent ?? '',
+          isItalic: style.fontStyle !== 'normal',
+          isScript: parseFloat(style.fontSize) < labelSize,
+        });
+      }
+      const testId = label.closest('[data-testid]')?.getAttribute('data-testid') ?? '';
+      return { runs, where: `text ${testId}`.trim() };
+    });
+}
+
+/** The spoken and hover texts under the root: what a screen reader says or a tooltip shows. */
+const SPOKEN_ATTRIBUTES = ['aria-label', 'aria-valuetext', 'title'] as const;
+
+/** Runs in the page. Each spoken attribute under the root (the root too), with its element. */
+function collectSpokenInPage({
+  rootSelector,
+  attributes,
+}: {
+  rootSelector: string;
+  attributes: readonly string[];
+}): TextNodeInfo[] {
+  const root = document.querySelector(rootSelector);
+  if (!root) return [];
+  const selector = attributes.map((name) => `[${name}]`).join(', ');
+  const elements = [...(root.matches(selector) ? [root] : []), ...root.querySelectorAll(selector)];
+  return elements.flatMap((element) =>
+    attributes
+      .filter((name) => element.hasAttribute(name))
+      .map((name) => ({
+        text: element.getAttribute(name) ?? '',
+        family: 'sans' as const,
+        where: `${element.tagName.toLowerCase()}[${name}]`,
+      })),
+  );
+}
+
+/** Upright Latin variables of the figures under the root, one line per label. */
+async function figureVariableLines(page: Page, rootSelector: string): Promise<string[]> {
+  const labels = await page.evaluate(collectFigureLabelsInPage, {
+    rootSelector,
+    numbering: NUMBERING_SELECTOR,
+  });
+  return labels.flatMap(({ runs, where }) => {
+    const letters = uprightFigureVariables(runs);
+    if (letters.length === 0) return [];
+    const text = runs
+      .map((run) => run.text)
+      .join('')
+      .trim()
+      .slice(0, 60);
+    return [
+      `variable latina recta en una figura (${letters.join(', ')}; va en cursiva, entre $…$): ${where} «${text}»`,
+    ];
+  });
+}
+
+/** Notation left raw in what is spoken (aria-label, aria-valuetext) or shown on hover (title). */
+async function spokenNotationLines(page: Page, rootSelector: string): Promise<string[]> {
+  const spoken = await page.evaluate(collectSpokenInPage, {
+    rootSelector,
+    attributes: SPOKEN_ATTRIBUTES,
+  });
+  return spoken.flatMap(({ text, where }) =>
+    rawNotationMarks(text).map((mark) => `${mark} en ${where} «${text.trim().slice(0, 60)}»`),
+  );
 }
 
 interface FontCheck {
@@ -290,16 +393,24 @@ async function measureOnce(
         `${char} (U+${char.codePointAt(0)?.toString(16)}) en ${where} «${text.trim().slice(0, 60)}»`,
     ),
   );
-  const rawNotation = texts.flatMap(({ text, where }) =>
-    rawNotationMarks(text).map((mark) => `${mark} en ${where} «${text.trim().slice(0, 60)}»`),
-  );
+  const rawNotation = [
+    ...texts.flatMap(({ text, where }) =>
+      rawNotationMarks(text).map((mark) => `${mark} en ${where} «${text.trim().slice(0, 60)}»`),
+    ),
+    ...(await spokenNotationLines(page, rootSelector)),
+  ];
   const { problems, errors, fontNodes, fontsByProbe } = await checkFonts(
     page,
     cdp,
     rootSelector,
     probes,
   );
-  const typeRule = [...new Set(typeRuleLines(collected, fontsByProbe))];
+  const typeRule = [
+    ...new Set([
+      ...typeRuleLines(collected, fontsByProbe),
+      ...(await figureVariableLines(page, rootSelector)),
+    ]),
+  ];
   return { uncovered, rawNotation, fonts: problems, probes, fontNodes, errors, typeRule };
 }
 
