@@ -7,6 +7,7 @@ import { SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX } from '../../lab/scaleBarMath';
 import WheelLab from './WheelLab';
 import { BODY_FOOTPRINT, DEG, TEXT_BAND } from './wheelScene';
 import { WHEEL_STRIP_ONE_ROW_FROM } from './WheelZoomStrip';
+import { ROOT_PX } from '../../../styles/scaleRules';
 
 /** The widest scene (MAX_SIDE): every observed element is 400 px wide, the zoom's canvas 400 tall. */
 const SIDE = 400;
@@ -272,7 +273,8 @@ describe('the wheel scene zoom', () => {
     const strip = document.querySelector('[data-wheel-zoom-strip]') as HTMLElement;
     expect(strip.className).toContain('@container');
     const layout = strip.firstElementChild as HTMLElement;
-    expect(layout.className).toContain(`@min-[${WHEEL_STRIP_ONE_ROW_FROM}px]:flex-row`);
+    // In rem: with text at 200 % (a 32 px root) the two parts stack instead of leaving the card.
+    expect(layout.className).toContain(`@min-[${WHEEL_STRIP_ONE_ROW_FROM / ROOT_PX}rem]:flex-row`);
     expect(layout.className).toContain('flex-col');
     // Each part is one 48 px row: one row side by side, two stacked.
     for (const row of layout.children) expect(row.className).toContain('h-12');

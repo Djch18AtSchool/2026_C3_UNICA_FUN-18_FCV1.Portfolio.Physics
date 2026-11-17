@@ -646,8 +646,13 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
         <Frame props={props} panel={{ width, height: side }} zoom={zoom} anchorRef={anchorRef} />
       </div>
       {/* Outside the canvas: the zoom measures the drawing's square (bounds, the buttons' pivot, the
-          reveal's margins), and focusing or pressing a button must not pan the drawing. */}
-      <div className="flex items-center justify-end px-2" style={{ height: ZOOM_STRIP_PX }}>
+          reveal's margins), and focusing or pressing a button must not pan the drawing. With the
+          browser's text at 200 % the row (in rem) outgrows the 380 px frame: min-w-max lets the
+          strip run on to the right, into the column, rather than past the card's left edge. */}
+      <div
+        className="flex min-w-max items-center justify-end px-2"
+        style={{ height: ZOOM_STRIP_PX }}
+      >
         <ZoomControls zoom={zoom} corner="inline" orientation="row" />
       </div>
       {props.planet.rings ? (

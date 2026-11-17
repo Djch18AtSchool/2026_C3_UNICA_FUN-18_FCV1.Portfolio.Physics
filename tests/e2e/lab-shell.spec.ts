@@ -361,6 +361,34 @@ for (const { path, testId } of LABS) {
   });
 }
 
+/** Text at 200 % in the browser's settings: the root at 32 px, not a zoomed 960 px window. */
+const ROOT_TEXT_200 = 'html { font-size: 200% !important; }';
+
+for (const { path, testId } of LABS) {
+  test(`${path}: con el texto al 200 % (raíz de 32 px) a 1 280 px, el zoom no sale de la tarjeta`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(DESKTOP);
+    await page.goto(path);
+    await page.addStyleTag({ content: ROOT_TEXT_200 });
+    await labOrPlaceholder(page, testId).scrollIntoViewIfNeeded();
+    const lab = page.getByTestId(testId);
+    await waitForIsland(page, `[data-testid="${testId}"]`);
+
+    // WCAG 1.4.4: the zoom strips stack under their bar instead of running past the card.
+    const card = await boxOf(lab);
+    for (const zoom of await lab.locator('[data-zoom-controls]').all()) {
+      const box = await boxOf(zoom);
+      expect(box.x, 'el zoom empieza en la tarjeta').toBeGreaterThanOrEqual(card.x);
+      expect(box.x + box.width, 'el zoom acaba en la tarjeta').toBeLessThanOrEqual(
+        card.x + card.width + LAYOUT_SLACK_PX,
+      );
+    }
+    const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(pageWidth, 'sin desplazamiento horizontal').toBeLessThanOrEqual(DESKTOP.width);
+  });
+}
+
 /** Tema 1's lab loads its dataset after hydration: its skeleton has its own test (dron-reparto). */
 const SKELETON_FIRST_LABS: ReadonlySet<string> = new Set(['drone-lab']);
 

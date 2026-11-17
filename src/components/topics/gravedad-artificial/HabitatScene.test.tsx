@@ -5,6 +5,7 @@ import { resolveCssLength } from '../../../test-css-length';
 import { createFrameStore } from '../../lab/frameStore';
 import HabitatScene, { RESERVED_HEIGHT, sceneHeight } from './HabitatScene';
 import { STRIP_STACK_BELOW } from './HabitatZoomStrip';
+import { ROOT_PX } from '../../../styles/scaleRules';
 
 const NARROW_PHONE_WIDTH = 336;
 const COLUMN_WIDTH = 720;
@@ -94,7 +95,9 @@ describe('HabitatScene', () => {
 
     // Tailwind reads the breakpoint as a literal class: it must be the width the CSS reserve uses.
     const strip = container.querySelector('[data-zoom-strip]');
-    expect(strip?.className).toContain(`@min-[${STRIP_STACK_BELOW}px]:flex-row`);
-    expect(RESERVED_HEIGHT).toContain(`${STRIP_STACK_BELOW}px`);
+    // In rem, so text at 200 % (a 32 px root) stacks the strip instead of running past the card.
+    const breakpoint = `${STRIP_STACK_BELOW / ROOT_PX}rem`;
+    expect(strip?.className).toContain(`@min-[${breakpoint}]:flex-row`);
+    expect(RESERVED_HEIGHT).toContain(breakpoint);
   });
 });

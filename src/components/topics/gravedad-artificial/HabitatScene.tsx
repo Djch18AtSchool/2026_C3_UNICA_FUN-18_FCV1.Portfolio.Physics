@@ -9,6 +9,7 @@ import TimeScaleBadge from '../../lab/TimeScaleBadge';
 import { useFrameTime } from '../../lab/useFrameTime';
 import { useZoomPan } from '../../lab/useZoomPan';
 import { ZOOM_STRIP_PX } from '../../lab/ZoomControls';
+import { ROOT_PX } from '../../../styles/scaleRules';
 import { AC_COLOR, GAP_COLOR, OMEGA_COLOR } from './habitatColors';
 import {
   pxPerMetre,
@@ -255,18 +256,20 @@ export function sceneHeight(width: number): number {
 export const COMPACT_BELOW = COMPACT_BAR + 2 * BAR_SIDE_PAD;
 /** A step in CSS: a length times this, clamped, is 0 or a whole line within a hundredth of a px. */
 const STEP_SLOPE = 1000;
-/** `px` of extra height while the container is narrower than `below`, else none. */
-const step = (px: number, below: number) =>
-  `clamp(0px, (${below}px - 100cqw) * ${STEP_SLOPE}, ${px}px)`;
+/** `px` of extra height while the container is narrower than `below` (a CSS length), else none. */
+const step = (px: number, below: string) =>
+  `clamp(0px, (${below} - 100cqw) * ${STEP_SLOPE}, ${px}px)`;
+/** The strip's breakpoint as its class writes it, in rem (HabitatZoomStrip). */
+const STRIP_STACK_BELOW_CSS = `${STRIP_STACK_BELOW / ROOT_PX}rem`;
 const RING_AREA = `min(100cqw, ${MAX_RING_AREA}px)`;
 /** The radius bar's height in CSS, as barHeight. */
-const BAR_RESERVED = `calc(${BAR_TOP_GAP + BAR_BOTTOM}px + ${step(CAPTION_LINE, COMPACT_BELOW)})`;
+const BAR_RESERVED = `calc(${BAR_TOP_GAP + BAR_BOTTOM}px + ${step(CAPTION_LINE, `${COMPACT_BELOW}px`)})`;
 /**
  * sceneHeight written in CSS, from the width of the scene's own container (cqw), so the server
  * reserves the height the browser will measure: the drawing is sized by its width and would
  * otherwise grow when it hydrates (a layout shift on a phone). Keep the two in step.
  */
-export const RESERVED_HEIGHT = `calc(${RING_AREA} + ${BAR_TOP_GAP + BAR_BOTTOM}px + ${step(CAPTION_LINE, COMPACT_BELOW)} + ${ZOOM_STRIP_PX}px + ${step(ZOOM_STRIP_PX, STRIP_STACK_BELOW)})`;
+export const RESERVED_HEIGHT = `calc(${RING_AREA} + ${BAR_TOP_GAP + BAR_BOTTOM}px + ${step(CAPTION_LINE, `${COMPACT_BELOW}px`)} + ${ZOOM_STRIP_PX}px + ${step(ZOOM_STRIP_PX, STRIP_STACK_BELOW_CSS)})`;
 
 /** The ring's drawing at the lab's own framing, in the square the canvas measures. */
 function ringBase(r: number, width: number, side: number): RingBase {

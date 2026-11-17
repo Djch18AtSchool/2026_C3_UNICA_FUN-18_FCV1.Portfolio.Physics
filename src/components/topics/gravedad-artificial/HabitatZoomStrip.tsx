@@ -8,8 +8,10 @@ import { SCALE_UNITS } from './habitatRing';
  * Below this width (px) the strip stacks its two rows. Side by side the bar is as long as the row
  * leaves it (inlineScaleBarMaxPx: 64 px at the least, in its 18 px box), the buttons 191 px, 8 px
  * of padding a side and 4 between: 64 + 18 + 191 + 16 + 4 = 293, so a phone's 294 px scene keeps
- * one row (the Phase D visual pass, I3). Tailwind reads the breakpoint as a literal class, so the
- * literal below must stay equal to this number.
+ * one row (the Phase D visual pass, I3). The class and the reserved height say it in rem
+ * (293 / 16 = 18.3125rem), so with the browser's text at 200 % (a 32 px root) the strip stacks
+ * instead of running past the card (WCAG 1.4.4). Tailwind reads the breakpoint as a literal class,
+ * so the literal below must stay equal to this number over the 16 px root.
  */
 export const STRIP_STACK_BELOW = 293;
 
@@ -36,7 +38,7 @@ export default function HabitatZoomStrip({
   return (
     <div
       data-zoom-strip=""
-      className="flex flex-col px-2 @min-[293px]:flex-row @min-[293px]:items-center @min-[293px]:justify-between"
+      className="flex flex-col px-2 @min-[18.3125rem]:flex-row @min-[18.3125rem]:items-center @min-[18.3125rem]:justify-between"
     >
       <div className="flex h-12 items-center">
         <ScaleBar

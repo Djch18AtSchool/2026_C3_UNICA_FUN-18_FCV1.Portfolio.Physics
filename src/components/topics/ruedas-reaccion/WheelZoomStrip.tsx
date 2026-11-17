@@ -8,8 +8,10 @@ import { BODY_SCALE_UNITS } from './wheelZoom';
  * From this width (px) the bar and the buttons share one row of 48 px; narrower, they stack (two
  * rows, 96 px). The bar's box says «20 cm de la nave» (90 px of text, measured, wider than a short
  * bar), so the row needs 90 + 18 + 191 + 16 + 4 = 319 px at the least: one row from a 390 px
- * phone up, two on a 360 px one (a 318 px strip). Tailwind reads the breakpoint as a literal
- * class, so the literal below must stay equal to this number.
+ * phone up, two on a 360 px one (a 318 px strip). The class says it in rem (320 / 16 = 20rem),
+ * so with the browser's text at 200 % (a 32 px root, the row twice as wide) the two parts stack
+ * instead of running past the card (WCAG 1.4.4). Tailwind reads the breakpoint as a literal
+ * class, so the literal below must stay equal to this number over the 16 px root.
  */
 export const WHEEL_STRIP_ONE_ROW_FROM = 320;
 
@@ -32,7 +34,7 @@ export interface WheelZoomStripProps {
 export default function WheelZoomStrip({ zoom, pxPerCm, width }: WheelZoomStripProps): JSX.Element {
   return (
     <div data-wheel-zoom-strip="" className="@container">
-      <div className="flex flex-col px-2 @min-[320px]:flex-row @min-[320px]:items-center @min-[320px]:justify-between">
+      <div className="flex flex-col px-2 @min-[20rem]:flex-row @min-[20rem]:items-center @min-[20rem]:justify-between">
         <div className="flex h-12 items-center">
           <ScaleBar
             pxPerUnit={pxPerCm}
