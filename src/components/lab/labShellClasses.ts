@@ -20,9 +20,10 @@ export const LAB_PANEL = 'mt-(--lab-flow-section) flex flex-col';
 /**
  * Level 1, the parameters: two to a row where the lab is wide enough for a label, its slider and
  * its number on one line each (36 rem); a paragraph among them (a note, a warning) takes the row.
+ * A switch row (SwitchField, a label) keeps its switch beside its words, not at the cell's far end.
  */
 export const LAB_PARAMS =
-  'grid grid-cols-1 gap-x-8 gap-y-(--lab-flow) @xl/lab:grid-cols-2 [&>p]:col-span-full';
+  'grid grid-cols-1 gap-x-8 gap-y-(--lab-flow) @xl/lab:grid-cols-2 [&>p]:col-span-full [&>label]:justify-start';
 /** Level 2, the scenario: its choices one under the other, under the parameters. */
 export const LAB_SCENARIO = 'mt-(--lab-flow-section) flex flex-col gap-(--lab-flow)';
 /** «Lecturas»: two to a row, four in a wide lab (42 rem). */
