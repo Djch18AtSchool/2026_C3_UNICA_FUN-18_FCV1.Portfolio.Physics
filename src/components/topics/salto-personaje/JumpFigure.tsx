@@ -115,7 +115,7 @@ function Apex({
 }) {
   const cx = x.toPx(result.tApex);
   const cy = y.toPx(result.hMax);
-  const lines = [`h = ${m(result.hMax)}`, `t_h = ${s(result.tApex)}`];
+  const lines = [`$h$ = ${m(result.hMax)}`, `$t_h$ = ${s(result.tApex)}`];
   const width = Math.max(...lines.map((line) => mathTextWidth(line, LABEL_SIZE)));
   // On a narrow plot the label slides a little left to clear the limit, but never onto its point
   // (further left it would run into the steeper curve rising past it).

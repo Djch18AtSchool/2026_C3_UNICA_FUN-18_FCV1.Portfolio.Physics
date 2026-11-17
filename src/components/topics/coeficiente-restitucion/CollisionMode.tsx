@@ -240,7 +240,7 @@ export function CollisionScene(props: CollisionSceneProps): JSX.Element {
             const y = TRACK_Y - Math.max(...sides) - ARROW_ROWS[index];
             const from = { x: centres[index], y };
             const to = { x: arrowTip(centres[index], velocities[index], width), y };
-            const text = `v_{${index + 1}}${prime} = ${formatNumber(velocities[index], { precision: decimals, unit: 'm/s' })}`;
+            const text = `$v_{${index + 1}}$${prime} = ${formatNumber(velocities[index], { precision: decimals, unit: 'm/s' })}`;
             return (
               <g key={index} data-velocity={index + 1}>
                 <Arrow from={from} to={to} color={TEXT_COLOR} />

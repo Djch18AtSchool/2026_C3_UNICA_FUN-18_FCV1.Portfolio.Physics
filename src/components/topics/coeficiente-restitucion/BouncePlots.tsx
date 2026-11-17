@@ -124,7 +124,7 @@ export default function BouncePlots({
         xLabel="$t$"
         xUnit="s"
         yLabel="Energía"
-        yUnit="E/E_0"
+        yUnit="$E/E_0$"
         series={pair(model, 'energy')}
         xDomain={xDomain}
         cursor={cursor}
@@ -141,8 +141,7 @@ export default function BouncePlots({
             />
           </>
         ) : null}
-        Cada escalón de la física ideal deja una fracción e² de la energía: pierde 1 − e² por bote.
-        Con Baumgarte, la penetración cuenta como energía potencial negativa.
+        <InlineMath text="Cada escalón de la física ideal deja una fracción $e^2$ de la energía: pierde $1 - e^2$ por bote. Con Baumgarte, la penetración cuenta como energía potencial negativa." />
       </p>
     </div>
   );

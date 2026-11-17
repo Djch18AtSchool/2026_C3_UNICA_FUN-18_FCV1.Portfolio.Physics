@@ -26,6 +26,14 @@ const SPIN = { cx: SAT.x, cy: SAT.y, rx: 46, ry: 46 };
 const tauExt = spinArc(SPIN, 200, 340);
 const drift = spinArc(SPIN, 30, 150);
 const TEXT_X = 88;
+/**
+ * «1,2·10^-5 N·m» with its power as a formula: in a label with `$…$` a ^ outside the formulas
+ * is literal (toNotation), and the variables m and B go in `$…$` like every symbol.
+ */
+const MAGNETORQUER_VALUE = DIAGRAM_FACTS.magnetorquerLabel.replace(
+  /10\^(\S+)/u,
+  (_power, exponent: string) => `$10^{${exponent}}$`,
+);
 /** Equation tags sit just right of their equation, clear of the spacecraft's τ_ext arc. */
 const TAG_8_3_X = 248;
 
@@ -294,7 +302,7 @@ const EQ = {
   <MathText source="paralelo a $B$ espera a que la órbita" x={16} y={626} {...LABEL_TEXT} />
   <MathText source="gire $B$." x={16} y={648} {...LABEL_TEXT} />
   <MathText
-    source={`m B ≈ ${DIAGRAM_FACTS.magnetorquerLabel}, unas ${DIAGRAM_FACTS.dumpRatio} veces la perturbación`}
+    source={`$m B$ ≈ ${MAGNETORQUER_VALUE}, unas ${DIAGRAM_FACTS.dumpRatio} veces la perturbación`}
     x={16}
     y={678}
     {...NOTE_TEXT}

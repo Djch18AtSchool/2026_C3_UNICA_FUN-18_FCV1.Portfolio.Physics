@@ -68,7 +68,7 @@ function TemperaturePlot({
         cursor={{
           x: state.t,
           onChange: onTemperature,
-          label: (t) => `T = ${formatNumber(t, { precision: 0, unit: TEMPERATURE_AXIS.unit })}`,
+          label: (t) => `$T$ = ${formatNumber(t, { precision: 0, unit: TEMPERATURE_AXIS.unit })}`,
         }}
         marker={{ x: state.t, y: mu }}
         ariaLabel={mathTextToString(
@@ -94,7 +94,7 @@ function LoadPlot({
         cursor={{
           x: state.fz,
           onChange: onLoad,
-          label: (fz) => `F_z = ${formatNumber(fz, { precision: 0, unit: LOAD_AXIS.unit })}`,
+          label: (fz) => `$F_z$ = ${formatNumber(fz, { precision: 0, unit: LOAD_AXIS.unit })}`,
         }}
         overlay={(scales) => (
           <PlotPoints

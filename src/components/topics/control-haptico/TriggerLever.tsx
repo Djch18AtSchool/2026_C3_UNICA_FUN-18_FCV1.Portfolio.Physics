@@ -176,7 +176,7 @@ function TravelArc({ pivot, radius, x0Mm }: { pivot: Point; radius: number; x0Mm
             strokeWidth={2}
           />
           <MathText
-            source="x_0"
+            source="$x_0$"
             x={polar(pivot, radius - X0_LABEL_GAP, x0Angle).x}
             y={polar(pivot, radius - X0_LABEL_GAP, x0Angle).y + 4}
             fontSize={TEXT_SIZE}

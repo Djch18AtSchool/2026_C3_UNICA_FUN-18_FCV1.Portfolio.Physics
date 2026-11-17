@@ -98,7 +98,7 @@ describe('BounceFigure', () => {
 
       expect(container.querySelector('[data-band="itf"]')).not.toBeNull();
       expect(screen.getByText('Rebote ITF: 1,35–1,47 m')).toBeInTheDocument();
-      expect(screen.getByText('T = 4,92 s')).toBeInTheDocument();
+      expect(screen.getByText(svgText('T = 4,92 s'))).toBeInTheDocument();
     });
 
     test('names the figure with its numbers', () => {
@@ -119,8 +119,8 @@ describe('BounceFigure', () => {
       expect(diagram).toHaveTextContent('e = 0');
       expect(diagram).toHaveTextContent('e = 0,75');
       expect(diagram).toHaveTextContent('e = 1');
-      expect(diagram.querySelector('[data-notation="m_1 = 2 kg"]')).not.toBeNull();
-      expect(diagram.querySelector('[data-notation="m_2 = 1 kg"]')).not.toBeNull();
+      expect(diagram.querySelector('[data-notation="$m_1$ = 2 kg"]')).not.toBeNull();
+      expect(diagram.querySelector('[data-notation="$m_2$ = 1 kg"]')).not.toBeNull();
       expect(diagram).toHaveTextContent('1,25 m/s');
       expect(diagram).toHaveTextContent('3,5 m/s');
     });
@@ -150,10 +150,10 @@ describe('BounceFigure', () => {
       expect(width('e-0,75', 'total')).toBeLessThan(width('e-1', 'total'));
       expect(width('e-1', 'total')).toBeCloseTo(width('antes', 'total'), 6);
       expect(width('e-0', 'cm')).toBeCloseTo(width('antes', 'cm'), 6);
-      expect(screen.getByText('K = 9 J')).toBeInTheDocument();
-      expect(screen.getByText('K′ = 6 J')).toBeInTheDocument();
-      expect(screen.getByText('K′ = 7,69 J')).toBeInTheDocument();
-      expect(screen.getByText('K′ = 9 J')).toBeInTheDocument();
+      expect(screen.getByText(svgText('K = 9 J'))).toBeInTheDocument();
+      expect(screen.getByText(svgText('K′ = 6 J'))).toBeInTheDocument();
+      expect(screen.getByText(svgText('K′ = 7,69 J'))).toBeInTheDocument();
+      expect(screen.getByText(svgText('K′ = 9 J'))).toBeInTheDocument();
     });
 
     test('on a phone the momentum and energy go under the balls, labelled, inside the column', () => {

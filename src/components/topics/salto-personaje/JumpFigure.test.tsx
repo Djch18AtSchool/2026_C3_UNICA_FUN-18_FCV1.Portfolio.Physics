@@ -44,8 +44,8 @@ describe('JumpFigure', () => {
     expect(strokeOf(container, 'celeste')).toBe('var(--chart-4)');
     expect(strokeOf(container, 'super-mario-bros')).toBe('var(--chart-3)');
     expect(container.querySelectorAll('[data-apex]')).toHaveLength(2);
-    expect(screen.getByText(/h = 4,00 m/)).toBeInTheDocument();
-    expect(screen.getByText(/h = 0,76 m/)).toBeInTheDocument();
+    expect(screen.getByText(svgText(/^h = 4,00\sm$/))).toBeInTheDocument();
+    expect(screen.getByText(svgText(/^h = 0,76\sm$/))).toBeInTheDocument();
     expect(screen.getByText(svgText(/^th = 0,53\ss$/))).toBeInTheDocument();
     expect(screen.getByText(svgText(/^th = 0,12\ss$/))).toBeInTheDocument();
   });

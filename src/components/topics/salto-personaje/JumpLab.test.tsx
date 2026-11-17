@@ -427,7 +427,9 @@ describe('JumpLab', () => {
     expect(screen.getByTestId('launch-handle').getAttribute('aria-valuetext')).toMatch(
       /^v sub 0 = .*, v sub x = /,
     );
-    expect(container.querySelector('[data-notation="vec v_0"]')).not.toBeNull();
-    expect(container.querySelector('[data-velocity] [data-notation="vec v"]')).not.toBeNull();
+    // CSS.escape: inside an attribute selector the backslash of \vec would escape the «v».
+    const notation = (source: string) => `[data-notation="${CSS.escape(source)}"]`;
+    expect(container.querySelector(notation('$\\vec v_0$'))).not.toBeNull();
+    expect(container.querySelector(`[data-velocity] ${notation('$\\vec v$')}`)).not.toBeNull();
   });
 });

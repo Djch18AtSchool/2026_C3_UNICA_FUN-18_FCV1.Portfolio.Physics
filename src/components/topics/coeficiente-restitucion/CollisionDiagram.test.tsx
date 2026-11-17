@@ -22,7 +22,7 @@ describe('CollisionDiagram', () => {
 
   test('the two mass labels are drawn at 12 px or more and clear of each other', () => {
     const { container } = render(<CollisionDiagram />);
-    const labels = ['m_1 = 2 kg', 'm_2 = 1 kg'].map(
+    const labels = ['$m_1$ = 2 kg', '$m_2$ = 1 kg'].map(
       (source) => container.querySelector(`text[data-notation="${source}"]`) as Element,
     );
     const [first, second] = labels.map(extent);

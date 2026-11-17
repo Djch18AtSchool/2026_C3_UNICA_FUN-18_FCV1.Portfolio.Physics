@@ -186,12 +186,12 @@ export default function JumpOverlay({
           <g data-velocity="" transform={translate(body)}>
             <Arrow from={ORIGIN} to={velocityTip} color={TEXT_COLOR} />
             <g transform={translate(velocityTip)}>
-              <Label at={ORIGIN}>vec v</Label>
+              <Label at={ORIGIN}>{'$\\vec v$'}</Label>
             </g>
           </g>
         ) : null}
         <Arrow from={origin} to={tip} color={LAUNCH_COLOR} />
-        <Label at={tip}>vec v_0</Label>
+        <Label at={tip}>{'$\\vec v_0$'}</Label>
       </g>
       <g
         data-testid="jump-marker"

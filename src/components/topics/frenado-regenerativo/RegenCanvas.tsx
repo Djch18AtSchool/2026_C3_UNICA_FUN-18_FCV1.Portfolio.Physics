@@ -2,7 +2,7 @@ import { useCallback, useMemo, type JSX } from 'react';
 import type { CycleId, DriveCycle } from '../../../lib/data/driveCycles';
 import type { BalanceStep } from '../../../lib/physics/energy';
 import TimeScaleBadge from '../../lab/TimeScaleBadge';
-import { transportTimeText } from '../../lab/transportTime';
+import { transportTimeValue } from '../../lab/transportTime';
 import type { SimClock } from '../../lab/useSimClock';
 import CycleMinimap from './CycleMinimap';
 import EnergyBars from './EnergyBars';
@@ -108,7 +108,7 @@ export function RegenCharts(props: RegenCanvasProps): JSX.Element {
         frame={clock.frame}
         toCycle={toCycle}
         onSeek={seekCycle}
-        cursorLabel={(x) => transportTimeText(x, timing.duration, 's')}
+        cursorLabel={(x) => `$t$ = ${transportTimeValue(x, timing.duration, 's')}`}
         stretch={isStretch ? stretch : undefined}
       />
     </>

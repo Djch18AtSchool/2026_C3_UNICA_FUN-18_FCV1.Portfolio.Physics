@@ -95,7 +95,7 @@ function RouteMap(): JSX.Element {
           {'$\\vec r$'}
         </Label>
         <Arrow from={px(middle)} to={px(velocityTip)} color={VELOCITY_COLOR} />
-        <Label at={px(velocityTip)}>vec v</Label>
+        <Label at={px(velocityTip)}>{'$\\vec v$'}</Label>
         {stops.slice(0, -1).map((stop) => (
           <g key={stop.name}>
             <circle cx={px(stop).x} cy={px(stop).y} r={STOP_RADIUS} fill={TEXT_COLOR} />

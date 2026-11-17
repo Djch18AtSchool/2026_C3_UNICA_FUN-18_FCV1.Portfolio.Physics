@@ -96,7 +96,7 @@ const TRAJECTORY = [
 ];
 const APEXES = apexPoints(h0, e, G_EARTH, APEX_COUNT);
 const comma = (value: number, decimals: number) => formatNumber(value, { precision: decimals });
-const T_LABEL = `T = ${comma(TOTAL_TIME, 2)} s`;
+const T_LABEL = `$T$ = ${comma(TOTAL_TIME, 2)} s`;
 const BAND_RANGE = `${comma(ITF_DROP.reboundMin, 2)}–${comma(ITF_DROP.reboundMax, 2)} m`;
 const BAND_LABEL = `Rebote ITF: ${BAND_RANGE}`;
 const SHORT_BAND_LABEL = `ITF: ${BAND_RANGE}`;

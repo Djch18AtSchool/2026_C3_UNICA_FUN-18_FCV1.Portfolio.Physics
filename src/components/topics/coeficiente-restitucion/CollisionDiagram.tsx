@@ -110,8 +110,8 @@ function Balls({
   isBefore: boolean;
 }) {
   const balls = [
-    { ...BALL_1, v: state.v1, color: BODY_1_COLOR, mass: `m_1 = ${COLLISION_CASE.m1} kg` },
-    { ...BALL_2, v: state.v2, color: BODY_2_COLOR, mass: `m_2 = ${COLLISION_CASE.m2} kg` },
+    { ...BALL_1, v: state.v1, color: BODY_1_COLOR, mass: `$m_1$ = ${COLLISION_CASE.m1} kg` },
+    { ...BALL_2, v: state.v2, color: BODY_2_COLOR, mass: `$m_2$ = ${COLLISION_CASE.m2} kg` },
   ];
   return (
     <g>
@@ -229,7 +229,7 @@ function KineticBar({
   const cmWidth = state.kineticCM * PX_PER_JOULE;
   const total = state.kinetic * PX_PER_JOULE;
   const lost = (initial - state.kinetic) * PX_PER_JOULE;
-  const label = `${isBefore ? 'K' : 'K′'} = ${formatTrimmed(state.kinetic)} J`;
+  const label = `${isBefore ? '$K$' : '$K$′'} = ${formatTrimmed(state.kinetic)} J`;
   return (
     <g>
       <rect
@@ -269,15 +269,14 @@ function KineticBar({
         fill="none"
         stroke={TEXT_COLOR}
       />
-      <text
+      <MathText
+        source={label}
         x={x + (initial * PX_PER_JOULE) / 2}
         y={y + UNDER_LABEL}
-        textAnchor="middle"
+        anchor="middle"
         fontSize={SMALL_SIZE}
-        {...textStyle}
-      >
-        {label}
-      </text>
+        fill={TEXT_COLOR}
+      />
     </g>
   );
 }
