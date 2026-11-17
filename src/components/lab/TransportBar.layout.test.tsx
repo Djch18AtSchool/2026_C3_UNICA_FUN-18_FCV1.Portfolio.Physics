@@ -49,14 +49,11 @@ describe('TransportBar in one row', () => {
     expect(speed()).toHaveClass('h-11');
   });
 
-  test('the speed select is compact: 8 px before «0,25×», 24 px after it, the chevron 8 px from the edge', () => {
+  test("the speed select is 80 px wide: 8 px before «0,25×», the form selects' 32 px after it for the chevron", () => {
     render(<TransportBar clock={fakeClock({ duration: 10 })} />);
-    const chevron = speed().parentElement?.querySelector('svg');
 
-    // 8 + «0,25×» (36 px of Plex Sans 14) + 24 + 2 of border ≈ 70 px, against 82 with pl-3 pr-8.
-    expect(speed()).toHaveClass('pl-2', 'pr-6');
-    expect(chevron).toHaveClass('right-2');
-    expect(chevron).not.toHaveClass('right-3');
+    // w-20 = 80 px: 2 of border + 8 + «0,25×» (36 px of Plex Sans 14) + 32 + 2 of room.
+    expect(speed()).toHaveClass('w-20', 'pl-2', 'pr-8');
   });
 
   test('choosing a speed sets it on the clock', () => {

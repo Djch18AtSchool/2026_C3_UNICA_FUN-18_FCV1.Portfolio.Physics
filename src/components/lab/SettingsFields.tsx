@@ -19,18 +19,13 @@ const SELECT =
 
 /**
  * Sits 12 px from the right edge (as the text from the left), vertically centred; the select
- * reserves it and 4 px before it with pr-8. Compact (the transport's speed, «1×▾»): 8 px from the
- * edge in a select with pr-6, so the 8 px stroke of the 16 px box keeps 4 px from the text.
+ * reserves it and 4 px before it with pr-8.
  */
-const SELECT_CHEVRON = 'pointer-events-none absolute top-1/2 size-4 -translate-y-1/2 text-fg-muted';
-const CHEVRON_INSET = { regular: 'right-3', compact: 'right-2' } as const;
+const SELECT_CHEVRON =
+  'pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-fg-muted';
 
 /** The chevron a native select draws over its reserved right padding (pr-8), in a relative box. */
-export function SelectChevron({
-  inset = 'regular',
-}: {
-  inset?: keyof typeof CHEVRON_INSET;
-}): JSX.Element {
+export function SelectChevron(): JSX.Element {
   return (
     <svg
       viewBox="0 0 16 16"
@@ -40,7 +35,7 @@ export function SelectChevron({
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      className={`${SELECT_CHEVRON} ${CHEVRON_INSET[inset]}`}
+      className={SELECT_CHEVRON}
     >
       <path d="m4 6 4 4 4-4" />
     </svg>

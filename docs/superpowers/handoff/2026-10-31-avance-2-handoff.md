@@ -1903,7 +1903,7 @@ está en git.
 - **E5, ronda de arreglos de E1 y E3 y barrido de letras sueltas:** toda letra que nombra una magnitud y quedaba recta
   en la prosa, los pies, las notas, las tablas y los rótulos va entre `$…$` (248 cambios, ninguna palabra); la ayuda
   del Tema 6 y la nota de cámara lenta del Tema 7 (dos frases para Dylan); «Modo» del Tema 7 solo en el escenario; el
-  selector «1×▾» de 82 a 70 px; las franjas del zoom de los Temas 3, 8 y 9 dentro de la tarjeta con el texto al 200 %;
+  selector «1×▾» de 82 a 70 px (y luego a 80 px por decisión de Dylan); las franjas del zoom de los Temas 3, 8 y 9 dentro de la tarjeta con el texto al 200 %;
   el transporte del Tema 6 ya no salta en el teléfono. Informe `task-E5-report.md`.
 - **E6, arreglos de la revisión final de la fase** (`review-final-E-report.md`, informe `task-E6-report.md`): el nombre
   accesible del triángulo de velocidades del Tema 9 vuelve a decir «V sub p» (E3 lo había roto); unas 25 etiquetas de
@@ -1938,9 +1938,8 @@ desglose de E3 se reconstruyó del diff de sus commits.
 
 ### 5. Decisiones abiertas de Dylan (siguen a la 69)
 
-70. **Selector de velocidad «1×▾»: 70 u 78 px.** A 70 px «0,25×» cabe y la flecha queda a 4 px del «×» (la medida
-    mínima de la escala; capturas `shots/E5/m9-speed-*`); con `pl-2 pr-8` y la flecha a 12 px mide 78 y deja 8 px.
-    Revertir es una clase de `TransportSpeed.tsx`.
+70. **Selector de velocidad «1×▾»: 80 px (decidido por Dylan, 2026-11-17).** `w-20 pl-2 pr-8` (excepción nombrada de la escala: 80 es múltiplo de 8 y la escalera de anchos lo salta) y la flecha
+    a 8 px del «×» de «0,25×»; antes 70 px con la flecha a 4 px del texto. Cambiarlo es una clase de `TransportSpeed.tsx`.
 71. **Fórmulas en línea al peso del texto (hoy) o fijas en 400.** Fijas: −74 KiB de media por página (hasta −140 en el
     Tema 6), pero en un rótulo en 500/600 («Desplazamiento $x$ (mm)») la letra en 400 se ve fina (`shots/E5/d-peso-*`).
     Cambiarlo son dos líneas (`math.css` y dos `@fontsource` de `BaseLayout.astro`).
