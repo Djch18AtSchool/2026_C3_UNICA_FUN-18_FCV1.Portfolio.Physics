@@ -189,7 +189,7 @@ test.describe('laboratorio', () => {
     await expect(lab.locator('svg[role="img"]')).toHaveCount(1);
     await expect(lab.getByText('Desplazamiento x (mm)')).toHaveCount(1);
     await expect(lab.getByText('Fuerza F (N)')).toHaveCount(1);
-    await expect(lab.getByText('Resorte ideal, F = k x', { exact: true })).toBeVisible();
+    await expect(lab.getByText(/^Resorte ideal, /)).toBeVisible();
     await expect(
       lab.getByText('Perfil del gatillo, ecuación (5.4)', { exact: true }),
     ).toBeVisible();
@@ -208,16 +208,16 @@ test.describe('laboratorio', () => {
 
     await presets.getByRole('button', { name: /^Resorte tardío/ }).click();
     await pressToBottomWithKeys(page);
-    await expect.poll(() => readoutText(page, 'Fuerza del gatillo F')).toBe('2,00 N');
+    await expect.poll(() => readoutText(page, 'Fuerza del gatillo $F$')).toBe('2,00 N');
     await lab.getByRole('button', { name: 'Soltar el gatillo' }).click();
     await expect
-      .poll(() => readoutText(page, 'Desplazamiento x'), { timeout: RELEASE_BOUND_MS * 2 })
+      .poll(() => readoutText(page, 'Desplazamiento $x$'), { timeout: RELEASE_BOUND_MS * 2 })
       .toBe(AT_REST);
 
     await expect(replay).toBeEnabled();
     await replay.click();
     await expect
-      .poll(() => readoutText(page, 'Desplazamiento x'), { timeout: RELEASE_BOUND_MS * 2 })
+      .poll(() => readoutText(page, 'Desplazamiento $x$'), { timeout: RELEASE_BOUND_MS * 2 })
       .toBe(AT_REST);
     await expect(replay).toBeEnabled();
   });
@@ -233,11 +233,11 @@ test.describe('laboratorio', () => {
     await page.mouse.move(x, y + 40, { steps: 4 });
     await page.mouse.move(x, y + 80, { steps: 4 });
 
-    await expect.poll(() => readoutText(page, 'Desplazamiento x')).not.toBe(AT_REST);
-    await expect.poll(() => readoutText(page, 'Fuerza del gatillo F')).not.toBe('0,00 N');
+    await expect.poll(() => readoutText(page, 'Desplazamiento $x$')).not.toBe(AT_REST);
+    await expect.poll(() => readoutText(page, 'Fuerza del gatillo $F$')).not.toBe('0,00 N');
     await page.mouse.up();
     await expect
-      .poll(() => readoutText(page, 'Desplazamiento x'), { timeout: RELEASE_BOUND_MS })
+      .poll(() => readoutText(page, 'Desplazamiento $x$'), { timeout: RELEASE_BOUND_MS })
       .toBe(AT_REST);
     await expect(
       page.locator(LAB).getByRole('button', { name: 'Soltar el gatillo' }),
@@ -249,15 +249,15 @@ test.describe('laboratorio', () => {
   }) => {
     await pressToBottomWithKeys(page);
 
-    await expect.poll(() => readoutText(page, 'Desplazamiento x')).toBe('8,0 mm');
-    expect(await readoutText(page, 'Fuerza del gatillo F')).toBe('3,20 N');
-    expect(await readoutText(page, 'Energía elástica U, resorte ideal')).toBe('12,80 mJ');
+    await expect.poll(() => readoutText(page, 'Desplazamiento $x$')).toBe('8,0 mm');
+    expect(await readoutText(page, 'Fuerza del gatillo $F$')).toBe('3,20 N');
+    expect(await readoutText(page, 'Energía elástica $U$, resorte ideal')).toBe('12,80 mJ');
     await page.keyboard.press('Shift+ArrowLeft');
-    await expect.poll(() => readoutText(page, 'Desplazamiento x')).toBe('7,0 mm');
+    await expect.poll(() => readoutText(page, 'Desplazamiento $x$')).toBe('7,0 mm');
 
     await page.locator(LAB).getByRole('button', { name: 'Soltar el gatillo' }).click();
     await expect
-      .poll(() => readoutText(page, 'Desplazamiento x'), { timeout: RELEASE_BOUND_MS })
+      .poll(() => readoutText(page, 'Desplazamiento $x$'), { timeout: RELEASE_BOUND_MS })
       .toBe(AT_REST);
   });
 
@@ -283,7 +283,7 @@ test.describe('laboratorio', () => {
     await pressToBottomWithKeys(page);
     await page.locator(LAB).getByRole('button', { name: 'Soltar el gatillo' }).click();
     await expect
-      .poll(() => readoutText(page, 'Desplazamiento x'), { timeout: RELEASE_BOUND_MS })
+      .poll(() => readoutText(page, 'Desplazamiento $x$'), { timeout: RELEASE_BOUND_MS })
       .toBe(AT_REST);
   });
 
@@ -295,9 +295,9 @@ test.describe('laboratorio', () => {
     await page.keyboard.press('Escape');
     await pressToBottomWithKeys(page);
 
-    await expect.poll(() => readoutText(page, 'Fuerza del gatillo F')).toBe('3,2 N');
-    expect(await readoutText(page, 'Energía elástica U, resorte ideal')).toBe('12,8 mJ');
-    expect(await readoutText(page, 'Trabajo del dedo W')).toBe('12,8 mJ');
+    await expect.poll(() => readoutText(page, 'Fuerza del gatillo $F$')).toBe('3,2 N');
+    expect(await readoutText(page, 'Energía elástica $U$, resorte ideal')).toBe('12,8 mJ');
+    expect(await readoutText(page, 'Trabajo del dedo $W$')).toBe('12,8 mJ');
   });
 
   test('el laboratorio ocupa el ancho de la columna de lectura', async ({ page }) => {
@@ -316,11 +316,11 @@ test.describe('con movimiento reducido', () => {
   test('soltar el gatillo lo lleva a 0,0 mm sin animación', async ({ page }) => {
     await openLab(page);
     await pressToBottomWithKeys(page);
-    await expect.poll(() => readoutText(page, 'Desplazamiento x')).toBe('8,0 mm');
+    await expect.poll(() => readoutText(page, 'Desplazamiento $x$')).toBe('8,0 mm');
 
     await page.locator(LAB).getByRole('button', { name: 'Soltar el gatillo' }).click();
 
-    expect(await readoutText(page, 'Desplazamiento x')).toBe(AT_REST);
+    expect(await readoutText(page, 'Desplazamiento $x$')).toBe(AT_REST);
   });
 });
 
@@ -417,11 +417,11 @@ test.describe('con pantalla táctil', () => {
       });
     }
 
-    await expect.poll(() => readoutText(page, 'Desplazamiento x')).not.toBe(AT_REST);
+    await expect.poll(() => readoutText(page, 'Desplazamiento $x$')).not.toBe(AT_REST);
     expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore);
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     await expect
-      .poll(() => readoutText(page, 'Desplazamiento x'), { timeout: RELEASE_BOUND_MS })
+      .poll(() => readoutText(page, 'Desplazamiento $x$'), { timeout: RELEASE_BOUND_MS })
       .toBe(AT_REST);
   });
 });

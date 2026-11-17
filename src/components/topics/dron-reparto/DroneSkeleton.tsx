@@ -52,13 +52,14 @@ const PLACE = 'rounded-base border border-dashed border-border';
 /**
  * The widths of the card's content box (rem; the container query's width, the card less its 1 rem
  * padding on each side) where a part of the loaded lab changes height: the readouts' labels
- * rewrap (16,1221); the canvas notes go from three lines to two (16,8497) and to one (30,9747);
+ * rewrap (16,1221); the canvas notes go from three lines to two (16,8) and to one (30,85), in Plex
+ * Sans with their formulas at 1 em (E3);
  * «Restablecer» joins the leg's select on one row (22,5625); the transport goes to one row and the
  * parameters two to a row (36, the shell's @xl/lab); the readouts four to a row (42, @2xl/lab).
- * Measured on the loaded lab at the site's 16 px root; in window widths they are 324, 336, 427,
- * 562, 658 and 754 px (and 1 058, where the sidebar's lg layout widens the column to 42 rem).
+ * Measured on the loaded lab at the site's 16 px root; in window widths they are 324, 335, 427,
+ * 560, 658 and 754 px (and 1 058, where the sidebar's lg layout widens the column to 42 rem).
  */
-const STEPS = ['s16-1221', 's16-8497', 's22-5625', 's30-9747', 's36', 's42'] as const;
+const STEPS = ['s16-1221', 's16-8', 's22-5625', 's30-85', 's36', 's42'] as const;
 type Step = (typeof STEPS)[number];
 
 /**
@@ -66,7 +67,7 @@ type Step = (typeof STEPS)[number];
  * with hyphens: Tailwind reads an underscore in an arbitrary value as a space).
  */
 const PLACE_HEIGHT =
-  'h-(--place-narrow) @min-[16.1221rem]/lab:h-(--place-s16-1221) @min-[16.8497rem]/lab:h-(--place-s16-8497) @min-[22.5625rem]/lab:h-(--place-s22-5625) @min-[30.9747rem]/lab:h-(--place-s30-9747) @min-[36rem]/lab:h-(--place-s36) @min-[42rem]/lab:h-(--place-s42)';
+  'h-(--place-narrow) @min-[16.1221rem]/lab:h-(--place-s16-1221) @min-[16.8rem]/lab:h-(--place-s16-8) @min-[22.5625rem]/lab:h-(--place-s22-5625) @min-[30.85rem]/lab:h-(--place-s30-85) @min-[36rem]/lab:h-(--place-s36) @min-[42rem]/lab:h-(--place-s42)';
 
 /**
  * A place's height in rem: on the narrowest card, then from each step where it changes (a step
@@ -94,13 +95,13 @@ function placeStyle({ narrow, from = {} }: PlaceHeights): CSSProperties {
  */
 const TRANSPORT: PlaceHeights = { narrow: 9, from: { s36: 4.25 } };
 /** «Parámetros» with v_máx and a_máx: one under the other, then side by side. */
-const PARAMS: PlaceHeights = { narrow: 10.1641, from: { s36: 4.332 } };
+const PARAMS: PlaceHeights = { narrow: 10, from: { s36: 4.25 } };
 /** «Escenario»: the view, the leg shown and «Restablecer» (beside the leg from 22,5625 rem). */
 const SCENARIO: PlaceHeights = { narrow: 17.375, from: { 's22-5625': 13.375 } };
 /** «Lecturas»: six readouts two to a row (their labels on one line from 16,1221), then four. */
 const READOUTS: PlaceHeights = { narrow: 14.9375, from: { 's16-1221': 13.6875, s42: 8.625 } };
 /** The canvas notes: legend, phase and route notes, from three lines down to one. */
-const NOTES: PlaceHeights = { narrow: 6.3086, from: { 's16-8497': 4.8086, 's30-9747': 3.2891 } };
+const NOTES: PlaceHeights = { narrow: 6.25, from: { 's16-8': 4.75, 's30-85': 3.25 } };
 /** Each closed disclosure: its summary line and the rule above it. */
 const DISCLOSURE: PlaceHeights = { narrow: 2.5625 };
 const DISCLOSURES = 2;

@@ -11,7 +11,9 @@ test('a fixture builds and serves even when React is already loaded in developme
   const site = await startFixtureSite('lab-time');
   try {
     await page.goto(site.url);
-    await expect(page.locator('[data-testid="drone-lab"], [data-lab-shell]').first()).toBeAttached();
+    await expect(
+      page.locator('[data-testid="drone-lab"], [data-lab-shell]').first(),
+    ).toBeAttached();
   } finally {
     await site.stop();
   }

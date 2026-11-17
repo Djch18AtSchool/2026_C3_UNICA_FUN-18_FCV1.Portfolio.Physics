@@ -192,7 +192,9 @@ test.describe('la escena de la rueda, con zoom', () => {
     }
 
     expect(readings).toEqual(['20 cm', '10 cm', '5 cm', '2 cm']);
-    await expect(lab.locator('[data-scale-bar-words]')).toHaveText('Barra de escala: 2 cm de la nave');
+    await expect(lab.locator('[data-scale-bar-words]')).toHaveText(
+      'Barra de escala: 2 cm de la nave',
+    );
   });
 
   test('con el teclado: el lienzo entra en el orden de foco, + − 0 y las flechas lo manejan, y luego van la perilla y los botones', async ({

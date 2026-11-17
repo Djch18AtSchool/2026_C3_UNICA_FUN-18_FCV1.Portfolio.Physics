@@ -119,10 +119,10 @@ test.describe('laboratorio', () => {
     await page.keyboard.press('Escape');
 
     for (const label of [
-      'Velocidad angular ω',
-      'Velocidad tangencial v',
+      'Velocidad angular $\\omega$',
+      'Velocidad tangencial $v$',
       APPARENT_GRAVITY,
-      'Período T',
+      'Período $T$',
       'Diferencia cabeza–pies h/r',
     ]) {
       expect(await readoutText(page, label)).toMatch(/^\d+,\d\s\S+$/);

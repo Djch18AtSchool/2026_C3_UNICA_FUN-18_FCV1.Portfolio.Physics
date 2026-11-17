@@ -24,7 +24,7 @@ const DOWN_DEPTH = 0.2;
 /** Generous waits for real-time playback (the stretch lasts 26 s at 1×). */
 const DRIVE_TIMEOUT_MS = 10_000;
 const RUN_TIMEOUT_MS = 30_000;
-const SPEED = 'Velocidad v';
+const SPEED = 'Velocidad $v$';
 const BATTERY = 'Energía a la batería en tu conducción $E_\\text{batería}$';
 const REFERENCE = 'Recuperado en el tramo del UDDS, % del frenado en las ruedas';
 

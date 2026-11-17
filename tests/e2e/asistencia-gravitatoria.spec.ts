@@ -14,7 +14,7 @@ const BLOCKING_IMPACTS = ['serious', 'critical'];
 const STEP_COUNT = 4;
 const TABLE_IDS = ['asistencia-gravitatoria-constantes', 'asistencia-gravitatoria-encuentros'];
 const MIN_SOURCES = 8;
-const DELTA = 'Ángulo de giro δ';
+const DELTA = 'Ángulo de giro $\\delta$';
 /** The chart's source sentence (VOYAGER_CHART_SOURCE): printed once, by the Figure, never twice. */
 const SOURCE_SENTENCE = 'trayectoria de diseño reconstruida hasta el 29 de agosto de 1989';
 

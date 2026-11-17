@@ -116,10 +116,10 @@ test('las gráficas de perfiles siguen presentes y su marcador sigue a t', async
     (await profiles.locator('figcaption').all()).map((caption) => mathSource(caption)),
   );
   for (const title of [
-    'Posición: x(t) y y(t)',
-    'Velocidad: $v_x(t)$, $v_y(t)$ y |v|(t)',
-    'Aceleración: $a_x(t)$, $a_y(t)$ y |a|(t)',
-    'Distancia recorrida frente a |Δr| desde el depósito',
+    'Posición: $x(t)$ y $y(t)$',
+    'Velocidad: $v_x(t)$, $v_y(t)$ y $|v|(t)$',
+    'Aceleración: $a_x(t)$, $a_y(t)$ y $|a|(t)$',
+    'Distancia recorrida frente a $|\\Delta r|$ desde el depósito',
   ]) {
     expect(titles).toContain(title);
   }
@@ -321,14 +321,14 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
   test('«Ruta» pasa a ×4, con una marca por salida y llegada, sin soltar al dron', async ({
     page,
   }) => {
-    const before = await readoutText(page, 'Posición x');
+    const before = await readoutText(page, 'Posición $x$');
 
     await chooseView(page, 'Ruta');
 
     await expect(marksOf(page)).toHaveCount(RUTA_MARKS);
     await expect(badgeOf(page)).toContainText('×4');
     await expect(badgeOf(page)).toContainText('cámara rápida');
-    expect(await readoutText(page, 'Posición x')).toBe(before);
+    expect(await readoutText(page, 'Posición $x$')).toBe(before);
     await expect(page.locator(LAB).getByRole('combobox', { name: 'Tramo mostrado' })).toHaveCount(
       0,
     );
@@ -381,8 +381,8 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
       const arrival = stop === 'Depósito' ? 'Llegada al depósito' : `Llegada a ${stop}`;
       await expect(timelineOf(page)).toHaveAttribute('aria-valuetext', new RegExp(`· ${arrival}$`));
       // The mark is the instant the drone is on the stop (the 0,1 s samples leave it a hair off).
-      expect(await readoutText(page, 'Posición x')).toBe(STOP_POSITIONS[stop].x);
-      expect(await readoutText(page, 'Posición y')).toBe(STOP_POSITIONS[stop].y);
+      expect(await readoutText(page, 'Posición $x$')).toBe(STOP_POSITIONS[stop].x);
+      expect(await readoutText(page, 'Posición $y$')).toBe(STOP_POSITIONS[stop].y);
       expect(await readoutText(page, 'Rapidez |v|')).toBe('0,00 m/s');
       expect(await readoutText(page, 'Aceleración |a|')).toBe('0,00 m/s²');
       await expect(page.locator(LAB).getByRole('status').filter({ hasText: arrival })).toHaveCount(
@@ -517,8 +517,8 @@ const MAP_GROWTH_SLACK_PX = 1;
  * page is at its 16 px root: nothing forces it here.
  */
 const SKELETON_WIDTHS = [
-  320, 323, 324, 335, 336, 360, 375, 390, 414, 426, 427, 540, 559, 561, 562, 657, 658, 753, 754,
-  900, 1023, 1024, 1057, 1058, 1280,
+  320, 323, 324, 334, 335, 336, 360, 375, 390, 414, 426, 427, 540, 559, 560, 561, 562, 657, 658,
+  753, 754, 900, 1023, 1024, 1057, 1058, 1280,
 ] as const;
 const VIEWPORT_HEIGHT = 800;
 

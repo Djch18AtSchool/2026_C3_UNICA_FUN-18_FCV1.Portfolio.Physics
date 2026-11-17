@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { labOrPlaceholder, waitForIsland } from './helpers';
+import { labOrPlaceholder, readoutText, waitForIsland } from './helpers';
 import {
   compareHydrated,
   drawingWidths,
@@ -118,13 +118,8 @@ test('un decimal elegido en el salto rige también las lecturas del hábitat', a
   await page.keyboard.press('Escape');
 
   const habitat = await openLab(page, './temas/gravedad-artificial/', 'habitat-lab');
-  for (const label of ['Velocidad angular ω', 'Velocidad tangencial v', 'Período T']) {
-    const value = habitat
-      .locator('div', { has: page.getByText(label, { exact: true }) })
-      .last()
-      .locator('span')
-      .last();
-    await expect(value).toHaveText(/^\d+,\d\s\S+$/);
+  for (const label of ['Velocidad angular $\\omega$', 'Velocidad tangencial $v$', 'Período $T$']) {
+    expect(await readoutText(page, '[data-testid="habitat-lab"]', label)).toMatch(/^\d+,\d\s\S+$/);
   }
 });
 
