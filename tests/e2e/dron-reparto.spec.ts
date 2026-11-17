@@ -191,10 +191,9 @@ test('el laboratorio va por niveles: v_máx y a_máx, el escenario con la vista,
   await expect(scenario.getByRole('radio', { name: 'Tramo' })).toBeChecked();
   await expect(scenario.getByRole('radio', { name: 'Ruta' })).not.toBeChecked();
   await expect(lab.getByRole('region', { name: 'Lecturas' })).toBeVisible();
-  const chips = lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button');
-  await expect(chips).toHaveCount(3);
-  await expect(chips.nth(0)).toHaveAccessibleName('vectores');
-  await expect(chips.nth(1)).toHaveAccessibleName('rastro');
+  // No chips: the speed is the transport's select, the rest waits in the drawer.
+  await expect(lab.getByRole('group', { name: 'Ajustes activos' })).toHaveCount(0);
+  await expect(lab.getByRole('combobox', { name: 'Velocidad de reproducción' })).toHaveValue('1');
 });
 
 test('la página tiene al menos tres pasos, cada uno con su "Por qué"', async ({ page }) => {
@@ -512,22 +511,25 @@ const SKELETON_SLACK_PX = 2;
 const MAP_GROWTH_SLACK_PX = 1;
 /**
  * Windows where the skeleton is checked, at the site's 16 px root: both sides of each of its six
- * steps (330, 336, 355, 406 and 562 px in one column, 1 070 in two; see DroneSkeleton), the phones
- * between (360, 375, 390), 414, 540 (the other labs' hydration check), 559 (SvgPlot's switch to its
- * wide drawing), 900 (one column, the panel in two), 1 058 (two columns from there) and 1 280. The
+ * steps (324, 336, 427, 562, 658 and 754 px; see DroneSkeleton), the sidebar's lg (1 024, the
+ * column narrower again) and 1 058 (42 rem again), the phones (320, 360, 375, 390, 414), 540 (the
+ * other labs' hydration check), 559 (SvgPlot's switch to its wide drawing), 900 and 1 280. The
  * page is at its 16 px root: nothing forces it here.
  */
 const SKELETON_WIDTHS = [
-  329, 330, 335, 336, 354, 355, 360, 375, 390, 405, 406, 414, 540, 559, 561, 562, 900, 1058, 1069,
-  1070, 1280,
+  320, 323, 324, 335, 336, 360, 375, 390, 414, 426, 427, 540, 559, 561, 562, 657, 658, 753, 754,
+  900, 1023, 1024, 1057, 1058, 1280,
 ] as const;
 const VIEWPORT_HEIGHT = 800;
 
 const heightOf = (locator: Locator) =>
   locator.evaluate((node) => node.getBoundingClientRect().height);
 
-/** The heights of a card's parts: header, stage cell, panel cell, canvas notes, disclosures. */
-function cardParts(card: Locator, selectors: { stage: string; panel: string; notes: string }) {
+/** The heights of a card's parts, top to bottom: header, stage, panel, canvas notes, disclosures. */
+function cardParts(
+  card: Locator,
+  selectors: { stage: string; panel: string; notes: string; disclosures: string },
+) {
   return card.evaluate((root, parts) => {
     const height = (node: Element | null | undefined) => node?.getBoundingClientRect().height ?? 0;
     return {
@@ -536,7 +538,7 @@ function cardParts(card: Locator, selectors: { stage: string; panel: string; not
       stage: height(root.querySelector(parts.stage)),
       panel: height(root.querySelector(parts.panel)),
       notes: height(root.querySelector(parts.notes)),
-      disclosures: height(root.children[2]),
+      disclosures: height(root.querySelector(parts.disclosures)),
     };
   }, selectors);
 }
@@ -544,12 +546,14 @@ function cardParts(card: Locator, selectors: { stage: string; panel: string; not
 const SKELETON_PARTS = {
   stage: '[data-skeleton="stage"]',
   panel: '[data-skeleton="panel"]',
-  notes: ':scope > :nth-child(2) > :nth-child(3)',
+  notes: ':scope > :nth-child(4)',
+  disclosures: ':scope > :nth-child(5)',
 };
 const LAB_PARTS = {
-  stage: ':scope > :nth-child(2) > :nth-child(1)',
-  panel: ':scope > :nth-child(2) > :nth-child(2)',
+  stage: '[data-lab-stage]',
+  panel: '[data-lab-panel]',
   notes: '[data-lab-canvas-notes]',
+  disclosures: ':scope > :nth-child(5)',
 };
 
 /** Loads Tema 1 holding its route data, measures the skeleton, then lets the lab in. */
