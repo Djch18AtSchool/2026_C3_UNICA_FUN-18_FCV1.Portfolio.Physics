@@ -651,7 +651,7 @@ export default function PlanetFrame(props: PlanetFrameProps): JSX.Element {
           strip run on to the right, into the column, rather than past the card's left edge. */}
       <div
         className="flex min-w-max items-center justify-end px-2"
-        style={{ height: ZOOM_STRIP_PX }}
+        style={{ minHeight: ZOOM_STRIP_PX }}
       >
         <ZoomControls zoom={zoom} corner="inline" orientation="row" />
       </div>
