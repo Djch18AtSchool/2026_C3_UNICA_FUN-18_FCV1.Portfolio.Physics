@@ -27,8 +27,7 @@ const UDDS_S = 1369;
 const UDDS_STOPS = 17;
 /** Half a pixel of rounding either way when comparing drawn positions. */
 const PX_SLACK = 1;
-const VIEW_CYCLE = 'Ciclo completo';
-const SETTINGS = /^Ajustes: /;
+const VIEW_CYCLE = 'Ciclo';
 /** Animation frames to watch after the end: a run that looped would have left 1000 by then. */
 const STILL_FRAMES = 30;
 /** «Tramo» reads the stretch's own energies (ruling R21). */
@@ -46,17 +45,28 @@ async function openLab(page: Page): Promise<void> {
 const timelineOf = (lab: Locator) =>
   lab.getByRole('slider', { name: 'Línea de tiempo', exact: true });
 const badgeOf = (lab: Locator) => lab.locator('[data-lab-canvas] [data-time-scale-badge]');
-const viewChipOf = (lab: Locator) =>
-  lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button', { name: /^Vista / });
+/** The view on show: the checked segment of «Vista», under the parameters. */
+const shownViewOf = (lab: Locator) =>
+  lab.getByRole('radiogroup', { name: 'Vista' }).getByRole('radio', { checked: true });
 
-/** Picks a view in the drawer with the keyboard: the chip opens it, Escape closes it. */
+/**
+ * Picks a view under the parameters with the keyboard: Tab into «Vista» (its checked segment),
+ * then the arrows to the one named (a radio group: the arrows move the choice).
+ */
 async function chooseView(page: Page, lab: Locator, label: string): Promise<void> {
-  await viewChipOf(lab).focus();
-  await page.keyboard.press('Enter');
-  const dialog = page.getByRole('dialog', { name: SETTINGS });
-  await dialog.getByRole('combobox', { name: 'Vista' }).selectOption({ label });
-  await page.keyboard.press('Escape');
-  await expect(dialog).toBeHidden();
+  const views = lab.getByRole('radiogroup', { name: 'Vista' }).getByRole('radio');
+  const names = await views.evaluateAll((radios) =>
+    radios.map((radio) => radio.closest('label')?.textContent?.trim() ?? ''),
+  );
+  const from = await views.evaluateAll((radios) =>
+    radios.findIndex((radio) => (radio as HTMLInputElement).checked),
+  );
+  await views.nth(from).focus();
+  const steps = names.indexOf(label) - from;
+  for (let i = 0; i < Math.abs(steps); i += 1) {
+    await page.keyboard.press(steps > 0 ? 'ArrowRight' : 'ArrowLeft');
+  }
+  await expect(lab.getByRole('radio', { name: label, exact: true })).toBeChecked();
 }
 
 const marksOf = (lab: Locator) => lab.locator('[data-transport-marks] [data-transport-mark]');
@@ -174,7 +184,7 @@ test.describe('laboratorio', () => {
   }) => {
     const lab = page.locator(LAB);
 
-    await expect(viewChipOf(lab)).toHaveAccessibleName('Vista Tramo');
+    await expect(shownViewOf(lab)).toHaveAccessibleName('Tramo');
     await expect(badgeOf(lab)).toHaveText(/^×1\s*velocidad real$/u);
     await expect(lab.locator('[data-time-scale-words]')).toHaveText(
       'Escala de tiempo: velocidad real',
@@ -187,36 +197,35 @@ test.describe('laboratorio', () => {
     await expect.poll(() => readoutText(page, STRETCH_BATTERY)).toMatch(/^168,1\s?kJ$/u);
   });
 
-  test('«Evento siguiente» y «anterior», con el teclado, en las dos vistas', async ({ page }) => {
+  test('en «Tramo», una detención y sin par; en «Ciclo», «Evento siguiente» y «anterior» con el teclado', async ({
+    page,
+  }) => {
     const lab = page.locator(LAB);
     const next = lab.getByRole('button', { name: 'Evento siguiente' });
     const previous = lab.getByRole('button', { name: 'Evento anterior' });
 
-    await next.focus();
-    await page.keyboard.press('Enter');
-    await expect(timelineOf(lab)).toHaveAttribute(
-      'aria-valuetext',
-      /^t = 397,00\s?s · Detención 3 de 17$/u,
+    // One event in the stretch: its mark and the line under the timeline say it, no pair.
+    await expect(marksOf(lab)).toHaveCount(1);
+    await expect(next).toHaveCount(0);
+    await expect(lab.locator('[data-transport-event]')).toHaveText(
+      /^Siguiente: Detención 3 de 17 · t = 397,00\s?s$/u,
     );
-    await expect(lab.getByRole('status').filter({ hasText: 'Detención' })).toHaveText(
-      /^Detención 3 de 17 · t = 397,00\s?s$/u,
-    );
-    await expect(next).toHaveAttribute('aria-disabled', 'true');
-    await expect(next).toBeFocused();
+    await seekTimeline(timelineOf(lab), String(Math.round((21 / 26) * 1000)));
+    await expect(timelineOf(lab)).toHaveAttribute('aria-valuetext', /· Detención 3 de 17$/u);
 
-    // The view by keyboard, from its chip; the instant (397 s) is kept.
+    // The view by keyboard, under the parameters; the instant (397 s) is kept.
     await chooseView(page, lab, VIEW_CYCLE);
-    await expect(viewChipOf(lab)).toHaveAccessibleName('Vista Ciclo');
+    await expect(shownViewOf(lab)).toHaveAccessibleName('Ciclo');
     await expect(badgeOf(lab)).toHaveText(/^×20\s*cámara rápida$/u);
     await expect(marksOf(lab)).toHaveCount(UDDS_STOPS);
-    await expect(timelineOf(lab)).toHaveAttribute(
-      'aria-valuetext',
-      /^t = 397\s?s · Detención 3 de 17$/u,
-    );
+    await expect(timelineOf(lab)).toHaveAttribute('aria-valuetext', /· Detención 3 de 17$/u);
 
     await next.focus();
     await page.keyboard.press('Enter');
     await expect(timelineOf(lab)).toHaveAttribute('aria-valuetext', /Detención 4 de 17$/u);
+    await expect(lab.getByRole('status').filter({ hasText: 'Detención' })).toHaveText(
+      /^Detención 4 de 17 · t = \d+\s?s$/u,
+    );
     await page.keyboard.press('Shift+Tab');
     await expect(previous).toBeFocused();
     await page.keyboard.press('Space');

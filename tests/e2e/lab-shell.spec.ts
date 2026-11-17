@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { cssLengthPxIn, labOrPlaceholder, waitForIsland } from './helpers';
+import { labOrPlaceholder, waitForIsland } from './helpers';
 import {
   compareHydrated,
   drawingWidths,
@@ -12,6 +12,12 @@ import {
 import { TOPIC_PAGES } from './topicPages';
 
 const DESKTOP = { width: 1280, height: 800 };
+/**
+ * The labs whose scene alone fills the first screen at 1 280 × 800, so their first slider cannot
+ * share it (Dylan 2026-11-16, «8 de 9»): Tema 1's map is 708 px tall at the column's 766 px.
+ * For them the scene itself must still fit.
+ */
+const SCENE_FILLS_FIRST_SCREEN: ReadonlySet<string> = new Set(['drone-lab']);
 const JUMP_PAGE = './temas/salto-personaje/';
 const JUMP_LAB = 'jump-lab';
 const LABS = TOPIC_PAGES.map(({ path, labTestId }) => ({ path, testId: labTestId }));
@@ -21,20 +27,17 @@ const WHEEL_PX = 400;
 const READOUT_SETTLE_MS = 750;
 /** Frames the self-check gives a comparison to (wrongly) finish while measuring is held. */
 const HELD_FRAMES = 30;
-/** Rounding of a sticky offset in rem at the site's root size. */
-const STICKY_SLACK_PX = 6;
+/** Sub-pixel rounding of two boxes that should share an edge or a centre. */
+const ALIGN_SLACK_PX = 2;
 const SCROLL_INTO_LAB_PX = 300;
 /** The first physical control of a lab: the first field of its «Parámetros». */
 const FIRST_CONTROL = ':is(input, select, textarea, [role="slider"], [role="radio"])';
 /** Anything that is or may become a control: none may sit in a lab's canvas notes. */
 const CONTROL = ':is(a, button, input, select, textarea, summary, [tabindex]:not([tabindex^="-"]))';
-/** Sub-pixel rounding of the columns grid against its cells. */
+/** Sub-pixel rounding of a box against the boxes it is made of. */
 const LAYOUT_SLACK_PX = 1;
 /** The transport's event buttons, in the order Tab reaches them after the timeline. */
 const EVENT_BUTTONS = ['Evento anterior', 'Evento siguiente'] as const;
-/** What the Tab key reaches, in document order. */
-const TABBABLE =
-  ':is(a[href], button, input, select, textarea, summary, [tabindex]):not([tabindex="-1"]):not([disabled])';
 /**
  * Every lab on the tiered shell (LabShell `levels`), listed by hand: a checklist kept beside
  * topicPages.ts. The generic tests below open each topic page's lab (LABS); «… dibuja solo su
@@ -52,15 +55,14 @@ const MIGRATED_LABS: ReadonlySet<string> = new Set([
   'wheel-lab',
   'flyby-lab',
 ]);
-/** Two columns: a desktop window wide enough for the topic bar and a 42rem lab. */
-const SPLIT_VIEWPORTS = [
+/** One column at every width: two desktops, below lg (no topic bar), 200 % zoom and two phones. */
+const VIEWPORTS = [
   { name: '1 280 × 800', size: { width: 1280, height: 800 } },
   { name: '1 440 × 900', size: { width: 1440, height: 900 } },
-] as const;
-/** One column: below lg (no topic bar), and a 1 920 × 1 080 screen at 200 % zoom. */
-const ONE_COLUMN_VIEWPORTS = [
   { name: '900 × 800', size: { width: 900, height: 800 } },
   { name: '960 × 540 (1 920 × 1 080 al 200 %)', size: { width: 960, height: 540 } },
+  { name: '390 × 844', size: { width: 390, height: 844 } },
+  { name: '360 × 800', size: { width: 360, height: 800 } },
 ] as const;
 
 test.use({ viewport: DESKTOP });
@@ -225,23 +227,38 @@ async function canvasNotesControls(lab: Locator): Promise<string[]> {
     );
 }
 
-/** The columns' height beyond their cells (row 1) and the canvas notes' row (with its gap). */
-async function columnsSlack(lab: Locator): Promise<number> {
-  return lab.evaluate((root) => {
-    const height = (node: Element | null | undefined) => node?.getBoundingClientRect().height ?? 0;
-    const columns = root.querySelector('[data-lab-columns]');
-    const notes = root.querySelector('[data-lab-canvas-notes]');
-    const rowGap = columns ? parseFloat(getComputedStyle(columns).rowGap) : 0;
-    const rowOne = Math.max(
-      height(root.querySelector('[data-lab-stage]')?.parentElement),
-      height(root.querySelector('[data-lab-panel]')?.parentElement),
-    );
-    return height(columns) - rowOne - (notes ? rowGap + height(notes) : 0);
-  });
+/**
+ * The card's own parts that take no height yet push what follows (an empty place with its
+ * margin): none may be left, whatever the lab declares (no charts, no canvas notes, no notes).
+ */
+async function emptyPlaces(lab: Locator): Promise<string[]> {
+  return lab.evaluate((root) =>
+    [...root.children].flatMap((node) => {
+      const style = getComputedStyle(node);
+      if (style.display === 'none' || style.position === 'absolute') return [];
+      const margin = parseFloat(style.marginTop) + parseFloat(style.marginBottom);
+      const isEmpty = node.getBoundingClientRect().height === 0;
+      const name = [...node.attributes]
+        .filter(({ name: attribute }) => attribute.startsWith('data-'))
+        .map(({ name: attribute }) => `[${attribute}]`)
+        .join('');
+      return isEmpty && margin > 0 ? [`${node.tagName.toLowerCase()}${name} (${margin} px)`] : [];
+    }),
+  );
+}
+
+/** Everything in the lab, its drawer aside, that sticks to or is fixed in the window. */
+async function pinned(lab: Locator): Promise<string[]> {
+  return lab.evaluate((root) =>
+    [...root.querySelectorAll('*')]
+      .filter((node) => !node.closest('dialog'))
+      .filter((node) => ['sticky', 'fixed'].includes(getComputedStyle(node).position))
+      .map((node) => node.tagName.toLowerCase()),
+  );
 }
 
 test.describe('guardias del cascarón por niveles, autocomprobadas', () => {
-  test.use({ viewport: SPLIT_VIEWPORTS[0].size });
+  test.use({ viewport: DESKTOP });
 
   test('un botón inyectado en las notas del lienzo pone en rojo la guardia de controles', async ({
     page,
@@ -258,12 +275,38 @@ test.describe('guardias del cascarón por niveles, autocomprobadas', () => {
     expect(await canvasNotesControls(lab)).toEqual(['button «Ir a la descarga»']);
   });
 
+  test('un lugar vacío con su margen pone en rojo la guardia de huecos', async ({ page }) => {
+    const lab = await openTiered(page, './temas/asistencia-gravitatoria/', 'flyby-lab');
+    expect(await emptyPlaces(lab)).toEqual([]);
+
+    await lab.evaluate((root) =>
+      root
+        .querySelector('[data-lab-canvas-notes]')
+        ?.insertAdjacentHTML('beforebegin', '<div data-lab-charts style="margin-top: 48px"></div>'),
+    );
+
+    expect(await emptyPlaces(lab)).toEqual(['div[data-lab-charts] (48 px)']);
+  });
+
+  test('un elemento pegado inyectado pone en rojo la guardia de lo que se pega', async ({
+    page,
+  }) => {
+    const lab = await openTiered(page, './temas/asistencia-gravitatoria/', 'flyby-lab');
+    expect(await pinned(lab)).toEqual([]);
+
+    await lab.evaluate((root) =>
+      root.querySelector('[data-lab-transport]')?.setAttribute('style', 'position: sticky'),
+    );
+
+    expect(await pinned(lab)).toEqual(['div']);
+  });
+
   test('con la medición retenida, la comprobación de hidratación no acepta antes de que los dibujos midan', async ({
     page,
     browser,
   }) => {
-    // Tema 7 at 360 px: before measuring, its scene (400 px, a fixed height) already has the
-    // server's height and no plot to look letterboxed, so only the wait tells the two apart.
+    // Tema 7 at 360 px: before measuring, its scene (a fixed height) already has the server's
+    // height and no plot to look letterboxed, so only the wait tells the two apart.
     const lab = '[data-testid="bounce-lab"]';
     const path = './temas/coeficiente-restitucion/';
     const width = 360;
@@ -295,16 +338,6 @@ test.describe('guardias del cascarón por niveles, autocomprobadas', () => {
       .locator(`${lab} [data-lab-canvas] svg[data-testid]`)
       .evaluateAll((svgs) => svgs.map((svg) => Math.round(svg.getBoundingClientRect().width)));
     expect(widths.map(Math.round)).toEqual(boxes);
-  });
-
-  test('sin notas del lienzo, la rejilla no deja una fila vacía con su hueco', async ({ page }) => {
-    const lab = await openTiered(page, './temas/asistencia-gravitatoria/', 'flyby-lab');
-    expect(Math.abs(await columnsSlack(lab))).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
-
-    // A lab without canvas notes: the same lab with that cell taken out.
-    await lab.evaluate((root) => root.querySelector('[data-lab-canvas-notes]')?.remove());
-
-    expect(Math.abs(await columnsSlack(lab))).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
   });
 });
 
@@ -341,87 +374,124 @@ for (const { path, testId } of LABS) {
   }
 }
 
+/** The boxes of a lab's parts, top to bottom, as laid out now (null for a part it has not). */
+async function partBoxes(lab: Locator) {
+  return lab.evaluate((root) => {
+    const box = (selector: string) => {
+      const node = root.querySelector(selector);
+      if (!node) return null;
+      const { x, y, width, height } = node.getBoundingClientRect();
+      return { x, y, width, height, bottom: y + height };
+    };
+    return {
+      canvas: box('[data-lab-canvas]'),
+      transport: box('[data-lab-transport]'),
+      panel: box('[data-lab-panel]'),
+      readouts: box('[data-lab-level="readouts"]'),
+      charts: box('[data-lab-charts]'),
+      notes: box('[data-lab-canvas-notes]'),
+    };
+  });
+}
+
 for (const { path, testId } of LABS) {
   test.describe(`${testId} por niveles`, () => {
-    for (const { name, size } of SPLIT_VIEWPORTS) {
-      test.describe(`a ${name}, en dos columnas`, () => {
-        test.use({ viewport: size });
+    for (const { name, size } of VIEWPORTS) {
+      test(`a ${name}: una columna, el lienzo a todo el ancho y todo debajo en el orden de lectura; nada se pega`, async ({
+        page,
+      }) => {
+        await page.setViewportSize(size);
+        const lab = await openTiered(page, path, testId);
+        await scrollLabTo(lab, -SCROLL_INTO_LAB_PX);
 
-        test('el primer control físico queda en la primera pantalla, junto al lienzo', async ({
-          page,
-        }) => {
-          const lab = await openTiered(page, path, testId);
-          await scrollLabTo(lab, await stickyTop(page));
-
-          const params = lab.getByRole('region', { name: 'Parámetros' });
-          const control = await boxOf(params.locator(FIRST_CONTROL).first());
-          const canvas = await boxOf(lab.locator('[data-lab-canvas]'));
-          expect(control.y + control.height).toBeLessThanOrEqual(size.height);
-          expect(control.x).toBeGreaterThanOrEqual(canvas.x + canvas.width);
-        });
-
-        test('al bajar, el escenario que cabe queda bajo la barra y el panel fluye con la página; uno más alto fluye con la reproducción al pie', async ({
-          page,
-        }) => {
-          const lab = await openTiered(page, path, testId);
-          const top = await stickyTop(page);
-          const stage = lab.locator('[data-lab-stage]');
-          // Measured after hydration: until then nothing sticks (the server's markup). The fit
-          // is read again on every poll, so a stage that settles on either side of the line (a
-          // late font, a rounding at the threshold) is judged as it ends up, not as it started.
-          const fitsNow = async () => String((await boxOf(stage)).height + top <= size.height);
-          await expect
-            .poll(
-              async () => (await stage.getAttribute('data-lab-stage-fits')) === (await fitsNow()),
-            )
-            .toBe(true);
-          const fits = (await stage.getAttribute('data-lab-stage-fits')) === 'true';
-          // The panel has no scroll of its own: the readouts are reached by scrolling the page.
-          const panelScroll = await lab.locator('[data-lab-panel]').evaluate((node) => ({
-            overflow: getComputedStyle(node).overflowY,
-            hidden: node.scrollHeight - node.clientHeight,
-          }));
-          expect(panelScroll.overflow).toBe('visible');
-          expect(panelScroll.hidden).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
-
-          // Halfway through the stage's travel in its cell (the row is as tall as the panel).
-          const { cellTop, travel } = await stage.evaluate((node) => {
-            const cell = node.parentElement?.getBoundingClientRect();
-            return {
-              cellTop: (cell?.top ?? 0) + window.scrollY,
-              travel: (cell?.height ?? 0) - node.getBoundingClientRect().height,
-            };
-          });
-          await page.evaluate(
-            (y) => window.scrollTo(0, y),
-            cellTop - top + Math.min(Math.max(travel, 0) / 2, SCROLL_INTO_LAB_PX),
+        expect(await pinned(lab), 'nada se pega a la ventana').toEqual([]);
+        const parts = await partBoxes(lab);
+        const { canvas, panel } = parts;
+        if (!canvas || !panel) throw new Error('sin lienzo o sin panel');
+        // The canvas is the column's: the deck's width, plus the bleed on a narrow card.
+        const bleed = panel.width < (await cssLengthPx(page, '36rem')) ? 24 : 0;
+        expect(Math.abs(canvas.width - (panel.width + bleed))).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
+        // Top to bottom in the order of reading: scene, transport, deck, plots, canvas notes.
+        const order = [canvas, parts.transport, panel, parts.charts, parts.notes].filter(
+          (part) => part !== null,
+        );
+        order.slice(1).forEach((part, index) => {
+          expect(part.y, `parte ${index + 1} bajo la anterior`).toBeGreaterThanOrEqual(
+            order[index].bottom - LAYOUT_SLACK_PX,
           );
-
-          const position = await stage.evaluate((node) => getComputedStyle(node).position);
-          expect(position).toBe(fits ? 'sticky' : 'static');
-          if (fits && travel > STICKY_SLACK_PX) {
-            expect(Math.abs((await boxOf(stage)).y - top)).toBeLessThanOrEqual(STICKY_SLACK_PX);
-          }
-          const transport = lab.locator('[data-lab-transport]');
-          if ((await transport.count()) > 0) {
-            const box = await boxOf(transport);
-            expect(box.y >= 0 && box.y + box.height <= size.height).toBe(true);
-          }
         });
+        // The panel has no scroll of its own: the readouts are reached by scrolling the page.
+        const panelScroll = await lab.locator('[data-lab-panel]').evaluate((node) => ({
+          overflow: getComputedStyle(node).overflowY,
+          hidden: node.scrollHeight - node.clientHeight,
+        }));
+        expect(panelScroll.overflow).toBe('visible');
+        expect(panelScroll.hidden).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
       });
     }
+
+    test('a 1 280 × 800 la escena (a todo el ancho de la columna) y el primer control caben en la primera pantalla', async ({
+      page,
+    }) => {
+      await page.setViewportSize(DESKTOP);
+      const lab = await openTiered(page, path, testId);
+      // The scene's top just under the topic bar (the card's title row scrolled away): the
+      // window's room for the scene and the deck is its height less the bar's clearance.
+      await lab
+        .locator('[data-lab-canvas]')
+        .evaluate(
+          (node, top) =>
+            window.scrollTo(0, node.getBoundingClientRect().top + window.scrollY - top),
+          await stickyTop(page),
+        );
+
+      const canvas = await boxOf(lab.locator('[data-lab-canvas]'));
+      // Never smaller than before phases B–D (725–761 px at 1 280): the article column's width.
+      expect(canvas.width).toBeGreaterThanOrEqual(725);
+      expect(canvas.y + canvas.height, 'la escena cabe').toBeLessThanOrEqual(DESKTOP.height);
+      const params = lab.getByRole('region', { name: 'Parámetros' });
+      const control = await boxOf(params.locator(FIRST_CONTROL).first());
+      expect(control.y).toBeGreaterThanOrEqual(canvas.y + canvas.height);
+      if (!SCENE_FILLS_FIRST_SCREEN.has(testId)) {
+        expect(control.y + control.height, 'el primer control cabe con ella').toBeLessThanOrEqual(
+          DESKTOP.height,
+        );
+      }
+    });
+
+    test('a 1 280 px los parámetros van de dos en dos y las lecturas de cuatro en cuatro', async ({
+      page,
+    }) => {
+      await page.setViewportSize(DESKTOP);
+      const lab = await openTiered(page, path, testId);
+      const tops = (selector: string) =>
+        lab
+          .locator(selector)
+          .evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().top));
+
+      const fields = await tops('[data-lab-level="params"] > [data-param-field]');
+      if (fields.length >= 2) {
+        expect(Math.abs(fields[0] - fields[1]), 'dos parámetros en una fila').toBeLessThanOrEqual(
+          ALIGN_SLACK_PX,
+        );
+      }
+      const readouts = await tops('[data-lab-level="readouts"] > [data-readout]');
+      expect(readouts.length).toBeGreaterThan(0);
+      const firstRow = readouts.filter((top) => Math.abs(top - readouts[0]) <= ALIGN_SLACK_PX);
+      expect(firstRow.length, 'lecturas en la primera fila').toBe(Math.min(4, readouts.length));
+    });
 
     test('al editar un valor que deja el preajuste, la nota sigue («Valores modificados…») y el panel no cambia de alto', async ({
       page,
     }) => {
-      await page.setViewportSize(SPLIT_VIEWPORTS[0].size);
+      await page.setViewportSize(DESKTOP);
       const lab = await openTiered(page, path, testId);
       const presets = lab.locator('[data-lab-presets]');
       if ((await presets.count()) === 0) return; // Tema 1 has no presets.
       const note = lab.getByTestId('preset-note');
       // A lab that opens on its own values (Temas 3 and 4): choose its first preset.
       if ((await note.count()) === 0) {
-        const chip = presets.getByRole('button').first();
+        const chip = presets.getByRole('group').getByRole('button').first();
         if ((await chip.count()) > 0) await chip.click();
         else await presets.locator('select').selectOption({ index: 1 });
         await expect(note).toBeVisible();
@@ -442,207 +512,156 @@ for (const { path, testId } of LABS) {
       expect(Math.abs((await boxOf(panel)).height - before)).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
     });
 
-    test('las notas del lienzo no tienen controles y la rejilla no deja huecos', async ({
+    test('las notas del lienzo no tienen controles y no queda ningún lugar vacío', async ({
       page,
     }) => {
-      await page.setViewportSize(SPLIT_VIEWPORTS[0].size);
+      await page.setViewportSize(DESKTOP);
       const lab = await openTiered(page, path, testId);
 
       expect(
         await canvasNotesControls(lab),
         'canvasNotes sin controles (labShellTypes.ts)',
       ).toEqual([]);
-      expect(Math.abs(await columnsSlack(lab))).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
+      expect(await emptyPlaces(lab)).toEqual([]);
     });
 
-    test('un control del lienzo enfocado con el teclado no queda tapado por la reproducción pegada abajo', async ({
+    test('«Restablecer» cierra la fila de los preajustes (o el escenario) y hay uno solo', async ({
       page,
     }) => {
-      await page.setViewportSize(SPLIT_VIEWPORTS[0].size);
+      await page.setViewportSize(DESKTOP);
       const lab = await openTiered(page, path, testId);
-      const transport = lab.locator('[data-lab-transport]');
-      const canvasControls = lab.locator(`[data-lab-canvas] ${TABBABLE}`);
-      if ((await transport.count()) === 0 || (await canvasControls.count()) === 0) return;
-      const target = canvasControls.last();
-      // The control just under the window's bottom edge, where the pinned transport sits.
-      await target.evaluate((node) => {
-        const box = node.getBoundingClientRect();
-        window.scrollTo(0, window.scrollY + box.bottom - window.innerHeight + box.height / 2);
-      });
-      const index = await target.evaluate(
-        (node, selector) =>
-          [...(node.closest('[data-lab-shell]')?.querySelectorAll(selector) ?? [])].indexOf(node),
-        TABBABLE,
-      );
-      await lab
-        .locator(TABBABLE)
-        .nth(index - 1)
-        .evaluate((node) => (node as HTMLElement).focus({ preventScroll: true }));
+      const reset = lab.getByRole('button', { name: 'Restablecer', exact: true });
 
-      await page.keyboard.press('Tab');
-
-      await expect(target).toBeFocused();
-      const control = await boxOf(target);
-      const bar = await boxOf(transport);
-      expect(control.y + control.height).toBeLessThanOrEqual(bar.y + 1);
-      // The scroll padding reserves --lab-transport-room: it must stay the transport's height.
-      // Read on the stage, which overrides it for a transport with events (two rows).
-      const room = await cssLengthPxIn(
-        lab.locator('[data-lab-stage]'),
-        'var(--lab-transport-room)',
+      await expect(reset).toHaveCount(1);
+      const scenario = lab.getByRole('region', { name: 'Escenario' });
+      await expect(scenario.getByRole('button', { name: 'Restablecer', exact: true })).toHaveCount(
+        1,
       );
-      // At the 16 px root both are whole pixels (44 + 2 × 12 + 1, and a second row of 44 + 12).
-      expect(
-        room,
-        `--lab-transport-room (global.css) = ${room} px, la reproducción pegada (LabShell TRANSPORT) = ${bar.height} px`,
-      ).toBe(bar.height);
+      const row = lab.locator('[data-preset-row]');
+      if ((await row.count()) > 0) {
+        await expect(row.locator('[data-lab-reset]')).toHaveCount(1);
+        // At the end of the presets' row: its right edge is the row's.
+        const [resetBox, rowBox] = [await boxOf(reset), await boxOf(row)];
+        expect(
+          Math.abs(resetBox.x + resetBox.width - (rowBox.x + rowBox.width)),
+        ).toBeLessThanOrEqual(ALIGN_SLACK_PX);
+      }
     });
 
-    for (const { name, size } of ONE_COLUMN_VIEWPORTS) {
-      test(`a ${name} va en una columna: nada pegajoso y el panel bajo el escenario`, async ({
-        page,
-      }) => {
-        await page.setViewportSize(size);
-        const lab = await openTiered(page, path, testId);
-        await scrollLabTo(lab, -SCROLL_INTO_LAB_PX);
-
-        const positions = await lab.evaluate((root) =>
-          ['[data-lab-stage]', '[data-lab-panel]', '[data-lab-transport]'].flatMap((selector) => {
-            const node = root.querySelector(selector);
-            return node ? [getComputedStyle(node).position] : [];
-          }),
-        );
-        expect(positions.every((position) => position === 'static')).toBe(true);
-        const stage = await boxOf(lab.locator('[data-lab-stage]'));
-        const panel = await boxOf(lab.locator('[data-lab-panel]'));
-        expect(panel.y).toBeGreaterThanOrEqual(stage.y + stage.height);
-        expect(Math.abs(panel.x - stage.x)).toBeLessThanOrEqual(STICKY_SLACK_PX);
-        // A panel this wide (one column at 900 px) sets its levels in two columns: parameters on
-        // the left, readouts on the right, so no label sits half a screen from its value.
-        const wide = (await cssLengthPx(page, '42rem')) <= panel.width;
-        const params = await boxOf(lab.getByRole('region', { name: 'Parámetros' }));
-        const readoutsRegion = lab.getByRole('region', { name: 'Lecturas' });
-        if (wide && (await readoutsRegion.count()) > 0) {
-          expect(params.width).toBeLessThan(panel.width / 2);
-          // Each level moves whole, its title with all it holds: a level cut between columns
-          // left «Llegada: V_p…» (Tema 9) at the top of the right column, read as a readout.
-          const columns = await lab.locator('[data-lab-panel]').evaluate((node) => {
-            const middle = node.getBoundingClientRect().left + node.clientWidth / 2;
-            const levels = [...node.querySelectorAll('[data-lab-level]')];
-            const split = levels
-              .filter((level) => level.getClientRects().length > 1)
-              .map((level) => level.getAttribute('data-lab-level'));
-            const boxes = levels.map((level) => level.getBoundingClientRect());
-            const foot = (side: 'left' | 'right') =>
-              Math.max(
-                ...boxes
-                  .filter((box) => (side === 'left' ? box.right <= middle : box.left >= middle))
-                  .map((box) => box.bottom),
-                0,
-              );
-            const tallest = Math.max(...boxes.map((box) => box.height));
-            return { split, left: foot('left'), right: foot('right'), tallest };
-          });
-          expect(columns.split).toEqual([]);
-          // Balanced as whole levels allow (Temas 7 and 8 left 360 and 500 px under the
-          // parameters): the feet differ by no more than the tallest level, or moving it would
-          // have balanced them better.
-          expect(columns.left).toBeGreaterThan(0);
-          expect(columns.right).toBeGreaterThan(0);
-          expect(Math.abs(columns.left - columns.right)).toBeLessThanOrEqual(columns.tallest);
-        }
-        // One rule for every drawing in one column: the canvas grows up to 36 rem, centred
-        // (Temas 1 and 3 no longer fill 813 px while Temas 7–9 stay at 400).
-        const canvas = await boxOf(lab.locator('[data-lab-canvas]'));
-        expect(canvas.width).toBeLessThanOrEqual(
-          (await cssLengthPx(page, '36rem')) + LAYOUT_SLACK_PX,
-        );
-        const stageCentre = stage.x + stage.width / 2;
-        expect(Math.abs(canvas.x + canvas.width / 2 - stageCentre)).toBeLessThanOrEqual(
-          STICKY_SLACK_PX,
-        );
-        // The order of reading is the visual one: the canvas notes come after the panel.
-        const notes = lab.locator('[data-lab-canvas-notes]');
-        if ((await notes.count()) > 0) {
-          expect((await boxOf(notes)).y).toBeGreaterThanOrEqual(panel.y + panel.height);
-        }
-      });
-    }
-
-    test('las fichas abren los ajustes y les devuelven el foco; tras la reproducción el Tab va a «Parámetros»', async ({
+    test('la cabecera es el título y el engranaje, que abre los ajustes y recibe el foco; tras la reproducción el Tab va a los parámetros', async ({
       page,
     }) => {
+      await page.setViewportSize(DESKTOP);
       const lab = await openTiered(page, path, testId);
-      const chip = lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button').first();
+      const gear = lab.getByRole('button', { name: 'Ajustes del simulador' });
+      await expect(lab.getByRole('group', { name: 'Ajustes activos' })).toHaveCount(0);
+      await expect(gear.locator('xpath=..').locator(':scope > *')).toHaveCount(2);
 
-      await chip.click();
+      await gear.click();
       await expect(page.getByRole('dialog', { name: SETTINGS_TITLE })).toBeVisible();
       await page.keyboard.press('Escape');
-      await expect(chip).toBeFocused();
+      await expect(gear).toBeFocused();
 
       const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
       if ((await timeline.count()) === 0) return;
-      // The lab's top under the topic bar: «Restablecer» is in view, so Tab must not move the page
-      // (a panel with a scroll of its own once dragged it ~60 px, the lab's header under the bar).
       await scrollLabTo(lab, await stickyTop(page));
-      // A lab with events (TransportBar `markers`) has «Evento anterior» and «Evento siguiente»
-      // after its timeline, in the transport and in the order of reading; one without has none.
+      // From two events the transport ends with «Evento anterior | siguiente», in the order of
+      // reading; with one or none it has no pair.
       const transport = lab.locator('[data-lab-transport]');
-      const hasMarks = (await transport.locator('[data-transport-mark]').count()) > 0;
-      const eventSteps = hasMarks
-        ? EVENT_BUTTONS.map((name) => transport.getByRole('button', { name, exact: true }))
-        : [];
+      const marks = await transport.locator('[data-transport-mark]').count();
+      const eventSteps =
+        marks >= 2
+          ? EVENT_BUTTONS.map((name) => transport.getByRole('button', { name, exact: true }))
+          : [];
       await expect(lab.getByRole('button', { name: /^Evento (anterior|siguiente)$/ })).toHaveCount(
         eventSteps.length,
       );
-      const restore = lab
+      const firstControl = lab
         .getByRole('region', { name: 'Parámetros' })
-        .getByRole('button', { name: 'Restablecer' });
+        .locator(FIRST_CONTROL)
+        .first();
       await timeline.evaluate((node) => (node as HTMLElement).focus({ preventScroll: true }));
-      const before = await page.evaluate(() => window.scrollY);
-      for (const next of [...eventSteps, restore]) {
+      for (const next of [...eventSteps, firstControl]) {
+        // A control already in sight takes the focus without moving the page.
+        const box = await boxOf(next);
+        const isInSight = box.y >= 0 && box.y + box.height <= DESKTOP.height;
+        const before = await page.evaluate(() => window.scrollY);
         await page.keyboard.press('Tab');
         await expect(next).toBeFocused();
-        expect(Math.abs((await page.evaluate(() => window.scrollY)) - before)).toBeLessThanOrEqual(
-          LAYOUT_SLACK_PX,
-        );
+        if (isInSight) {
+          expect(
+            Math.abs((await page.evaluate(() => window.scrollY)) - before),
+          ).toBeLessThanOrEqual(LAYOUT_SLACK_PX);
+        }
       }
     });
   });
 }
 
-/** The laboratories whose transport has events (a second row: buttons, event text, t reading). */
-const EVENT_LABS: ReadonlySet<string> = new Set(
-  TOPIC_PAGES.filter(({ hasEvents }) => hasEvents).map(({ labTestId }) => labTestId),
+/** The labs with a clock: a transport bar. */
+const CLOCKED: ReadonlySet<string> = new Set(
+  TOPIC_PAGES.filter(({ hasClock }) => hasClock).map(({ labTestId }) => labTestId),
 );
-/**
- * Windows in two columns around the band where the stage is too narrow for the event row and its
- * t reading drops to a third line (1 058 to 1 069 px; to 1 077 in Tema 6: README), and 1 280.
- */
-const THIRD_LINE_WIDTHS = [1058, 1069, 1070, 1077, 1078, 1280] as const;
-/** One line of the event row (a 20 px line and its 12 px gap): the most the room may exceed it. */
-const EVENT_LINE_PX = 32;
+/** A desktop (one row of transport), a narrow desktop window, and two phones (three rows). */
+const TRANSPORT_WIDTHS = [1280, 1024, 390, 360] as const;
 
-for (const { path, testId } of LABS.filter(({ testId }) => EVENT_LABS.has(testId))) {
-  test(`${testId}: en dos columnas la reserva bajo el lienzo cubre la reproducción, también con la lectura de t en una tercera línea`, async ({
+/** The vertical centre of each part of the transport's first row, and the event line's box. */
+async function transportRow(transport: Locator) {
+  return transport.evaluate((root) => {
+    const centre = (selector: string) => {
+      const node = root.querySelector(selector);
+      if (!node) return null;
+      const box = node.getBoundingClientRect();
+      return box.top + box.height / 2;
+    };
+    const line = root.querySelector('[data-transport-event]')?.getBoundingClientRect();
+    const timeline = root.querySelector('input[type="range"]')?.getBoundingClientRect();
+    return {
+      play: centre('button'),
+      speed: centre('select'),
+      timeline: centre('input[type="range"]'),
+      time: centre('[data-transport-time]'),
+      pair: centre('[data-transport-pair]'),
+      line: line ? { top: line.top, left: line.left } : null,
+      timelineBox: timeline ? { bottom: timeline.bottom, left: timeline.left } : null,
+      height: root.getBoundingClientRect().height,
+      width: root.getBoundingClientRect().width,
+    };
+  });
+}
+
+for (const { path, testId } of LABS.filter(({ testId }) => CLOCKED.has(testId))) {
+  test(`${testId}: la reproducción va en una fila desde 36 rem, con el evento debajo de la línea, y no cambia de alto mientras t avanza`, async ({
     page,
   }) => {
-    const lab = await openTiered(page, path, testId);
-    const stage = lab.locator('[data-lab-stage]');
-    const transport = lab.locator('[data-lab-transport]');
-    for (const width of THIRD_LINE_WIDTHS) {
+    for (const width of TRANSPORT_WIDTHS) {
       await page.setViewportSize({ width, height: DESKTOP.height });
-      await expect(lab.locator('[data-lab-panel]')).toBeVisible();
-      const bar = (await boxOf(transport)).height;
-      const room = await cssLengthPxIn(stage, 'var(--lab-transport-room)');
-      expect(
-        room,
-        `a ${width} px: reserva ${room} px, reproducción ${bar} px`,
-      ).toBeGreaterThanOrEqual(bar);
-      expect(
-        room - bar,
-        `a ${width} px: reserva ${room} px, reproducción ${bar} px`,
-      ).toBeLessThanOrEqual(EVENT_LINE_PX);
+      const lab = await openTiered(page, path, testId);
+      const transport = lab.locator('[data-lab-transport]');
+      const row = await transportRow(transport);
+      const isOneRow = row.width >= (await cssLengthPx(page, '36rem'));
+      if (isOneRow) {
+        for (const part of [row.speed, row.timeline, row.time, row.pair]) {
+          if (part === null) continue;
+          expect(Math.abs(part - (row.play ?? 0)), `a ${width} px, una fila`).toBeLessThanOrEqual(
+            ALIGN_SLACK_PX,
+          );
+        }
+      }
+      if (row.line && row.timelineBox) {
+        expect(row.line.top, `a ${width} px, el evento bajo la línea`).toBeGreaterThanOrEqual(
+          row.timelineBox.bottom - LAYOUT_SLACK_PX,
+        );
+      }
+      // The readout reserves its widest text and the event line its lines: t at the end of the
+      // run lays out like t = 0.
+      const timeline = lab.getByRole('slider', { name: 'Línea de tiempo' });
+      await timeline.focus();
+      await page.keyboard.press('End');
+      await expect(timeline).toHaveValue('1000');
+      expect((await transportRow(transport)).height, `a ${width} px, el alto al final`).toBe(
+        row.height,
+      );
     }
   });
 }

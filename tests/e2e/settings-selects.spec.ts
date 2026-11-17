@@ -6,7 +6,7 @@ import { TOPIC_PAGES } from './topicPages';
 const INLINE_IN_EVERY_LAB = ['Movimiento'];
 /** Labs with more short selects of their own, by slug. */
 const INLINE_BY_SLUG: Readonly<Record<string, readonly string[]>> = {
-  'salto-personaje': ['Integrador', 'Velocidad', 'Movimiento'],
+  'salto-personaje': ['Integrador', 'Movimiento'],
 };
 /** `inline`: short selects the lab must show, each one on the same row as its label. */
 const LABS = TOPIC_PAGES.map(({ slug, path, labTestId }) => ({

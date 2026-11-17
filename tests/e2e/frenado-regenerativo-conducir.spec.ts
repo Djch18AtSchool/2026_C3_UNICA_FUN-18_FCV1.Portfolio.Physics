@@ -16,8 +16,7 @@ const PHONE = { width: 360, height: 800 };
 const DESKTOP = { width: 1280, height: 800 };
 const THEMES = ['light', 'dark'] as const;
 const BLOCKING_IMPACTS = ['serious', 'critical'];
-const SETTINGS = /^Ajustes: /;
-const VIEW_DRIVE = 'Conducir: el tramo con tus pedales';
+const VIEW_DRIVE = 'Conducir';
 /** Every control of the lab measures 40 px high (README, «Escala de medidas»). */
 const CONTROL_HEIGHT_PX = 40;
 /** A pedal held this deep is clearly down (it reaches the floor in 2 s). */
@@ -50,17 +49,17 @@ const xOf = (lab: Locator, testId: string) =>
       Number(/translate\(([-\d.]+)/.exec(node.getAttribute('transform') ?? '')?.[1]),
     );
 
-/** Opens the lab and picks «Conducir» in the drawer with the keyboard. */
+/** Opens the lab and picks «Conducir» under the parameters with the keyboard (the arrows in «Vista»). */
 async function openDrive(page: Page): Promise<Locator> {
   await page.goto(PAGE);
   const lab = page.locator(LAB);
   await lab.scrollIntoViewIfNeeded();
   await waitForIsland(page, LAB);
-  await lab.getByRole('button', { name: 'Ajustes del simulador' }).click();
-  const dialog = page.getByRole('dialog', { name: SETTINGS });
-  await dialog.getByRole('combobox', { name: 'Vista' }).selectOption({ label: VIEW_DRIVE });
-  await page.keyboard.press('Escape');
-  await expect(dialog).toBeHidden();
+  const views = lab.getByRole('radiogroup', { name: 'Vista' });
+  await views.getByRole('radio', { checked: true }).focus();
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
+  await expect(views.getByRole('radio', { name: VIEW_DRIVE, exact: true })).toBeChecked();
   await expect(lab.getByRole('group', { name: 'Pedales' })).toBeVisible();
   return lab;
 }
@@ -117,7 +116,7 @@ test.describe('Conducir', () => {
     await page.keyboard.up('ArrowUp');
   });
 
-  test('el orden de foco va de los pedales a la leyenda de la gráfica (una parada) y a la reproducción', async ({
+  test('el orden de foco va de los pedales a la reproducción; la leyenda de la gráfica, tras las lecturas, es una parada', async ({
     page,
   }) => {
     const lab = await openDrive(page);
@@ -128,13 +127,18 @@ test.describe('Conducir', () => {
 
     await page.keyboard.press('Tab');
     await expect(pedalOf(lab, 'Acelerador')).toBeFocused();
-    // The plot's legend is one stop (R32): its first entry; the arrows move within it.
-    await page.keyboard.press('Tab');
-    await expect(legend.getByRole('button').first()).toBeFocused();
-    await page.keyboard.press('ArrowRight');
-    await expect(legend.getByRole('button').nth(1)).toBeFocused();
+    // The scene first: the transport follows the pedals; the plot is a support plot after the deck.
     await page.keyboard.press('Tab');
     await expect(lab.getByRole('button', { name: 'Reproducir' })).toBeFocused();
+    // The plot's legend is one stop (R32): its first entry; the arrows move within it.
+    await legend.getByRole('button').first().focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(legend.getByRole('button').nth(1)).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    expect(
+      await legend.evaluate((node) => node.contains(document.activeElement)),
+      'una sola parada: Mayús+Tab sale de la leyenda',
+    ).toBe(false);
   });
 
   test('la comparación con el ciclo real se ve: fantasma, línea, gráfica con leyenda y lectura', async ({
@@ -176,10 +180,7 @@ test.describe('Conducir', () => {
     test.setTimeout(RUN_TIMEOUT_MS * 2);
     const lab = await openDrive(page);
     // Four times faster: the 26 s stretch in 6,5 s (the badge says so).
-    await lab.getByRole('button', { name: 'Ajustes del simulador' }).click();
-    const dialog = page.getByRole('dialog', { name: SETTINGS });
-    await dialog.getByRole('combobox', { name: /^Velocidad/ }).selectOption('4');
-    await page.keyboard.press('Escape');
+    await lab.getByRole('combobox', { name: 'Velocidad de reproducción' }).selectOption('4');
     await pedalOf(lab, 'Freno').focus();
 
     await page.keyboard.down('ArrowDown');

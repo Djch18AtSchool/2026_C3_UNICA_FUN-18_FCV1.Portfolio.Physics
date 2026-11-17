@@ -91,18 +91,16 @@ test('arrastrar el manejador del vector con el ratón cambia la altura máxima',
   expect(await readoutValue(page, 'Altura máxima')).toBeGreaterThan(parseSpanish(before));
 });
 
-test('arrastrar el vector con el escenario apoyado en el pie de su celda: el manejador sigue al puntero', async ({
+test('arrastrar el vector con la escena arriba y el panel debajo: el manejador sigue al puntero', async ({
   page,
 }) => {
-  // 1 280 × 900, scrolled until the stage rides its cell's foot (the last stretch of the row,
-  // where the readouts at the panel's foot are read): the edit that leaves the preset must not
-  // shrink the panel and move the stage under the pointer.
+  // 1 280 × 900, the scene just under the topic bar and the deck under it in sight: the edit
+  // that leaves the preset (its note grows «Valores modificados…») must not move the scene under
+  // the pointer, which sits above everything that changes.
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.locator(LAB).evaluate((node) => {
-    const stage = node.querySelector('[data-lab-stage]') as HTMLElement;
-    const cell = (stage.parentElement as HTMLElement).getBoundingClientRect();
-    window.scrollTo(0, window.scrollY + cell.bottom - stage.getBoundingClientRect().height - 20);
-  });
+  await page
+    .locator(`${LAB} [data-lab-canvas]`)
+    .evaluate((node) => window.scrollTo(0, node.getBoundingClientRect().top + window.scrollY - 64));
   const knob = page.getByTestId('launch-handle').locator('[data-knob]');
   const start = await knob.boundingBox();
   expect(start).not.toBeNull();
@@ -236,10 +234,9 @@ test('el laboratorio va por niveles: v₀ y g, los cuatro preajustes con su fuen
 
   await expect(params.getByRole('slider', { name: 'Gravedad g' })).toHaveValue('1.62');
   await expect(scenario.getByTestId('preset-note')).toContainText('Fuente: g lunar, 1,62 m/s²');
-  const chips = lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button');
-  // Referencia, vector, rastro and the speed: the fall multiplier and the integrator only differ.
-  await expect(chips).toHaveCount(4);
-  await expect(chips.first()).toHaveAccessibleName('referencia');
+  // No chips by the gear: the speed is the transport's select.
+  await expect(lab.getByRole('group', { name: 'Ajustes activos' })).toHaveCount(0);
+  await expect(lab.getByRole('combobox', { name: 'Velocidad de reproducción' })).toHaveValue('1');
 });
 
 test.describe('con pantalla táctil', () => {

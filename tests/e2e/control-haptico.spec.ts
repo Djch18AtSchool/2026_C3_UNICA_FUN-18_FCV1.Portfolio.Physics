@@ -261,17 +261,21 @@ test.describe('laboratorio', () => {
       .toBe(AT_REST);
   });
 
-  test('el engranaje abre el panel, la amortiguación cambia, Escape cierra y el foco vuelve', async ({
+  test('la amortiguación se elige con el teclado bajo los parámetros; el engranaje abre y cierra el panel', async ({
     page,
   }) => {
     const gear = page.locator(LAB).getByRole('button', { name: 'Ajustes del simulador' });
     const dialog = page.getByRole('dialog', { name: /^Ajustes: Laboratorio del gatillo/ });
+    const scenario = page.locator(LAB).getByRole('region', { name: 'Escenario' });
+    const critical = scenario.getByRole('radio', { name: /^Crítica/ });
 
+    // A radio group: the arrows move the choice.
+    await critical.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(scenario.getByRole('radio', { name: /^Subamortiguada/ })).toBeChecked();
     await gear.click();
     await expect(dialog).toBeVisible();
-    const damping = dialog.getByRole('combobox', { name: /^Amortiguación/ });
-    await damping.selectOption('subamortiguada');
-    await expect(damping).toHaveValue('subamortiguada');
+    await expect(dialog.getByRole('combobox', { name: /^Amortiguación/ })).toHaveCount(0);
     await page.keyboard.press('Escape');
 
     await expect(dialog).toBeHidden();

@@ -156,34 +156,42 @@ test.describe('laboratorio', () => {
     }
   });
 
-  test('las fichas junto al engranaje dicen lo activo y abren los ajustes', async ({ page }) => {
+  test('sin fichas: la velocidad es el selector de la reproducción y los ajustes, los del engranaje', async ({
+    page,
+  }) => {
     const lab = page.locator(LAB);
-    const chips = lab.getByRole('group', { name: 'Ajustes activos' }).getByRole('button');
-    await expect(chips).toHaveText(['vectores', 'círculo', '1×']);
+    await expect(lab.getByRole('group', { name: 'Ajustes activos' })).toHaveCount(0);
+    const speed = lab.getByRole('combobox', { name: 'Velocidad de reproducción' });
+    await speed.selectOption('2');
+    await expect(lab.locator('[data-time-scale-badge]').first()).toContainText(/×39\s?000/u);
 
-    await lab.getByRole('button', { name: 'Velocidad 1×' }).click();
+    const gear = lab.getByRole('button', { name: 'Ajustes del simulador' });
+    await gear.click();
     const dialog = page.getByRole('dialog', { name: /^Ajustes: / });
-    await dialog.getByRole('combobox', { name: 'Velocidad' }).selectOption('2');
     await dialog.getByRole('switch', { name: /^Círculo/ }).uncheck({ force: true });
     await page.keyboard.press('Escape');
 
-    await expect(chips).toHaveText(['vectores', '2×']);
-    await expect(lab.getByRole('button', { name: 'Velocidad 2×' })).toBeFocused();
+    await expect(gear).toBeFocused();
+    await expect(speed).toHaveValue('2');
+    await expect(lab.getByTestId('flyby-sun-frame').locator('[data-circle]')).toHaveCount(0);
   });
 });
 
 test.describe('laboratorio a 1 280 × 800', () => {
   test.use({ viewport: DESKTOP });
 
-  test('el primer control físico queda en la primera pantalla, a la derecha del lienzo', async ({
+  test('el primer control físico queda en la primera pantalla, bajo el lienzo a todo el ancho', async ({
     page,
   }) => {
     await page.goto(PAGE);
     await open(page, LAB);
     const lab = page.locator(LAB);
-    await lab.evaluate((node) =>
-      window.scrollTo(0, node.getBoundingClientRect().top + window.scrollY),
-    );
+    // The scene's top just under the topic bar (64 px), as lab-shell.spec.ts measures the labs.
+    await lab
+      .locator('[data-lab-canvas]')
+      .evaluate((node) =>
+        window.scrollTo(0, node.getBoundingClientRect().top + window.scrollY - 64),
+      );
 
     const field = await lab
       .getByRole('textbox', { name: 'Máxima aproximación r sub p' })
@@ -192,8 +200,13 @@ test.describe('laboratorio a 1 280 × 800', () => {
     expect(field && canvas).toBeTruthy();
     if (!field || !canvas) return;
     expect(field.y + field.height).toBeLessThanOrEqual(DESKTOP.height);
-    expect(field.x).toBeGreaterThanOrEqual(canvas.x + canvas.width);
-    expect(field.y).toBeLessThan(canvas.y + canvas.height);
+    expect(field.y).toBeGreaterThanOrEqual(canvas.y + canvas.height);
+    // The two frames side by side again, at the column's width.
+    const [planet, sun] = await Promise.all(
+      ['flyby-planet-frame', 'flyby-sun-frame'].map((id) => lab.getByTestId(id).boundingBox()),
+    );
+    expect(Math.abs(planet!.y - sun!.y)).toBeLessThanOrEqual(1);
+    expect(sun!.x).toBeGreaterThan(planet!.x + planet!.width);
   });
 });
 
@@ -307,7 +320,9 @@ async function numberBoxInset(page: Page, path: string, lab: string, field: stri
       const params = node.querySelector('[data-lab-level="params"]') as HTMLElement;
       const input = node.querySelector(selector) as HTMLInputElement;
       const label = params.querySelector('label') as HTMLElement;
+      const range = params.querySelector('input[type="range"]') as HTMLElement;
       const box = input.getBoundingClientRect();
+      const slider = range.getBoundingClientRect();
       const shown = input.value;
       input.value = text;
       const overflow = input.scrollWidth - input.clientWidth;
@@ -317,8 +332,10 @@ async function numberBoxInset(page: Page, path: string, lab: string, field: stri
         width: box.width,
         height: box.height,
         overflow,
-        // The number box sits on its label's row, not on a line of its own.
-        isBesideLabel: box.top < label.getBoundingClientRect().bottom,
+        // The compact field (ParamFrame): the number on its slider's line, under the label.
+        isOnSliderLine:
+          Math.abs(box.top + box.height / 2 - (slider.top + slider.height / 2)) <= 1 &&
+          box.top >= label.getBoundingClientRect().bottom,
       };
     },
     { selector: field, text: longest },
@@ -326,7 +343,7 @@ async function numberBoxInset(page: Page, path: string, lab: string, field: stri
 }
 
 for (const viewport of [PHONE, DESKTOP]) {
-  test(`a ${viewport.width} px el campo de r_p se alinea con los de los demás temas, junto a su etiqueta, y mide lo mismo`, async ({
+  test(`a ${viewport.width} px el campo de r_p se alinea con los de los demás temas, en la línea de su deslizador, y mide lo mismo`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
@@ -346,7 +363,7 @@ for (const viewport of [PHONE, DESKTOP]) {
       LONGEST_RP_TEXT,
     );
 
-    expect(rp.isBesideLabel).toBe(true);
+    expect(rp.isOnSliderLine).toBe(true);
     expect(Math.abs(rp.inset - reference.inset)).toBeLessThanOrEqual(1);
     // The same 40 px by 64 px box as every ParamField, and r_p's longest text fits in it.
     expect({ width: rp.width, height: rp.height }).toEqual({
@@ -449,7 +466,9 @@ test.describe('escala de tiempo y máxima aproximación', () => {
     expect(
       Math.abs(tick.x + tick.width / 2 - (range.x + range.width * PEAK_AT)),
     ).toBeLessThanOrEqual(MARK_SLACK_PX);
-    await lab.getByRole('button', { name: 'Evento siguiente' }).click();
+    // One event: no pair (MIN_EVENTS_FOR_PAIR); a click on its mark lands on it.
+    await expect(lab.getByRole('button', { name: 'Evento siguiente' })).toHaveCount(0);
+    await page.mouse.click(tick.x + tick.width / 2, range.y + range.height / 2);
     await expect(timeline).toHaveAttribute('aria-valuetext', /Máxima aproximación$/u);
     await expect(lab.getByTestId('flyby-clock')).toContainText('= 0,0 h');
   });

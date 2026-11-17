@@ -124,15 +124,20 @@ test.describe('laboratorio', () => {
     await expect(page.locator(LAB).getByText('Ventana de trabajo C4 (2019)')).toBeVisible();
   });
 
-  test('el engranaje abre el panel, el compuesto C4 cambia la ventana, Escape cierra y el foco vuelve', async ({
+  test('el compuesto C4, bajo los parámetros, cambia la ventana; el engranaje abre y cierra el panel', async ({
     page,
   }) => {
     const gear = page.locator(LAB).getByRole('button', { name: 'Ajustes del simulador' });
     const dialog = page.getByRole('dialog', { name: /^Ajustes: Laboratorio de la llanta/ });
 
+    await page
+      .locator(LAB)
+      .getByRole('region', { name: 'Escenario' })
+      .getByRole('combobox', { name: /^Compuesto/ })
+      .selectOption('C4');
     await gear.click();
     await expect(dialog).toBeVisible();
-    await dialog.getByRole('combobox', { name: /^Compuesto/ }).selectOption('C4');
+    await expect(dialog.getByRole('combobox', { name: /^Compuesto/ })).toHaveCount(0);
     await page.keyboard.press('Escape');
 
     await expect(dialog).toBeHidden();

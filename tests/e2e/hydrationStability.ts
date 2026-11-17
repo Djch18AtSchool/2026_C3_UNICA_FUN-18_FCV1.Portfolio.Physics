@@ -2,8 +2,8 @@ import { expect, type Browser, type Page } from '@playwright/test';
 import { HYDRATION_TIMEOUT_MS, waitForIsland } from './helpers';
 
 /**
- * Phone; a 540 px window, whose one-column stage (~495 px) sits just past SvgPlot's 480 px
- * switch to its wide layout; and the 1 280 px desktop, where the stage measures about 430 px.
+ * Phone; a 540 px window, whose canvas (~495 px) sits just past SvgPlot's 480 px switch to its
+ * wide layout; and the 1 280 px desktop, where the canvas is the article column's 766 px.
  */
 export const HYDRATION_WIDTHS = [360, 540, 1280] as const;
 /** Sub-pixel rounding between two layouts of the same boxes. */
@@ -11,20 +11,27 @@ const HEIGHT_TOLERANCE_PX = 1;
 const VIEWPORT_HEIGHT = 800;
 
 /**
- * The drawings of a lab's canvas: SvgPlot's plots and the scenes the labs draw themselves. Rule
- * (README, «Laboratorios por niveles»): each draws at the width it measures, its viewBox as wide as
- * its box; one with a fixed viewBox would keep notYetMeasured waiting until it fails, by name.
+ * Where a lab draws: its canvas (the scene) and its support plots after the readouts (LabShell
+ * `charts`). Both hold drawings that measure their width, so both are checked alike.
  */
-const DRAWINGS = '[data-lab-canvas] :is(svg[role=img], svg[data-testid])[viewBox]';
+const DRAWN = ':is([data-lab-canvas], [data-lab-charts])';
+/**
+ * The drawings of a lab: SvgPlot's plots and the scenes the labs draw themselves. Rule (README,
+ * «Laboratorios por niveles»): each draws at the width it measures, its viewBox as wide as its
+ * box; one with a fixed viewBox would keep notYetMeasured waiting until it fails, by name.
+ */
+const DRAWINGS = `${DRAWN} :is(svg[role=img], svg[data-testid])[viewBox]`;
 
-/** Heights of the lab and of every drawing in its canvas, as laid out right now. */
+/** Heights of the lab, of its canvas and support plots, and of every drawing in them, as laid out right now. */
 async function measureLab(page: Page, labSelector: string): Promise<number[]> {
-  return page.locator(labSelector).evaluate((lab) => {
+  return page.locator(labSelector).evaluate((lab, drawn) => {
     const height = (element: Element) => element.getBoundingClientRect().height;
-    const canvas = lab.querySelector('[data-lab-canvas]');
-    const drawings = canvas ? [...canvas.querySelectorAll('svg[role=img], svg[data-testid]')] : [];
-    return [height(lab), ...(canvas ? [height(canvas)] : []), ...drawings.map(height)];
-  });
+    const places = [...lab.querySelectorAll(drawn)];
+    const drawings = places.flatMap((place) => [
+      ...place.querySelectorAll('svg[role=img], svg[data-testid]'),
+    ]);
+    return [height(lab), ...places.map(height), ...drawings.map(height)];
+  }, DRAWN);
 }
 
 /**
@@ -153,17 +160,20 @@ export async function expectSameHeightAfterHydration(
  * (Measured, SvgPlot drops its reserve; this guards a wrapper that forces an aspect again.)
  */
 async function letterboxed(page: Page, labSelector: string): Promise<string[]> {
-  return page.locator(labSelector).evaluate((lab, tolerance) => {
-    const drawings = [...lab.querySelectorAll('[data-lab-canvas] svg[role=img][viewBox]')];
-    return drawings.flatMap((svg, index) => {
-      const box = svg.getBoundingClientRect();
-      const view = (svg as SVGSVGElement).viewBox.baseVal;
-      const drawn = (box.width * view.height) / view.width;
-      return Math.abs(drawn - box.height) > tolerance
-        ? [`dibujo ${index}: caja ${box.height.toFixed(1)} px, dibujo ${drawn.toFixed(1)} px`]
-        : [];
-    });
-  }, HEIGHT_TOLERANCE_PX);
+  return page.locator(labSelector).evaluate(
+    (lab, { drawn, tolerance }) => {
+      const drawings = [...lab.querySelectorAll(`${drawn} svg[role=img][viewBox]`)];
+      return drawings.flatMap((svg, index) => {
+        const box = svg.getBoundingClientRect();
+        const view = (svg as SVGSVGElement).viewBox.baseVal;
+        const drawn = (box.width * view.height) / view.width;
+        return Math.abs(drawn - box.height) > tolerance
+          ? [`dibujo ${index}: caja ${box.height.toFixed(1)} px, dibujo ${drawn.toFixed(1)} px`]
+          : [];
+      });
+    },
+    { drawn: DRAWN, tolerance: HEIGHT_TOLERANCE_PX },
+  );
 }
 
 /**

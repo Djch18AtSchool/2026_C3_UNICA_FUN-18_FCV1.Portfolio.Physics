@@ -246,7 +246,10 @@ for (const theme of ['light', 'dark'] as const) {
         await entries.first().click();
         const handle = await firstKnob(lab);
         await page.keyboard.press('Shift');
-        await (handle ?? lab.locator('[data-lab-canvas] [role="slider"]').first()).focus();
+        // Tema 6 has no knob in its scene: its plot's cursor, a support plot after the readouts.
+        await (
+          handle ?? lab.locator(':is([data-lab-canvas], [data-lab-charts]) [role="slider"]').first()
+        ).focus();
 
         const results = await new AxeBuilder({ page })
           .include(`[data-testid="${topic.labTestId}"]`)

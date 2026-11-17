@@ -73,9 +73,11 @@ test(`Tema 6, «Conducir»: conducir con el freno pulsado cuesta ≤ ${MAX_MUTAT
   await page.goto(`./temas/${lab.slug}/`);
   await hydratePage(page);
   const root = await labRoot(page, lab);
-  await root.getByRole('button', { name: 'Ajustes del simulador' }).click();
-  await page.getByRole('dialog').getByRole('combobox', { name: 'Vista' }).selectOption('conducir');
-  await page.keyboard.press('Escape');
+  // The view's segment: its label checks the visually hidden radio.
+  await root
+    .getByRole('radiogroup', { name: 'Vista' })
+    .locator('label', { hasText: 'Conducir' })
+    .click();
   await root.getByRole('button', { name: 'Freno' }).focus();
   await page.keyboard.down('ArrowDown');
   await expect(root).toHaveAttribute('data-playing', 'true');

@@ -100,7 +100,11 @@ test.describe('laboratorio', () => {
     await gear.click();
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('switch', { name: 'Repetir' })).not.toBeChecked();
-    await expect(dialog.getByRole('combobox', { name: 'Velocidad' })).toContainText('8×');
+    // The speed is the transport's, not the drawer's.
+    await expect(dialog.getByRole('combobox', { name: 'Velocidad' })).toHaveCount(0);
+    await expect(
+      page.locator(LAB).getByRole('combobox', { name: 'Velocidad de reproducción' }),
+    ).toContainText('8×');
     await page.keyboard.press('Escape');
 
     await expect(dialog).toBeHidden();

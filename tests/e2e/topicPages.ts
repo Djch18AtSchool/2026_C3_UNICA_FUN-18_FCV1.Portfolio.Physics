@@ -57,7 +57,7 @@ export interface TopicPage {
   labTestId: string;
   /** The lab has a clock, so a transport bar. */
   hasClock: boolean;
-  /** The transport has events (marks, «Evento anterior / siguiente»). */
+  /** The transport has events (marks and the event line; «Evento anterior | siguiente» from two). */
   hasEvents: boolean;
   /** Some drawing of the lab zooms (`data-zoom-viewport`). */
   hasZoom: boolean;

@@ -67,9 +67,7 @@ export const HYDRATION_TIMEOUT_MS = 15_000;
  * flag as it starts hydrating, before React has rendered anything: an event fired then is lost and
  * hydration puts the control back. React tags a host element with its fiber when it completes it,
  * and commits right after the last one; so every top-level element of the island carrying a fiber
- * (a component may return several) means the whole island is React's and listening. A lab also
- * decides, once it has measured its stage, whether the stage sticks (LabShell): boxes read before
- * that could move under a sticky stage the moment it engages, so that is waited for too.
+ * (a component may return several) means the whole island is React's and listening.
  */
 export async function waitForIsland(page: Page, inner: string): Promise<void> {
   const islands = page.locator(`astro-island:has(${inner}):not([ssr])`);
@@ -93,14 +91,6 @@ export async function waitForIsland(page: Page, inner: string): Promise<void> {
       { message: `la isla de ${inner} hidratada por React`, timeout: HYDRATION_TIMEOUT_MS },
     )
     .toBe(true);
-  const stage = island.locator('[data-lab-stage]');
-  if ((await stage.count()) > 0) {
-    await expect(stage, `${inner}: el escenario medido`).toHaveAttribute(
-      'data-lab-stage-fits',
-      /^(true|false)$/,
-      { timeout: HYDRATION_TIMEOUT_MS },
-    );
-  }
 }
 
 /** Islands hydrate with client:visible: walk the page so every one renders, then back to the top. */
@@ -150,8 +140,8 @@ export async function readoutText(page: Page, labSelector: string, label: string
 }
 
 /**
- * A CSS length («var(--lab-transport-room)», «42rem») in px as it resolves inside `host`: a
- * custom property overridden there (a lab's stage) reads as the host's, not the root's.
+ * A CSS length («var(--lab-flow-section)», «42rem») in px as it resolves inside `host`: a
+ * custom property overridden there reads as the host's, not the root's.
  */
 export async function cssLengthPxIn(host: Locator, length: string): Promise<number> {
   return host.evaluate((node, value) => {

@@ -51,8 +51,7 @@ test.describe('Tema 3: el giro a ×6', () => {
     const lab = page.locator(HABITAT.lab);
     await expect(lab.locator(STATUS)).toHaveAttribute('data-settled', 'true');
 
-    await lab.getByRole('button', { name: 'Velocidad 1×' }).click();
-    await page.getByRole('dialog').getByRole('combobox', { name: 'Velocidad' }).selectOption('2');
+    await lab.getByRole('combobox', { name: 'Velocidad de reproducción' }).selectOption('2');
 
     await expect(lab.locator(`div${BADGE}`)).toHaveText(/^×12\s*cámara rápida$/u);
     await expect(lab.locator(STATUS)).toHaveText(

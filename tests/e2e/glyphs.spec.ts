@@ -71,12 +71,10 @@ const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
     [
       '«Conducir», en pausa con su resumen',
       async (page, lab) => {
-        await gear(lab).click();
-        await page
-          .getByRole('dialog')
-          .getByRole('combobox', { name: 'Vista' })
-          .selectOption('conducir');
-        await page.keyboard.press('Escape');
+        await lab
+          .getByRole('radiogroup', { name: 'Vista' })
+          .locator('label', { hasText: 'Conducir' })
+          .click();
         await lab.getByRole('button', { name: 'Freno' }).focus();
         await page.keyboard.down('ArrowDown');
         await expect(lab).toHaveAttribute('data-playing', 'true');

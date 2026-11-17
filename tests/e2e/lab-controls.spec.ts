@@ -1,7 +1,7 @@
 /**
  * The laboratories' shared controls on the scale of measures (README, «Escala de medidas»): every
- * form control 40 px high, icon buttons 44 with 20 px glyphs, and number boxes that hold the
- * longest value of their grid.
+ * form control 40 px high, icon buttons 44 with 20 px glyphs (and the transport's speed select as
+ * tall as they are, among them), and number boxes that hold the longest value of their grid.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { labOrPlaceholder, waitForIsland } from './helpers';
@@ -14,14 +14,16 @@ const VIEWPORTS = [
 /** Form controls: number fields, selects, segments and switch rows (`h-10`, `min-h-10`). */
 const CONTROL_PX = 40;
 /**
- * The exception (README, «Iconos y controles»): the settings chips beside the gear and the topic's
- * copy buttons are 32 px with a fine pointer (targets of at least 24 px, WCAG 2.5.8).
+ * The exception (README, «Iconos y controles»): the topic's copy buttons are 32 px with a fine
+ * pointer (targets of at least 24 px, WCAG 2.5.8).
  */
 const COMPACT_CONTROL_PX = 32;
 /** The laboratories without a clock (the registry in topicPages.ts): no transport to measure. */
 const LABS_WITHOUT_CLOCK: ReadonlySet<string> = new Set(
   TOPIC_PAGES.filter(({ hasClock }) => !hasClock).map(({ labTestId }) => labTestId),
 );
+/** The transport's speed select (TransportSpeed), as tall as its row's icon buttons. */
+const SPEED = 'Velocidad de reproducción';
 /** Icon buttons at the touch size the laboratories use (`size-11`). */
 const ICON_BUTTON_PX = 44;
 /** A glyph inside an icon button (`size-5`). */
@@ -173,16 +175,16 @@ for (const { name, size } of VIEWPORTS) {
           expect(field.height, `${field.id}: alto`).toBe(CONTROL_PX);
           expect(field.overflow, `${field.id}: «${field.longest}» no cabe`).toBeLessThanOrEqual(0);
         }
-        for (const select of await heights(lab, 'select')) {
+        // Every select but the transport's speed, which is measured with its row below.
+        for (const select of await heights(lab, `select:not([aria-label="${SPEED}"])`)) {
           expect(select.height, `selector ${select.text}`).toBe(CONTROL_PX);
         }
         for (const minHeight of await segmentMinHeights(lab)) {
           expect(minHeight).toBe(`${CONTROL_PX}px`);
         }
 
-        for (const chip of await heights(lab, '[aria-label="Ajustes activos"] button')) {
-          expect(chip.height, `ficha ${chip.text}`).toBe(COMPACT_CONTROL_PX);
-        }
+        // No chips beside the gear any more (E1): what they said is the transport's or the deck's.
+        expect(await heights(lab, '[aria-label="Ajustes activos"] button')).toEqual([]);
 
         const transport = lab.getByRole('group', { name: 'Reproducción' });
         const hasClock = !LABS_WITHOUT_CLOCK.has(labTestId);
@@ -197,6 +199,8 @@ for (const { name, size } of VIEWPORTS) {
           const box = await glyph.boundingBox();
           expect([box?.width, box?.height]).toEqual([ICON_PX, ICON_PX]);
         }
+        const speed = await heights(transport, `select[aria-label="${SPEED}"]`);
+        expect(speed.map(({ height }) => height)).toEqual([ICON_BUTTON_PX]);
       });
     }
 

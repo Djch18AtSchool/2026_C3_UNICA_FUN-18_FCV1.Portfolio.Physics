@@ -226,7 +226,11 @@ for (const { name, size } of CHIP_FIT_VIEWPORTS) {
     }) => {
       await openLab(page);
       const panel = await page.locator(`${LAB} [data-lab-panel]`).boundingBox();
-      const chips = page.locator(`${LAB} [data-lab-presets="chips"]`).getByRole('button');
+      // The presets' own group: «Restablecer» closes their row, outside it.
+      const chips = page
+        .locator(`${LAB} [data-lab-presets="chips"]`)
+        .getByRole('group', { name: 'Valores de referencia' })
+        .getByRole('button');
 
       await expect(chips).toHaveCount(3);
       for (const chip of await chips.all()) {
@@ -332,8 +336,9 @@ test.describe('escala de tiempo en el lienzo', () => {
     page,
   }) => {
     const lab = await openScene(page);
-    const scene = (await lab.locator(SCENE).boundingBox())!;
+    // Both boxes read together: choosing the mode under the parameters may scroll the page.
     const place = async () => {
+      const scene = (await lab.locator(SCENE).boundingBox())!;
       const box = (await lab.locator(SCENE_BADGE).boundingBox())!;
       return {
         left: box.x - scene.x,
