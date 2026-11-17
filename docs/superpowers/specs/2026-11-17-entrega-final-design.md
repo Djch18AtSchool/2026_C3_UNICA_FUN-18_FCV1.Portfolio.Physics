@@ -30,7 +30,8 @@ Al terminar, el sitio tiene las **trece entradas** del curso y la sección de ci
 1. **Rama base:** la Entrega Final se construye **sobre la fase E** (`fase-e-laboratorio`, cascarón de una
    columna y tipografía), en la rama `entrega-final`. La fase E y la Entrega Final se integran juntas, cuando
    Dylan lo autorice (§10).
-2. **Observaciones del profesor:** Dylan las tiene y las pasa; se convierten en la tarea F (§7).
+2. **Observaciones del profesor:** 16/16 en ambos avances; una corrección puntual en el Tema 7 y una
+   recomendación general; se convierten en la tarea F (§7) y en una regla (§3).
 3. **«Qué aprendí»:** al final de la **portada**, enlazada desde el menú, con un diagrama propio de los 13
    temas.
 4. **Pares del mapa de conexiones:** Tema 7 + Tema 9 (momento lineal: un sobrevuelo es un choque elástico en
@@ -74,6 +75,9 @@ Las del traspaso (`docs/superpowers/handoff/2026-10-31-avance-2-handoff.md`, «D
   movimiento reducido, velocidad de reproducción indicada) sobre `LabShell` de una columna (README,
   «Laboratorios por niveles», «Escala de tiempo y eventos», «Zoom y desplazamiento»).
 - Medidas en la escala 4/8 (`scale.test.ts`; `pnpm run scale:report` en 0).
+- **Modelo didáctico frente a producto real** (recomendación del profesor, Avance 1): cada parámetro de una
+  tabla, un preajuste o un laboratorio dice si es el valor del producto (con su fuente) o un supuesto
+  ilustrativo del modelo; nunca se presenta uno como el otro.
 - Voz en primera persona. Claude redacta; Dylan revisa antes de que cuente como publicado: cada frase nueva va
   a una lista para él (§11).
 - Commits en inglés, convencionales, solo con la identidad de Dylan y **sin línea de coautor ni de
@@ -322,13 +326,30 @@ ecuaciones, trampas) está en la nota de investigación de cada tema; este spec 
 - **Conexiones:** Tema 6 (par de «Qué aprendí»), Tema 4 (fricción; aquí, viscosa). Reciprocidad: el Tema 6 suma
   el 13 en `related`.
 
-## 7. Tarea F — observaciones del profesor sobre los Temas 1 a 9
+## 7. Tarea F — observaciones del profesor sobre los Avances 1 y 2
 
-Dylan pasa la retroalimentación de los Avances 1 y 2. Cada observación se convierte en un punto de una lista
-(tema, qué dice, qué se cambia, archivo), se corrige con la misma regla de textos (Claude redacta, Dylan lee) y
-se verifica con su prueba. Se ejecuta en paralelo con los temas nuevos, en su propio worktree, porque toca
-archivos disjuntos (`src/content/topics/` de los Temas 1 a 9 y sus componentes). Si una observación pide un
-cambio compartido, pasa a la tarea compartida.
+Retroalimentación recibida el 17 de noviembre: **16/16 en ambos avances**.
+
+- **Avance 1:** sin correcciones. Recomendación general: «Mantén esa precisión al distinguir los parámetros
+  de un modelo didáctico de los valores del producto real». Pasa a regla para los temas nuevos (§3).
+- **Avance 2, una corrección en el Tema 7:** «la fórmula de N debe excluir el impacto que cae exactamente en
+  el umbral. Con v0=4 m/s, vth=1 m/s y e=0,5 hay dos rebotes; la expresión con piso más uno daría tres. Tu
+  modelo ya contempla esa igualdad: explicítala también en la explicación».
+  - El código ya cumple: `bouncesAboveThreshold` (`src/lib/physics/collision.ts:121`) cuenta los impactos
+    $e^n v_0$ **estrictamente** sobre $v_\text{th}$ y su prueba fija `bouncesAboveThreshold(4, 0.5, 1) = 2`.
+  - Lo que cambia: la ecuación (7.3) de `src/content/topics/coeficiente-restitucion.mdx:290` pasa de
+    $N = \lfloor \ln(v_0/v_\text{th})/\ln(1/e) \rfloor + 1$ a
+    $N = \lceil \ln(v_0/v_\text{th})/\ln(1/e) \rceil$ (para $v_0 > v_\text{th}$ y $0 < e < 1$): coincide
+    con la anterior cuando el cociente no es entero y no cuenta el impacto que cae justo en el umbral cuando
+    lo es. El significado de $N$ en `symbols` dice «estrictamente por encima del umbral; un impacto
+    exactamente en $v_\text{th}$ no rebota», y el `Why` del paso lo explicita con el ejemplo del profesor
+    (impactos de 4, 2 y 1 m/s: el tercero cae en el umbral, $N = 2$), dentro de las 650 palabras.
+  - Los comentarios de `collision.ts:116` y `bounceScene.ts:303` se alinean con la forma del techo; una prueba
+    une la fórmula publicada con el código (techo = `bouncesAboveThreshold` en una rejilla de casos, más el
+    caso exacto).
+  - La frase nueva va a la lista de textos de Dylan (§11).
+
+Va en su propio worktree (`entrega-final-f`), en paralelo con los temas: toca archivos disjuntos.
 
 ## 8. Pruebas y puerta
 
@@ -376,7 +397,6 @@ Dylan lo hace suyo.
 
 ## 12. Riesgos y decisiones abiertas
 
-- **Retroalimentación del profesor** aún no recibida: la tarea F no puede planificarse en detalle hasta tenerla.
 - **Peso de los medios:** video ≈ 2,5 min a 640 × 480 y dos audios cortos; se mide el tamaño final y se usa
   `preload="metadata"`; ningún medio se descarga entero al cargar la página.
 - **Tema 10:** la documentación de Motion contradice su código (se cita el código); la diapositiva de
