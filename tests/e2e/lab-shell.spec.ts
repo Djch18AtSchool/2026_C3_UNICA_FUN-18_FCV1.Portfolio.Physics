@@ -117,7 +117,7 @@ test('un decimal elegido en el salto rige también las lecturas del hábitat', a
   await dialog.getByText('1', { exact: true }).click();
   await page.keyboard.press('Escape');
 
-  const habitat = await openLab(page, './temas/gravedad-artificial/', 'habitat-lab');
+  await openLab(page, './temas/gravedad-artificial/', 'habitat-lab');
   for (const label of ['Velocidad angular $\\omega$', 'Velocidad tangencial $v$', 'Período $T$']) {
     expect(await readoutText(page, '[data-testid="habitat-lab"]', label)).toMatch(/^\d+,\d\s\S+$/);
   }
