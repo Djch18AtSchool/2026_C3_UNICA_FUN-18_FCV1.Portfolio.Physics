@@ -7,6 +7,7 @@ import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
 import { svgText } from '../../../test-svg-text';
 import { segmentHitsBox, type Segment } from '../../lab/labelClearance';
+import { rawNotationMarks } from '../../../lib/typography';
 
 /** OverlayMarks' Label: 13 px mono text; its box runs about 10 px above the baseline and 3 below. */
 const LABEL_SIZE = 13;
@@ -175,6 +176,21 @@ describe('FlybyFigure', () => {
     const notes = [...container.querySelectorAll('[data-triangle-cell] p')].map(mathSourceText);
     expect(notes[0]).toContain('Júpiter retrocede $4{,}4 \\cdot 10^{-21}$\u202fm/s');
     expect(notes[0]).toContain('($m\\,\\Delta\\vec v = -M\\,\\Delta\\vec V_p$)');
+  });
+
+  test('triangulo: an out-of-plane turn (Neptune) is named in words, with no notation mark left raw', () => {
+    render(<FlybyFigure variant="triangulo" />);
+    const name =
+      screen
+        .getByRole('img', { name: /Neptuno.*giro fuera del plano/ })
+        .getAttribute('aria-label') ?? '';
+
+    expect(name).toMatch(/V sub p = 5,40\skm\/s y v sub infinito = 16,71\skm\/s/);
+    expect(name).toContain('vector v sub infinito forma');
+    expect(name).toContain('con vector V sub p antes');
+    expect(name).toContain('módulo de vector v = módulo de vector V sub p + vector v sub infinito');
+    expect(name).toMatch(/no el giro delta = /);
+    expect(rawNotationMarks(name)).toEqual([]);
   });
 
   test.each(['vis-viva', 'hiperbola', 'triangulo'] as const)(

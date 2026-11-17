@@ -393,10 +393,12 @@ function HyperbolaPlot(): JSX.Element {
 }
 
 function triangleDescription(t: VelocityTriangle, name: string): string {
-  const base = `Triángulo de velocidades de la Voyager 2 en ${name}: V_p = ${speedText(t.Vp)} y v_∞ = ${speedText(t.vInf)}; vec v_∞ forma ${degrees(t.thetaInDeg)} con vec V_p antes y ${degrees(t.thetaOutDeg)} después, así que |vec v| = |vec V_p + vec v_∞| pasa de ${speedText(t.vIn)} a ${speedText(t.vOut)}: ${signed(t.jump, SPEED_PRECISION, 'km/s')}.`;
+  // Every symbol in `$…$` (the site's one syntax): mixed with the mini-notation, a `$` makes
+  // toNotation read the rest literally and the name would say «V_p».
+  const base = `Triángulo de velocidades de la Voyager 2 en ${name}: $V_p$ = ${speedText(t.Vp)} y $v_\\infty$ = ${speedText(t.vInf)}; $\\vec v_\\infty$ forma ${degrees(t.thetaInDeg)} con $\\vec V_p$ antes y ${degrees(t.thetaOutDeg)} después, así que $|\\vec v| = |\\vec V_p + \\vec v_\\infty|$ pasa de ${speedText(t.vIn)} a ${speedText(t.vOut)}: ${signed(t.jump, SPEED_PRECISION, 'km/s')}.`;
   const text = t.isPlanar
     ? base
-    : `${base} Es un giro fuera del plano: el dibujo conserva los ángulos de vec v_∞ con vec V_p, no el giro $\\delta$ = ${degrees(t.deltaDeg)}.`;
+    : `${base} Es un giro fuera del plano: el dibujo conserva los ángulos de $\\vec v_\\infty$ con $\\vec V_p$, no el giro $\\delta$ = ${degrees(t.deltaDeg)}.`;
   return mathTextToString(text);
 }
 
