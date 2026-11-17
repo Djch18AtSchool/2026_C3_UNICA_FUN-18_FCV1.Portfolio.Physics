@@ -291,7 +291,7 @@ export function CollisionScene(props: CollisionSceneProps): JSX.Element {
   );
 }
 
-const LOSS_NOTE = String.raw`El momento lineal es el mismo antes y después para cualquier e; la energía cinética no: se pierde $\Delta K = \tfrac{1}{2}\mu\,(1 - e^2)\,v_\text{rel}^2$, con $\mu = m_1 m_2/(m_1 + m_2)$, así que $\Delta K/K_\text{rel} = 1 - e^2$. En las barras, el tramo punteado es $\Delta K$.`;
+const LOSS_NOTE = String.raw`El momento lineal es el mismo antes y después para cualquier $e$; la energía cinética no: se pierde $\Delta K = \tfrac{1}{2}\mu\,(1 - e^2)\,v_\text{rel}^2$, con $\mu = m_1 m_2/(m_1 + m_2)$, así que $\Delta K/K_\text{rel} = 1 - e^2$. En las barras, el tramo punteado es $\Delta K$.`;
 const WALL_NOTE = String.raw`Con $m_2 \to \infty$ el cuerpo 2 es el piso: $v_1' = -e\,v_1$, el rebote de la pelota. El piso recibe el impulso sin moverse, así que el momento del cuerpo 1 solo no se conserva.`;
 const RECEDING_NOTE = String.raw`Con $v_1 \le v_2$ los cuerpos no se acercan: no hay choque y nada cambia.`;
 
@@ -385,8 +385,8 @@ export function collisionReadouts(s: CollisionSettings, o: CollisionOutcome): La
         { id: 'impulse', label: 'Impulso del piso sobre 1', value: o.impulse, unit: 'N·s' },
       ]
     : [
-        { id: 'p-before', label: 'p antes', value: o.pBefore, unit: 'kg·m/s' },
-        { id: 'p-after', label: 'p después', value: o.pAfter, unit: 'kg·m/s' },
+        { id: 'p-before', label: '$p$ antes', value: o.pBefore, unit: 'kg·m/s' },
+        { id: 'p-after', label: '$p$ después', value: o.pAfter, unit: 'kg·m/s' },
         { id: 'v1', label: "$v_1'$", value: o.v1After, unit: 'm/s' },
         { id: 'v2', label: "$v_2'$", value: o.v2After, unit: 'm/s' },
       ];

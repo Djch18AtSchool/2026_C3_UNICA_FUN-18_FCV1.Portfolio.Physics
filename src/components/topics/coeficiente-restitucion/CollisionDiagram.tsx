@@ -199,15 +199,14 @@ function MomentumArrow({
           />
         );
       })}
-      <text
+      <MathText
+        source={label}
         x={x + length / 2}
         y={y + UNDER_LABEL}
-        textAnchor="middle"
+        anchor="middle"
         fontSize={SMALL_SIZE}
-        {...textStyle}
-      >
-        {label}
-      </text>
+        fill={TEXT_COLOR}
+      />
     </g>
   );
 }
@@ -302,12 +301,16 @@ function Row({
   layout: Layout;
 }) {
   const middle = top + ROW_MIDDLE;
-  const momentum = `${layout.hasColumnHeaders ? '' : 'p = '}${formatTrimmed(row.state.momentum)} kg·m/s`;
+  const momentum = `${layout.hasColumnHeaders ? '' : '$p$ = '}${formatTrimmed(row.state.momentum)} kg·m/s`;
   return (
     <g data-row={row.id}>
-      <text x={LABEL_X} y={middle + 4} fontSize={LABEL_SIZE} {...textStyle}>
-        {row.label}
-      </text>
+      <MathText
+        source={row.label}
+        x={LABEL_X}
+        y={middle + 4}
+        fontSize={LABEL_SIZE}
+        fill={TEXT_COLOR}
+      />
       <Balls state={row.state} middle={middle} isBefore={row.isBefore} />
       <MomentumArrow
         state={row.state}
@@ -327,14 +330,14 @@ function Row({
 }
 
 const KEY_ITEMS = [
-  { label: 'K del CM', fill: KINETIC_CM_COLOR, isOutline: false },
-  { label: 'K relativa', fill: KINETIC_REL_COLOR, isOutline: false },
+  { label: '$K$ del CM', fill: KINETIC_CM_COLOR, isOutline: false },
+  { label: '$K$ relativa', fill: KINETIC_REL_COLOR, isOutline: false },
   { label: 'perdida', fill: 'none', isOutline: true },
 ] as const;
 
 /** Width of one key item: swatch, gap, label and the space before the next item. */
 const keyItemWidth = (label: string) =>
-  KEY_SWATCH + KEY_TEXT_GAP + label.length * SMALL_CHAR + KEY_ITEM_GAP;
+  KEY_SWATCH + KEY_TEXT_GAP + mathTextToString(label).length * SMALL_CHAR + KEY_ITEM_GAP;
 
 function EnergyKey({ x, y }: { x: number; y: number }) {
   return (
@@ -357,9 +360,13 @@ function EnergyKey({ x, y }: { x: number; y: number }) {
               stroke={item.isOutline ? TICK_COLOR : undefined}
               strokeDasharray={item.isOutline ? LOST_DASH : undefined}
             />
-            <text x={at + KEY_SWATCH + KEY_TEXT_GAP} y={y} fontSize={SMALL_SIZE} {...textStyle}>
-              {item.label}
-            </text>
+            <MathText
+              source={item.label}
+              x={at + KEY_SWATCH + KEY_TEXT_GAP}
+              y={y}
+              fontSize={SMALL_SIZE}
+              fill={TEXT_COLOR}
+            />
           </g>
         );
       })}
@@ -375,9 +382,14 @@ function ColumnHeaders({ layout, before }: { layout: Layout; before: CollisionSt
       </text>
       {layout.hasColumnHeaders ? (
         <>
-          <text x={layout.momentum.x + (before.momentum * PX_PER_MOMENTUM) / 2} y={HEADER_Y}>
-            Momento p
-          </text>
+          <MathText
+            source="Momento $p$"
+            x={layout.momentum.x + (before.momentum * PX_PER_MOMENTUM) / 2}
+            y={HEADER_Y}
+            anchor="middle"
+            fontSize={SMALL_SIZE}
+            fill={TICK_COLOR}
+          />
           <text x={layout.kinetic.x + (before.kinetic * PX_PER_JOULE) / 2} y={HEADER_Y}>
             Energía
           </text>
@@ -410,7 +422,7 @@ export default function CollisionDiagram(): JSX.Element {
     { id: 'antes', label: 'Antes', state: before, isBefore: true },
     ...after.map((row) => ({
       id: `e-${formatTrimmed(row.e)}`,
-      label: `e = ${formatTrimmed(row.e)}`,
+      label: `$e$ = ${formatTrimmed(row.e)}`,
       state: row,
       isBefore: false,
     })),

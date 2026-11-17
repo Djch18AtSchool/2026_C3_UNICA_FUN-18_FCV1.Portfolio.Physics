@@ -85,7 +85,7 @@ export function BounceSummary({ settings: s, model, decimals }: BounceSummaryPro
   const seconds = (value: number) => n(value, decimals, 's');
   const lastFrame = run.frames[run.frames.length - 1];
   const idealRow = s.speedDependent
-    ? `${Number.isFinite(idealTime) ? seconds(idealTime) : INFINITY_SIGN} (con e(v), suma de los vuelos)`
+    ? `${Number.isFinite(idealTime) ? seconds(idealTime) : INFINITY_SIGN} (con $e(v)$, suma de los vuelos)`
     : Number.isFinite(idealTime)
       ? `${seconds(idealTime)}, con infinitos rebotes`
       : `${INFINITY_SIGN}: nunca se detiene`;
@@ -95,14 +95,14 @@ export function BounceSummary({ settings: s, model, decimals }: BounceSummaryPro
   const predictionRow = !prediction
     ? 'sin umbral: rebota como la serie ideal'
     : Number.isFinite(prediction.bounces)
-      ? `N = ${prediction.bounces} rebotes; el último sube ${n(prediction.lastApex * CM_PER_M, 1, 'cm')} y el siguiente contacto la deja quieta`
+      ? `$N$ = ${prediction.bounces} rebotes; el último sube ${n(prediction.lastApex * CM_PER_M, 1, 'cm')} y el siguiente contacto la deja quieta`
       : 'los impactos nunca bajan del umbral';
   const pairRow = s.speedDependent
-    ? `e(v) del ajuste ilustrativo, mezclado con el suelo (${n(s.floorE, 3)}) por ${combineName(s.combine)}`
+    ? `$e(v)$ del ajuste ilustrativo, mezclado con el suelo (${n(s.floorE, 3)}) por ${combineName(s.combine)}`
     : `${combineName(s.combine)}(${n(s.e, 3)}; ${n(s.floorE, 3)}) = ${n(pairRestitution(s), 3)}`;
   return (
     <dl data-testid="bounce-summary" className="m-0 flex flex-col gap-2">
-      <Row term="T teórico, $t_0(1+e)/(1-e)$">{idealRow}</Row>
+      <Row term="$T$ teórico, $t_0(1+e)/(1-e)$">{idealRow}</Row>
       <Row term="Motor de juego">{engineRow}</Row>
       <Row term="Umbral con eventos exactos">{predictionRow}</Row>
       <Row term="e del par en el motor">{pairRow}</Row>

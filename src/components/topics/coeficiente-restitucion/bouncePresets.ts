@@ -115,7 +115,7 @@ function ballPreset(
     group: 'realista',
     values: { ...ENGINE_DEFAULTS, e, h0, ball: kind },
     sourceLabel: sourceOf(standard),
-    note: `${standard.standard}; de ahí ${range} (cálculo propio, e = $\\sqrt{h'/h}$ o $v'/v$), y uso ${comma(e, E_DECIMALS)} con $h_0$ = ${comma(h0, 2)} m en el motor con los valores por defecto de Box2D.`,
+    note: `${standard.standard}; de ahí ${range} (cálculo propio, $e = \\sqrt{h'/h}$ o $v'/v$), y uso ${comma(e, E_DECIMALS)} con $h_0$ = ${comma(h0, 2)} m en el motor con los valores por defecto de Box2D.`,
   };
 }
 
@@ -165,11 +165,12 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
     group: 'realista',
     values: { ...ENGINE_DEFAULTS, e: 0.9, h0: DEFAULT_DROP, ball: 'neutra' },
     sourceLabel: BOX2D.source.title,
-    note: 'Paso de 1/60 s con 4 subpasos, umbral de 1 m/s y mezcla máx, los valores por defecto de Box2D v3, con una pelota viva de e = 0,9.',
+    note: 'Paso de 1/60 s con 4 subpasos, umbral de 1 m/s y mezcla máx, los valores por defecto de Box2D v3, con una pelota viva de $e = 0{,}9$.',
   },
   {
     id: 'realista-mejorado',
-    name: 'Realista mejorado: e(v)',
+    name: 'Realista mejorado: $e(v)$',
+    optionLabel: 'Realista mejorado: e(v)',
     group: 'realista',
     values: {
       ...ENGINE_DEFAULTS,
@@ -179,31 +180,34 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       ball: 'tenis',
     },
     sourceLabel: 'Cross (1999), «Dynamic properties of tennis balls», Fig. 8',
-    note: 'e(v) = 0,79 − 0,009·|v|: ajuste lineal ilustrativo (cálculo propio) a la medida de Cross, que baja de $\\approx$ 0,76 a $\\approx$ 0,64 entre 4 y 17 m/s; a baja velocidad e sube, así que la serie de botes pequeños se alarga en vez de cortarse.',
+    note: '$e(v) = 0{,}79 - 0{,}009 \\cdot |v|$: ajuste lineal ilustrativo (cálculo propio) a la medida de Cross, que baja de $\\approx$ 0,76 a $\\approx$ 0,64 entre 4 y 17 m/s; a baja velocidad $e$ sube, así que la serie de botes pequeños se alarga en vez de cortarse.',
   },
   {
     id: 'e-uno',
-    name: 'e = 1 sin umbral',
+    name: '$e = 1$ sin umbral',
+    optionLabel: 'e = 1 sin umbral',
     group: 'se-siente-mal',
     values: { ...ENGINE_DEFAULTS, e: 1, h0: DEFAULT_DROP, threshold: 0, ball: 'neutra' },
     sourceLabel: 'Box2D, documentación: «perfectly elastic»',
-    note: 'Choque perfectamente elástico: la pelota vuelve siempre a $h_0$ y no se detiene nunca, porque E no cambia; ninguna pelota real lo hace.',
+    note: 'Choque perfectamente elástico: la pelota vuelve siempre a $h_0$ y no se detiene nunca, porque $E$ no cambia; ninguna pelota real lo hace.',
   },
   {
     id: 'e-mayor-que-uno',
-    name: 'e = 1,1',
+    name: '$e = 1{,}1$',
+    optionLabel: 'e = 1,1',
     group: 'se-siente-mal',
     values: { ...ENGINE_DEFAULTS, e: GAINING_E, h0: DEFAULT_DROP, ball: 'neutra' },
     sourceLabel: 'Unity, PhysicsMaterial2D.bounciness (permite e > 1 con advertencia)',
-    note: `Con e > 1 cada bote devuelve más energía de la que recibe: E sube un factor e² = ${comma(GAINING_E ** 2, 2)} por bote y la pelota se dispara.`,
+    note: `Con $e > 1$ cada bote devuelve más energía de la que recibe: $E$ sube un factor $e^2$ = ${comma(GAINING_E ** 2, 2)} por bote y la pelota se dispara.`,
   },
   {
     id: 'e-bajo',
-    name: 'e demasiado bajo (0,2)',
+    name: '$e$ demasiado bajo (0,2)',
+    optionLabel: 'e demasiado bajo (0,2)',
     group: 'se-siente-mal',
     values: { ...ENGINE_DEFAULTS, e: LOW_E, h0: dropHeight(TENNIS), ball: 'tenis' },
     sourceLabel: `Cálculo propio: 1 − e² = ${comma(1 - LOW_E ** 2, 2)}`,
-    note: `Una pelota «de tenis» con e = ${comma(LOW_E, 1)} pierde el ${comma((1 - LOW_E ** 2) * PERCENT, 0)} % de su energía en el primer bote: se siente de plomo.`,
+    note: `Una pelota «de tenis» con $e$ = ${comma(LOW_E, 1)} pierde el ${comma((1 - LOW_E ** 2) * PERCENT, 0)} % de su energía en el primer bote: se siente de plomo.`,
   },
   {
     id: 'umbral-unity',
@@ -219,7 +223,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       ball: 'neutra',
     },
     sourceLabel: 'Physics.bounceThreshold de Unity (por defecto, 2)',
-    note: `Tomo de Unity solo el umbral de 2 m/s y la mezcla promedio, los valores por defecto de Unity 3D (el paso, 1/60 s con 4 subpasos, es el fino de Box2D), y le doy al suelo el mismo e = ${comma(UNITY_E, 1)} que a la pelota: con el suelo en 0, el valor por defecto de Unity, el promedio daría ${comma(combineRestitution(UNITY_E, UNITY_DEFAULT_FLOOR, 'average'), 3)}; e quedaría a la mitad y la altura del rebote, a la cuarta parte; tras ${UNITY_STOP} botes, el último de ${comma(UNITY_LAST_APEX_CM, 1)} cm, la pelota se para en seco.`,
+    note: `Tomo de Unity solo el umbral de 2 m/s y la mezcla promedio, los valores por defecto de Unity 3D (el paso, 1/60 s con 4 subpasos, es el fino de Box2D), y le doy al suelo el mismo $e$ = ${comma(UNITY_E, 1)} que a la pelota: con el suelo en 0, el valor por defecto de Unity, el promedio daría ${comma(combineRestitution(UNITY_E, UNITY_DEFAULT_FLOOR, 'average'), 3)}; $e$ quedaría a la mitad y la altura del rebote, a la cuarta parte; tras ${UNITY_STOP} botes, el último de ${comma(UNITY_LAST_APEX_CM, 1)} cm, la pelota se para en seco.`,
   },
   {
     id: 'mezcla',
@@ -234,7 +238,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       ball: 'neutra',
     },
     sourceLabel: 'Box2D, PhysX/Unity, Bullet y Godot (reglas por defecto)',
-    note: `Pelota de 0,85 sobre un suelo al que el motor da 0,5: según la regla, el par queda así sobre un ${mixNote} (cálculo propio); cambia la regla en los ajustes: e es del par, no de cada material.`,
+    note: `Pelota de 0,85 sobre un suelo al que el motor da 0,5: según la regla, el par queda así sobre un ${mixNote} (cálculo propio); cambia la regla en los ajustes: $e$ es del par, no de cada material.`,
   },
   {
     id: 'pocos-fps',
@@ -250,7 +254,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
       ball: 'neutra',
     },
     sourceLabel: 'Catto, Solver2D y GDC 2014: el sesgo de Baumgarte «adds kinetic energy»',
-    note: 'A 1/30 s sin subpasos la pelota se hunde varios centímetros en el piso antes de detectar el contacto, y el sesgo $\\beta$ = 0,2 que la saca le suma velocidad: rebota más alto de lo que e permite (ilustrativo).',
+    note: 'A 1/30 s sin subpasos la pelota se hunde varios centímetros en el piso antes de detectar el contacto, y el sesgo $\\beta$ = 0,2 que la saca le suma velocidad: rebota más alto de lo que $e$ permite (ilustrativo).',
   },
 ];
 

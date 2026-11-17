@@ -134,7 +134,7 @@ describe('BounceFigure', () => {
       expect(lengths).toHaveLength(4);
       expect(new Set(lengths).size).toBe(1);
       expect(screen.getAllByText('6 kg·m/s')).toHaveLength(4);
-      expect(screen.getByText('Momento p')).toBeInTheDocument();
+      expect(screen.getByText(svgText('Momento p'))).toBeInTheDocument();
     });
 
     test('the kinetic energy bar shrinks as e falls; the centre-of-mass part never does', () => {
@@ -164,7 +164,7 @@ describe('BounceFigure', () => {
 
       expect(svg).toHaveAttribute('data-layout', 'narrow');
       expect(width).toBe(260);
-      expect(screen.getAllByText('p = 6 kg·m/s')).toHaveLength(4);
+      expect(screen.getAllByText(svgText('p = 6 kg·m/s'))).toHaveLength(4);
       for (const text of container.querySelectorAll<SVGTextElement>('text')) {
         const half = textWidth(text.textContent ?? '', 11) / 2;
         const x = Number(text.getAttribute('x'));

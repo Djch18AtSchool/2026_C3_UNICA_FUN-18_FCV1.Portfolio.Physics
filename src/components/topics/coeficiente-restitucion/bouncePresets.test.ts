@@ -54,7 +54,7 @@ describe('BOUNCE_PRESETS', () => {
   test('the Unity threshold preset keeps its figures', () => {
     const { note } = presetById('umbral-unity');
 
-    expect(note).toMatch(/e quedaría a la mitad y la altura del rebote, a la cuarta parte/);
+    expect(note).toMatch(/\$e\$ quedaría a la mitad y la altura del rebote, a la cuarta parte/);
     expect(note).toMatch(/0,450/);
     expect(note).toMatch(/tras 8 botes, el último de 18,5\scm/);
   });
@@ -68,7 +68,9 @@ describe('BOUNCE_PRESETS', () => {
 
   test('the lab opens on the ITF tennis ball, and the e(v) fit is the one the note states', () => {
     expect(DEFAULT_PRESET_ID).toBe('tenis-itf');
-    expect(presetById('realista-mejorado').note).toContain('e(v) = 0,79 − 0,009·|v|');
+    expect(presetById('realista-mejorado').note).toContain(
+      String.raw`$e(v) = 0{,}79 - 0{,}009 \cdot |v|$`,
+    );
     expect(SPEED_FIT).toEqual({ e0: 0.79, k: 0.009 });
   });
 

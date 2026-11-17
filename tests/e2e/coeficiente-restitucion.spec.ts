@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import {
   hydrateAllIslands,
+  mathSource,
   readoutText as readReadout,
   seekTimeline,
   setRange,
@@ -35,7 +36,7 @@ const FIBA_E = 0.767;
 
 const E_SLIDER = 'Coeficiente de restitución e';
 /** The readout labels as written (their formulas, $\sqrt{h_1/h_0}$ and $h_1$, are KaTeX). */
-const MEASURED_E = String.raw`e medido $\sqrt{h_1/h_0}$ (motor)`;
+const MEASURED_E = String.raw`$e$ medido $\sqrt{h_1/h_0}$ (motor)`;
 const FIRST_REBOUND = String.raw`Primer rebote $h_1$ (motor)`;
 /** The ITF drop the lab opens on (h_0 = 2,54 m). */
 const ITF_DROP_M = 2.54;
@@ -163,10 +164,12 @@ test.describe('laboratorio', () => {
       .selectOption('umbral-unity');
 
     await expect(page.getByRole('slider', { name: E_SLIDER, exact: true })).toHaveValue('0.9');
-    await expect(page.getByTestId('preset-note')).toContainText(
-      'e quedaría a la mitad y la altura del rebote, a la cuarta parte',
-    );
-    await expect(page.getByTestId('bounce-summary')).toContainText('N = 8 rebotes');
+    await expect
+      .poll(() => mathSource(page.getByTestId('preset-note')))
+      .toContain('$e$ quedaría a la mitad y la altura del rebote, a la cuarta parte');
+    await expect
+      .poll(() => mathSource(page.getByTestId('bounce-summary')))
+      .toContain('$N$ = 8 rebotes');
     await expect(page.getByTestId('bounce-summary')).toContainText('18,5 cm');
   });
 

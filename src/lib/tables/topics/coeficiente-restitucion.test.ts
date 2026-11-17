@@ -75,7 +75,7 @@ describe('coeficiente-restitucion tables', () => {
         for (const source of ball.sources) expect(table.source.text).toContain(source.authors);
       }
       expect(table.source.text).toContain(
-        String.raw`Los rangos de e de las normas y el 0,49 del béisbol son cálculo propio, con $e = \sqrt{h'/h}$ y $e = v_2/v_1$; el 0,86 de la superbola y el 0 de la plastilina son de Cross.`,
+        String.raw`Los rangos de $e$ de las normas y el 0,49 del béisbol son cálculo propio, con $e = \sqrt{h'/h}$ y $e = v_2/v_1$; el 0,86 de la superbola y el 0 de la plastilina son de Cross.`,
       );
       expect(table.source.text).not.toContain('Los valores de e son cálculo propio');
     });
@@ -86,7 +86,7 @@ describe('coeficiente-restitucion tables', () => {
       expect(markdown).toContain('| Tenis (ITF, tipo 2) |');
       expect(markdown).toContain('| 254 |');
       expect(markdown).toContain('Caída (cm)');
-      expect(markdown).toContain('| e calculado |');
+      expect(markdown).toContain('| $e$ calculado |');
     });
   });
 

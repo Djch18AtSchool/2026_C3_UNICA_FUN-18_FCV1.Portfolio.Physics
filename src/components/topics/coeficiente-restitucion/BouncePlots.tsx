@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
 import type { FrameStore } from '../../lab/frameStore';
+import InlineMath from '../../lab/InlineMath';
 import SvgPlot, { type OverlayScales, type PlotSeries } from '../../lab/SvgPlot';
 import type { BounceModel, EnergyGain } from './bounceScene';
 
@@ -107,7 +108,7 @@ export default function BouncePlots({
   return (
     <div className="flex flex-col gap-4">
       <SvgPlot
-        title="Altura de las pelotas, y(t)"
+        title="Altura de las pelotas, $y(t)$"
         xLabel="$t$"
         xUnit="s"
         yLabel="$y$"
@@ -135,7 +136,9 @@ export default function BouncePlots({
         {model.gains.length > 0 ? (
           <>
             <GainKey />
-            {` Botes en que el motor gana energía: ${rises} por encima del vuelo anterior (e > 1) y ${excess} por encima de lo que e permite (sesgo de Baumgarte). `}
+            <InlineMath
+              text={` Botes en que el motor gana energía: ${rises} por encima del vuelo anterior ($e > 1$) y ${excess} por encima de lo que $e$ permite (sesgo de Baumgarte). `}
+            />
           </>
         ) : null}
         Cada escalón de la física ideal deja una fracción e² de la energía: pierde 1 − e² por bote.

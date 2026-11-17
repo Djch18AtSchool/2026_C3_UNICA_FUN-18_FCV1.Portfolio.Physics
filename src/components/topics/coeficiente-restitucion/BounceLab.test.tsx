@@ -97,12 +97,12 @@ describe('BounceLab', () => {
   test('moving e changes the engine ball’s next apex and the measured e', () => {
     renderLab();
     const apexBefore = numberOf(readout('Primer rebote $h_1$ (motor)'));
-    const measuredBefore = numberOf(readout(String.raw`e medido $\sqrt{h_1/h_0}$ (motor)`));
+    const measuredBefore = numberOf(readout(String.raw`$e$ medido $\sqrt{h_1/h_0}$ (motor)`));
 
     fireEvent.change(eRange(), { target: { value: '0.5' } });
 
     const apexAfter = numberOf(readout('Primer rebote $h_1$ (motor)'));
-    const measuredAfter = numberOf(readout(String.raw`e medido $\sqrt{h_1/h_0}$ (motor)`));
+    const measuredAfter = numberOf(readout(String.raw`$e$ medido $\sqrt{h_1/h_0}$ (motor)`));
     expect(apexAfter).toBeLessThan(apexBefore);
     // h₁ ≈ e² h₀ = 0,25 · 2,54 m, a little less from the step's gravity.
     expect(apexAfter).toBeGreaterThan(0.6);
@@ -222,7 +222,7 @@ describe('BounceLab', () => {
     for (const e of ['0', '0,5', '1']) {
       await user.clear(eField);
       await user.type(eField, `${e}{Enter}`);
-      expect(readout('p antes'), e).toBe(readout('p después'));
+      expect(readout('$p$ antes'), e).toBe(readout('$p$ después'));
     }
     // e = 1: no kinetic energy lost; ΔK/K_rel = 1 − e² = 0.
     expect(readout(String.raw`$\Delta K$ perdida`)).toBe('0,00 J');
@@ -354,12 +354,12 @@ describe('BounceLab', () => {
       /con el suelo en 0, el valor por defecto de Unity, el promedio daría 0,450/,
     );
     // e halves, so the rebound height (e² h₀) falls to a quarter, not to a half (ruling R27).
-    expect(note).toHaveTextContent(
-      /e quedaría a la mitad y la altura del rebote, a la cuarta parte/,
+    expect(mathSourceText(note)).toMatch(
+      /\$e\$ quedaría a la mitad y la altura del rebote, a la cuarta parte/,
     );
     expect(note).not.toHaveTextContent(/rebotaría la mitad/);
     // The stop is the kernel's: 8 rebounds, the last 18,5 cm, as on the page; one colon only.
-    expect(note).toHaveTextContent(/daría 0,450; e quedaría/);
+    expect(mathSourceText(note)).toMatch(/daría 0,450; \$e\$ quedaría/);
     expect(note).toHaveTextContent(/el último de 18,5 cm/);
   });
 
@@ -442,7 +442,9 @@ describe('BounceLab', () => {
     expect(screen.getByTestId('energy-plot').querySelector('[data-gain]')).not.toBeNull();
     expect(ball('engine')).toHaveAttribute('data-clamped', 'below');
     expect(screen.getByTestId('scene-notes')).toHaveTextContent(/penetración/);
-    expect(numberOf(readout(String.raw`e medido $\sqrt{h_1/h_0}$ (motor)`))).toBeGreaterThan(0.75);
+    expect(numberOf(readout(String.raw`$e$ medido $\sqrt{h_1/h_0}$ (motor)`))).toBeGreaterThan(
+      0.75,
+    );
   });
 
   test('"Choque de reglas de combinación" shows the pair e the engine uses', async () => {

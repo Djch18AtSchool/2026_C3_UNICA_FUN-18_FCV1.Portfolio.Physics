@@ -63,7 +63,7 @@ function sourceList(sources: readonly Source[]): string {
  * Which e are ours: the drop-test ranges ($\sqrt{h'/h}$) and the baseball's $v_2/v_1$ from Cross's Table I;
  * the superball's 0,86 and the plasticine's 0 are printed by Cross himself (research §3.4, §4).
  */
-const OWN_CALCULATION = `Los rangos de e de las normas y el ${restitutionCell(ballStandardById('beisbol'))} del béisbol son cálculo propio, con $e = \\sqrt{h'/h}$ y $e = v_2/v_1$; el ${restitutionCell(ballStandardById('superbola'))} de la superbola y el ${restitutionCell(ballStandardById('plastilina'))} de la plastilina son de Cross.`;
+const OWN_CALCULATION = `Los rangos de $e$ de las normas y el ${restitutionCell(ballStandardById('beisbol'))} del béisbol son cálculo propio, con $e = \\sqrt{h'/h}$ y $e = v_2/v_1$; el ${restitutionCell(ballStandardById('superbola'))} de la superbola y el ${restitutionCell(ballStandardById('plastilina'))} de la plastilina son de Cross.`;
 
 const PELOTAS: DataTableSpec = {
   id: 'coeficiente-restitucion-pelotas',
@@ -75,7 +75,7 @@ const PELOTAS: DataTableSpec = {
     { key: 'caida', label: 'Caída', unit: 'cm', align: 'num', precision: 0 },
     // Ranges written by centimetres and restitutionCell: right-aligned and unbroken as every number.
     { key: 'rebote', label: 'Rebote admitido', unit: 'cm', align: 'num', precision: 1 },
-    { key: 'e', label: 'e calculado', align: 'num', precision: 3 },
+    { key: 'e', label: '$e$ calculado', align: 'num', precision: 3 },
   ],
   rows: BALL_STANDARDS.map(ballRow),
   source: {
@@ -127,7 +127,7 @@ const DERIVED_THRESHOLDS = `El ${thresholdOf('Box2D v3')} m/s de Box2D (1.0f × 
 const MOTORES: DataTableSpec = {
   id: 'coeficiente-restitucion-motores',
   caption:
-    'Umbral de restitución y regla de mezcla por defecto de siete motores de física: por debajo del umbral el choque no rebota, y la regla combina el e de los dos materiales ($e_1$, $e_2$).',
+    'Umbral de restitución y regla de mezcla por defecto de siete motores de física: por debajo del umbral el choque no rebota, y la regla combina el $e$ de los dos materiales ($e_1$, $e_2$).',
   columns: [
     { key: 'motor', label: 'Motor', align: 'text' },
     { key: 'umbral', label: 'Umbral', unit: 'm/s', align: 'num', precision: 1 },

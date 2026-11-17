@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type JSX, type KeyboardEvent
 import { formatNumber } from '../../../lib/format';
 import { G_EARTH } from '../../../lib/physics';
 import ChoiceField from '../../lab/ChoiceField';
+import InlineMath from '../../lab/InlineMath';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
@@ -46,7 +47,7 @@ import {
 
 const g = G_EARTH;
 /** «Cómo se usa»: the drag and where the engine is set, then the keys that work in both modes. */
-const DRAG_HINT = String.raw`Arrastra la manija $h_0$ de la escena, o enfócala y muévela con las flechas (5 cm; con Mayús, 25 cm). El motor ($\Delta t$, subpasos, umbral, regla de combinación, e del suelo, Baumgarte y e(v)) se ajusta en el engranaje.`;
+const DRAG_HINT = String.raw`Arrastra la manija $h_0$ de la escena, o enfócala y muévela con las flechas (5 cm; con Mayús, 25 cm). El motor ($\Delta t$, subpasos, umbral, regla de combinación, $e$ del suelo, Baumgarte y $e(v)$) se ajusta en el engranaje.`;
 const SHORTCUTS_HINT = String.raw`Atajos, fuera de los campos: Espacio o K reproduce y pausa; R reinicia; «,» y «.» retroceden o avanzan un paso $\Delta t$ del motor.`;
 /** Thousandths, so the FIBA (0,767) and FIFA (0,851) centres sit on the grid. */
 const E_STEP = 0.001;
@@ -184,7 +185,7 @@ export default function BounceLab({ usage, leftOut }: BounceLabProps): JSX.Eleme
     { id: 'h1', label: 'Primer rebote $h_1$ (motor)', value: firstRebound(model.run), unit: 'm' },
     {
       id: 'measured',
-      label: String.raw`e medido $\sqrt{h_1/h_0}$ (motor)`,
+      label: String.raw`$e$ medido $\sqrt{h_1/h_0}$ (motor)`,
       value: measuredRestitution(model.run),
       unit: '',
       precision: MEASURED_PRECISION,
@@ -216,7 +217,9 @@ export default function BounceLab({ usage, leftOut }: BounceLabProps): JSX.Eleme
     <>
       {settings.speedDependent ? (
         <p data-testid="speed-fit" className="m-0 text-sm">
-          {`e(v) = ${formatNumber(SPEED_FIT.e0, { precision: 2 })} − ${formatNumber(SPEED_FIT.k, { precision: 3 })}·|v| (s/m), recortado a [0, 1]: ajuste ilustrativo a Cross (1999). Desactívalo en los ajustes para volver a un e fijo.`}
+          <InlineMath
+            text={`$e(v)$ = ${formatNumber(SPEED_FIT.e0, { precision: 2 })} − ${formatNumber(SPEED_FIT.k, { precision: 3 })}·$|v|$ (s/m), recortado a [0, 1]: ajuste ilustrativo a Cross (1999). Desactívalo en los ajustes para volver a un $e$ fijo.`}
+          />
         </p>
       ) : (
         <div className="flex flex-col gap-1">

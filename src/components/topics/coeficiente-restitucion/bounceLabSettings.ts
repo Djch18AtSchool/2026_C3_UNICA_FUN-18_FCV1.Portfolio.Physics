@@ -87,11 +87,11 @@ function engineOptions(
         if (isRule(value)) onSettingsChange({ combine: value });
       },
     },
-    range('floorE', 'e del material del suelo', COEFFICIENT_STEP),
+    range('floorE', '$e$ del material del suelo', COEFFICIENT_STEP),
     range('baumgarte', 'Corrección de Baumgarte $\\beta$', COEFFICIENT_STEP),
     {
       key: 'speedDependent',
-      label: 'e(v) = 0,79 − 0,009·|v| (ajuste ilustrativo)',
+      label: '$e(v) = 0{,}79 - 0{,}009 \\cdot |v|$ (ajuste ilustrativo)',
       kind: 'toggle',
       value: settings.speedDependent,
       onChange: (speedDependent) => onSettingsChange({ speedDependent }),
