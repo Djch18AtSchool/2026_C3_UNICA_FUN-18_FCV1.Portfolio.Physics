@@ -7,7 +7,12 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
 
 ## Estado
 
-- **Publicado:** `origin/main` = `c9a773d` (Avance 2 con la fase A de la auditoría), integrado
+- **Hoy (17 de noviembre de 2026; detalle en «Fase E», apartado 1):** publicado `origin/main` = `main` = `5ff337e`
+  (las fases B, C y D, integradas el 13 de noviembre; CI y Pages en verde). La **fase E** (cascarón de una columna,
+  tipografía de los símbolos, barrido de letras y los arreglos de su revisión final) está en la rama local
+  `fase-e-laboratorio`, **sin empujar ni integrar**: Dylan decide cuándo, y ningún push a `main` sin su permiso
+  explícito. Para la Entrega Final, «Fase E», apartado 7.
+- **Publicado (historia):** `origin/main` = `c9a773d` (Avance 2 con la fase A de la auditoría), integrado
   con avance rápido el 31 de octubre a las 02:34 UTC por indicación de Dylan («sube el código que
   tenemos»); el despliegue a GitHub Pages terminó en verde y las nueve páginas de tema y la
   portada responden 200. La rama local `main` ya apunta al mismo commit. Lo publicado antes
@@ -27,11 +32,11 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
   decisiones (FC-R1 a FC-R45), cambios visibles, decisiones abiertas (27 a 39) y notas para la
   fase D en la sección «Fase C cerrada».
 - **Fase D cerrada en `fase-d`** (`8d91641`, 13 de noviembre de 2026, 09:15 UTC−6; 122 commits sobre
-  `ac48150`, sin empujar): zoom y desplazamiento compartidos con barra de escala en los Temas 1, 2, 3, 8 y 9,
+  `ac48150`; con los arreglos finales, integrada en `main` como `5ff337e` el mismo día y publicada): zoom y desplazamiento compartidos con barra de escala en los Temas 1, 2, 3, 8 y 9,
   anillos de Saturno a escala radial, modo «Conducir» del Tema 6 y microinteracciones. Resumen, decisiones
   (FD-R1 a FD-R38), contratos, textos nuevos para Dylan, decisiones abiertas (40 a 69) y deudas en la sección
-  «Fase D cerrada». Falta la puerta del controlador, las revisiones finales de la rama, el CI y
-  `git push origin fase-d:main` (FD-R2).
+  «Fase D cerrada». Puerta del controlador, revisiones finales, CI y despliegue hechos (`5ff337e`).
+- **Fase E sin publicar en `fase-e-laboratorio`** (desde `5ff337e`): ver «Fase E».
 - **Contenido del Avance 2** (rama `avance-2`, ya en `main`). Reúne:
   - **Temas 6 a 9**, con el formato del Avance 1 (cuatro `Step` con ecuación numerada y `Why`,
     `UseCase`, `Callout` de clase, `Connections`, `Sources`), su recurso prescrito con insignia
@@ -103,12 +108,14 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
 | Anillos de Saturno (datos y fuente) | `src/lib/data/planets.ts`, `src/components/topics/asistencia-gravitatoria/planetRings.ts`; `docs/superpowers/research/2026-10-30-asistencia-gravitatoria.md` §10 |
 | Modo «Conducir» del Tema 6 | `src/lib/physics/regenDrive.ts`, `src/components/topics/frenado-regenerativo/{driveRun,driveViews,driveText,useDriveSession}.ts`, `DrivePedals.tsx`, `DriveCanvas.tsx` |
 | Microinteracciones (fundido de preajuste, realce de leyenda, asideros) | `src/components/lab/presetTransition.ts`, `src/components/charts/seriesHighlight.tsx`, `src/components/lab/OverlayMarks.tsx`; `README.md`, «Microinteracciones» |
+| Regla tipográfica de la fase E (una letra, «Plex Symbols», `$…$` también en SVG) y sus guardias | `src/styles/math.css`, `src/lib/typography.ts`, `src/lib/looseSymbols.ts`, `tests/e2e/glyphs.spec.ts` y `glyphKit.ts`, `src/content/looseSymbols.test.ts`; `README.md`, «Notación matemática» |
+| Textos de la fase E para Dylan (archivo:línea, antes → después) y propuestas de «menos texto» (E4) | `docs/superpowers/review/2026-11-17-textos-fase-e.md`, `docs/superpowers/review/2026-11-17-E4-propuestas-menos-texto.md` |
 
 **No está en git (solo local):**
 
 - `.reference/class-material/`: material del curso. Para el Avance 2 se extrajo el Módulo 4,
   Gravitación (`04-gravitacion.md`), y `00-indice.md` registra la cobertura de los Temas 6 a 9.
-- `.superpowers/sdd/2026-10-31-fases-b-c-d/`: el libro de las fases B, C y D (`progress.md`,
+- `.superpowers/sdd/2026-10-31-fases-b-c-d/`: el libro de las fases B, C, D y E (`progress.md`,
   rulings FB-R1 a FB-R26, FC-R1 a FC-R45 y FD-R1 a FD-R38), los briefs, los informes `task-*-report.md` y las
   revisiones `review-*-report.md`; las capturas están en `shots/`.
 - `.superpowers/sdd/2026-10-30-avance-2/`: el libro de decisiones (`progress.md`), los briefs,
@@ -214,6 +221,9 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
     Tema 6, «Zoom ×N», «radio a escala (ver barra)», «20 cm de la nave» y «Leyenda: realzar una serie») y
     resolver las decisiones abiertas 40 a 69 de su apartado 5. Son borradores de Claude y no cuentan como
     publicados hasta que Dylan los lea.
+13. **Leer los textos de la fase E y decidir su integración** (sección «Fase E»: los textos en
+    `docs/superpowers/review/2026-11-17-textos-fase-e.md`, las decisiones abiertas 70 a 78 y las propuestas de
+    «menos texto» de E4). La rama `fase-e-laboratorio` no se ha empujado.
 
 ## Decisiones vigentes que condicionan el contenido
 
@@ -562,8 +572,9 @@ Igual que en el Avance 1, con lo aprendido en el Avance 2:
 - **Commits** en inglés con formato convencional (`feat`, `fix`, `refactor`, `docs`, `test`,
   `chore`, `perf`, `ci`), solo con la identidad de Dylan, **sin línea de coautor**.
 - **Ramas:** se trabaja en una rama (`avance-2` para este avance), CI en cada push, y se integra
-  a `main` con avance rápido (`git push origin <rama>:main`) cuando CI está en verde. El push a
-  `main` despliega a GitHub Pages; verificar las páginas vivas después.
+  a `main` con avance rápido (`git push origin <rama>:main`) cuando CI está en verde **y Dylan lo autoriza
+  para ese push** (desde el 13 de noviembre no hay permiso permanente). El push a `main` despliega a GitHub
+  Pages; verificar las páginas vivas después.
 - **Servidor de desarrollo:** Dylan suele tener `pnpm run dev` en el puerto 4321 desde VS Code.
   No matar ese proceso. Las pruebas e2e se corren en otro puerto.
 - **Puerta completa antes de integrar:**
@@ -1764,9 +1775,9 @@ zoom de 40 px y las leyendas.
 
 ### 6. Deudas y notas finales
 
-- **Falta cerrar la fase.** Puerta del controlador sobre el commit final; las dos revisiones finales de toda
-  la rama; el CI y el despliegue tras `git push origin fase-d:main` (FD-R2). Después, la lectura de Dylan de los
-  textos del apartado 4 y la auditoría con Fable que pidió.
+- **Cierre de la fase (hecho el 13 de noviembre).** Puerta del controlador, las dos revisiones finales, los arreglos
+  finales, CI y despliegue: `main` = `5ff337e`. Queda la lectura de Dylan de los textos del apartado 4 y la auditoría
+  con Fable que pidió.
 - **Qué queda abierto de las tres fases.** B (apartado 6 de «Fase B cerrada»): el pulgar nativo de las marcas
   (FB-R20), la banda del tramo en `SvgPlot` (m8) y las seis copias de `usePlotAspect` / `useFigureAspect`;
   `COMPACT_WIDTH = 480` copiado en 10 archivos (C1). C: las decisiones 27 a 39; `--radius-card` y `--icon` sin uso
@@ -1812,17 +1823,8 @@ zoom de 40 px y las leyendas.
   `--maxWorkers=4`. En la fase D los agentes usaron e2e en 4322, 4336 a 4339 y previews entre 4324 y 4330 y,
   las revisiones, entre 4388 y 4402; nunca el 4321. Parar un preview por su PID, no con `pkill -f` (un agente cerró su
   propia sesión así).
-- **Qué hacer si Dylan pide la Entrega Final.** Esperar su consigna. Agregar sus temas a `TOPICS` en
-  `src/consigna.ts` y un MDX completo por tema con el esquema de siempre; una tabla por tema; el cascarón por
-  niveles (`LabShell`); `MathText` e `InlineMath`; la insignia de escala de tiempo; y, **ahora**, decidir para cada
-  lienzo si lleva zoom (`useZoomPan`, `ZoomControls`, barra de escala, ancla y `useRefit`: README, «Reglas para
-  quien migre un laboratorio»), declarar su ancla y su escala física (o decir qué no está a escala, como el
-  Tema 3). Las leyendas de `SvgPlot` y el fundido de preajuste (`LabPresets`) ya son automáticos. Todo longitud
-  nueva en la escala 4/8 (`scale.test.ts`); los `Cómo se usa` con la frase del zoom; las listas de las e2e que
-  enumeran laboratorios (`MIGRATED_LABS` en `lab-shell.spec.ts`, `lab-performance.spec.ts`, `zoom-anchor.spec.ts`,
-  `lab-preset-transition.spec.ts`, `lab-microinteractions.spec.ts`) y los estados de `glyphs.spec.ts`; y
-  `tests/e2e/site-pages.spec.ts` (páginas esperadas y nombres retirados). Leer el material de clase antes de
-  escribir las conexiones.
+- **Qué hacer si Dylan pide la Entrega Final.** Reemplazado por «Fase E», apartado 7 (la lista que había aquí no
+  nombraba el registro de laboratorios, la primera pantalla, el presupuesto de palabras ni la regla tipográfica).
 
 ### 7. Correcciones al texto anterior
 
@@ -1851,35 +1853,233 @@ en el lugar donde estaba:
 - **Lo que no se editó:** la auditoría integral (l. 328–330) conserva las cifras del brief de los anillos (74 490
   y 136 775 km; 3,09 $R_S$); la verdad está en la investigación del Tema 9, §10, y en `planets.ts`.
 
+## Fase E (16 y 17 de noviembre de 2026): laboratorio de una columna y tipografía, sin publicar
+
+**Léelo antes de tocar nada.** Esta sección manda sobre las anteriores donde se contradigan (el cascarón, la letra
+de los símbolos, la lista de la Entrega Final). El libro de la fase está en `.superpowers/sdd/2026-10-31-fases-b-c-d/`
+(`progress.md` desde «## Fase E», los `task-E*-report.md` y `review-*E*-report.md`, las capturas en `shots/E*/`); no
+está en git.
+
+### 1. Estado exacto (17 de noviembre de 2026)
+
+- **Publicado:** `origin/main` = `main` = `fase-d` = `5ff337e` (las fases B, C y D; CI y despliegue en verde el
+  13 de noviembre, 17:14 UTC). Es lo que el profesor ve.
+- **Sin publicar:** la rama local `fase-e-laboratorio`, que sale de `5ff337e` y lleva E1, E3, E5 y E6: 52 commits
+  hasta `3364558` (el último de código de E6), más los de documentación que siguen (`git log --oneline
+  5ff337e..fase-e-laboratorio`). **No tiene remoto ni se ha empujado.** Dylan dijo «main ok» para lo publicado y que **no se empuje a `main` sin su permiso explícito, cada vez** (no hay permiso
+  permanente). Cuándo se integra lo decide él, después de leer los textos (apartado 4) y de su auditoría con Fable.
+- **Puerta:** los implementadores corrieron `check`, `test:cov` y `build` completos y la e2e por tandas de uno o dos
+  trabajadores (la suite entera de una vez deja la máquina sin memoria); la corrida completa sobre el último commit la
+  hace el controlador. Lo último de E6 (sobre `3364558`): `check` 0 errores; 3 402 pruebas unitarias en 239 archivos,
+  99,04 % de sentencias; `build` de 11 páginas; e2e por tandas en verde (glifos 40 + 11, temas 253, zoom y
+  `responsive` 201, `lab-shell` + `a11y` + `lab-controls` + `measures` 352).
+- **Servidor de Dylan:** el 4321 no escuchaba al cerrar E5 ni durante E6 (nadie lo tocó; es su proceso de VS Code).
+- **Worktrees** viejos de las fases C y D figuran como `prunable` en `git worktree list` (sus carpetas ya no existen):
+  `git worktree prune` los limpia sin tocar ramas.
+
+### 2. Qué entregó
+
+- **E1, cascarón de una columna** (decisiones de Dylan del 16 de noviembre sobre las maquetas 2,
+  `.superpowers/sdd/2026-10-31-fases-b-c-d/mocks2-report.md`): una columna a todo el ancho del artículo, **la escena
+  primero** (lienzo de 766 px a 1 280 en los nueve temas, nunca más chico que antes); la **reproducción en una fila**
+  (▶ ↺ «1×▾», línea de tiempo con sus marcas, lectura de $t$ y el par «Evento anterior | Evento siguiente» solo con
+  dos eventos o más; 44 px, 68 con eventos); el **mando compacto** sin caja ni títulos (dos parámetros por fila,
+  `ParamFrame`; el escenario debajo, con «Restablecer» al final de la fila de los preajustes); las gráficas de apoyo
+  en el hueco `charts`, tras las lecturas; **sin fichas** junto al engranaje; **aire en la escala 4/8** (tokens
+  `--lab-flow-*`: 8 · 24 · 24 · 32 · 32 · 48 · 48). Nada se pega a la ventana (el «dock», P4, queda como opción). README,
+  «Laboratorios por niveles» y «Escala de tiempo y eventos».
+- **E3, una sola letra que se lee: IBM Plex Sans.** La fórmula en línea va a 1 em y al peso del texto, con las
+  variables en la cursiva de Plex; valores, ejes, lecturas y rótulos SVG en Plex Sans (no en Mono); los símbolos que
+  Plex no tiene (→ ∞ ≈ ≤ ≥ ⋅ ∫ ⊥ ⊙) salen de **«Plex Symbols»** (KaTeX_Main detrás de Plex en `--font-sans`, con
+  `size-adjust` 116,74 %); la θ cerrada, de «Plex Theta»; Plex Mono solo numera (Figura N.M, (N.M), [n], títulos de
+  panel). Las ecuaciones en bloque siguen en KaTeX. **Todo símbolo se escribe entre `$…$`**, también en un SVG
+  (`MathText`): la mininotación (`V_p`, `vec v`) deja la letra recta y ya no se usa para una variable. Detalle en el
+  README, «Notación matemática»; informe `task-E3-report.md`. **Peso de fuentes**: +≈100 KiB por página al
+  recorrerla (base 150–185 KiB, rama 251–350; portada 84 en ambas), las cursivas 400/500/600 y KaTeX_Main Bold; las
+  mismas URL en caché entre temas.
+- **E4, «menos texto»:** solo propuestas, **nada aplicado**. Copia en el repo:
+  `docs/superpowers/review/2026-11-17-E4-propuestas-menos-texto.md` (A: sin cambio de sentido; B: cambia formato; C:
+  necesita el sí de Dylan). Esperan su decisión.
+- **E5, ronda de arreglos de E1 y E3 y barrido de letras sueltas:** toda letra que nombra una magnitud y quedaba recta
+  en la prosa, los pies, las notas, las tablas y los rótulos va entre `$…$` (248 cambios, ninguna palabra); la ayuda
+  del Tema 6 y la nota de cámara lenta del Tema 7 (dos frases para Dylan); «Modo» del Tema 7 solo en el escenario; el
+  selector «1×▾» de 82 a 70 px; las franjas del zoom de los Temas 3, 8 y 9 dentro de la tarjeta con el texto al 200 %;
+  el transporte del Tema 6 ya no salta en el teléfono. Informe `task-E5-report.md`.
+- **E6, arreglos de la revisión final de la fase** (`review-final-E-report.md`, informe `task-E6-report.md`): el nombre
+  accesible del triángulo de velocidades del Tema 9 vuelve a decir «V sub p» (E3 lo había roto); unas 25 etiquetas de
+  figura y de laboratorio con la variable recta pasan a `$…$` (Temas 1 a 9, lista en el apartado 4); las guardias
+  nuevas del apartado 3; este traspaso.
+
+### 3. Guardias nuevas (lo que hace cumplir la regla)
+
+- **`tests/e2e/glyphs.spec.ts`** (con `glyphKit.ts` y las reglas puras de `src/lib/typography.ts`; sus
+  autocomprobaciones en `glyphGuard.spec.ts`): portada y nueve temas, 1 280 y 360 px, claro y oscuro, cada
+  laboratorio en sus preajustes, sus `EXTRA_STATES` y cada pestaña del cajón. Falla con: un carácter que Plex no
+  dibuja; la notación cruda (`_`, `^`, `$`) en el texto **y, desde E6, en `aria-label`, `aria-valuetext` y `title`**;
+  una fuente fuera de Plex y KaTeX (CDP); KaTeX dibujando lo que Plex tiene; Plex Mono fuera de la numeración; griego
+  en minúscula recto; **desde E6, una variable latina recta**: la de una fórmula en línea (`.mathnormal` de KaTeX) y,
+  en todo `<text>` SVG, una letra latina sola seguida de un subíndice, una relación (=, ≈, ′, <, >…) o una llamada
+  («y(t)»), o un rótulo de una sola letra (salvo los nombres A, B, C y el motor M; `uprightFigureVariables`); y una
+  fórmula en línea a otro tamaño que su texto. Rojo comprobado: con `.mathnormal` y `MathText` en recta, nueve de
+  nueve temas en rojo (2 311 líneas de fórmula y 476 de figura); en la rama, 40 de 40 en verde.
+- **`src/content/looseSymbols.test.ts`** (unitaria, con `src/lib/looseSymbols.ts`): ninguna letra de magnitud suelta
+  en la prosa, pies, notas y tablas del tema ni en los textos de su laboratorio. Desde E6 también lee el texto que un
+  elemento JSX lleva escrito (`<p>…</p>`, un `<text>` SVG, un hijo literal) y marca **cualquier** letra con subíndice
+  o potencia fuera de `$…$` («F_z», «t_h»); sus excepciones se comparan con ±12 caracteres alrededor de la letra.
+  **Necesita** `src/components/topics/<slug>/` y `src/lib/tables/topics/<slug>.ts`: sin ellos falla diciendo cuál
+  falta (antes caía con un ENOENT mudo).
+
+### 4. Textos para que Dylan los lea
+
+Todo junto, con archivo y línea, antes → después: `docs/superpowers/review/2026-11-17-textos-fase-e.md`. Ocho frases
+cambian de palabras (E1 y E5, primero en la lista); el resto (E3: ~240 líneas; E5: 248; E6: ~25) es solo marcado:
+la letra que nombra una magnitud pasa a `$…$` y se dibuja en cursiva. El informe de E3 los resumía por commit; el
+desglose de E3 se reconstruyó del diff de sus commits.
+
+### 5. Decisiones abiertas de Dylan (siguen a la 69)
+
+70. **Selector de velocidad «1×▾»: 70 u 78 px.** A 70 px «0,25×» cabe y la flecha queda a 4 px del «×» (la medida
+    mínima de la escala; capturas `shots/E5/m9-speed-*`); con `pl-2 pr-8` y la flecha a 12 px mide 78 y deja 8 px.
+    Revertir es una clase de `TransportSpeed.tsx`.
+71. **Fórmulas en línea al peso del texto (hoy) o fijas en 400.** Fijas: −74 KiB de media por página (hasta −140 en el
+    Tema 6), pero en un rótulo en 500/600 («Desplazamiento $x$ (mm)») la letra en 400 se ve fina (`shots/E5/d-peso-*`).
+    Cambiarlo son dos líneas (`math.css` y dos `@fontsource` de `BaseLayout.astro`).
+72. **Ecuaciones en bloque en KaTeX (serif) junto a la prosa en Plex Sans.** Es la diferencia más visible que queda de
+    «los símbolos con la letra de la página». En Plex los sombreros de $\hat\imath$ se montan sobre la letra y los
+    superíndices se despegan (ensayo `shots/E3/ensayo-ecuacion-plex-*`). Lo mismo los títulos de panel de los diagramas
+    (Temas 3 y 8) en Plex Mono, que son palabras.
+73. **Dial del Tema 8 a 400 px** dentro del lienzo de 766: tope anterior a la fase B; sin él el cuadrado mediría 766 y
+    el primer control quedaría a ~1 059 px (con 440 cabría por 3 px). Conservarlo o no.
+74. **Tema 3 en la primera pantalla por 4 px** (primer control a 795,9 de 800 a 1 280 × 800, también con barra de
+    desplazamiento clásica). Cualquier cambio de alto lo saca; la caja numérica roza el borde. Opciones: aceptarlo,
+    reducir el área del anillo (440 px) o pasarlo a `SCENE_FILLS_FIRST_SCREEN` (excepción que solo Dylan concede).
+75. **Las propuestas de «menos texto» de E4** (copia en `docs/superpowers/review/2026-11-17-E4-propuestas-menos-texto.md`):
+    cuáles aplicar. Las de tipo C necesitan su sí una por una.
+76. **El «dock» (P4):** fijar la reproducción y los deslizadores al pie de la ventana resolvería el Tema 1 y las ventanas
+    bajas; no lo pidió. Si se hace, reabre la deuda del foco tapado (WCAG 2.4.11).
+77. **`|\Delta r|` y `|\Delta\vec r|` en el Tema 1** (decisión de Claude, E6): conviven «la distancia recorrida frente a
+    $|\Delta r|$» (pie del laboratorio, la gráfica y su leyenda) y «$\Delta\vec r/|\Delta\vec r|$» (`meaning` del vector
+    unitario). Lo dejé así: el tema escribe el módulo de un vector sin flecha en todos lados ($|v|$, $|a|$, $|\Delta r|$)
+    y solo el cociente necesita la flecha, porque su numerador es el vector. Alinear a $|\Delta\vec r|$ son cuatro sitios
+    (`dron-reparto.mdx:248`, `DroneProfiles.tsx:177,181,192`, `droneLabFormulas.ts`) y, por coherencia, también $|v|$ y
+    $|a|$: es texto de tema, lo decide Dylan.
+78. **CLS del Tema 7 con red lenta** (E6, medido): con 150 ms y 1,6 Mb/s, caché fría, a 1 280 × 800, el Tema 7 da
+    **0,215 en la rama y 0,215 en `5ff337e`** (también 0,227/0,226 a 1 280 × 900, 0,077 a 360 y 0,179 a 1 440): no lo
+    causa la fuente nueva, y no reproduje el 0,273 de la revisión. Es el cambio de la letra de reserva a Plex, que vuelve
+    a cortar el título largo. **Un `<link rel="preload">` de `ibm-plex-sans-latin-400-normal` y `-600-normal` lo baja a
+    0,000** (y a 0,000 los Temas 1, 4 y 9, hoy 0,018–0,023), sin descargar nada nuevo: son las dos caras que toda
+    página ya usa. No lo apliqué (el encargo era medir); hacerlo son dos `<link>` en `BaseLayout.astro` con la URL que
+    da `import … from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?url'`.
+
+### 6. Deudas y notas
+
+- **Lo que las guardias no ven** (fallan abiertas: un tema nuevo puede reintroducirlo sin que nada se ponga rojo):
+  - una letra ambigua que sí es magnitud («en $y$», «$v$ y $a$», «la flecha de $a$»), una magnitud que la página no
+    escribe en ninguna fórmula, una letra de figura seguida de una palabra («($z$ apunta hacia ti)»): a mano;
+  - el texto de un `<option>` (solo sus caracteres) y el interlineado;
+  - `glyphs.spec.ts` `EXTRA_STATES`: los estados condicionales de un laboratorio nuevo no se miden si no se añaden;
+  - `lab-microinteractions.spec.ts` `LEGENDS` y `AXIS_LABS`, y los casos de `lab-time-scale.spec.ts` (Temas 3 y 5), son
+    listas a mano;
+  - el contador de las 650 palabras quita las fórmulas: envolver letras en `$…$` libera palabras que el lector sigue
+    leyendo (Tema 7 648 → 629, Tema 2 645 → 629).
+- **Calidad:** `collectInPage` de `glyphKit.ts` ronda las 95 líneas (es una función de página; conviene partirla);
+  `salto-personaje-zoom.spec.ts` tiene 890 líneas (previo).
+- **Pruebas sensibles a la carga** (pasan solas): `zoom-anchor.spec.ts` (Tema 1 a 1 280, ×2,8; Tema 3 «Acercar»),
+  `dron-reparto-zoom.spec.ts:535` (espera de 5 s), las de la fase D (apartado 6 de «Fase D cerrada»).
+- **Los eventos del transporte** («Siguiente: … · t = 397 s») siguen en texto plano: su $t$ es recta.
+
+### 7. Qué hacer si Dylan pide la Entrega Final
+
+Comprobado contra el código el 17 de noviembre de 2026. En orden:
+
+1. **Esperar la consigna** (CLAUDE.md: los temas futuros no existen en el sitio hasta entonces; la Entrega Final es
+   solo la sección con la insignia «Se publica con su consigna»). Preguntar a Dylan si la fase E se integra antes
+   (apartado 1) y si hay decisiones abiertas (apartado 5) que deban cerrarse primero: el tema nuevo hereda lo que esté
+   en la rama.
+2. **Leer el material de clase** (`.reference/class-material/`, fuera de git) antes de redactar, sobre todo las
+   conexiones. Notación de libro: g = 9,81 m/s², coma decimal, normal `n`; colores con significado real (tokens de
+   `src/styles/tokens.css`, con variante oscura y contraste comprobado).
+3. **El registro del tema:** una entrada en `TOPICS` de `src/consigna.ts` (`number`, `slug`, `title`, `phase: 3`).
+   Al publicar la Entrega Final cambian también `tests/e2e/site-pages.spec.ts` (`FUTURE_PHASE_LABELS = ['Entrega
+   Final']` exige la insignia y cero temas en esa sección; «la portada muestra el Avance 2…»; `RETIRED_SLUGS` y
+   `RETIRED_NAMES`, que dicen que un nombre retirado puede volver con esta consigna), `navigation.spec.ts` (la
+   insignia discontinua) y la tabla «Temas» del README.
+4. **El MDX** `src/content/topics/<slug>.mdx` con el esquema de siempre: al menos 3 `Step` y un `Why` por `Step`
+   (`src/content/topics.test.ts`), `Figure`, `DataTable`, `UseCase`, `Callout`, `Connections` (y la conexión
+   recíproca en un tema anterior), `Sources`, `updated`. **Prosa ≤ 650 palabras** (`MAX_PROSE_WORDS` en
+   `topics.test.ts`; el contador quita las fórmulas, apartado 6). Una fuente por número.
+5. **La tabla** `src/lib/tables/topics/<slug>.ts` (registro `src/lib/tables/index.ts`): la única fuente de cada tabla
+   para la página, el tiempo de lectura y «Copiar Markdown». La guardia de letras sueltas la exige.
+6. **El laboratorio** en `src/components/topics/<slug>/`, sobre `LabShell` (README, «Laboratorios por niveles»):
+   - `testId`; `levels.params` (los campos físicos con `ParamField`, dos por fila), `levels.scenario` (modo, vista y
+     `LabPresets`: hasta cuatro fichas, si no un `<select>` con `optionLabel` en texto plano), `levels.display` (las
+     opciones del cajón del engranaje), `readouts`, `charts`, `canvasNotes` (sin controles) y `notes` (`usage`,
+     `leftOut`, del MDX);
+   - **reloj y escala de tiempo** (README, «Escala de tiempo y eventos»): `useSimClock(duración, { timeScale })`,
+     `clock` y `speeds` a `LabShell`, `TimeScaleBadge` en la caja `relative` de la escena (o `factor` si el reloj no
+     cuenta segundos del fenómeno), al menos una vista a 1×; nunca «1×» en un nombre de vista;
+   - **eventos**: `markers` como constante de módulo (`{ t, label, kind? }`, segundos del reloj), y `timeOrigin` o
+     `formatTime` si la lectura no es la del reloj;
+   - **zoom** (README, «Zoom y desplazamiento»): `useZoomPan` con `label`, `fit` y `anchor`; `ZoomControls` y la barra
+     de escala (`ScaleBar`/`ScaleBarSvg`, o la fila de `inlineScaleBarMaxPx`) **fuera** del elemento de
+     `viewportProps` si no van sobre el dibujo; `useRefit` en preajustes y «Restablecer»; la frase de los gestos en
+     `notes.usage`; decir qué está a escala y qué no;
+   - **SSR**: el dibujo mide su ancho y reserva su alto (`svgPlotReserve`, alto en CSS o fijo); si el laboratorio carga
+     datos después, un esqueleto con sus fórmulas sembradas (`TexSeed`, como `droneLabFormulas.ts` del Tema 1);
+   - **notación**: todo símbolo entre `$…$` (HTML con `InlineMath`, SVG con `MathText`), nombres accesibles con
+     `mathTextToString` o `mathAriaLabel` (dicen «r sub p»), nunca la mininotación para una variable; en un `<option>`,
+     texto plano;
+   - **medidas** en la escala 4/8 (`src/styles/scale.test.ts`; `pnpm run scale:report` debe dar total 0).
+7. **Los registros de las e2e** (lo que no se añade, no se mide):
+   - `tests/e2e/topicPages.ts`, `LABS`: `labTestId`, `hasClock`, `hasEvents`, `hasZoom`. Falla cerrada:
+     `TOPIC_PAGES` lanza un error si falta la entrada, y `lab-registry.spec.ts` compara cada bandera con el DOM. De
+     ella derivan `CLOCKED_LABS` (`lab-performance`, `measure:labs`), los temas de `glyphs`, `a11y`, `responsive`,
+     `lab-controls`, `lab-shell`, `measures`, `zoom-anchor` y `lab-preset-transition`;
+   - `lab-shell.spec.ts`: `MIGRATED_LABS` (lista a mano, falla cerrada) y la **primera pantalla a 1 280 × 800**: la
+     escena y el primer control caben a la vez bajo la barra del tema de 64 px (736 px de sitio); si no caben, se
+     achica el lienzo o se pide a Dylan entrar en `SCENE_FILLS_FIRST_SCREEN` (hoy solo el Tema 1);
+   - `zoom-anchor.spec.ts`: un caso de ancla por laboratorio con zoom (falla cerrada contra `hasZoom`);
+   - `lab-microinteractions.spec.ts`: `KNOB_LABS` (todos menos los Temas 4 y 6: un laboratorio sin perilla falla y
+     hay que excluirlo), `AXIS_LABS` y `LEGENDS` (a mano, fallan abiertas); `lab-preset-transition.spec.ts`:
+     `PRESET_LABS` (todos menos el Tema 1: uno sin preajustes falla);
+   - `glyphs.spec.ts`: `EXTRA_STATES` (estados que solo aparecen tras una acción; falla abierta) y
+     `LAB_WITHOUT_PRESETS`.
+8. **Guardias que fallan abiertas** (apartado 6): repasar a mano letras ambiguas, rótulos de figura con una letra
+   seguida de palabra, estados condicionales, leyendas y asideros de un eje.
+9. **Textos:** Claude redacta y Dylan revisa antes de que cuenten como publicados; cada frase nueva va a una lista
+   «antes → después» para él.
+10. **Puertos y puerta:** nunca el 4321 (servidor de Dylan); e2e en `E2E_PORT=4322` (o 4336–4339 en worktrees),
+    previews de medición en 4324–4329, paradas por su PID (no `pkill -f`, no `git stash`). La puerta antes de
+    integrar: `pnpm run check && pnpm run test:cov && pnpm run build && E2E_PORT=4322 pnpm run e2e` (cobertura de
+    sentencias ≥ 98 %, archivos nuevos ≥ 80 %). En esta máquina la e2e entera de una vez se queda sin memoria: por
+    tandas con `--workers=1` o `2`, o el controlador en segundo plano. **No empujar a `main` sin el permiso
+    explícito de Dylan** para ese push; tras el push, CI y el despliegue de Pages en verde y las páginas vivas.
+11. **Reglas de Dylan** (CLAUDE.md y «Forma de trabajo acordada»): en español con él; nunca recortar calidad,
+    alcance ni diseño por tiempo; implementación con subagentes y revisión independiente por tarea; commits en
+    inglés convencionales, con su identidad y sin coautor ni atribución.
+12. **Fuentes y comandos:** las fuentes salen de `@fontsource/ibm-plex-sans` (400, 500, 600 y sus cursivas),
+    `@fontsource/ibm-plex-mono` (400, 500) y `katex` (en `BaseLayout.astro`), más las caras «Plex Symbols» y «Plex
+    Theta» de `src/styles/math.css`; un cambio en ellas se regenera con `pnpm run data:fonts`. Comandos: README,
+    «Comandos» (`dev`, `build`, `preview --ignore-lock`, `check`, `test`, `test:cov`, `e2e`, `format`, `data:*`,
+    `measure:labs`, `scale:report`, `scale:prune`).
+
+### 8. Correcciones al texto anterior
+
+- **«Estado»:** la fase D ya no está «sin empujar»: `fase-d` se integró en `main` como `5ff337e` (13 de noviembre) y es
+  lo publicado; se añadió la línea de la fase E.
+- **«Fase D cerrada», apartado 6:** «Falta cerrar la fase» se cumplió (puerta, revisiones finales, CI y despliegue); la
+  lista «Qué hacer si Dylan pide la Entrega Final» queda reemplazada por el apartado 7 de esta sección.
+- **«Forma de trabajo acordada»:** el push a `main` ya no sigue a «CI en verde» sin más: cada push a `main` necesita el
+  permiso explícito de Dylan (13 de noviembre).
+- **«Después del Avance 2»:** las viñetas de E1 y E5 pasaron a esta sección; el estado de la fase D y la lista de la
+  Entrega Final remiten aquí.
+
 ## Después del Avance 2
 
-- **Fase E (laboratorio), en curso en `fase-e-laboratorio`** (desde `5ff337e`): E1 rediseñó el cascarón
-  compartido según las decisiones de Dylan del 16 de noviembre sobre las maquetas 2
-  (`.superpowers/sdd/2026-10-31-fases-b-c-d/mocks2-report.md`, informe en `task-E1-report.md` de esa
-  carpeta). Cambia el contrato de `LabShell` (README, «Laboratorios por niveles» y «Escala de tiempo y
-  eventos»): una columna a todo el ancho de la columna del artículo, la escena primero, la reproducción en
-  una fila con su selector de velocidad («1×▾», prop `speeds`; «Repetir» sigue en el cajón) y el par
-  «Evento anterior | siguiente» solo con dos eventos o más; el mando compacto (dos parámetros por fila,
-  `ParamFrame`) con el escenario debajo y «Restablecer» al final de la fila de los preajustes; las gráficas
-  de apoyo en el hueco nuevo `charts`, tras las lecturas; sin fichas junto al engranaje (`settingChips` y
-  `chip` desaparecen); vista y ciclo (Tema 6), compuesto (Tema 4) y amortiguación (Tema 5) pasan del cajón
-  al nivel 2. Nada se pega a la ventana: `lab-split`, `--lab-transport-room*` y `useFitsInWindow` se fueron.
-  El «dock» (P4) queda como opción documentada, no hecha.
-- **E5 (fase E, ronda de arreglos de E1 y E3)**, informe en `task-E5-report.md` de la misma carpeta: la ayuda del
-  Tema 6 promete «Evento anterior / siguiente» solo en «Ciclo» con dos detenciones o más; el «Modo» del Tema 7 vive solo
-  en el escenario (el cajón en «Choque» queda con «Repetir»); su nota de cámara lenta nombra el selector de velocidad; en
-  el teléfono la línea del evento reserva los 44 px del par (el Tema 6 ya no salta 4 px de «Tramo» a «Ciclo»); el
-  selector «1×▾» mide 70 px (`pl-2 pr-6`, flecha a 8 px); con el texto al 200 % (raíz de 32 px) las franjas del zoom de
-  los Temas 3, 8 y 9 no salen de la tarjeta (punto de corte en rem; ya pasaba en `5ff337e`). **Barrido tipográfico**:
-  toda letra que nombra una magnitud y quedaba recta (prosa, pies, notas de preajuste y de conexión, etiquetas, ejes,
-  tablas) va entre `$…$`, sin cambiar palabras, con una guardia unitaria nueva (`src/content/looseSymbols.test.ts`,
-  README «Notación matemática»). La lista completa de textos tocados, para que Dylan la lea, está en el informe. Las
-  fórmulas conservan el peso del texto (medido y descartado fijarlas en 400: −74 KiB por página, pero la cursiva fina
-  desentona en cabeceras y rótulos en 500/600; capturas en `shots/E5/`).
+- **Fase E (laboratorio y tipografía):** en `fase-e-laboratorio`, sin publicar; todo en la sección «Fase E».
 
-- **Estado de la fase D:** cerrada en `fase-d` (`8d91641`, sin empujar); ver «Fase D cerrada». Falta la
-  puerta del controlador, las revisiones finales de la rama, el CI y `git push origin fase-d:main`
-  (FD-R2); después, la lectura de Dylan de los textos y su auditoría con Fable.
+- **Estado de la fase D:** cerrada e integrada en `main` (`5ff337e`, 13 de noviembre, publicada); ver «Fase D
+  cerrada». Queda la lectura de Dylan de los textos y su auditoría con Fable.
 - **Estado de la fase C:** cerrada e integrada en `main` (`dc5ce55`, y `ac48150` con la documentación); ver
   «Fase C cerrada».
 - **Estado de la fase B:** cerrada e integrada en `main` (B1a, B1b, B2, B3 y B4; `c26520a`, y
@@ -1895,13 +2095,7 @@ en el lugar donde estaba:
   sin Recharts), notación de símbolos sin depender de la fuente de reserva, controles junto al
   lienzo en tres niveles y «legibilidad a 1×» (Temas 6 y 1); C, sistema de medidas (raíz 16 px,
   escala 4/8, radios, separadores, `Why`; hecha e integrada); D, zoom con botones en el lienzo y barra de
-  escala, anillos de Saturno, modo «Conducir» del Tema 6, microinteracciones (hecha en `fase-d`, sin integrar).
+  escala, anillos de Saturno, modo «Conducir» del Tema 6, microinteracciones (hecha e integrada).
   Con la fase D están hechas las tres (cierre en «Fase D cerrada»).
 
-- **Entrega Final:** esperar su consigna. Cuando llegue, agregar sus temas a `TOPICS` en
-  `src/consigna.ts` y un MDX completo por tema, con el mismo esquema (`Step`/`Why`/`Figure`/
-  `DataTable`/`UseCase`/`Callout`/`Connections`/`Sources`), una tabla por tema en
-  `src/lib/tables/topics/`, el cascarón de laboratorio por niveles (`LabShell`), la notación (`MathText`, `InlineMath`) y la
-  insignia de escala de tiempo; leer el material de clase
-  antes de escribir las conexiones y actualizar `tests/e2e/site-pages.spec.ts` (páginas
-  esperadas y nombres retirados).
+- **Entrega Final:** esperar su consigna; los pasos, en «Fase E», apartado 7.
