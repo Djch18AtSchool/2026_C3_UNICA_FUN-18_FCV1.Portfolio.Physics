@@ -117,7 +117,7 @@ export default function WheelPlot({
   );
   // In hours (the disturbance) at the global decimals, as the transport and «Tiempo en órbita».
   const cursorText = (x: number) =>
-    `t = ${formatNumber(x, { precision: isManeuver ? CURSOR_PRECISION : decimals, unit: plot.xUnit })}`;
+    `$t$ = ${formatNumber(x, { precision: isManeuver ? CURSOR_PRECISION : decimals, unit: plot.xUnit })}`;
   const ariaLabel = mathTextToString(
     isManeuver
       ? `L_w respecto de L_máx durante el giro: un triángulo que sube y vuelve a 0 en ${formatNumber(settings.T, { precision: 1, unit: 's' })}, con ±L_máx en rojo.`

@@ -236,7 +236,8 @@ export default function TransportBar({
         <span
           data-transport-time=""
           style={{ minWidth: longestTime }}
-          className="justify-self-end text-right text-sm tabular-nums [grid-area:time]"
+          // «t = …»: the first letter is the time variable, in italic like a formula's letter.
+          className="justify-self-end text-right text-sm tabular-nums [grid-area:time] first-letter:italic"
         >
           {timeText}
         </span>

@@ -114,7 +114,7 @@ export function FieldLines({ c, dial, extent }: SceneGeometry): JSX.Element {
       ))}
       {rows.length > 0 ? (
         <Label at={{ x: extent.width - FIELD_PAD, y: rows[0] }} dx={-4} dy={-8} anchor="end">
-          B
+          {'$B$'}
         </Label>
       ) : null}
     </g>
@@ -143,7 +143,7 @@ function Magnetorquer({
         strokeWidth={1.25}
       />
       <Label at={{ x, y: c.y - half }} dx={8} dy={4}>
-        m
+        {'$m$'}
       </Label>
     </g>
   );
@@ -169,7 +169,7 @@ function Thruster({ c, scale, dumping }: SceneGeometry & { dumping: boolean }): 
       />
       <Arrow from={corner} to={{ x: corner.x, y: corner.y + JET.length }} color={TEXT_COLOR} />
       <Label at={{ x: corner.x, y: corner.y + JET.length }} dx={6} dy={0}>
-        F
+        {'$F$'}
       </Label>
     </g>
   );

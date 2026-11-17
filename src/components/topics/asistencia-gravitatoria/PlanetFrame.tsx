@@ -534,7 +534,7 @@ function PeriapsisHandle({ props, at, label, drag, onKeyDown, onFocus }: HandleP
       </g>
       {label ? (
         <Label at={label.at} dx={0} dy={LABEL_BASELINE_DROP} anchor={label.anchor}>
-          r_p
+          {'$r_p$'}
         </Label>
       ) : null}
     </>

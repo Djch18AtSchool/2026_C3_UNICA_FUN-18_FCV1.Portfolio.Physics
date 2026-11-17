@@ -91,7 +91,7 @@ export default function EnergyBalanceChart({
   const isCompact = width < COMPACT_WIDTH;
   const step = stepAt(steps, t);
   const announcement = useSettledText(readoutSummary(step, energies), ANNOUNCE_DELAY_MS);
-  const label = (x: number) => `t = ${seconds(x)}`;
+  const label = (x: number) => `$t$ = ${seconds(x)}`;
   const topSpeed = Math.max(...drive.samples.map((s) => s.v));
   const totalsText = energies
     .map((e) => `${spokenLabel(e).toLowerCase()} ${kwh(steps[steps.length - 1][e.key])}`)

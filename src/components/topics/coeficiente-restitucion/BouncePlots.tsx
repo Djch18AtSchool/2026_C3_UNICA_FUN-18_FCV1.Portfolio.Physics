@@ -97,7 +97,7 @@ export default function BouncePlots({
     x: t,
     follow: { frame },
     onChange: onSeek,
-    label: (x: number) => `t = ${formatNumber(x, { precision: TIME_PRECISION, unit: 's' })}`,
+    label: (x: number) => `$t$ = ${formatNumber(x, { precision: TIME_PRECISION, unit: 's' })}`,
   };
   const m = (value: number) => formatNumber(value, { precision: decimals, unit: 'm' });
   const peak = (points: { y: number }[]) => Math.max(...points.map((p) => p.y));

@@ -180,7 +180,14 @@ function AxisView(): JSX.Element {
         stroke={TICK_COLOR}
         strokeDasharray="10 3 2 3"
       />
-      <text x={AXIS_X - 8} y={ORIGIN_Y - AXIS_REACH + 6} textAnchor="end" {...textStyle}>
+      {/* The axis is the variable z: italic, as a formula's letter. */}
+      <text
+        x={AXIS_X - 8}
+        y={ORIGIN_Y - AXIS_REACH + 6}
+        textAnchor="end"
+        fontStyle="italic"
+        {...textStyle}
+      >
         z
       </text>
       <Vector

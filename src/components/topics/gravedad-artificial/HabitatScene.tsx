@@ -112,7 +112,7 @@ function OmegaArrow({ c, radius }: { c: Point; radius: number }): JSX.Element {
       />
       <Arrow from={end} to={tip} color={OMEGA_COLOR} />
       <Label at={label} dx={0} dy={4} anchor="middle">
-        ω
+        {'$\\omega$'}
       </Label>
     </g>
   );
@@ -212,15 +212,15 @@ function SpinningParts({
       <HabitatPerson x={c.x} feetY={floorY} height={layout.person} />
       {showVectors ? <Vectors layout={layout} /> : null}
       <UprightLabel at={labels.r} degrees={degrees}>
-        r
+        {'$r$'}
       </UprightLabel>
       {showVectors ? (
         <>
           <UprightLabel at={labels.ac} degrees={degrees}>
-            a_c
+            {'$a_c$'}
           </UprightLabel>
           <UprightLabel at={labels.gap} degrees={degrees}>
-            g_ap
+            {'$g_\\text{ap}$'}
           </UprightLabel>
         </>
       ) : null}

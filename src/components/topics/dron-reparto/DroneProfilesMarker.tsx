@@ -4,6 +4,7 @@
  * with every series read at t, interpolated like the laboratory's readouts. The line takes t from
  * MarkerTimeContext, which crosses the memo boundary; the row gets it as a prop.
  */
+import MathText from '../../lab/MathText';
 import { createContext, useContext, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import {
@@ -51,7 +52,7 @@ export function clampTime(times: readonly number[], t: number): number {
 }
 
 const timeText = (t: number, decimals: number) =>
-  `t = ${formatNumber(t, { precision: decimals, unit: 's' })}`;
+  `$t$ = ${formatNumber(t, { precision: decimals, unit: 's' })}`;
 
 export interface ProfileMarkerProps {
   /** The samples' times (s), ascending. */
@@ -90,19 +91,15 @@ export function ProfileMarker({ times, timeDecimals, x, y }: ProfileMarkerProps)
         strokeWidth={LINE_WIDTH}
         strokeDasharray={LINE_DASH}
       />
-      <text
+      <MathText
+        source={label}
         x={isLeft ? -LABEL_GAP : LABEL_GAP}
         y={px(top + LABEL_BASELINE)}
-        textAnchor={isLeft ? 'end' : 'start'}
+        anchor={isLeft ? 'end' : 'start'}
         fill={TEXT_COLOR}
-        fontFamily={TICK_FONT_FAMILY}
         fontSize={FONT_SIZE}
-        stroke={SURFACE_COLOR}
-        strokeWidth={HALO_WIDTH}
-        paintOrder="stroke"
-      >
-        {label}
-      </text>
+        halo={{ color: SURFACE_COLOR, width: HALO_WIDTH }}
+      />
     </g>
   );
 }
@@ -135,7 +132,8 @@ export function ProfileReading({
     >
       {/* The bare spaces are not laid out by the flex boxes but keep the text content readable. */}
       <div className="flex items-baseline gap-2">
-        <dt className="text-fg-muted">t</dt>{' '}
+        {/* The time variable, in italic like a formula's letter. */}
+        <dt className="text-fg-muted italic">t</dt>{' '}
         <dd className="m-0">{formatNumber(at, { precision: timeDecimals, unit: 's' })}</dd>
       </div>
       {source.series.map((series, k) => (

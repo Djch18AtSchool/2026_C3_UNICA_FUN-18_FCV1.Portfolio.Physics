@@ -308,7 +308,7 @@ function HyperbolaPlot(): JSX.Element {
         {/* Between Jupiter and periapsis there is room for the symbol only; the value goes to the
             bottom-right corner, which the incoming asymptote leaves empty. */}
         <Label at={px({ x: figure.rpRadii / 2, y: 0 })} dx={0} dy={-6} anchor="middle">
-          r_p
+          {'$r_p$'}
         </Label>
         <Label at={{ x: x.range[1], y: y.range[0] }} dx={-8} dy={-10} anchor="end">
           {`$r_p$ = ${formatNumber(figure.rpRadii, { precision: 2 })}\u202f$R_\\mathrm{J}$`}

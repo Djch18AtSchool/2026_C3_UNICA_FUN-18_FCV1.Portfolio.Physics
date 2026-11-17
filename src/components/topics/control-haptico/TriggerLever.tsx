@@ -281,7 +281,7 @@ export default function TriggerLever({
             <g data-vector="fuerza">
               <Arrow from={contact} to={arrowTip} color={PROFILE_COLOR} />
               <Label at={arrowTip} dx={-FORCE_LABEL_GAP} dy={4} anchor="end">
-                F
+                {'$F$'}
               </Label>
             </g>
           ) : null}
