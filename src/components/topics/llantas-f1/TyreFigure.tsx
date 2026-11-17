@@ -72,9 +72,9 @@ function BoxPlot(): JSX.Element {
       <SvgPlot
         aspectRatio={aspectRatio}
         title="Fricción sobre la caja de 10 kg frente a la fuerza aplicada"
-        xLabel="Fuerza aplicada F"
+        xLabel="Fuerza aplicada $F$"
         xUnit="N"
-        yLabel="Fricción f"
+        yLabel="Fricción $f$"
         yUnit="N"
         xDomain={{ min: 0, max: PUSH_MAX }}
         yDomain={BOX_FORCE_DOMAIN}
@@ -207,14 +207,14 @@ function PacejkaFigure(): JSX.Element {
       id: 'pico',
       x: peak.x,
       y: peak.y,
-      label: `Pico: x ≈ ${twoDecimals(peak.x)}; y = ${twoDecimals(peak.y)}`,
+      label: `Pico: $x$ ≈ ${twoDecimals(peak.x)}; $y$ = ${twoDecimals(peak.y)}`,
       anchor: 'start',
     },
     {
       id: 'final',
       x: SLIP_MAX,
       y: atEnd,
-      label: `x = ${SLIP_MAX}: y = ${twoDecimals(atEnd)}`,
+      label: `$x$ = ${SLIP_MAX}: $y$ = ${twoDecimals(atEnd)}`,
       anchor: 'end',
       side: 1,
     },
@@ -224,9 +224,9 @@ function PacejkaFigure(): JSX.Element {
       <SvgPlot
         aspectRatio={aspectRatio}
         title="Fuerza normalizada frente al deslizamiento, Fórmula Mágica con los valores de ejemplo"
-        xLabel="Deslizamiento x"
+        xLabel="Deslizamiento $x$"
         xUnit="adimensional"
-        yLabel="Fuerza y"
+        yLabel="Fuerza $y$"
         yUnit="adimensional"
         xDomain={{ min: 0, max: SLIP_MAX }}
         yDomain={NORMALIZED_FORCE_DOMAIN}

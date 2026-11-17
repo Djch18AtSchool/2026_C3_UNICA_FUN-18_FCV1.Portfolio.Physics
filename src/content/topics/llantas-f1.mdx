@@ -97,7 +97,7 @@ La fricción estática iguala la fuerza aplicada hasta un máximo; al deslizar, 
   latex="\begin{gathered} 0 \le f_s \le \mu_s\, n \\ f_k = \mu_k\, n \end{gathered}"
   symbols={[
     { symbol: '\\mu_s,\\ \\mu_k', meaning: 'coeficientes estático y cinético, adimensionales' },
-    { symbol: 'n', meaning: 'fuerza normal; en clase se escribe N', unit: 'N' },
+    { symbol: 'n', meaning: 'fuerza normal; en clase se escribe $N$', unit: 'N' },
   ]}
 />
 
@@ -111,7 +111,7 @@ Arrancar exige romper los contactos entre las asperezas de las superficies; al d
 
 <Fragment slot="ecuacion">
 
-En clase, $n$ fija cuánto se traban las superficies y $\mu$ solo depende de los materiales: la (4.1) es lineal y duplicar n duplica el agarre.
+En clase, $n$ fija cuánto se traban las superficies y $\mu$ solo depende de los materiales: la (4.1) es lineal y duplicar $n$ duplica el agarre.
 
 </Fragment>
 
@@ -120,7 +120,7 @@ En clase, $n$ fija cuánto se traban las superficies y $\mu$ solo depende de los
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Fricción sobre la caja de 10 kg de clase frente a la fuerza horizontal aplicada, con $\mu_s$ = 0,40, $\mu_k$ = 0,30 y n = m g = 98,1 N (g = 9,81 m/s²). La fricción estática iguala el empuje hasta $f_{s,\text{máx}}$ = 0,40 · 98,1 N = 39,2 N; entonces la caja arranca y la fricción baja a $f_k$ = 0,30 · 98,1 N = 29,4 N."
+  caption="Fricción sobre la caja de 10 kg de clase frente a la fuerza horizontal aplicada, con $\mu_s$ = 0,40, $\mu_k$ = 0,30 y $n = mg = 98{,}1$ N ($g = 9{,}81$ m/s²). La fricción estática iguala el empuje hasta $f_{s,\text{máx}}$ = 0,40 · 98,1 N = 39,2 N; entonces la caja arranca y la fricción baja a $f_k$ = 0,30 · 98,1 N = 29,4 N."
   source={{
     text: 'Gráfica del autor con la ecuación (4.1); ejemplo de la caja del Módulo 2 (Tema 02, concepto 02) y modelo de fricción de Serway y Jewett (2018), fuente 7',
   }}
@@ -192,7 +192,7 @@ El agarre también depende de la temperatura de la banda. En la tabla de Autospo
     },
     { symbol: 'T', meaning: 'temperatura de la banda de rodadura', unit: '°C' },
     { symbol: 'T_\\text{ópt}', meaning: 'temperatura óptima', unit: '°C' },
-    { symbol: '\\Delta T', meaning: 'diferencia entre T y la temperatura óptima', unit: '°C' },
+    { symbol: '\\Delta T', meaning: 'diferencia entre $T$ y la temperatura óptima', unit: '°C' },
     { symbol: 'w_\\text{frío}', meaning: 'ancho de la campana por debajo del óptimo', unit: '°C' },
     {
       symbol: 'w_\\text{caliente}',
@@ -247,7 +247,7 @@ Un simulador reúne los dos efectos. Para la fuerza frente al deslizamiento, la 
         'rigidez, forma, pico y curvatura, constantes de ajuste; de ejemplo, 10; 1,9; 1 y 0,97, valores típicos para fuerza longitudinal en asfalto seco, ilustrativos',
     },
     { symbol: 'x', meaning: 'deslizamiento de la llanta' },
-    { symbol: 'y', meaning: 'fuerza; con D = 1, normalizada: una fracción del pico, no newtons' },
+    { symbol: 'y', meaning: 'fuerza; con $D = 1$, normalizada: una fracción del pico, no newtons' },
     { symbol: '\\varphi', meaning: 'argumento auxiliar, para escribir la fórmula en dos líneas' },
   ]}
 />
@@ -262,7 +262,7 @@ Con poco deslizamiento la huella se deforma y la fuerza crece casi en recta; pas
 
 <Fragment slot="ecuacion">
 
-Con <Equation inline latex="C > 1" />, al crecer x el argumento <Equation inline latex="C\arctan\varphi" /> pasa de <Equation inline latex="\pi/2" /> y el seno decrece: hay un pico, de altura D, que con los valores de Edy <Cite id="edy-magic-formula" sources={frontmatter.sources} /> queda en <Equation inline latex="x \approx 0{,}18" />; B fija la pendiente inicial y E, la curvatura.
+Con <Equation inline latex="C > 1" />, al crecer $x$ el argumento <Equation inline latex="C\arctan\varphi" /> pasa de <Equation inline latex="\pi/2" /> y el seno decrece: hay un pico, de altura $D$, que con los valores de Edy <Cite id="edy-magic-formula" sources={frontmatter.sources} /> queda en <Equation inline latex="x \approx 0{,}18" />; $B$ fija la pendiente inicial y $E$, la curvatura.
 
 </Fragment>
 
@@ -271,9 +271,9 @@ Con <Equation inline latex="C > 1" />, al crecer x el argumento <Equation inline
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Ecuación (4.4) con B = 10, C = 1,9, D = 1 y E = 0,97: la fuerza normalizada crece casi en recta, llega al pico, y = 1, en $x \approx 0{,}18$ y, al seguir deslizando, baja a 0,91 en x = 1."
+  caption="Ecuación (4.4) con $B = 10$, $C = 1{,}9$, $D = 1$ y $E = 0{,}97$: la fuerza normalizada crece casi en recta, llega al pico, $y = 1$, en $x \approx 0{,}18$ y, al seguir deslizando, baja a 0,91 en $x = 1$."
   source={{
-    text: 'Curva calculada por el autor con la ecuación (4.4) y los valores de ejemplo de Edy (2016), fuente 5, típicos para fuerza longitudinal en asfalto seco; ilustrativos (para la lateral, la fuente solo da C = 1,3)',
+    text: 'Curva calculada por el autor con la ecuación (4.4) y los valores de ejemplo de Edy (2016), fuente 5, típicos para fuerza longitudinal en asfalto seco; ilustrativos (para la lateral, la fuente solo da $C = 1{,}3$)',
   }}
 >
   <TyreFigure variant="pacejka" client:visible />
@@ -328,7 +328,7 @@ Se gana comportamiento emergente: el subviraje con llantas frías o la elección
 
 <Callout variant="clase" title="Módulo 2 · Tema 02, conceptos 01 a 03, y Tema 01, concepto 07">
 
-En la caja de 10 kg del Tema 02, con <Equation inline latex="\mu_s = 0{,}40" /> y <Equation inline latex="\mu_k = 0{,}30" />, la clase usa <Equation inline latex="g = 9{,}8\ \text{m/s}^2" /> y <Equation inline latex="N = 98\ \text{N}" />; con <Equation inline latex="9{,}81\ \text{m/s}^2" />, <Equation inline latex="98{,}1\ \text{N}" />: la (4.1), con <Equation inline latex="n = N" />, da los mismos <Equation inline latex="39{,}2\ \text{N}" /> y <Equation inline latex="29{,}4\ \text{N}" />. Las (4.2) a (4.4) son extensiones. El concepto 01 toma $\mu$ «constante como una aproximación del contacto real»; con la (4.2), <Equation inline latex="\beta = 0{,}9" /> y <Equation inline latex="F_{z0} = 98\ \text{N}" />, duplicar N a <Equation inline latex="196\ \text{N}" /> daría <Equation inline latex="73{,}2\ \text{N}" />, no <Equation inline latex="78{,}4\ \text{N}" />. La normal «se calcula previamente a partir del DCL y puede ser diferente de mg», como <Equation inline latex="mg\cos\theta" /> en el plano inclinado; en un auto es la <Equation inline latex="F_z" /> de cada llanta.
+En la caja de 10 kg del Tema 02, con <Equation inline latex="\mu_s = 0{,}40" /> y <Equation inline latex="\mu_k = 0{,}30" />, la clase usa <Equation inline latex="g = 9{,}8\ \text{m/s}^2" /> y <Equation inline latex="N = 98\ \text{N}" />; con <Equation inline latex="9{,}81\ \text{m/s}^2" />, <Equation inline latex="98{,}1\ \text{N}" />: la (4.1), con <Equation inline latex="n = N" />, da los mismos <Equation inline latex="39{,}2\ \text{N}" /> y <Equation inline latex="29{,}4\ \text{N}" />. Las (4.2) a (4.4) son extensiones. El concepto 01 toma $\mu$ «constante como una aproximación del contacto real»; con la (4.2), <Equation inline latex="\beta = 0{,}9" /> y <Equation inline latex="F_{z0} = 98\ \text{N}" />, duplicar $N$ a <Equation inline latex="196\ \text{N}" /> daría <Equation inline latex="73{,}2\ \text{N}" />, no <Equation inline latex="78{,}4\ \text{N}" />. La normal «se calcula previamente a partir del DCL y puede ser diferente de mg», como <Equation inline latex="mg\cos\theta" /> en el plano inclinado; en un auto es la <Equation inline latex="F_z" /> de cada llanta.
 
 </Callout>
 

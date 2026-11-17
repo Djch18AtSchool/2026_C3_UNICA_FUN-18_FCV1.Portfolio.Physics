@@ -46,7 +46,7 @@ describe('TyreFigure', () => {
     expect(strokeOf(container, 'limite')).toBe('var(--chart-2)');
     expect(screen.getByText(svgText('fs,máx = 39,2 N'))).toBeInTheDocument();
     expect(screen.getByText(svgText('fk = 29,4 N'))).toBeInTheDocument();
-    expect(screen.getByText('Fuerza aplicada F (N)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('Fuerza aplicada F (N)'))).toBeInTheDocument();
   });
 
   test('load: the linear and load-sensitive models cross at 4 000 N', () => {
@@ -129,8 +129,8 @@ describe('TyreFigure', () => {
     expect(screen.getByTestId('tyre-figure-pacejka')).toBeInTheDocument();
     expect(strokeOf(container, 'pacejka')).toBe('var(--chart-1)');
     expect(screen.getByText(svgText('Pico: x ≈ 0,18; y = 1,00'))).toBeInTheDocument();
-    expect(screen.getByText('x = 1: y = 0,91')).toBeInTheDocument();
-    expect(screen.getByText('Deslizamiento x (adimensional)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('x = 1: y = 0,91'))).toBeInTheDocument();
+    expect(screen.getByText(svgText('Deslizamiento x (adimensional)'))).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /en x aproximadamente 0,18/ })).toBeInTheDocument();
   });
 
