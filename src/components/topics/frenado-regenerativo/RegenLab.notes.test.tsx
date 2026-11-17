@@ -15,7 +15,6 @@ import {
   renderLab,
   STRETCH_BARS,
   SPEED,
-  lab,
   etaSlider,
   pMaxField,
   presetSelect,
