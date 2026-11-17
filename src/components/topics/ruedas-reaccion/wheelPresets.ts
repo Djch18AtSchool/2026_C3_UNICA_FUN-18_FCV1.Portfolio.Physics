@@ -55,7 +55,7 @@ function slowNote(): string {
 
 function fastestNote(): string {
   const plan = maneuverFeasibility({ ...DEFAULT_SETTINGS, T: FASTEST_T });
-  return `$T_\\text{mín}$ = ${n(FASTEST.byTorque, 1, 's')} por torque y ${n(FASTEST.byMomentum, 1, 's')} por momento: las dos cotas casi coinciden, así que la rueda está bien dimensionada para este 6U, y con T = ${n(FASTEST_T, 1, 's')} el giro pide el ${percent(plan.torqueShare)} de $\\tau_\\text{máx}$ y el ${percent(plan.momentumShare)} de $L_\\text{máx}$.`;
+  return `$T_\\text{mín}$ = ${n(FASTEST.byTorque, 1, 's')} por torque y ${n(FASTEST.byMomentum, 1, 's')} por momento: las dos cotas casi coinciden, así que la rueda está bien dimensionada para este 6U, y con $T$ = ${n(FASTEST_T, 1, 's')} el giro pide el ${percent(plan.torqueShare)} de $\\tau_\\text{máx}$ y el ${percent(plan.momentumShare)} de $L_\\text{máx}$.`;
 }
 
 function disturbanceNote(): string {

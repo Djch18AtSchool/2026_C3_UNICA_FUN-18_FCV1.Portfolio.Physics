@@ -194,7 +194,7 @@ const maniobra: DataTableSpec = {
   caption:
     'Giro de 90° en 60 s, de reposo a reposo, del CubeSat 6U con la RW400. La nave acelera durante 30 s y frena otros 30; la rueda gira al revés y vuelve a 0 rpm al final.',
   columns: [
-    { key: 't', label: 't', unit: 's', align: 'num', precision: 0 },
+    { key: 't', label: '$t$', unit: 's', align: 'num', precision: 0 },
     {
       key: 'omegaS',
       label: String.raw`$\omega_s$ de la nave`,

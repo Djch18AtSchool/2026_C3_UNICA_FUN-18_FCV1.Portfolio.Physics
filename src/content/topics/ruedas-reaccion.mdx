@@ -440,7 +440,7 @@ Como <Equation inline latex="\vec m \times \vec B \perp \vec B" />, la parte de 
   <WheelLab
     client:visible
     usage={`La maniobra corre en tiempo real. La perturbación va a cámara rápida: a 1×, ${DAY_LAPSE / SECONDS_PER_HOUR} h de órbita por segundo, un día en ${SECONDS_PER_DAY / DAY_LAPSE} s; cada descarga, que dura minutos con el magnetopar y segundos con el propulsor, se estira a ${MIN_DUMP_PLAYBACK} s de pantalla.`}
-    leftOut="Resuelve un solo eje; la rueda parte de 0 rpm y no tiene fricción, aunque las ruedas reales evitan pasar por 0 rpm; el gradiente de gravedad es constante en su máximo sobre el eje más desfavorable, una cota; el magnetopar tiene m perpendicular a B, su mejor caso; el torque del propulsor es un supuesto mío, el $\tau_\text{máx}$ de la rueda."
+    leftOut="Resuelve un solo eje; la rueda parte de 0 rpm y no tiene fricción, aunque las ruedas reales evitan pasar por 0 rpm; el gradiente de gravedad es constante en su máximo sobre el eje más desfavorable, una cota; el magnetopar tiene $m$ perpendicular a $B$, su mejor caso; el torque del propulsor es un supuesto mío, el $\tau_\text{máx}$ de la rueda."
   />
 </Figure>
 
@@ -458,7 +458,7 @@ Como <Equation inline latex="\vec m \times \vec B \perp \vec B" />, la parte de 
 
 <Fragment slot="ecuacion">
 
-En 42, L se escribe H. La rueda cumple `W->Hdot = W->Trq` y la nave, `WhlTorq[i]-=S->Whl[j].Trq*S->Whl[j].A[i]` <Cite id="stoneking-42-dynamics" sources={frontmatter.sources} />: la (8.2). Con `if (W->Trq > 0.0 && W->H >= W->Hmax) W->Trq = 0.0;` la rueda llena ya no absorbe, la (8.3), y el magnetopar da <Equation inline latex="\vec\tau = \vec m \times \vec B" /> <Cite id="stoneking-42-actuators" sources={frontmatter.sources} />. El software de vuelo pide `AC->MTB[i].Mcmd = C->Kunl*HxB[i]`, un dipolo proporcional al producto vectorial del exceso <Equation inline latex="(\vec H - \vec H_\text{cmd}) \times \vec B" />: la (8.4) <Cite id="stoneking-42-fsw" sources={frontmatter.sources} />.
+En 42, $L$ se escribe $H$. La rueda cumple `W->Hdot = W->Trq` y la nave, `WhlTorq[i]-=S->Whl[j].Trq*S->Whl[j].A[i]` <Cite id="stoneking-42-dynamics" sources={frontmatter.sources} />: la (8.2). Con `if (W->Trq > 0.0 && W->H >= W->Hmax) W->Trq = 0.0;` la rueda llena ya no absorbe, la (8.3), y el magnetopar da <Equation inline latex="\vec\tau = \vec m \times \vec B" /> <Cite id="stoneking-42-actuators" sources={frontmatter.sources} />. El software de vuelo pide `AC->MTB[i].Mcmd = C->Kunl*HxB[i]`, un dipolo proporcional al producto vectorial del exceso <Equation inline latex="(\vec H - \vec H_\text{cmd}) \times \vec B" />: la (8.4) <Cite id="stoneking-42-fsw" sources={frontmatter.sources} />.
 
 </Fragment>
 
@@ -478,7 +478,7 @@ Se gana apuntar con precisión sin propelente al girar, y prever cuándo descarg
 
 <Callout variant="clase" title="Módulo 3 · Temas 03 y 04, y una extensión">
 
-La (8.2) es la <Equation inline latex="\sum \tau_{\text{ext},z} = I\alpha" /> del Tema 03; la (8.1) y la (8.3), la conservación y el <Equation inline latex="\Delta \vec L = \int \sum \vec\tau_\text{ext}\,dt" /> del Tema 04. En «Acercar dos masas al eje» cambia la I de un solo cuerpo; dos cuerpos acoplados por un motor interno son extensión.
+La (8.2) es la <Equation inline latex="\sum \tau_{\text{ext},z} = I\alpha" /> del Tema 03; la (8.1) y la (8.3), la conservación y el <Equation inline latex="\Delta \vec L = \int \sum \vec\tau_\text{ext}\,dt" /> del Tema 04. En «Acercar dos masas al eje» cambia la $I$ de un solo cuerpo; dos cuerpos acoplados por un motor interno son extensión.
 
 </Callout>
 
