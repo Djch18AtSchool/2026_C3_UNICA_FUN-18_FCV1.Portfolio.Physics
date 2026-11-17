@@ -17,10 +17,6 @@ const scenario = () => screen.getByRole('region', { name: 'Escenario' });
 const canvasNotes = () => document.querySelector('[data-lab-canvas-notes]') as HTMLElement;
 const canvas = () => document.querySelector('[data-lab-canvas]') as HTMLElement;
 const usageNote = () => document.querySelector('details[data-lab-note="usage"]') as HTMLElement;
-const chips = () =>
-  within(screen.getByRole('group', { name: 'Ajustes activos' }))
-    .getAllByRole('button')
-    .map((chip) => chip.getAttribute('aria-label'));
 const collisionMode = () => screen.getByRole('radio', { name: 'Choque de dos cuerpos' });
 const CONTROL = 'a, button, input, select, textarea, summary, [tabindex]';
 
@@ -115,19 +111,19 @@ describe('BounceLab on the tiered shell', () => {
     expect(texts[4]).toBe('$\\beta$ = 0,20');
   });
 
-  test('the canvas is the scene alone; the chips by the gear show 1× and e(v) once it is on', async () => {
+  test('the canvas is the scene alone; no chips by the gear, e(v) in the drawer says itself in the parameters', async () => {
     const user = userEvent.setup();
     render(<BounceLab />);
 
     expect(within(canvas()).getByTestId('bounce-scene')).toBeInTheDocument();
     expect(within(canvas()).queryByTestId('bounce-summary')).toBeNull();
-    expect(chips()).toEqual(['Velocidad 1×']);
+    expect(screen.queryByRole('group', { name: 'Ajustes activos' })).toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
     await user.click(within(screen.getByRole('dialog')).getByRole('switch', { name: /e\(v\)/ }));
     await user.keyboard('{Escape}');
 
-    expect(chips()).toEqual(['e(v)', 'Velocidad 1×']);
+    expect(within(params()).getByTestId('speed-fit')).toBeInTheDocument();
   });
 
   test('«Cómo se usa» has the drag, the keys and the MDX text; in the collision, only the keys', async () => {

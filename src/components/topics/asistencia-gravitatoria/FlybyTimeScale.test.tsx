@@ -23,13 +23,12 @@ const marks = () => [...lab().querySelectorAll('[data-transport-mark]')] as HTML
 const SAID = /^Máxima aproximación: la sonda pasa a /;
 const presetSelect = () => screen.getByRole('combobox', { name: 'Valores de referencia' });
 
+/** The transport's own speed select («1×▾»). */
 async function setSpeed(user: ReturnType<typeof userEvent.setup>, value: string) {
-  await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
   await user.selectOptions(
-    within(screen.getByRole('dialog')).getByRole('combobox', { name: 'Velocidad' }),
+    screen.getByRole('combobox', { name: 'Velocidad de reproducción' }),
     value,
   );
-  await user.keyboard('{Escape}');
 }
 
 describe('the flyby lab: its time scale and its closest approach', () => {
@@ -55,11 +54,15 @@ describe('the flyby lab: its time scale and its closest approach', () => {
       expect(marks()[0].style.getPropertyValue('--mark-at')).toBe('0.5');
     });
 
-    test('«Evento siguiente» from the start lands on it, and the timeline names it', async () => {
-      const user = userEvent.setup();
-      render(<FlybyLab />);
+    test('one event, so no pair: the line under the timeline names it, and the timeline on it says it', () => {
+      const { container } = render(<FlybyLab />);
 
-      await user.click(screen.getByRole('button', { name: 'Evento siguiente' }));
+      // «Ir a la máxima aproximación» is the named way there; the pair would only repeat it.
+      expect(screen.queryByRole('button', { name: 'Evento siguiente' })).toBeNull();
+      expect(container.querySelector('[data-transport-event]')?.textContent).toMatch(
+        /^Siguiente: Máxima aproximación · t = /,
+      );
+      fireEvent.change(timeline(), { target: { value: '500' } });
 
       expect(timeline()).toHaveValue('500');
       expect(timeline().getAttribute('aria-valuetext')).toMatch(/Máxima aproximación$/);

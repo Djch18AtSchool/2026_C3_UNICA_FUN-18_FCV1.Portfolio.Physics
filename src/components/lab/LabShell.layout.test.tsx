@@ -13,21 +13,11 @@ const display = (trail = true): SettingOption[] => [
   {
     key: 'trail',
     label: 'Estela de la sonda',
-    chip: 'estela',
     kind: 'toggle',
     value: trail,
     onChange: () => {},
   },
   { key: 'grid', label: 'Rejilla fina', kind: 'toggle', value: true, onChange: () => {} },
-  {
-    key: 'speed',
-    label: 'Velocidad',
-    chip: 'Velocidad',
-    kind: 'select',
-    value: '1',
-    options: [{ value: '1', label: '1×' }],
-    onChange: () => {},
-  },
 ];
 
 function tieredProps(overrides: Partial<LabShellProps> = {}): LabShellProps {
@@ -88,78 +78,16 @@ describe('LabShell layout: levels, stage and panel', () => {
     expect(lab).toHaveAttribute('data-lab-shell', 'tiered');
   });
 
-  test('beside the gear, a chip per active display setting that declares one', () => {
+  test('the header is one row: the title and the gear, no chips beside it', () => {
     renderTiered();
 
-    const chips = within(screen.getByRole('group', { name: 'Ajustes activos' })).getAllByRole(
-      'button',
-    );
-    expect(chips.map((chip) => chip.textContent)).toEqual(['estela', '1×']);
-    expect(chips.map((chip) => chip.getAttribute('aria-label'))).toEqual([
-      'estela',
-      'Velocidad 1×',
+    const header = gear().parentElement as HTMLElement;
+    expect(header).toHaveClass('flex-nowrap');
+    expect([...header.children].map((node) => node.textContent)).toEqual([
+      'Laboratorio del sobrevuelo',
+      '',
     ]);
-    expectInOrder([screen.getByText('Laboratorio del sobrevuelo'), ...chips, gear()]);
-  });
-
-  test('each chip holds one inline run, so the space after a formula is not dropped', () => {
-    // A chip is a flex box: as separate items, «$k$ 3,5» would lose the space after the formula.
-    const fall: SettingOption = {
-      key: 'fall',
-      label: 'Multiplicador de caída',
-      chip: '$k$',
-      kind: 'range',
-      value: 3.5,
-      min: 1,
-      max: 4,
-      step: 0.5,
-      onChange: () => {},
-    };
-    renderTiered({ levels: { params: null, display: [fall, ...display()] } });
-
-    const chips = within(screen.getByRole('group', { name: 'Ajustes activos' })).getAllByRole(
-      'button',
-    );
-    for (const chip of chips) {
-      expect(chip.childNodes).toHaveLength(1);
-      expect(chip.firstElementChild?.tagName).toBe('SPAN');
-    }
-  });
-
-  test('a toggle switched off leaves the row; the row follows the settings it is given', () => {
-    const { rerender } = renderTiered();
-    expect(screen.getByRole('button', { name: 'estela' })).toBeInTheDocument();
-
-    rerender(<LabShell {...tieredProps({ levels: { params: null, display: display(false) } })} />);
-
-    expect(screen.queryByRole('button', { name: 'estela' })).toBeNull();
-  });
-
-  test('without chips there is no chip group, only the gear', () => {
-    renderTiered({ levels: { params: null, display: [] } });
-
     expect(screen.queryByRole('group', { name: 'Ajustes activos' })).toBeNull();
-    expect(gear()).toBeInTheDocument();
-  });
-
-  test('a chip opens the drawer, and closing it returns focus to that chip', async () => {
-    const user = userEvent.setup();
-    const { container } = renderTiered();
-    const chip = screen.getByRole('button', { name: 'Velocidad 1×' });
-    expect(chip).toHaveAttribute('aria-haspopup', 'dialog');
-    expect(chip).toHaveAttribute('aria-controls', dialogOf(container).id);
-
-    await user.click(chip);
-    expect(dialogOf(container).open).toBe(true);
-    expect(chip).toHaveAttribute('aria-expanded', 'true');
-    expect(gear()).toHaveAttribute('aria-expanded', 'true');
-    expect(
-      within(dialogOf(container)).getByRole('switch', { name: 'Estela de la sonda' }),
-    ).toBeChecked();
-
-    await user.keyboard('{Escape}');
-    expect(dialogOf(container).open).toBe(false);
-    expect(chip).toHaveFocus();
   });
 
   test('the gear still opens the drawer and gets focus back', async () => {

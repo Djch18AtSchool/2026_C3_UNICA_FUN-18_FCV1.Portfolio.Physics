@@ -96,22 +96,21 @@ describe('TyreLab', () => {
     expect(screen.getByTestId('preset-note')).toHaveTextContent(/Fuente: supuesto del modelo/);
   });
 
-  test('beside the gear, a chip with the compound that follows the drawer', async () => {
+  test('the compound is chosen in the scenario, beside the presets; the drawer has nothing of the lab', async () => {
     const user = userEvent.setup();
     renderLab();
-    const chips = () =>
-      within(screen.getByRole('group', { name: 'Ajustes activos' }))
-        .getAllByRole('button')
-        .map((chip) => chip.getAttribute('aria-label'));
-    expect(chips()).toEqual(['Compuesto C3 (105–135 °C)']);
+    const scenario = screen.getByRole('region', { name: 'Escenario' });
+    const compound = within(scenario).getByRole('combobox', { name: 'Compuesto (Pirelli, 2019)' });
+    expect(compound).toHaveValue('C3');
+    expect(screen.queryByRole('group', { name: 'Ajustes activos' })).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: 'Compuesto C3 (105–135 °C)' }));
-    await user.selectOptions(
-      within(screen.getByRole('dialog')).getByRole('combobox', { name: /^Compuesto/ }),
-      'C4',
-    );
+    await user.selectOptions(compound, 'C4');
+    expect(screen.getByText('Ventana de trabajo C4 (2019)')).toBeInTheDocument();
 
-    expect(chips()).toEqual(['Compuesto C4 (90–120 °C)']);
+    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+    expect(
+      within(screen.getByRole('dialog')).queryByRole('combobox', { name: /^Compuesto/ }),
+    ).toBeNull();
   });
 
   test('how to use it says the drag and the keys, not the gear; what the model leaves out waits closed', () => {
@@ -196,9 +195,7 @@ describe('TyreLab', () => {
     renderLab();
     expect(screen.getByText('Ventana de trabajo C3 (2019)')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
-    const dialog = screen.getByRole('dialog');
-    await user.selectOptions(within(dialog).getByRole('combobox', { name: /^Compuesto/ }), 'C4');
+    await user.selectOptions(screen.getByRole('combobox', { name: /^Compuesto/ }), 'C4');
 
     expect(screen.getByText('Ventana de trabajo C4 (2019)')).toBeInTheDocument();
     expect(screen.queryByText('Ventana de trabajo C3 (2019)')).toBeNull();
@@ -279,12 +276,7 @@ describe('TyreLab', () => {
     const { container } = renderLab();
     expect(plexViolations(container)).toEqual([]);
 
-    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
-    await user.selectOptions(
-      within(screen.getByRole('dialog')).getByRole('combobox', { name: /^Compuesto/ }),
-      'C4',
-    );
-    await user.keyboard('{Escape}');
+    await user.selectOptions(screen.getByRole('combobox', { name: /^Compuesto/ }), 'C4');
     for (const preset of [/^Llanta fría/, /^Carga ligera/]) {
       await user.click(screen.getByRole('button', { name: preset }));
       expect(plexViolations(container)).toEqual([]);
@@ -294,12 +286,7 @@ describe('TyreLab', () => {
   test('Restablecer returns to 120 °C, 4 000 N and C3', async () => {
     const user = userEvent.setup();
     renderLab();
-    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
-    await user.selectOptions(
-      within(screen.getByRole('dialog')).getByRole('combobox', { name: /^Compuesto/ }),
-      'C4',
-    );
-    await user.keyboard('{Escape}');
+    await user.selectOptions(screen.getByRole('combobox', { name: /^Compuesto/ }), 'C4');
     loadCursor().focus();
     await user.keyboard('{End}');
 

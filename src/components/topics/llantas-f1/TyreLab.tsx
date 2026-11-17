@@ -4,7 +4,7 @@ import { formatNumber } from '../../../lib/format';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
-import type { SettingOption } from '../../lab/SettingsDrawer';
+import { SelectField } from '../../lab/SettingsFields';
 import SvgPlot, { STAGE_PLOT_ASPECT } from '../../lab/SvgPlot';
 import { mathTextToString } from '../../../lib/mathNotation';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
@@ -34,6 +34,8 @@ import {
   temperaturePlot,
 } from './tyrePlots';
 
+/** The drawer holds only the global settings: the compound is part of the scenario. */
+const NO_DISPLAY: [] = [];
 /** Forces read in whole newtons; the global decimals would print 11 942,90 N. */
 const FORCE_PRECISION = 0;
 
@@ -42,7 +44,7 @@ const COMPOUND_OPTIONS = COMPOUNDS.map((compound) => ({
   label: compoundOptionLabel(compound),
 }));
 
-/** «Cómo se usa»: the two cursors and their keys. The compound is read off the chip. */
+/** «Cómo se usa»: the two cursors and their keys. The compound is chosen in the scenario. */
 const DRAG_HINT =
   'Arrastra el cursor de cada gráfica, o enfócalo y muévelo con las flechas (1 % del eje; con Mayús, 10 %).';
 
@@ -55,8 +57,8 @@ export interface TyreLabProps {
  * Tema 4's laboratory on LabShell, with no clock: two stacked plots, each with a draggable
  * cursor (temperature, which reads μ(T) over the chosen compound's 2019 window, and load, which
  * reads the linear and the load-sensitive peak lateral force), the parameters T and F_z bound to
- * those cursors, presets from the topic's numbers, the compound as a local setting and the
- * readouts μ(T), F_y (both) and μ efectivo.
+ * those cursors, the compound and the presets from the topic's numbers as the scenario, and the
+ * readouts μ(T), F_y (both) and μ efectivo. Nothing of its own in the drawer.
  * The load curves are multiplied by μ(T)/μ_pico, so moving the temperature moves them too.
  */
 export default function TyreLab({ leftOut }: TyreLabProps): JSX.Element {
@@ -86,18 +88,6 @@ export default function TyreLab({ leftOut }: TyreLabProps): JSX.Element {
     { id: 'muEff', label: 'Coeficiente efectivo $\\mu$', value: readings.muEff, unit: '' },
   ];
 
-  const display: SettingOption[] = [
-    {
-      key: 'compound',
-      label: 'Compuesto (Pirelli, 2019)',
-      chip: 'Compuesto',
-      kind: 'select',
-      value: state.compound,
-      options: COMPOUND_OPTIONS,
-      onChange: (value) => setState((previous) => setCompound(previous, value as Compound)),
-    },
-  ];
-
   const params = (
     <>
       <ParamField
@@ -124,19 +114,29 @@ export default function TyreLab({ leftOut }: TyreLabProps): JSX.Element {
   );
 
   const scenario = (
-    <LabPresets
-      id="tyre-preset"
-      presets={TYRE_PRESETS}
-      activeId={presetIdFor(state)}
-      onSelect={(preset) => setState(preset.values)}
-    />
+    <>
+      <SelectField
+        id="tyre-compound"
+        stacked
+        label="Compuesto (Pirelli, 2019)"
+        value={state.compound}
+        options={COMPOUND_OPTIONS}
+        onChange={(value) => setState((previous) => setCompound(previous, value as Compound))}
+      />
+      <LabPresets
+        id="tyre-preset"
+        presets={TYRE_PRESETS}
+        activeId={presetIdFor(state)}
+        onSelect={(preset) => setState(preset.values)}
+      />
+    </>
   );
 
   return (
     <LabShell
       title="Laboratorio de la llanta"
       readouts={readouts}
-      levels={{ params, scenario, display }}
+      levels={{ params, scenario, display: NO_DISPLAY }}
       notes={{ usage: [DRAG_HINT], leftOut: leftOut ? [leftOut] : [] }}
       onReset={() => setState(INITIAL_TYRE_STATE)}
       testId="tyre-lab"

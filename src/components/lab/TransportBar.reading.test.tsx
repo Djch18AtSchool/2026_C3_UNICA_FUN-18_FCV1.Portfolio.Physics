@@ -13,6 +13,8 @@ const PLAYBACK = 40;
 const HOURS_PER_SECOND = 2;
 const orbitHours = (t: number) => `t = ${String(t * HOURS_PER_SECOND).replace('.', ',')} h`;
 const DUMP: readonly TransportMarker[] = [{ t: 30, label: 'Descarga' }];
+/** The pair «Evento anterior | siguiente» needs two events: the dump and its end. */
+const DUMPS: readonly TransportMarker[] = [...DUMP, { t: 36, label: 'Fin de la descarga' }];
 
 const timeline = () => screen.getByRole('slider', { name: 'Línea de tiempo' });
 const eventText = (container: HTMLElement) =>
@@ -20,7 +22,7 @@ const eventText = (container: HTMLElement) =>
 
 function LiveOrbit() {
   const clock = useSimClock(PLAYBACK);
-  return <TransportBar clock={clock} markers={DUMP} formatTime={orbitHours} />;
+  return <TransportBar clock={clock} markers={DUMPS} formatTime={orbitHours} />;
 }
 
 describe('TransportBar formatTime', () => {
@@ -95,7 +97,7 @@ describe('TransportBar next event', () => {
     vi.unstubAllGlobals();
   });
 
-  test('between events, the row names the next one with its reading, muted and hidden', () => {
+  test('between events, the line names the next one with its reading, muted and hidden', () => {
     const { container } = render(
       <TransportBar clock={fakeClock({ duration: PLAYBACK, t: 10 })} markers={DUMP} />,
     );
@@ -109,7 +111,7 @@ describe('TransportBar next event', () => {
     expect(text).toHaveAttribute('title', 'Siguiente: Descarga · t = 30,000\u202Fs');
   });
 
-  test('on the event, the row names it in the full ink; after the last, nothing', () => {
+  test('on the event, the line names it in the full ink; after the last, nothing', () => {
     const { container, unmount } = render(
       <TransportBar clock={fakeClock({ duration: PLAYBACK, t: 30 })} markers={DUMP} />,
     );
@@ -121,14 +123,15 @@ describe('TransportBar next event', () => {
     const after = render(
       <TransportBar clock={fakeClock({ duration: PLAYBACK, t: 35 })} markers={DUMP} />,
     );
-    expect(eventText(after.container)).toBeEmptyDOMElement();
+    // A no-break space keeps the line's height (TransportEvents' EMPTY_LINE).
+    expect(eventText(after.container)?.textContent).toBe('\u00a0');
     expect(eventText(after.container)).not.toHaveAttribute('title');
     expect(eventText(after.container)).toHaveAttribute('data-transport-event', '');
   });
 
   test('the event buttons draw a mark on a track, not ⏮ ⏭', () => {
     const { container } = render(
-      <TransportBar clock={fakeClock({ duration: PLAYBACK, t: 10 })} markers={DUMP} />,
+      <TransportBar clock={fakeClock({ duration: PLAYBACK, t: 10 })} markers={DUMPS} />,
     );
 
     expect(

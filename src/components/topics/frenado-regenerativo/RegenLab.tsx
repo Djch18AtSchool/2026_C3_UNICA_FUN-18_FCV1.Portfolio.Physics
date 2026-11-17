@@ -1,12 +1,20 @@
 import { useMemo, useState, type JSX } from 'react';
 import type { SimClock } from '../../lab/useSimClock';
-import { DRIVE_CYCLES, type CycleId } from '../../../lib/data/driveCycles';
+import { DRIVE_CYCLES } from '../../../lib/data/driveCycles';
 import { cycleBalance } from '../../../lib/physics/energy';
 import LabPresets from '../../lab/LabPresets';
 import LabShell from '../../lab/LabShell';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import RegenCanvas from './RegenCanvas';
-import { regenLocalSettings } from './regenLabSettings';
+import ChoiceField from '../../lab/ChoiceField';
+import { SelectField } from '../../lab/SettingsFields';
+import {
+  asCycleId,
+  CYCLE_OPTIONS,
+  REGEN_SPEEDS,
+  regenLocalSettings,
+  VIEW_OPTIONS,
+} from './regenLabSettings';
 import RegenNotes from './RegenNotes';
 import RegenParams from './RegenParams';
 import {
@@ -40,7 +48,7 @@ function balanceFor(state: RegenLabState) {
  * where t counts from and the scale are the MDX's `usage`, after these hints: not repeated here
  * (RegenLab.test.tsx ties the two: no sentence of one is in the other).
  */
-const VIEW_HINT = `La vista se elige en los ajustes. «Tramo» es la frenada del ciclo que más energía quita en las ruedas, con ${BRAKING_PAD_S} s antes y después (en el UDDS, la de la figura 6.3); el mapa de arriba la sitúa en el ciclo, y sus energías y el porcentaje recuperado son los del tramo. «Evento anterior» y «Evento siguiente» saltan entre las detenciones.`;
+const VIEW_HINT = `La vista se elige bajo los parámetros. «Tramo» es la frenada del ciclo que más energía quita en las ruedas, con ${BRAKING_PAD_S} s antes y después (en el UDDS, la de la figura 6.3); el mapa de arriba la sitúa en el ciclo, y sus energías y el porcentaje recuperado son los del tramo. «Evento anterior» y «Evento siguiente» saltan entre las detenciones.`;
 const CURSOR_HINT =
   'Arrastra el cursor de la gráfica de energía, o enfócalo y muévelo con las flechas (1 % del ciclo; con Mayús, 10 %); en «Tramo» no sale del tramo.';
 const FADE_HINT = `$f(v)$ apaga la regeneración cerca de detenerse; sin él, con el tope de ${DEFAULT_P_MAX_KW} kW, la fricción no haría falta en estos ciclos.`;
@@ -98,24 +106,53 @@ function useRegenDrive(state: RegenLabState, isActive: boolean, clock: SimClock)
 
 type RegenLabModel = ReturnType<typeof useRegenLab>;
 
-/** The panel's levels: η and P_máx, the five presets, and the drawer's view, cycle and f(v). */
-function regenLevels({ state, view, shownClock: clock, update, changeView }: RegenLabModel) {
-  return {
-    params: <RegenParams state={state} onChange={update} />,
-    scenario: (
+/**
+ * The view and the drive cycle, side by side where they fit, then the five presets: the scenario
+ * under η and P_máx. The view says itself on screen, so it no longer needs a chip by the gear. A
+ * fragment, not a component: LabShell finds LabPresets at its top and lets it carry «Restablecer».
+ */
+function regenScenario({ state, view, update, changeView }: RegenLabModel): JSX.Element {
+  const onCycle = (value: string) => {
+    const cycle = asCycleId(value);
+    if (cycle) update({ ...state, cycle });
+  };
+  return (
+    <>
+      <div className="flex flex-wrap items-end gap-x-8 gap-y-6">
+        <ChoiceField
+          id="regen-view"
+          label="Vista"
+          value={view}
+          options={VIEW_OPTIONS}
+          onChange={changeView}
+        />
+        <SelectField
+          id="regen-cycle"
+          stacked
+          label="Ciclo de manejo (EPA)"
+          value={state.cycle}
+          options={CYCLE_OPTIONS}
+          onChange={onCycle}
+        />
+      </div>
       <LabPresets
         id="regen-preset"
         presets={REGEN_PRESETS}
         activeId={presetIdFor(state)}
         onSelect={(preset) => update(preset.values)}
       />
-    ),
+    </>
+  );
+}
+
+/** The panel's levels: η and P_máx; the view, the cycle and the presets; f(v) in the drawer. */
+function regenLevels(lab: RegenLabModel) {
+  const { state, shownClock: clock, update } = lab;
+  return {
+    params: <RegenParams state={state} onChange={update} />,
+    scenario: regenScenario(lab),
     display: regenLocalSettings({
-      view,
-      onViewChange: changeView,
-      cycle: state.cycle,
       lowSpeedFade: state.lowSpeedFade,
-      onCycleChange: (next: CycleId) => update({ ...state, cycle: next }),
       onFadeChange: (lowSpeedFade) => update({ ...state, lowSpeedFade }),
       clock,
     }),
@@ -166,8 +203,8 @@ function LabCanvas({ lab, decimals }: { lab: RegenLabModel; decimals: number }):
  * in the UDDS) with the energies of that stretch; «Ciclo completo», the whole EPA cycle 20 times
  * faster with the cycle's (RegenCanvas); and «Conducir», the same stretch driven with the reader's
  * pedals against the cycle's own car (DriveCanvas). The scale on the canvas, the cycle's stops as
- * transport events. η and P_máx as parameters, five presets as the scenario, the view, the cycle
- * and f(v) (on by default, ruling R19) as local settings, and the readouts of the view.
+ * transport events. η and P_máx as parameters; the view, the cycle and five presets as the
+ * scenario; f(v) (on by default, ruling R19) as a local setting; and the readouts of the view.
  */
 export default function RegenLab({ usage, leftOut }: RegenLabProps): JSX.Element {
   const { decimals } = useGlobalSettings();
@@ -176,6 +213,7 @@ export default function RegenLab({ usage, leftOut }: RegenLabProps): JSX.Element
     <LabShell
       title="Laboratorio del frenado regenerativo"
       clock={lab.shownClock}
+      speeds={REGEN_SPEEDS}
       markers={viewMarkers(lab.view, lab.state.cycle)}
       timeOrigin={lab.timing.offset}
       timeUnit="s"

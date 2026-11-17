@@ -264,36 +264,20 @@ describe('JumpLab', () => {
     expect(within(screen.getByTestId('preset-note')).queryByRole('link')).toBeNull();
   });
 
-  test('beside the gear, one chip per setting that is on, and the speed', async () => {
-    const user = userEvent.setup();
-    renderLab();
-    const chips = () =>
-      within(screen.getByRole('group', { name: 'Ajustes activos' }))
-        .getAllByRole('button')
-        .map((chip) => chip.getAttribute('aria-label')?.replace(/\s/g, ' '));
-    expect(chips()).toEqual(['referencia', 'vector v', 'rastro', 'Velocidad 1×']);
-
-    await user.click(screen.getByRole('button', { name: 'rastro' }));
-    await user.click(within(screen.getByRole('dialog')).getByRole('switch', { name: 'Rastro' }));
-
-    expect(chips()).not.toContain('rastro');
-  });
-
-  test('the fall multiplier and the integrator get a chip once they differ from the plain jump', async () => {
+  test('no chips by the gear: a preset or an integrator change shows in the drawer only', async () => {
     const user = userEvent.setup();
     const { container } = renderLab();
-    const chips = () =>
-      within(screen.getByRole('group', { name: 'Ajustes activos' }))
-        .getAllByRole('button')
-        .map((chip) => chip.getAttribute('aria-label')?.replace(/\s/g, ' '));
+    expect(screen.queryByRole('group', { name: 'Ajustes activos' })).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /^Super Mario Bros\./ }));
-    expect(chips()).toContain('caída 3,5 ×');
-
     await user.click(gear());
     const dialog = container.querySelector('dialog') as HTMLDialogElement;
+    expect(within(dialog).getByRole('slider', { name: /^Multiplicador de caída/ })).toHaveValue(
+      '3.5',
+    );
     await user.selectOptions(within(dialog).getByLabelText('Integrador'), 'euler');
-    expect(chips()).toContain('Integrador Euler semi-implícito');
+    expect(within(dialog).getByLabelText('Integrador')).toHaveValue('euler');
+    expect(screen.queryByRole('group', { name: 'Ajustes activos' })).toBeNull();
   });
 
   test('«Cómo se usa» says how to move both handles, by pointer and by keys; both disclosures wait closed', () => {
@@ -338,18 +322,21 @@ describe('JumpLab', () => {
     expect(readout('Tiempo en el aire')).toBe('0,17 s');
   });
 
-  test('speed and repeat are local settings bound to the clock, repeat off by default', async () => {
+  test('the speed is the transport’s select and repeat a local setting, both bound to the clock', async () => {
     const user = userEvent.setup();
     const { container } = renderLab();
+    const speed = screen.getByRole('combobox', {
+      name: 'Velocidad de reproducción',
+    }) as HTMLSelectElement;
+    expect(speed.value).toBe('1');
+    await user.selectOptions(speed, '0.25');
     await user.click(gear());
     const dialog = container.querySelector('dialog') as HTMLDialogElement;
     const repeat = within(dialog).getByRole('switch', { name: 'Repetir' });
-    const speed = within(dialog).getByLabelText('Velocidad') as HTMLSelectElement;
     expect(repeat).not.toBeChecked();
-    expect(speed.value).toBe('1');
+    expect(within(dialog).queryByLabelText('Velocidad')).toBeNull();
 
     await user.click(repeat);
-    await user.selectOptions(speed, '0.25');
 
     expect(repeat).toBeChecked();
     expect(speed.value).toBe('0.25');

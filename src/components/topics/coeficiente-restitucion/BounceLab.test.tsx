@@ -460,9 +460,11 @@ describe('BounceLab', () => {
   test('slow motion is stated on the page', async () => {
     const user = userEvent.setup();
     renderLab();
-    const dialog = await openDrawer(user);
 
-    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Velocidad' }), '0.25');
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Velocidad de reproducción' }),
+      '0.25',
+    );
 
     expect(screen.getByTestId('scene-notes')).toHaveTextContent(/cámara lenta/);
   });

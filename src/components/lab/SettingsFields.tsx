@@ -24,6 +24,24 @@ const SELECT =
 const SELECT_CHEVRON =
   'pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-fg-muted';
 
+/** The chevron a native select draws over its reserved right padding (pr-8), in a relative box. */
+export function SelectChevron(): JSX.Element {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={SELECT_CHEVRON}
+    >
+      <path d="m4 6 4 4 4-4" />
+    </svg>
+  );
+}
+
 export interface SwitchFieldProps {
   id: string;
   /** Plain text, with KaTeX inline between `$…$` (InlineMath). */
@@ -127,18 +145,7 @@ export function SelectField({
             ),
           )}
         </select>
-        <svg
-          viewBox="0 0 16 16"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-          className={SELECT_CHEVRON}
-        >
-          <path d="m4 6 4 4 4-4" />
-        </svg>
+        <SelectChevron />
       </div>
     </div>
   );

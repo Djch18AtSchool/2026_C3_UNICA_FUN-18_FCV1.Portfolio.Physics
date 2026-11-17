@@ -1,6 +1,12 @@
 import { useMemo, useRef, type JSX } from 'react';
 import { ICON_BUTTON } from './iconButton';
-import { EventRow, RANGE_WITH_MARKS, TIMELINE_WITH_MARKS, TimelineMarks } from './TransportEvents';
+import {
+  EventLine,
+  EventPair,
+  MIN_EVENTS_FOR_PAIR,
+  RANGE_WITH_MARKS,
+  TimelineMarks,
+} from './TransportEvents';
 import { markerTolerance, normalizeMarkers, type TransportMarker } from './transportMarkers';
 import {
   readingFormatter,
@@ -9,6 +15,7 @@ import {
   type TransportTimeFormat,
 } from './transportReading';
 import { TIMELINE_STEPS, type TransportTimeUnitChoice } from './transportTime';
+import TransportSpeed from './TransportSpeed';
 import { useFrameEffect } from './useFrameTime';
 import type { SimClock } from './useSimClock';
 
@@ -19,9 +26,9 @@ export interface TransportBarProps {
   /** Display unit of the t readout; 'auto' (default) picks it from the run's duration. */
   timeUnit?: TransportTimeUnitChoice;
   /**
-   * Events on the clock (s): marks on the timeline, «Evento anterior / siguiente» and the event
-   * named while the time stands on it (transportMarkers.ts). Without any in range, the bar is the
-   * plain one.
+   * Events on the clock (s): marks on the timeline and the line that names the event the time
+   * stands on (or the next one); from two in range, «Evento anterior | siguiente» too
+   * (transportMarkers.ts, TransportEvents.tsx). Without any in range, the bar is the plain one.
    */
   markers?: readonly TransportMarker[];
   /**
@@ -37,6 +44,8 @@ export interface TransportBarProps {
    * playback seconds. Reading only, like `timeOrigin`; an empty text falls back to «t = …».
    */
   formatTime?: TransportTimeFormat;
+  /** The speeds of the speed select, in order; DEFAULT_SPEEDS (0,25× to 2×) when omitted. */
+  speeds?: readonly number[];
 }
 
 const NO_MARKERS: readonly TransportMarker[] = [];
@@ -139,7 +148,7 @@ function Timeline({ clock, valueText, className }: TimelineProps): JSX.Element {
   );
 }
 
-/** The bar's root: a named group that tells whether it plays. */
+/** The bar's root: a named group that tells whether it plays, the container of its own layout. */
 const transportRoot = (playing: boolean) =>
   ({
     role: 'group',
@@ -147,11 +156,40 @@ const transportRoot = (playing: boolean) =>
     'data-playing': playing ? 'true' : 'false',
   }) as const;
 
+/** Without events, with events (marks and the line under the timeline), or with the pair too. */
+type Layout = 'plain' | 'events' | 'pair';
+
+const GRID = 'grid items-center gap-x-3 gap-y-2 @xl/transport:gap-y-1';
 /**
- * Play/Pause, Reiniciar and a timeline scrubber with a t readout in the run's unit (s, min, h or d,
- * or the lab's timeUnit; the clock and the range stay in seconds); nothing when duration is 0.
- * With `markers`, a second row: «Evento anterior / siguiente», the event the time stands on and
- * the readout (TransportEvents.tsx).
+ * One grid, phone first: the buttons with the t readout at their right, the timeline under them at
+ * full width, and under it the event line (beside the pair, when there is one). From 36 rem of bar,
+ * one row: ▶ ↺ 1×▾, the timeline, t and the pair, with the event line under the timeline. The DOM
+ * keeps the order of reading in both (buttons, timeline, readout, pair): Tab never goes back up.
+ * Tailwind needs each class literal.
+ */
+const LAYOUT: Readonly<Record<Layout, string>> = {
+  plain:
+    'grid-cols-[auto_minmax(0,1fr)] [grid-template-areas:"buttons_time"_"timeline_timeline"] @xl/transport:grid-cols-[auto_minmax(8rem,1fr)_auto] @xl/transport:[grid-template-areas:"buttons_timeline_time"]',
+  events:
+    'grid-cols-[auto_minmax(0,1fr)] [grid-template-areas:"buttons_time"_"timeline_timeline"_"event_event"] @xl/transport:grid-cols-[auto_minmax(8rem,1fr)_auto] @xl/transport:[grid-template-areas:"buttons_timeline_time"_"._event_event"]',
+  pair: 'grid-cols-[auto_minmax(0,1fr)_auto] [grid-template-areas:"buttons_._time"_"timeline_timeline_timeline"_"event_event_pair"] @xl/transport:grid-cols-[auto_minmax(8rem,1fr)_auto_auto] @xl/transport:[grid-template-areas:"buttons_timeline_time_pair"_"._event_event_event"]',
+};
+/** The event line keeps two lines on a phone (beside the pair) and one in the row; never less. */
+const EVENT_LINE =
+  '[grid-area:event] line-clamp-2 min-h-10 @xl/transport:line-clamp-1 @xl/transport:min-h-0';
+
+function layoutOf(eventCount: number): Layout {
+  if (eventCount >= MIN_EVENTS_FOR_PAIR) return 'pair';
+  return eventCount > 0 ? 'events' : 'plain';
+}
+
+/**
+ * Play/Pause, Reiniciar, the speed («1×▾»), a timeline scrubber and the t readout in the run's
+ * unit (s, min, h or d, or the lab's timeUnit; the clock and the range stay in seconds), in one
+ * row where it fits (LAYOUT); nothing when duration is 0. With `markers`, the marks under the
+ * timeline and the line naming the event under it; with two or more, «Evento anterior | siguiente»
+ * at the end (TransportEvents.tsx). The readout reserves the width of its longest text, so neither
+ * the timeline nor the row moves as t runs.
  *
  * The thumb follows the live time (Timeline), while the text and aria-valuetext read the settled
  * time the clock syncs CLOCK_SYNC_HZ times a second, shifted by `timeOrigin` and written by
@@ -163,6 +201,7 @@ export default function TransportBar({
   markers = NO_MARKERS,
   timeOrigin,
   formatTime,
+  speeds,
 }: TransportBarProps): JSX.Element | null {
   const { t, duration, playing } = clock.state;
   const events = useMemo(() => normalizeMarkers(markers, duration), [markers, duration]);
@@ -171,36 +210,47 @@ export default function TransportBar({
   // The default unit and its decimals come from the run's duration; only the reading changes.
   const textOf = readingFormatter({ duration, timeUnit, timeOrigin, formatTime });
   const { timeText, event, valueText, next } = transportTexts({ events, t, duration, textOf });
-  const rootProps = transportRoot(playing);
-
-  if (events.length === 0) {
-    return (
-      <div {...rootProps} className="flex flex-wrap items-center gap-3">
-        <TransportButtons clock={clock} />
-        <Timeline clock={clock} valueText={valueText} className="h-6 min-w-32 flex-1" />
-        <span className="font-mono text-sm tabular-nums">{timeText}</span>
-      </div>
-    );
-  }
+  const layout = layoutOf(events.length);
+  const hasEvents = layout !== 'plain';
+  // The readout is as wide as its longest text (mono): nothing beside it moves as t grows.
+  const longestTime = `${[...widestReading(textOf, duration)].length}ch`;
   return (
-    <div {...rootProps} data-transport-events="" className="flex flex-col gap-3">
-      <div className="flex items-center gap-3">
-        <TransportButtons clock={clock} />
-        <div className={TIMELINE_WITH_MARKS}>
-          <TimelineMarks markers={events} duration={duration} />
-          <Timeline clock={clock} valueText={valueText} className={RANGE_WITH_MARKS} />
+    <div
+      {...transportRoot(playing)}
+      data-transport-events={hasEvents ? '' : undefined}
+      className="@container/transport"
+    >
+      <div className={`${GRID} ${LAYOUT[layout]}`}>
+        <div className="flex items-center gap-3 [grid-area:buttons]">
+          <TransportButtons clock={clock} />
+          <TransportSpeed clock={clock} speeds={speeds} />
         </div>
+        <div className="relative min-w-0 [grid-area:timeline]">
+          {hasEvents ? <TimelineMarks markers={events} duration={duration} /> : null}
+          <Timeline
+            clock={clock}
+            valueText={valueText}
+            className={hasEvents ? RANGE_WITH_MARKS : 'block h-6 w-full'}
+          />
+        </div>
+        <span
+          data-transport-time=""
+          style={{ minWidth: longestTime }}
+          className="justify-self-end text-right font-mono text-sm tabular-nums [grid-area:time]"
+        >
+          {timeText}
+        </span>
+        {layout === 'pair' ? (
+          <EventPair
+            clock={clock}
+            markers={events}
+            tolerance={markerTolerance(duration)}
+            timeTextOf={textOf}
+            className="justify-self-end [grid-area:pair]"
+          />
+        ) : null}
+        {hasEvents ? <EventLine eventText={event} nextText={next} className={EVENT_LINE} /> : null}
       </div>
-      <EventRow
-        clock={clock}
-        markers={events}
-        tolerance={markerTolerance(duration)}
-        eventText={event}
-        nextText={next}
-        timeText={timeText}
-        timeTextOf={textOf}
-        widestTime={widestReading(textOf, duration)}
-      />
     </div>
   );
 }

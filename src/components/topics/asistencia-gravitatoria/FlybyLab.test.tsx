@@ -244,23 +244,11 @@ describe('FlybyLab', () => {
     expect(arrival()).not.toContain('12,75');
   });
 
-  test('beside the gear, chips for the speed, the vectors and the circle; they follow the drawer', async () => {
-    const user = userEvent.setup();
+  test('no chips by the gear: the speed is the transport’s select, at 1×', () => {
     renderLab();
-    const chips = () =>
-      within(screen.getByRole('group', { name: 'Ajustes activos' }))
-        .getAllByRole('button')
-        .map((chip) => chip.textContent);
-    expect(chips()).toEqual(['vectores', 'círculo', '1×']);
 
-    await user.click(screen.getByRole('button', { name: 'vectores' }));
-    await user.click(
-      within(screen.getByRole('dialog')).getByRole('switch', {
-        name: 'Vectores vector v sub infinito y vector v sub rel en el marco del planeta',
-      }),
-    );
-
-    expect(chips()).toEqual(['círculo', '1×']);
+    expect(screen.queryByRole('group', { name: 'Ajustes activos' })).toBeNull();
+    expect(screen.getByRole('combobox', { name: 'Velocidad de reproducción' })).toHaveValue('1');
   });
 
   test('without the MDX texts it still says how to use it and what the drawing leaves out', () => {
@@ -511,17 +499,21 @@ describe('FlybyLab', () => {
     expect(plain(mathSourceText(screen.getByTestId('flyby-clock')))).toMatch(/\$t - t_p\$ = 0,0 h/);
   });
 
-  test('the drawer offers playback speeds and hides the planet-frame vectors', async () => {
+  test('the transport offers speeds to 4×; the drawer hides the planet-frame vectors', async () => {
     const user = userEvent.setup();
     renderLab();
     expect(
       screen.getByTestId('flyby-planet-frame').querySelector('[data-vector="vinf-in"]'),
     ).not.toBeNull();
+    expect(
+      within(screen.getByRole('combobox', { name: 'Velocidad de reproducción' })).getByRole(
+        'option',
+        { name: '4×' },
+      ),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
     const dialog = screen.getByRole('dialog');
-    const speed = within(dialog).getByRole('combobox', { name: 'Velocidad' });
-    expect(within(speed).getByRole('option', { name: '4×' })).toBeInTheDocument();
     await user.click(
       within(dialog).getByRole('switch', {
         name: 'Vectores vector v sub infinito y vector v sub rel en el marco del planeta',

@@ -13,8 +13,8 @@ export interface FlybyDisplay {
 
 export const DEFAULT_DISPLAY: FlybyDisplay = { showVectors: true, showCircle: true };
 
-/** Playback speeds offered; at 1× every pass lasts FLYBY_LAPSE seconds. */
-const SPEEDS = [0.25, 0.5, 1, 2, 4] as const;
+/** The speeds of the transport (LabShell `speeds`); at 1× every pass lasts FLYBY_LAPSE seconds. */
+export const FLYBY_SPEEDS = [0.25, 0.5, 1, 2, 4] as const;
 
 export interface FlybyLocalSettingsInput {
   display: FlybyDisplay;
@@ -22,16 +22,15 @@ export interface FlybyLocalSettingsInput {
   clock: SimClock;
 }
 
-/** Vectores, círculo, velocidad and repetir, in that order; each with its chip («vectores», «círculo»). */
+/** Vectores, círculo and repetir, in that order (the speed is the transport's). */
 export function flybyLocalSettings({
   display,
   onDisplayChange,
   clock,
 }: FlybyLocalSettingsInput): SettingOption[] {
-  const toggle = (key: keyof FlybyDisplay, label: string, chip: string): SettingOption => ({
+  const toggle = (key: keyof FlybyDisplay, label: string): SettingOption => ({
     key,
     label,
-    chip,
     kind: 'toggle',
     value: display[key],
     onChange: (value) => onDisplayChange({ ...display, [key]: value }),
@@ -40,9 +39,8 @@ export function flybyLocalSettings({
     toggle(
       'showVectors',
       'Vectores $\\vec v_\\infty$ y $\\vec v_\\text{rel}$ en el marco del planeta',
-      'vectores',
     ),
-    toggle('showCircle', 'Círculo $|\\vec v_\\infty|$ en el triángulo', 'círculo'),
-    ...clockSettings(clock, SPEEDS),
+    toggle('showCircle', 'Círculo $|\\vec v_\\infty|$ en el triángulo'),
+    ...clockSettings(clock),
   ];
 }

@@ -154,19 +154,11 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
     expect(within(notes).getByTestId('route-modified')).toBeInTheDocument();
   });
 
-  test('beside the gear, the chips «vectores», «rastro» and «1×» follow the drawer', async () => {
-    const user = userEvent.setup();
+  test('no chips by the gear: the speed is the transport’s select, at 1×', async () => {
     await renderLab();
-    const chips = () =>
-      within(screen.getByRole('group', { name: 'Ajustes activos' }))
-        .getAllByRole('button')
-        .map((chip) => chip.textContent);
-    expect(chips()).toEqual(['vectores', 'rastro', '1×']);
 
-    await user.click(screen.getByRole('button', { name: 'rastro' }));
-    await user.click(within(screen.getByRole('dialog')).getByRole('switch', { name: 'Rastro' }));
-
-    expect(chips()).toEqual(['vectores', '1×']);
+    expect(screen.queryByRole('group', { name: 'Ajustes activos' })).toBeNull();
+    expect(screen.getByRole('combobox', { name: 'Velocidad de reproducción' })).toHaveValue('1');
   });
 
   test('how to use it and what the model leaves out wait in two closed disclosures', async () => {
@@ -590,7 +582,7 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
     });
   });
 
-  test('the local settings hold vectors, vector scale, trail, speed and repeat', async () => {
+  test('the local settings hold vectors, vector scale, trail and repeat', async () => {
     const user = userEvent.setup();
     await renderLab();
 
@@ -600,7 +592,7 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
     expect(within(dialog).getByRole('switch', { name: 'Vectores v y a' })).toBeChecked();
     expect(within(dialog).getByRole('slider', { name: /Escala de vectores/ })).toBeInTheDocument();
     expect(within(dialog).getByRole('switch', { name: 'Rastro' })).toBeChecked();
-    expect(within(dialog).getByRole('combobox', { name: 'Velocidad' })).toHaveValue('1');
+    expect(within(dialog).queryByRole('combobox', { name: 'Velocidad' })).toBeNull();
     expect(within(dialog).getByRole('switch', { name: 'Repetir' })).not.toBeChecked();
 
     await user.click(within(dialog).getByRole('switch', { name: 'Vectores v y a' }));

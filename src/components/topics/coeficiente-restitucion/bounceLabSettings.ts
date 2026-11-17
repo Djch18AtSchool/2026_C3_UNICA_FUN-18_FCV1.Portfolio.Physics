@@ -95,7 +95,6 @@ function engineOptions(
     {
       key: 'speedDependent',
       label: 'e(v) = 0,79 − 0,009·|v| (ajuste ilustrativo)',
-      chip: 'e(v)',
       kind: 'toggle',
       value: settings.speedDependent,
       onChange: (speedDependent) => onSettingsChange({ speedDependent }),
@@ -104,9 +103,9 @@ function engineOptions(
 }
 
 /**
- * Modo; in the bounce mode the engine (Δt, subpasos, umbral, regla, e del suelo, β, e(v), the
- * last with its chip); then velocidad (0,25× is the slow motion) and repetir, which live on the
- * clock. The engine's state is read in the lab's «Motor» chips, not here.
+ * Modo; in the bounce mode the engine (Δt, subpasos, umbral, regla, e del suelo, β, e(v)); then
+ * repetir, which lives on the clock (the speed, 0,25× being the slow motion, is the transport's).
+ * The engine's state is read in the lab's «Motor» chips, not here.
  */
 export function bounceLocalSettings({
   mode,

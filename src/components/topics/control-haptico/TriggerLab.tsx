@@ -7,7 +7,7 @@ import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import InlineMath from '../../lab/InlineMath';
 import ParamField from '../../lab/ParamField';
-import type { SettingOption } from '../../lab/SettingsDrawer';
+import ChoiceField from '../../lab/ChoiceField';
 import SvgPlot, { STAGE_PLOT_ASPECT } from '../../lab/SvgPlot';
 import TimeScaleBadge from '../../lab/TimeScaleBadge';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
@@ -38,6 +38,8 @@ interface TriggerLabState {
   lastReleaseMm?: number;
 }
 
+/** The drawer holds only the global settings: the damping is part of the scenario. */
+const NO_DISPLAY: [] = [];
 /** The worked example of the text at rest: k = 400 N/m, resistance from x₀ = 0, critical damping. */
 const INITIAL_STATE: Readonly<TriggerLabState> = { k: 400, x0Mm: 0, xMm: 0, damping: 'critica' };
 const K_STEP = 10;
@@ -131,7 +133,8 @@ function ReleaseActions({
  * (pointer, touch or keys), the F–x plot with the ideal spring and the trigger's piecewise
  * profile and a live marker, k and x₀ as main parameters, presets from the text's examples and the
  * readouts x, F, U and W. Let go, the lever returns with the kernel's damped spring (critical or
- * underdamped, a local setting); "Repetir retorno" replays the last release from its start.
+ * underdamped, chosen in the scenario beside the presets); "Repetir retorno" replays the last
+ * release from its start. Nothing of its own in the drawer.
  */
 export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
   const [state, setState] = useState<TriggerLabState>(INITIAL_STATE);
@@ -179,18 +182,6 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
     { id: 'work', label: 'Trabajo del dedo W', value: readings.work, unit: 'mJ' },
   ];
 
-  const display: SettingOption[] = [
-    {
-      key: 'damping',
-      label: 'Amortiguación al soltar',
-      chip: 'Amortiguación',
-      kind: 'select',
-      value: state.damping,
-      options: DAMPING_OPTIONS,
-      onChange: (value) => setState((previous) => ({ ...previous, damping: value as Damping })),
-    },
-  ];
-
   const params = (
     <>
       <ParamField
@@ -217,15 +208,24 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
   );
 
   const scenario = (
-    <LabPresets
-      id="trigger-preset"
-      presets={TRIGGER_PRESETS}
-      activeId={triggerPresetIdFor(state)}
-      onSelect={({ values }) => {
-        release.cancel();
-        setState((previous) => ({ ...previous, ...values }));
-      }}
-    />
+    <>
+      <ChoiceField
+        id="trigger-damping"
+        label="Amortiguación al soltar"
+        value={state.damping}
+        options={DAMPING_OPTIONS}
+        onChange={(damping) => setState((previous) => ({ ...previous, damping }))}
+      />
+      <LabPresets
+        id="trigger-preset"
+        presets={TRIGGER_PRESETS}
+        activeId={triggerPresetIdFor(state)}
+        onSelect={({ values }) => {
+          release.cancel();
+          setState((previous) => ({ ...previous, ...values }));
+        }}
+      />
+    </>
   );
 
   /** What reads the drawing, with no controls: the energies, the arrow, the ring and the slow motion. */
@@ -241,7 +241,7 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
     <LabShell
       title="Laboratorio del gatillo"
       readouts={readouts}
-      levels={{ params, scenario, display }}
+      levels={{ params, scenario, display: NO_DISPLAY }}
       canvasNotes={canvasNotes}
       notes={{ usage: [USAGE], leftOut: leftOut ? [leftOut] : [] }}
       onReset={onReset}

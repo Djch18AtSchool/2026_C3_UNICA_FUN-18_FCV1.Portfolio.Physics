@@ -18,12 +18,6 @@ interface SettingBase {
   key: string;
   /** Plain text, with KaTeX inline between `$…$`. */
   label: string;
-  /**
-   * Short name for the chip row next to the gear of a tiered LabShell (settingChips.ts); without
-   * it the option has no chip. A toggle shows it while on («estela»), a select shows its choice
-   * named by it («1×», said «Velocidad 1×»), a range shows it with the value («escala 1,50 ×»).
-   */
-  chip?: string;
 }
 
 export type SettingOption =
@@ -31,11 +25,8 @@ export type SettingOption =
   | (SettingBase & {
       kind: 'select';
       value: string;
-      /**
-       * `label` is plain text (a native <option> takes no markup); `chip`, when given, is what the
-       * chip by the gear shows for that option, with KaTeX between `$…$`.
-       */
-      options: { value: string; label: string; chip?: string }[];
+      /** `label` is plain text: a native <option> takes no markup. */
+      options: { value: string; label: string }[];
       onChange(v: string): void;
     })
   | (SettingBase & {

@@ -176,10 +176,21 @@ describe('LabShell', () => {
   test('passes its markers to the transport, which then has the event buttons', () => {
     renderShell({
       clock: fakeClock({ duration: 1369, t: 0 }),
-      markers: [{ t: 312, label: 'Detención' }],
+      markers: [
+        { t: 312, label: 'Detención' },
+        { t: 500, label: 'Detención' },
+      ],
     });
 
     expect(screen.getByRole('button', { name: 'Evento siguiente' })).toBeInTheDocument();
+  });
+
+  test('passes its speeds to the transport’s speed select', () => {
+    renderShell({ clock: fakeClock({ duration: 10, speed: 8 }), speeds: [1, 8] });
+
+    const speed = screen.getByRole('combobox', { name: 'Velocidad de reproducción' });
+    expect([...speed.querySelectorAll('option')].map((option) => option.value)).toEqual(['1', '8']);
+    expect(speed).toHaveValue('8');
   });
 
   test('passes its timeOrigin to the transport, which reads t from there', () => {

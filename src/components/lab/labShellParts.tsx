@@ -41,7 +41,7 @@ export interface LabDrawer {
   /** Opens the drawer; focus goes back to `opener` when it closes. */
   open(opener: HTMLElement): void;
   close(): void;
-  /** The element that opened the drawer last (gear or chip), for SettingsDrawer.returnFocusTo. */
+  /** The element that opened the drawer (the gear), for SettingsDrawer.returnFocusTo. */
   openerRef: RefObject<HTMLElement | null>;
 }
 

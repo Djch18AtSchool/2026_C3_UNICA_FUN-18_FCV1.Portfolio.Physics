@@ -13,11 +13,13 @@ const STRETCH_START = 376;
 const STRETCH = 26;
 const NNBSP = ' ';
 const STOP: readonly TransportMarker[] = [{ t: 21, label: 'Detención 3 de 17' }];
+/** The pair «Evento anterior | siguiente» needs two events: the stop and a later one. */
+const STOPS: readonly TransportMarker[] = [...STOP, { t: 25, label: 'Detención 4 de 17' }];
 
 /** A live clock on the stretch, read from the cycle's start. */
 function LiveStretch() {
   const clock = useSimClock(STRETCH);
-  return <TransportBar clock={clock} timeUnit="s" markers={STOP} timeOrigin={STRETCH_START} />;
+  return <TransportBar clock={clock} timeUnit="s" markers={STOPS} timeOrigin={STRETCH_START} />;
 }
 
 const timeline = () => screen.getByRole('slider', { name: 'Línea de tiempo' });
@@ -88,7 +90,7 @@ describe('TransportBar timeOrigin', () => {
       <TransportBar
         clock={fakeClock({ duration: STRETCH, t: STRETCH })}
         timeUnit="s"
-        markers={STOP}
+        markers={STOPS}
         timeOrigin={STRETCH_START}
       />,
     );
@@ -96,7 +98,7 @@ describe('TransportBar timeOrigin', () => {
     act(() => screen.getByRole('button', { name: 'Evento siguiente' }).click());
 
     expect(announcer()).toHaveTextContent(
-      `No hay evento siguiente; el último es Detención 3 de 17 · t = 397,00${NNBSP}s`,
+      `No hay evento siguiente; el último es Detención 4 de 17 · t = 401,00${NNBSP}s`,
       { normalizeWhitespace: false },
     );
   });

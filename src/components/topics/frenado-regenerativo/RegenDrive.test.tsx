@@ -38,13 +38,15 @@ const RECOVERED = 'Recuperado en tu conducción, % del frenado en las ruedas';
 const REFERENCE = 'Recuperado en el tramo del UDDS, % del frenado en las ruedas';
 const LINE = 'Hasta la línea de detención';
 
-function chooseView(view: 'tramo' | 'ciclo' | 'conducir'): void {
-  fireEvent.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
-  const dialog = screen.getByRole('dialog');
-  fireEvent.change(within(dialog).getByRole('combobox', { name: 'Vista' }), {
-    target: { value: view },
-  });
-  fireEvent.click(within(dialog).getByRole('button', { name: 'Cerrar ajustes' }));
+const VIEW_NAMES = { tramo: 'Tramo', ciclo: 'Ciclo', conducir: 'Conducir' } as const;
+
+/** Picks a view in the scenario («Vista», under the parameters). */
+function chooseView(view: keyof typeof VIEW_NAMES): void {
+  fireEvent.click(
+    within(screen.getByRole('radiogroup', { name: 'Vista' })).getByRole('radio', {
+      name: VIEW_NAMES[view],
+    }),
+  );
 }
 
 /** Renders the lab in «Conducir» with a frame queue to play it. */
@@ -93,10 +95,10 @@ describe('RegenLab «Conducir»', { timeout: DRIVE_TEST_TIMEOUT_MS }, () => {
     const canvas = lab().querySelector('[data-lab-canvas]') as HTMLElement;
 
     expect(
-      within(screen.getByRole('group', { name: 'Ajustes activos' })).getByRole('button', {
-        name: 'Vista Conducir',
+      within(screen.getByRole('radiogroup', { name: 'Vista' })).getByRole('radio', {
+        name: 'Conducir',
       }),
-    ).toBeVisible();
+    ).toBeChecked();
     expect(badgeText()).toBe('×1 velocidad real');
     expect(timelineText()).toBe('t = 376,00 s');
     expect(lab().querySelectorAll('[data-transport-mark]')).toHaveLength(0);

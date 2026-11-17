@@ -1,4 +1,7 @@
-/** The regenerative-braking lab's local settings ("Este simulador" in the drawer). */
+/**
+ * The regenerative-braking lab's scenario choices (the view and the drive cycle, under its
+ * parameters) and its local settings ("Este simulador" in the drawer: f(v) and «Repetir»).
+ */
 import type { CycleId } from '../../../lib/data/driveCycles';
 import { clockSettings } from '../../lab/clockSettings';
 import type { SettingOption } from '../../lab/SettingsDrawer';
@@ -6,14 +9,13 @@ import type { SimClock } from '../../lab/useSimClock';
 import type { RegenView } from './regenStretch';
 
 /**
- * The three views, named by what they show (never by a factor: the badge on the canvas says it).
- * Their chips are short («Tramo», «Ciclo», «Conducir»), so the header keeps two rows at 360 px; the
- * chip's accessible name, «Vista Ciclo», tells it from the drive cycle's.
+ * The three views, named by what they show (never by a factor: the badge on the canvas says it),
+ * short enough for one row of segments on a phone. «Cómo se usa» says what each one plays.
  */
-export const VIEW_OPTIONS: readonly { value: RegenView; label: string; chip: string }[] = [
-  { value: 'tramo', label: 'Tramo: una frenada', chip: 'Tramo' },
-  { value: 'ciclo', label: 'Ciclo completo', chip: 'Ciclo' },
-  { value: 'conducir', label: 'Conducir: el tramo con tus pedales', chip: 'Conducir' },
+export const VIEW_OPTIONS: readonly { value: RegenView; label: string }[] = [
+  { value: 'tramo', label: 'Tramo' },
+  { value: 'ciclo', label: 'Ciclo' },
+  { value: 'conducir', label: 'Conducir' },
 ];
 
 /** The three EPA schedules, named by the driving they stand for. */
@@ -24,70 +26,36 @@ export const CYCLE_OPTIONS: readonly { value: CycleId; label: string }[] = [
 ];
 
 /**
- * Playback speeds offered, times the view's own scale: in «Ciclo» (20 times real time) the UDDS
- * lasts 68,5 s at 1× and about 17 s at 4×; in «Tramo» (real time) 0,25× slows the braking down.
+ * The speeds of the transport (LabShell `speeds`), times the view's own scale: in «Ciclo» (20
+ * times real time) the UDDS lasts 68,5 s at 1× and about 17 s at 4×; in «Tramo» (real time) 0,25×
+ * slows the braking down.
  */
-const SPEEDS = [0.25, 0.5, 1, 2, 4] as const;
+export const REGEN_SPEEDS = [0.25, 0.5, 1, 2, 4] as const;
 
-const isCycleId = (value: string): value is CycleId =>
-  CYCLE_OPTIONS.some((option) => option.value === value);
-const isView = (value: string): value is RegenView =>
-  VIEW_OPTIONS.some((option) => option.value === value);
+/** A select's value as a drive cycle, or undefined when it names none (it never should). */
+export const asCycleId = (value: string): CycleId | undefined =>
+  CYCLE_OPTIONS.find((option) => option.value === value)?.value;
 
 export interface RegenLocalSettingsInput {
-  view: RegenView;
-  onViewChange(view: RegenView): void;
-  cycle: CycleId;
   lowSpeedFade: boolean;
-  onCycleChange(cycle: CycleId): void;
   onFadeChange(lowSpeedFade: boolean): void;
   clock: SimClock;
 }
 
-/**
- * Vista, ciclo, f(v), velocidad and repetir, in that order; the view, the cycle and f(v) show as
- * chips beside the gear.
- */
+/** f(v) and repetir, in that order (the view and the cycle are the scenario's; the speed, the transport's). */
 export function regenLocalSettings({
-  view,
-  onViewChange,
-  cycle,
   lowSpeedFade,
-  onCycleChange,
   onFadeChange,
   clock,
 }: RegenLocalSettingsInput): SettingOption[] {
   return [
     {
-      key: 'view',
-      label: 'Vista',
-      chip: 'Vista',
-      kind: 'select',
-      value: view,
-      options: VIEW_OPTIONS.map((option) => ({ ...option })),
-      onChange: (value) => {
-        if (isView(value)) onViewChange(value);
-      },
-    },
-    {
-      key: 'cycle',
-      label: 'Ciclo de manejo (EPA)',
-      chip: 'Ciclo',
-      kind: 'select',
-      value: cycle,
-      options: CYCLE_OPTIONS.map((option) => ({ ...option })),
-      onChange: (value) => {
-        if (isCycleId(value)) onCycleChange(value);
-      },
-    },
-    {
       key: 'lowSpeedFade',
       label: 'Desvanecimiento a baja velocidad $f(v)$',
-      chip: '$f(v)$',
       kind: 'toggle',
       value: lowSpeedFade,
       onChange: onFadeChange,
     },
-    ...clockSettings(clock, SPEEDS),
+    ...clockSettings(clock),
   ];
 }

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
@@ -13,13 +13,12 @@ const badge = () => lab().querySelector('[data-time-scale-badge]') as HTMLElemen
 const badgeWords = () => (badge().textContent ?? '').replace(/\s+/g, ' ').trim();
 const spokenWords = () => lab().querySelector('[data-time-scale-words]')?.textContent;
 
+/** The transport's own speed select («1×▾»). */
 async function setSpeed(user: ReturnType<typeof userEvent.setup>, value: string) {
-  await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
   await user.selectOptions(
-    within(screen.getByRole('dialog')).getByRole('combobox', { name: 'Velocidad' }),
+    screen.getByRole('combobox', { name: 'Velocidad de reproducción' }),
     value,
   );
-  await user.keyboard('{Escape}');
 }
 
 describe('the time scale on the habitat lab canvas', () => {

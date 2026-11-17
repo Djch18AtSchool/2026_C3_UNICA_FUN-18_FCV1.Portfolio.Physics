@@ -28,7 +28,7 @@ describe('LabShell on the server', () => {
     expect(html).toMatch(/<dialog(?![^>]*\sopen)[^>]*>/);
   });
 
-  test('renders its levels, chips and closed disclosures on the server', () => {
+  test('renders its levels and closed disclosures on the server', () => {
     const html = renderToString(
       <LabShell
         title="Laboratorio"
@@ -40,7 +40,6 @@ describe('LabShell on the server', () => {
             {
               key: 'trail',
               label: 'Rastro',
-              chip: 'estela',
               kind: 'toggle',
               value: true,
               onChange: () => {},
@@ -56,7 +55,7 @@ describe('LabShell on the server', () => {
     );
 
     expect(html).toContain('data-lab-shell="tiered"');
-    expect(html).toContain('aria-label="estela"');
+    expect(html).toContain('aria-label="Ajustes del simulador"');
     expect(html).toMatch(/<details(?![^>]*\sopen)[^>]*>/);
     expect(html).toMatch(/<dialog(?![^>]*\sopen)[^>]*>/);
   });

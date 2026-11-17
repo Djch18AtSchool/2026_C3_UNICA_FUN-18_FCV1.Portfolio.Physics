@@ -61,10 +61,12 @@ const preset = (name: RegExp) =>
   within(screen.getByRole('group', { name: 'Valores de referencia' })).getByRole('button', {
     name,
   });
-const dampingSelect = () => {
-  fireEvent.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
-  return within(screen.getByRole('dialog')).getByRole('combobox', { name: /^Amortiguación/ });
-};
+/** The damping on show: the checked choice of «Amortiguación al soltar», beside the presets. */
+const damping = () =>
+  within(screen.getByRole('radiogroup', { name: 'Amortiguación al soltar' }))
+    .getAllByRole('radio')
+    .find((radio) => (radio as HTMLInputElement).checked) as HTMLInputElement;
+const chooseDamping = (name: RegExp) => fireEvent.click(screen.getByRole('radio', { name }));
 
 function typeInto(field: HTMLElement, value: string): void {
   fireEvent.change(field, { target: { value } });
@@ -162,17 +164,20 @@ describe('TriggerLab', () => {
     expect(screen.getByTestId('preset-note')).toHaveTextContent(/Fuente: supuesto del modelo/);
   });
 
-  test('beside the gear, a chip with the damping that follows the drawer', () => {
-    renderLab();
-    const chips = () =>
-      within(screen.getByRole('group', { name: 'Ajustes activos' }))
-        .getAllByRole('button')
-        .map((chip) => chip.getAttribute('aria-label'));
-    expect(chips()).toEqual(['Amortiguación Crítica, c = 2 raíz de (k m)']);
+  test('the damping is chosen in the scenario, typeset and named in words; the drawer has nothing of the lab', () => {
+    const { container } = renderLab();
+    const scenario = screen.getByRole('region', { name: 'Escenario' });
 
-    fireEvent.change(dampingSelect(), { target: { value: 'subamortiguada' } });
+    expect(
+      within(scenario).getByRole('radio', { name: 'Crítica, c = 2 raíz de (k m)' }),
+    ).toBeChecked();
+    chooseDamping(/^Subamortiguada/);
+    expect(damping()).toHaveAttribute('value', 'subamortiguada');
+    expect(screen.queryByRole('group', { name: 'Ajustes activos' })).toBeNull();
+    expect(container.querySelector('[data-lab-level="scenario"] .katex')).not.toBeNull();
 
-    expect(chips()).toEqual(['Amortiguación Subamortiguada, 0,3 del valor crítico']);
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+    expect(within(screen.getByRole('dialog')).queryByRole('combobox')).toBeNull();
   });
 
   test('how to use it says the drag, the keys and the two buttons, not the gear; what the model leaves out is closed', () => {
@@ -377,13 +382,7 @@ describe('TriggerLab', () => {
     };
 
     const critical = releaseOnce();
-    fireEvent.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
-    fireEvent.change(
-      within(screen.getByRole('dialog')).getByRole('combobox', { name: /^Amortiguación/ }),
-      {
-        target: { value: 'subamortiguada' },
-      },
-    );
+    chooseDamping(/^Subamortiguada/);
     const underdamped = releaseOnce();
 
     expect(critical.lowest).toBeGreaterThanOrEqual(0);
@@ -438,11 +437,10 @@ describe('TriggerLab', () => {
     fireEvent.click(preset(/^Subamortiguado/));
     expect(startField()).toHaveValue('0');
     expect(readout('Fuerza del gatillo F')).toBe('3,20 N');
-    expect(dampingSelect()).toHaveValue('subamortiguada');
-    fireEvent.click(screen.getByRole('button', { name: 'Cerrar ajustes' }));
+    expect(damping()).toHaveAttribute('value', 'subamortiguada');
 
     fireEvent.click(preset(/^Resorte ideal/));
-    expect(dampingSelect()).toHaveValue('critica');
+    expect(damping()).toHaveAttribute('value', 'critica');
     expect(preset(/^Resorte ideal/)).toHaveAttribute('aria-pressed', 'true');
   });
 

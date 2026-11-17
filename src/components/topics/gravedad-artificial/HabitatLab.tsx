@@ -8,7 +8,12 @@ import ParamField from '../../lab/ParamField';
 import { SwitchField } from '../../lab/SettingsFields';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { useSimClock } from '../../lab/useSimClock';
-import { DEFAULT_DISPLAY, habitatLocalSettings, type HabitatDisplay } from './habitatLabSettings';
+import {
+  DEFAULT_DISPLAY,
+  HABITAT_SPEEDS,
+  habitatLocalSettings,
+  type HabitatDisplay,
+} from './habitatLabSettings';
 import {
   applyPreset,
   INITIAL_HABITAT_STATE,
@@ -144,6 +149,7 @@ export default function HabitatLab({ usage, leftOut }: HabitatLabProps): JSX.Ele
     <LabShell
       title="Laboratorio del hábitat"
       clock={clock}
+      speeds={HABITAT_SPEEDS}
       timeUnit="s"
       readouts={readouts}
       canvasNotes={<HabitatNotes showVectors={display.showVectors} />}

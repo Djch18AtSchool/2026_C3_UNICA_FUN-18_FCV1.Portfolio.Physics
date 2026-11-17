@@ -2,6 +2,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import { plexViolations } from '../../test-glyphs';
 import ChoiceField from './ChoiceField';
 
 const OPTIONS = [
@@ -50,5 +51,25 @@ describe('ChoiceField', () => {
     expect(segment('Rebote contra el piso')).toHaveClass('peer-checked:border-accent');
     // Hover darkens only an unchosen segment (the computed colours: coeficiente-restitucion.spec).
     expect(segment('Rebote contra el piso')).not.toHaveClass('hover:border-fg-muted');
+  });
+
+  test('an option with a formula is typeset and named in words', () => {
+    const { container } = render(
+      <ChoiceField
+        id="damping"
+        label="Amortiguación al soltar"
+        value="critica"
+        options={[
+          { value: 'critica', label: String.raw`Crítica, $c = 2\sqrt{k m}$` },
+          { value: 'sub', label: 'Subamortiguada' },
+        ]}
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('radio', { name: 'Crítica, c = 2 raíz de (k m)' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Subamortiguada' })).not.toBeChecked();
+    expect(container.querySelector('.katex')).not.toBeNull();
+    expect(plexViolations(container)).toEqual([]);
   });
 });

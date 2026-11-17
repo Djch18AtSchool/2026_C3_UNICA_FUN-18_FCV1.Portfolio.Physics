@@ -138,23 +138,11 @@ describe('HabitatLab', () => {
     );
   });
 
-  test('beside the gear, the chips «vectores» and «1×» follow the drawer', async () => {
-    const user = userEvent.setup();
+  test('the header holds no chips: the speed is the transport’s select, at 1×', () => {
     renderLab();
-    const chips = () =>
-      within(screen.getByRole('group', { name: 'Ajustes activos' }))
-        .getAllByRole('button')
-        .map((chip) => chip.textContent);
-    expect(chips()).toEqual(['vectores', '1×']);
 
-    await user.click(screen.getByRole('button', { name: 'vectores' }));
-    await user.click(
-      within(screen.getByRole('dialog')).getByRole('switch', {
-        name: 'Vectores a sub c y gravedad aparente',
-      }),
-    );
-
-    expect(chips()).toEqual(['1×']);
+    expect(screen.queryByRole('group', { name: 'Ajustes activos' })).toBeNull();
+    expect(screen.getByRole('combobox', { name: 'Velocidad de reproducción' })).toHaveValue('1');
   });
 
   test('how to use it and what the model leaves out wait in two closed disclosures', () => {
@@ -278,14 +266,18 @@ describe('HabitatLab', () => {
     expect(screen.getByText('escala logarítmica')).toBeInTheDocument();
   });
 
-  test('the drawer offers speeds up to 8×, loop off, and hides the vectors', async () => {
+  test('the transport offers speeds up to 8×; the drawer has loop off and hides the vectors', async () => {
     const user = userEvent.setup();
     renderLab();
+    expect(
+      within(screen.getByRole('combobox', { name: 'Velocidad de reproducción' })).getByRole(
+        'option',
+        { name: '8×' },
+      ),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
     const dialog = screen.getByRole('dialog');
-    const speed = within(dialog).getByRole('combobox', { name: 'Velocidad' });
-    expect(within(speed).getByRole('option', { name: '8×' })).toBeInTheDocument();
     expect(within(dialog).getByRole('switch', { name: 'Repetir' })).not.toBeChecked();
 
     await user.click(
@@ -310,10 +302,10 @@ describe('HabitatLab', () => {
     const frames = installFrameQueue();
     const user = userEvent.setup();
     renderLab();
-    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
-    const speed = within(screen.getByRole('dialog')).getByRole('combobox', { name: 'Velocidad' });
-    await user.selectOptions(speed, '8');
-    await user.keyboard('{Escape}');
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Velocidad de reproducción' }),
+      '8',
+    );
 
     await user.click(screen.getByRole('button', { name: 'Reproducir' }));
     frames.flush(1000);

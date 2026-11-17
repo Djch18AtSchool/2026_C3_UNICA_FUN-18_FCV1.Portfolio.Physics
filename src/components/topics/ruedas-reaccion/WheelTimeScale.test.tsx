@@ -19,13 +19,12 @@ async function disturbance(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
 }
 
+/** The transport's own speed select («1×▾»). */
 async function setSpeed(user: ReturnType<typeof userEvent.setup>, value: string) {
-  await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
   await user.selectOptions(
-    within(screen.getByRole('dialog')).getByRole('combobox', { name: 'Velocidad' }),
+    screen.getByRole('combobox', { name: 'Velocidad de reproducción' }),
     value,
   );
-  await user.keyboard('{Escape}');
 }
 
 describe('the time scale on the wheel lab canvas', () => {

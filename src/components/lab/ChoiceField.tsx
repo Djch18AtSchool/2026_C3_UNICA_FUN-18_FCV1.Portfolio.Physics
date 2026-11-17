@@ -1,4 +1,6 @@
 import type { JSX } from 'react';
+import { mathAriaLabel } from '../../lib/inlineMath';
+import InlineMath from './InlineMath';
 import { withStableCallbacks } from './withStableCallbacks';
 
 export interface ChoiceFieldProps<T extends string> {
@@ -13,7 +15,9 @@ export interface ChoiceFieldProps<T extends string> {
  * Native radios sharing a name (arrow keys move the choice) drawn as segments that wrap on phones,
  * each with its own faint border so an option wrapped to a second row still reads as one,
  * the label above: every choice in words of a lab's levels (Tema 7's and Tema 8's mode, Tema 8's
- * dump actuator, Tema 9's side of the pass). The drawer's short values use SegmentedField.
+ * dump actuator, Tema 9's side of the pass, Temas 5 and 6's damping and view). An option may hold
+ * a formula between `$…$`: typeset, and named in words. The drawer's short values use
+ * SegmentedField.
  */
 function ChoiceField<T extends string>({
   id,
@@ -41,10 +45,14 @@ function ChoiceField<T extends string>({
               value={option.value}
               checked={option.value === value}
               onChange={() => onChange(option.value)}
+              aria-label={mathAriaLabel(option.label)}
               className="peer sr-only"
             />
             <span className="flex min-h-10 cursor-pointer items-center rounded-base border border-border px-3 text-sm text-fg-muted transition-colors peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-fg peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent peer-not-checked:hover:border-fg-muted hover:text-fg">
-              {option.label}
+              {/* One inline run: as flex items, text and formula would sit a gap apart. */}
+              <span>
+                <InlineMath text={option.label} />
+              </span>
             </span>
           </label>
         ))}

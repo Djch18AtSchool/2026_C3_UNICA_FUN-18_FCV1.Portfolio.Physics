@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 import { DEFAULT_REGEN } from '../../../lib/physics/energy';
 import type { SimClock } from '../../lab/useSimClock';
-import { regenLocalSettings } from './regenLabSettings';
+import { asCycleId, CYCLE_OPTIONS, regenLocalSettings, VIEW_OPTIONS } from './regenLabSettings';
 import {
   INITIAL_REGEN_STATE,
   presetIdFor,
@@ -75,44 +75,20 @@ describe('regenLocalSettings', () => {
     setLoop: vi.fn(),
   } as unknown as SimClock;
 
-  test('offers the view, the three cycles, f(v), speed and repeat; unknown values are ignored', () => {
-    const onCycleChange = vi.fn();
-    const onViewChange = vi.fn();
-    const settings = regenLocalSettings({
-      view: 'tramo',
-      onViewChange,
-      cycle: 'udds',
-      lowSpeedFade: false,
-      onCycleChange,
-      onFadeChange: vi.fn(),
-      clock,
-    });
+  test('the drawer holds f(v) and repeat only: the view and the cycle are the scenario’s', () => {
+    const onFadeChange = vi.fn();
+    const settings = regenLocalSettings({ lowSpeedFade: false, onFadeChange, clock });
 
-    expect(settings.map((setting) => setting.key)).toEqual([
-      'view',
-      'cycle',
-      'lowSpeedFade',
-      'speed',
-      'loop',
-    ]);
-    const view = settings[0];
-    if (view.kind !== 'select') throw new Error('the view is a select');
-    expect(view.options.map(({ label, chip }) => [label, chip])).toEqual([
-      ['Tramo: una frenada', 'Tramo'],
-      ['Ciclo completo', 'Ciclo'],
-      ['Conducir: el tramo con tus pedales', 'Conducir'],
-    ]);
-    view.onChange('lento');
-    expect(onViewChange).not.toHaveBeenCalled();
-    view.onChange('ciclo');
-    expect(onViewChange).toHaveBeenCalledWith('ciclo');
-    view.onChange('conducir');
-    expect(onViewChange).toHaveBeenCalledWith('conducir');
-    const cycle = settings[1];
-    if (cycle.kind !== 'select') throw new Error('the cycle is a select');
-    cycle.onChange('wltc');
-    expect(onCycleChange).not.toHaveBeenCalled();
-    cycle.onChange('us06');
-    expect(onCycleChange).toHaveBeenCalledWith('us06');
+    expect(settings.map((setting) => setting.key)).toEqual(['lowSpeedFade', 'loop']);
+    const fade = settings[0];
+    if (fade.kind === 'toggle') fade.onChange(true);
+    expect(onFadeChange).toHaveBeenCalledWith(true);
+  });
+
+  test('the views are short names for one row of segments; a cycle value is checked', () => {
+    expect(VIEW_OPTIONS.map(({ label }) => label)).toEqual(['Tramo', 'Ciclo', 'Conducir']);
+    expect(CYCLE_OPTIONS.map(({ value }) => value)).toEqual(['udds', 'hwfet', 'us06']);
+    expect(asCycleId('us06')).toBe('us06');
+    expect(asCycleId('wltc')).toBeUndefined();
   });
 });

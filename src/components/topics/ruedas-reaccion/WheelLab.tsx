@@ -15,7 +15,12 @@ import {
 } from './disturbanceTimeline';
 import MomentumGauge from './MomentumGauge';
 import { useWheelTimeScale } from './useWheelTimeScale';
-import { DEFAULT_DISPLAY, wheelLocalSettings, type WheelDisplay } from './wheelLabSettings';
+import {
+  DEFAULT_DISPLAY,
+  WHEEL_SPEEDS,
+  wheelLocalSettings,
+  type WheelDisplay,
+} from './wheelLabSettings';
 import {
   disturbanceReadings,
   DUMP_THRESHOLD,
@@ -287,6 +292,7 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
     <LabShell
       title="Laboratorio de la rueda de reacción"
       clock={clock}
+      speeds={WHEEL_SPEEDS}
       timeUnit="s"
       formatTime={isManeuver ? undefined : orbitHoursText(toOrbitTime, decimals)}
       readouts={readoutsFor(t, live, maneuver)}

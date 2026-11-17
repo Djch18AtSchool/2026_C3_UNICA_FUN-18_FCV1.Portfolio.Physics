@@ -27,26 +27,21 @@ export interface DroneLocalSettingsInput {
   clock: SimClock;
 }
 
-/** Vectores, escala de vectores, rastro, velocidad and repetir, in that order. */
+/** Vectores, escala de vectores, rastro and repetir, in that order (the speed is the transport's). */
 export function droneLocalSettings({
   display,
   onDisplayChange,
   clock,
 }: DroneLocalSettingsInput): SettingOption[] {
-  const toggle = (
-    key: 'showVectors' | 'showTrail',
-    label: string,
-    chip: string,
-  ): SettingOption => ({
+  const toggle = (key: 'showVectors' | 'showTrail', label: string): SettingOption => ({
     key,
     label,
-    chip,
     kind: 'toggle',
     value: display[key],
     onChange: (value) => onDisplayChange({ ...display, [key]: value }),
   });
   return [
-    toggle('showVectors', 'Vectores v y a', 'vectores'),
+    toggle('showVectors', 'Vectores v y a'),
     {
       key: 'vectorScale',
       label: 'Escala de vectores',
@@ -56,7 +51,7 @@ export function droneLocalSettings({
       unit: 'm por m/s',
       onChange: (vectorScale) => onDisplayChange({ ...display, vectorScale }),
     },
-    toggle('showTrail', 'Rastro', 'rastro'),
+    toggle('showTrail', 'Rastro'),
     ...clockSettings(clock),
   ];
 }

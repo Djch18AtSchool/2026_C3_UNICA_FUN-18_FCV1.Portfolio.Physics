@@ -8,7 +8,12 @@ import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { useSimClock } from '../../lab/useSimClock';
-import { DEFAULT_DISPLAY, flybyLocalSettings, type FlybyDisplay } from './flybyLabSettings';
+import {
+  DEFAULT_DISPLAY,
+  FLYBY_SPEEDS,
+  flybyLocalSettings,
+  type FlybyDisplay,
+} from './flybyLabSettings';
 import { flybyHyperbola, stateAt, timeToRadius } from './flybyOrbit';
 import {
   DEFAULT_FLYBY_PRESET_ID,
@@ -252,6 +257,7 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
     <LabShell
       title="Laboratorio del sobrevuelo (modelo plano)"
       clock={clock}
+      speeds={FLYBY_SPEEDS}
       markers={periapsis.markers}
       readouts={readouts}
       canvasNotes={

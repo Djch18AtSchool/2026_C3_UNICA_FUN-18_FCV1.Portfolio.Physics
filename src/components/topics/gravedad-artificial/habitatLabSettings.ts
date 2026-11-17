@@ -11,10 +11,10 @@ export interface HabitatDisplay {
 export const DEFAULT_DISPLAY: HabitatDisplay = { showVectors: true };
 
 /**
- * Playback speeds offered. A revolution lasts from 6 s (10 rpm) to 600 s (0,1 rpm), so the
+ * The speeds of the transport (LabShell `speeds`). A revolution lasts from 6 s (10 rpm) to 600 s (0,1 rpm), so the
  * range reaches 8× (spec §8.2 gives 0,25× to 2×; the task allows up to 8× for this lab).
  */
-const SPEEDS = [0.25, 0.5, 1, 2, 4, 8] as const;
+export const HABITAT_SPEEDS = [0.25, 0.5, 1, 2, 4, 8] as const;
 
 export interface HabitatLocalSettingsInput {
   display: HabitatDisplay;
@@ -22,7 +22,7 @@ export interface HabitatLocalSettingsInput {
   clock: SimClock;
 }
 
-/** Vectores, velocidad and repetir, in that order. */
+/** Vectores and repetir, in that order (the speed is the transport's). */
 export function habitatLocalSettings({
   display,
   onDisplayChange,
@@ -32,11 +32,10 @@ export function habitatLocalSettings({
     {
       key: 'showVectors',
       label: 'Vectores $a_c$ y gravedad aparente',
-      chip: 'vectores',
       kind: 'toggle',
       value: display.showVectors,
       onChange: (showVectors) => onDisplayChange({ ...display, showVectors }),
     },
-    ...clockSettings(clock, SPEEDS),
+    ...clockSettings(clock),
   ];
 }

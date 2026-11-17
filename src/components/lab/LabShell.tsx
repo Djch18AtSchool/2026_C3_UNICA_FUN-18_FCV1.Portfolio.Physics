@@ -12,14 +12,14 @@
  *     levels={{
  *       params: <RpField … />,                                    // 1: physical parameters
  *       scenario: <LabPresets id="flyby-preset" presets={…} … />, // 2: scenario and presets
- *       display: flybyLocalSettings(…),                           // 3: drawer, chips by the gear
+ *       display: flybyLocalSettings(…),                           // 3: the settings drawer
  *     }}
  *     notes={{ usage: [DRAG_HINT, usage], leftOut: [leftOut] }}
  *   >
  *     <FlybyScene … />
  *   </LabShell>
  *
- * One card: the title with the chip row and the gear; the stage (canvas, then transport); the
+ * One card: the title and the gear; the stage (canvas, then transport); the
  * panel (level 1 «Parámetros» with «Restablecer», level 2 «Escenario», «Lecturas» in two narrow
  * columns); the canvas notes; and «Cómo se usa» and «Qué deja fuera el modelo» at the end. The
  * order of the DOM is the order of reading and of the layout, in one column and in two. In two
@@ -43,14 +43,12 @@ import {
   LAB_STAGE_CELL,
   LAB_STAGE_TOP,
 } from './labShellClasses';
-import InlineMath from './InlineMath';
 import LabNotes from './LabNotes';
 import { GearButton, ReadoutAnnouncer, useLabDrawer, type LabDrawer } from './labShellParts';
 import { PresetTransitionContext, playPresetTransition } from './presetTransition';
 import { useMotionReduced } from './useMotionReduced';
 import type { LabLevels, LabReadout, LabShellProps } from './labShellTypes';
 import SettingsDrawer from './SettingsDrawer';
-import { settingChips } from './settingChips';
 import TransportBar from './TransportBar';
 
 export { READOUT_ANNOUNCE_DELAY_MS } from './labShellParts';
@@ -80,8 +78,6 @@ const TRANSPORT =
  * (one column, or below lg).
  */
 const CANVAS = `${CANVAS_BLEED} lab-split:**:scroll-mb-[calc(var(--lab-transport-room)+0.5rem)]`;
-const CHIP =
-  'inline-flex min-h-8 items-center whitespace-nowrap rounded-base border border-border bg-bg px-2 text-xs font-medium text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
 const RESET =
   'min-h-10 rounded-base border border-border px-3 text-sm text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
 
@@ -113,46 +109,17 @@ function Section({ level, title, action, className = '', children }: SectionProp
   );
 }
 
-/** Title, the chips of the active display settings and the gear; chips and gear open the drawer. */
-function Header({
-  title,
-  drawer,
-  display,
-}: { title: string; drawer: LabDrawer } & Pick<LabLevels, 'display'>) {
-  const chips = settingChips(display);
+/**
+ * One row: the title and the gear that opens the drawer. Nothing else: the speed is the
+ * transport's and the scenario sits under the parameters, so no chip repeats a setting here.
+ */
+function Header({ title, drawer }: { title: string; drawer: LabDrawer }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <span id={drawer.titleId} className="max-w-full grow text-sm font-semibold">
+    <div className="flex flex-nowrap items-center gap-3">
+      <span id={drawer.titleId} className="min-w-0 grow text-sm font-semibold">
         {title}
       </span>
-      <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-        {chips.length > 0 ? (
-          <div
-            role="group"
-            aria-label="Ajustes activos"
-            className="flex flex-wrap justify-end gap-2"
-          >
-            {chips.map((chip) => (
-              <button
-                key={chip.key}
-                type="button"
-                aria-label={chip.name}
-                aria-haspopup="dialog"
-                aria-expanded={drawer.isOpen}
-                aria-controls={drawer.drawerId}
-                onClick={(event) => drawer.open(event.currentTarget)}
-                className={CHIP}
-              >
-                {/* One inline run: as flex items, the text after a formula would lose its space. */}
-                <span>
-                  <InlineMath text={chip.text} />
-                </span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-        <GearButton drawer={drawer} />
-      </div>
+      <GearButton drawer={drawer} />
     </div>
   );
 }
@@ -200,7 +167,7 @@ function Panel({ levels, readouts, onReset }: PanelProps): JSX.Element {
 /** What LabShell passes on to the transport: the clock and how it is read. */
 type TransportProps = Pick<
   LabShellProps,
-  'clock' | 'timeUnit' | 'markers' | 'timeOrigin' | 'formatTime'
+  'clock' | 'timeUnit' | 'markers' | 'timeOrigin' | 'formatTime' | 'speeds'
 >;
 
 /** The stage, in its cell: the canvas, then the transport when the lab has a clock. */
@@ -272,7 +239,7 @@ export default function LabShell({
       data-playing={transport.clock?.state.playing ?? false}
       className={LAB_CARD}
     >
-      <Header title={title} drawer={drawer} display={levels.display} />
+      <Header title={title} drawer={drawer} />
       <div data-lab-columns="" className={LAB_COLUMNS}>
         <Stage {...transport} canvasRef={canvasRef}>
           {children}

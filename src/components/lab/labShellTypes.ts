@@ -47,6 +47,11 @@ export interface LabShellProps {
    * read alike.
    */
   formatTime?: TransportTimeFormat;
+  /**
+   * The speeds of the transport's speed select («1×▾»), in order; 0,25× to 2× when omitted. A lab
+   * whose run is long at 1× offers more (Temas 3 and 8 reach 8×).
+   */
+  speeds?: readonly number[];
   readouts: LabReadout[];
   /**
    * Whether the readouts are announced once they settle (default true). A view that says its own
@@ -76,9 +81,6 @@ export interface LabLevels {
   params: ReactNode;
   /** Level 2, scenario and presets (LabPresets), compact; omitted when the lab has none. */
   scenario?: ReactNode;
-  /**
-   * Level 3, personalization: only in the settings drawer. Each option with a `chip` also shows
-   * its state beside the gear (settingChips.ts).
-   */
+  /** Level 3, personalization: only in the settings drawer (no chip repeats it by the gear). */
   display: SettingOption[];
 }

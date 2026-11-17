@@ -185,23 +185,18 @@ describe('WheelLab', () => {
     ).toBeChecked();
   });
 
-  test('the display settings show their chips by the gear: flechas and gráfica, 1× and no repeat', async () => {
+  test('no chips by the gear: the drawer holds flechas, gráfica and repetir; the speed is the transport’s', async () => {
     const user = userEvent.setup();
     renderLab();
-    const chips = () =>
-      within(screen.getByRole('group', { name: 'Ajustes activos' }))
-        .getAllByRole('button')
-        .map((chip) => chip.getAttribute('aria-label'));
-
-    expect(chips()).toEqual(['flechas', 'gráfica', 'Velocidad 1×']);
+    expect(screen.queryByRole('group', { name: 'Ajustes activos' })).toBeNull();
+    expect(screen.getByRole('combobox', { name: 'Velocidad de reproducción' })).toHaveValue('1');
 
     await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
-    await user.click(
-      within(screen.getByRole('dialog')).getByRole('switch', { name: 'Gráfica de L sub w(t)' }),
-    );
-    await user.keyboard('{Escape}');
+    const dialog = screen.getByRole('dialog');
 
-    expect(chips()).toEqual(['flechas', 'Velocidad 1×']);
+    expect(within(dialog).getByRole('switch', { name: /^Flechas de giro/ })).toBeChecked();
+    expect(within(dialog).getByRole('switch', { name: 'Gráfica de L sub w(t)' })).toBeChecked();
+    expect(within(dialog).getByRole('switch', { name: 'Repetir' })).not.toBeChecked();
   });
 
   test('"Cómo se usa" starts with the hint of the mode, then the topic text', async () => {
@@ -478,12 +473,10 @@ describe('WheelLab', () => {
     renderLab();
     await user.click(screen.getByRole('radio', { name: 'Perturbación y descarga' }));
 
-    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
     await user.selectOptions(
-      within(screen.getByRole('dialog')).getByRole('combobox', { name: 'Velocidad' }),
+      screen.getByRole('combobox', { name: 'Velocidad de reproducción' }),
       '4',
     );
-    await user.keyboard('{Escape}');
 
     expect(
       screen.getByText(/a 4×, 8 h de órbita por segundo \(un día en 3 s\)/),
@@ -500,12 +493,10 @@ describe('WheelLab', () => {
     fireEvent.keyDown(cursor, { key: 'ArrowRight', shiftKey: true });
     expect(readout('Tiempo en órbita')).toBe('7,20 h');
 
-    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
     await user.selectOptions(
-      within(screen.getByRole('dialog')).getByRole('combobox', { name: 'Velocidad' }),
+      screen.getByRole('combobox', { name: 'Velocidad de reproducción' }),
       '8',
     );
-    await user.keyboard('{Escape}');
     expect(
       screen.getByText(/a 8×, 16 h de órbita por segundo \(un día en 1,5 s\)/),
     ).toBeInTheDocument();
@@ -594,16 +585,20 @@ describe('WheelLab', () => {
     expect(readout(OMEGA_W)).toBe('0,00 rpm');
   });
 
-  test('the drawer opens from the keyboard, offers 8× and hides the plot, and Escape returns focus', async () => {
+  test('the transport offers 8×; the drawer opens from the keyboard, hides the plot, and Escape returns focus', async () => {
     const user = userEvent.setup();
     renderLab();
     const gear = screen.getByRole('button', { name: 'Ajustes del simulador' });
+    expect(
+      within(screen.getByRole('combobox', { name: 'Velocidad de reproducción' })).getByRole(
+        'option',
+        { name: '8×' },
+      ),
+    ).toBeInTheDocument();
 
     gear.focus();
     await user.keyboard('{Enter}');
     const dialog = screen.getByRole('dialog');
-    const speed = within(dialog).getByRole('combobox', { name: 'Velocidad' });
-    expect(within(speed).getByRole('option', { name: '8×' })).toBeInTheDocument();
     await user.click(within(dialog).getByRole('switch', { name: 'Gráfica de L sub w(t)' }));
     await user.keyboard('{Escape}');
 
