@@ -1,7 +1,8 @@
 /**
  * A row of read-only status chips under a labelled lead-in, for a state the lab reports rather
  * than a setting the reader changes (Tema 7's engine: «Motor: Δt = 1/60 s · 4 subpasos · …»).
- * Settings that the reader changes get chips next to the gear instead (settingChips.ts). Usage:
+ * A setting the reader changes has no chip: it is read on its own control, in the lab's
+ * parameters, scenario or settings drawer (E1 removed the chips next to the gear). Usage:
  *
  *   <StatusChips label="Motor" items={[{ id: 'dt', text: '$\\Delta t$ = 1/60 s' }, …]} />
  */
