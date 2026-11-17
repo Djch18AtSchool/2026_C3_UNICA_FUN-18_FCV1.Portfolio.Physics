@@ -54,15 +54,16 @@ const DIRECTION: Readonly<Record<ZoomControlsOrientation, string>> = {
 const BUTTON =
   'inline-flex size-10 items-center justify-center text-fg-muted transition-colors hover:text-fg aria-disabled:cursor-not-allowed aria-disabled:text-fg-muted/50 aria-disabled:hover:text-fg-muted/50';
 const FACTOR =
-  'flex h-8 min-w-10 items-center justify-center px-1 text-xs font-medium whitespace-nowrap text-fg tabular-nums';
+  'flex min-w-10 items-center justify-center px-1 text-xs font-medium whitespace-nowrap text-fg tabular-nums';
 /**
  * «Zoom» and the number: on one line in a row, the number 4 characters wide whatever it says, so
- * the buttons never move; stacked in a column (two 16 px lines in the 32 px cell), which keeps
- * the column 40 px wide.
+ * the buttons never move, in a 40 px cell like them (a shorter one left the text 4 px above the
+ * buttons' centre); stacked in a column (two 16 px lines in the 32 px cell), which keeps the
+ * column 40 px wide.
  */
 const FACTOR_LAYOUT: Readonly<Record<ZoomControlsOrientation, { box: string; number: string }>> = {
-  row: { box: 'gap-1', number: 'min-w-[4ch] text-left' },
-  column: { box: 'flex-col leading-4', number: 'text-center' },
+  row: { box: 'h-10 gap-1', number: 'min-w-[4ch] text-left' },
+  column: { box: 'h-8 flex-col leading-4', number: 'text-center' },
 };
 
 /** The factor as drawn: «Zoom ×2,8». Hidden: ZoomControls says it in words. */

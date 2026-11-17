@@ -151,6 +151,16 @@ describe('ZoomControls', () => {
     expect(number?.className).toMatch(/min-w-\[4ch\]/u);
   });
 
+  test('in a row the factor cell is as tall as the 40 px buttons (its text centred on them); in a column it is the 32 px cell', () => {
+    const row = render(<Canvas orientation="row" />);
+    expect(row.container.querySelector('[data-zoom-factor-label]')).toHaveClass('h-10');
+    expect(button('Acercar')).toHaveClass('size-10');
+    row.unmount();
+
+    const column = render(<Canvas orientation="column" />);
+    expect(column.container.querySelector('[data-zoom-factor-label]')).toHaveClass('h-8');
+  });
+
   test('the factor is drawing only; its words are read in the canvas', () => {
     const { container } = render(<Canvas />);
 

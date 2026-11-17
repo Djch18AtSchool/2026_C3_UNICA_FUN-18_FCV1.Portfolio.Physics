@@ -198,6 +198,22 @@ for (const size of VIEWPORTS) {
       });
     }
 
+    test(`${ROW_LAB}: el texto «Zoom ×…» queda centrado en vertical sobre los botones de 40 px`, async ({
+      page,
+    }) => {
+      const lab = await openFixture(page, 'light', ROW_LAB);
+      const label = lab.locator('[data-zoom-factor-label]');
+      const textMiddle = await label.evaluate((node) => {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const text = range.getBoundingClientRect();
+        return text.y + text.height / 2;
+      });
+      const button = (await zoomButton(lab, 'Acercar').boundingBox())!;
+
+      expect(Math.abs(textMiddle - (button.y + button.height / 2))).toBeLessThanOrEqual(1);
+    });
+
     for (const selector of [LAB, ROW_LAB]) {
       test(`${selector}: el factor se lee «Zoom ×…» y los botones no se mueven al cambiar de zoom (R31)`, async ({
         page,
