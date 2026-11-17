@@ -29,7 +29,7 @@ const url = topicUrl(topic.slug);
       isCurrent ? 'border-accent bg-bg font-medium text-fg' : 'border-transparent text-fg',
     ]}
   >
-    <span class="text-right font-mono text-xs text-fg-muted">{topicNumberLabel(topic.number)}</span>
+    <span class="text-right numbering text-xs text-fg-muted">{topicNumberLabel(topic.number)}</span>
     <span class="pl-2">{topic.shortTitle}</span>
   </a>
   {hasOutline && (

@@ -180,7 +180,7 @@ export function arrowTip(centre: number, v: number, width: number): number {
 export function labelCentre(centre: number, text: string, width: number): number {
   return fitCentre(
     centre,
-    mathTextWidth(text, VELOCITY_LABEL_SIZE, 'mono'),
+    mathTextWidth(text, VELOCITY_LABEL_SIZE),
     LABEL_EDGE_PX,
     width - LABEL_EDGE_PX,
   );

@@ -4,7 +4,7 @@
  * seconds per real second; it is an order of size, so it is rounded to two significant digits.
  */
 import { formatNumber } from '../../lib/format';
-import { mathAriaLabel, splitInlineMath, texToNotation } from '../../lib/inlineMath';
+import { mathAriaLabel, splitInlineMath } from '../../lib/inlineMath';
 import { rawNotationMarks } from '../../lib/typography';
 
 export const TIMES_SIGN = '×';
@@ -65,18 +65,4 @@ export function requireInlineMathLabel(label: string): void {
       `TimeScaleBadge: la etiqueta «${label}» tiene ${raw.join(' ')} fuera de $…$; escribe la fórmula entre $…$ (p. ej. $r_p$).`,
     );
   }
-}
-
-/**
- * A $…$ label in the MathText notation of an SVG label: each formula through texToNotation, and a
- * literal _ or ^ of the words escaped (\_, \^) so MathText does not take it as a script.
- */
-export function inlineMathToNotation(label: string): string {
-  return splitInlineMath(label)
-    .map((segment) =>
-      segment.kind === 'math'
-        ? texToNotation(segment.tex)
-        : segment.text.replace(/[_^]/gu, (mark) => `\\${mark}`),
-    )
-    .join('');
 }

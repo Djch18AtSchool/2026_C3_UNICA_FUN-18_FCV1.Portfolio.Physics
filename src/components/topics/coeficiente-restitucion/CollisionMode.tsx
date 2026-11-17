@@ -78,7 +78,7 @@ function Bars({
   const texts = rows.map((row) => formatNumber(row.value, { precision: decimals, unit: row.unit }));
   // Room right of the bars for the widest value label, so "-100,00 kg·m/s" stays on the canvas.
   const valueRoom =
-    Math.max(...texts.map((text) => mathTextWidth(text, VELOCITY_LABEL_SIZE, 'mono'))) + VALUE_GAP;
+    Math.max(...texts.map((text) => mathTextWidth(text, VELOCITY_LABEL_SIZE))) + VALUE_GAP;
   const right = width - SIDE_PAD - valueRoom;
   const reach = rows.map((row) => row.lostUpTo ?? row.value);
   const hasNegative = isSigned && reach.some((value) => value < 0);

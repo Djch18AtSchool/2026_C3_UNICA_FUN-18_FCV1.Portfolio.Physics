@@ -28,7 +28,6 @@ import InlineMath from './InlineMath';
 import MathText, { type TextAnchor } from './MathText';
 import {
   formatTimeScale,
-  inlineMathToNotation,
   requireInlineMathLabel,
   timeScaleLabel,
   timeScaleSpoken,
@@ -136,7 +135,7 @@ export default function TimeScaleBadge({
         aria-hidden="true"
         className={`${BADGE} ${CANVAS_CORNER[corner]}`}
       >
-        <span className="font-mono text-sm font-medium whitespace-nowrap text-fg tabular-nums">
+        <span className="text-sm font-medium whitespace-nowrap text-fg tabular-nums">
           {formatTimeScale(factor)}
         </span>
         {label ? (
@@ -180,11 +179,10 @@ export function TimeScaleBadgeSvg({
       />
       {label ? (
         <MathText
-          source={inlineMathToNotation(label)}
+          source={label}
           x={x}
           y={y + LINE_GAP}
           anchor={anchor}
-          family="sans"
           fontSize={LABEL_SIZE}
           fill={TICK_COLOR}
           halo={HALO}

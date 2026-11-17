@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { textWidth } from '../../lab/plotScales';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
@@ -291,8 +292,11 @@ describe('the habitat scene scale note', () => {
       expect(y).toBeGreaterThan(top);
       expect(y).toBeLessThan(bottom);
     }
-    // Wide enough for the longer line in 12 px mono (~7,2 px a glyph).
-    expect(Number(plate?.getAttribute('width'))).toBeGreaterThan(26 * 7);
+    // Wide enough for the longer line as drawn, in 12 px Plex Sans.
+    const longest = Math.max(
+      ...[...note().querySelectorAll('text')].map((line) => textWidth(line.textContent ?? '', 12)),
+    );
+    expect(Number(plate?.getAttribute('width'))).toBeGreaterThan(longest);
   });
 
   test('the accessible description says the same', () => {

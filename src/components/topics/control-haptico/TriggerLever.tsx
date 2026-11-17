@@ -5,7 +5,7 @@ import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartThem
 import { useElementWidth } from '../../hooks/useElementWidth';
 import MathText from '../../lab/MathText';
 import { Arrow, ARROW_HEAD, Knob, Label, LABEL_SIZE, type Point } from '../../lab/OverlayMarks';
-import { monoTextWidth } from '../../lab/plotScales';
+import { textWidth } from '../../lab/plotScales';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { PROFILE_COLOR } from './hapticPlots';
@@ -79,7 +79,7 @@ const xText = (xMm: number) => formatNumber(xMm, { precision: X_PRECISION, unit:
  * slopes down under the text.
  */
 export function valueLabelDrop(angleDeg: number, text: string): number {
-  const reach = Math.max(0, monoTextWidth(text, LEVER_TEXT_SIZE) - VALUE_LABEL_LEAN);
+  const reach = Math.max(0, textWidth(text, LEVER_TEXT_SIZE) - VALUE_LABEL_LEAN);
   const edge = Math.max(0, Math.tan(-angleDeg * DEG) * reach) + LEVER_HALF_THICKNESS;
   const clear = edge + VALUE_LABEL_CLEARANCE + LEVER_TEXT_SIZE * CAP_HEIGHT_SHARE;
   return Math.max(VALUE_LABEL_DROP, Math.ceil(clear));

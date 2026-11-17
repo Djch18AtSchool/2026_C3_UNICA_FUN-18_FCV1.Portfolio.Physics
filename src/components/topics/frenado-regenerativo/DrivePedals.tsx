@@ -74,7 +74,7 @@ function Pedal({ pedal, frame, liveAt, version, press, release }: PedalProps): J
     >
       <span ref={depthRef} data-pedal-depth="" aria-hidden="true" className={DEPTH} />
       {pedal.label}
-      <span aria-hidden="true" className="font-mono text-fg-muted">
+      <span aria-hidden="true" className="text-fg-muted">
         {pedal.arrow}
       </span>
     </button>

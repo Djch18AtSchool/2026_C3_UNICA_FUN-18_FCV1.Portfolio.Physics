@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { toNotation } from '../../../lib/mathNotation';
+import { plainLetters } from '../../../lib/mathItalic';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { PLANETS } from '../../../lib/data/planets';
@@ -91,7 +93,10 @@ function scaleBar() {
   const group = frame().querySelector('g[data-scale-bar]') as SVGGElement;
   const path = group.querySelector('path')?.getAttribute('d') ?? '';
   const [, left, right] = /^M([\d.-]+) [\d.-]+V[\d.-]+H([\d.-]+)V/u.exec(path) ?? [];
-  const notation = group.querySelector('text')?.getAttribute('data-notation') ?? '';
+  // As the reader sees it: «20 $R_\mathrm{J}$» reads «20 R_J».
+  const notation = plainLetters(
+    toNotation(group.querySelector('text')?.getAttribute('data-notation') ?? ''),
+  );
   const [, digits, unit] = /^([\d\s,]+)\s(R_[A-Z]|km)$/u.exec(notation) ?? [];
   return {
     px: Number(right) - Number(left),

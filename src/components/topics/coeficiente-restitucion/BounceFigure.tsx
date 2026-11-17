@@ -133,7 +133,7 @@ function layApexLabels(
   return apexes.reduce<ApexLayout>(
     ({ labels, isClear }, apex) => {
       const text = apex[form];
-      const width = mathTextWidth(text, LABEL_SIZE, 'mono');
+      const width = mathTextWidth(text, LABEL_SIZE);
       const ax = scales.x.toPx(apex.t);
       const cy = scales.y.toPx(apex.h) - APEX_LABEL_RISE - BASELINE_BELOW_CENTRE;
       const spots = [
@@ -146,7 +146,7 @@ function layApexLabels(
       const blocked = [
         ...texts,
         ...labels.map((label) =>
-          boxAround(label.at, mathTextWidth(label.text, LABEL_SIZE, 'mono'), LABEL_HEIGHT),
+          boxAround(label.at, mathTextWidth(label.text, LABEL_SIZE), LABEL_HEIGHT),
         ),
       ];
       const at = clearSpot(spots, { width, height: LABEL_HEIGHT }, lines, area, blocked);

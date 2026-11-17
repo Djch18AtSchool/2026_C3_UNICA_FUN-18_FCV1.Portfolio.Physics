@@ -35,7 +35,7 @@ const grow = (box: Box, by: number): Box => ({
 /** The padded box size of a Label's text (MathText notation, measured as drawn). */
 export function labelSize(text: string): Size {
   return {
-    width: mathTextWidth(text, LABEL_SIZE, 'mono') + 2 * LABEL_PAD,
+    width: mathTextWidth(text, LABEL_SIZE) + 2 * LABEL_PAD,
     height: LABEL_SIZE + 2 * LABEL_PAD,
   };
 }

@@ -1,5 +1,11 @@
 import { describe, expect, test } from 'vitest';
-import { bindNumerals, isCovered, uncoveredChars, rawNotationMarks } from './typography';
+import {
+  bindNumerals,
+  isCovered,
+  isPlexSansGlyph,
+  uncoveredChars,
+  rawNotationMarks,
+} from './typography';
 
 const NBSP = ' ';
 
@@ -32,17 +38,13 @@ describe('uncoveredChars', () => {
     expect(uncoveredChars('Rapidez −2,13 km/s · 97,5° × ± «ñ» – —')).toEqual([]);
   });
 
-  test('lists the symbols, sub- and superscripts Plex lacks, once each and in order', () => {
-    expect(uncoveredChars('v∞ ≈ 7, rₚ ≤ 3, v∞ ≥ 1, 10⁻⁷, M☉')).toEqual([
-      '∞',
-      '≈',
-      'ₚ',
-      '≤',
-      '≥',
-      '⁻',
-      '⁷',
-      '☉',
-    ]);
+  test('lists the sub- and superscripts and symbols no face of the stack draws, once each and in order', () => {
+    expect(uncoveredChars('v∞ ≈ 7, rₚ ≤ 3, v∞ ≥ 1, 10⁻⁷, M☉')).toEqual(['ₚ', '⁻', '⁷', '☉']);
+  });
+
+  test('the symbols Plex lacks come from the sans stack’s «Math Symbols» face, never Plex Mono', () => {
+    expect(uncoveredChars('v∞ ≈ 7 ≤ 3 → ⋅', 'sans')).toEqual([]);
+    expect(uncoveredChars('v∞ ≈ 7', 'mono')).toEqual(['∞', '≈']);
   });
 
   test('catches the combining vector arrow U+20D7 on its own', () => {
@@ -69,7 +71,16 @@ describe('isCovered', () => {
     expect(isCovered('A', 'mono')).toBe(true);
     expect(isCovered('ω', 'mono')).toBe(false);
     expect(isCovered('ω', 'sans')).toBe(true);
-    expect(isCovered('∞', 'sans')).toBe(false);
+    expect(isCovered('∞', 'sans')).toBe(true);
+    expect(isCovered('∞', 'mono')).toBe(false);
+  });
+});
+
+describe('isPlexSansGlyph', () => {
+  test('is Plex Sans alone: a symbol of the face after it is not one', () => {
+    expect(isPlexSansGlyph('θ')).toBe(true);
+    expect(isPlexSansGlyph('7')).toBe(true);
+    expect(isPlexSansGlyph('∞')).toBe(false);
   });
 });
 

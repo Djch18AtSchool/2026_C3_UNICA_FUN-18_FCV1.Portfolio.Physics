@@ -48,7 +48,7 @@ const HALO = { color: SURFACE_COLOR, width: HALO_WIDTH } as const;
 const SPLIT_BELOW_PX = 400;
 /** Width of the longest line of a note (MathText notation) in the 12 px mono font. */
 const textWidth = (lines: readonly string[]) =>
-  Math.max(...lines.map((line) => mathTextWidth(line, NOTE_SIZE, 'mono')));
+  Math.max(...lines.map((line) => mathTextWidth(line, NOTE_SIZE)));
 
 function NoteText({
   x,

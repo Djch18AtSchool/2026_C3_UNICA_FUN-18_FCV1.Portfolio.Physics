@@ -4,7 +4,7 @@
  * Dates are UT; the series are in TDB, about 50 s apart in 1979, far below a day's tick. Pure.
  */
 import type { Domain } from '../../lab/plotScales';
-import { monoTextWidth } from '../../lab/plotScales';
+import { textWidth } from '../../lab/plotScales';
 import { signed } from './flybyFormat';
 
 /** Julian date of 1970-01-01 00:00 UT, the zero of JavaScript time. */
@@ -65,7 +65,7 @@ export function yearTicks(domain: Domain, pxPerDay: number, fontSize: number): A
   const first = dateOf(domain.min).getUTCFullYear();
   const last = dateOf(domain.max).getUTCFullYear();
   const years = Array.from({ length: Math.max(0, last - first + 1) }, (_, i) => first + i);
-  const step = labelStep(pxPerDay * DAYS_PER_YEAR, monoTextWidth('0000', fontSize));
+  const step = labelStep(pxPerDay * DAYS_PER_YEAR, textWidth('0000', fontSize));
   return years
     .map((year) => ({ year, x: jdFromIso(`${year}-01-01`) }))
     .filter(({ x }) => x >= domain.min && x <= domain.max)
@@ -81,7 +81,7 @@ export function offsetDayTicks(
 ): AxisTick[] {
   const first = Math.ceil(domain.min - centre);
   const last = Math.floor(domain.max - centre);
-  const step = labelStep(pxPerDay, monoTextWidth(signed(-9, 0), fontSize));
+  const step = labelStep(pxPerDay, textWidth(signed(-9, 0), fontSize));
   return Array.from({ length: last - first + 1 }, (_, i) => first + i).map((day) =>
     day % step === 0 ? { x: centre + day, label: signed(day, 0) } : { x: centre + day },
   );

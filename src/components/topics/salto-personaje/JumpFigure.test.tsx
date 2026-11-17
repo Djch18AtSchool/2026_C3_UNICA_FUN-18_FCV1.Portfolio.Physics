@@ -72,7 +72,7 @@ describe('JumpFigure', () => {
       const [text, ...otherLines] = [...celeste.querySelectorAll('text')];
       const longest = Math.max(
         ...[text, ...otherLines].map((line) =>
-          mathTextWidth(line.getAttribute('data-notation') ?? line.textContent ?? '', 12, 'mono'),
+          mathTextWidth(line.getAttribute('data-notation') ?? line.textContent ?? '', 12),
         ),
       );
 

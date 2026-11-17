@@ -2,7 +2,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { createFrameStore } from '../../lab/frameStore';
-import { monoTextWidth } from '../../lab/plotScales';
+import { textWidth } from '../../lab/plotScales';
 import { stubResizeObserver, viewBoxOf } from '../../lab/svgPlotTestKit';
 import BounceScene, { type BounceSceneProps } from './BounceScene';
 
@@ -37,11 +37,14 @@ function subtitles(): { x: number; lines: string[] }[] {
   }));
 }
 
-/** The horizontal extent of a centred monospace line. */
+/** The horizontal extent of a centred line, in Plex Sans. */
 function extent(x: number, line: string): [number, number] {
-  const half = monoTextWidth(line, NOTE_SIZE) / 2;
+  const half = textWidth(line, NOTE_SIZE) / 2;
   return [x - half, x + half];
 }
+
+/** A canvas narrow enough that both subtitles wrap in Plex Sans (from 220 px the engine's fits). */
+const PHONE_WIDTH = 210;
 
 describe('BounceScene column subtitles', () => {
   afterEach(() => {
@@ -76,7 +79,7 @@ describe('BounceScene column subtitles', () => {
   );
 
   test('a wrapped subtitle breaks only where a normal space allows it', () => {
-    stubResizeObserver(250);
+    stubResizeObserver(PHONE_WIDTH);
     render(<BounceScene {...PROPS} />);
 
     expect(subtitles().map(({ lines }) => lines)).toEqual([
@@ -92,7 +95,7 @@ describe('BounceScene column subtitles', () => {
     const wideStatus = Number(document.querySelector('[data-status]')?.getAttribute('y'));
     wide.unmount();
 
-    stubResizeObserver(250);
+    stubResizeObserver(PHONE_WIDTH);
     render(<BounceScene {...PROPS} />);
     const status = document.querySelector('[data-status]');
     const lastLine = [...document.querySelectorAll('[data-subtitle] text')].at(-1);

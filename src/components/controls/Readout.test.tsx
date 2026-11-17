@@ -12,12 +12,13 @@ describe('Readout', () => {
     localStorage.clear();
   });
 
-  test('shows the label and the value with unit in monospace', () => {
+  test('shows the label and the value with unit, the value in the text’s family', () => {
     render(<Readout label="Altura máxima" value={5.1} unit="m" />);
 
     expect(screen.getByText('Altura máxima')).toBeInTheDocument();
     const value = screen.getByText('5,10\u202fm', EXACT_TEXT);
-    expect(value).toHaveClass('font-mono');
+    expect(value).not.toHaveClass('font-mono');
+    expect(value).toHaveClass('tabular-nums');
   });
 
   test('honors the precision option', () => {
@@ -53,7 +54,7 @@ describe('Readout as a cell of the tiered lab panel', () => {
     expect(row).toHaveClass('flex-col');
     expect(row.firstElementChild).toHaveTextContent('Período T');
     expect(row.lastElementChild?.textContent).toBe('2,00\u202fs');
-    expect(row.lastElementChild).toHaveClass('font-mono');
+    expect(row.lastElementChild).toHaveClass('tabular-nums');
   });
 
   test('a row is the default: label and value side by side', () => {

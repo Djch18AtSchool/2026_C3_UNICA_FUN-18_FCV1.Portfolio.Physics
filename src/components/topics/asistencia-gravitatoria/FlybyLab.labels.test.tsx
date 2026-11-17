@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { toNotation } from '../../../lib/mathNotation';
+import { plainLetters } from '../../../lib/mathItalic';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../../lib/settingsStore';
@@ -33,7 +35,8 @@ const CORNER_FONT = 12;
 const CORNER_MARGIN = 3;
 
 /** A label's source: its notation when MathText drew it, else its text. */
-const notationOf = (text: Element) => text.getAttribute('data-notation') ?? text.textContent ?? '';
+const notationOf = (text: Element) =>
+  plainLetters(toNotation(text.getAttribute('data-notation') ?? text.textContent ?? ''));
 
 function boxOf(text: SVGTextElement): Box {
   const fontSize = Number(text.getAttribute('font-size') ?? CORNER_FONT);

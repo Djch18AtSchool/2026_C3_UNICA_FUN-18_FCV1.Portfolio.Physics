@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../lib/settingsStore';
 import type { Scale } from './plotScales';
+import { textWidth } from './plotScales';
 import SvgPlot from './SvgPlot';
 import { PROPS, stubResizeObserver, viewBoxOf } from './svgPlotTestKit';
 
@@ -131,10 +132,10 @@ describe('SvgPlot on a phone-width container', () => {
     });
   });
 
-  /** Horizontal extent of a <text>, estimated as the plotter does: 0,6 em per mono character. */
+  /** Horizontal extent of a <text>, measured as the plotter does: Plex Sans advances. */
   function textExtent(node: Element, fontSize: number): [number, number] {
     const x = Number(node.getAttribute('x'));
-    const width = (node.textContent ?? '').length * fontSize * 0.6;
+    const width = textWidth(node.textContent ?? '', fontSize);
     const anchor = node.getAttribute('text-anchor') ?? 'start';
     if (anchor === 'middle') return [x - width / 2, x + width / 2];
     return anchor === 'end' ? [x - width, x] : [x, x + width];
@@ -292,9 +293,7 @@ describe('SvgPlot on a phone-width container', () => {
       expect(text).toHaveAttribute('text-anchor', 'end');
       expect(x).toBeLessThan(bandLeft);
       for (const line of lines) {
-        expect(x - (line.textContent ?? '').trim().length * 12 * 0.6).toBeGreaterThanOrEqual(
-          areaLeft,
-        );
+        expect(x - textWidth((line.textContent ?? '').trim(), 12)).toBeGreaterThanOrEqual(areaLeft);
       }
       expect(lines.length).toBe(width === 720 ? 1 : 2);
       expect(container.querySelector('[data-band]')).not.toBeNull();

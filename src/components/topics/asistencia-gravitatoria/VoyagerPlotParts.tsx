@@ -24,7 +24,7 @@ import {
   type SeriesHighlight,
 } from '../../charts/seriesHighlight';
 import MathText from '../../lab/MathText';
-import { fitCentre, monoTextWidth, type Scale } from '../../lab/plotScales';
+import { fitCentre, textWidth, type Scale } from '../../lab/plotScales';
 import type { PlotArea } from '../../lab/SvgPlotCursor';
 import type { AxisTick } from './dateAxis';
 import type { PlacedLabel } from './labelLayout';
@@ -305,7 +305,7 @@ export function XAxis({
                       data-tick-label=""
                       x={fitCentre(
                         scale.toPx(tick.x),
-                        monoTextWidth(tick.label, FONT_SIZE),
+                        textWidth(tick.label, FONT_SIZE),
                         0,
                         viewWidth,
                       )}

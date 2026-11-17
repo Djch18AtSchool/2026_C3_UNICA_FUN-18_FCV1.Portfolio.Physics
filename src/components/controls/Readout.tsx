@@ -31,7 +31,7 @@ export default function Readout({ label, value, unit, precision, layout = 'row' 
       <span className="text-sm text-balance text-fg-muted">
         <InlineMath text={label} />
       </span>
-      <span className="font-mono text-base font-medium tabular-nums">
+      <span className="text-base font-medium tabular-nums">
         {formatNumber(value, { precision: resolvedPrecision, unit })}
       </span>
     </div>

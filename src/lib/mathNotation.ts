@@ -7,34 +7,43 @@
  *   10^-7     superscript, the same way; a leading - prints as U+2212.
  *   vec v     a vector: an arrow drawn over the next character (vec V_p → arrow over V only).
  *
- * `\_` and `\^` are literal. Greek letters and the symbols IBM Plex lacks (∞ ≈ ≤ ≥ → √ ∫ ⊥ ⊙ …)
- * are set in KaTeX's fonts (src/lib/mathFonts.ts); ☉ prints as KaTeX's ⊙ and ≠ as "=" with a
- * drawn stroke. Unicode sub- and superscripts (rₚ, 10⁻⁷) and the combining arrow U+20D7 are
- * rewritten into the notation first, so no label reaches the reader in a fallback font.
- * src/components/lab/MathText.tsx draws it; mathTextToString says it.
+ *   𝑟         a variable: a Mathematical Italic letter (U+1D434…, ℎ for h) is the plain letter in
+ *             Plex Sans Italic. texToNotation writes the letters of a `$…$` formula this way, so
+ *             «$r_p$ = 10,09 R_J» sets r and p italic and the unit upright, as the HTML does.
+ *
+ * `\_` and `\^` are literal. Everything is set in IBM Plex Sans by the site's sans stack
+ * (src/lib/mathFonts.ts, src/styles/math.css): lowercase Greek in its italic, like a variable;
+ * the symbols Plex lacks (∞ ≈ ≤ ≥ → ∫ ⊥ ⊙ …) from the «Math Symbols» face that follows it; ☉
+ * prints as ⊙ and ≠ as "=" with a drawn stroke. Unicode sub- and superscripts (rₚ, 10⁻⁷) and the
+ * combining arrow U+20D7 are rewritten into the notation first, so no label reaches the reader in
+ * a fallback font. src/components/lab/MathText.tsx draws it; mathTextToString says it.
  */
 import {
-  KATEX_MAIN_ADVANCES,
-  KATEX_MATH_ADVANCES,
-  PLEX_MONO_ADVANCE,
+  MATH_SYMBOL_ADVANCES,
   PLEX_SANS_ADVANCES,
+  PLEX_SANS_ITALIC_ADVANCES,
 } from './glyphAdvances';
-import { KATEX_HEIGHTS, KATEX_SCALE, mathFontOf, PLEX_HEIGHTS, type MathFont } from './mathFonts';
+import { isMathSymbol, KATEX_SCALE, LOWER_GREEK, PLEX_HEIGHTS } from './mathFonts';
+import { plainLetters, plainOfItalic } from './mathItalic';
+import { splitInlineMath } from './inlineSegments';
+import { texToNotation } from './texNotation';
 import { spokenName } from './mathSpeech';
 import { MINUS_SIGN } from './format';
 
 export type Script = 'base' | 'sub' | 'sup';
-export type LabelFamily = 'mono' | 'sans';
 
 export type MathToken =
   | { kind: 'char'; char: string }
   | { kind: 'vector'; char: string }
   | { kind: 'script'; script: 'sub' | 'sup'; text: string };
 
-/** A stretch of one font and script level; `mark` asks for a drawn arrow or negation stroke. */
+/** How a run is set: Plex Sans Italic (a variable) or a symbol of the «Math Symbols» face. */
+export type RunStyle = 'italic' | 'symbol';
+
+/** A stretch of one style and script level; `mark` asks for a drawn arrow or negation stroke. */
 export interface MathRun {
   text: string;
-  font?: MathFont;
+  style?: RunStyle;
   script: Script;
   mark?: 'vector' | 'not';
 }
@@ -125,9 +134,24 @@ const startsVector = (chars: readonly string[], i: number) =>
 const asScriptText = (text: string) =>
   [...text].map((char) => (MINUS_CHARS.has(char) ? MINUS_SIGN : char)).join('');
 
-/** The notation as tokens: plain characters, vectors and sub- or superscripts. */
+/**
+ * A label in the site's `$…$` syntax as notation: each formula through texToNotation (italic
+ * letters), a literal _ or ^ of the words escaped (\_, \^). A label without $ is notation already.
+ */
+export function toNotation(label: string): string {
+  if (!label.includes('$')) return label;
+  return splitInlineMath(label)
+    .map((segment) =>
+      segment.kind === 'math'
+        ? texToNotation(segment.tex)
+        : segment.text.replace(/[_^]/gu, (mark) => `\\${mark}`),
+    )
+    .join('');
+}
+
+/** The notation (or a `$…$` label) as tokens: plain characters, vectors and sub- or superscripts. */
 export function parseNotation(source: string): MathToken[] {
-  const chars = [...normalizeNotation(source)];
+  const chars = [...normalizeNotation(toNotation(source))];
   const tokens: MathToken[] = [];
   let i = 0;
   while (i < chars.length) {
@@ -154,17 +178,24 @@ export function parseNotation(source: string): MathToken[] {
   return tokens;
 }
 
-/** One character as a run: its displayed glyph, font, level and mark. */
+/** The style a character is set in: a variable's italic, a symbol's face, or the label's own. */
+function styleOf(char: string): RunStyle | undefined {
+  if (plainOfItalic(char) !== undefined || LOWER_GREEK.includes(char)) return 'italic';
+  return isMathSymbol(char) ? 'symbol' : undefined;
+}
+
+/** One character as a run: its displayed glyph, style, level and mark. */
 function charRun(char: string, script: Script, mark?: 'vector'): MathRun {
   const display = DISPLAY[char];
-  const text = display?.text ?? char;
-  const font = mathFontOf(text);
+  const shown = display?.text ?? char;
+  const style = styleOf(shown);
+  const text = plainOfItalic(shown) ?? shown;
   const runMark = mark ?? display?.mark;
-  return { text, script, ...(font ? { font } : {}), ...(runMark ? { mark: runMark } : {}) };
+  return { text, script, ...(style ? { style } : {}), ...(runMark ? { mark: runMark } : {}) };
 }
 
 const sameStyle = (a: MathRun, b: MathRun) =>
-  a.font === b.font && a.script === b.script && !a.mark && !b.mark;
+  a.style === b.style && a.script === b.script && !a.mark && !b.mark;
 
 /** The notation as runs to draw, consecutive characters of one style merged. */
 export function mathRuns(source: string): MathRun[] {
@@ -227,7 +258,7 @@ function spokenArrow(after: readonly MathToken[]): string {
  * «10 a la menos 7», «vector V sub p», «módulo de delta v». Plain text comes back unchanged.
  */
 export function mathTextToString(source: string): string {
-  const tokens = parseNotation(source);
+  const tokens = parseNotation(plainLetters(toNotation(source)));
   const isBar = (token: MathToken) => token.kind === 'char' && token.char === '|';
   const parts = tokens.map((token, i) => {
     if (token.kind === 'script') return spokenScript(token.script, token.text);
@@ -241,29 +272,33 @@ export function mathTextToString(source: string): string {
   return tidy(parts.join(''));
 }
 
-/** Advance of one character, in em, in the font the run uses. */
-function advanceEm(char: string, font: MathFont | undefined, family: LabelFamily): number {
-  if (font === 'katex-main') return (KATEX_MAIN_ADVANCES[char] ?? PER_MILLE) / PER_MILLE;
-  if (font === 'katex-math') return (KATEX_MATH_ADVANCES[char] ?? PER_MILLE) / PER_MILLE;
-  if (family === 'mono') return PLEX_MONO_ADVANCE / PER_MILLE;
+/** Advance of one character, in em, in the face the run uses (a symbol's after its size-adjust). */
+function advanceEm(char: string, style: RunStyle | undefined): number {
   const point = char.codePointAt(0) ?? STAND_IN_CHAR;
+  if (style === 'symbol')
+    return ((MATH_SYMBOL_ADVANCES[point] ?? PER_MILLE) / PER_MILLE) * KATEX_SCALE;
+  if (style === 'italic') {
+    return (
+      (PLEX_SANS_ITALIC_ADVANCES[point] ?? PLEX_SANS_ITALIC_ADVANCES[STAND_IN_CHAR]) / PER_MILLE
+    );
+  }
   return (PLEX_SANS_ADVANCES[point] ?? PLEX_SANS_ADVANCES[STAND_IN_CHAR]) / PER_MILLE;
 }
 
-/** Size of a run relative to the label: scripts at 75 %, KaTeX glyphs at Plex's x-height. */
+/** Size of a run relative to the label: scripts at 75 % (a symbol's face scales itself). */
 export function runScale(run: MathRun): number {
-  return (run.script === 'base' ? 1 : SCRIPT_SCALE) * (run.font ? KATEX_SCALE : 1);
+  return run.script === 'base' ? 1 : SCRIPT_SCALE;
 }
 
 /** Width of one run, px, at the label's `fontSize`. */
-export function runWidth(run: MathRun, fontSize: number, family: LabelFamily): number {
-  const em = [...run.text].reduce((sum, char) => sum + advanceEm(char, run.font, family), 0);
+export function runWidth(run: MathRun, fontSize: number): number {
+  const em = [...run.text].reduce((sum, char) => sum + advanceEm(char, run.style), 0);
   return em * fontSize * runScale(run);
 }
 
-/** Width (px) of a label in the notation, set at `fontSize` in Plex `family` (kerning aside). */
-export function mathTextWidth(source: string, fontSize: number, family: LabelFamily): number {
-  return mathRuns(source).reduce((sum, run) => sum + runWidth(run, fontSize, family), 0);
+/** Width (px) of a label in the notation, set at `fontSize` in Plex Sans (kerning aside). */
+export function mathTextWidth(source: string, fontSize: number): number {
+  return mathRuns(source).reduce((sum, run) => sum + runWidth(run, fontSize), 0);
 }
 
 /** Baseline offsets of scripts, in em of the label (down is positive in SVG). */
@@ -281,10 +316,9 @@ const SHORT_LETTERS = 'acegmnopqrsuvwxyzαγεηικμνοπρστυφχψω';
 export const ARROW_GAP_EM = 0.12;
 export const ARROW_HEAD_EM = 0.16;
 
-/** Top of a letter above the baseline, in em: x-height or cap height of its font. */
-export function letterTop(char: string, font: MathFont | undefined): number {
-  const heights = font ? KATEX_HEIGHTS : PLEX_HEIGHTS;
-  return SHORT_LETTERS.includes(char) ? heights.x : heights.cap;
+/** Top of a letter above the baseline, in em: Plex's x-height or cap height. */
+export function letterTop(char: string): number {
+  return SHORT_LETTERS.includes(char) ? PLEX_HEIGHTS.x : PLEX_HEIGHTS.cap;
 }
 
 /**
@@ -296,8 +330,7 @@ export function marksTopEm(source: string): number {
     .filter((run) => run.mark === 'vector')
     .map(
       (run) =>
-        (letterTop(run.text, run.font) + ARROW_GAP_EM + ARROW_HEAD_EM) * runScale(run) -
-        SHIFT_EM[run.script],
+        (letterTop(run.text) + ARROW_GAP_EM + ARROW_HEAD_EM) * runScale(run) - SHIFT_EM[run.script],
     );
   return Math.max(0, ...tops);
 }

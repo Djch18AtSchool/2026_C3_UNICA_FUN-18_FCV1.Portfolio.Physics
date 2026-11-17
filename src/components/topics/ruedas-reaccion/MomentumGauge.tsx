@@ -39,7 +39,7 @@ export default function MomentumGauge({ Lw, Lmax, threshold }: MomentumGaugeProp
         <span>
           <InlineMath text={GAUGE_LABEL} />
         </span>
-        <span className="font-mono tabular-nums">
+        <span className="tabular-nums">
           {exceeds ? <InlineMath text={`${percentText}: excede $L_\\text{máx}$`} /> : percentText}
         </span>
       </div>

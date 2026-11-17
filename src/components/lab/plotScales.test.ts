@@ -3,7 +3,7 @@ import {
   fitCentre,
   isFinitePoint,
   linearScale,
-  monoTextWidth,
+  textWidth,
   niceTicks,
   padDomain,
   tickDecimals,
@@ -120,9 +120,11 @@ describe('tickDecimals', () => {
   });
 });
 
-describe('monoTextWidth', () => {
-  test('is 0,6 em per character', () => {
-    expect(monoTextWidth('10 000', 10)).toBeCloseTo(36, 10);
+describe('textWidth', () => {
+  test('measures Plex Sans: 0,6 em per (tabular) figure, a narrower comma and letters by their advance', () => {
+    expect(textWidth('1000', 10)).toBeCloseTo(24, 10);
+    expect(textWidth('1,5', 10)).toBeLessThan(textWidth('105', 10));
+    expect(textWidth('il', 10)).toBeLessThan(textWidth('mw', 10));
   });
 });
 

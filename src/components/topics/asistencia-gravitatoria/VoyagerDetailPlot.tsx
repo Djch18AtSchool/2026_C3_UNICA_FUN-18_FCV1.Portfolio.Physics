@@ -8,7 +8,7 @@ import { memo, useId, type JSX } from 'react';
 import { DASH_PATTERN, SURFACE_COLOR, TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
 import { emphasisProps, useSeriesEmphasis } from '../../charts/seriesHighlight';
 import { Arrow } from '../../lab/OverlayMarks';
-import { fitCentre, linearScale, monoTextWidth, niceTicks, type Scale } from '../../lab/plotScales';
+import { fitCentre, linearScale, textWidth, niceTicks, type Scale } from '../../lab/plotScales';
 import type { PlotArea } from '../../lab/SvgPlotCursor';
 import { formatTime, offsetDayTicks, type AxisTick } from './dateAxis';
 import { detailSummary, speedText, type EncounterDetail } from './voyagerChartData';
@@ -115,7 +115,7 @@ function Annotations({ detail, geometry }: { detail: EncounterDetail; geometry: 
   const caX = x.toPx(marker.caJd);
   const peakX = x.toPx(peak.x);
   const peakText = `Pico: ${speedText(peak.y)}`;
-  const peakLabelX = fitCentre(peakX, monoTextWidth(peakText, FONT_SIZE), area.left, area.right);
+  const peakLabelX = fitCentre(peakX, textWidth(peakText, FONT_SIZE), area.left, area.right);
   const level = (value: number) => y.toPx(value);
   const jumpX = area.right - JUMP_ARROW_INSET;
   const levels = useSeriesEmphasis(DETAIL_LINES.levels.id);

@@ -14,14 +14,17 @@ import {
   type ScaleBarLength,
   type ScaleUnit,
 } from '../../lab/scaleBarMath';
-import { inlineMathToNotation } from '../../lab/timeScaleFormat';
+import { unitTex } from './flybyFormat';
 import { MIN_PLANET_PX } from './flybyScene';
 
-/** The bar's ladder: kilometres, then the planet's radius («$R_J$»), which is `radiusKm` of them. */
+/**
+ * The bar's ladder: kilometres, then the planet's radius («$R_\mathrm{J}$», as the panel writes
+ * it: R a variable, J a name), which is `radiusKm` of them.
+ */
 export function planetScaleUnits(unit: string, radiusKm: number): readonly ScaleUnit[] {
   return [
     { label: 'km', size: 1 },
-    { label: `$${unit}$`, size: radiusKm },
+    { label: unitTex(unit), size: radiusKm },
   ];
 }
 
@@ -86,7 +89,7 @@ export function isOnPanel(
  * and its text above them. Labels and the drawing's texts keep clear of both.
  */
 export function scaleBarObstacles(bar: ScaleBarLength, at: Point): readonly [Box, Box] {
-  const text = inlineMathToNotation(bar.text);
+  const text = bar.text;
   // textBox measures in the mono family and ScaleBarSvg writes in sans: keep its box, not its width.
   const top = at.y - SCALE_BAR_TICK;
   const label = textBox(
@@ -95,7 +98,7 @@ export function scaleBarObstacles(bar: ScaleBarLength, at: Point): readonly [Box
     SCALE_BAR_LABEL_SIZE,
     'start',
   );
-  const width = mathTextWidth(text, SCALE_BAR_LABEL_SIZE, 'sans');
+  const width = mathTextWidth(text, SCALE_BAR_LABEL_SIZE);
   return [
     { left: at.x, right: at.x + bar.px, top, bottom: at.y },
     { ...label, right: label.left + width },

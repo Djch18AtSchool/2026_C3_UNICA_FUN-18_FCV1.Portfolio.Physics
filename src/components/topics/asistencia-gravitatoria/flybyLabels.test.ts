@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { mathTextWidth } from '../../../lib/mathNotation';
 import type { Segment } from '../../lab/labelClearance';
 import { labelSize, placeLabels } from './flybyLabels';
 
@@ -9,15 +10,16 @@ const WALL: Segment = [
 ];
 
 describe('labelSize', () => {
-  test('pads the 13 px monospace text by 2 px on every side', () => {
-    // «v antes» is 7 characters of 0,6 × 13 px.
-    expect(labelSize('v antes')).toEqual({ width: 7 * 0.6 * 13 + 4, height: 17 });
+  test('pads the 13 px Plex Sans text by 2 px on every side', () => {
+    expect(labelSize('v antes')).toEqual({ width: mathTextWidth('v antes', 13) + 4, height: 17 });
   });
 
-  test('measures a label in the notation as drawn: scripts at 75 %, KaTeX glyphs their size', () => {
-    // v (0,6 em) then «∞,in» as a subscript: ∞ in KaTeX_Main (1 em, × 0,516/0,442), «,in» mono.
-    const subscript = 0.75 * ((1 * 0.516) / 0.442 + 3 * 0.6);
-    expect(labelSize('vec v_∞,in').width).toBeCloseTo((0.6 + subscript) * 13 + 4);
+  test('measures a label in the notation as drawn: scripts at 75 %, symbols their face’s size', () => {
+    // «∞,in» as a subscript is three quarters of the same text on the line.
+    const line = mathTextWidth('v∞,in', 13);
+    const sub = mathTextWidth('v', 13) + 0.75 * mathTextWidth('∞,in', 13);
+    expect(labelSize('vec v_∞,in').width).toBeCloseTo(sub + 4);
+    expect(sub).toBeLessThan(line);
   });
 });
 

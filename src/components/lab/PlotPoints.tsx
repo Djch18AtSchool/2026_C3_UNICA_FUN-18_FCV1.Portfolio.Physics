@@ -1,7 +1,7 @@
 /** Labelled points over SvgPlot overlays (labs and static figures), in viewBox pixels. */
 import type { JSX } from 'react';
 import { SURFACE_COLOR, TEXT_COLOR } from '../charts/chartTheme';
-import { fitCentre, monoTextWidth, type Scale } from './plotScales';
+import { fitCentre, textWidth, type Scale } from './plotScales';
 import { Label } from './OverlayMarks';
 
 const DOT_RADIUS = 5;
@@ -62,7 +62,7 @@ export function PlotPoints({
         const at = { x: scales.x.toPx(point.x), y: scales.y.toPx(point.y) };
         const preferred = point.anchor ?? 'start';
         const place = (text: string) =>
-          labelPlacement(at.x, monoTextWidth(text, LABEL_SIZE), preferred, scales.x.range);
+          labelPlacement(at.x, textWidth(text, LABEL_SIZE), preferred, scales.x.range);
         const full = place(point.label ?? '');
         const short = full.anchor === preferred ? undefined : point.compactLabel;
         const text = short ?? point.label;

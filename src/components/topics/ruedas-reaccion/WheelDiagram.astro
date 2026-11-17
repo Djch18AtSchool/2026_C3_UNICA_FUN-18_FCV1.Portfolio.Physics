@@ -92,7 +92,8 @@ const description = mathTextToString(notation);
     fill: var(--fg-muted);
   }
   .wheel-diagram :global(.wd-tag) {
-    font-family: KaTeX_Main, 'Times New Roman', serif;
+    /* An equation's number, as the page's (.equation::after): the notebook's numbering, in Plex Mono. */
+    font-family: var(--font-mono);
     font-size: 18px;
     fill: var(--fg-muted);
   }

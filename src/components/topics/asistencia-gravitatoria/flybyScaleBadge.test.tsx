@@ -61,17 +61,14 @@ describe('scaleBadgeSpot', () => {
   test('measures the words in the sans font the badge draws them in', () => {
     const words = spot(19_354).boxes[1];
 
-    expect(words.right - words.left).toBeCloseTo(
-      mathTextWidth('cámara rápida', NOTE_SIZE, 'sans'),
-      6,
-    );
+    expect(words.right - words.left).toBeCloseTo(mathTextWidth('cámara rápida', NOTE_SIZE), 6);
   });
 
   test('measures the factor as the badge prints it', () => {
     const factor = spot(19_354).boxes[0];
 
     expect(factor.right - factor.left).toBeGreaterThan(
-      mathTextWidth(formatTimeScale(19_354), NOTE_SIZE, 'mono'),
+      mathTextWidth(formatTimeScale(19_354), NOTE_SIZE),
     );
   });
 });

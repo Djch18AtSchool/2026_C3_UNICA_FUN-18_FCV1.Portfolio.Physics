@@ -6,7 +6,7 @@ import {
   TICK_FONT_FAMILY,
   TICK_FONT_SIZE,
 } from '../charts/chartTheme';
-import { fitCentre, isFinitePoint, monoTextWidth, type Scale } from './plotScales';
+import { fitCentre, isFinitePoint, textWidth, type Scale } from './plotScales';
 import type { PlotBand, PlotMarker } from './SvgPlot';
 import type { PlotArea } from './SvgPlotCursor';
 
@@ -36,10 +36,10 @@ const haloText = {
 export function wrapLabel(text: string, maxWidth: number, fontSize: number): string[] | undefined {
   const lines: string[] = [];
   for (const word of text.split(' ')) {
-    if (monoTextWidth(word, fontSize) > maxWidth) return undefined;
+    if (textWidth(word, fontSize) > maxWidth) return undefined;
     const last = lines[lines.length - 1];
     const joined = last === undefined ? word : `${last} ${word}`;
-    if (last !== undefined && monoTextWidth(joined, fontSize) <= maxWidth) {
+    if (last !== undefined && textWidth(joined, fontSize) <= maxWidth) {
       lines[lines.length - 1] = joined;
     } else {
       lines.push(word);
@@ -68,7 +68,7 @@ function BandLabel({
   if (!lines) {
     return (
       <text
-        x={fitCentre((from + to) / 2, monoTextWidth(band.label, NOTE_SIZE), 0, width)}
+        x={fitCentre((from + to) / 2, textWidth(band.label, NOTE_SIZE), 0, width)}
         y={isBottom ? area.bottom - BAND_LABEL_BOTTOM_INSET : area.top + BAND_LABEL_OFFSET}
         textAnchor="middle"
         {...haloText}

@@ -19,7 +19,7 @@ const DATA_NOTE =
 const EDITED =
   'Con $r_p$ o el lado cambiados, el dato de la Voyager ya no aplica: las lecturas son las del modelo plano.';
 
-const CELL = 'px-2 py-1 text-right font-mono tabular-nums';
+const CELL = 'px-2 py-1 text-right tabular-nums';
 
 /**
  * The planar model's result beside the Horizons value for the active preset, each column

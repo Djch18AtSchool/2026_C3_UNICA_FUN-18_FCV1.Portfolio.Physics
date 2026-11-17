@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { monoTextWidth } from '../../lab/plotScales';
+import { textWidth } from '../../lab/plotScales';
 import FlybyFigure from './FlybyFigure';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
@@ -51,7 +51,7 @@ function plotArea(overlay: Element): Box {
 function labelBox(text: Element): Box {
   const x = Number(text.getAttribute('x'));
   const y = Number(text.getAttribute('y'));
-  const width = monoTextWidth(text.textContent ?? '', LABEL_SIZE);
+  const width = textWidth(text.textContent ?? '', LABEL_SIZE);
   const anchor = text.getAttribute('text-anchor');
   const left = anchor === 'middle' ? x - width / 2 : anchor === 'end' ? x - width : x;
   return { left, right: left + width, top: y - ASCENT, bottom: y + DESCENT };

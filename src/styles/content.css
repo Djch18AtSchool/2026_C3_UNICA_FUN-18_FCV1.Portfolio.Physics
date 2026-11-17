@@ -196,9 +196,9 @@
   .equation-legend dt {
     text-align: right;
   }
+  /* A unit goes with its value, in the text's family (E3): (m), (m/s²). */
   .equation-unit {
     margin-left: var(--space-1);
-    font-family: var(--font-mono);
     font-size: var(--text-aux-small);
     color: var(--fg-muted);
   }

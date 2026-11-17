@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { monoTextWidth } from '../../lab/plotScales';
+import { textWidth } from '../../lab/plotScales';
 import { LEVER_HALF_THICKNESS, LEVER_TEXT_SIZE, valueLabelDrop } from './TriggerLever';
 
 /** The cap height of the label's digits as a share of its size: what rises above the baseline. */
@@ -19,7 +19,7 @@ describe('the value label under the lever’s tip', () => {
     const drop = valueLabelDrop(angle, text);
     const top = drop - LEVER_TEXT_SIZE * ASCENT_SHARE;
     // The text ends 10 px right of the tip and runs left: check its leftmost point.
-    const leftmost = monoTextWidth(text, LEVER_TEXT_SIZE) - 10;
+    const leftmost = textWidth(text, LEVER_TEXT_SIZE) - 10;
 
     expect(top).toBeGreaterThan(edgeBelowTip(angle, Math.max(leftmost, 0)));
   });

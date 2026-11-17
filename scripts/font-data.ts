@@ -2,14 +2,15 @@
  * Reads the site's real font files and writes two generated modules:
  *
  * - src/lib/plexCoverage.ts: the code points IBM Plex Sans and IBM Plex Mono draw on this site,
- *   from the @fontsource files BaseLayout imports (Sans 400/500/600, Mono 400/500, upright). A
- *   character counts as covered by a family when every imported weight draws it; for each weight
- *   the browser may pick any @font-face subset whose `unicode-range` contains the character, so a
- *   weight covers the union over its subsets of (cmap ∩ unicode-range).
- * - src/lib/glyphAdvances.ts: advance widths (thousandths of an em) of Plex Sans 400, of Plex
- *   Mono (one width: it is monospaced, checked here) and of the KaTeX characters MathText routes
- *   to KaTeX_Main and KaTeX_Math (src/lib/mathFonts.ts), so a figure label can place a drawn
- *   vector arrow over its base letter without measuring the DOM.
+ *   from the @fontsource files BaseLayout imports (Sans 400/500/600 upright and italic, Mono
+ *   400/500 upright). A character counts as covered by a family when every imported face draws
+ *   it; for each face the browser may pick any @font-face subset whose `unicode-range` contains
+ *   the character, so a face covers the union over its subsets of (cmap ∩ unicode-range). Also
+ *   the symbols the «Math Symbols» face of src/styles/math.css draws where Plex Sans has none
+ *   (KaTeX_Main's → ∞ ≈ ≤ ≥ …, every face of it, within its unicode-range).
+ * - src/lib/glyphAdvances.ts: advance widths (thousandths of an em) of Plex Sans 400 upright and
+ *   italic, of Plex Mono (one width: it is monospaced, checked here) and of those symbols, so a
+ *   figure label can place a drawn vector arrow over its base letter without measuring the DOM.
  *
  * WOFF 1.0 files are read with node:zlib (no new dependency); cmap formats 4 and 12 are parsed.
  * Run with `pnpm run data:fonts`; src/lib/fontData.test.ts re-derives both modules from
@@ -19,7 +20,6 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { inflateSync } from 'node:zlib';
-import { KATEX_MAIN_CHARS, KATEX_MATH_CHARS } from '../src/lib/mathFonts';
 
 export type CodeRange = readonly [number, number];
 /** Code point → glyph id. */
@@ -28,11 +28,24 @@ type GlyphMap = Map<number, number>;
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const COVERAGE_OUTPUT = 'src/lib/plexCoverage.ts';
 export const ADVANCES_OUTPUT = 'src/lib/glyphAdvances.ts';
+/** The stylesheet that declares the «Math Symbols» face (KaTeX_Main for what Plex lacks). */
+export const MATH_CSS = 'src/styles/math.css';
+export const MATH_SYMBOLS_FAMILY = 'Math Symbols';
+
+export type FontStyle = 'normal' | 'italic';
 
 /** The faces BaseLayout.astro imports; keep in step with its @fontsource imports. */
 export const PLEX_FACES = {
-  sans: { pkg: '@fontsource/ibm-plex-sans', weights: [400, 500, 600] },
-  mono: { pkg: '@fontsource/ibm-plex-mono', weights: [400, 500] },
+  sans: {
+    pkg: '@fontsource/ibm-plex-sans',
+    weights: [400, 500, 600],
+    styles: ['normal', 'italic'] as readonly FontStyle[],
+  },
+  mono: {
+    pkg: '@fontsource/ibm-plex-mono',
+    weights: [400, 500],
+    styles: ['normal'] as readonly FontStyle[],
+  },
 } as const;
 
 export type PlexFamily = keyof typeof PLEX_FACES;
@@ -50,10 +63,17 @@ const HMTX_RECORD_BYTES = 4;
 const MISSING_GLYPH = 0;
 const LAST_BMP = 0xffff;
 const PER_MILLE = 1000;
-/** Advance widths are tabulated for Sans over these ranges: Latin and the punctuation blocks. */
+/** Advance widths are tabulated for Sans over these ranges: Latin, Greek and the punctuation blocks. */
 const SANS_ADVANCE_RANGES: readonly CodeRange[] = [
   [0x0020, 0x024f],
+  [0x0370, 0x03ff],
   [0x2000, 0x22ff],
+];
+/** The italic is tabulated for the letters a figure sets in it: Latin and Greek. */
+const ITALIC_ADVANCE_RANGES: readonly CodeRange[] = [
+  [0x0041, 0x005a],
+  [0x0061, 0x007a],
+  [0x0391, 0x03c9],
 ];
 /** The weight whose Sans advances are tabulated: the body text's. */
 const SANS_ADVANCE_WEIGHT = 400;
@@ -160,11 +180,11 @@ export interface FontFace {
 
 const FACE_PATTERN = /@font-face\s*{([^}]*)}/g;
 
-/** The upright faces of a @fontsource weight stylesheet: their WOFF file and unicode-range. */
-export function parseFaces(css: string): FontFace[] {
+/** The faces of one style in a @fontsource weight stylesheet: their WOFF file and unicode-range. */
+export function parseFaces(css: string, style: FontStyle = 'normal'): FontFace[] {
   return [...css.matchAll(FACE_PATTERN)]
     .map(([, body]) => body)
-    .filter((body) => /font-style:\s*normal/.test(body))
+    .filter((body) => new RegExp(`font-style:\\s*${style}`).test(body))
     .map((body) => {
       const file = /url\(\.\/files\/([^)]+\.woff)\)\s*format\('woff'\)/.exec(body)?.[1];
       const range = /unicode-range:\s*([^;]+);/.exec(body)?.[1];
@@ -177,9 +197,15 @@ export const inRanges = (point: number, ranges: readonly CodeRange[]): boolean =
   ranges.some(([from, to]) => point >= from && point <= to);
 
 /** Code point → advance for one weight: the union over its faces of cmap ∩ unicode-range. */
-function weightAdvances(root: string, family: PlexFamily, weight: number): Map<number, number> {
+function weightAdvances(
+  root: string,
+  family: PlexFamily,
+  weight: number,
+  style: FontStyle = 'normal',
+): Map<number, number> {
   const pkgDir = resolve(root, 'node_modules', PLEX_FACES[family].pkg);
-  const faces = parseFaces(readFileSync(resolve(pkgDir, `${weight}.css`), 'utf8'));
+  const sheet = style === 'italic' ? `${weight}-italic.css` : `${weight}.css`;
+  const faces = parseFaces(readFileSync(resolve(pkgDir, sheet), 'utf8'), style);
   const entries = faces.flatMap(({ file, ranges }) =>
     [...advancesOf(readFileSync(resolve(pkgDir, 'files', file)))].filter(([point]) =>
       inRanges(point, ranges),
@@ -198,10 +224,13 @@ export function toRanges(points: readonly number[]): CodeRange[] {
   }, []);
 }
 
-/** The code points every imported weight of a family draws. */
+/** The code points every imported face (weight and style) of a family draws. */
 function familyPoints(family: PlexFamily, root: string): number[] {
-  const [first, ...rest] = PLEX_FACES[family].weights.map((w) => weightAdvances(root, family, w));
-  return [...first.keys()].filter((point) => rest.every((weight) => weight.has(point)));
+  const { weights, styles } = PLEX_FACES[family];
+  const [first, ...rest] = styles.flatMap((style) =>
+    weights.map((weight) => weightAdvances(root, family, weight, style)),
+  );
+  return [...first.keys()].filter((point) => rest.every((face) => face.has(point)));
 }
 
 export function deriveFamilyCoverage(family: PlexFamily, root: string = ROOT): CodeRange[] {
@@ -219,33 +248,92 @@ function monoAdvance(root: string): number {
   return spacing[0];
 }
 
-/** Advances of `chars` in a KaTeX font; throws if the font does not draw one of them. */
-function katexAdvances(root: string, file: string, chars: string): [string, number][] {
-  const advances = advancesOf(readFileSync(resolve(root, 'node_modules/katex/dist/fonts', file)));
-  return [...chars].map((char) => {
-    const width = advances.get(char.codePointAt(0) ?? -1);
-    if (width === undefined) throw new Error(`font-data: ${file} does not draw ${char}`);
-    return [char, width];
+export interface SymbolFace {
+  /** The WOFF 1.0 sibling of the face's woff2 (same glyphs; this script reads WOFF 1.0). */
+  file: string;
+  ranges: CodeRange[];
+  /** size-adjust as a factor (116.74% → 1.1674). */
+  sizeAdjust: number;
+}
+
+const PERCENT = 100;
+
+/** The «Math Symbols» faces of math.css: their KaTeX file, unicode-range and size-adjust. */
+export function parseSymbolFaces(css: string): SymbolFace[] {
+  return [...css.matchAll(FACE_PATTERN)]
+    .map(([, body]) => body)
+    .filter((body) => body.includes(`'${MATH_SYMBOLS_FAMILY}'`))
+    .map((body) => {
+      const file = /url\('[^']*\/([^'/]+)\.woff2'\)/.exec(body)?.[1];
+      const range = /unicode-range:\s*([^;]+);/.exec(body)?.[1];
+      const adjust = /size-adjust:\s*([\d.]+)%;/.exec(body)?.[1];
+      if (!file || !range || !adjust) throw new Error('font-data: incomplete Math Symbols face');
+      return {
+        file: `${file}.woff`,
+        ranges: parseUnicodeRange(range),
+        sizeAdjust: Number(adjust) / PERCENT,
+      };
+    });
+}
+
+function symbolFaces(root: string): SymbolFace[] {
+  const faces = parseSymbolFaces(readFileSync(resolve(root, MATH_CSS), 'utf8'));
+  if (faces.length === 0) throw new Error(`font-data: no ${MATH_SYMBOLS_FAMILY} face in math.css`);
+  return faces;
+}
+
+/**
+ * Code point → advance of the symbols the «Math Symbols» faces draw where Plex Sans has no glyph:
+ * every face draws them (cmap ∩ unicode-range); the advance is the regular face's, unscaled.
+ */
+function symbolAdvances(root: string): Map<number, number> {
+  const plex = new Set(familyPoints('sans', root));
+  const [first, ...rest] = symbolFaces(root).map(({ file, ranges }) => {
+    const advances = advancesOf(readFileSync(resolve(root, 'node_modules/katex/dist/fonts', file)));
+    return new Map([...advances].filter(([point]) => inRanges(point, ranges) && !plex.has(point)));
   });
+  return new Map([...first].filter(([point]) => rest.every((face) => face.has(point))));
+}
+
+/** The code points the «Math Symbols» face draws for the site's sans stack. */
+export function deriveSymbolCoverage(root: string = ROOT): CodeRange[] {
+  return toRanges([...symbolAdvances(root).keys()]);
+}
+
+/** size-adjust of the «Math Symbols» faces (one value: they must agree). */
+export function symbolSizeAdjust(root: string = ROOT): number {
+  const adjusts = new Set(symbolFaces(root).map((face) => face.sizeAdjust));
+  if (adjusts.size !== 1) throw new Error('font-data: Math Symbols faces disagree on size-adjust');
+  return [...adjusts][0];
 }
 
 export interface GlyphAdvanceData {
   mono: number;
   sans: [number, number][];
-  katexMain: [string, number][];
-  katexMath: [string, number][];
+  sansItalic: [number, number][];
+  symbols: [number, number][];
+}
+
+/** One face's advances over `ranges`, limited to what the whole family covers, sorted. */
+function tabulate(
+  advances: Map<number, number>,
+  covered: ReadonlySet<number>,
+  ranges: readonly CodeRange[],
+): [number, number][] {
+  return [...advances]
+    .filter(([point]) => covered.has(point) && inRanges(point, ranges))
+    .sort(([a], [b]) => a - b);
 }
 
 export function deriveAdvances(root: string = ROOT): GlyphAdvanceData {
   const covered = new Set(familyPoints('sans', root));
-  const sans = [...weightAdvances(root, 'sans', SANS_ADVANCE_WEIGHT)]
-    .filter(([point]) => covered.has(point) && inRanges(point, SANS_ADVANCE_RANGES))
-    .sort(([a], [b]) => a - b);
+  const upright = weightAdvances(root, 'sans', SANS_ADVANCE_WEIGHT);
+  const italic = weightAdvances(root, 'sans', SANS_ADVANCE_WEIGHT, 'italic');
   return {
     mono: monoAdvance(root),
-    sans,
-    katexMain: katexAdvances(root, 'KaTeX_Main-Regular.woff', KATEX_MAIN_CHARS),
-    katexMath: katexAdvances(root, 'KaTeX_Math-Italic.woff', KATEX_MATH_CHARS),
+    sans: tabulate(upright, covered, SANS_ADVANCE_RANGES),
+    sansItalic: tabulate(italic, covered, ITALIC_ADVANCE_RANGES),
+    symbols: [...symbolAdvances(root)].sort(([a], [b]) => a - b),
   };
 }
 
@@ -266,12 +354,17 @@ const HEADER = (what: string) => `/**
  */`;
 
 /** The source text of src/lib/plexCoverage.ts. */
-export function coverageModule(sans: readonly CodeRange[], mono: readonly CodeRange[]): string {
+export function coverageModule(
+  sans: readonly CodeRange[],
+  mono: readonly CodeRange[],
+  symbols: readonly CodeRange[],
+  sizeAdjust: number,
+): string {
   const literal = (ranges: readonly CodeRange[]) =>
     ranges.map(([from, to]) => `  [${hex(from)}, ${hex(to)}],`).join('\n');
-  return `${HEADER(`Code point ranges (inclusive) that every imported weight of IBM Plex draws, read from the cmap
- * of the @fontsource WOFF files and limited to each face's unicode-range. Sans: 400, 500, 600.
- * Mono: 400, 500.`)}
+  return `${HEADER(`Code point ranges (inclusive) that every imported face of IBM Plex draws, read from the cmap
+ * of the @fontsource WOFF files and limited to each face's unicode-range. Sans: 400, 500, 600,
+ * upright and italic. Mono: 400, 500. And the symbols of the «Math Symbols» face (math.css).`)}
 export type CodeRange = readonly [number, number];
 
 export const PLEX_SANS_RANGES: readonly CodeRange[] = [
@@ -281,37 +374,50 @@ ${literal(sans)}
 export const PLEX_MONO_RANGES: readonly CodeRange[] = [
 ${literal(mono)}
 ];
+
+/** What KaTeX_Main draws, as «Math Symbols», after Plex Sans in the sans stack: Plex lacks it. */
+export const MATH_SYMBOL_RANGES: readonly CodeRange[] = [
+${literal(symbols)}
+];
+
+/** The faces' size-adjust: KaTeX's x-height scaled to Plex's. */
+export const MATH_SYMBOL_SIZE_ADJUST = ${sizeAdjust};
 `;
 }
 
 /** The source text of src/lib/glyphAdvances.ts. */
 export function advancesModule(data: GlyphAdvanceData): string {
-  const chars = (entries: readonly [string, number][]) =>
-    wrapped(entries.map(([char, width]) => `'${char}': ${width},`));
+  const points = (entries: readonly [number, number][]) =>
+    wrapped(entries.map(([point, width]) => `${hex(point)}: ${width},`));
   return `${HEADER(`Advance widths in thousandths of an em, read from the hmtx tables of the site's fonts.`)}
 
 /** Every glyph of IBM Plex Mono (400 and 500) advances this much. */
 export const PLEX_MONO_ADVANCE = ${data.mono};
 
-/** IBM Plex Sans 400, code point → advance, over Latin and the punctuation blocks it covers. */
+/** IBM Plex Sans 400, code point → advance, over Latin, Greek and the punctuation blocks it covers. */
 export const PLEX_SANS_ADVANCES: Readonly<Record<number, number>> = {
-${wrapped(data.sans.map(([point, width]) => `${hex(point)}: ${width},`))}
+${points(data.sans)}
 };
 
-/** KaTeX_Main Regular: uppercase Greek and the symbols Plex lacks (src/lib/mathFonts.ts). */
-export const KATEX_MAIN_ADVANCES: Readonly<Record<string, number>> = {
-${chars(data.katexMain)}
+/** IBM Plex Sans 400 Italic, code point → advance, over the Latin and Greek letters. */
+export const PLEX_SANS_ITALIC_ADVANCES: Readonly<Record<number, number>> = {
+${points(data.sansItalic)}
 };
 
-/** KaTeX_Math Italic: lowercase Greek. */
-export const KATEX_MATH_ADVANCES: Readonly<Record<string, number>> = {
-${chars(data.katexMath)}
+/** «Math Symbols» (KaTeX_Main Regular), code point → advance before its size-adjust. */
+export const MATH_SYMBOL_ADVANCES: Readonly<Record<number, number>> = {
+${points(data.symbols)}
 };
 `;
 }
 
 function main(): void {
-  const coverage = coverageModule(deriveFamilyCoverage('sans'), deriveFamilyCoverage('mono'));
+  const coverage = coverageModule(
+    deriveFamilyCoverage('sans'),
+    deriveFamilyCoverage('mono'),
+    deriveSymbolCoverage(),
+    symbolSizeAdjust(),
+  );
   writeFileSync(resolve(ROOT, COVERAGE_OUTPUT), coverage);
   writeFileSync(resolve(ROOT, ADVANCES_OUTPUT), advancesModule(deriveAdvances()));
   process.stdout.write(`font-data: wrote ${COVERAGE_OUTPUT} and ${ADVANCES_OUTPUT}\n`);

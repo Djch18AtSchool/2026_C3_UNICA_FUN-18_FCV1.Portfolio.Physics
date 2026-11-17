@@ -15,7 +15,7 @@ export const SPEED_LABEL = 'Velocidad de reproducción';
  * as wide as its widest option (a native select's own width), the chevron in its right padding.
  */
 const SPEED_SELECT =
-  'h-11 appearance-none rounded-base border border-border bg-bg-elevated pr-8 pl-3 font-mono text-sm tabular-nums text-fg transition-colors hover:border-fg-muted';
+  'h-11 appearance-none rounded-base border border-border bg-bg-elevated pr-8 pl-3 text-sm tabular-nums text-fg transition-colors hover:border-fg-muted';
 
 export interface TransportSpeedProps {
   clock: SimClock;

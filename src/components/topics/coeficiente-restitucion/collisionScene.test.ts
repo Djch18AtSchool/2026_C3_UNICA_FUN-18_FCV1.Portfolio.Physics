@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { monoTextWidth } from '../../lab/plotScales';
+import { textWidth } from '../../lab/plotScales';
 import {
   arrowTip,
   bodyBoxes,
@@ -111,7 +111,7 @@ describe('collision layout on the canvas', () => {
             const tip = arrowTip(box.centre, 10, width);
             expect(tip).toBeLessThanOrEqual(width);
             expect(arrowTip(box.centre, -10, width)).toBeGreaterThanOrEqual(0);
-            const half = monoTextWidth(LONGEST_LABEL, VELOCITY_LABEL_SIZE) / 2;
+            const half = textWidth(LONGEST_LABEL, VELOCITY_LABEL_SIZE) / 2;
             const centre = labelCentre(box.centre, LONGEST_LABEL, width);
             expect(centre - half).toBeGreaterThanOrEqual(0);
             expect(centre + half).toBeLessThanOrEqual(width);

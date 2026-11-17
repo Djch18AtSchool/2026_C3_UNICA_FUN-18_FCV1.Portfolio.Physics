@@ -1,4 +1,9 @@
-import { PLEX_MONO_RANGES, PLEX_SANS_RANGES, type CodeRange } from './plexCoverage';
+import {
+  MATH_SYMBOL_RANGES,
+  PLEX_MONO_RANGES,
+  PLEX_SANS_RANGES,
+  type CodeRange,
+} from './plexCoverage';
 
 const NO_BREAK_SPACE = ' ';
 /** A space before a standalone numeral, Arabic (1, 10) or Roman (I, IV), maybe with : , . or ; */
@@ -14,10 +19,24 @@ export function bindNumerals(text: string): string {
 
 export type PlexFamily = 'sans' | 'mono';
 
+/**
+ * What each family's stack draws: Plex Sans, then the «Math Symbols» face that follows it in the
+ * sans stack (src/styles/math.css: → ∞ ≈ ≤ ≥ ⋅ … from KaTeX_Main); Plex Mono alone.
+ */
 const FAMILY_RANGES: Readonly<Record<PlexFamily, readonly CodeRange[]>> = {
-  sans: PLEX_SANS_RANGES,
+  sans: [...PLEX_SANS_RANGES, ...MATH_SYMBOL_RANGES],
   mono: PLEX_MONO_RANGES,
 };
+
+const inRanges = (char: string, ranges: readonly CodeRange[]) => {
+  const point = char.codePointAt(0) ?? -1;
+  return ranges.some(([from, to]) => point >= from && point <= to);
+};
+
+/** True when IBM Plex Sans itself has a glyph for `char` (not the symbol face after it). */
+export function isPlexSansGlyph(char: string): boolean {
+  return inRanges(char, PLEX_SANS_RANGES);
+}
 
 /**
  * U+202F (narrow no-break space, formatNumber's thousands and unit separator) is not in Plex's
@@ -35,18 +54,17 @@ const SYNTHESIZED_SPACES: ReadonlySet<string> = new Set([' ']);
 /** The DOM's collapsible whitespace: never drawn as a glyph. */
 const LAYOUT_WHITESPACE: ReadonlySet<string> = new Set(['\t', '\n', '\r', '\f']);
 
-/** True when IBM Plex of `family` draws `char` in every weight the site loads. */
+/** True when the site's stack of `family` draws `char` in every face the site loads. */
 export function isCovered(char: string, family: PlexFamily = 'sans'): boolean {
   if (SYNTHESIZED_SPACES.has(char) || LAYOUT_WHITESPACE.has(char)) return true;
-  const point = char.codePointAt(0) ?? -1;
-  return FAMILY_RANGES[family].some(([from, to]) => point >= from && point <= to);
+  return inRanges(char, FAMILY_RANGES[family]);
 }
 
 /**
- * The characters of `text` that IBM Plex of `family` does not draw, each once, in order of first
- * appearance: the browser would take them from a fallback font. A combining mark (U+20D7, the
- * vector arrow) counts as its own character. The coverage list is src/lib/plexCoverage.ts,
- * derived from the font files by scripts/font-data.ts.
+ * The characters of `text` that the site's stack of `family` does not draw, each once, in order
+ * of first appearance: the browser would take them from a fallback font. A combining mark
+ * (U+20D7, the vector arrow) counts as its own character. The coverage list is
+ * src/lib/plexCoverage.ts, derived from the font files by scripts/font-data.ts.
  */
 export function uncoveredChars(text: string, family: PlexFamily = 'sans'): string[] {
   return [...new Set(text)].filter((char) => !isCovered(char, family));

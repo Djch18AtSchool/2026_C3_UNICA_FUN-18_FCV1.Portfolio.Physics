@@ -1,4 +1,5 @@
 /** Pure plotting math for SvgPlot: linear scales, nice ticks and padded domains. No React. */
+import { mathTextWidth } from '../../lib/mathNotation';
 
 export interface Domain {
   min: number;
@@ -118,12 +119,9 @@ export function padDomain(values: number[], padFraction: number, includeZero = f
   return { min: domain.min - span / 2, max: domain.max + span / 2 };
 }
 
-/** Advance of one character of the plots' monospace font, in em (IBM Plex Mono: 600/1000). */
-const MONO_CHAR_EM = 0.6;
-
-/** Estimated width (px) of `text` set in the plots' monospace font at `fontSize`. */
-export function monoTextWidth(text: string, fontSize: number): number {
-  return text.length * fontSize * MONO_CHAR_EM;
+/** Width (px) of a plot's `text` at `fontSize`: Plex Sans, each glyph by its own advance. */
+export function textWidth(text: string, fontSize: number): number {
+  return mathTextWidth(text, fontSize);
 }
 
 /** The centre x that keeps a text of `width` inside [min, max], or `x` when it already fits. */

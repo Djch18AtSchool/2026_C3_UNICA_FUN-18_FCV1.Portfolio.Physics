@@ -14,7 +14,7 @@ import {
   TICK_FONT_SIZE,
 } from '../../charts/chartTheme';
 import InlineMath from '../../lab/InlineMath';
-import { monoTextWidth, type Scale } from '../../lab/plotScales';
+import { textWidth, type Scale } from '../../lab/plotScales';
 import type { PlotSeries } from '../../lab/SvgPlot';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { interpolateAt } from './routeSeries';
@@ -73,7 +73,7 @@ export function ProfileMarker({ times, timeDecimals, x, y }: ProfileMarkerProps)
   const [bottom, top] = y.range;
   const cx = x.toPx(t);
   const label = timeText(t, timeDecimals);
-  const isLeft = cx + LABEL_GAP + monoTextWidth(label, FONT_SIZE) > right;
+  const isLeft = cx + LABEL_GAP + textWidth(label, FONT_SIZE) > right;
   return (
     <g
       data-profile-marker=""
@@ -136,9 +136,7 @@ export function ProfileReading({
       {/* The bare spaces are not laid out by the flex boxes but keep the text content readable. */}
       <div className="flex items-baseline gap-2">
         <dt className="text-fg-muted">t</dt>{' '}
-        <dd className="m-0 font-mono">
-          {formatNumber(at, { precision: timeDecimals, unit: 's' })}
-        </dd>
+        <dd className="m-0">{formatNumber(at, { precision: timeDecimals, unit: 's' })}</dd>
       </div>
       {source.series.map((series, k) => (
         <div key={series.id} className="flex items-baseline gap-2">
@@ -155,7 +153,7 @@ export function ProfileReading({
           <dt className="text-fg-muted">
             <InlineMath text={source.readingLabels[k]} />
           </dt>{' '}
-          <dd className="m-0 font-mono font-medium">
+          <dd className="m-0 font-medium">
             {formatNumber(interpolateAt(times, source.values[k], at), {
               precision: decimals,
               unit: source.unit,

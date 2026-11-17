@@ -6,7 +6,9 @@ import {
   mathTextWidth,
   normalizeNotation,
   parseNotation,
+  toNotation,
 } from './mathNotation';
+import { PLEX_SANS_ITALIC_ADVANCES } from './glyphAdvances';
 
 describe('parseNotation', () => {
   test('a subscript runs to the next space and may hold a comma: v_∞,in', () => {
@@ -82,20 +84,33 @@ describe('normalizeNotation', () => {
 });
 
 describe('mathRuns', () => {
-  test('sets Greek and the symbols Plex lacks in KaTeX, the rest in the label font', () => {
-    expect(mathRuns('ω_máx ≈ 3')).toEqual([
-      { text: 'ω', font: 'katex-math', script: 'base' },
+  test('sets lowercase Greek italic and marks the symbols of the «Math Symbols» face', () => {
+    expect(mathRuns('ω_máx ≈ 3 Δ')).toEqual([
+      { text: 'ω', style: 'italic', script: 'base' },
       { text: 'máx', script: 'sub' },
       { text: ' ', script: 'base' },
-      { text: '≈', font: 'katex-main', script: 'base' },
-      { text: ' 3', script: 'base' },
+      { text: '≈', style: 'symbol', script: 'base' },
+      { text: ' 3 Δ', script: 'base' },
+    ]);
+  });
+
+  test('a $…$ formula sets its letters italic and its \\text upright, as the HTML does', () => {
+    expect(mathRuns('$r_p$ = 10,09 R_J')).toEqual([
+      { text: 'r', style: 'italic', script: 'base' },
+      { text: 'p', style: 'italic', script: 'sub' },
+      // The words are literal: a _ outside $…$ is printed, not a subscript.
+      { text: ' = 10,09 R_J', script: 'base' },
+    ]);
+    expect(mathRuns('$v_\\text{máx}$')).toEqual([
+      { text: 'v', style: 'italic', script: 'base' },
+      { text: 'máx', script: 'sub' },
     ]);
   });
 
   test('draws ☉ with KaTeX’s ⊙ and ≠ as an equals sign with a drawn stroke', () => {
     expect(mathRuns('M_☉ ≠ 0')).toEqual([
       { text: 'M', script: 'base' },
-      { text: '⊙', font: 'katex-main', script: 'sub' },
+      { text: '⊙', style: 'symbol', script: 'sub' },
       { text: ' ', script: 'base' },
       { text: '=', script: 'base', mark: 'not' },
       { text: ' 0', script: 'base' },
@@ -105,12 +120,24 @@ describe('mathRuns', () => {
   test('a vector base is a run of its own, marked for its drawn arrow', () => {
     expect(mathRuns('vec v_∞')).toEqual([
       { text: 'v', script: 'base', mark: 'vector' },
-      { text: '∞', font: 'katex-main', script: 'sub' },
+      { text: '∞', style: 'symbol', script: 'sub' },
     ]);
   });
 
   test('a plain label stays one run', () => {
     expect(mathRuns('Júpiter, 13 km/s')).toEqual([{ text: 'Júpiter, 13 km/s', script: 'base' }]);
+  });
+});
+
+describe('toNotation', () => {
+  test('turns the formulas of a $…$ label into notation; a label without $ is notation already', () => {
+    expect(toNotation('paso de $r_p$')).toBe('paso de 𝑟_𝑝');
+    expect(toNotation('a $v_\\infty$')).toBe('a 𝑣_∞');
+    expect(toNotation('v_∞,in')).toBe('v_∞,in');
+  });
+
+  test('escapes a literal _ or ^ of the words, which the notation would take as a script', () => {
+    expect(toNotation('archivo_1 ^ $x$')).toBe('archivo\\_1 \\^ 𝑥');
   });
 });
 
@@ -137,21 +164,31 @@ describe('mathTextToString', () => {
   test('leaves plain text as it is', () => {
     expect(mathTextToString('Afelio: 6,29 UA')).toBe('Afelio: 6,29 UA');
   });
+
+  test('says a $…$ label’s italic letters as plain ones', () => {
+    expect(mathTextToString('$r_p$ = 10 km')).toBe('r sub p = 10 km');
+    expect(mathTextToString('$h_0$')).toBe('h sub 0');
+  });
 });
 
 describe('mathTextWidth', () => {
-  test('Plex Mono advances 0,6 em a character; scripts are set at 75 %', () => {
-    expect(mathTextWidth('V_p', 10, 'mono')).toBeCloseTo(6 + 4.5);
+  test('Plex Sans figures advance 0,6 em each (tabular); scripts are set at 75 %', () => {
+    expect(mathTextWidth('1_2', 10)).toBeCloseTo(6 + 4.5);
   });
 
-  test('KaTeX characters use their own advance', () => {
+  test('a symbol uses its face’s advance, after the face’s size-adjust', () => {
     // KaTeX_Main ∞ advances 1 em, scaled to Plex's x-height (0,516 / 0,442).
-    expect(mathTextWidth('∞', 10, 'mono')).toBeCloseTo((10 * 0.516) / 0.442);
+    expect(mathTextWidth('∞', 10)).toBeCloseTo((10 * 0.516) / 0.442);
+  });
+
+  test('an italic letter uses Plex Sans Italic’s advance', () => {
+    expect(mathTextWidth('$v$', 10)).toBeCloseTo(PLEX_SANS_ITALIC_ADVANCES[0x76] / 100);
+    expect(mathTextWidth('ω', 10)).toBeCloseTo(PLEX_SANS_ITALIC_ADVANCES[0x3c9] / 100);
   });
 
   test('Plex Sans uses its table, with n as the stand-in for an untabulated character', () => {
-    expect(mathTextWidth('ii', 10, 'sans')).toBeLessThan(mathTextWidth('mm', 10, 'sans'));
-    expect(mathTextWidth('Ѐ', 10, 'sans')).toBeCloseTo(mathTextWidth('n', 10, 'sans'));
+    expect(mathTextWidth('ii', 10)).toBeLessThan(mathTextWidth('mm', 10));
+    expect(mathTextWidth('Ѐ', 10)).toBeCloseTo(mathTextWidth('n', 10));
   });
 });
 

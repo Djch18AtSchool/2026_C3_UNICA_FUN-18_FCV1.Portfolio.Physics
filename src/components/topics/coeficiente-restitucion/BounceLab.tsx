@@ -90,7 +90,7 @@ function GainZone({ e }: { e: number }) {
         />
         <div className="absolute -inset-y-1 w-0.5 bg-fg" style={{ left: `${at}%` }} />
       </div>
-      <div className="relative h-4 font-mono text-xs text-fg-muted">
+      <div className="relative h-4 text-xs text-fg-muted">
         <span className="absolute left-0">0</span>
         <span className="absolute right-0">e &gt; 1: gana energía</span>
       </div>

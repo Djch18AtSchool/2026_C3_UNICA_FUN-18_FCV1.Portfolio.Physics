@@ -57,7 +57,7 @@ export default function SidebarSearch({ index, listId }: SidebarSearchProps) {
           {results.map(({ entry, headings }) => (
             <li key={entry.slug}>
               <a href={topicUrl(entry.slug)} className={RESULT_LINK}>
-                <span className="text-right font-mono text-xs text-fg-muted">
+                <span className="text-right numbering text-xs text-fg-muted">
                   {topicNumberLabel(entry.number)}
                 </span>
                 <span className="pl-2">{entry.shortTitle}</span>

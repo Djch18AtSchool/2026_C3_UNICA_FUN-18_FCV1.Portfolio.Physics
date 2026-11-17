@@ -5,7 +5,6 @@ import { PLANET_IDS, PLANETS } from '../../../lib/data/planets';
 import { mathTextWidth } from '../../../lib/mathNotation';
 import { ScaleBarSvg } from '../../lab/ScaleBar';
 import { requireScaleUnits, SCALE_BAR_MAX_PX, SCALE_BAR_MIN_PX } from '../../lab/scaleBarMath';
-import { inlineMathToNotation } from '../../lab/timeScaleFormat';
 import { MIN_PLANET_PX, planetView } from './flybyScene';
 import {
   barMaxBesideNote,
@@ -33,7 +32,8 @@ describe('planetScaleUnits', () => {
 
       expect(() => requireScaleUnits(units)).not.toThrow();
       expect(units.map((unit) => unit.size)).toEqual([1, radiusKm]);
-      expect(units[1].label).toBe(`$R_${name.charAt(0)}$`);
+      // As the panel writes it (unitTex): R a variable, the planet's initial a name.
+      expect(units[1].label).toBe(`$R_\\mathrm{${name.charAt(0)}}$`);
     }
   });
 });
@@ -67,10 +67,10 @@ describe('frameScaleBar', () => {
   test('writes radii while a radius fits and kilometres once the zoom is past it', () => {
     const { scale } = planetView(SIDE, 10.09 * R_J, R_J);
 
-    expect(frameScaleBar(scale, 'R_J', R_J)?.text).toMatch(/R_J/u);
-    expect(frameScaleBar(scale * 8, 'R_J', R_J)?.text).toMatch(/R_J/u);
+    expect(frameScaleBar(scale, 'R_J', R_J)?.text).toMatch(/R_\\mathrm\{J\}/u);
+    expect(frameScaleBar(scale * 8, 'R_J', R_J)?.text).toMatch(/R_\\mathrm\{J\}/u);
     const tight = planetView(SIDE, 1 * R_J, R_J).scale;
-    expect(frameScaleBar(tight * 8, 'R_J', R_J)?.text).toMatch(/^1\s\$R_J\$$/u);
+    expect(frameScaleBar(tight * 8, 'R_J', R_J)?.text).toMatch(/^1\s\$R_\\mathrm\{J\}\$$/u);
     // A scale where one radius is longer than the bar's maximum falls back to kilometres.
     expect(frameScaleBar((SCALE_BAR_MAX_PX * 1.01) / R_J, 'R_J', R_J)?.text).toMatch(/km$/u);
   });
@@ -149,10 +149,7 @@ describe('scaleBarObstacles', () => {
     expect(label.bottom).toBeGreaterThan(baseline);
     expect(label.bottom).toBeLessThanOrEqual(ticks.top);
     expect(label.left).toBeCloseTo(Number(left), 6);
-    expect(label.right - label.left).toBeCloseTo(
-      mathTextWidth(inlineMathToNotation(bar.text), 12, 'sans'),
-      6,
-    );
+    expect(label.right - label.left).toBeCloseTo(mathTextWidth(bar.text, 12), 6);
   });
 });
 

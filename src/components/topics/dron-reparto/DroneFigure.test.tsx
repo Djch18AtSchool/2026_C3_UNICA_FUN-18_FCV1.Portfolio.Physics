@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { monoTextWidth } from '../../lab/plotScales';
+import { textWidth } from '../../lab/plotScales';
 import DroneFigure from './DroneFigure';
 import { mathSourceText } from '../../../test-inline-math';
 import { plexViolations } from '../../../test-glyphs';
@@ -66,8 +66,8 @@ describe('DroneFigure', () => {
     render(<DroneFigure variant="ruta" />);
     const depot = screen.getByText('Depósito');
     const letter = screen.getByText('x', { selector: 'text' });
-    const depotRight = Number(depot.getAttribute('x')) + monoTextWidth('Depósito', 13);
-    const letterLeft = Number(letter.getAttribute('x')) - monoTextWidth('x', 13) / 2;
+    const depotRight = Number(depot.getAttribute('x')) + textWidth('Depósito', 13);
+    const letterLeft = Number(letter.getAttribute('x')) - textWidth('x', 13) / 2;
 
     // Both sit on the same line below the x axis; the halos (2 px each side) must not touch.
     expect(letterLeft - depotRight).toBeGreaterThanOrEqual(8);

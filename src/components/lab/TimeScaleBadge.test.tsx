@@ -156,7 +156,7 @@ describe('TimeScaleBadge', () => {
     expect(container.querySelector('[data-time-scale-words]')).toHaveTextContent(
       'Escala de tiempo: 12 veces la velocidad real, paso de r sub p',
     );
-    expect(container.querySelector('[data-notation="paso de r_p"]')).not.toBeNull();
+    expect(container.querySelector('[data-notation="paso de $r_p$"]')).not.toBeNull();
   });
 
   test('a raw subscript outside $…$ fails loudly instead of being read as «r_p»', () => {
@@ -224,7 +224,7 @@ describe('TimeScaleBadgeSvg', () => {
 
     const texts = [...container.querySelectorAll('text')];
     expect(texts.every((text) => text.getAttribute('text-anchor') === 'end')).toBe(true);
-    expect(container.querySelector('[data-notation="paso de r_p"]')).not.toBeNull();
+    expect(container.querySelector('[data-notation="paso de $r_p$"]')).not.toBeNull();
   });
 
   test('reads the clock rate and has no word when label is null', () => {

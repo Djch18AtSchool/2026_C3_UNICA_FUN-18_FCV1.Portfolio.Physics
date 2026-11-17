@@ -1,30 +1,20 @@
 /**
- * Which characters of a figure label are set in KaTeX's fonts instead of IBM Plex: every Greek
- * letter (Plex Mono has none, and the equations set them in KaTeX) and the symbols Plex lacks.
- * katex.min.css, imported by BaseLayout on every page, declares both families, so a label that
- * uses them downloads the same files the equations do. scripts/font-data.ts checks that each font
- * draws its characters and reads their advance widths.
+ * How a figure label (src/lib/mathNotation.ts) sets each character, by the site's type rule
+ * (src/styles/math.css): everything in IBM Plex Sans, a variable in its italic, and the symbols
+ * Plex lacks (→ ∞ ≈ ≤ ≥ ⋅ ⊙ …) from the «Math Symbols» face that follows Plex in the sans stack,
+ * KaTeX_Main scaled to Plex's x-height. A label never names a font: the stack draws each glyph,
+ * as in the prose and the controls. scripts/font-data.ts derives which symbols that face draws
+ * (MATH_SYMBOL_RANGES) and their advances.
  */
+import { MATH_SYMBOL_RANGES } from './plexCoverage';
 
-/** Lowercase Greek, italic as in the equations (KaTeX's \alpha … \omega). */
-export const KATEX_MATH_CHARS = 'αβγδεζηθικλμνξοπρςστυφχψωϑϕϖϵϱ';
+/** Lowercase Greek: a variable, italic as in the inline formulas (KaTeX's \alpha … \omega). */
+export const LOWER_GREEK = 'αβγδεζηθικλμνξοπρςστυφχψω';
 
-/** Uppercase Greek, upright (KaTeX's \Delta, \Omega), and the symbols Plex does not draw. */
-export const KATEX_MAIN_CHARS = 'ΓΔΘΛΞΠΣΥΦΨΩ∞≈≤≥→←↔√∫⊥⊙∂∇∝≡∼⋅∓≪≫∥∠⇒';
-
-export type MathFont = 'katex-main' | 'katex-math';
-
-/** CSS font-family of each KaTeX face, with KaTeX's own serif fallback. */
-export const MATH_FONT_FAMILY: Readonly<Record<MathFont, string>> = {
-  'katex-main': 'KaTeX_Main, "Times New Roman", serif',
-  'katex-math': 'KaTeX_Math, "Times New Roman", serif',
-};
-
-/** The KaTeX face that draws `char`, or undefined when the label's own Plex font does. */
-export function mathFontOf(char: string): MathFont | undefined {
-  if (KATEX_MATH_CHARS.includes(char)) return 'katex-math';
-  if (KATEX_MAIN_CHARS.includes(char)) return 'katex-main';
-  return undefined;
+/** True when the «Math Symbols» face draws `char` in the sans stack (Plex Sans has no glyph). */
+export function isMathSymbol(char: string): boolean {
+  const point = char.codePointAt(0) ?? -1;
+  return MATH_SYMBOL_RANGES.some(([from, to]) => point >= from && point <= to);
 }
 
 /** x-height and cap height in em, from the OS/2 tables (IBM Plex Sans and Mono share them). */
@@ -32,7 +22,8 @@ export const PLEX_HEIGHTS = { x: 0.516, cap: 0.698 } as const;
 export const KATEX_HEIGHTS = { x: 0.442, cap: 0.683 } as const;
 
 /**
- * KaTeX glyphs in a label are scaled so their x-height meets Plex's (≈ 1,17), the way KaTeX sets
- * its own formulas at 1,21 em beside body text; otherwise ∞ and ω look a size too small.
+ * The «Math Symbols» face is scaled so KaTeX's x-height meets Plex's (≈ 1,17), the way KaTeX
+ * sets its own formulas at 1,21 em beside body text; otherwise ∞ looks a size too small. math.css
+ * writes it as the faces' size-adjust (MATH_SYMBOL_SIZE_ADJUST, checked by fontData.test.ts).
  */
 export const KATEX_SCALE = PLEX_HEIGHTS.x / KATEX_HEIGHTS.x;

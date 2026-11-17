@@ -14,7 +14,7 @@ export interface JumpDesignerProps {
 const DEFAULT_HEIGHT = '2';
 const DEFAULT_TIME_TO_APEX = '0,4';
 const INPUT_CLASS =
-  'min-h-10 w-full rounded-base border border-border bg-bg px-2 font-mono text-sm tabular-nums focus:border-accent aria-invalid:border-chart-2';
+  'min-h-10 w-full rounded-base border border-border bg-bg px-2 text-sm tabular-nums focus:border-accent aria-invalid:border-chart-2';
 
 /** Reads "0,4" or "0.4"; anything else is NaN. */
 function parseDecimal(text: string): number {
@@ -85,7 +85,7 @@ export default function JumpDesigner({ current, onApply }: JumpDesignerProps) {
         {derived ? (
           <p
             data-testid="jump-designer-result"
-            className="m-0 flex min-h-10 flex-wrap items-center gap-x-4 gap-y-1 font-mono text-sm tabular-nums"
+            className="m-0 flex min-h-10 flex-wrap items-center gap-x-4 gap-y-1 text-sm tabular-nums"
           >
             <span>
               <InlineMath

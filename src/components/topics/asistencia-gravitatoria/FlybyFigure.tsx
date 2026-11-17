@@ -108,7 +108,7 @@ function Lines({ at, lines }: { at: Point; lines: string[] }): JSX.Element {
       x={at.x}
       y={at.y}
       fill={TEXT_COLOR}
-      fontFamily="var(--font-mono)"
+      fontFamily="var(--font-sans)"
       fontSize={LABEL_SIZE}
       stroke="var(--bg-elevated)"
       strokeWidth={4}
@@ -248,7 +248,7 @@ function vInfTagSpot(from: Point, to: Point, lines: readonly Segment[], area: Bo
     TAG_ALONG.flatMap((t) => [at(t, 1, distance), at(t, -1, distance)]),
   );
   const size = {
-    width: mathTextWidth(VINF_TAG, LABEL_SIZE, 'mono') + 2 * TAG_PAD_PX,
+    width: mathTextWidth(VINF_TAG, LABEL_SIZE) + 2 * TAG_PAD_PX,
     height: LABEL_SIZE + 2 * TAG_PAD_PX,
   };
   return clearSpot(candidates, size, lines, area) ?? at(0.5, 1, TAG_DISTANCES_PX[0]);
@@ -333,7 +333,7 @@ function HyperbolaPlot(): JSX.Element {
             x: round(
               fitCentre(
                 x.toPx(center.x),
-                mathTextWidth(deltaText, LABEL_SIZE, 'mono'),
+                mathTextWidth(deltaText, LABEL_SIZE),
                 x.range[0],
                 x.range[1],
               ),
@@ -443,7 +443,7 @@ function TrianglePlot({
     const tipLabel = (tip: Point, value: number) => {
       const text = speedNumber(value);
       const at = {
-        x: fitCentre(px(tip).x, mathTextWidth(text, LABEL_SIZE, 'mono'), x.range[0], x.range[1]),
+        x: fitCentre(px(tip).x, mathTextWidth(text, LABEL_SIZE), x.range[0], x.range[1]),
         y: px(tip).y,
       };
       return (

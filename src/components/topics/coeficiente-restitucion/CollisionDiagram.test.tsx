@@ -11,7 +11,6 @@ function extent(text: Element): { left: number; right: number } {
   const width = mathTextWidth(
     text.getAttribute('data-notation') ?? '',
     Number(text.getAttribute('font-size')),
-    'mono',
   );
   return text.getAttribute('text-anchor') === 'end'
     ? { left: x - width, right: x }

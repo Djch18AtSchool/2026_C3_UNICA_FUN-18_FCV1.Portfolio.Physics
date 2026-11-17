@@ -103,7 +103,7 @@ export default function EnergyBars({ at, scale }: EnergyBarsProps): JSX.Element 
               >
                 <BarFill series={series} at={at} scale={scale} />
               </span>
-              <span className="col-start-2 row-start-1 font-mono tabular-nums @md:col-start-3">
+              <span className="col-start-2 row-start-1 tabular-nums @md:col-start-3">
                 {formatNumber(value, { precision, unit })}
               </span>
             </li>

@@ -13,7 +13,7 @@ export const PARAM_RANGE = 'h-6 min-w-0 flex-1 cursor-pointer accent-accent';
  * lab-controls.spec.ts measures it in every lab.
  */
 export const PARAM_NUMBER =
-  'h-10 w-16 rounded-base border border-border bg-bg px-1 text-right font-mono text-sm tabular-nums text-fg';
+  'h-10 w-16 rounded-base border border-border bg-bg px-1 text-right text-sm tabular-nums text-fg';
 
 export interface ParamFrameProps {
   /** The range's id: the label names it. */

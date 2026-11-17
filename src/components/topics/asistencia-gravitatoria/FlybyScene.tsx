@@ -79,7 +79,7 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
           <TimeScaleStatus clock={clock} />
           <p
             data-testid="flyby-clock"
-            className={`m-0 font-mono text-xs tabular-nums text-fg-muted ${CANVAS_INSET}`}
+            className={`m-0 text-xs tabular-nums text-fg-muted ${CANVAS_INSET}`}
           >
             <InlineMath text={clockText} />
           </p>
@@ -95,7 +95,7 @@ export default function FlybyScene(props: FlybySceneProps): JSX.Element {
             showCircle={display.showCircle}
             decimals={decimals}
           />
-          <p className={`m-0 font-mono text-xs tabular-nums text-fg-muted ${CANVAS_INSET}`}>
+          <p className={`m-0 text-xs tabular-nums text-fg-muted ${CANVAS_INSET}`}>
             <InlineMath
               text={`$\\Delta|\\vec v|$ = ${signed(result.vOut - result.vIn, decimals, 'km/s')}`}
             />

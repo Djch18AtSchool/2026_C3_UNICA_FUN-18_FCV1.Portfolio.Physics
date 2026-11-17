@@ -39,10 +39,11 @@ describe('Slider', () => {
     );
   });
 
-  test('shows the live value in monospace and the visible min–max range', () => {
+  test('shows the live value in the text’s family (tabular figures) and the visible min–max range', () => {
     render(<Slider {...BASE_PROPS} onChange={() => {}} />);
 
-    expect(screen.getByTestId('slider-value')).toHaveClass('font-mono');
+    expect(screen.getByTestId('slider-value')).not.toHaveClass('font-mono');
+    expect(screen.getByTestId('slider-value')).toHaveClass('tabular-nums');
     expect(screen.getByTestId('slider-value').textContent).toBe('9,81\u202fm/s²');
     expect(screen.getByText('1,00–25,00')).toBeInTheDocument();
   });

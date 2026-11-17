@@ -167,7 +167,7 @@ interface MarkerItemProps {
 function MarkerItem({ marker, videoId, playerId, isActive, onSeek }: MarkerItemProps) {
   const label = (
     <>
-      <span className="font-mono tabular-nums">{formatTimestamp(marker.time)}</span>
+      <span className="tabular-nums">{formatTimestamp(marker.time)}</span>
       {` · ${marker.title}`}
     </>
   );

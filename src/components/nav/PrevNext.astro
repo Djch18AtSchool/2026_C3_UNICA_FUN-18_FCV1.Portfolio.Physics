@@ -20,7 +20,7 @@ const LINK_CLASSES =
       <a href={topicUrl(prev.slug)} rel="prev" class={LINK_CLASSES}>
         <span class="text-xs text-fg-muted">Tema anterior</span>
         <span class="text-fg">
-          <span class="font-mono text-fg-muted">{prev.number}</span> {prev.shortTitle}
+          <span class="numbering text-fg-muted">{prev.number}</span> {prev.shortTitle}
         </span>
       </a>
     ) : (
@@ -30,7 +30,7 @@ const LINK_CLASSES =
       <a href={topicUrl(next.slug)} rel="next" class:list={[LINK_CLASSES, 'sm:text-right']}>
         <span class="text-xs text-fg-muted">Tema siguiente</span>
         <span class="text-fg">
-          <span class="font-mono text-fg-muted">{next.number}</span> {next.shortTitle}
+          <span class="numbering text-fg-muted">{next.number}</span> {next.shortTitle}
         </span>
       </a>
     )}

@@ -7,6 +7,7 @@ import {
   splitInlineMath,
   texToNotation,
 } from './inlineMath';
+import { plainLetters } from './mathItalic';
 import { inlineMathToHtml, texToHtml } from './texHtml';
 
 describe('splitInlineMath', () => {
@@ -70,19 +71,26 @@ describe('inlineMathToHtml', () => {
 });
 
 describe('texToNotation', () => {
+  /** The notation with its Mathematical Italic letters as ASCII, to compare structure. */
+  const plain = (tex: string) => plainLetters(texToNotation(tex));
+
   test('turns the TeX of labels into the MathText notation', () => {
-    expect(texToNotation('\\vec v = \\vec V_p + \\vec v_\\infty')).toBe(
-      'vec v = vec V_p + vec v_∞',
-    );
-    expect(texToNotation('v_{\\infty,\\text{in}}')).toBe('v_{∞,in}');
-    expect(texToNotation('|\\Delta\\vec v|')).toBe('|Δvec v|');
-    expect(texToNotation('\\sqrt{2GM_\\odot/r}')).toBe('√(2GM_☉/r)');
-    expect(texToNotation('4{,}4 \\cdot 10^{-21}\\ \\mathrm{m/s}')).toBe('4,4 ⋅ 10^{-21} m/s');
-    expect(texToNotation('\\frac{a}{b} \\le \\theta_\\text{in}')).toBe('(a)/(b) ≤ θ_in');
+    expect(plain('\\vec v = \\vec V_p + \\vec v_\\infty')).toBe('vec v = vec V_p + vec v_∞');
+    expect(plain('v_{\\infty,\\text{in}}')).toBe('v_{∞,in}');
+    expect(plain('|\\Delta\\vec v|')).toBe('|Δvec v|');
+    expect(plain('\\sqrt{2GM_\\odot/r}')).toBe('√(2GM_☉/r)');
+    expect(plain('4{,}4 \\cdot 10^{-21}\\ \\mathrm{m/s}')).toBe('4,4 ⋅ 10^{-21} m/s');
+    expect(plain('\\frac{a}{b} \\le \\theta_\\text{in}')).toBe('(a)/(b) ≤ θ_in');
   });
 
-  test('leaves an unknown command as its name, never as a backslash', () => {
-    expect(texToNotation('\\foo x')).toBe('foo x');
+  test('writes the letters of a formula as Mathematical Italic, words and units upright', () => {
+    expect(texToNotation('v_\\text{máx} = 3\\ \\mathrm{m/s}')).toBe('𝑣_máx = 3 m/s');
+    expect(texToNotation('\\vec v')).toBe('vec 𝑣');
+    expect(texToNotation('h_0')).toBe('ℎ_0');
+  });
+
+  test('leaves an unknown command as its name, upright, never as a backslash', () => {
+    expect(texToNotation('\\foo x')).toBe('foo 𝑥');
   });
 });
 

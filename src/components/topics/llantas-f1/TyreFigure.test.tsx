@@ -27,6 +27,10 @@ function stubWidth(width: number): void {
   );
 }
 
+/** Widths below which a reading no longer fits whole in Plex Sans and shortens to its value. */
+const TEMPERATURE_SHORT_WIDTH = 300;
+const CROSSING_SHORT_WIDTH = 280;
+
 describe('TyreFigure', () => {
   afterEach(() => {
     cleanup();
@@ -146,8 +150,8 @@ describe('TyreFigure', () => {
   });
 
   test('on a phone the temperature readings shorten to their value, each on its own side', () => {
-    // The figure's measured width on a 375 px phone (the page's gutters taken off).
-    stubWidth(340);
+    // A figure too narrow for «160 °C: 1,45» in Plex Sans (a 360 px phone's, 328, still fits it).
+    stubWidth(TEMPERATURE_SHORT_WIDTH);
     const { container } = render(<TyreFigure variant="temperatura" />);
     const cold = container.querySelector('[data-point="t-60"] text');
     const hot = container.querySelector('[data-point="t-160"] text');
@@ -159,7 +163,7 @@ describe('TyreFigure', () => {
   });
 
   test('on a phone the crossing label shortens to its force, clear of the curves', () => {
-    stubWidth(300);
+    stubWidth(CROSSING_SHORT_WIDTH);
     const { container } = render(<TyreFigure variant="carga" />);
     const label = container.querySelector('[data-point="referencia"] text');
 

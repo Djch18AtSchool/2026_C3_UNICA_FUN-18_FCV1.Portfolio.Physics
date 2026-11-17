@@ -4,7 +4,7 @@ import { LINE_WIDTH, SURFACE_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../c
 import { useElementWidth } from '../../hooks/useElementWidth';
 import type { FrameStore } from '../../lab/frameStore';
 import { Arrow, Label, type Point } from '../../lab/OverlayMarks';
-import { monoTextWidth } from '../../lab/plotScales';
+import { textWidth } from '../../lab/plotScales';
 import TimeScaleBadge from '../../lab/TimeScaleBadge';
 import { useFrameTime } from '../../lab/useFrameTime';
 import { useZoomPan } from '../../lab/useZoomPan';
@@ -303,12 +303,12 @@ const NOTE_LEFT = 8;
 /** The plate under the note: its margin around the two lines and its corner radius. */
 const NOTE_PLATE_PAD = 4;
 const NOTE_PLATE_RADIUS = 4;
-/** The mono glyphs rise about this share of the font size above the baseline. */
+/** The glyphs rise about this share of the font size above the baseline. */
 const NOTE_ASCENT = 0.8;
 
-/** The plate of the surface under the note's two lines, from their mono widths. */
+/** The plate of the surface under the note's two lines, from their Plex Sans widths. */
 function notePlate() {
-  const width = Math.max(...NOTE_LINES.map((line) => monoTextWidth(line, NOTE_SIZE)));
+  const width = Math.max(...NOTE_LINES.map((line) => textWidth(line, NOTE_SIZE)));
   const top = NOTE_BASELINE - NOTE_SIZE * NOTE_ASCENT - NOTE_PLATE_PAD;
   const bottom = NOTE_BASELINE + (NOTE_LINES.length - 1) * NOTE_LINE_HEIGHT + NOTE_PLATE_PAD;
   return {

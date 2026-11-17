@@ -39,7 +39,7 @@ export function scaleBadgeSpot(
   const words = timeScaleLabel(factor);
   const factorText = formatTimeScale(factor);
   const factorWidth = textBox({ x: 0, y }, factorText, FACTOR_SIZE, 'start').right;
-  const wordsWidth = words === undefined ? 0 : mathTextWidth(words, WORDS_SIZE, 'sans');
+  const wordsWidth = words === undefined ? 0 : mathTextWidth(words, WORDS_SIZE);
   const width = Math.max(factorWidth, wordsWidth);
   const x = keyRight + Math.max(MIN_GAP, (valueLeft - keyRight - width) / 2);
   const factorBox = textBox({ x, y }, factorText, FACTOR_SIZE, 'start');

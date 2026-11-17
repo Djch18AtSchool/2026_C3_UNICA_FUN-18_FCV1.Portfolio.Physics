@@ -8,7 +8,7 @@ import {
   type Box,
   type Segment,
 } from '../../lab/labelClearance';
-import { monoTextWidth } from '../../lab/plotScales';
+import { textWidth } from '../../lab/plotScales';
 import BounceFigure from './BounceFigure';
 import { mathSourceText } from '../../../test-inline-math';
 import { plexViolations } from '../../../test-glyphs';
@@ -161,7 +161,7 @@ describe('BounceFigure', () => {
       expect(width).toBe(260);
       expect(screen.getAllByText('p = 6 kg·m/s')).toHaveLength(4);
       for (const text of container.querySelectorAll<SVGTextElement>('text')) {
-        const half = monoTextWidth(text.textContent ?? '', 11) / 2;
+        const half = textWidth(text.textContent ?? '', 11) / 2;
         const x = Number(text.getAttribute('x'));
         const anchor =
           text.getAttribute('text-anchor') ??

@@ -7,7 +7,7 @@ import {
   TICK_FONT_FAMILY,
 } from '../charts/chartTheme';
 import { trimTrailingZeros } from '../charts/chartScale';
-import { fitCentre, monoTextWidth, niceTicks, tickDecimals, type Scale } from './plotScales';
+import { fitCentre, textWidth, niceTicks, tickDecimals, type Scale } from './plotScales';
 import MathText from './MathText';
 import type { PlotArea } from './SvgPlotCursor';
 
@@ -147,7 +147,7 @@ export function PlotAxes({
             key={`lx-${value}`}
             x={fitCentre(
               x.toPx(value),
-              monoTextWidth(formatX(value), tickFontSize),
+              textWidth(formatX(value), tickFontSize),
               -Infinity,
               viewWidth,
             )}

@@ -236,7 +236,7 @@ export default function TransportBar({
         <span
           data-transport-time=""
           style={{ minWidth: longestTime }}
-          className="justify-self-end text-right font-mono text-sm tabular-nums [grid-area:time]"
+          className="justify-self-end text-right text-sm tabular-nums [grid-area:time]"
         >
           {timeText}
         </span>

@@ -23,7 +23,7 @@ function Slider({ id, label, unit, min, max, step, value, onChange, precision }:
         <label htmlFor={id} className="text-sm font-medium">
           {`${label} (${unit})`}
         </label>
-        <span data-testid="slider-value" className="font-mono text-sm tabular-nums">
+        <span data-testid="slider-value" className="text-sm tabular-nums">
           {formatNumber(value, { precision: resolvedPrecision, unit })}
         </span>
       </div>
@@ -38,7 +38,7 @@ function Slider({ id, label, unit, min, max, step, value, onChange, precision }:
         onChange={(event) => onChange(Number(event.target.value))}
         className="h-6 w-full cursor-pointer accent-accent"
       />
-      <span className="font-mono text-xs tabular-nums text-fg-muted">
+      <span className="text-xs tabular-nums text-fg-muted">
         {`${formatNumber(min, { precision: resolvedPrecision })}–${formatNumber(max, { precision: resolvedPrecision })}`}
       </span>
     </div>

@@ -124,7 +124,7 @@ export default function SvgPlotCursor({
   const cx = x.toPx(shown);
   const labelText = cursor.label?.(shown);
   const isPastFlipLine = cx > area.left + (area.right - area.left) * LABEL_FLIP_FRACTION;
-  const labelWidth = labelText === undefined ? 0 : mathTextWidth(labelText, fontSize, 'mono');
+  const labelWidth = labelText === undefined ? 0 : mathTextWidth(labelText, fontSize);
   const wouldOverrun = labelText !== undefined && cx + LABEL_GAP + labelWidth > area.right;
   const isLabelLeft = isPastFlipLine || wouldOverrun;
 

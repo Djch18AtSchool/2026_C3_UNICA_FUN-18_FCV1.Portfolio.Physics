@@ -125,16 +125,16 @@ describe('boxesOverlap', () => {
 });
 
 describe('textBox', () => {
-  test('a monospace text box from its anchor and baseline: start, middle and end', () => {
-    // 4 characters at 10 px are 24 px wide; the box runs from 0,8 em above to 0,25 em below.
-    expect(textBox({ x: 100, y: 50 }, 'abcd', 10, 'start')).toEqual({
+  test('a Plex Sans text box from its anchor and baseline: start, middle and end', () => {
+    // Four tabular figures at 10 px are 24 px wide; the box runs from 0,8 em above to 0,25 em below.
+    expect(textBox({ x: 100, y: 50 }, '1234', 10, 'start')).toEqual({
       left: 100,
       right: 124,
       top: 42,
       bottom: 52.5,
     });
-    expect(textBox({ x: 100, y: 50 }, 'abcd', 10, 'middle').left).toBe(88);
-    expect(textBox({ x: 100, y: 50 }, 'abcd', 10, 'end').right).toBe(100);
+    expect(textBox({ x: 100, y: 50 }, '1234', 10, 'middle').left).toBe(88);
+    expect(textBox({ x: 100, y: 50 }, '1234', 10, 'end').right).toBe(100);
   });
 });
 

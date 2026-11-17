@@ -1,0 +1,87 @@
+/*
+ * The type of the symbols (E3, Dylan 2026-11-13: «que sigan el formato y la fuente de las páginas»).
+ * One family reads everything: IBM Plex Sans sets the words, the numbers (its figures are tabular
+ * by default) and the symbols, a variable in its italic. The rule, measured in every page by
+ * tests/e2e/glyphs.spec.ts (src/lib/typography.ts, typeRuleViolations):
+ *
+ * - an inline formula (KaTeX outside a display) is set at the size and weight of its text, in
+ *   Plex Sans: variables (Latin and lowercase Greek) in its italic; digits, units, operators and
+ *   uppercase Greek upright;
+ * - the symbols Plex lacks (→ ∞ ≈ ≤ ≥ ⋅ ∑ ∫ ⊥ ⊙, KaTeX's accents) come from KaTeX's own Main
+ *   face under the name «Math Symbols», scaled so its x-height meets Plex's (KATEX_SCALE,
+ *   src/lib/mathFonts.ts): the same glyph and size in the prose, the controls and the figures;
+ * - display equations ($$…$$, <Equation>) stay in KaTeX, the textbook's setting;
+ * - Plex Mono only numbers the notebook (figures, equations, tables, sources, parts, topics).
+ *
+ * KaTeX's stylesheet is unlayered, so these overrides are too, with more specificity.
+ */
+
+@font-face {
+  font-family: 'Math Symbols';
+  font-style: normal;
+  font-weight: 100 500;
+  font-display: swap;
+  src: url('../../node_modules/katex/dist/fonts/KaTeX_Main-Regular.woff2') format('woff2');
+  unicode-range: U+02C6-02DD, U+2190-22FF;
+  /* KATEX_SCALE as a percentage: mathFonts.test.ts compares the two. */
+  size-adjust: 116.74%;
+}
+
+@font-face {
+  font-family: 'Math Symbols';
+  font-style: normal;
+  font-weight: 600 900;
+  font-display: swap;
+  src: url('../../node_modules/katex/dist/fonts/KaTeX_Main-Bold.woff2') format('woff2');
+  unicode-range: U+02C6-02DD, U+2190-22FF;
+  size-adjust: 116.74%;
+}
+
+/*
+ * θ: Plex Sans Italic draws it as the open, cursive ϑ; the textbook's θ is closed. This family,
+ * first in the sans stack and only for U+03B8, takes the upright glyph, which the browser slants
+ * in an italic setting (font-synthesis, on by default): θ reads as in the equations.
+ */
+@font-face {
+  font-family: 'Plex Theta';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-greek-400-normal.woff2')
+    format('woff2');
+  unicode-range: U+03B8;
+}
+
+@font-face {
+  font-family: 'Plex Theta';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-greek-500-normal.woff2')
+    format('woff2');
+  unicode-range: U+03B8;
+}
+
+@font-face {
+  font-family: 'Plex Theta';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-greek-600-normal.woff2')
+    format('woff2');
+  unicode-range: U+03B8;
+}
+
+/* An inline formula: the text's family, size and weight (KaTeX sets 1.21 em, KaTeX_Main, normal). */
+.katex:not(.katex-display > .katex) {
+  font-family: var(--font-sans);
+  font-size: inherit;
+  font-weight: inherit;
+}
+.katex:not(.katex-display > .katex) :is(.mathnormal, .mathit, .boldsymbol) {
+  font-family: var(--font-sans);
+  font-style: italic;
+}
+.katex:not(.katex-display > .katex) :is(.textrm, .mainrm, .mathrm) {
+  font-family: var(--font-sans);
+}

@@ -8,16 +8,17 @@ import { plexViolations } from './test-glyphs';
 describe('plexViolations', () => {
   afterEach(cleanup);
 
-  test('finds a symbol Plex lacks in plain text, and Greek in mono text', () => {
+  test('finds a character no font of the stack draws, and Greek in the numbering’s mono', () => {
     const { container } = render(
       <div>
-        <p>v∞ = 7</p>
-        <p className="font-mono">δ = 97</p>
+        <p>M☉ = 2</p>
+        <p>v∞ = 7, drawn by the sans stack’s symbol face</p>
+        <p className="numbering">δ = 97</p>
         <p>δ en sans</p>
       </div>,
     );
 
-    expect(plexViolations(container)).toEqual(['∞ in «v∞ = 7»', 'δ in «δ = 97»']);
+    expect(plexViolations(container)).toEqual(['☉ in «M☉ = 2»', 'δ in «δ = 97»']);
   });
 
   test('finds a subscript, a power or a formula written raw', () => {
@@ -36,7 +37,7 @@ describe('plexViolations', () => {
     ]);
   });
 
-  test('skips KaTeX formulas and MathText tspans set in KaTeX', () => {
+  test('skips KaTeX formulas and passes MathText’s Greek and symbols, all in the sans stack', () => {
     const { container } = render(
       <div>
         <p>

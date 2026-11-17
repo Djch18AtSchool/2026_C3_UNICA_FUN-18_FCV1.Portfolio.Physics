@@ -54,7 +54,7 @@ const DIRECTION: Readonly<Record<ZoomControlsOrientation, string>> = {
 const BUTTON =
   'inline-flex size-10 items-center justify-center text-fg-muted transition-colors hover:text-fg aria-disabled:cursor-not-allowed aria-disabled:text-fg-muted/50 aria-disabled:hover:text-fg-muted/50';
 const FACTOR =
-  'flex h-8 min-w-10 items-center justify-center px-1 font-mono text-xs font-medium whitespace-nowrap text-fg tabular-nums';
+  'flex h-8 min-w-10 items-center justify-center px-1 text-xs font-medium whitespace-nowrap text-fg tabular-nums';
 /**
  * «Zoom» and the number: on one line in a row, the number 4 characters wide whatever it says, so
  * the buttons never move; stacked in a column (two 16 px lines in the 32 px cell), which keeps
@@ -162,7 +162,7 @@ function ZoomButtons({ zoom }: { zoom: ZoomPan }): JSX.Element {
           isEnabled={zoom.canActualSize}
           onPress={zoom.actualSize}
         >
-          <span className="font-mono text-xs font-medium">1:1</span>
+          <span className="text-xs font-medium">1:1</span>
         </ZoomButton>
       ) : null}
     </>

@@ -32,7 +32,6 @@ import {
   type ScaleBarLength,
   type ScaleUnit,
 } from './scaleBarMath';
-import { inlineMathToNotation } from './timeScaleFormat';
 
 export interface ScaleBarProps {
   /** CSS px per base unit at the current view: the lab's own scale times `zoom.view.scale`. */
@@ -183,11 +182,10 @@ export function ScaleBarSvg({
         strokeWidth={STROKE}
       />
       <MathText
-        source={inlineMathToNotation(bar.text)}
+        source={bar.text}
         x={anchor === 'start' ? left : right}
         y={y - SCALE_BAR_TICK - SCALE_BAR_LABEL_GAP}
         anchor={anchor}
-        family="sans"
         fontSize={SCALE_BAR_LABEL_SIZE}
         fill={TICK_COLOR}
         halo={HALO}

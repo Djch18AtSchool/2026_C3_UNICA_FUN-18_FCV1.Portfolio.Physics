@@ -5,7 +5,7 @@ import { resetSettingsForTests } from '../../lib/settingsStore';
 import { TICK_FONT_SIZE } from '../charts/chartTheme';
 import { createFrameStore } from './frameStore';
 import { mathTextWidth } from '../../lib/mathNotation';
-import { monoTextWidth, type Scale } from './plotScales';
+import { textWidth, type Scale } from './plotScales';
 import SvgPlot from './SvgPlot';
 import { mockIdentityCtm, PROPS } from './svgPlotTestKit';
 
@@ -197,9 +197,9 @@ describe('SvgPlot cursor', () => {
         height: Number(plate.getAttribute('height')),
       };
       const textX = Number(label.getAttribute('x'));
-      const textWidth = monoTextWidth('t = 0,00 s', TICK_FONT_SIZE);
+      const labelWidth = textWidth('t = 0,00 s', TICK_FONT_SIZE);
       const [textLeft, textRight] =
-        anchor === 'start' ? [textX, textX + textWidth] : [textX - textWidth, textX];
+        anchor === 'start' ? [textX, textX + labelWidth] : [textX - labelWidth, textX];
       const textY = Number(label.getAttribute('y'));
 
       expect(label).toHaveAttribute('text-anchor', anchor);
@@ -296,7 +296,7 @@ describe('SvgPlot cursor label in notation', () => {
       <SvgPlot {...PROPS} cursor={{ x: 2, onChange: () => {}, label: () => 'F_z = 0 N' }} />,
     );
     const plate = container.querySelector('[data-cursor-plate]') as SVGRectElement;
-    const drawn = mathTextWidth('F_z = 0 N', TICK_FONT_SIZE, 'mono');
+    const drawn = mathTextWidth('F_z = 0 N', TICK_FONT_SIZE);
 
     // The plate is the drawn width plus its margin (3), plus the gap from the knob (14 - 8).
     expect(Number(plate.getAttribute('width'))).toBeCloseTo(drawn + 9, 5);

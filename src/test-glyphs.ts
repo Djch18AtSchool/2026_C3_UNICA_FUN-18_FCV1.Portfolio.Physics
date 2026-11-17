@@ -3,7 +3,7 @@
  * that were never typeset (`_`, `^`, `$`: a subscript, a power or a formula written raw, which
  * Plex does draw and so no glyph check would see): the unit-test guard of a lab or a figure, the
  * counterpart of the page-level e2e (tests/e2e/glyphs.spec.ts). A text node counts as mono
- * when an ancestor sets the mono family (font-family attribute or Tailwind's font-mono); text in
+ * when an ancestor sets the mono family (font-family attribute or the numbering utility); text in
  * a KaTeX formula or in a MathText tspan set in KaTeX's fonts is skipped. Returns "char in «text»"
  * entries, empty when every character is covered.
  */
@@ -15,7 +15,7 @@ function familyOf(element: Element): PlexFamily | 'katex' {
   for (let node: Element | null = element; node; node = node.parentElement) {
     const family = node.getAttribute('font-family') ?? '';
     if (KATEX_FAMILY.test(family)) return 'katex';
-    if (family.includes('mono') || node.classList.contains('font-mono')) return 'mono';
+    if (family.includes('mono') || node.classList.contains('numbering')) return 'mono';
     if (family.includes('sans')) return 'sans';
   }
   return 'sans';

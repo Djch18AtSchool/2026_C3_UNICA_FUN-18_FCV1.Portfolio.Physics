@@ -191,7 +191,7 @@ function SegmentedFieldBase<T extends string | number>({
               className="peer sr-only"
             />
             <span
-              className={`flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-base border border-transparent px-2 font-mono text-sm tabular-nums text-fg-muted transition-colors hover:text-fg peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-fg ${PEER_FOCUS}`}
+              className={`flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-base border border-transparent px-2 text-sm tabular-nums text-fg-muted transition-colors hover:text-fg peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-fg ${PEER_FOCUS}`}
             >
               {option}
             </span>

@@ -12,7 +12,6 @@ const HALO = { color: SURFACE, width: 4 } as const;
 /** Equations (.wd-eq): 23 units. */
 export const EQ_TEXT = {
   fontSize: 23,
-  family: 'sans',
   fill: 'var(--fg)',
   halo: HALO,
 } as const;
@@ -20,7 +19,6 @@ export const EQ_TEXT = {
 /** Labels (.wd-label): 17 units. */
 export const LABEL_TEXT = {
   fontSize: 17,
-  family: 'sans',
   fill: 'var(--fg)',
   halo: HALO,
 } as const;
@@ -28,7 +26,6 @@ export const LABEL_TEXT = {
 /** Notes (.wd-note): 16 units, in the muted ink. */
 export const NOTE_TEXT = {
   fontSize: 16,
-  family: 'sans',
   fill: 'var(--fg-muted)',
   halo: HALO,
 } as const;

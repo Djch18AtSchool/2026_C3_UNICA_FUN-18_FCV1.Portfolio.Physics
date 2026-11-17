@@ -1,13 +1,15 @@
 /**
- * An SVG label in the mini-notation of src/lib/mathNotation.ts, with real sub- and superscripts
- * (tspan, 75 %, shifted with dy), Greek letters and the symbols IBM Plex lacks in KaTeX's fonts,
- * and vectors with an arrow drawn as a <path> over the base letter (never U+20D7). Everything
- * else stays in the label's Plex family, so no character reaches a fallback font. Usage:
+ * An SVG label with the site's notation: words with formulas between `$…$` (the HTML's syntax,
+ * src/lib/inlineMath.ts) or the mini-notation of src/lib/mathNotation.ts. Real sub- and
+ * superscripts (tspan, 75 %, shifted with dy), variables in Plex Sans Italic (the letters of a
+ * `$…$` and lowercase Greek), the symbols Plex lacks from the sans stack's «Math Symbols» face,
+ * and vectors with an arrow drawn as a <path> over the base letter (never U+20D7). Nothing names
+ * a font: the label is in Plex Sans like the page, so no character reaches a fallback font. Usage:
  *
- *   <MathText source="v_∞,in" x={40} y={20} fontSize={13} />            v with subscript ∞,in
- *   <MathText source="vec v = vec V_p + vec v_∞" … fill={TEXT_COLOR} />  three drawn arrows
- *   <MathText source="ω_máx = 10^-7 rad/s" … anchor="end" />             KaTeX ω, real power
- *   <MathText source="|Δv|" … family="sans" />                          sans label, KaTeX Δ
+ *   <MathText source="$v_{\infty,\text{in}}$" x={40} y={20} fontSize={13} />  italic v, sub ∞,in
+ *   <MathText source="$\vec v = \vec V_p$" … fill={TEXT_COLOR} />            two drawn arrows
+ *   <MathText source="$r_p$ = 10,09 R_J" … anchor="end" />                   italic r, unit upright
+ *   <MathText source="|Δv|" … />                                             notation: Δ upright
  *
  * One <text> per label: put the whole label (numbers and units included) in `source`, since a
  * script shifts the baseline of what follows. Plain text renders exactly as a plain <text>. The
@@ -17,7 +19,6 @@
  * the server and needs no DOM measurement; pass `fill` when the label holds a vector or ≠.
  */
 import type { JSX } from 'react';
-import { MATH_FONT_FAMILY } from '../../lib/mathFonts';
 import {
   ARROW_GAP_EM,
   ARROW_HEAD_EM,
@@ -26,7 +27,6 @@ import {
   runScale,
   SHIFT_EM,
   runWidth,
-  type LabelFamily,
   type MathRun,
 } from '../../lib/mathNotation';
 
@@ -38,8 +38,6 @@ export interface MathTextProps {
   y: number;
   fontSize: number;
   anchor?: TextAnchor;
-  /** The label's Plex family (default mono, the figures' font). */
-  family?: LabelFamily;
   /** Text color; also the drawn arrows'. Inherited from the parent when omitted. */
   fill?: string;
   /** A stroke behind the text and the arrows, in the surface color, for legibility on lines. */
@@ -51,16 +49,14 @@ export interface MathTextProps {
   className?: string;
 }
 
-const FAMILY_CSS: Readonly<Record<LabelFamily, string>> = {
-  mono: 'var(--font-mono)',
-  sans: 'var(--font-sans)',
-};
+/** The page's sans stack (Plex, its closed θ, the symbols it lacks): the figures' one family. */
+const LABEL_FONT_FAMILY = 'var(--font-sans)';
 const PERCENT = 100;
 const PERCENT_DECIMALS = 1;
 /** Drawn arrow: stroke and side insets, in em of the base (gap and head: mathNotation). */
 const ARROW_STROKE_EM = 0.07;
 const ARROW_INSET = 0.08;
-/** KaTeX_Math is italic: its arrow leans right with the letter, as KaTeX's skew does. */
+/** An italic letter leans: its arrow moves right with it, as KaTeX's skew does. */
 const ITALIC_SKEW_EM = 0.08;
 /** The stroke through "=" that makes ≠, in em, from the glyph's centre. */
 const NOT_HALF_WIDTH_EM = 0.14;
@@ -77,8 +73,8 @@ function startX(x: number, width: number, anchor: TextAnchor): number {
 
 /** An arrow over a run of width `width` (px) starting at `left`, its letter on `baseline`. */
 function vectorPath(run: MathRun, left: number, width: number, baseline: number, em: number) {
-  const skew = run.font === 'katex-math' ? ITALIC_SKEW_EM * em : 0;
-  const y = round(baseline - (letterTop(run.text, run.font) + ARROW_GAP_EM) * em);
+  const skew = run.style === 'italic' ? ITALIC_SKEW_EM * em : 0;
+  const y = round(baseline - (letterTop(run.text) + ARROW_GAP_EM) * em);
   const from = round(left + ARROW_INSET * width + skew);
   const to = round(left + (1 - ARROW_INSET) * width + skew);
   const head = ARROW_HEAD_EM * em;
@@ -101,9 +97,9 @@ export interface MathMark {
 /** The drawn marks of a label (arrows, ≠ strokes) in its own coordinates. */
 export function mathMarks(
   runs: readonly MathRun[],
-  { x, y, fontSize, anchor = 'start', family = 'mono', dy = 0 }: MathTextProps,
+  { x, y, fontSize, anchor = 'start', dy = 0 }: MathTextProps,
 ): MathMark[] {
-  const widths = runs.map((run) => runWidth(run, fontSize, family));
+  const widths = runs.map((run) => runWidth(run, fontSize));
   const total = widths.reduce((sum, width) => sum + width, 0);
   const lefts = widths.map(
     (_, i) => startX(x, total, anchor) + widths.slice(0, i).reduce((s, w) => s + w, 0),
@@ -121,7 +117,7 @@ export function mathMarks(
 }
 
 const isPlain = (runs: readonly MathRun[]) =>
-  runs.length <= 1 && runs.every((run) => run.script === 'base' && !run.font && !run.mark);
+  runs.length <= 1 && runs.every((run) => run.script === 'base' && !run.style && !run.mark);
 
 /** The runs as tspans, each script entered and left with a dy (px) on its own tspan. */
 function RunSpans({ runs, fontSize }: { runs: readonly MathRun[]; fontSize: number }) {
@@ -134,8 +130,7 @@ function RunSpans({ runs, fontSize }: { runs: readonly MathRun[]; fontSize: numb
         key={i}
         dy={shift === 0 ? undefined : shift}
         fontSize={scale === 1 ? undefined : `${(scale * PERCENT).toFixed(PERCENT_DECIMALS)}%`}
-        fontFamily={run.font ? MATH_FONT_FAMILY[run.font] : undefined}
-        fontStyle={run.font === 'katex-math' ? 'italic' : undefined}
+        fontStyle={run.style === 'italic' ? 'italic' : undefined}
       >
         {run.text}
       </tspan>
@@ -144,7 +139,7 @@ function RunSpans({ runs, fontSize }: { runs: readonly MathRun[]; fontSize: numb
 }
 
 export default function MathText(props: MathTextProps): JSX.Element {
-  const { source, x, y, fontSize, anchor = 'start', family = 'mono', fill, halo, dy } = props;
+  const { source, x, y, fontSize, anchor = 'start', fill, halo, dy } = props;
   const runs = mathRuns(source);
   const plain = isPlain(runs);
   const marks = mathMarks(runs, props);
@@ -157,7 +152,7 @@ export default function MathText(props: MathTextProps): JSX.Element {
       y={y}
       dy={dy}
       textAnchor={anchor}
-      fontFamily={FAMILY_CSS[family]}
+      fontFamily={LABEL_FONT_FAMILY}
       fontSize={fontSize}
       fontWeight={props.fontWeight}
       fill={fill}

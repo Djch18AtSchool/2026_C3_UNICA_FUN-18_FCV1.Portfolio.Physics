@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { monoTextWidth } from '../../lab/plotScales';
+import { textWidth } from '../../lab/plotScales';
 import {
   formatDate,
   formatTime,
@@ -19,7 +19,7 @@ function labelGaps(ticks: AxisTick[], pxPerDay: number): number[] {
   return labelled.slice(1).map((tick, i) => {
     const previous = labelled[i];
     const halfWidths =
-      (monoTextWidth(previous.label ?? '', FONT) + monoTextWidth(tick.label ?? '', FONT)) / 2;
+      (textWidth(previous.label ?? '', FONT) + textWidth(tick.label ?? '', FONT)) / 2;
     return (tick.x - previous.x) * pxPerDay - halfWidths;
   });
 }

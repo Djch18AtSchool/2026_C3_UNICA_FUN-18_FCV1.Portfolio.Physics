@@ -183,7 +183,7 @@ export default function CycleMinimap(props: CycleMinimapProps): JSX.Element {
         aria-hidden="true"
         // In px, like the drawing: the strip is 48 px at any root size.
         style={{ height: MINIMAP.labelRow }}
-        className="m-0 flex items-center justify-between gap-2 font-mono text-xs leading-none text-fg-muted"
+        className="m-0 flex items-center justify-between gap-2 text-xs leading-none text-fg-muted"
       >
         <span>{`Velocidad del ${cycleName}`}</span>
         {stretch ? <span>{`Tramo ${stretchText(stretch)}`}</span> : null}

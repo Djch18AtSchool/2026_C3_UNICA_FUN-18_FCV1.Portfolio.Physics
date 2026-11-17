@@ -6,7 +6,7 @@
  */
 import { memo, useId, type JSX } from 'react';
 import { DASH_PATTERN, TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
-import { linearScale, monoTextWidth, type Scale } from '../../lab/plotScales';
+import { linearScale, textWidth, type Scale } from '../../lab/plotScales';
 import type { PlotArea } from '../../lab/SvgPlotCursor';
 import { formatDate, yearTicks, type AxisTick } from './dateAxis';
 import { placeLabels } from './labelLayout';
@@ -98,7 +98,7 @@ export function missionGeometry(width: number): MissionGeometry {
   const requests = ENCOUNTER_MARKERS.map((marker) => ({
     id: marker.key,
     x: x.toPx(marker.caJd),
-    width: Math.max(...[marker.name, marker.label].map((t) => monoTextWidth(t, FONT_SIZE))),
+    width: Math.max(...[marker.name, marker.label].map((t) => textWidth(t, FONT_SIZE))),
   }));
   const placed = placeLabels(requests, { min: LABEL_EDGE, max: width - LABEL_EDGE }, LABEL_GAP);
   const labels = placed.map((label, i) => ({

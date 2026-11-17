@@ -23,7 +23,8 @@ export const TEXT_COLOR = 'var(--fg)';
 /** Surface behind chart marks; rings on active dots use it to separate overlaps. */
 export const SURFACE_COLOR = 'var(--bg-elevated)';
 
-export const TICK_FONT_FAMILY = 'var(--font-mono)';
+/** Every text of a figure, ticks to notes: the page's sans stack (E3, src/styles/math.css). */
+export const TICK_FONT_FAMILY = 'var(--font-sans)';
 export const TEXT_FONT_FAMILY = 'var(--font-sans)';
 export const TICK_FONT_SIZE = 12;
 

@@ -2,6 +2,7 @@
 @import './tokens.css';
 @import './scale.css';
 @import './content.css';
+@import './math.css';
 
 /* Dark utilities follow the data-theme attribute set by the head script, not the OS. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
@@ -37,7 +38,8 @@
 }
 
 @theme {
-  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  /* Plex, its θ closed in italic too, and the symbols it lacks in KaTeX's face (math.css). */
+  --font-sans: 'Plex Theta', 'IBM Plex Sans', 'Math Symbols', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
@@ -193,6 +195,15 @@
     font-size: var(--text-aux);
     line-height: var(--leading-aux);
   }
+}
+
+/*
+ * The notebook's numbering (Tema 3, figure and source numbers, the 404): the one place, with
+ * content.css's own numbers and the «Por qué» labels, for Plex Mono. A value is never numbering:
+ * readings, fields, axes and times are in Plex Sans like the text (E3, src/styles/math.css).
+ */
+@utility numbering {
+  font-family: var(--font-mono);
 }
 
 /* Reading column: about 70 characters per line. */
