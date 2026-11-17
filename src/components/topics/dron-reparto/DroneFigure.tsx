@@ -92,7 +92,7 @@ function RouteMap(): JSX.Element {
           dy={-6}
           anchor="end"
         >
-          vec r
+          {'$\\vec r$'}
         </Label>
         <Arrow from={px(middle)} to={px(velocityTip)} color={VELOCITY_COLOR} />
         <Label at={px(velocityTip)}>vec v</Label>

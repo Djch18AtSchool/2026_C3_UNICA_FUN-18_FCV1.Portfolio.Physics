@@ -8,6 +8,7 @@ import {
   TICK_COLOR,
   TICK_FONT_FAMILY,
 } from '../../charts/chartTheme';
+import MathText from '../../lab/MathText';
 import { Knob, Label } from '../../lab/OverlayMarks';
 import { useDrag, type DragPoint } from '../../lab/useDrag';
 import { LOG_TICKS, radiusKeyTarget, radiusToSlider, sliderToRadius } from './habitatScene';
@@ -76,9 +77,13 @@ export default function RadiusBar({ r, x0, x1, y, onRadiusChange }: RadiusBarPro
   return (
     <g>
       <g className="pointer-events-none" fontFamily={TICK_FONT_FAMILY}>
-        <text x={x0} y={captionY} fontSize={CAPTION_SIZE} fill={TEXT_COLOR}>
-          Radio del piso r
-        </text>
+        <MathText
+          source="Radio del piso $r$"
+          x={x0}
+          y={captionY}
+          fontSize={CAPTION_SIZE}
+          fill={TEXT_COLOR}
+        />
         <text
           x={x1}
           y={isCompact ? captionY + CAPTION_LINE : captionY}

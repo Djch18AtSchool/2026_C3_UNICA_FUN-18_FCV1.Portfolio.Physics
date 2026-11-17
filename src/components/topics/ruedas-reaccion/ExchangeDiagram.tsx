@@ -169,9 +169,14 @@ function AxisView(): JSX.Element {
   const origin = { x: AXIS_X, y: ORIGIN_Y };
   return (
     <g>
-      <text x={(DIVIDER_X + VIEW.width) / 2} y={TITLE_Y} textAnchor="middle" {...textStyle}>
-        Sobre el eje z
-      </text>
+      <MathText
+        source="Sobre el eje $z$"
+        x={(DIVIDER_X + VIEW.width) / 2}
+        y={TITLE_Y}
+        anchor="middle"
+        fontSize={textStyle.fontSize}
+        fill={textStyle.fill}
+      />
       <line
         x1={AXIS_X}
         y1={ORIGIN_Y - AXIS_REACH}
