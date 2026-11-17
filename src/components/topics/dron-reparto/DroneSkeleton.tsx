@@ -59,15 +59,16 @@ const PLACE = 'rounded-base border border-dashed border-border';
  * Measured on the loaded lab at the site's 16 px root; in window widths they are 324, 335, 427,
  * 560, 658 and 754 px (and 1 058, where the sidebar's lg layout widens the column to 42 rem).
  */
-const STEPS = ['s16-1221', 's16-8', 's22-5625', 's30-85', 's36', 's42'] as const;
+const STEPS = ['s16-1221', 's16-8000', 's22-5625', 's30-8500', 's36', 's42'] as const;
 type Step = (typeof STEPS)[number];
 
 /**
- * Tailwind needs the classes literal: each step reads its height from a custom property (named
+ * Every step has four decimals: Tailwind orders the @min variants by their text, and a shorter
+ * value («16.8rem») would land before «16.1221rem» and lose to it. Tailwind needs the classes literal: each step reads its height from a custom property (named
  * with hyphens: Tailwind reads an underscore in an arbitrary value as a space).
  */
 const PLACE_HEIGHT =
-  'h-(--place-narrow) @min-[16.1221rem]/lab:h-(--place-s16-1221) @min-[16.8rem]/lab:h-(--place-s16-8) @min-[22.5625rem]/lab:h-(--place-s22-5625) @min-[30.85rem]/lab:h-(--place-s30-85) @min-[36rem]/lab:h-(--place-s36) @min-[42rem]/lab:h-(--place-s42)';
+  'h-(--place-narrow) @min-[16.1221rem]/lab:h-(--place-s16-1221) @min-[16.8000rem]/lab:h-(--place-s16-8000) @min-[22.5625rem]/lab:h-(--place-s22-5625) @min-[30.8500rem]/lab:h-(--place-s30-8500) @min-[36rem]/lab:h-(--place-s36) @min-[42rem]/lab:h-(--place-s42)';
 
 /**
  * A place's height in rem: on the narrowest card, then from each step where it changes (a step
@@ -101,7 +102,7 @@ const SCENARIO: PlaceHeights = { narrow: 17.375, from: { 's22-5625': 13.375 } };
 /** «Lecturas»: six readouts two to a row (their labels on one line from 16,1221), then four. */
 const READOUTS: PlaceHeights = { narrow: 14.9375, from: { 's16-1221': 13.6875, s42: 8.625 } };
 /** The canvas notes: legend, phase and route notes, from three lines down to one. */
-const NOTES: PlaceHeights = { narrow: 6.25, from: { 's16-8': 4.75, 's30-85': 3.25 } };
+const NOTES: PlaceHeights = { narrow: 6.25, from: { 's16-8000': 4.75, 's30-8500': 3.25 } };
 /** Each closed disclosure: its summary line and the rule above it. */
 const DISCLOSURE: PlaceHeights = { narrow: 2.5625 };
 const DISCLOSURES = 2;
