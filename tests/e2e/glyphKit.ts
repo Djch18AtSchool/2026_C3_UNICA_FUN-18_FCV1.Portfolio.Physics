@@ -1,10 +1,22 @@
 /**
  * What the glyph guard (glyphs.spec.ts) measures in a page: the characters of every text node
- * that IBM Plex does not draw, the notation written raw, and, through the DevTools protocol, the
- * fonts the browser actually used for each element with visible text.
+ * that IBM Plex does not draw, the notation written raw, through the DevTools protocol the fonts
+ * the browser actually used for each element with visible text, and with those the site's type
+ * rule (E3, src/styles/math.css; typeRuleViolations in src/lib/typography.ts): KaTeX's faces only
+ * for what Plex lacks outside a display, Plex Mono only for the numbering, lowercase Greek
+ * italic, and every inline formula at its text's size.
  */
 import type { CDPSession, Locator, Page } from '@playwright/test';
-import { rawNotationMarks, uncoveredChars, type PlexFamily } from '../../src/lib/typography';
+import {
+  inlineMathSizeViolation,
+  NUMBERING_SELECTOR,
+  rawNotationMarks,
+  typeRuleViolations,
+  uncoveredChars,
+  type DrawnFont,
+  type DrawnText,
+  type PlexFamily,
+} from '../../src/lib/typography';
 
 /** The fonts a page may draw with: the site's two Plex families and KaTeX's own faces. */
 const ALLOWED_FONT = /^(IBM Plex (Sans|Mono)( [A-Za-z]+)?|KaTeX_.+)$/;
@@ -19,9 +31,25 @@ interface TextNodeInfo {
   where: string;
 }
 
+/** A drawn element as the type rule reads it, its fonts still to come from CDP. */
+type ProbeInfo = Omit<DrawnText, 'fonts'> & { where: string };
+
+/** A form control's text (no text node, so no font query): its family and style only. */
+type ControlInfo = ProbeInfo;
+
+interface InlineMathSize {
+  size: number;
+  parentSize: number;
+  where: string;
+}
+
 interface Collected {
   texts: TextNodeInfo[];
   probes: number;
+  /** Per probe index, what the type rule reads of it. */
+  drawn: Record<string, ProbeInfo>;
+  controls: ControlInfo[];
+  inlineMath: InlineMathSize[];
 }
 
 /**
@@ -33,13 +61,40 @@ function collectInPage({
   rootSelector,
   attribute,
   hiddenBox,
+  numbering,
 }: {
   rootSelector: string;
   attribute: string;
   hiddenBox: number;
+  numbering: string;
 }): Collected {
   const root = document.querySelector(rootSelector);
-  if (!root) return { texts: [], probes: 0 };
+  if (!root) return { texts: [], probes: 0, drawn: {}, controls: [], inlineMath: [] };
+  const describe = (element: Element) => {
+    const style = getComputedStyle(element);
+    const setting = element.closest('.katex-display')
+      ? 'display-math'
+      : element.closest('.katex')
+        ? 'inline-math'
+        : element.closest('svg')
+          ? 'figure'
+          : 'text';
+    const own = [...element.childNodes]
+      .filter((child) => child.nodeType === Node.TEXT_NODE)
+      .map((child) => child.textContent ?? '')
+      .join('');
+    return {
+      text: own,
+      setting: setting as DrawnText['setting'],
+      family: style.fontFamily.split(',')[0].replaceAll('"', '').trim(),
+      fontStyle: style.fontStyle,
+      isNumbering: element.closest(numbering) !== null,
+      isLeaf: ![...element.children].some((child) => (child.textContent ?? '').trim() !== ''),
+      where:
+        `${element.tagName.toLowerCase()} ${element.closest('[data-testid]')?.getAttribute('data-testid') ?? ''}`.trim(),
+    };
+  };
+  const drawn: Record<string, ProbeInfo> = {};
   for (const old of document.querySelectorAll(`[${attribute}]`)) old.removeAttribute(attribute);
   const skipped = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE']);
   const texts: TextNodeInfo[] = [];
@@ -61,6 +116,7 @@ function collectInPage({
       (box.width >= hiddenBox || box.height >= hiddenBox);
     if (isDrawn && !parent.hasAttribute(attribute)) {
       parent.setAttribute(attribute, String(probes));
+      drawn[String(probes)] = describe(parent);
       probes += 1;
     }
     const families = getComputedStyle(parent).fontFamily.split(',');
@@ -70,7 +126,32 @@ function collectInPage({
     const label = parent.closest('[data-testid]')?.getAttribute('data-testid') ?? '';
     texts.push({ text, family, where: `${parent.tagName.toLowerCase()} ${label}`.trim() });
   }
-  return { texts, probes };
+  const isShown = (element: Element) => {
+    const box = element.getBoundingClientRect();
+    return (
+      element.checkVisibility({ visibilityProperty: true }) &&
+      (box.width >= hiddenBox || box.height >= hiddenBox)
+    );
+  };
+  const controls = [
+    ...root.querySelectorAll(
+      'input:not([type="range"], [type="checkbox"], [type="radio"], [type="hidden"]), select, textarea',
+    ),
+  ]
+    .filter(isShown)
+    .map((control) => ({
+      ...describe(control),
+      text: (control as HTMLInputElement).value ?? '',
+      isLeaf: false,
+    }));
+  const inlineMath = [...root.querySelectorAll('.katex')]
+    .filter((formula) => !formula.closest('.katex-display') && isShown(formula))
+    .map((formula) => ({
+      size: parseFloat(getComputedStyle(formula).fontSize),
+      parentSize: parseFloat(getComputedStyle(formula.parentElement ?? formula).fontSize),
+      where: describe(formula).where,
+    }));
+  return { texts, probes, drawn, controls, inlineMath };
 }
 
 /** Every element that draws text: all of them are tagged, those inside KaTeX too (its faces only). */
@@ -79,6 +160,7 @@ async function collectProbes(page: Page, rootSelector: string): Promise<Collecte
     rootSelector,
     attribute: PROBE_ATTRIBUTE,
     hiddenBox: HIDDEN_BOX_PX,
+    numbering: NUMBERING_SELECTOR,
   });
 }
 
@@ -89,6 +171,8 @@ interface FontCheck {
   errors: string[];
   /** Tagged elements the browser returned a platform font for. */
   fontNodes: number;
+  /** Per probe index, the fonts the browser used for it. */
+  fontsByProbe: Map<string, DrawnFont[]>;
 }
 
 /** The fonts the browser used per tagged element. */
@@ -108,6 +192,7 @@ async function checkFonts(
   });
   const problems: string[] = [];
   const errors: string[] = [];
+  const fontsByProbe = new Map<string, DrawnFont[]>();
   let fontNodes = 0;
   if (nodeIds.length !== probes) {
     errors.push(`CDP encontró ${nodeIds.length} de los ${probes} elementos marcados`);
@@ -131,6 +216,10 @@ async function checkFonts(
         continue;
       }
       if (result.fonts.length > 0) fontNodes += 1;
+      fontsByProbe.set(
+        result.index,
+        result.fonts.map(({ familyName, glyphCount }) => ({ familyName, glyphCount })),
+      );
       const foreign = result.fonts.filter((font) => !ALLOWED_FONT.test(font.familyName));
       if (foreign.length === 0) continue;
       const sample = await page.evaluate(
@@ -149,7 +238,7 @@ async function checkFonts(
   const counts = new Map<string, number>();
   for (const error of errors) counts.set(error, (counts.get(error) ?? 0) + 1);
   const summary = [...counts].map(([error, count]) => (count > 1 ? `${error} (×${count})` : error));
-  return { problems, errors: summary, fontNodes };
+  return { problems, errors: summary, fontNodes, fontsByProbe };
 }
 
 export interface GlyphReport {
@@ -162,6 +251,29 @@ export interface GlyphReport {
   fontNodes: number;
   /** Checks that could not run (CDP failures, nodes lost): they fail the guard. */
   errors: string[];
+  /** Breaks of the type rule (E3), one line each. */
+  typeRule: string[];
+}
+
+/** The type rule over every drawn element, form control and inline formula measured. */
+function typeRuleLines(collected: Collected, fontsByProbe: Map<string, DrawnFont[]>): string[] {
+  const sample = (info: ProbeInfo) => `${info.where} «${info.text.trim().slice(0, 60)}»`;
+  const elements = [
+    ...Object.entries(collected.drawn).map(([index, info]) => ({
+      info,
+      fonts: fontsByProbe.get(index) ?? [],
+    })),
+    ...collected.controls.map((info) => ({ info, fonts: [] })),
+  ];
+  return [
+    ...elements.flatMap(({ info, fonts }) =>
+      typeRuleViolations({ ...info, fonts }).map((line) => `${line}: ${sample(info)}`),
+    ),
+    ...collected.inlineMath.flatMap(({ size, parentSize, where }) => {
+      const line = inlineMathSizeViolation(size, parentSize);
+      return line === undefined ? [] : [`${line}: ${where}`];
+    }),
+  ];
 }
 
 /** One measurement of the page (or the part of it under `rootSelector`) in its current state. */
@@ -170,7 +282,8 @@ async function measureOnce(
   cdp: CDPSession,
   rootSelector = 'body',
 ): Promise<GlyphReport> {
-  const { texts, probes } = await collectProbes(page, rootSelector);
+  const collected = await collectProbes(page, rootSelector);
+  const { texts, probes } = collected;
   const uncovered = texts.flatMap(({ text, family, where }) =>
     uncoveredChars(text, family).map(
       (char) =>
@@ -180,8 +293,14 @@ async function measureOnce(
   const rawNotation = texts.flatMap(({ text, where }) =>
     rawNotationMarks(text).map((mark) => `${mark} en ${where} «${text.trim().slice(0, 60)}»`),
   );
-  const { problems, errors, fontNodes } = await checkFonts(page, cdp, rootSelector, probes);
-  return { uncovered, rawNotation, fonts: problems, probes, fontNodes, errors };
+  const { problems, errors, fontNodes, fontsByProbe } = await checkFonts(
+    page,
+    cdp,
+    rootSelector,
+    probes,
+  );
+  const typeRule = [...new Set(typeRuleLines(collected, fontsByProbe))];
+  return { uncovered, rawNotation, fonts: problems, probes, fontNodes, errors, typeRule };
 }
 
 /** A running lab may replace a node between tagging it and asking CDP about it: measure again. */
@@ -232,6 +351,7 @@ export function describeReport(report: GlyphReport, rootSelector = 'body'): stri
     ...report.uncovered.map((line) => `fuera de Plex: ${line}`),
     ...report.rawNotation.map((line) => `notación cruda: ${line}`),
     ...report.fonts.map((line) => `fuente ajena: ${line}`),
+    ...report.typeRule.map((line) => `regla tipográfica: ${line}`),
   ];
 }
 

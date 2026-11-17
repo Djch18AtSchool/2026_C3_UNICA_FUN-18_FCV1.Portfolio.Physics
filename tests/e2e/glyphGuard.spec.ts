@@ -32,20 +32,20 @@ test.describe('la guardia de glifos se activa', () => {
     expect(describeReport(report, '#broken').join('\n')).toMatch(/fuente ajena/);
   });
 
-  test('un texto con símbolos fuera de Plex o con notación cruda, también oculto, falla', async ({
+  test('un texto con un símbolo que ninguna fuente del sitio dibuja o con notación cruda, también oculto, falla', async ({
     page,
   }) => {
     const cdp = await openFontSession(page);
     await page.evaluate(() =>
       document.body.insertAdjacentHTML(
         'beforeend',
-        '<div id="hidden" hidden><p>v∞ y F_z</p></div>',
+        '<div id="hidden" hidden><p>M☉ y F_z</p></div>',
       ),
     );
 
     const lines = describeReport(await measureGlyphs(page, cdp, '#hidden'), '#hidden').join('\n');
 
-    expect(lines).toMatch(/fuera de Plex: ∞/);
+    expect(lines).toMatch(/fuera de Plex: ☉/);
     expect(lines).toMatch(/notación cruda: _/);
   });
 
@@ -125,6 +125,35 @@ test.describe('la guardia de glifos se activa', () => {
     expect(recovered.errors).toEqual([]);
     expect(recovered.fontNodes).toBeGreaterThan(0);
     expect(describeReport(neverBack).join('\n')).toMatch(/no pudo correr: .*Could not find node/);
+  });
+
+  test('la regla tipográfica: un valor en Plex Mono, KaTeX dibujando una cifra, griego recto y una fórmula a 1,21 em fallan', async ({
+    page,
+  }) => {
+    const cdp = await openFontSession(page);
+    await page.evaluate(async () => {
+      document.body.insertAdjacentHTML(
+        'beforeend',
+        '<div id="type-rule" style="font-size: 16px">' +
+          '<p><span style="font-family: \'IBM Plex Mono\'">12,5 m</span></p>' +
+          '<p><span style="font-family: KaTeX_Main">7</span></p>' +
+          '<p>Ángulo de giro δ</p>' +
+          '<p><span class="katex" style="font-size: 1.21em"><span>x</span></span></p>' +
+          '<p><span class="numbering">Figura 3</span></p>' +
+          '</div>',
+      );
+      await document.fonts.load('16px KaTeX_Main');
+    });
+
+    const lines = describeReport(await measureGlyphs(page, cdp, '#type-rule'), '#type-rule').join(
+      '\n',
+    );
+
+    expect(lines).toMatch(/regla tipográfica: Plex Mono fuera de la numeración.*12,5 m/);
+    expect(lines).toMatch(/regla tipográfica: KaTeX dibuja 1 letras o cifras.*«7»/);
+    expect(lines).toMatch(/regla tipográfica: griego en minúscula, recto.*giro δ/);
+    expect(lines).toMatch(/regla tipográfica: fórmula en línea a 1,21 em/);
+    expect(lines).not.toMatch(/Figura 3/);
   });
 
   test('(a) un laboratorio sin ningún estado que medir falla', () => {

@@ -20,7 +20,7 @@ export function bindNumerals(text: string): string {
 export type PlexFamily = 'sans' | 'mono';
 
 /**
- * What each family's stack draws: Plex Sans, then the «Math Symbols» face that follows it in the
+ * What each family's stack draws: Plex Sans, then the «Plex Symbols» face that follows it in the
  * sans stack (src/styles/math.css: → ∞ ≈ ≤ ≥ ⋅ … from KaTeX_Main); Plex Mono alone.
  */
 const FAMILY_RANGES: Readonly<Record<PlexFamily, readonly CodeRange[]>> = {
@@ -84,4 +84,87 @@ const LITERAL_NAME = /https?:\/\/\S+|[A-Za-z]{2,}(?:_[A-Za-z0-9]{2,})+/g;
 export function rawNotationMarks(text: string): string[] {
   const rest = text.replace(LITERAL_NAME, '');
   return RAW_NOTATION_MARKS.filter((mark) => rest.includes(mark));
+}
+
+/*
+ * ---- The type rule (E3, src/styles/math.css): what tests/e2e/glyphs.spec.ts checks per element ----
+ */
+
+/** Where a drawn text sits: a display equation is KaTeX's own, the rest follows the page's type. */
+export type TextSetting = 'display-math' | 'inline-math' | 'figure' | 'text';
+
+/** One font the browser used for an element's text (DevTools' CSS.getPlatformFontsForNode). */
+export interface DrawnFont {
+  familyName: string;
+  glyphCount: number;
+}
+
+export interface DrawnText {
+  /** The element's own text. */
+  text: string;
+  setting: TextSetting;
+  /** The first family of its computed font-family. */
+  family: string;
+  fontStyle: string;
+  /** Inside NUMBERING_SELECTOR: the one place for Plex Mono. */
+  isNumbering: boolean;
+  /** No child element holds text: the fonts are its own (the browser adds an inline child's). */
+  isLeaf: boolean;
+  fonts: readonly DrawnFont[];
+}
+
+/**
+ * The notebook's numbering, the one place for Plex Mono: the `numbering` utility, the «Por qué»
+ * labels, citations [n], source addresses and connection numbers, code, and the diagrams' panel
+ * titles, detail marks and equation numbers.
+ */
+export const NUMBERING_SELECTOR = [
+  '.numbering',
+  '.why-label',
+  '.cite',
+  '.source-url',
+  '.connections-number',
+  'code, kbd, samp, pre',
+  '.hd-title, .hd-mark-label',
+  '.wd-title, .wd-mark-label, .wd-tag',
+].join(', ');
+
+const KATEX_FONT = /^KaTeX_/;
+const MONO_FAMILY = /^IBM Plex Mono/;
+const LOWER_GREEK = /[α-ω]/u;
+const ITALIC = 'italic';
+
+/** Characters of `text` that Plex Sans has no glyph for (all occurrences, whitespace aside). */
+const nonPlexCount = (text: string) =>
+  [...text].filter((char) => char.trim() !== '' && !isPlexSansGlyph(char)).length;
+
+/**
+ * How `drawn` breaks the type rule, in words (empty when it keeps it): KaTeX's faces draw only
+ * what Plex lacks (outside a display equation), Plex Mono only numbers, and a lowercase Greek
+ * letter, a variable, is italic.
+ */
+export function typeRuleViolations(drawn: DrawnText): string[] {
+  if (drawn.setting === 'display-math') return [];
+  const katexGlyphs = drawn.fonts
+    .filter((font) => KATEX_FONT.test(font.familyName))
+    .reduce((sum, font) => sum + font.glyphCount, 0);
+  const extra = drawn.isLeaf ? katexGlyphs - nonPlexCount(drawn.text) : 0;
+  return [
+    ...(extra > 0 ? [`KaTeX dibuja ${extra} letras o cifras que Plex tiene`] : []),
+    ...(MONO_FAMILY.test(drawn.family) && !drawn.isNumbering
+      ? ['Plex Mono fuera de la numeración (un valor va en Plex Sans)']
+      : []),
+    ...(LOWER_GREEK.test(drawn.text) && drawn.fontStyle !== ITALIC
+      ? ['griego en minúscula, recto (una variable va en cursiva)']
+      : []),
+  ];
+}
+
+const DECIMALS = 2;
+
+/** An inline formula set at another size than its text's (KaTeX's own is 1,21 em). */
+export function inlineMathSizeViolation(size: number, parentSize: number): string | undefined {
+  if (size === parentSize) return undefined;
+  const ratio = (size / parentSize).toFixed(DECIMALS).replace('.', ',');
+  return `fórmula en línea a ${ratio} em de su texto (va a 1 em)`;
 }

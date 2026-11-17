@@ -5,6 +5,9 @@ import {
   isPlexSansGlyph,
   uncoveredChars,
   rawNotationMarks,
+  inlineMathSizeViolation,
+  typeRuleViolations,
+  type DrawnText,
 } from './typography';
 
 const NBSP = ' ';
@@ -42,7 +45,7 @@ describe('uncoveredChars', () => {
     expect(uncoveredChars('v∞ ≈ 7, rₚ ≤ 3, v∞ ≥ 1, 10⁻⁷, M☉')).toEqual(['ₚ', '⁻', '⁷', '☉']);
   });
 
-  test('the symbols Plex lacks come from the sans stack’s «Math Symbols» face, never Plex Mono', () => {
+  test('the symbols Plex lacks come from the sans stack’s «Plex Symbols» face, never Plex Mono', () => {
     expect(uncoveredChars('v∞ ≈ 7 ≤ 3 → ⋅', 'sans')).toEqual([]);
     expect(uncoveredChars('v∞ ≈ 7', 'mono')).toEqual(['∞', '≈']);
   });
@@ -108,5 +111,65 @@ describe('rawNotationMarks', () => {
 
   test('a subscript at the end of a sentence is not a file name', () => {
     expect(rawNotationMarks('el valor de F_z. Luego sigue')).toEqual(['_']);
+  });
+});
+
+describe('typeRuleViolations (the type rule of E3)', () => {
+  const plex = (glyphCount: number) => ({ familyName: 'IBM Plex Sans', glyphCount });
+  const katex = (glyphCount: number) => ({ familyName: 'KaTeX_Main', glyphCount });
+  const drawn = (over: Partial<DrawnText>): DrawnText => ({
+    text: 'x',
+    setting: 'text',
+    family: 'IBM Plex Sans',
+    fontStyle: 'normal',
+    isNumbering: false,
+    isLeaf: true,
+    fonts: [plex(1)],
+    ...over,
+  });
+
+  test('a Plex Sans text, a symbol from the stack and an italic variable pass', () => {
+    expect(typeRuleViolations(drawn({ text: '265,63 m' }))).toEqual([]);
+    expect(typeRuleViolations(drawn({ text: '→', fonts: [katex(1)] }))).toEqual([]);
+    expect(typeRuleViolations(drawn({ text: 'ω', fontStyle: 'italic' }))).toEqual([]);
+  });
+
+  test('KaTeX drawing a letter or a figure Plex has fails, outside a display', () => {
+    const digit = drawn({
+      setting: 'inline-math',
+      text: '9',
+      family: 'KaTeX_Main',
+      fonts: [katex(1)],
+    });
+
+    expect(typeRuleViolations(digit)).toEqual([expect.stringMatching(/KaTeX dibuja 1/)]);
+    expect(typeRuleViolations({ ...digit, setting: 'display-math' })).toEqual([]);
+  });
+
+  test('a parent’s fonts hold its children’s: KaTeX is only judged on an element of its own text', () => {
+    expect(typeRuleViolations(drawn({ text: 'Con', isLeaf: false, fonts: [katex(3)] }))).toEqual(
+      [],
+    );
+  });
+
+  test('Plex Mono is the numbering’s alone: a value in it fails', () => {
+    const value = drawn({ text: '0,00 rpm', family: 'IBM Plex Mono' });
+
+    expect(typeRuleViolations(value)).toEqual([expect.stringMatching(/Plex Mono/)]);
+    expect(typeRuleViolations({ ...value, isNumbering: true })).toEqual([]);
+  });
+
+  test('a lowercase Greek letter is a variable: upright, it fails', () => {
+    expect(typeRuleViolations(drawn({ text: 'giro δ' }))).toEqual([
+      expect.stringMatching(/griego/),
+    ]);
+    expect(typeRuleViolations(drawn({ text: 'Δv' }))).toEqual([]);
+  });
+});
+
+describe('inlineMathSizeViolation', () => {
+  test('an inline formula is set at its text’s size: 1 em, never KaTeX’s 1,21', () => {
+    expect(inlineMathSizeViolation(16, 16)).toBeUndefined();
+    expect(inlineMathSizeViolation(19.36, 16)).toMatch(/1,21 em/);
   });
 });
