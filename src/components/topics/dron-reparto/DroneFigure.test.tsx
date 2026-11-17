@@ -24,8 +24,8 @@ describe('DroneFigure', () => {
     expect(screen.getByText('B (900; 800)')).toBeInTheDocument();
     expect(screen.getByText(svgText('r'))).toBeInTheDocument();
     expect(screen.getByText(svgText('v'))).toBeInTheDocument();
-    expect(screen.getByText('x = 900 m')).toBeInTheDocument();
-    expect(screen.getByText('y = 800 m')).toBeInTheDocument();
+    expect(screen.getByText(svgText('x = 900 m'))).toBeInTheDocument();
+    expect(screen.getByText(svgText('y = 800 m'))).toBeInTheDocument();
   });
 
   test('jumps: v_x and v_y step at eight instants, marked as infinite accelerations', () => {
@@ -46,7 +46,7 @@ describe('DroneFigure', () => {
 
     expect(strokeOf(container, 'trapecio')).toBe('var(--chart-3)');
     expect(screen.getByText(svgText(/^ta = 4,0\ss$/))).toBeInTheDocument();
-    expect(screen.getByText(/T = 67,2\ss/)).toBeInTheDocument();
+    expect(screen.getByText(svgText(/^T = 67,2\ss$/))).toBeInTheDocument();
     expect(screen.getByText(svgText(/^d\/vmáx = 63,2\ss$/))).toBeInTheDocument();
   });
   test('route on a phone: the x component letter clears the depot label', () => {
@@ -65,7 +65,7 @@ describe('DroneFigure', () => {
     );
     render(<DroneFigure variant="ruta" />);
     const depot = screen.getByText('Depósito');
-    const letter = screen.getByText('x', { selector: 'text' });
+    const letter = screen.getByText(svgText('x'));
     const depotRight = Number(depot.getAttribute('x')) + textWidth('Depósito', 13);
     const letterLeft = Number(letter.getAttribute('x')) - textWidth('x', 13) / 2;
 

@@ -114,7 +114,7 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
       timeout: SETTLE_TIMEOUT_MS,
     });
     expect(mathSourceText(screen.getByTestId('drone-lab'))).toContain('crucero ($\\vec a = 0$)');
-    expect(readout('Rapidez |v|')).toBe('10,00 m/s');
+    expect(readout('Rapidez $|v|$')).toBe('10,00 m/s');
     expect(modifiedNote()).toBeNull();
     expect(screen.getByTestId('drone-profiles')).toBeInTheDocument();
   });
@@ -397,7 +397,7 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
 
       expect(readout('Instante en la ruta')).toBe('67,30 s');
       // The mark is a sample of the flight, so the stop reads exactly at rest.
-      expect(readout('Rapidez |v|')).toBe('0,00 m/s');
+      expect(readout('Rapidez $|v|$')).toBe('0,00 m/s');
       expect(readout('Aceleración |a|')).toBe('0,00 m/s²');
       expect(mathSourceText(screen.getByTestId('drone-lab'))).toContain('detenido en un vértice');
       expect(readout('Posición $x$')).toBe('600,00 m');

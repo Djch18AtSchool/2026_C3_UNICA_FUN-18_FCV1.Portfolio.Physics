@@ -58,9 +58,9 @@ export default function RouteMapLab(props: RouteMapLabProps): JSX.Element {
   return (
     <SvgPlot
       title="Mapa de la ruta"
-      xLabel="x (este)"
+      xLabel="$x$ (este)"
       xUnit="m"
-      yLabel="y (norte)"
+      yLabel="$y$ (norte)"
       yUnit="m"
       series={[
         {

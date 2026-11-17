@@ -253,7 +253,7 @@ function ProfileChartView({
     <div className="flex flex-col gap-2">
       <StaticPlot
         title={chart.title}
-        xLabel="t"
+        xLabel="$t$"
         xUnit="s"
         yLabel={chart.yLabel}
         yUnit={chart.unit}

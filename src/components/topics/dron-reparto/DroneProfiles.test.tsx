@@ -9,6 +9,7 @@ import DroneProfiles, { buildProfiles } from './DroneProfiles';
 import { chartStep } from './droneScene';
 import { sampleAt } from './routeEdit';
 import { decimate, dwellWindows } from './routeSeries';
+import { svgText } from '../../../test-svg-text';
 
 // Counts the plotter's renders: the marker must follow t without redrawing any plot.
 const { plotSpy } = vi.hoisted(() => ({ plotSpy: vi.fn() }));
@@ -126,7 +127,7 @@ describe('DroneProfiles', () => {
     expect(screen.getByRole('img', { name: /^Velocidad del dron/ })).toBeVisible();
     expect(screen.getByRole('img', { name: /^Aceleración del dron/ })).toBeVisible();
     expect(screen.getByRole('img', { name: /^Distancia recorrida y módulo/ })).toBeVisible();
-    expect(within(root).getAllByText('t (s)')).toHaveLength(4);
+    expect(within(root).getAllByText(svgText('t (s)'))).toHaveLength(4);
     for (const axis of ['Posición (m)', 'Velocidad (m/s)', 'Aceleración (m/s²)', 'Longitud (m)']) {
       expect(within(root).getByText(axis)).toBeInTheDocument();
     }

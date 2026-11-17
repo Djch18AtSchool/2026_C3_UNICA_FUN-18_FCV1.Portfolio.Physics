@@ -383,7 +383,7 @@ test.describe('las vistas «Tramo» y «Ruta»', () => {
       // The mark is the instant the drone is on the stop (the 0,1 s samples leave it a hair off).
       expect(await readoutText(page, 'Posición $x$')).toBe(STOP_POSITIONS[stop].x);
       expect(await readoutText(page, 'Posición $y$')).toBe(STOP_POSITIONS[stop].y);
-      expect(await readoutText(page, 'Rapidez |v|')).toBe('0,00 m/s');
+      expect(await readoutText(page, 'Rapidez $|v|$')).toBe('0,00 m/s');
       expect(await readoutText(page, 'Aceleración |a|')).toBe('0,00 m/s²');
       await expect(page.locator(LAB).getByRole('status').filter({ hasText: arrival })).toHaveCount(
         1,

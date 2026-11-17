@@ -80,10 +80,10 @@ function RouteMap(): JSX.Element {
           strokeDasharray={GUIDE_DASH}
         />
         <Label at={{ x: xLetterAt, y: corner.y }} dx={0} dy={18} anchor="middle">
-          {isCompact ? 'x' : `x = ${b.x} m`}
+          {isCompact ? '$x$' : `$x$ = ${b.x} m`}
         </Label>
         <Label at={{ x: corner.x, y: (corner.y + px(b).y) / 2 }} dx={-8} dy={4} anchor="end">
-          {isCompact ? 'y' : `y = ${b.y} m`}
+          {isCompact ? '$y$' : `$y$ = ${b.y} m`}
         </Label>
         <Arrow from={origin} to={px(b)} color={TEXT_COLOR} />
         <Label
@@ -109,7 +109,7 @@ function RouteMap(): JSX.Element {
   };
   return (
     <SvgPlot
-      title="Ruta declarada en el plano x–y"
+      title="Ruta declarada en el plano $x$–$y$"
       xLabel="$x$ (este)"
       xUnit="m"
       yLabel="$y$ (norte)"
@@ -179,10 +179,10 @@ function Profile(): JSX.Element {
   const overlay = ({ x, y }: Scales) => (
     <g className="pointer-events-none">
       <Label at={{ x: x.toPx(leg.tAccel), y: y.toPx(DRONE_ROUTE.vMax) }} dx={6} dy={18}>
-        {`t_a = ${seconds(leg.tAccel)}`}
+        {`$t_a$ = ${seconds(leg.tAccel)}`}
       </Label>
       <Label at={{ x: x.toPx(cruiseEnd), y: y.toPx(0) }} dx={-6} dy={-10} anchor="end">
-        {`d/v_máx = ${seconds(cruiseEnd)}`}
+        {`$d/v_\\text{máx}$ = ${seconds(cruiseEnd)}`}
       </Label>
       <Label
         at={{ x: x.toPx(leg.duration), y: y.toPx(DRONE_ROUTE.vMax) }}
@@ -190,7 +190,7 @@ function Profile(): JSX.Element {
         dy={-8}
         anchor="end"
       >
-        {`T = ${seconds(leg.duration)}`}
+        {`$T$ = ${seconds(leg.duration)}`}
       </Label>
     </g>
   );

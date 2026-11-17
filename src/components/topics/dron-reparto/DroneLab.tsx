@@ -64,7 +64,7 @@ function droneReadouts(now: RouteSample, routeTime: number, duration: number): L
   return [
     { id: 'x', label: 'Posición $x$', value: now.x, unit: 'm' },
     { id: 'y', label: 'Posición $y$', value: now.y, unit: 'm' },
-    { id: 'speed', label: 'Rapidez |v|', value: now.speed, unit: 'm/s' },
+    { id: 'speed', label: 'Rapidez $|v|$', value: now.speed, unit: 'm/s' },
     { id: 'accel', label: 'Aceleración |a|', value: now.accel, unit: 'm/s²' },
     { id: 'route-time', label: 'Instante en la ruta', value: routeTime, unit: 's' },
     { id: 'duration', label: 'Duración de la ruta', value: duration, unit: 's' },
