@@ -29,18 +29,18 @@ const vehicleRow = ({ name, m, roadLoad, epa }: EvModel) => ({
 const VEHICLES: DataTableSpec = {
   id: 'frenado-regenerativo-vehiculo',
   caption:
-    'Los dos autos del balance: masa de prueba equivalente (ETW) y coeficientes objetivo A, B y C de la carga en carretera, como los publica la EPA y en SI.',
+    'Los dos autos del balance: masa de prueba equivalente (ETW) y coeficientes objetivo $A$, $B$ y $C$ de la carga en carretera, como los publica la EPA y en SI.',
   columns: [
     // «Tesla Model 3 / Long Range RWD / 2025» in three lines, not six, on a phone.
     { key: 'vehiculo', label: 'Vehículo', align: 'text', minWidthCh: 15 },
     { key: 'etw', label: 'Masa de prueba, ETW', unit: 'lb', align: 'num', precision: 0 },
     { key: 'm', label: 'Masa $m$', unit: 'kg', align: 'num', precision: 2 },
-    { key: 'aEpa', label: 'A', unit: 'lbf', align: 'num', precision: 2 },
-    { key: 'aSi', label: 'A', unit: 'N', align: 'num', precision: 2 },
-    { key: 'bEpa', label: 'B', unit: 'lbf/mph', align: 'num', precision: 4 },
-    { key: 'bSi', label: 'B', unit: 'N·s/m', align: 'num', precision: 4 },
-    { key: 'cEpa', label: 'C', unit: 'lbf/mph²', align: 'num', precision: 5 },
-    { key: 'cSi', label: 'C', unit: 'N·s²/m²', align: 'num', precision: 5 },
+    { key: 'aEpa', label: '$A$', unit: 'lbf', align: 'num', precision: 2 },
+    { key: 'aSi', label: '$A$', unit: 'N', align: 'num', precision: 2 },
+    { key: 'bEpa', label: '$B$', unit: 'lbf/mph', align: 'num', precision: 4 },
+    { key: 'bSi', label: '$B$', unit: 'N·s/m', align: 'num', precision: 4 },
+    { key: 'cEpa', label: '$C$', unit: 'lbf/mph²', align: 'num', precision: 5 },
+    { key: 'cSi', label: '$C$', unit: 'N·s²/m²', align: 'num', precision: 5 },
   ],
   rows: [MODEL3_LR_RWD_2025, LEAF_2025].map(vehicleRow),
   source: {

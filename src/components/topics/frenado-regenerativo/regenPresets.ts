@@ -82,7 +82,7 @@ export const REGEN_PRESETS: Preset<RegenLabState>[] = [
     values: { vehicle: 'leaf', cycle: 'udds', ...SITE_MODEL },
     sourceLabel: 'EPA, vehículo KWB115',
     sourceUrl: LEAF_URL,
-    note: 'Mismos $\\eta$ y $P_\\text{máx}$ que el Model 3 (en el UDDS el límite no actúa); es más liviano, pero su C es mayor: pierde más en el aire y le queda menos para frenar.',
+    note: 'Mismos $\\eta$ y $P_\\text{máx}$ que el Model 3 (en el UDDS el límite no actúa); es más liviano, pero su $C$ es mayor: pierde más en el aire y le queda menos para frenar.',
   },
 ];
 

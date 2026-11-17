@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import {
   hydrateAllIslands,
+  mathSource,
   readoutText as readReadout,
   seekTimeline,
   setRange,
@@ -294,7 +295,7 @@ test.describe('laboratorio', () => {
 
     await usage.locator('summary').click();
     await expect(usage).toContainText('«Tramo» es la frenada del ciclo');
-    await expect(usage).toContainText('la lectura t cuenta desde el inicio del ciclo');
+    expect(await mathSource(usage)).toContain('la lectura $t$ cuenta desde el inicio del ciclo');
     // The lab's hint and the MDX's note do not say the same thing twice.
     expect(((await usage.textContent()) ?? '').match(/insignia/gu)).toHaveLength(1);
     await expect(usage).not.toContainText('veces más rápida');

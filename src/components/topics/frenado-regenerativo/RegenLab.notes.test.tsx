@@ -163,7 +163,7 @@ describe('RegenLab: shell, notes and text', () => {
     expect(
       within(notes).getByRole('list', { name: 'Leyenda del flujo de potencia' }),
     ).toBeVisible();
-    expect(notes).toHaveTextContent('El grosor es proporcional a |P|');
+    expect(mathSourceText(notes)).toContain('El grosor es proporcional a $|P|$');
     expect(notes).toHaveTextContent('La barra del frenado en las ruedas se reparte');
     expect(notes.querySelector('button, a, input, select, [tabindex]')).toBeNull();
     expect(canvas.querySelector('[aria-label="Leyenda del flujo de potencia"]')).toBeNull();

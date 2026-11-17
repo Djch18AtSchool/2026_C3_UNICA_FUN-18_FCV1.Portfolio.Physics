@@ -129,7 +129,7 @@ Con <Equation inline latex="v_f = 0" />, la (6.1) pide <Equation inline latex="W
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Energía cinética del Model 3 en los primeros 200 s del UDDS. Cada tramo en tinta es una desaceleración en la que K baja; la mayor, desde 52 km/h, quita 202 kJ en 12 s."
+  caption="Energía cinética del Model 3 en los primeros 200 s del UDDS. Cada tramo en tinta es una desaceleración en la que $K$ baja; la mayor, desde 52 km/h, quita 202 kJ en 12 s."
   source={{
     text: 'Curva calculada por el autor con la ecuación (6.1); ciclo UDDS de la EPA (fuente 1) y masa del Test Car List 2025 (fuente 2)',
   }}
@@ -141,7 +141,7 @@ Con <Equation inline latex="v_f = 0" />, la (6.1) pide <Equation inline latex="W
 
 <Step n={2} title="Por qué no basta: el aire y la rodadura también frenan">
 
-Al desacelerar, la carga en carretera también hace trabajo negativo. La EPA publica sus coeficientes A, B y C por auto <Cite id="epa-test-car-list-2025" sources={frontmatter.sources} />.
+Al desacelerar, la carga en carretera también hace trabajo negativo. La EPA publica sus coeficientes $A$, $B$ y $C$ por auto <Cite id="epa-test-car-list-2025" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-frenado-carga"
@@ -191,7 +191,7 @@ Solo con <Equation inline latex="P_\text{rueda} < 0" /> hay que frenar: <Equatio
 
 <Step n={3} title="Qué falta: el motor recupera con límites">
 
-El motor pierde al convertir: Boretti reporta, de rueda a batería, del 70 al 80 % en un Leaf 2012 y del 72 al 87 % en uno 2013 <Cite id="boretti-2016" sources={frontmatter.sources} />; uso $\eta = 0{,}80$. La batería llena, fría o caliente reduce la regeneración <Cite id="nissan-leaf-2025-manual" sources={frontmatter.sources} />; en el modelo, baja <Equation inline latex="P_\text{máx}" />. Cerca de detenerse, el motor frena cada vez menos: f(v), de FASTSim 2 <Cite id="fastsim-2-simdrive" sources={frontmatter.sources} />.
+El motor pierde al convertir: Boretti reporta, de rueda a batería, del 70 al 80 % en un Leaf 2012 y del 72 al 87 % en uno 2013 <Cite id="boretti-2016" sources={frontmatter.sources} />; uso $\eta = 0{,}80$. La batería llena, fría o caliente reduce la regeneración <Cite id="nissan-leaf-2025-manual" sources={frontmatter.sources} />; en el modelo, baja <Equation inline latex="P_\text{máx}" />. Cerca de detenerse, el motor frena cada vez menos: $f(v)$, de FASTSim 2 <Cite id="fastsim-2-simdrive" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-frenado-regeneracion"
@@ -218,7 +218,7 @@ Lo que el motor no toma se vuelve calor en las pastillas; de lo que toma, parte 
 
 <Fragment slot="ecuacion">
 
-En el UDDS, con frenadas de hasta 33,2 kW bajo un tope de 239 kW, la (6.3) sin f(v) no dejaría nada a la fricción: la batería recibiría el 43,5 % de la tracción.
+En el UDDS, con frenadas de hasta 33,2 kW bajo un tope de 239 kW, la (6.3) sin $f(v)$ no dejaría nada a la fricción: la batería recibiría el 43,5 % de la tracción.
 
 </Fragment>
 
@@ -275,12 +275,12 @@ La (6.4) divide entre la tracción, no entre el frenado, repartido sin resto ent
 <Figure
   type="simulacion"
   showBadge={false}
-  caption="Laboratorio del balance con las ecuaciones (6.2) a (6.4): el auto recorre el ciclo y el flujo de potencia une batería, motor, ruedas y frenos, con grosor proporcional a |P|. Cambia $\eta$ y $P_\text{máx}$ o elige un preajuste: con la batería fría o llena, a 10 kW, solo llegan 0,448 kWh en el UDDS."
+  caption="Laboratorio del balance con las ecuaciones (6.2) a (6.4): el auto recorre el ciclo y el flujo de potencia une batería, motor, ruedas y frenos, con grosor proporcional a $|P|$. Cambia $\eta$ y $P_\text{máx}$ o elige un preajuste: con la batería fría o llena, a 10 kW, solo llegan 0,448 kWh en el UDDS."
   source={{ text: 'Simulación del autor sobre src/lib/physics/energy.ts' }}
 >
   <RegenLab
     client:visible
-    usage="Con la velocidad de reproducción en 1× y sin movimiento reducido, «Tramo» va a velocidad real y «Ciclo» recorre el ciclo entero en cámara rápida; con movimiento reducido, las dos avanzan a saltos. En las dos, la lectura t cuenta desde el inicio del ciclo, y la insignia sobre el dibujo dice la escala que se está reproduciendo."
+    usage="Con la velocidad de reproducción en 1× y sin movimiento reducido, «Tramo» va a velocidad real y «Ciclo» recorre el ciclo entero en cámara rápida; con movimiento reducido, las dos avanzan a saltos. En las dos, la lectura $t$ cuenta desde el inicio del ciclo, y la insignia sobre el dibujo dice la escala que se está reproduciendo."
     leftOut={`Pendiente, viento, temperatura y estado de carga de la batería (salvo a través de $P_\\text{máx}$) y la inercia de las ruedas aparte de la ETW; $\\eta$ es constante, y los 10 kW son un escenario, no una medición. $f(v)$ se evalúa a la rapidez al final de cada segundo; FASTSim 2 usa la rapidez media (con ella el UDDS daría 41,2 %). El tope por omisión, 239 kW, es el del motor del Model 3 RWD 2022 de FASTSim, que tomo para el 2025.`}
   />
 </Figure>
@@ -297,19 +297,19 @@ FASTSim 3.1.0, el simulador abierto del NLR, estima el consumo en un ciclo de ve
 
 <Fragment slot="ecuacion">
 
-Su potencia de aceleración, <Equation inline latex="\tfrac{m}{2\Delta t}\,(v^2 - v_\text{prev}^2)" />, es el <Equation inline latex="m\,v\,dv/dt" /> de la (6.2) con la rapidez media del intervalo, que da <Equation inline latex="\Delta K/\Delta t" /> exacto. El reparto es la (6.3) sin f(v), que tomo de FASTSim 2.
+Su potencia de aceleración, <Equation inline latex="\tfrac{m}{2\Delta t}\,(v^2 - v_\text{prev}^2)" />, es el <Equation inline latex="m\,v\,dv/dt" /> de la (6.2) con la rapidez media del intervalo, que da <Equation inline latex="\Delta K/\Delta t" /> exacto. El reparto es la (6.3) sin $f(v)$, que tomo de FASTSim 2.
 
 </Fragment>
 
 <Fragment slot="justificacion">
 
-La alternativa no física es una constante, «recupera X %»: X va del 12,5 al 40,4 % de la tracción según el ciclo; una tabla por ciclo no sirve a otro auto. Tampoco el dinamómetro de la EPA usa una fuerza grabada, que se desfasaría: la calcula al instante con A, B, C, la rapidez real y una masa efectiva <Cite id="cfr-40-1066-210" sources={frontmatter.sources} />.
+La alternativa no física es una constante, «recupera X %»: X va del 12,5 al 40,4 % de la tracción según el ciclo; una tabla por ciclo no sirve a otro auto. Tampoco el dinamómetro de la EPA usa una fuerza grabada, que se desfasaría: la calcula al instante con $A$, $B$, $C$, la rapidez real y una masa efectiva <Cite id="cfr-40-1066-210" sources={frontmatter.sources} />.
 
 </Fragment>
 
 <Fragment slot="balance">
 
-Se gana una autonomía que responde al ciclo, al auto y a la batería, y saber dónde se pierde cada kWh. Cuesta conocer $A$, $B$, $C$, $\eta$ y los topes: f(v) usa valores por defecto de FASTSim 2, el reparto es modelado, y sin esos topes el modelo no distingue una batería fría o llena.
+Se gana una autonomía que responde al ciclo, al auto y a la batería, y saber dónde se pierde cada kWh. Cuesta conocer $A$, $B$, $C$, $\eta$ y los topes: $f(v)$ usa valores por defecto de FASTSim 2, el reparto es modelado, y sin esos topes el modelo no distingue una batería fría o llena.
 
 </Fragment>
 

@@ -59,12 +59,12 @@ describe('frenado-regenerativo tables', () => {
       'Vehículo',
       'Masa de prueba, ETW (lb)',
       'Masa $m$ (kg)',
-      'A (lbf)',
-      'A (N)',
-      'B (lbf/mph)',
-      'B (N·s/m)',
-      'C (lbf/mph²)',
-      'C (N·s²/m²)',
+      '$A$ (lbf)',
+      '$A$ (N)',
+      '$B$ (lbf/mph)',
+      '$B$ (N·s/m)',
+      '$C$ (lbf/mph²)',
+      '$C$ (N·s²/m²)',
     ]);
     expect(model3).toEqual([
       'Tesla Model 3 Long Range RWD 2025',

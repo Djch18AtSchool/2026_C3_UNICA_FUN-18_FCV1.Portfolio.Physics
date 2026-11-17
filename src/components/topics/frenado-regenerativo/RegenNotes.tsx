@@ -12,7 +12,7 @@ const LEGEND: readonly { color: string; text: string }[] = [
 ];
 
 const SCALE_NOTE =
-  'El grosor es proporcional a |P|: 20 kW = 5 px. Al regenerar, la diferencia de grosor entre el enlace del motor y el de la batería son las pérdidas de conversión $(1 - \\eta)$. El aro verde en las ruedas indica que frena el motor y el naranja, que frenan las pastillas. Al traccionar, el modelo solo calcula la potencia en las ruedas: la batería entrega al menos eso $(\\ge)$.';
+  'El grosor es proporcional a $|P|$: 20 kW = 5 px. Al regenerar, la diferencia de grosor entre el enlace del motor y el de la batería son las pérdidas de conversión $(1 - \\eta)$. El aro verde en las ruedas indica que frena el motor y el naranja, que frenan las pastillas. Al traccionar, el modelo solo calcula la potencia en las ruedas: la batería entrega al menos eso $(\\ge)$.';
 const BRAKE_BAR_NOTE =
   'La barra del frenado en las ruedas se reparte en lo que llega a la batería, las pérdidas de conversión y el calor de fricción: lo disipado es la suma de las dos últimas.';
 
