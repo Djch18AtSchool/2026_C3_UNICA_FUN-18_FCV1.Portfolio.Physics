@@ -266,7 +266,8 @@ test.describe('el realce en pantalla táctil', () => {
 
     await legendEntry(lab, 'Tierra').tap();
     await expect.poll(() => emphases(lab)).toEqual(['focus', 'dim', 'dim']);
-    await lab.getByRole('heading', { name: 'Parámetros' }).tap();
+    // Outside the legend: the deck's paragraph (its region heading is for screen readers only).
+    await lab.getByText('La rapidez se arrastra en el lienzo.').tap();
     await expect.poll(() => emphases(lab)).toEqual(['', '', '']);
   });
 });

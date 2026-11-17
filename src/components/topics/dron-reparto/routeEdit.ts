@@ -12,7 +12,8 @@ import {
 import { indexBefore } from './routeSeries';
 
 /** Stops snap to a 10 m grid, so a dragged route reads as round numbers. */
-const GRID_M = 10;
+export const STOP_GRID_M = 10;
+const GRID_M = STOP_GRID_M;
 const DEPOT_NAME = 'Depósito';
 const KEEP_LAST = 'Se conserva la última ruta válida.';
 const GENERIC_ERROR = `No se pudo generar la ruta con estos valores. ${KEEP_LAST}`;

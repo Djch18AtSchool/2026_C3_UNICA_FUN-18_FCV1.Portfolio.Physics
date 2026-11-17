@@ -494,6 +494,15 @@ test.describe('the mouse', () => {
 
     expect(await windowDuringPress(page)).toBeCloseTo(before, 3);
   });
+});
+
+/**
+ * Where the origin sits on the plot's corner: on a phone (9 px from the plot's left edge, 5 from its
+ * bottom at 360). On the 620 px plot of 1 280 px (the column's width since E1) the x padding puts it
+ * 24 px in, beyond the knob's reach, so there is no corner to clip there.
+ */
+test.describe('the origin on the plot’s corner (a phone)', () => {
+  test.use({ viewport: PHONE });
 
   test('the origin’s knob keeps its whole hit target on the plot’s corner, past the plot area', async ({
     page,
@@ -803,7 +812,6 @@ for (const size of [DESKTOP, PHONE, { width: 320, height: 800 }]) {
       await settle(page);
       await centrePlot(page);
       const timeline = lab(page).getByRole('slider', { name: 'Línea de tiempo' });
-      const plot = await box(viewport(page));
       const bar = page.locator(`${PLOT} [data-scale-bar]`);
       // Drawn first, so the marks that pass over it are painted over it.
       const order = await bar.evaluate((element) => {
@@ -819,6 +827,9 @@ for (const size of [DESKTOP, PHONE, { width: 320, height: 800 }]) {
       for (const value of INSTANTS) {
         await seekTimeline(timeline, value);
         await settle(page);
+        // Read with the bar: seeking from the keyboard may scroll the page to the timeline, which
+        // sits under the plot since E1.
+        const plot = await box(viewport(page));
         expect(isInside(await box(bar), plot), `bar at ${value}`).toBe(true);
         const marker = await box(page.getByTestId('jump-marker').locator('[data-knob]'));
         expect(

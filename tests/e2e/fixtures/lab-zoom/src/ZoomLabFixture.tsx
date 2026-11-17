@@ -202,7 +202,10 @@ export default function ZoomLabFixture({ variant = 'column' }: { variant?: Varia
         ],
       }}
     >
-      <div ref={wrapperRef}>
+      {/* No wider than 28 rem: the scene the tests measure (its fit at ×40/37, the buttons in a
+          320 px canvas) as a lab beside its panel drew it; the labs' own canvas, at the column's
+          width since E1, is measured in their specs. */}
+      <div ref={wrapperRef} className="mx-auto w-full max-w-md">
         <div {...zoom.viewportProps} className="relative">
           <Scene
             zoom={zoom}

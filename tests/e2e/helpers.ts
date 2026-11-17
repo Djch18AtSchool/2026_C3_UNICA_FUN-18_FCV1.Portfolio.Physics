@@ -67,7 +67,10 @@ export const HYDRATION_TIMEOUT_MS = 15_000;
  * flag as it starts hydrating, before React has rendered anything: an event fired then is lost and
  * hydration puts the control back. React tags a host element with its fiber when it completes it,
  * and commits right after the last one; so every top-level element of the island carrying a fiber
- * (a component may return several) means the whole island is React's and listening.
+ * (a component may return several) means the whole island is React's and listening. A lab's
+ * drawings then measure their width (the server drew them at 720 px): until each one has, a box
+ * read could move under the test (a point taken at ×1 before a zoom, a knob before a drag), so
+ * that is waited for too (README, «Todo dibujo del lienzo mide su ancho»).
  */
 export async function waitForIsland(page: Page, inner: string): Promise<void> {
   const islands = page.locator(`astro-island:has(${inner}):not([ssr])`);
@@ -91,6 +94,31 @@ export async function waitForIsland(page: Page, inner: string): Promise<void> {
       { message: `la isla de ${inner} hidratada por React`, timeout: HYDRATION_TIMEOUT_MS },
     )
     .toBe(true);
+  await expect
+    .poll(() => island.evaluate(unmeasuredDrawings, DRAWING_SLACK_PX), {
+      message: `los dibujos de ${inner} medidos`,
+      timeout: HYDRATION_TIMEOUT_MS,
+    })
+    .toEqual([]);
+}
+
+/** Sub-pixel rounding between a drawing's viewBox and its box. */
+const DRAWING_SLACK_PX = 1;
+
+/**
+ * The drawings of a lab (its canvas and its support plots) whose viewBox is not yet their box's
+ * width: SvgPlot's plots and the scenes that measure themselves. Hidden ones (no box) wait for none.
+ */
+function unmeasuredDrawings(root: Element, slack: number): string[] {
+  const drawings = root.querySelectorAll(
+    ':is([data-lab-canvas], [data-lab-charts]) :is(svg[role=img], svg[data-testid])[viewBox]',
+  );
+  return [...drawings].flatMap((node, index) => {
+    const svg = node as SVGSVGElement;
+    const { width } = svg.getBoundingClientRect();
+    const gap = Math.abs(svg.viewBox.baseVal.width - width);
+    return width > 0 && gap > slack ? [`dibujo ${index}: ${gap.toFixed(1)} px`] : [];
+  });
 }
 
 /** Islands hydrate with client:visible: walk the page so every one renders, then back to the top. */

@@ -5,6 +5,7 @@
  */
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { STOP_GRID_M } from '../../src/components/topics/dron-reparto/routeEdit';
 import { ROUTE_ZOOM_COLUMN_PX } from '../../src/components/topics/dron-reparto/routeZoom';
 import { labOrPlaceholder, waitForIsland } from './helpers';
 
@@ -171,6 +172,14 @@ async function emptyPoint(page: Page): Promise<{ x: number; y: number }> {
   const plot = await box(viewport(page));
   return { x: plot.x + plot.width * 0.45, y: plot.y + plot.height * 0.15 };
 }
+
+/**
+ * How far a dragged stop may land from where the hand took it (m): the read-back's pixels, and
+ * half the 10 m grid it snaps to (routeEdit's STOP_GRID_M). At ×4 on the 766 px map a pixel is
+ * 0,65 m, so the grid, not the pixels, sets the bound (on the 422 px map of two columns it was the
+ * other way round, and the grid went unsaid).
+ */
+const dragSlackM = (pxPerMetre: number) => (2 * PX_SLACK) / pxPerMetre + STOP_GRID_M / 2;
 
 const stopValues = async (page: Page, testId: string) => {
   const text = (await page.getByTestId(testId).getAttribute('aria-valuetext')) ?? '';
@@ -343,11 +352,11 @@ test.describe('the mouse', () => {
     await expect.poll(() => stopValues(page, 'stop-A')).not.toEqual(valuesBefore);
     const { pxPerMetre } = lineOf((await readAxes(page)).x);
     const values = await stopValues(page, 'stop-A');
-    expect(Math.abs(values.x - valuesBefore.x - STOP_DRAG.x / pxPerMetre)).toBeLessThan(
-      (2 * PX_SLACK) / pxPerMetre,
+    expect(Math.abs(values.x - valuesBefore.x - STOP_DRAG.x / pxPerMetre)).toBeLessThanOrEqual(
+      dragSlackM(pxPerMetre),
     );
-    expect(Math.abs(values.y - valuesBefore.y + STOP_DRAG.y / pxPerMetre)).toBeLessThan(
-      (2 * PX_SLACK) / pxPerMetre,
+    expect(Math.abs(values.y - valuesBefore.y + STOP_DRAG.y / pxPerMetre)).toBeLessThanOrEqual(
+      dragSlackM(pxPerMetre),
     );
     // The window did not move with the stop: the same metres are at the same px.
     expect(lineOf((await readAxes(page)).x).atOrigin).toBeCloseTo(lineOf(before.x).atOrigin, 1);
@@ -413,11 +422,11 @@ test.describe('a press on a handle near the edge', () => {
     expect(atOrigin).toBeCloseTo(lineOf(view.x).atOrigin, 6);
     const values = await stopValues(page, 'stop-A');
     // The stop moved by what the hand moved, to the 10 m grid of the keys and the pixel of the drag.
-    expect(Math.abs(values.x - valuesBefore.x - STOP_DRAG.x / pxPerMetre)).toBeLessThan(
-      (2 * PX_SLACK) / pxPerMetre,
+    expect(Math.abs(values.x - valuesBefore.x - STOP_DRAG.x / pxPerMetre)).toBeLessThanOrEqual(
+      dragSlackM(pxPerMetre),
     );
-    expect(Math.abs(values.y - valuesBefore.y + STOP_DRAG.y / pxPerMetre)).toBeLessThan(
-      (2 * PX_SLACK) / pxPerMetre,
+    expect(Math.abs(values.y - valuesBefore.y + STOP_DRAG.y / pxPerMetre)).toBeLessThanOrEqual(
+      dragSlackM(pxPerMetre),
     );
   });
 
@@ -451,14 +460,46 @@ test.describe('a press on a handle near the edge', () => {
   });
 });
 
+/** Most 10 m key steps a stop takes to reach the buttons from (1 300, 0), on either axis. */
+const MAX_FINE_STEPS = 20;
+
+/**
+ * Moves stop A by keys to the corner of the map the zoom buttons cover: (1 300, 0) by 100 m steps,
+ * then 10 m steps until its knob is inside the buttons' column (where that is in metres depends on
+ * the map's width). Returns where it ends (m).
+ */
+async function stopUnderButtons(page: Page): Promise<{ x: number; y: number }> {
+  await page.getByTestId('stop-A').focus();
+  for (let i = 0; i < 7; i += 1) await page.keyboard.press('Shift+ArrowRight');
+  for (let i = 0; i < 2; i += 1) await page.keyboard.press('Shift+ArrowDown');
+  await expect.poll(() => stopValues(page, 'stop-A')).toEqual({ x: 1300, y: 0 });
+  const controls = await box(page.locator(`${MAP} [data-zoom-controls]`));
+  for (const [key, inside] of [
+    ['ArrowRight', (at: { x: number }) => at.x > controls.x + ICON_INSET_PX],
+    ['ArrowDown', (at: { y: number }) => at.y > controls.y + ICON_INSET_PX],
+  ] as const) {
+    for (let i = 0; i < MAX_FINE_STEPS; i += 1) {
+      if (inside(await knobCentre(page, 'stop-A'))) break;
+      const before = await stopValues(page, 'stop-A');
+      await page.keyboard.press(key);
+      await expect.poll(() => stopValues(page, 'stop-A')).not.toEqual(before);
+    }
+  }
+  return stopValues(page, 'stop-A');
+}
+/** A knob counts as under the buttons from this far inside their column (px). */
+const ICON_INSET_PX = 8;
+
+/**
+ * On a phone: there the buttons' column covers the corner a stop can reach (1 300, 0). On the
+ * 766 px map of 1 280 px (the column's width since E1) that corner lies 8 px left of the column,
+ * so no stop can stand under the buttons there and the z-order has nothing to decide.
+ */
 test.describe('a stop under the zoom buttons', () => {
+  test.use({ viewport: { width: 360, height: 800 } });
+
   test('is the one the pointer reaches there, not the button below it', async ({ page }) => {
-    const stop = page.getByTestId('stop-A');
-    await stop.focus();
-    // To the corner of the map the buttons cover: (1 300, 0), by keys of 100 m.
-    for (let i = 0; i < 7; i += 1) await page.keyboard.press('Shift+ArrowRight');
-    for (let i = 0; i < 2; i += 1) await page.keyboard.press('Shift+ArrowDown');
-    await expect.poll(() => stopValues(page, 'stop-A')).toEqual({ x: 1300, y: 0 });
+    await stopUnderButtons(page);
     // The box of what is inside the plot's foreignObject answers a frame late after a move: poll.
     const ownerAtKnob = async () => {
       const centre = await knobCentre(page, 'stop-A');
@@ -476,14 +517,11 @@ test.describe('a stop under the zoom buttons', () => {
   });
 
   test('can be dragged away from there with the mouse', async ({ page }) => {
-    await page.getByTestId('stop-A').focus();
-    for (let i = 0; i < 7; i += 1) await page.keyboard.press('Shift+ArrowRight');
-    for (let i = 0; i < 2; i += 1) await page.keyboard.press('Shift+ArrowDown');
-    await expect.poll(() => stopValues(page, 'stop-A')).toEqual({ x: 1300, y: 0 });
+    const under = await stopUnderButtons(page);
 
     await mouseDrag(page, await knobCentre(page, 'stop-A'), { x: -80, y: -60 });
 
-    await expect.poll(async () => (await stopValues(page, 'stop-A')).x).toBeLessThan(1300);
+    await expect.poll(async () => (await stopValues(page, 'stop-A')).x).toBeLessThan(under.x);
   });
 
   test('leaves the buttons clickable where no stop is over them', async ({ page }) => {
