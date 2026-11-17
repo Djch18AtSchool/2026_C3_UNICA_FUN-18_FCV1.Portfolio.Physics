@@ -37,7 +37,7 @@ const RADIUS_STEP = 0.1;
 const PERCENT = 100;
 
 const comma = (value: number) => String(value).replace('.', ',');
-const LOCKED_NOTE = `Con 1 g fijo, mover un parámetro despeja el otro: $r = g/\\omega^2$ o $\\omega = \\sqrt{g/r}$, con g = 9,81 m/s². Para que ambos quepan en sus controles, el giro no baja de ${comma(LOCKED_LIMITS.rpm[0])} RPM ni el radio de ${comma(LOCKED_LIMITS.r[0])} m.`;
+const LOCKED_NOTE = `Con 1 g fijo, mover un parámetro despeja el otro: $r = g/\\omega^2$ o $\\omega = \\sqrt{g/r}$, con $g = 9{,}81$ m/s². Para que ambos quepan en sus controles, el giro no baja de ${comma(LOCKED_LIMITS.rpm[0])} RPM ni el radio de ${comma(LOCKED_LIMITS.r[0])} m.`;
 const FREE_NOTE = 'Sin 1 g fijo, r y RPM son libres y la gravedad aparente es la que resulte.';
 
 /** «Cómo se usa»: the drag and its keys, then what a preset does to the lock. */

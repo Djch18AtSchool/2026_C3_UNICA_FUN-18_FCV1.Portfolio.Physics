@@ -40,11 +40,11 @@ describe('gravedad-artificial tables', () => {
 
     expect(header).toEqual([
       'Hábitat',
-      'Radio r (m)',
-      'Giro N (RPM)',
+      'Radio $r$ (m)',
+      'Giro $N$ (RPM)',
       '$\\omega$ (rad/s)',
-      'Rapidez del piso v (m/s)',
-      'Período T (s)',
+      'Rapidez del piso $v$ (m/s)',
+      'Período $T$ (s)',
       '$a_c$ (m/s²)',
       '$a_c/g$',
       'Gradiente h/r (%)',
@@ -65,7 +65,7 @@ describe('gravedad-artificial tables', () => {
         '0,2',
       ],
       [
-        'Toro de Stanford: radio mayor R',
+        'Toro de Stanford: radio mayor $R$',
         '830',
         '1,00',
         '0,1047',
@@ -93,8 +93,8 @@ describe('gravedad-artificial tables', () => {
   test('habitats: the caption states g, h and the torus range against the report', () => {
     const caption = spaced(TABLES[0].caption);
 
-    expect(caption).toContain('g = 9,81 m/s²');
-    expect(caption).toContain('h = 1,80 m');
+    expect(caption).toContain('$g$ = 9,81 m/s²');
+    expect(caption).toContain('$h$ = 1,80 m');
     expect(caption).toContain('de 0,93 a 1,00 g, dentro de los 0,95 ± 0,05 g');
     expect(caption).toContain('0,86 g');
   });

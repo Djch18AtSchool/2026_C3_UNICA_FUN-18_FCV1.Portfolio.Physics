@@ -56,7 +56,7 @@ const HABITATS: readonly { name: string; r: number; rpm: number }[] = [
     r: STANFORD_TORUS.R - STANFORD_TORUS.tubeRadius,
     rpm: STANFORD_TORUS.rpm,
   },
-  { name: 'Toro de Stanford: radio mayor R', r: STANFORD_TORUS.R, rpm: STANFORD_TORUS.rpm },
+  { name: 'Toro de Stanford: radio mayor $R$', r: STANFORD_TORUS.R, rpm: STANFORD_TORUS.rpm },
   { name: '1 g a 1 RPM', r: radiusForGravity(G_EARTH, 1), rpm: 1 },
   {
     name: 'Límite de SP-413: punto más exterior del tubo',
@@ -92,15 +92,15 @@ const innerWall = gRatioText(STANFORD_TORUS.R - STANFORD_TORUS.tubeRadius);
 
 const HABITATS_TABLE: DataTableSpec = {
   id: 'gravedad-artificial-habitats',
-  caption: `Hábitats de los pasos 2 a 4 con g = ${formatNumber(G_EARTH, { precision: 2, unit: 'm/s²' })} y h = ${formatNumber(PERSON_HEIGHT, { precision: 2, unit: 'm' })}, ordenados por radio. Según mi cálculo, del radio mayor del Toro de Stanford al punto más exterior del tubo la gravedad aparente va de ${torusFrom} a ${torusTo} g, dentro de los 0,95 ± 0,05 g del informe; la pared interior se queda en ${innerWall} g.`,
+  caption: `Hábitats de los pasos 2 a 4 con $g$ = ${formatNumber(G_EARTH, { precision: 2, unit: 'm/s²' })} y $h$ = ${formatNumber(PERSON_HEIGHT, { precision: 2, unit: 'm' })}, ordenados por radio. Según mi cálculo, del radio mayor del Toro de Stanford al punto más exterior del tubo la gravedad aparente va de ${torusFrom} a ${torusTo} g, dentro de los 0,95 ± 0,05 g del informe; la pared interior se queda en ${innerWall} g.`,
   columns: [
     { key: 'habitat', label: 'Hábitat', align: 'text' },
     // Pre-formatted cells: whole metres as given, a computed radius to 0,1 m.
-    { key: 'r', label: 'Radio r', unit: 'm', align: 'num', precision: 1 },
-    { key: 'rpm', label: 'Giro N', unit: 'RPM', align: 'num', precision: 2 },
+    { key: 'r', label: 'Radio $r$', unit: 'm', align: 'num', precision: 1 },
+    { key: 'rpm', label: 'Giro $N$', unit: 'RPM', align: 'num', precision: 2 },
     { key: 'omega', label: '$\\omega$', unit: 'rad/s', align: 'num', precision: 4 },
-    { key: 'v', label: 'Rapidez del piso v', unit: 'm/s', align: 'num', precision: 1 },
-    { key: 'T', label: 'Período T', unit: 's', align: 'num', precision: 1 },
+    { key: 'v', label: 'Rapidez del piso $v$', unit: 'm/s', align: 'num', precision: 1 },
+    { key: 'T', label: 'Período $T$', unit: 's', align: 'num', precision: 1 },
     { key: 'aC', label: '$a_c$', unit: 'm/s²', align: 'num', precision: 2 },
     { key: 'gRatio', label: '$a_c/g$', align: 'num', precision: 2 },
     { key: 'gradient', label: 'Gradiente h/r', unit: '%', align: 'num', precision: 1 },
