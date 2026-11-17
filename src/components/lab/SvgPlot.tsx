@@ -10,6 +10,7 @@ import {
 import { CHART_COLORS, DASH_PATTERN, LINE_WIDTH, TICK_FONT_SIZE } from '../charts/chartTheme';
 import type { FrameStore } from './frameStore';
 import { isFinitePoint, linearScale, padDomain, type Domain, type Scale } from './plotScales';
+import { roundStable } from './roundStable';
 import { axisTicks, PlotAxes, PlotGrid, yTickLabelChars } from './SvgPlotAxes';
 import SvgPlotCursor, { type PlotArea } from './SvgPlotCursor';
 import { Bands, Marker } from './SvgPlotMarks';
@@ -240,7 +241,8 @@ function layoutWith(props: SvgPlotProps, width: number, margin: Margin) {
   };
   const x = linearScale(fit.x, [area.left, area.right]);
   const y = linearScale(fit.y, [area.bottom, area.top]);
-  const height = Number((area.bottom + margin.bottom).toFixed(PATH_DECIMALS));
+  // Stable at a tie: an equal-aspect height on x.xx5 must not flip between zoom steps (roundStable).
+  const height = roundStable(area.bottom + margin.bottom, PATH_DECIMALS);
   return { x, y, area, width, height };
 }
 
