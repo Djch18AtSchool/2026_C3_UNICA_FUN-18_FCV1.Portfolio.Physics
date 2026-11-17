@@ -48,7 +48,7 @@ function balanceFor(state: RegenLabState) {
  * where t counts from and the scale are the MDX's `usage`, after these hints: not repeated here
  * (RegenLab.test.tsx ties the two: no sentence of one is in the other).
  */
-const VIEW_HINT = `La vista se elige bajo los parámetros. «Tramo» es la frenada del ciclo que más energía quita en las ruedas, con ${BRAKING_PAD_S} s antes y después (en el UDDS, la de la figura 6.3); el mapa de arriba la sitúa en el ciclo, y sus energías y el porcentaje recuperado son los del tramo. «Evento anterior» y «Evento siguiente» saltan entre las detenciones.`;
+const VIEW_HINT = `La vista se elige bajo los parámetros. «Tramo» es la frenada del ciclo que más energía quita en las ruedas, con ${BRAKING_PAD_S} s antes y después (en el UDDS, la de la figura 6.3); el mapa de arriba la sitúa en el ciclo, y sus energías y el porcentaje recuperado son los del tramo. En «Ciclo», con dos detenciones o más, «Evento anterior» y «Evento siguiente» saltan entre ellas; en «Tramo», la marca de la línea de tiempo señala la detención.`;
 const CURSOR_HINT =
   'Arrastra el cursor de la gráfica de energía, o enfócalo y muévelo con las flechas (1 % del ciclo; con Mayús, 10 %); en «Tramo» no sale del tramo.';
 const FADE_HINT = `$f(v)$ apaga la regeneración cerca de detenerse; sin él, con el tope de ${DEFAULT_P_MAX_KW} kW, la fricción no haría falta en estos ciclos.`;

@@ -352,7 +352,12 @@ describe('RegenLab', () => {
     expect(usage.open || leftOut.open).toBe(false);
     expect(usage).toHaveTextContent('La vista se elige bajo los parámetros. «Tramo» es la frenada');
     expect(usage).toHaveTextContent('con 5 s antes y después (en el UDDS, la de la figura 6.3)');
-    expect(usage).toHaveTextContent('saltan entre las detenciones');
+    // The pair exists only from two events (E1): in «Ciclo» with two stops or more, never in «Tramo».
+    expect(usage).toHaveTextContent(
+      'En «Ciclo», con dos detenciones o más, «Evento anterior» y «Evento siguiente» saltan entre ellas;',
+    );
+    expect(usage).toHaveTextContent('en «Tramo», la marca de la línea de tiempo señala la detención.');
+    expect(usage).not.toHaveTextContent('saltan entre las detenciones');
     expect(usage).toHaveTextContent('Arrastra el cursor de la gráfica de energía');
     expect(usage).toHaveTextContent('en «Tramo» no sale del tramo');
     expect(usage).toHaveTextContent('sus energías y el porcentaje recuperado son los del tramo');

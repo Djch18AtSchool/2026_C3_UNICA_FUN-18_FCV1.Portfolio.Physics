@@ -67,6 +67,12 @@ describe('the course of «Conducir»: the stretch of «Tramo», from its start t
   test('has no transport events: the stops are the cycle’s, not the reader’s', () => {
     expect(viewMarkers('conducir', 'udds')).toEqual([]);
   });
+
+  test('«Tramo» marks one stop in every cycle, which is why it has no event pair (RegenLab’s hint)', () => {
+    for (const cycle of ['udds', 'hwfet', 'us06'] as const) {
+      expect(viewMarkers('tramo', cycle), cycle).toHaveLength(1);
+    }
+  });
 });
 
 describe('driveBalance: a drive state read as the lab’s balance', () => {
