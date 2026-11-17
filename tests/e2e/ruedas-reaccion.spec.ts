@@ -91,7 +91,7 @@ test.describe('página', () => {
     }
   });
 
-  test('el diagrama dibuja sus símbolos con MathText: nada cae a una tipografía de reserva', async ({
+  test('el diagrama dibuja sus símbolos con MathText, en la letra de la página: nada cae a una tipografía de reserva', async ({
     page,
   }) => {
     const diagram = page.getByTestId('wheel-diagram');
@@ -104,8 +104,14 @@ test.describe('página', () => {
           .map((child) => child.textContent ?? '')
           .join('');
         if (!own.trim()) return [];
-        const family = getComputedStyle(node).fontFamily;
-        return [{ text: own, isKatex: /KaTeX/.test(family.split(',')[0]) }];
+        const style = getComputedStyle(node);
+        return [
+          {
+            text: own,
+            isKatex: /KaTeX/.test(style.fontFamily.split(',')[0]),
+            isItalic: style.fontStyle === 'italic',
+          },
+        ];
       }),
     );
 
@@ -113,7 +119,10 @@ test.describe('página', () => {
       .filter(({ isKatex }) => !isKatex)
       .flatMap(({ text }) => uncoveredChars(text, 'sans'));
     expect(outside).toEqual([]);
-    expect(texts.some(({ isKatex }) => isKatex)).toBe(true);
+    // E3: no label names a KaTeX face (the sans stack draws the symbols Plex lacks), and the
+    // variables (ω, τ, L_w…) are set in Plex Sans Italic.
+    expect(texts.some(({ isKatex }) => isKatex)).toBe(false);
+    expect(texts.some(({ isItalic }) => isItalic)).toBe(true);
   });
 
   test('en el detalle M, el rótulo «rueda» queda debajo del título, sin tocarlo', async ({

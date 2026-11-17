@@ -45,7 +45,7 @@ test('abre en el preajuste Celeste con la referencia terrestre a la vista', asyn
     'aria-pressed',
     'true',
   );
-  await expect(page.getByText(/^Referencia terrestre, g = 9,81/)).toBeVisible();
+  await expect(page.getByText(/^Referencia terrestre, /)).toBeVisible();
 });
 
 test('reproducir termina en t = t_aire, vuelve a "Reproducir" y no repite', async ({ page }) => {

@@ -409,7 +409,8 @@ test.describe('la escena de la rueda, con zoom', () => {
 
     await lab.getByRole('radio', { name: 'Perturbación y descarga' }).check({ force: true });
     await expect(factor(lab)).toHaveText('×2');
-    await expect(scene(lab).locator('[data-rate="τ_ext"]')).toBeAttached();
+    // The arc's label as written: $\tau_\text{ext}$ (a backslash escaped for JS and for CSS).
+    await expect(scene(lab).locator('[data-rate="$\\\\tau_\\\\text{ext}$"]')).toBeAttached();
 
     await lab.getByRole('button', { name: 'Restablecer' }).click();
     await expect(factor(lab)).toHaveText('×1');

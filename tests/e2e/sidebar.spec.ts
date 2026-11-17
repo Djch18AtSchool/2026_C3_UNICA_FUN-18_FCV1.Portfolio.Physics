@@ -109,7 +109,7 @@ test('los temas son filas planas con número de dos cifras', async ({ page }) =>
   const links = page.locator('nav[aria-label="Temas"]').getByTestId('topic-link');
 
   await expect(links).toHaveCount(TOPICS.length);
-  await expect(links.locator('.font-mono')).toHaveText(
+  await expect(links.locator('.numbering')).toHaveText(
     TOPICS.map((topic) => String(topic.number).padStart(2, '0')),
   );
   await expect(page.locator('#sidenav-lista details:not([data-phase])')).toHaveCount(0);
