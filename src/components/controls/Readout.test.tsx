@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { mathSourceText } from '../../test-inline-math';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import Readout from './Readout';
@@ -52,7 +53,7 @@ describe('Readout as a cell of the tiered lab panel', () => {
 
     expect(row).toHaveAttribute('data-layout', 'cell');
     expect(row).toHaveClass('flex-col');
-    expect(row.firstElementChild).toHaveTextContent('Período T');
+    expect(mathSourceText(row.firstElementChild)).toBe('Período T');
     expect(row.lastElementChild?.textContent).toBe('2,00\u202fs');
     expect(row.lastElementChild).toHaveClass('tabular-nums');
   });

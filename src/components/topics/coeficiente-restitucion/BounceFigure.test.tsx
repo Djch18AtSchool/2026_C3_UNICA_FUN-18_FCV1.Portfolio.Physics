@@ -79,10 +79,15 @@ describe('BounceFigure', () => {
     test('draws y(t) of the ITF tennis ball in the tennis color, with its apexes labelled', () => {
       const { container } = render(<BounceFigure variant="rebote" />);
 
-      expect(screen.getByText('t (s)')).toBeInTheDocument();
-      expect(screen.getByText('y (m)')).toBeInTheDocument();
+      expect(screen.getByText(svgText('t (s)'))).toBeInTheDocument();
+      expect(screen.getByText(svgText('y (m)'))).toBeInTheDocument();
       expect(strokeOf(container, 'tenis-itf')).toBe('var(--tennis)');
-      for (const label of ['h_0 = 2,54 m', 'h_1 = 1,41 m', 'h_2 = 0,78 m', 'h_3 = 0,43 m']) {
+      for (const label of [
+        '$h_{0}$ = 2,54 m',
+        '$h_{1}$ = 1,41 m',
+        '$h_{2}$ = 0,78 m',
+        '$h_{3}$ = 0,43 m',
+      ]) {
         expect(container.querySelector(`[data-notation="${label}"]`), label).not.toBeNull();
       }
       expect(screen.getByText(svgText('h1 = 1,41 m'))).toBeInTheDocument();
@@ -208,7 +213,7 @@ describe('BounceFigure', () => {
       expect(ys[0] - ys[1]).toBeCloseTo(ys[1] - ys[2], 6);
       expect(ys[1] - ys[2]).toBeCloseTo(ys[2] - ys[3], 6);
       expect(screen.getByText(svgText('hn (cm, escala logarítmica)'))).toBeInTheDocument();
-      expect(screen.getByText('n (número de rebote)')).toBeInTheDocument();
+      expect(screen.getByText(svgText('n (número de rebote)'))).toBeInTheDocument();
     });
 
     test('the ideal series and both thresholds, each named in the legend', () => {
@@ -313,7 +318,9 @@ describe('BounceFigure', () => {
       const area = plotArea(container);
 
       expect(labels.map(notationOf)).toEqual(
-        ['h_0 = 2,54', 'h_1 = 1,41', 'h_2 = 0,78', 'h_3 = 0,43'].map((label) => `${label}${unit}`),
+        ['$h_{0}$ = 2,54', '$h_{1}$ = 1,41', '$h_{2}$ = 0,78', '$h_{3}$ = 0,43'].map(
+          (label) => `${label}${unit}`,
+        ),
       );
       for (const label of labels) {
         const box = apexBox(label);

@@ -233,7 +233,7 @@ const headArrow = arrow(
   />
   <polygon class="hd-dim-head" points={radiusArrow.points} />
   <MathText
-    source="r"
+    source="$r$"
     x={radiusLabel.x}
     y={radiusLabel.y}
     fontSize={LABEL_SIZE}
@@ -245,14 +245,14 @@ const headArrow = arrow(
   <path class="hd-omega" d={omegaPath} />
   <polygon class="hd-omega-head" points={omegaHead.points} />
   <MathText
-    source="ω"
+    source="$\omega$"
     x={omegaLabel.x}
     y={omegaLabel.y}
     fontSize={LABEL_SIZE}
     className="hd-label"
   />
   <MathText
-    source="T = 2π/ω"
+    source="$T = 2\pi/\omega$"
     x={412}
     y={142}
     fontSize={EQ_SIZE}
@@ -281,21 +281,9 @@ const headArrow = arrow(
   <!-- a_c toward the axis. -->
   <line class="hd-ac" x1={acArrow.x1} y1={acArrow.y1} x2={acArrow.x2} y2={acArrow.y2} />
   <polygon class="hd-ac-head" points={acArrow.points} />
-  <MathText
-    source="a_c"
-    x={212}
-    y={acArrow.y2 + 6}
-    fontSize={LABEL_SIZE}
-    className="hd-label"
-  />
+  <MathText source="$a_c$" x={212} y={acArrow.y2 + 6} fontSize={LABEL_SIZE} className="hd-label" />
   <line class="hd-leader" x1="232" y1={acArrow.y2 + 4} x2="296" y2="300" />
-  <MathText
-    source="a_c = ω^2 r"
-    x={300}
-    y={306}
-    fontSize={EQ_SIZE}
-    className="hd-eq"
-  />
+  <MathText source="$a_c = \omega^2 r$" x={300} y={306} fontSize={EQ_SIZE} className="hd-eq" />
 
   <!-- Apparent gravity, outward. -->
   <line class="hd-gap" x1={gArrow.x1} y1={gArrow.y1} x2={gArrow.x2} y2={gArrow.y2} />
@@ -323,7 +311,7 @@ const headArrow = arrow(
   <line class="hd-v" x1={vArrow.x1} y1={vArrow.y1} x2={vArrow.x2} y2={vArrow.y2} />
   <polygon class="hd-v-head" points={vArrow.points} />
   <MathText
-    source="v = ω r"
+    source="$v = \omega r$"
     x={vArrow.x2 + 18}
     y={vArrow.y1 + 6}
     fontSize={EQ_SIZE}
@@ -332,7 +320,7 @@ const headArrow = arrow(
 
   <!-- The 1 g case: a_c = g, radius for a given spin (ecuación 3.2, tabla 3.1). -->
   <MathText
-    source="a_c = g"
+    source="$a_c = g$"
     x={ONE_G_NOTE.x}
     y={ONE_G_NOTE.y}
     fontSize={LABEL_SIZE}
@@ -388,7 +376,7 @@ const headArrow = arrow(
   <line class="hd-dim" x1={dimDown.x1} y1={dimDown.y1} x2={dimDown.x2} y2={dimDown.y2} />
   <polygon class="hd-dim-head" points={dimDown.points} />
   <MathText
-    source="h"
+    source="$h$"
     x={DIM_X - 10}
     y={(bigFeet + bigHeadTop) / 2 + 2}
     fontSize={LABEL_SIZE}
@@ -408,7 +396,7 @@ const headArrow = arrow(
   <line class="hd-ac" x1={headArrow.x1} y1={headArrow.y1} x2={headArrow.x2} y2={headArrow.y2} />
   <polygon class="hd-ac-head" points={headArrow.points} />
   <MathText
-    source="ω^2(r − h)"
+    source="$\omega^2 (r - h)$"
     x={ARROW_X + 10}
     y={headArrow.y1 - 12}
     fontSize={LABEL_SIZE}
@@ -417,7 +405,7 @@ const headArrow = arrow(
   <line class="hd-ac" x1={feetArrow.x1} y1={feetArrow.y1} x2={feetArrow.x2} y2={feetArrow.y2} />
   <polygon class="hd-ac-head" points={feetArrow.points} />
   <MathText
-    source="ω^2 r"
+    source="$\omega^2 r$"
     x={ARROW_X + 10}
     y={feetArrow.y1 - 12}
     fontSize={LABEL_SIZE}
@@ -425,7 +413,7 @@ const headArrow = arrow(
   />
 
   <MathText
-    source="Δa/a = h/r"
+    source="$\Delta a/a = h/r$"
     x={398}
     y={DETAIL.y + 82}
     fontSize={EQ_SIZE}
@@ -433,7 +421,7 @@ const headArrow = arrow(
     className="hd-eq"
   />
   <MathText
-    source="r = 223,6 m → 0,8 %"
+    source="$r$ = 223,6 m → 0,8 %"
     x={398}
     y={DETAIL.y + 106}
     fontSize={NOTE_SIZE}
@@ -441,7 +429,7 @@ const headArrow = arrow(
     className="hd-note"
   />
   <MathText
-    source="r = 10 m → 18 %"
+    source="$r$ = 10 m → 18 %"
     x={398}
     y={DETAIL.y + 124}
     fontSize={NOTE_SIZE}

@@ -66,7 +66,7 @@ classRefs:
     note: '$f_k = \mu_k N$ y la caja de 10 kg (39,2 N y 29,4 N); el pico y la caída de la Fórmula Mágica recuerdan el paso de $\mu_s$ a $\mu_k$.'
   - module: 'Módulo 2'
     topic: 'Tema 02 · Fricción y resortes · Concepto 03 · Fuerzas en un plano inclinado'
-    note: 'N = mg cos θ: la carga sobre una superficie no es siempre el peso, y en un auto cambia en cada curva.'
+    note: '$N = mg\cos\theta$: la carga sobre una superficie no es siempre el peso, y en un auto cambia en cada curva.'
   - module: 'Módulo 2'
     topic: 'Tema 01 · Leyes de Newton · Concepto 07 · Fuerza normal y tensión'
     note: 'La normal se calcula, no se sustituye por mg: es la carga vertical $F_z$ de cada llanta.'
@@ -111,7 +111,7 @@ Arrancar exige romper los contactos entre las asperezas de las superficies; al d
 
 <Fragment slot="ecuacion">
 
-En clase, n fija cuánto se traban las superficies y μ solo depende de los materiales: la (4.1) es lineal y duplicar n duplica el agarre.
+En clase, $n$ fija cuánto se traban las superficies y $\mu$ solo depende de los materiales: la (4.1) es lineal y duplicar n duplica el agarre.
 
 </Fragment>
 
@@ -143,7 +143,7 @@ La fuerza lateral máxima de una llanta crece con la carga, pero cada vez menos 
     { symbol: 'F_z', meaning: 'carga vertical sobre la llanta: la normal', unit: 'N' },
     { symbol: '\\mu_0', meaning: 'coeficiente a la carga de referencia; uso 1,6, ilustrativo' },
     { symbol: 'F_{z0}', meaning: 'carga de referencia; uso 4 000 N', unit: 'N' },
-    { symbol: '\\beta', meaning: 'exponente de sensibilidad a la carga, β < 1; uso 0,9' },
+    { symbol: '\\beta', meaning: 'exponente de sensibilidad a la carga, $\\beta < 1$; uso 0,9' },
   ]}
 />
 
@@ -157,7 +157,7 @@ Más carga aprieta la huella y satura el caucho: cada newton extra agarra menos,
 
 <Fragment slot="ecuacion">
 
-Con β < 1, la (4.2) da <Equation inline latex="F_{y,\text{máx}} \propto F_z^{\,\beta}" />, más lento que <Equation inline latex="F_z" />: bajo <Equation inline latex="F_{z0}" /> la llanta da más que la recta y, sobre ella, menos.
+Con $\beta < 1$, la (4.2) da <Equation inline latex="F_{y,\text{máx}} \propto F_z^{\,\beta}" />, más lento que <Equation inline latex="F_z" />: bajo <Equation inline latex="F_{z0}" /> la llanta da más que la recta y, sobre ella, menos.
 
 </Fragment>
 
@@ -180,7 +180,7 @@ Con β < 1, la (4.2) da <Equation inline latex="F_{y,\text{máx}} \propto F_z^{\
 
 <Step n={3} title="Qué falta: la temperatura">
 
-El agarre también depende de la temperatura de la banda. En la tabla de Autosport de 2019, el C3 trabaja en 105–135 °C y el C4, 90–120 °C <Cite id="autosport-pirelli-ranges-2019" sources={frontmatter.sources} />: la ventana donde, por convención de Pirelli, μ no baja del máximo menos un 3 % <Cite id="isola-operating-range" sources={frontmatter.sources} />.
+El agarre también depende de la temperatura de la banda. En la tabla de Autosport de 2019, el C3 trabaja en 105–135 °C y el C4, 90–120 °C <Cite id="autosport-pirelli-ranges-2019" sources={frontmatter.sources} />: la ventana donde, por convención de Pirelli, $\mu$ no baja del máximo menos un 3 % <Cite id="isola-operating-range" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-llantas-temperatura"
@@ -308,13 +308,13 @@ Tomo el modelo de neumático de Assetto Corsa, de Kunos Simulazioni. No encontr�
 
 <Fragment slot="ecuacion">
 
-Leo `FZ0` como carga de referencia en newtons, `DY_REF` como μ a esa carga y `LS_EXPY` (LS, _load sensitivity_) como el β de la (4.2); el archivo no imprime la fórmula: la lectura es mía. No sé si Kunos usa la Fórmula Mágica <Cite id="pacejka-2012" sources={frontmatter.sources} />.
+Leo `FZ0` como carga de referencia en newtons, `DY_REF` como $\mu$ a esa carga y `LS_EXPY` (LS, _load sensitivity_) como el $\beta$ de la (4.2); el archivo no imprime la fórmula: la lectura es mía. No sé si Kunos usa la Fórmula Mágica <Cite id="pacejka-2012" sources={frontmatter.sources} />.
 
 </Fragment>
 
 <Fragment slot="justificacion">
 
-Con μ constante, el doble de peso tomaría las curvas igual de rápido y una llanta fría agarraría como en ventana. Una tabla guionizada fallaría fuera de lo previsto: otro reparto de peso, más carga aerodinámica, una llanta a 150 °C.
+Con $\mu$ constante, el doble de peso tomaría las curvas igual de rápido y una llanta fría agarraría como en ventana. Una tabla guionizada fallaría fuera de lo previsto: otro reparto de peso, más carga aerodinámica, una llanta a 150 °C.
 
 </Fragment>
 
@@ -328,13 +328,13 @@ Se gana comportamiento emergente: el subviraje con llantas frías o la elección
 
 <Callout variant="clase" title="Módulo 2 · Tema 02, conceptos 01 a 03, y Tema 01, concepto 07">
 
-En la caja de 10 kg del Tema 02, con <Equation inline latex="\mu_s = 0{,}40" /> y <Equation inline latex="\mu_k = 0{,}30" />, la clase usa <Equation inline latex="g = 9{,}8\ \text{m/s}^2" /> y <Equation inline latex="N = 98\ \text{N}" />; con <Equation inline latex="9{,}81\ \text{m/s}^2" />, <Equation inline latex="98{,}1\ \text{N}" />: la (4.1), con <Equation inline latex="n = N" />, da los mismos <Equation inline latex="39{,}2\ \text{N}" /> y <Equation inline latex="29{,}4\ \text{N}" />. Las (4.2) a (4.4) son extensiones. El concepto 01 toma μ «constante como una aproximación del contacto real»; con la (4.2), <Equation inline latex="\beta = 0{,}9" /> y <Equation inline latex="F_{z0} = 98\ \text{N}" />, duplicar N a <Equation inline latex="196\ \text{N}" /> daría <Equation inline latex="73{,}2\ \text{N}" />, no <Equation inline latex="78{,}4\ \text{N}" />. La normal «se calcula previamente a partir del DCL y puede ser diferente de mg», como <Equation inline latex="mg\cos\theta" /> en el plano inclinado; en un auto es la <Equation inline latex="F_z" /> de cada llanta.
+En la caja de 10 kg del Tema 02, con <Equation inline latex="\mu_s = 0{,}40" /> y <Equation inline latex="\mu_k = 0{,}30" />, la clase usa <Equation inline latex="g = 9{,}8\ \text{m/s}^2" /> y <Equation inline latex="N = 98\ \text{N}" />; con <Equation inline latex="9{,}81\ \text{m/s}^2" />, <Equation inline latex="98{,}1\ \text{N}" />: la (4.1), con <Equation inline latex="n = N" />, da los mismos <Equation inline latex="39{,}2\ \text{N}" /> y <Equation inline latex="29{,}4\ \text{N}" />. Las (4.2) a (4.4) son extensiones. El concepto 01 toma $\mu$ «constante como una aproximación del contacto real»; con la (4.2), <Equation inline latex="\beta = 0{,}9" /> y <Equation inline latex="F_{z0} = 98\ \text{N}" />, duplicar N a <Equation inline latex="196\ \text{N}" /> daría <Equation inline latex="73{,}2\ \text{N}" />, no <Equation inline latex="78{,}4\ \text{N}" />. La normal «se calcula previamente a partir del DCL y puede ser diferente de mg», como <Equation inline latex="mg\cos\theta" /> en el plano inclinado; en un auto es la <Equation inline latex="F_z" /> de cada llanta.
 
 </Callout>
 
 <Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
 
-Con el Tema 3: en curva plana, la fricción lateral es la centrípeta, <Equation inline latex="\mu m g = m v^2/r \Rightarrow v_\text{máx} = \sqrt{\mu g r} = \sqrt{1{,}6 \cdot 9{,}81 \cdot 50} = 28{,}0\ \text{m/s} \approx 101\ \text{km/h}" />; si μ cae un 10 %, la rapidez cae solo un 5,1 %, por la raíz: <Equation inline latex="\mu = 1{,}44 \Rightarrow v_\text{máx} = 26{,}6\ \text{m/s}\ (95{,}7\ \text{km/h})" />. Con el Tema 5, el resorte <Equation inline latex="F = -kx" /> es otro contacto idealizado; la llanta se deforma en su huella, algo que el modelo de clase no tiene. Con el Tema 6: frene el motor eléctrico (regenerativo) o las pastillas, el agarre limita la desaceleración.
+Con el Tema 3: en curva plana, la fricción lateral es la centrípeta, <Equation inline latex="\mu m g = m v^2/r \Rightarrow v_\text{máx} = \sqrt{\mu g r} = \sqrt{1{,}6 \cdot 9{,}81 \cdot 50} = 28{,}0\ \text{m/s} \approx 101\ \text{km/h}" />; si $\mu$ cae un 10 %, la rapidez cae solo un 5,1 %, por la raíz: <Equation inline latex="\mu = 1{,}44 \Rightarrow v_\text{máx} = 26{,}6\ \text{m/s}\ (95{,}7\ \text{km/h})" />. Con el Tema 5, el resorte <Equation inline latex="F = -kx" /> es otro contacto idealizado; la llanta se deforma en su huella, algo que el modelo de clase no tiene. Con el Tema 6: frene el motor eléctrico (regenerativo) o las pastillas, el agarre limita la desaceleración.
 
 </Connections>
 

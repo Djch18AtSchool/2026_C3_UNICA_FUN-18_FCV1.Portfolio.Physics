@@ -87,10 +87,10 @@ export default function HabitatLab({ usage, leftOut }: HabitatLabProps): JSX.Ele
   };
 
   const readouts: LabReadout[] = [
-    { id: 'omega', label: 'Velocidad angular ω', value: solution.omega, unit: 'rad/s' },
-    { id: 'v', label: 'Velocidad tangencial v', value: solution.v, unit: 'm/s' },
+    { id: 'omega', label: 'Velocidad angular $\\omega$', value: solution.omega, unit: 'rad/s' },
+    { id: 'v', label: 'Velocidad tangencial $v$', value: solution.v, unit: 'm/s' },
     { id: 'gRatio', label: 'Gravedad aparente $a_c/g$', value: solution.gRatio, unit: 'g' },
-    { id: 'period', label: 'Período T', value: solution.period, unit: 's' },
+    { id: 'period', label: 'Período $T$', value: solution.period, unit: 's' },
     {
       id: 'gradient',
       label: 'Diferencia cabeza–pies h/r',

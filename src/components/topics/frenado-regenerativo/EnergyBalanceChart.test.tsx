@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { svgText } from '../../../test-svg-text';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../../lib/settingsStore';
@@ -35,9 +36,9 @@ describe('EnergyBalanceChart', () => {
     render(<EnergyBalanceChart />);
 
     expect(screen.getAllByRole('img')).toHaveLength(2);
-    expect(screen.getByText('Velocidad v (km/h)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('Velocidad v (km/h)'))).toBeInTheDocument();
     expect(screen.getByText('Energía acumulada (kWh)')).toBeInTheDocument();
-    expect(screen.getAllByText('Tiempo t (s)')).toHaveLength(2);
+    expect(screen.getAllByText(svgText('Tiempo t (s)'))).toHaveLength(2);
   });
 
   test('every character outside KaTeX is one IBM Plex draws', () => {

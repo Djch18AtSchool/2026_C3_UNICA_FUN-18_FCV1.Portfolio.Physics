@@ -62,8 +62,8 @@ async function loadDeclaredSamples(): Promise<RouteSample[]> {
 /** The lab's six readouts: the drone's state, the route time it is at and how long the route lasts. */
 function droneReadouts(now: RouteSample, routeTime: number, duration: number): LabReadout[] {
   return [
-    { id: 'x', label: 'Posición x', value: now.x, unit: 'm' },
-    { id: 'y', label: 'Posición y', value: now.y, unit: 'm' },
+    { id: 'x', label: 'Posición $x$', value: now.x, unit: 'm' },
+    { id: 'y', label: 'Posición $y$', value: now.y, unit: 'm' },
     { id: 'speed', label: 'Rapidez |v|', value: now.speed, unit: 'm/s' },
     { id: 'accel', label: 'Aceleración |a|', value: now.accel, unit: 'm/s²' },
     { id: 'route-time', label: 'Instante en la ruta', value: routeTime, unit: 's' },

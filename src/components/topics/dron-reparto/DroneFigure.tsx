@@ -110,9 +110,9 @@ function RouteMap(): JSX.Element {
   return (
     <SvgPlot
       title="Ruta declarada en el plano x–y"
-      xLabel="x (este)"
+      xLabel="$x$ (este)"
       xUnit="m"
-      yLabel="y (norte)"
+      yLabel="$y$ (norte)"
       yUnit="m"
       series={[
         {
@@ -148,14 +148,14 @@ function Jumps(): JSX.Element {
   return (
     <SvgPlot
       title={`Velocidad con rapidez constante de ${DRONE_ROUTE.vMax} m/s`}
-      xLabel="t"
+      xLabel="$t$"
       xUnit="s"
-      yLabel="v"
+      yLabel="$v$"
       yUnit="m/s"
       series={[
         {
           id: 'saltos',
-          label: 'Saltos de v: a = dv/dt infinita',
+          label: 'Saltos de $v$: $a = dv/dt$ infinita',
           points: spikes,
           color: ACCEL_COLOR,
           dashed: true,
@@ -197,9 +197,9 @@ function Profile(): JSX.Element {
   return (
     <SvgPlot
       title="Rapidez en el primer tramo, depósito $\to$ A"
-      xLabel="t"
+      xLabel="$t$"
       xUnit="s"
-      yLabel="|v|"
+      yLabel="$|v|$"
       yUnit="m/s"
       series={[
         {

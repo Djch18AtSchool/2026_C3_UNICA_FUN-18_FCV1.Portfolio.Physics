@@ -79,7 +79,7 @@ describe('texToNotation', () => {
     expect(plain('v_{\\infty,\\text{in}}')).toBe('v_{∞,in}');
     expect(plain('|\\Delta\\vec v|')).toBe('|Δvec v|');
     expect(plain('\\sqrt{2GM_\\odot/r}')).toBe('√(2GM_☉/r)');
-    expect(plain('4{,}4 \\cdot 10^{-21}\\ \\mathrm{m/s}')).toBe('4,4 ⋅ 10^{-21} m/s');
+    expect(plain('4{,}4 \\cdot 10^{-21}\\ \\mathrm{m/s}')).toBe('4,4 ⋅ 10^{−21} m/s');
     expect(plain('\\frac{a}{b} \\le \\theta_\\text{in}')).toBe('(a)/(b) ≤ θ_in');
   });
 
@@ -105,7 +105,7 @@ describe('inlineMathToSpeech', () => {
   });
 
   test('plain text comes back unchanged', () => {
-    expect(inlineMathToSpeech('Ángulo de giro δ')).toBe('Ángulo de giro δ');
+    expect(inlineMathToSpeech('Ángulo de giro')).toBe('Ángulo de giro');
   });
 });
 
@@ -147,5 +147,12 @@ describe('inlineMathToHtml binding', () => {
     expect(inlineMathToHtml('a $x$.')).toMatch(
       /^a <span class="whitespace-nowrap"><span class="katex">.*<\/span>\.<\/span>$/,
     );
+  });
+});
+
+describe('texToNotation signs', () => {
+  test('a hyphen of a formula is a minus sign, as KaTeX sets it; a word keeps its hyphen', () => {
+    expect(texToNotation('-F')).toBe('−𝐹');
+    expect(texToNotation('\\text{a-b}')).toBe('a-b');
   });
 });

@@ -23,9 +23,9 @@ type PlotFrame = Pick<
 >;
 
 export const FORCE_AXES = {
-  xLabel: 'Desplazamiento x',
+  xLabel: 'Desplazamiento $x$',
   xUnit: 'mm',
-  yLabel: 'Fuerza F',
+  yLabel: 'Fuerza $F$',
   yUnit: 'N',
   xDomain: TRAVEL_DOMAIN,
   yDomain: FORCE_DOMAIN,

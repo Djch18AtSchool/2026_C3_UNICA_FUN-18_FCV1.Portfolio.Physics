@@ -71,7 +71,7 @@ describe('JumpLab', () => {
     expect(readout('Tiempo al ápice')).toBe('0,12 s');
     expect(readout('Tiempo en el aire')).toBe('0,23 s');
     expect(readout('Alcance')).toBe('2,62 m');
-    expect(screen.getByText(/^Referencia terrestre, g = 9,81/)).toBeInTheDocument();
+    expect(mathSourceText(document.body)).toMatch(/Referencia terrestre, \$g\$ = 9,81/);
     expect(screen.getByText(/^Celeste, g = 112,50/)).toBeInTheDocument();
   });
 

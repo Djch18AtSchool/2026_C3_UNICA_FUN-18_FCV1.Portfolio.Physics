@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import { CHART_COLORS, TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY } from '../../charts/chartTheme';
+import MathText from '../../lab/MathText';
 import { Arrow } from '../../lab/OverlayMarks';
 import HabitatPerson from './HabitatPerson';
 
@@ -59,16 +60,14 @@ function Force({
   return (
     <g data-force={kind} stroke={color}>
       <Arrow from={{ x, y: from }} to={{ x, y: to }} color={color} />
-      <text
+      <MathText
+        source={label}
         x={labelX}
         y={(from + to) / 2 + 5}
-        textAnchor={side}
+        anchor={side}
+        fontSize={TEXT_SIZE}
         fill={TEXT_COLOR}
-        stroke="none"
-        {...textStyle}
-      >
-        {label}
-      </text>
+      />
     </g>
   );
 }
@@ -76,14 +75,26 @@ function Force({
 function PanelText({ centre, lines }: { centre: number; lines: string[] }): JSX.Element {
   const [equation, ...notes] = lines;
   return (
-    <g textAnchor="middle" {...textStyle}>
-      <text x={centre} y={EQUATION_Y} fill={TEXT_COLOR} fontWeight={600}>
-        {equation}
-      </text>
+    <g stroke="none">
+      <MathText
+        source={equation}
+        x={centre}
+        y={EQUATION_Y}
+        anchor="middle"
+        fontSize={TEXT_SIZE}
+        fontWeight={600}
+        fill={TEXT_COLOR}
+      />
       {notes.map((note, index) => (
-        <text key={note} x={centre} y={NOTE_Y + index * LINE} fill={TICK_COLOR}>
-          {note}
-        </text>
+        <MathText
+          key={note}
+          source={note}
+          x={centre}
+          y={NOTE_Y + index * LINE}
+          anchor="middle"
+          fontSize={TEXT_SIZE}
+          fill={TICK_COLOR}
+        />
       ))}
     </g>
   );
@@ -130,7 +141,7 @@ export default function ApparentWeightDiagram(): JSX.Element {
         x={earth + FORCE_OFFSET}
         from={FLOOR_Y - PERSON / 2 - FORCE / 2}
         to={FLOOR_Y - PERSON / 2 + FORCE / 2}
-        label="m g"
+        label="$m g$"
         side="start"
       />
       <Force
@@ -138,10 +149,10 @@ export default function ApparentWeightDiagram(): JSX.Element {
         x={earth - FORCE_OFFSET}
         from={FLOOR_Y - 2}
         to={FLOOR_Y - 2 - FORCE}
-        label="n"
+        label="$n$"
         side="end"
       />
-      <PanelText centre={earth} lines={['n = m g', 'el piso la sostiene']} />
+      <PanelText centre={earth} lines={['$n = m g$', 'el piso la sostiene']} />
 
       <Floor left={PANEL} />
       <HabitatPerson x={orbit} feetY={floatFeet} height={PERSON} />
@@ -150,10 +161,10 @@ export default function ApparentWeightDiagram(): JSX.Element {
         x={orbit + FORCE_OFFSET}
         from={floatFeet - PERSON / 2 - FORCE / 2}
         to={floatFeet - PERSON / 2 + FORCE / 2}
-        label="m g"
+        label="$m g$"
         side="start"
       />
-      <PanelText centre={orbit} lines={['n = 0', 'nave y persona', 'caen con a = g']} />
+      <PanelText centre={orbit} lines={['$n = 0$', 'nave y persona', 'caen con $a = g$']} />
     </svg>
   );
 }

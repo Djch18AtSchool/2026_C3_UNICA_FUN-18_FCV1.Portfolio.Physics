@@ -13,7 +13,7 @@
  *
  * `\_` and `\^` are literal. Everything is set in IBM Plex Sans by the site's sans stack
  * (src/lib/mathFonts.ts, src/styles/math.css): lowercase Greek in its italic, like a variable;
- * the symbols Plex lacks (∞ ≈ ≤ ≥ → ∫ ⊥ ⊙ …) from the «Math Symbols» face that follows it; ☉
+ * the symbols Plex lacks (∞ ≈ ≤ ≥ → ∫ ⊥ ⊙ …) from the «Plex Symbols» face that follows it; ☉
  * prints as ⊙ and ≠ as "=" with a drawn stroke. Unicode sub- and superscripts (rₚ, 10⁻⁷) and the
  * combining arrow U+20D7 are rewritten into the notation first, so no label reaches the reader in
  * a fallback font. src/components/lab/MathText.tsx draws it; mathTextToString says it.
@@ -37,7 +37,7 @@ export type MathToken =
   | { kind: 'vector'; char: string }
   | { kind: 'script'; script: 'sub' | 'sup'; text: string };
 
-/** How a run is set: Plex Sans Italic (a variable) or a symbol of the «Math Symbols» face. */
+/** How a run is set: Plex Sans Italic (a variable) or a symbol of the «Plex Symbols» face. */
 export type RunStyle = 'italic' | 'symbol';
 
 /** A stretch of one style and script level; `mark` asks for a drawn arrow or negation stroke. */

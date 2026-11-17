@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readoutRow } from '../../test-readout';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -18,8 +19,8 @@ function tieredProps(overrides: Partial<LabShellProps> = {}): LabShellProps {
   return {
     title: 'Laboratorio del sobrevuelo',
     readouts: [
-      { id: 'e', label: 'Excentricidad e', value: 1.33, unit: '', precision: 3 },
-      { id: 'delta', label: 'Ángulo de giro δ', value: 97.5, unit: '°', precision: 1 },
+      { id: 'e', label: 'Excentricidad $e$', value: 1.33, unit: '', precision: 3 },
+      { id: 'delta', label: 'Ángulo de giro $\\delta$', value: 97.5, unit: '°', precision: 1 },
     ],
     levels: {
       params: <input aria-label="Máxima aproximación" />,
@@ -191,7 +192,7 @@ describe('LabShell layout: one column, the scene first, the control deck under i
       screen.getByRole('textbox', { name: 'Máxima aproximación' }),
       screen.getByText('escenario del encuentro'),
       reset(),
-      screen.getByText('Excentricidad e'),
+      readoutRow('Excentricidad $e$'),
       screen.getByRole('button', { name: 'Realzar la serie' }),
       screen.getByRole('list', { name: 'Leyenda del dibujo' }),
       screen.getByText('Cómo se usa'),

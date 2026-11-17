@@ -164,8 +164,8 @@ function FlightLayer(props: FlightLayerProps): JSX.Element {
       ) : null}
       {showVectors ? (
         <g data-vectors="" className="pointer-events-none" transform={translate(drone)}>
-          <DroneVector tip={velocityTip} color={VELOCITY_COLOR} text="vec v" />
-          <DroneVector tip={accelTip} color={ACCEL_COLOR} text="vec a" />
+          <DroneVector tip={velocityTip} color={VELOCITY_COLOR} text="$\vec v$" />
+          <DroneVector tip={accelTip} color={ACCEL_COLOR} text="$\vec a$" />
         </g>
       ) : null}
     </>

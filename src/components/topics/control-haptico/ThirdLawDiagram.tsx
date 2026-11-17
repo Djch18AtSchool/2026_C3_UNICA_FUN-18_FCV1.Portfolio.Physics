@@ -146,7 +146,7 @@ export default function ThirdLawDiagram(): JSX.Element {
           color={HOOKE_COLOR}
         />
         <MathText
-          source="F dedo→gatillo"
+          source="$F$ dedo→gatillo"
           x={PANEL / 2 + 10}
           y={leverTop - FORCE - 10}
           anchor="middle"
@@ -163,7 +163,7 @@ export default function ThirdLawDiagram(): JSX.Element {
           color={PROFILE_COLOR}
         />
         <MathText
-          source="F gatillo→dedo"
+          source="$F$ gatillo→dedo"
           x={FINGER.x}
           y={FINGER.pad + FORCE + 22}
           anchor="middle"
@@ -174,7 +174,7 @@ export default function ThirdLawDiagram(): JSX.Element {
 
       <g textAnchor="middle" {...textStyle}>
         <MathText
-          source="F gatillo→dedo = −F dedo→gatillo"
+          source="$F$ gatillo→dedo = $-F$ dedo→gatillo"
           x={VIEW.width / 2}
           y={EQUATION_Y}
           anchor="middle"

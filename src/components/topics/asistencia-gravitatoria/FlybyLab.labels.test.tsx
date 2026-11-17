@@ -25,7 +25,7 @@ const PRESETS = [
   'V1 · Saturno',
 ];
 /** The labels in the MathText notation they are written in (data-notation on the <text>). */
-const PLANET_LABELS = ['vec v_∞,in', 'vec v_∞,out'];
+const PLANET_LABELS = ['vec v_{∞,in}', 'vec v_{∞,out}'];
 const SUN_LABELS = ['vec v antes', 'vec v después', 'δ'];
 /** The scale bar's text: a round count of radii or kilometres («20 R_J», «5 000 km»). */
 const BAR_TEXT = /^[\d,\s]+\s(R_[A-Z]|km)$/u;
@@ -35,14 +35,16 @@ const CORNER_FONT = 12;
 const CORNER_MARGIN = 3;
 
 /** A label's source: its notation when MathText drew it, else its text. */
-const notationOf = (text: Element) =>
-  plainLetters(toNotation(text.getAttribute('data-notation') ?? text.textContent ?? ''));
+/** The label as its author wrote it (notation or `$…$`): MathText measures it as drawn. */
+const sourceOf = (text: Element) => text.getAttribute('data-notation') ?? text.textContent ?? '';
+/** The label in plain notation, to name it: «$\vec v_{\infty,\text{in}}$» reads «vec v_{∞,in}». */
+const notationOf = (text: Element) => plainLetters(toNotation(sourceOf(text)));
 
 function boxOf(text: SVGTextElement): Box {
   const fontSize = Number(text.getAttribute('font-size') ?? CORNER_FONT);
   const anchor = (text.getAttribute('text-anchor') ?? 'start') as 'start' | 'middle' | 'end';
   const at = { x: Number(text.getAttribute('x')), y: Number(text.getAttribute('y')) };
-  return textBox(at, notationOf(text), fontSize, anchor);
+  return textBox(at, sourceOf(text), fontSize, anchor);
 }
 
 function textsOf(frame: Element): SVGTextElement[] {

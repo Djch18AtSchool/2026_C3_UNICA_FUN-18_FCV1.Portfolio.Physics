@@ -84,21 +84,21 @@ const pyramid = PYRAMID_AXES.map((offset) => {
   };
 });
 
-/** The equations and symbols of the panel in the MathText notation. */
+/** The equations and symbols of the panel, in the site's `$…$` syntax (MathText). */
 const EQ = {
-  limit: 'L_máx = I_w ω_máx',
-  integral: 'L_w = ∫ τ_ext dt',
+  limit: '$L_\\text{máx} = I_w \\omega_\\text{máx}$',
+  integral: '$L_w = \\int \\tau_\\text{ext}\\, dt$',
   /** The unit goes on the note below: the equation at 23 units would reach the spacecraft's arc. */
   bound: `τ_ext ≤ ${DIAGRAM_FACTS.disturbanceLabel.replace(' N·m', '')}`,
-  lw: 'L_w',
-  tauExt: 'τ_ext',
-  drift: 'ω_s ≠ 0',
-  magnetic: 'τ = m × B',
-  thruster: 'τ = r × F',
-  m: 'm',
-  B: 'B',
-  r: 'r',
-  F: 'F',
+  lw: '$L_w$',
+  tauExt: '$\\tau_\\text{ext}$',
+  drift: '$\\omega_s \\ne 0$',
+  magnetic: '$\\tau = m \\times B$',
+  thruster: '$\\tau = r \\times F$',
+  m: '$m$',
+  B: '$B$',
+  r: '$r$',
+  F: '$F$',
 } as const;
 ---
 
@@ -285,9 +285,14 @@ const EQ = {
     baja
   </text>
 
-  <MathText source="τ ⊥ B siempre: el momento de la rueda" x={16} y={604} {...LABEL_TEXT} />
-  <MathText source="paralelo a B espera a que la órbita" x={16} y={626} {...LABEL_TEXT} />
-  <MathText source="gire B." x={16} y={648} {...LABEL_TEXT} />
+  <MathText
+    source="$\tau \perp B$ siempre: el momento de la rueda"
+    x={16}
+    y={604}
+    {...LABEL_TEXT}
+  />
+  <MathText source="paralelo a $B$ espera a que la órbita" x={16} y={626} {...LABEL_TEXT} />
+  <MathText source="gire $B$." x={16} y={648} {...LABEL_TEXT} />
   <MathText
     source={`m B ≈ ${DIAGRAM_FACTS.magnetorquerLabel}, unas ${DIAGRAM_FACTS.dumpRatio} veces la perturbación`}
     x={16}

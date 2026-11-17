@@ -116,7 +116,7 @@ const column = (samples: RouteSample[], key: keyof RouteSample) =>
 function positionChart(flight: Flight): ProfileChart {
   const spec: ChartSpec = {
     id: 'posicion',
-    title: 'Posición: x(t) y y(t)',
+    title: 'Posición: $x(t)$ y $y(t)$',
     yLabel: 'Posición',
     unit: 'm',
     yDomain: { min: 0, max: POSITION_AXIS_END_M },
@@ -125,8 +125,8 @@ function positionChart(flight: Flight): ProfileChart {
     ),
   };
   return chartOf(flight, spec, [
-    { id: 'x', label: 'x', color: X_COMPONENT_COLOR, values: column(flight.samples, 'x') },
-    { id: 'y', label: 'y', color: Y_COMPONENT_COLOR, values: column(flight.samples, 'y') },
+    { id: 'x', label: '$x$', color: X_COMPONENT_COLOR, values: column(flight.samples, 'x') },
+    { id: 'y', label: '$y$', color: Y_COMPONENT_COLOR, values: column(flight.samples, 'y') },
   ]);
 }
 
@@ -134,7 +134,7 @@ function velocityChart(flight: Flight): ProfileChart {
   const { samples, definition } = flight;
   const spec: ChartSpec = {
     id: 'velocidad',
-    title: 'Velocidad: $v_x(t)$, $v_y(t)$ y |v|(t)',
+    title: 'Velocidad: $v_x(t)$, $v_y(t)$ y $|v|(t)$',
     yLabel: 'Velocidad',
     unit: 'm/s',
     yDomain: symmetricDomain(definition.vMax),
@@ -145,7 +145,7 @@ function velocityChart(flight: Flight): ProfileChart {
   return chartOf(flight, spec, [
     { id: 'vx', label: '$v_x$', color: X_COMPONENT_COLOR, values: column(samples, 'vx') },
     { id: 'vy', label: '$v_y$', color: Y_COMPONENT_COLOR, values: column(samples, 'vy') },
-    { id: 'speed', label: '|v|', color: VELOCITY_COLOR, values: column(samples, 'speed') },
+    { id: 'speed', label: '$|v|$', color: VELOCITY_COLOR, values: column(samples, 'speed') },
   ]);
 }
 
@@ -153,7 +153,7 @@ function accelerationChart(flight: Flight): ProfileChart {
   const { samples, definition } = flight;
   const spec: ChartSpec = {
     id: 'aceleracion',
-    title: 'Aceleración: $a_x(t)$, $a_y(t)$ y |a|(t)',
+    title: 'Aceleración: $a_x(t)$, $a_y(t)$ y $|a|(t)$',
     yLabel: 'Aceleración',
     unit: 'm/s²',
     yDomain: symmetricDomain(definition.aMax),
@@ -164,7 +164,7 @@ function accelerationChart(flight: Flight): ProfileChart {
   return chartOf(flight, spec, [
     { id: 'ax', label: '$a_x$', color: X_COMPONENT_COLOR, values: column(samples, 'ax') },
     { id: 'ay', label: '$a_y$', color: Y_COMPONENT_COLOR, values: column(samples, 'ay') },
-    { id: 'accel', label: '|a|', color: ACCEL_COLOR, values: column(samples, 'accel') },
+    { id: 'accel', label: '$|a|$', color: ACCEL_COLOR, values: column(samples, 'accel') },
   ]);
 }
 
@@ -174,7 +174,7 @@ function distanceChart(flight: Flight): ProfileChart {
   const displacement = rows.map((row) => row.displacement);
   const spec: ChartSpec = {
     id: 'distancia',
-    title: 'Distancia recorrida frente a |Δr| desde el depósito',
+    title: 'Distancia recorrida frente a $|\\Delta r|$ desde el depósito',
     yLabel: 'Longitud',
     unit: 'm',
     ariaLabel: mathTextToString(
@@ -189,7 +189,7 @@ function distanceChart(flight: Flight): ProfileChart {
       color: DISTANCE_COLOR,
       values: travelled,
     },
-    { id: 'displacement', label: '|Δr|', color: DISPLACEMENT_COLOR, values: displacement },
+    { id: 'displacement', label: '$|\\Delta r|$', color: DISPLACEMENT_COLOR, values: displacement },
   ]);
 }
 

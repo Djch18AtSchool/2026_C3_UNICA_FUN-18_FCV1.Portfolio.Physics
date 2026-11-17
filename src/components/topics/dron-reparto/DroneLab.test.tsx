@@ -380,7 +380,7 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
 
     test('switching view keeps the drone where it is on the route', async () => {
       await renderLab();
-      const position = () => [readout('Posición x'), readout('Posición y')];
+      const position = () => [readout('Posición $x$'), readout('Posición $y$')];
       const before = position();
 
       await choose('Ruta');
@@ -400,8 +400,8 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
       expect(readout('Rapidez |v|')).toBe('0,00 m/s');
       expect(readout('Aceleración |a|')).toBe('0,00 m/s²');
       expect(mathSourceText(screen.getByTestId('drone-lab'))).toContain('detenido en un vértice');
-      expect(readout('Posición x')).toBe('600,00 m');
-      expect(readout('Posición y')).toBe('200,00 m');
+      expect(readout('Posición $x$')).toBe('600,00 m');
+      expect(readout('Posición $y$')).toBe('200,00 m');
     });
 
     test('«Evento siguiente» in «Tramo» goes through the end of the acceleration, the braking and the arrival', async () => {
@@ -487,8 +487,8 @@ describe('DroneLab', { timeout: TEST_TIMEOUT_MS }, () => {
         });
 
         const reading = document.querySelector('[data-profile-reading]') as HTMLElement;
-        const x = readout('Posición x').replace(' m', '');
-        const y = readout('Posición y').replace(' m', '');
+        const x = readout('Posición $x$').replace(' m', '');
+        const y = readout('Posición $y$').replace(' m', '');
         expect(reading).toHaveTextContent(`x ${x} m`);
         expect(reading).toHaveTextContent(`y ${y} m`);
         const markerT = document

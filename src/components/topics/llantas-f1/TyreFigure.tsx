@@ -55,14 +55,14 @@ function BoxPlot(): JSX.Element {
       id: 'estatico',
       x: BOX.staticLimit,
       y: BOX.staticLimit,
-      label: `f_s,máx = ${oneDecimal(BOX.staticLimit)} N`,
+      label: `$f_{s,\\text{máx}}$ = ${oneDecimal(BOX.staticLimit)} N`,
       anchor: 'end',
     },
     {
       id: 'cinetico',
       x: PUSH_MAX - 10,
       y: BOX.kinetic,
-      label: `f_k = ${oneDecimal(BOX.kinetic)} N`,
+      label: `$f_k$ = ${oneDecimal(BOX.kinetic)} N`,
       anchor: 'end',
       side: 1,
     },
@@ -81,7 +81,7 @@ function BoxPlot(): JSX.Element {
         series={[
           {
             id: 'friccion',
-            label: 'Fricción sobre la caja f',
+            label: 'Fricción sobre la caja $f$',
             points: boxFriction(PUSH_MAX),
             color: CHART_COLORS[0],
           },

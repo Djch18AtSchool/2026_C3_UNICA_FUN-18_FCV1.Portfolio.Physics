@@ -19,7 +19,7 @@ describe('DroneFigure', () => {
   test('route: the declared stops on an x–y map with the position vector of B', () => {
     const { container } = render(<DroneFigure variant="ruta" />);
 
-    expect(screen.getByText('x (este) (m)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('x (este) (m)'))).toBeInTheDocument();
     expect(strokeOf(container, 'ruta')).toBe('var(--chart-1)');
     expect(screen.getByText('B (900; 800)')).toBeInTheDocument();
     expect(screen.getByText(svgText('r'))).toBeInTheDocument();
@@ -32,7 +32,7 @@ describe('DroneFigure', () => {
     const { container } = render(<DroneFigure variant="saltos" />);
     const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
-    expect(legend).toHaveTextContent('Saltos de v: a = dv/dt infinita');
+    expect(mathSourceText(legend)).toContain('Saltos de $v$: $a = dv/dt$ infinita');
     expect(mathSourceText(legend)).toContain('$v_x$');
     expect(mathSourceText(legend)).toContain('$v_y$');
     expect(strokeOf(container, 'saltos')).toBe('var(--chart-4)');

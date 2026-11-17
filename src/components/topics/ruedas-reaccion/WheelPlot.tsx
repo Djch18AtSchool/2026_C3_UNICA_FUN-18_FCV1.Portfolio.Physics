@@ -128,9 +128,9 @@ export default function WheelPlot({
     <div className="w-full">
       <SvgPlot
         title="Momento de la rueda frente al tiempo"
-        xLabel="t"
+        xLabel="$t$"
         xUnit={plot.xUnit}
-        yLabel="L_w / L_máx"
+        yLabel="$L_w / L_\text{máx}$"
         yUnit="%"
         series={plot.series}
         xDomain={plot.xDomain}

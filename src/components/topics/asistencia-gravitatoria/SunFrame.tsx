@@ -38,7 +38,7 @@ const ARC_SAMPLES = 12;
 const DELTA_GAPS = [0, 8, 16, 24];
 const VP_LABEL_DROP = 16;
 /** The planet's velocity under its arrow, in the MathText notation. */
-const VP_LABEL = 'vec V_p';
+const VP_LABEL = '$\\vec V_p$';
 const ORIGIN_RADIUS = 3;
 const DEG = 180 / Math.PI;
 
@@ -99,15 +99,15 @@ export default function SunFrame({
   const [beforeLabel, afterLabel, deltaLabel] = placeLabels(
     [
       {
-        text: 'vec v antes',
+        text: '$\\vec v$ antes',
         spots: (size) => spotsAround(inTip, unit(planetTip, inTip), size, LABEL_GAP),
       },
       {
-        text: 'vec v después',
+        text: '$\\vec v$ después',
         spots: (size) => spotsAround(outTip, unit(planetTip, outTip), size, LABEL_GAP),
       },
       {
-        text: 'δ',
+        text: '$\\delta$',
         // Out from the arc's middle, then further out: a small δ leaves a narrow wedge.
         spots: (size) =>
           DELTA_GAPS.flatMap((gap) =>

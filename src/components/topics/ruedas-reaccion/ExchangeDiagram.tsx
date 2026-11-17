@@ -151,7 +151,7 @@ function TopView(): JSX.Element {
         to={-190}
         color={WHEEL_COLORS.wheel}
       />
-      <Equation x={TOP.x + 20} y={TOP.y - 46} source="ω_w" />
+      <Equation x={TOP.x + 20} y={TOP.y - 46} source="$\omega_w$" />
       <SpinArc
         name="nave"
         centre={TOP}
@@ -160,7 +160,7 @@ function TopView(): JSX.Element {
         to={70}
         color={WHEEL_COLORS.body}
       />
-      <Equation x={TOP.x - 82} y={TOP.y - 76} source="ω_s" />
+      <Equation x={TOP.x - 82} y={TOP.y - 76} source="$\omega_s$" />
     </g>
   );
 }
@@ -196,9 +196,9 @@ function AxisView(): JSX.Element {
         color={WHEEL_COLORS.body}
       />
       <circle cx={AXIS_X} cy={ORIGIN_Y} r={3} fill={TEXT_COLOR} />
-      <Equation x={AXIS_X + 12} y={ORIGIN_Y - L_LENGTH + 14} source="L_w = I_w ω_w" />
-      <Equation x={AXIS_X + 12} y={ORIGIN_Y + 5} source="L_s + L_w = 0" />
-      <Equation x={AXIS_X + 12} y={ORIGIN_Y + L_LENGTH - 6} source="L_s = I_s ω_s" />
+      <Equation x={AXIS_X + 12} y={ORIGIN_Y - L_LENGTH + 14} source="$L_w = I_w \omega_w$" />
+      <Equation x={AXIS_X + 12} y={ORIGIN_Y + 5} source="$L_s + L_w = 0$" />
+      <Equation x={AXIS_X + 12} y={ORIGIN_Y + L_LENGTH - 6} source="$L_s = I_s \omega_s$" />
     </g>
   );
 }
@@ -231,12 +231,12 @@ export default function ExchangeDiagram(): JSX.Element {
       />
       <TopView />
       <AxisView />
-      <Equation x={TOP.x} y={BOTTOM_Y} anchor="middle" source="I_s ω_s + I_w ω_w = 0" />
+      <Equation x={TOP.x} y={BOTTOM_Y} anchor="middle" source="$I_s \omega_s + I_w \omega_w = 0$" />
       <Equation
         x={(DIVIDER_X + VIEW.width) / 2}
         y={BOTTOM_Y}
         anchor="middle"
-        source={`ω_w ≈ ${wheelPerBody} ω_s`}
+        source={`$\\omega_w \\approx ${wheelPerBody}\\ \\omega_s$`}
       />
     </svg>
   );

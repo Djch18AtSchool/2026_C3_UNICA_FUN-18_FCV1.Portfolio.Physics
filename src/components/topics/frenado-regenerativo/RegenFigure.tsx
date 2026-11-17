@@ -72,9 +72,9 @@ function KineticFigure(): JSX.Element {
       <SvgPlot
         aspectRatio={aspectRatio}
         title="Energía cinética del Model 3 en los primeros 200 s del ciclo UDDS"
-        xLabel="Tiempo t"
+        xLabel="Tiempo $t$"
         xUnit="s"
-        yLabel="Energía cinética K"
+        yLabel="Energía cinética $K$"
         yUnit="kJ"
         xDomain={{ min: 0, max: figure.k[figure.k.length - 1].x }}
         yDomain={{ min: 0, max: top }}
@@ -85,7 +85,7 @@ function KineticFigure(): JSX.Element {
             points: figure.k,
             color: KINETIC_COLOR,
           },
-          { id: 'frenadas', label: 'Frenadas: K baja', points: figure.drops, color: STATE_COLOR },
+          { id: 'frenadas', label: 'Frenadas: $K$ baja', points: figure.drops, color: STATE_COLOR },
         ]}
         overlay={(scales) => <PlotPoints points={[label]} scales={scales} />}
         ariaLabel={mathTextToString(
@@ -107,7 +107,7 @@ function RoadLoadFigure(): JSX.Element {
     id: 'cruce',
     x: crossover,
     y: A,
-    label: `Cv^2 = A a ${formatNumber(crossover, { precision: 1, unit: 'm/s' })}`,
+    label: `$Cv^2 = A$ a ${formatNumber(crossover, { precision: 1, unit: 'm/s' })}`,
     anchor: 'end',
   };
   return (
@@ -115,9 +115,9 @@ function RoadLoadFigure(): JSX.Element {
       <SvgPlot
         aspectRatio={aspectRatio}
         title="Fuerza de carga en carretera del Model 3 y sus tres términos"
-        xLabel="Velocidad v"
+        xLabel="Velocidad $v$"
         xUnit="m/s"
-        yLabel="Fuerza F_RL"
+        yLabel="Fuerza $F_\text{RL}$"
         yUnit="N"
         xDomain={{ min: 0, max: ROAD_LOAD_MAX_SPEED }}
         series={[
@@ -198,9 +198,9 @@ function BrakingFigure(): JSX.Element {
       <SvgPlot
         aspectRatio={aspectRatio}
         title={`Potencia de frenado en la frenada del UDDS que más energía quita en las ruedas (de ${tStart} a ${tEnd} s), modelo del sitio: ${regenModelText(DEFAULT_REGEN)}`}
-        xLabel="Tiempo t"
+        xLabel="Tiempo $t$"
         xUnit="s"
-        yLabel="Potencia P"
+        yLabel="Potencia $P$"
         yUnit="kW"
         xDomain={{ min: stop.brake[0].x, max: stop.brake[stop.brake.length - 1].x }}
         series={[

@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readoutRow } from '../../../test-readout';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -85,7 +86,7 @@ describe('HabitatLab', () => {
     expect(lockSwitch()).toBeChecked();
     expect(radiusField()).toHaveValue('894,6');
     expect(readout('Gravedad aparente $a_c/g$')).toBe('1,00 g');
-    expect(readout('Período T')).toBe('60,00 s');
+    expect(readout('Período $T$')).toBe('60,00 s');
     expect(handle()).toHaveAttribute('aria-valuenow', '894.6');
   });
 
@@ -106,7 +107,7 @@ describe('HabitatLab', () => {
     expect(
       within(region('Escenario')).getByRole('group', { name: 'Valores de referencia' }),
     ).toBeInTheDocument();
-    expect(within(region('Lecturas')).getByText('Período T')).toBeInTheDocument();
+    expect(region('Lecturas')).toContainElement(readoutRow('Período $T$'));
   });
 
   test('the legend and the note on the apparent gravity read the drawing, in the canvas notes', () => {
@@ -170,8 +171,8 @@ describe('HabitatLab', () => {
 
     expect(radiusField()).toHaveValue('223,6');
     expect(handle()).toHaveAttribute('aria-valuenow', '223.6');
-    expect(readout('Período T')).toBe('30,00 s');
-    expect(readout('Velocidad tangencial v')).toBe('46,83 m/s');
+    expect(readout('Período $T$')).toBe('30,00 s');
+    expect(readout('Velocidad tangencial $v$')).toBe('46,83 m/s');
   });
 
   test('with "fijar 1 g" off, dragging the radius handle changes a_c/g', () => {

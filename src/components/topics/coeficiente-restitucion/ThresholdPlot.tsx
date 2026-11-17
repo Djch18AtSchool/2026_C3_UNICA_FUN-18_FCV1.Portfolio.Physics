@@ -401,8 +401,8 @@ export default function ThresholdPlot(): JSX.Element {
               x={x}
               y={y}
               area={area}
-              xTitle="n (número de rebote)"
-              yTitle="h_n (cm, escala logarítmica)"
+              xTitle="$n$ (número de rebote)"
+              yTitle="$h_n$ (cm, escala logarítmica)"
               tickFontSize={TICK_SIZE}
               titleFontSize={TITLE_SIZE}
               compact={compact}

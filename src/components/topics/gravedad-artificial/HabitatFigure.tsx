@@ -189,9 +189,9 @@ function RadiusPlot(): JSX.Element {
       <SvgPlot
         aspectRatio={aspectRatio}
         title="Gravedad aparente a 1 y 2 RPM frente al radio"
-        xLabel="r"
+        xLabel="$r$"
         xUnit="m"
-        yLabel="a_c"
+        yLabel="$a_c$"
         yUnit="g"
         series={[
           {
@@ -281,9 +281,9 @@ function ComfortPlot(): JSX.Element {
       <SvgPlot
         aspectRatio={aspectRatio}
         title="Giro que pide 1 g frente al radio, con los límites de confort"
-        xLabel="r"
+        xLabel="$r$"
         xUnit="m"
-        yLabel="N"
+        yLabel="$N$"
         yUnit="RPM"
         series={[
           {

@@ -41,7 +41,7 @@ describe('TyreFigure', () => {
     const { container } = render(<TyreFigure variant="caja" />);
     const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
-    expect(legend).toHaveTextContent('Fricción sobre la caja f');
+    expect(mathSourceText(legend)).toContain('Fricción sobre la caja $f$');
     expect(mathSourceText(legend)).toContain('Límite estático $\\mu_s n$');
     expect(strokeOf(container, 'limite')).toBe('var(--chart-2)');
     expect(screen.getByText(svgText('fs,máx = 39,2 N'))).toBeInTheDocument();
@@ -69,7 +69,7 @@ describe('TyreFigure', () => {
     expect(screen.getByText('Ventana de trabajo C3 (2019)')).toBeInTheDocument();
     expect(screen.getByText('60 °C: 1,11')).toBeInTheDocument();
     expect(screen.getByText('160 °C: 1,45')).toBeInTheDocument();
-    expect(screen.getByText('Temperatura T (°C)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('Temperatura T (°C)'))).toBeInTheDocument();
   });
 
   test("temperature: the six pairs of MUR's tcurve_F3soft.lut are drawn and named in the legend", () => {

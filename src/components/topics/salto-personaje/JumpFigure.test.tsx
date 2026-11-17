@@ -19,8 +19,8 @@ describe('JumpFigure', () => {
   test('free fall: one Earth curve y(t) with its apex marked', () => {
     const { container } = render(<JumpFigure variant="caida-libre" />);
 
-    expect(screen.getByText('t (s)')).toBeInTheDocument();
-    expect(screen.getByText('y (m)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('t (s)'))).toBeInTheDocument();
+    expect(screen.getByText(svgText('y (m)'))).toBeInTheDocument();
     expect(strokeOf(container, 'tierra')).toBe('var(--chart-1)');
     expect(container.querySelector('[data-marker]')).not.toBeNull();
     expect(screen.getByRole('img', { name: /8,75\sm/ })).toBeInTheDocument();

@@ -102,12 +102,12 @@ export default function EnergyBalanceChart({
       <SvgPlot
         aspectRatio={isCompact ? SPEED_ASPECT.compact : SPEED_ASPECT.wide}
         title={`Velocidad del ciclo ${drive.name} de la EPA`}
-        xLabel="Tiempo t"
+        xLabel="Tiempo $t$"
         xUnit="s"
-        yLabel="Velocidad v"
+        yLabel="Velocidad $v$"
         yUnit="km/h"
         xDomain={xDomain}
-        series={[{ id: 'velocidad', label: 'Velocidad v', points: speed, color: STATE_COLOR }]}
+        series={[{ id: 'velocidad', label: 'Velocidad $v$', points: speed, color: STATE_COLOR }]}
         cursor={{ x: t, label }}
         marker={{ x: step.t, y: toKmh(step.v) }}
         ariaLabel={`v(t) del ciclo ${drive.name} de la EPA: ${seconds(duration)} y ${formatNumber(cycleDistance(drive) / 1000, { precision: 2, unit: 'km' })}, con un máximo de ${kmh(topSpeed)}.`}
@@ -116,7 +116,7 @@ export default function EnergyBalanceChart({
       <SvgPlot
         aspectRatio={isCompact ? ENERGY_ASPECT.compact : ENERGY_ASPECT.wide}
         title={`Energías acumuladas del ${CAR.name} en el ${drive.name} (${regenModelText(DEFAULT_REGEN)})`}
-        xLabel="Tiempo t"
+        xLabel="Tiempo $t$"
         xUnit="s"
         yLabel="Energía acumulada"
         yUnit="kWh"

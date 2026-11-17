@@ -38,8 +38,8 @@ type PlotFrame = Pick<
   'xLabel' | 'xUnit' | 'yLabel' | 'yUnit' | 'series' | 'xDomain' | 'yDomain' | 'bands'
 >;
 
-export const TEMPERATURE_AXIS = { label: 'Temperatura T', unit: '°C' } as const;
-export const LOAD_AXIS = { label: 'Carga vertical F_z', unit: 'N' } as const;
+export const TEMPERATURE_AXIS = { label: 'Temperatura $T$', unit: '°C' } as const;
+export const LOAD_AXIS = { label: 'Carga vertical $F_z$', unit: 'N' } as const;
 
 /**
  * μ(T) of a compound's bell, with its 2019 working window as a band, over the lab's 40–160 °C
@@ -53,7 +53,7 @@ export function temperaturePlot(
   return {
     xLabel: TEMPERATURE_AXIS.label,
     xUnit: TEMPERATURE_AXIS.unit,
-    yLabel: 'Coeficiente μ',
+    yLabel: 'Coeficiente $\\mu$',
     yUnit: 'adimensional',
     xDomain: domain,
     yDomain: MU_DOMAIN,
@@ -106,7 +106,7 @@ export function loadPlot(temperatureFactor?: number): PlotFrame {
   return {
     xLabel: LOAD_AXIS.label,
     xUnit: LOAD_AXIS.unit,
-    yLabel: 'Fuerza lateral máx. F_y',
+    yLabel: 'Fuerza lateral máx. $F_y$',
     yUnit: 'N',
     xDomain: LOAD_DOMAIN,
     yDomain: FORCE_DOMAIN,

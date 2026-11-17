@@ -110,7 +110,7 @@ La posición crece linealmente con t, y el rumbo reparte v en <Equation inline l
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Ruta declarada, en metros: del depósito (0; 0) a las paradas A, B y C, con una entrega de 20 s en cada una, y de vuelta. El vector de posición de B, con componentes x = 900 m e y = 800 m, y la velocidad sobre el primer tramo (rumbo θ = 18,4°), dibujada a escala 1 m/s = 15 m; la tabla 1.1 da cada tramo."
+  caption="Ruta declarada, en metros: del depósito (0; 0) a las paradas A, B y C, con una entrega de 20 s en cada una, y de vuelta. El vector de posición de B, con componentes $x = 900$ m e $y = 800$ m, y la velocidad sobre el primer tramo (rumbo $\theta = 18{,}4^\circ$), dibujada a escala 1 m/s = 15 m; la tabla 1.1 da cada tramo."
   source={{ text: 'Ruta declarada por el autor en src/lib/data/droneRoute.ts' }}
 >
   <DroneFigure variant="ruta" client:visible />
@@ -208,7 +208,7 @@ Con aceleración constante en cada fase vale <Equation inline latex="\vec r = \v
 
 <Step n={4} title="Modelo mejorado: la ruta completa">
 
-Cada tramo va del vértice <Equation inline latex="\vec r_i" /> al siguiente con el perfil del paso 3, proyectado con el rumbo θ. La ruta completa dura <Equation inline latex="387{,}4\ \mathrm{s}" />.
+Cada tramo va del vértice <Equation inline latex="\vec r_i" /> al siguiente con el perfil del paso 3, proyectado con el rumbo $\theta$. La ruta completa dura <Equation inline latex="387{,}4\ \mathrm{s}" />.
 
 <Equation
   id="ec-dron-componentes"
@@ -216,7 +216,8 @@ Cada tramo va del vértice <Equation inline latex="\vec r_i" /> al siguiente con
   symbols={[
     {
       symbol: '\\hat u',
-      meaning: 'vector unitario del tramo, (cos θ; sin θ) = Δr/|Δr|',
+      meaning:
+        'vector unitario del tramo, $(\\cos\\theta; \\sin\\theta) = \\Delta\\vec r/|\\Delta\\vec r|$',
     },
     {
       symbol: '\\dot s,\\ \\ddot s',
@@ -288,7 +289,7 @@ Se ganan coherencia y seguridad, pues un generador sirve para cualquier ruta sin
 
 <Callout variant="clase" title="Módulo 1 · Temas 1.1 y 1.3">
 
-La (1.2) es la definición del Tema 1.1: <Equation inline latex="\vec v = d\vec r/dt" />, tangente a la trayectoria, y <Equation inline latex="\vec a = d\vec v/dt = d^2\vec r/dt^2" />. El mapa muestra el criterio de signos de clase: al arrancar, v y a comparten sentido y la rapidez crece; al frenar se oponen. La cuarta gráfica separa la distancia recorrida, escalar de <Equation inline latex="3\,114{,}3\ \mathrm{m}" />, del desplazamiento, vector nulo al cerrar la ruta. Las (1.1) y (1.4) son la descomposición en componentes rectangulares del Tema 1.3, <Equation inline latex="\vec A = A_x\hat\imath + A_y\hat\jmath" /> con <Equation inline latex="\lVert\vec A\rVert = \sqrt{A_x^2 + A_y^2}" />; cos θ y <Equation inline latex="\sin\theta = \cos(90^\circ - \theta)" />, los cosenos directores. Lo nuevo: aceleración constante a trozos, cada trozo un MRU o un MRUA.
+La (1.2) es la definición del Tema 1.1: <Equation inline latex="\vec v = d\vec r/dt" />, tangente a la trayectoria, y <Equation inline latex="\vec a = d\vec v/dt = d^2\vec r/dt^2" />. El mapa muestra el criterio de signos de clase: al arrancar, v y a comparten sentido y la rapidez crece; al frenar se oponen. La cuarta gráfica separa la distancia recorrida, escalar de <Equation inline latex="3\,114{,}3\ \mathrm{m}" />, del desplazamiento, vector nulo al cerrar la ruta. Las (1.1) y (1.4) son la descomposición en componentes rectangulares del Tema 1.3, <Equation inline latex="\vec A = A_x\hat\imath + A_y\hat\jmath" /> con <Equation inline latex="\lVert\vec A\rVert = \sqrt{A_x^2 + A_y^2}" />; $\cos\theta$ y <Equation inline latex="\sin\theta = \cos(90^\circ - \theta)" />, los cosenos directores. Lo nuevo: aceleración constante a trozos, cada trozo un MRU o un MRUA.
 
 </Callout>
 

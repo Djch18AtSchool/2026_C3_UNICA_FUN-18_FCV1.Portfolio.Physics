@@ -33,14 +33,14 @@ describe('dron-reparto tables', () => {
 
     expect(header).toEqual([
       'Tramo',
-      'Llegada, x (m)',
-      'Llegada, y (m)',
-      'Longitud d (m)',
+      'Llegada, $x$ (m)',
+      'Llegada, $y$ (m)',
+      'Longitud $d$ (m)',
       'Rumbo $\\theta$ (°)',
       '$a_x$ al arrancar (m/s²)',
       '$a_y$ al arrancar (m/s²)',
       'Crucero, $d - 2d_a$ (m)',
-      'Duración T (s)',
+      'Duración $T$ (s)',
       'Entrega al llegar (s)',
     ]);
     expect(rows).toEqual([

@@ -190,7 +190,7 @@ export function DisturbanceMarks({
   dumping: boolean;
 }): JSX.Element {
   const { c, dial, zoom, extent } = geometry;
-  const formula = actuator === 'magnetopar' ? 'τ = m × B' : 'τ = r × F';
+  const formula = actuator === 'magnetopar' ? '$\\tau = m \\times B$' : '$\\tau = r \\times F$';
   return (
     <g>
       <RateArc
@@ -199,7 +199,7 @@ export function DisturbanceMarks({
         centreDeg={DISTURBANCE_ARC.centre}
         sweep={DISTURBANCE_ARC.sweep}
         color={TICK_COLOR}
-        label="τ_ext"
+        label="$\tau_\text{ext}$"
       />
       {dumping ? (
         // Bottom-right: the time-scale badge holds the bottom-left corner in both modes.

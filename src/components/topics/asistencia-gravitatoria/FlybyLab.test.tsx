@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readoutRow } from '../../../test-readout';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -42,9 +43,9 @@ const readoutValue = (label: string) =>
   Number((/^[−\d,]+/.exec(readout(label))?.[0] ?? 'NaN').replace(',', '.').replace('−', '-'));
 
 const DELTA_V = 'Ganancia de rapidez Δ|v|';
-const TURN = 'Ángulo de giro δ';
+const TURN = 'Ángulo de giro $\\delta$';
 const ALL_READOUTS = [
-  'Excentricidad e',
+  'Excentricidad $e$',
   TURN,
   String.raw`Cambio de velocidad $|\Delta \vec v|$`,
   '|v| antes, marco del Sol',
@@ -167,7 +168,7 @@ describe('FlybyLab', () => {
   test('opens on V2 at Jupiter: e = 1,330, δ = 97,5° and Δ|v| ≈ +9,9 km/s', () => {
     renderLab();
 
-    expect(readout('Excentricidad e')).toBe('1,330');
+    expect(readout('Excentricidad $e$')).toBe('1,330');
     expect(readout(TURN)).toBe('97,5°');
     expect(readout('|v| antes, marco del Sol')).toBe('9,59 km/s');
     expect(readout('|v| después, marco del Sol')).toBe('19,53 km/s');
@@ -208,7 +209,7 @@ describe('FlybyLab', () => {
     expect(within(region('Escenario')).getByTestId('flyby-arrival')).toBeInTheDocument();
     // The model-versus-data table stays on the canvas, under the frames it compares.
     expect(region('Escenario')).not.toContainElement(comparison());
-    expect(within(region('Lecturas')).getByText('Excentricidad e')).toBeInTheDocument();
+    expect(region('Lecturas')).toContainElement(readoutRow('Excentricidad $e$'));
   });
 
   test('the six encounters are a select; under it one line with the note and Horizons as a link', async () => {

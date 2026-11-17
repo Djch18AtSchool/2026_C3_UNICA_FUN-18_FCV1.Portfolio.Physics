@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { svgText } from '../../../test-svg-text';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { plexViolations } from '../../../test-glyphs';
@@ -54,7 +55,7 @@ describe('HabitatFigure', () => {
     expect(strokeOf(container, 'tierra')).toBe('var(--chart-1)');
     expect(screen.getByText('2 RPM: 223,6 m')).toBeInTheDocument();
     expect(screen.getByText('Toro de Stanford: 0,93 g')).toBeInTheDocument();
-    expect(screen.getByText('r (m)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('r (m)'))).toBeInTheDocument();
   });
 
   test('comfort: the spin for 1 g with the comfort bands and the gradient points', () => {

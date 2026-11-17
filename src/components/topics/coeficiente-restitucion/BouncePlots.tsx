@@ -108,9 +108,9 @@ export default function BouncePlots({
     <div className="flex flex-col gap-4">
       <SvgPlot
         title="Altura de las pelotas, y(t)"
-        xLabel="t"
+        xLabel="$t$"
         xUnit="s"
-        yLabel="y"
+        yLabel="$y$"
         yUnit="m"
         series={pair(model, 'position')}
         xDomain={xDomain}
@@ -120,7 +120,7 @@ export default function BouncePlots({
       />
       <SvgPlot
         title="Energía mecánica, $E/E_0$"
-        xLabel="t"
+        xLabel="$t$"
         xUnit="s"
         yLabel="Energía"
         yUnit="E/E_0"

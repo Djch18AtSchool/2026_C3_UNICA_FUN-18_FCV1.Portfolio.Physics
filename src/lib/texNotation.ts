@@ -4,6 +4,7 @@
  * written as Mathematical Italic letters (src/lib/mathItalic.ts); the words of \text{…},
  * \mathrm{…} or \operatorname{…} and a command's own name stay upright.
  */
+import { MINUS_SIGN } from './format';
 import { mathItalic } from './mathItalic';
 
 /** TeX control words of labels and their characters in the MathText notation. */
@@ -25,14 +26,19 @@ const TEX_TEXT = /\\(?:text|mathrm|mathbf|mathit|operatorname)\{([^{}]*)\}/g;
 const UPRIGHT_OPEN = '\u0001';
 const UPRIGHT_CLOSE = '\u0002';
 const UPRIGHT_MARKS = /[\u0001\u0002]/g;
-/** A command (kept), an upright stretch (kept) or a letter (made italic). */
-const COMMAND_UPRIGHT_OR_LETTER = /\\[A-Za-z]+|\u0001[^\u0002]*\u0002|[A-Za-z]/g;
+/** A command (kept), an upright stretch (kept), a letter (made italic) or a hyphen (a minus). */
+const COMMAND_UPRIGHT_LETTER_OR_HYPHEN = /\\[A-Za-z]+|\u0001[^\u0002]*\u0002|[A-Za-z-]/g;
+const HYPHEN = '-';
 
-/** The letters of a formula as Mathematical Italic, but not commands nor upright words. */
+/**
+ * The letters of a formula as Mathematical Italic and its hyphens as minus signs (KaTeX's −),
+ * but not commands nor upright words.
+ */
 const italicizeLetters = (tex: string) =>
-  tex.replace(COMMAND_UPRIGHT_OR_LETTER, (match) =>
-    match.length === 1 ? mathItalic(match) : match,
-  );
+  tex.replace(COMMAND_UPRIGHT_LETTER_OR_HYPHEN, (match) => {
+    if (match === HYPHEN) return MINUS_SIGN;
+    return match.length === 1 ? mathItalic(match) : match;
+  });
 
 /**
  * The TeX of an inline formula in the MathText notation of src/lib/mathNotation.ts:

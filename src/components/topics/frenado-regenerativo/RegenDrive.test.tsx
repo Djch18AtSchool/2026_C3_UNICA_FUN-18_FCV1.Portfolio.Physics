@@ -106,7 +106,7 @@ describe('RegenLab «Conducir»', { timeout: DRIVE_TEST_TIMEOUT_MS }, () => {
     expect(pedal('Freno')).toHaveAttribute('aria-keyshortcuts', 'ArrowDown');
     expect(pedal('Acelerador')).toHaveAttribute('aria-keyshortcuts', 'ArrowUp');
     expect(statusText()).toMatch(/^Mantén pulsado el freno o el acelerador para arrancar/);
-    expect(readout('Velocidad v')).toBe('57,94 km/h');
+    expect(readout('Velocidad $v$')).toBe('57,94 km/h');
     expect(readout(LINE)).toBe('236 m');
     expect(screen.getByTestId('drive-canvas-note')).toHaveTextContent('contorno discontinuo');
   });
@@ -126,7 +126,7 @@ describe('RegenLab «Conducir»', { timeout: DRIVE_TEST_TIMEOUT_MS }, () => {
 
     expect(depth('brake')).toMatch(/^scaleX\(1\.000\)|^scaleX\(0\.[5-9]/);
     expect(readout(BATTERY)).not.toBe('0,0 kJ');
-    expect(Number.parseFloat(readout('Velocidad v').replace(',', '.'))).toBeLessThan(57.9);
+    expect(Number.parseFloat(readout('Velocidad $v$').replace(',', '.'))).toBeLessThan(57.9);
     fireEvent.keyUp(pedal('Freno'), { key: 'ArrowDown' });
     playFrames(frames, 4100, 4700);
     expect(depth('brake')).toBe('scaleX(0.000)');
@@ -140,7 +140,7 @@ describe('RegenLab «Conducir»', { timeout: DRIVE_TEST_TIMEOUT_MS }, () => {
 
     expect(lab()).toHaveAttribute('data-playing', 'true');
     expect(carX()).toBeGreaterThan(ghostX());
-    expect(Number.parseFloat(readout('Velocidad v').replace(',', '.'))).toBeGreaterThan(57.9);
+    expect(Number.parseFloat(readout('Velocidad $v$').replace(',', '.'))).toBeGreaterThan(57.9);
     fireEvent.pointerUp(pedal('Acelerador'), { pointerId: 7 });
     playFrames(frames, 3100, 3800);
     expect(depth('throttle')).toBe('scaleX(0.000)');
@@ -340,7 +340,7 @@ describe('RegenLab «Conducir»', { timeout: DRIVE_TEST_TIMEOUT_MS }, () => {
 
     fireEvent.change(timeline(), { target: { value: '20' } });
     expect(timelineText()).toBe('t = 376,52 s');
-    expect(readout('Velocidad v')).not.toBe('57,94 km/h');
+    expect(readout('Velocidad $v$')).not.toBe('57,94 km/h');
   });
 
   test('changing P_máx after a run recomputes the same pedals with the new model', () => {

@@ -77,7 +77,9 @@ describe('WheelScene turning sense (SVG rotates clockwise; the lab counts counte
   test('mid-maneuver the ω_w arc sits above the wheel centre, where its 90° centre line points', () => {
     render(<WheelLab />);
     fireEvent.change(timeline(), { target: { value: String(TIMELINE_MAX / 2) } });
-    const arc = scene().querySelector('[data-rate="ω_w"]') as SVGGElement;
+    const arc = [...scene().querySelectorAll('[data-rate]')].find(
+      (mark) => mark.getAttribute('data-rate') === '$\\omega_w$',
+    ) as SVGGElement;
     const turn = parseRotate(arc.getAttribute('transform'));
     const d = arc.querySelector('path')?.getAttribute('d') ?? '';
     const [, startX, startY, endX, endY] =

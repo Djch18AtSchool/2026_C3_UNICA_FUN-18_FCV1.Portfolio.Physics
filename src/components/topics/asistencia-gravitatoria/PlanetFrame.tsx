@@ -7,6 +7,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
+import { unitTex } from './flybyFormat';
 import type { Planet } from '../../../lib/data/planets';
 import { formatNumber } from '../../../lib/format';
 import { mathTextToString } from '../../../lib/mathNotation';
@@ -461,7 +462,7 @@ function useFrameModel({ props, panel, zoom, anchorRef }: FrameBodyProps) {
   anchorRef.current = centre;
   const screen = screenFrame(world, centre, zoom.view, hyperbola, planet);
   const pxPerKm = world.view.scale * zoom.view.scale;
-  const rpValue = `r_p = ${formatNumber(rp, { precision: 2, unit })}`;
+  const rpValue = `$r_p$ = ${formatNumber(rp, { precision: 2 })}\u202f${unitTex(unit)}`;
   const corners = cornerTexts(panel, rpValue, clock.rate);
   const isNoteShown = screen.planet.isEnlarged;
   // The bar stops short of «planeta agrandado» on the same bottom line (it touched it at 900 px).

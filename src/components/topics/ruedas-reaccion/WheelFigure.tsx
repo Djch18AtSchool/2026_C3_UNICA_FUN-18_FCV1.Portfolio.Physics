@@ -178,9 +178,9 @@ function ManeuverPlots(): JSX.Element {
       <SvgPlot
         aspectRatio={aspectRatio}
         title="Ángulo de la nave durante el giro"
-        xLabel="t"
+        xLabel="$t$"
         xUnit="s"
-        yLabel="θ_s"
+        yLabel="$\theta_s$"
         yUnit="°"
         series={[
           {
@@ -209,9 +209,9 @@ function ManeuverPlots(): JSX.Element {
       <SvgPlot
         aspectRatio={aspectRatio}
         title="Velocidad de la rueda durante el giro"
-        xLabel="t"
+        xLabel="$t$"
         xUnit="s"
-        yLabel="ω_w"
+        yLabel="$\omega_w$"
         yUnit="rpm"
         series={[
           {
@@ -252,9 +252,9 @@ function SaturationPlot(): JSX.Element {
       <SvgPlot
         aspectRatio={aspectRatio}
         title="Momento angular de la rueda con una perturbación que no para"
-        xLabel="t"
+        xLabel="$t$"
         xUnit="días"
-        yLabel="L_w"
+        yLabel="$L_w$"
         yUnit="N·m·s"
         series={[
           {

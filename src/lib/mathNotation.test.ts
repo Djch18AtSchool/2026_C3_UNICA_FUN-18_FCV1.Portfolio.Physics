@@ -84,7 +84,7 @@ describe('normalizeNotation', () => {
 });
 
 describe('mathRuns', () => {
-  test('sets lowercase Greek italic and marks the symbols of the «Math Symbols» face', () => {
+  test('sets lowercase Greek italic and marks the symbols of the «Plex Symbols» face', () => {
     expect(mathRuns('ω_máx ≈ 3 Δ')).toEqual([
       { text: 'ω', style: 'italic', script: 'base' },
       { text: 'máx', script: 'sub' },

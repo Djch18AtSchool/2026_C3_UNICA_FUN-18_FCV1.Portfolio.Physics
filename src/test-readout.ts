@@ -13,3 +13,12 @@ export function readout(label: string): string {
   if (!row) throw new Error(`No readout labelled «${label}»`);
   return (row.lastElementChild?.textContent ?? '').replace(/\s/g, ' ');
 }
+
+/** The readout row labelled `label` (written as its author wrote it, formulas as `$tex$`). */
+export function readoutRow(label: string): HTMLElement {
+  const row = [...document.querySelectorAll<HTMLElement>('[data-readout]')].find(
+    (candidate) => mathSourceText(candidate.firstElementChild) === label,
+  );
+  if (!row) throw new Error(`No readout labelled «${label}»`);
+  return row;
+}

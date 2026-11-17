@@ -57,7 +57,7 @@ export const MISSION_LINES: Readonly<Record<string, LineSpec>> = {
   },
   zone: {
     id: 'hiperbolica',
-    label: 'Zona hiperbólica, por encima del escape (ε\u00a0>\u00a00)',
+    label: 'Zona hiperbólica, por encima del escape ($\\varepsilon > 0$)',
     color: SUN_COLOR,
     isArea: true,
   },

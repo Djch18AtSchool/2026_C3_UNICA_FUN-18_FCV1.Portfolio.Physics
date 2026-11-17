@@ -42,7 +42,7 @@ const ENCUENTROS: DataTableSpec = {
     { key: 'rp', label: '$r_p$ desde el centro', unit: 'km', align: 'num', precision: 0 },
     { key: 'vInfIn', label: '$v_\\infty$ de entrada', unit: 'km/s', align: 'num', precision: 3 },
     { key: 'vInfOut', label: '$v_\\infty$ de salida', unit: 'km/s', align: 'num', precision: 3 },
-    { key: 'delta', label: 'δ', unit: '°', align: 'num', precision: 1 },
+    { key: 'delta', label: '$\\delta$', unit: '°', align: 'num', precision: 1 },
     { key: 'conicas', label: 'Δ|v| por cónicas', unit: 'km/s', align: 'num', precision: 2 },
     { key: 'datos', label: 'Δ|v| por los datos', unit: 'km/s', align: 'num', precision: 2 },
   ],

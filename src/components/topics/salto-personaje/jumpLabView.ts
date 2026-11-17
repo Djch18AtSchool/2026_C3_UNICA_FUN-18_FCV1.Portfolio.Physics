@@ -25,7 +25,7 @@ export function jumpSeries(
       ? [
           {
             id: 'ghost',
-            label: `Referencia terrestre, g = ${gravityText(G_EARTH)}`,
+            label: `Referencia terrestre, $g$ = ${gravityText(G_EARTH)}`,
             points: toXY(ghost),
             color: EARTH_COLOR,
             dashed: true,

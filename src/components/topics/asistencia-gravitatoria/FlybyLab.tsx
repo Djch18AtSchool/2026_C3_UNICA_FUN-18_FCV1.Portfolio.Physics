@@ -166,10 +166,10 @@ export default function FlybyLab({ usage, leftOut }: FlybyLabProps): JSX.Element
   };
 
   const readouts: LabReadout[] = [
-    { id: 'e', label: 'Excentricidad e', value: hyperbola.e, unit: '', precision: E_PRECISION },
+    { id: 'e', label: 'Excentricidad $e$', value: hyperbola.e, unit: '', precision: E_PRECISION },
     {
       id: 'delta',
-      label: 'Ángulo de giro δ',
+      label: 'Ángulo de giro $\\delta$',
       value: hyperbola.delta * DEG,
       unit: '°',
       precision: ANGLE_PRECISION,

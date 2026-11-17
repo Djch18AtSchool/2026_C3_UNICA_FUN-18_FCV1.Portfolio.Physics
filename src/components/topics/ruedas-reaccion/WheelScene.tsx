@@ -290,7 +290,7 @@ function TargetSweep({ c, dial, targetDeg }: Geometry & { targetDeg: number }): 
 }
 
 const targetText = (degrees: number) =>
-  `θ objetivo = ${formatNumber(degrees, { precision: TARGET_PRECISION, unit: '°' })}`;
+  `$\\theta$ objetivo = ${formatNumber(degrees, { precision: TARGET_PRECISION, unit: '°' })}`;
 
 /** The target knob on the dial (role="slider"): drag it round, or arrows 1° and Shift 10°. */
 function TargetHandle({
@@ -365,7 +365,7 @@ function SpinLayer({
             centreDeg={thetaS + 180}
             sweep={Math.sign(omegaS) * quantize(bodyArc.sweep, BODY_ARC_GRAIN_DEG)}
             color={RATE_COLOR}
-            label="ω_s"
+            label="$\omega_s$"
           />
           <RateArc
             c={c}
@@ -373,7 +373,7 @@ function SpinLayer({
             centreDeg={90}
             sweep={Math.sign(omegaW) * quantize(wheelArc.sweep, WHEEL_ARC_GRAIN_DEG)}
             color={wheelArc.isOver ? LIMIT_COLOR : RATE_COLOR}
-            label="ω_w"
+            label="$\omega_w$"
           />
         </>
       ) : null}

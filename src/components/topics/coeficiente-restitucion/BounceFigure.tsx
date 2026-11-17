@@ -241,9 +241,9 @@ function ReboundPlot(): JSX.Element {
       <SvgPlot
         aspectRatio={width < COMPACT_WIDTH ? COMPACT_ASPECT : WIDE_ASPECT}
         title="Altura de la pelota de tenis ITF en sus rebotes"
-        xLabel="t"
+        xLabel="$t$"
         xUnit="s"
-        yLabel="y"
+        yLabel="$y$"
         yUnit="m"
         series={[
           {

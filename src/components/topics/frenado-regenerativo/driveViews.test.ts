@@ -102,8 +102,8 @@ describe('driveReadouts', () => {
 
   test('your v, P and energies in kJ, both shares and the distance left to the line', () => {
     expect(readouts.map(({ label }) => label)).toEqual([
-      'Velocidad v',
-      'Potencia en las ruedas P',
+      'Velocidad $v$',
+      'Potencia en las ruedas $P$',
       'Energía a la batería en tu conducción $E_\\text{batería}$',
       'Pérdidas de conversión en tu conducción $E_\\text{conversión}$',
       'Calor de fricción en tu conducción $E_\\text{fricción}$',

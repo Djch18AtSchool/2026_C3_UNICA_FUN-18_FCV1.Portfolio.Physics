@@ -178,9 +178,9 @@ function VisVivaPlot(): JSX.Element {
       <SvgPlot
         aspectRatio={aspectRatio}
         title="Rapidez de la Voyager 2 frente a su distancia al Sol"
-        xLabel="r"
+        xLabel="$r$"
         xUnit="UA"
-        yLabel="|v|"
+        yLabel="$|v|$"
         yUnit="km/s"
         series={[
           {
@@ -191,20 +191,20 @@ function VisVivaPlot(): JSX.Element {
           },
           {
             id: 'solo-sol',
-            label: `Solo el Sol antes de Júpiter, ε = ${energy(figure.boundEnergy)}`,
+            label: `Solo el Sol antes de Júpiter, $\\varepsilon$ = ${energy(figure.boundEnergy)}`,
             points: figure.boundCurve,
             color: TICK_COLOR,
             dashed: true,
           },
           {
             id: 'despues',
-            label: `Después de Júpiter, ε = ${energy(figure.afterEnergy)}`,
+            label: `Después de Júpiter, $\\varepsilon$ = ${energy(figure.afterEnergy)}`,
             points: figure.afterCurve,
             color: JUPITER,
           },
           {
             id: 'escape',
-            label: 'Escape, $\\sqrt{2GM_\\odot/r}$: ε = 0',
+            label: 'Escape, $\\sqrt{2GM_\\odot/r}$: $\\varepsilon = 0$',
             points: figure.escapeCurve,
             color: SUN_COLOR,
             dashed: true,
@@ -230,7 +230,7 @@ function arc(centre: Point, radius: number, a: number, b: number): Point[] {
 }
 
 /** The tags of the two v∞ arrows, in the MathText notation: a vector with its subscript. */
-const VINF_TAG = 'vec v_∞';
+const VINF_TAG = '$\\vec v_\\infty$';
 
 /**
  * Where a "v∞" tag goes: the nearest spot beside its arrow (either side, along the arrow, a
@@ -263,7 +263,7 @@ function HyperbolaPlot(): JSX.Element {
     y: from.y + length * dir.y,
   });
   const extentY = Math.max(...path.map((p) => Math.abs(p.y))) + PATH_MARGIN_RADII;
-  const deltaText = `δ = ${degrees(figure.deltaDeg)}`;
+  const deltaText = `$\\delta$ = ${degrees(figure.deltaDeg)}`;
   /** In the legend: on a phone there is no free corner of the plot for it. */
   const eText = formatNumber(figure.e, { precision: 3 });
   const asymptotes = [
@@ -311,7 +311,7 @@ function HyperbolaPlot(): JSX.Element {
           r_p
         </Label>
         <Label at={{ x: x.range[1], y: y.range[0] }} dx={-8} dy={-10} anchor="end">
-          {`r_p = ${formatNumber(figure.rpRadii, { precision: 2 })} R_J`}
+          {`$r_p$ = ${formatNumber(figure.rpRadii, { precision: 2 })}\u202f$R_\\mathrm{J}$`}
         </Label>
         <Arrow from={px(figure.inArrow.from)} to={px(figure.inArrow.to)} color={TEXT_COLOR} />
         <Arrow from={px(figure.outArrow.from)} to={px(figure.outArrow.to)} color={TEXT_COLOR} />
@@ -352,14 +352,14 @@ function HyperbolaPlot(): JSX.Element {
   return (
     <SvgPlot
       title="Sobrevuelo de la Voyager 2 en el marco de Júpiter, a escala"
-      xLabel="x"
-      xUnit="R_J"
-      yLabel="y"
-      yUnit="R_J"
+      xLabel="$x$"
+      xUnit="$R_\mathrm{J}$"
+      yLabel="$y$"
+      yUnit="$R_\mathrm{J}$"
       series={[
         {
           id: 'trayectoria',
-          label: `Trayectoria de la V2: hipérbola con e = ${eText}`,
+          label: `Trayectoria de la V2: hipérbola con $e$ = ${eText}`,
           points: path,
           color: TEXT_COLOR,
         },
@@ -396,7 +396,7 @@ function triangleDescription(t: VelocityTriangle, name: string): string {
   const base = `Triángulo de velocidades de la Voyager 2 en ${name}: V_p = ${speedText(t.Vp)} y v_∞ = ${speedText(t.vInf)}; vec v_∞ forma ${degrees(t.thetaInDeg)} con vec V_p antes y ${degrees(t.thetaOutDeg)} después, así que |vec v| = |vec V_p + vec v_∞| pasa de ${speedText(t.vIn)} a ${speedText(t.vOut)}: ${signed(t.jump, SPEED_PRECISION, 'km/s')}.`;
   const text = t.isPlanar
     ? base
-    : `${base} Es un giro fuera del plano: el dibujo conserva los ángulos de vec v_∞ con vec V_p, no el giro δ = ${degrees(t.deltaDeg)}.`;
+    : `${base} Es un giro fuera del plano: el dibujo conserva los ángulos de vec v_∞ con vec V_p, no el giro $\\delta$ = ${degrees(t.deltaDeg)}.`;
   return mathTextToString(text);
 }
 
@@ -470,9 +470,9 @@ function TrianglePlot({
   return (
     <SvgPlot
       title={`${name} (V2): ${signed(t.jump, SPEED_PRECISION, 'km/s')}`}
-      xLabel="v_x"
+      xLabel="$v_x$"
       xUnit="km/s"
-      yLabel="v_y"
+      yLabel="$v_y$"
       yUnit="km/s"
       series={[
         { id: `vp-${t.planet}`, label: `$\\vec V_p$ de ${name}`, points: [], color },
@@ -501,9 +501,9 @@ function TrianglePlot({
 
 /** The note under a triangle: |v| before and after, then the recoil or the out-of-plane turn. */
 function triangleNote(t: VelocityTriangle): string {
-  const speeds = `|v| respecto al Sol: ${speedText(t.vIn)} antes y ${speedText(t.vOut)} después.`;
+  const speeds = `$|v|$ respecto al Sol: ${speedText(t.vIn)} antes y ${speedText(t.vOut)} después.`;
   if (!t.isPlanar) {
-    return `${speeds} Giro fuera del plano: el dibujo conserva los ángulos de $\\vec v_\\infty$ con $\\vec V_p$ (${degrees(t.thetaInDeg)} y ${degrees(t.thetaOutDeg)}), no el giro δ = ${degrees(t.deltaDeg)}.`;
+    return `${speeds} Giro fuera del plano: el dibujo conserva los ángulos de $\\vec v_\\infty$ con $\\vec V_p$ (${degrees(t.thetaInDeg)} y ${degrees(t.thetaOutDeg)}), no el giro $\\delta$ = ${degrees(t.deltaDeg)}.`;
   }
   if (t.planet === 'jupiter') {
     const recoil = `$${formatScientific(jupiterRecoil(), 1)}$\u202fm/s`;

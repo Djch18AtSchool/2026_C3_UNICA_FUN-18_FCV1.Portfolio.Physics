@@ -25,10 +25,10 @@ const T_AT_A = 70;
 /** Between two samples while cruising on leg 2, where the laboratory interpolates. */
 const T_BETWEEN = 116.23;
 const TITLES = [
-  'Posición: x(t) y y(t)',
-  'Velocidad: $v_x(t)$, $v_y(t)$ y |v|(t)',
-  'Aceleración: $a_x(t)$, $a_y(t)$ y |a|(t)',
-  'Distancia recorrida frente a |Δr| desde el depósito',
+  'Posición: $x(t)$ y $y(t)$',
+  'Velocidad: $v_x(t)$, $v_y(t)$ y $|v|(t)$',
+  'Aceleración: $a_x(t)$, $a_y(t)$ y $|a|(t)$',
+  'Distancia recorrida frente a $|\\Delta r|$ desde el depósito',
 ];
 
 const plain = (text: string) => text.replace(/\s/g, ' ');
@@ -56,12 +56,12 @@ describe('buildProfiles', () => {
     ]);
     expect(charts.map((chart) => chart.title)).toEqual(TITLES);
     expect(charts.map((chart) => chart.series.map((s) => s.label))).toEqual([
-      ['x', 'y'],
-      ['$v_x$', '$v_y$', '|v|'],
-      ['$a_x$', '$a_y$', '|a|'],
-      ['Distancia recorrida', '|Δr|'],
+      ['$x$', '$y$'],
+      ['$v_x$', '$v_y$', '$|v|$'],
+      ['$a_x$', '$a_y$', '$|a|$'],
+      ['Distancia recorrida', '$|\\Delta r|$'],
     ]);
-    expect(charts[3].readingLabels).toEqual(['Distancia', '|Δr|']);
+    expect(charts[3].readingLabels).toEqual(['Distancia', '$|\\Delta r|$']);
     expect(charts.map((chart) => chart.unit)).toEqual(['m', 'm/s', 'm/s²', 'm']);
     expect(charts[0].yDomain).toEqual({ min: 0, max: 1500 });
     expect(charts[1].yDomain).toEqual({ min: -11.5, max: 11.5 });

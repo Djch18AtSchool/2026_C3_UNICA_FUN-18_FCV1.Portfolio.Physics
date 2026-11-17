@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readoutRow } from '../../../test-readout';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests, setSettings } from '../../../lib/settingsStore';
@@ -109,8 +110,8 @@ describe('TriggerLab', () => {
   test('opens at rest with k = 400 N/m and x₀ = 0, with no transport bar', () => {
     renderLab();
 
-    expect(readout('Desplazamiento x')).toBe('0,0 mm');
-    expect(readout('Fuerza del gatillo F')).toBe('0,00 N');
+    expect(readout('Desplazamiento $x$')).toBe('0,0 mm');
+    expect(readout('Fuerza del gatillo $F$')).toBe('0,00 N');
     expect(kField()).toHaveValue('400');
     expect(startField()).toHaveValue('0');
     expect(lever()).toHaveAttribute('aria-valuemin', '0');
@@ -130,7 +131,7 @@ describe('TriggerLab', () => {
     expect(
       within(region('Escenario')).getByRole('group', { name: 'Valores de referencia' }),
     ).toBeInTheDocument();
-    expect(region('Lecturas')).toContainElement(screen.getByText('Fuerza del gatillo F'));
+    expect(region('Lecturas')).toContainElement(readoutRow('Fuerza del gatillo $F$'));
     expect(container.querySelector('[data-lab-transport]')).toBeNull();
     expect(within(region('Parámetros')).queryByRole('button')).toBe(
       within(region('Parámetros')).queryByRole('button', { name: 'Restablecer' }),
@@ -241,12 +242,12 @@ describe('TriggerLab', () => {
 
     expect(lever()).toHaveAttribute('aria-valuenow', '8');
     expect(lever()).toHaveAttribute('aria-valuetext', expect.stringMatching(/^x = 8,0\smm$/));
-    expect(readout('Desplazamiento x')).toBe('8,0 mm');
-    expect(readout('Fuerza del gatillo F')).toBe('3,20 N');
-    expect(readout('Energía elástica U, resorte ideal')).toBe('12,80 mJ');
-    expect(readout('Trabajo del dedo W')).toBe('12,80 mJ');
+    expect(readout('Desplazamiento $x$')).toBe('8,0 mm');
+    expect(readout('Fuerza del gatillo $F$')).toBe('3,20 N');
+    expect(readout('Energía elástica $U$, resorte ideal')).toBe('12,80 mJ');
+    expect(readout('Trabajo del dedo $W$')).toBe('12,80 mJ');
     act(() => setSettings({ decimals: 1 }));
-    expect(readout('Fuerza del gatillo F')).toBe('3,2 N');
+    expect(readout('Fuerza del gatillo $F$')).toBe('3,2 N');
     expect(document.querySelector('[data-marker]')).not.toBeNull();
   });
 
@@ -262,8 +263,8 @@ describe('TriggerLab', () => {
     expect(midway).toBeLessThan(8);
     advance(RELEASE_BOUND_MS);
 
-    expect(readout('Desplazamiento x')).toBe('0,0 mm');
-    expect(readout('Fuerza del gatillo F')).toBe('0,00 N');
+    expect(readout('Desplazamiento $x$')).toBe('0,0 mm');
+    expect(readout('Fuerza del gatillo $F$')).toBe('0,00 N');
     const calls = request.mock.calls.length;
     advance(1000);
     expect(request.mock.calls.length).toBe(calls);
@@ -311,15 +312,15 @@ describe('TriggerLab', () => {
     lever().focus();
     fireEvent.keyDown(lever(), { key: 'End' });
     advance(1000);
-    expect(readout('Fuerza del gatillo F')).toBe('3,20 N');
+    expect(readout('Fuerza del gatillo $F$')).toBe('3,20 N');
     fireEvent.keyDown(lever(), { key: 'ArrowLeft', shiftKey: true });
-    expect(readout('Desplazamiento x')).toBe('7,0 mm');
+    expect(readout('Desplazamiento $x$')).toBe('7,0 mm');
     fireEvent.keyDown(lever(), { key: 'ArrowRight' });
-    expect(readout('Desplazamiento x')).toBe('7,1 mm');
+    expect(readout('Desplazamiento $x$')).toBe('7,1 mm');
 
     fireEvent.click(releaseButton());
     advance(RELEASE_BOUND_MS);
-    expect(readout('Desplazamiento x')).toBe('0,0 mm');
+    expect(readout('Desplazamiento $x$')).toBe('0,0 mm');
   });
 
   test('with reduced motion the release jumps to rest without animating', () => {
@@ -330,7 +331,7 @@ describe('TriggerLab', () => {
 
     releasePointer();
 
-    expect(readout('Desplazamiento x')).toBe('0,0 mm');
+    expect(readout('Desplazamiento $x$')).toBe('0,0 mm');
     expect(request).not.toHaveBeenCalled();
   });
 
@@ -343,7 +344,7 @@ describe('TriggerLab', () => {
 
     fireEvent.click(releaseButton());
 
-    expect(readout('Desplazamiento x')).toBe('0,0 mm');
+    expect(readout('Desplazamiento $x$')).toBe('0,0 mm');
     expect(request).not.toHaveBeenCalled();
   });
 
@@ -354,13 +355,13 @@ describe('TriggerLab', () => {
     fireEvent.keyDown(lever(), { key: 'End' });
 
     typeInto(kField(), '200');
-    expect(readout('Fuerza del gatillo F')).toBe('1,60 N');
+    expect(readout('Fuerza del gatillo $F$')).toBe('1,60 N');
     typeInto(kField(), '400');
     typeInto(startField(), '3');
 
-    expect(readout('Fuerza del gatillo F')).toBe('2,00 N');
-    expect(readout('Trabajo del dedo W')).toBe('5,00 mJ');
-    expect(readout('Energía elástica U, resorte ideal')).toBe('12,80 mJ');
+    expect(readout('Fuerza del gatillo $F$')).toBe('2,00 N');
+    expect(readout('Trabajo del dedo $W$')).toBe('5,00 mJ');
+    expect(readout('Energía elástica $U$, resorte ideal')).toBe('12,80 mJ');
   });
 
   test('the release stops at rest, never below 0, and sooner when underdamped', () => {
@@ -372,7 +373,7 @@ describe('TriggerLab', () => {
       fireEvent.click(releaseButton());
       const samples: number[] = [];
       while (
-        readout('Desplazamiento x') !== '0,0 mm' &&
+        readout('Desplazamiento $x$') !== '0,0 mm' &&
         samples.length * FRAME_MS < RELEASE_BOUND_MS
       ) {
         advance(FRAME_MS);
@@ -388,7 +389,7 @@ describe('TriggerLab', () => {
     expect(critical.lowest).toBeGreaterThanOrEqual(0);
     expect(underdamped.lowest).toBeGreaterThanOrEqual(0);
     expect(underdamped.frames).toBeLessThan(critical.frames);
-    expect(readout('Desplazamiento x')).toBe('0,0 mm');
+    expect(readout('Desplazamiento $x$')).toBe('0,0 mm');
   });
 
   test('a pointer release starts the return from the release point', () => {
@@ -401,9 +402,9 @@ describe('TriggerLab', () => {
     // Halfway through the 24° turn from rest (−12°) is 0°: straight right of the pivot, 4 mm.
     fireEvent.pointerUp(lever(), { pointerId: 1, clientX: pivot.x + 200, clientY: pivot.y });
 
-    expect(readout('Desplazamiento x')).toBe('4,0 mm');
+    expect(readout('Desplazamiento $x$')).toBe('4,0 mm');
     advance(RELEASE_BOUND_MS);
-    expect(readout('Desplazamiento x')).toBe('0,0 mm');
+    expect(readout('Desplazamiento $x$')).toBe('0,0 mm');
   });
 
   test('"Restablecer" stops a release and restores the defaults', () => {
@@ -418,7 +419,7 @@ describe('TriggerLab', () => {
     advance(RELEASE_BOUND_MS);
 
     expect(kField()).toHaveValue('400');
-    expect(readout('Desplazamiento x')).toBe('0,0 mm');
+    expect(readout('Desplazamiento $x$')).toBe('0,0 mm');
   });
 
   test('the presets set k, x₀ and the damping, and the readouts follow', () => {
@@ -430,13 +431,13 @@ describe('TriggerLab', () => {
     fireEvent.click(preset(/^Resorte tardío/));
     expect(kField()).toHaveValue('400');
     expect(startField()).toHaveValue('3');
-    expect(readout('Fuerza del gatillo F')).toBe('2,00 N');
-    expect(readout('Trabajo del dedo W')).toBe('5,00 mJ');
+    expect(readout('Fuerza del gatillo $F$')).toBe('2,00 N');
+    expect(readout('Trabajo del dedo $W$')).toBe('5,00 mJ');
     expect(preset(/^Resorte tardío/)).toHaveAttribute('aria-pressed', 'true');
 
     fireEvent.click(preset(/^Subamortiguado/));
     expect(startField()).toHaveValue('0');
-    expect(readout('Fuerza del gatillo F')).toBe('3,20 N');
+    expect(readout('Fuerza del gatillo $F$')).toBe('3,20 N');
     expect(damping()).toHaveAttribute('value', 'subamortiguada');
 
     fireEvent.click(preset(/^Resorte ideal/));
@@ -456,17 +457,17 @@ describe('TriggerLab', () => {
     expect(replayButton()).toBeDisabled();
     fireEvent.click(releaseButton());
     advance(RELEASE_BOUND_MS);
-    expect(readout('Desplazamiento x')).toBe('0,0 mm');
+    expect(readout('Desplazamiento $x$')).toBe('0,0 mm');
     expect(replayButton()).toBeEnabled();
 
     fireEvent.click(replayButton());
-    expect(readout('Desplazamiento x')).toBe('3,0 mm');
+    expect(readout('Desplazamiento $x$')).toBe('3,0 mm');
     advance(2 * FRAME_MS);
     const midway = Number(lever().getAttribute('aria-valuenow'));
     expect(midway).toBeGreaterThan(0);
     expect(midway).toBeLessThan(3);
     advance(RELEASE_BOUND_MS);
-    expect(readout('Desplazamiento x')).toBe('0,0 mm');
+    expect(readout('Desplazamiento $x$')).toBe('0,0 mm');
   });
 
   test('"Restablecer" forgets the last release', () => {

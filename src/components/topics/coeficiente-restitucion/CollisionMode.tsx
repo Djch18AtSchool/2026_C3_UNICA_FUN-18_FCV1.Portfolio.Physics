@@ -177,12 +177,12 @@ export function CollisionScene(props: CollisionSceneProps): JSX.Element {
   const centres = boxes.map((box) => box.centre);
   const prime = isAfter ? '′' : '';
   const pRows: BarRow[] = [
-    { label: s.isWall ? 'p_1 antes' : 'p antes', value: o.pBefore, unit: 'kg·m/s' },
-    { label: s.isWall ? 'p_1 después' : 'p después', value: o.pAfter, unit: 'kg·m/s' },
+    { label: s.isWall ? '$p_1$ antes' : '$p$ antes', value: o.pBefore, unit: 'kg·m/s' },
+    { label: s.isWall ? '$p_1$ después' : '$p$ después', value: o.pAfter, unit: 'kg·m/s' },
   ];
   const kRows: BarRow[] = [
-    { label: 'K antes', value: o.kBefore, unit: 'J' },
-    { label: 'K después', value: o.kAfter, unit: 'J', lostUpTo: o.kBefore },
+    { label: '$K$ antes', value: o.kBefore, unit: 'J' },
+    { label: '$K$ después', value: o.kAfter, unit: 'J', lostUpTo: o.kBefore },
   ];
   const height = BARS_TOP + 4 * BAR_ROW + BAR_ROW / 2;
   const wallX = toPx(0);

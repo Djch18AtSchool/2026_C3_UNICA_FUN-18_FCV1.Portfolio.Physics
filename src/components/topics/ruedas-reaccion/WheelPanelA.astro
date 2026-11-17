@@ -64,19 +64,19 @@ const motorBody = cylinder(AXIS_X, MOTOR.top, MOTOR.bottom, MOTOR.rx, MOTOR.ry);
 const rotorBody = cylinder(DM_X, ROTOR.cy, ROTOR.cy + ROTOR.thickness, ROTOR.rx, ROTOR.ry);
 const statorBody = cylinder(DM_X, STATOR.top, STATOR.bottom, STATOR.rx, STATOR.ry);
 
-/** The equations and symbols of the panel in the MathText notation. */
+/** The equations and symbols of the panel, in the site's `$…$` syntax (MathText). */
 const EQ = {
-  lw: 'L_w = I_w ω_w',
-  ls: 'L_s = I_s ω_s',
-  sum: 'L_s + L_w = 0',
-  conservation: 'I_s ω_s + I_w ω_w = constante',
-  angles: 'I_s Δθ_s = −I_w Δθ_w',
-  wheelTorque: 'τ = dL_w/dt = I_w α_w',
-  bodyTorque: '−τ = dL_s/dt = I_s α_s',
-  omegaW: 'ω_w',
-  omegaS: 'ω_s',
-  tau: 'τ',
-  minusTau: '−τ',
+  lw: '$L_w = I_w \\omega_w$',
+  ls: '$L_s = I_s \\omega_s$',
+  sum: '$L_s + L_w = 0$',
+  conservation: '$I_s \\omega_s + I_w \\omega_w = \\text{constante}$',
+  angles: '$I_s \\Delta\\theta_s = -I_w \\Delta\\theta_w$',
+  wheelTorque: '$\\tau = dL_w/dt = I_w \\alpha_w$',
+  bodyTorque: '$-\\tau = dL_s/dt = I_s \\alpha_s$',
+  omegaW: '$\\omega_w$',
+  omegaS: '$\\omega_s$',
+  tau: '$\\tau$',
+  minusTau: '$-\\tau$',
 } as const;
 ---
 
@@ -100,7 +100,7 @@ const EQ = {
     class="wd-axis-head"
     points={arrow({ x: AXIS_X, y: AXIS.top + 20 }, { x: AXIS_X, y: AXIS.top }, 10).head}
   />
-  <MathText source="z" x={AXIS_X - 10} y={AXIS.top + 12} anchor="end" {...LABEL_TEXT} />
+  <MathText source="$z$" x={AXIS_X - 10} y={AXIS.top + 12} anchor="end" {...LABEL_TEXT} />
 
   <!-- Body: top face, front face and the cut that shows the wheel. -->
   <rect
@@ -226,8 +226,8 @@ const EQ = {
   <text class="wd-label wd-strong" x="236" y="616">
     Tercera ley
   </text>
-  <MathText source="τ sobre la rueda," x={236} y={640} {...LABEL_TEXT} />
-  <MathText source="−τ sobre la nave:" x={236} y={662} {...LABEL_TEXT} />
+  <MathText source="$\tau$ sobre la rueda," x={236} y={640} {...LABEL_TEXT} />
+  <MathText source="$-\tau$ sobre la nave:" x={236} y={662} {...LABEL_TEXT} />
   <text class="wd-label" x="236" y="684">
     acción y reacción
   </text>

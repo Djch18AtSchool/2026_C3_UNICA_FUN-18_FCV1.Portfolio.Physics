@@ -25,7 +25,7 @@ export const CORNER = 12;
 export const NOTE_SIZE = 12;
 export const VP_ARROW = 36;
 /** The key beside the V_p arrow, in the MathText notation. */
-export const VP_KEY = 'vec V_p';
+export const VP_KEY = '$\\vec V_p$';
 /** The corner texts' baseline below the corner, and the V_p key's gap to its text. */
 const CORNER_BASELINE = 10;
 const VP_TEXT_GAP = 6;
@@ -34,7 +34,7 @@ const KNOB_LABEL_GAP = 22;
 /** The knob's focus ring (Knob's): what a label keeps clear of, and a reveal leaves around it. */
 export const KNOB_CLEARANCE = FOCUS_RING_RADIUS;
 /** The widest r_p value the frame prints (100 radii): the badge keeps clear of it. */
-const WIDEST_RP_VALUE = 'r_p = 100,00 R_J';
+const WIDEST_RP_VALUE = '$r_p$ = 100,00\u202f$R_\\mathrm{J}$';
 /** The scale bar's baseline is this far above the panel's bottom edge. */
 export const BAR_INSET = 8;
 /**
@@ -44,9 +44,9 @@ export const BAR_INSET = 8;
  */
 const NOTE_LIFT = BAR_INSET + 8 + 6;
 export const NOTE_TEXT = 'planeta agrandado';
-const KNOB_LABEL_TEXT = 'r_p';
-const LABEL_OUT = 'vec v_∞,out';
-const LABEL_IN = 'vec v_∞,in';
+const KNOB_LABEL_TEXT = '$r_p$';
+const LABEL_OUT = '$\\vec v_{\\infty,\\text{out}}$';
+const LABEL_IN = '$\\vec v_{\\infty,\\text{in}}$';
 
 export interface Panel {
   width: number;

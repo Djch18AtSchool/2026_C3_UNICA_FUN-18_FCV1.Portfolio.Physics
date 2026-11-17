@@ -153,8 +153,8 @@ export function readoutsFor(at: BalanceAt, view: RegenView): LabReadout[] {
     precision: isKj ? KJ_PRECISION : KWH_PRECISION,
   });
   return [
-    { id: 'v', label: 'Velocidad v', value: at.v * KMH_PER_MS, unit: 'km/h' },
-    { id: 'p', label: 'Potencia en las ruedas P', value: at.pWheel / W_PER_KW, unit: 'kW' },
+    { id: 'v', label: 'Velocidad $v$', value: at.v * KMH_PER_MS, unit: 'km/h' },
+    { id: 'p', label: 'Potencia en las ruedas $P$', value: at.pWheel / W_PER_KW, unit: 'kW' },
     energy('battery', 'Energía a la batería', '$E_\\text{batería}$', at.eBattery),
     energy('loss', 'Pérdidas de conversión', '$E_\\text{conversión}$', at.eConversionLoss),
     energy('friction', 'Calor de fricción', '$E_\\text{fricción}$', at.eFriction),

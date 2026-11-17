@@ -191,7 +191,7 @@ Solo con <Equation inline latex="P_\text{rueda} < 0" /> hay que frenar: <Equatio
 
 <Step n={3} title="Qué falta: el motor recupera con límites">
 
-El motor pierde al convertir: Boretti reporta, de rueda a batería, del 70 al 80 % en un Leaf 2012 y del 72 al 87 % en uno 2013 <Cite id="boretti-2016" sources={frontmatter.sources} />; uso η = 0,80. La batería llena, fría o caliente reduce la regeneración <Cite id="nissan-leaf-2025-manual" sources={frontmatter.sources} />; en el modelo, baja <Equation inline latex="P_\text{máx}" />. Cerca de detenerse, el motor frena cada vez menos: f(v), de FASTSim 2 <Cite id="fastsim-2-simdrive" sources={frontmatter.sources} />.
+El motor pierde al convertir: Boretti reporta, de rueda a batería, del 70 al 80 % en un Leaf 2012 y del 72 al 87 % en uno 2013 <Cite id="boretti-2016" sources={frontmatter.sources} />; uso $\eta = 0{,}80$. La batería llena, fría o caliente reduce la regeneración <Cite id="nissan-leaf-2025-manual" sources={frontmatter.sources} />; en el modelo, baja <Equation inline latex="P_\text{máx}" />. Cerca de detenerse, el motor frena cada vez menos: f(v), de FASTSim 2 <Cite id="fastsim-2-simdrive" sources={frontmatter.sources} />.
 
 <Equation
   id="ec-frenado-regeneracion"
@@ -309,7 +309,7 @@ La alternativa no física es una constante, «recupera X %»: X va del 12,5 al 4
 
 <Fragment slot="balance">
 
-Se gana una autonomía que responde al ciclo, al auto y a la batería, y saber dónde se pierde cada kWh. Cuesta conocer A, B, C, η y los topes: f(v) usa valores por defecto de FASTSim 2, el reparto es modelado, y sin esos topes el modelo no distingue una batería fría o llena.
+Se gana una autonomía que responde al ciclo, al auto y a la batería, y saber dónde se pierde cada kWh. Cuesta conocer $A$, $B$, $C$, $\eta$ y los topes: f(v) usa valores por defecto de FASTSim 2, el reparto es modelado, y sin esos topes el modelo no distingue una batería fría o llena.
 
 </Fragment>
 

@@ -2,7 +2,7 @@
  * An SVG label with the site's notation: words with formulas between `$…$` (the HTML's syntax,
  * src/lib/inlineMath.ts) or the mini-notation of src/lib/mathNotation.ts. Real sub- and
  * superscripts (tspan, 75 %, shifted with dy), variables in Plex Sans Italic (the letters of a
- * `$…$` and lowercase Greek), the symbols Plex lacks from the sans stack's «Math Symbols» face,
+ * `$…$` and lowercase Greek), the symbols Plex lacks from the sans stack's «Plex Symbols» face,
  * and vectors with an arrow drawn as a <path> over the base letter (never U+20D7). Nothing names
  * a font: the label is in Plex Sans like the page, so no character reaches a fallback font. Usage:
  *

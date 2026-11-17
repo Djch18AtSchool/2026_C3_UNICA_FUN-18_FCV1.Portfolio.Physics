@@ -209,15 +209,15 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
   };
 
   const readouts: LabReadout[] = [
-    { id: 'x', label: 'Desplazamiento x', value: state.xMm, unit: 'mm', precision: X_PRECISION },
-    { id: 'force', label: 'Fuerza del gatillo F', value: readings.force, unit: 'N' },
+    { id: 'x', label: 'Desplazamiento $x$', value: state.xMm, unit: 'mm', precision: X_PRECISION },
+    { id: 'force', label: 'Fuerza del gatillo $F$', value: readings.force, unit: 'N' },
     {
       id: 'energy',
-      label: 'Energía elástica U, resorte ideal',
+      label: 'Energía elástica $U$, resorte ideal',
       value: readings.energy,
       unit: 'mJ',
     },
-    { id: 'work', label: 'Trabajo del dedo W', value: readings.work, unit: 'mJ' },
+    { id: 'work', label: 'Trabajo del dedo $W$', value: readings.work, unit: 'mJ' },
   ];
 
   const params = (

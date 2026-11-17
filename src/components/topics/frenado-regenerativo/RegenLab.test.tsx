@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readoutRow } from '../../../test-readout';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
@@ -42,8 +43,8 @@ const STRETCH_LOSS = 'Pérdidas de conversión en el tramo $E_\\text{conversión
 const STRETCH_RECOVERED = 'Recuperado en el tramo, % del frenado en las ruedas';
 const STRETCH_BARS = 'Energías acumuladas en el tramo, hasta t';
 const CYCLE_BARS = 'Energías acumuladas hasta t';
-const POWER = 'Potencia en las ruedas P';
-const SPEED = 'Velocidad v';
+const POWER = 'Potencia en las ruedas $P$';
+const SPEED = 'Velocidad $v$';
 
 const lab = () => screen.getByTestId('regen-lab');
 const etaSlider = () => screen.getByRole('slider', { name: /^Rendimiento/ });
@@ -292,7 +293,7 @@ describe('RegenLab', () => {
     expect(region('Escenario')).toContainElement(presetSelect());
     expect(shownView()).toHaveAccessibleName('Tramo');
     expect(within(presetSelect()).getAllByRole('option')).toHaveLength(5);
-    expect(region('Lecturas')).toContainElement(screen.getByText(SPEED));
+    expect(region('Lecturas')).toContainElement(readoutRow(SPEED));
     expect(container.querySelector('[data-lab-transport]')).not.toBeNull();
   });
 

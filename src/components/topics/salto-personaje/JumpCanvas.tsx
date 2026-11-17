@@ -30,9 +30,9 @@ export default function JumpCanvas({
     <>
       <SvgPlot
         title="Trayectoria del salto"
-        xLabel="x"
+        xLabel="$x$"
         xUnit="m"
-        yLabel="y"
+        yLabel="$y$"
         yUnit="m"
         series={series}
         xDomain={jumpZoom.domains.x}

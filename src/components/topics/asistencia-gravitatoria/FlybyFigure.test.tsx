@@ -133,9 +133,9 @@ describe('FlybyFigure', () => {
     expect(strokeOf(container, 'escape')).toBe('var(--sun)');
     expect(container.querySelectorAll('[data-dot]').length).toBeGreaterThan(40);
     expect(screen.getByText(`Afelio: 6,29 UA, 6,21 km/s`)).toBeInTheDocument();
-    expect(screen.getByText('r (UA)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('r (UA)'))).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /épsilon = −121,7/ })).toBeInTheDocument();
-    expect(mathSourceText(legend)).toContain('Escape, $\\sqrt{2GM_\\odot/r}$: ε = 0');
+    expect(mathSourceText(legend)).toContain('Escape, $\\sqrt{2GM_\\odot/r}$: $\\varepsilon = 0$');
   });
 
   test('hiperbola: the V2 path in Jupiter frame with r_p, e and δ, and equal v∞ arrows', () => {
@@ -144,9 +144,9 @@ describe('FlybyFigure', () => {
     expect(container.querySelector('[data-planet="jupiter"]')?.getAttribute('fill')).toBe(
       'var(--jupiter)',
     );
-    expect(screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' })).toHaveTextContent(
-      'hipérbola con e = 1,330',
-    );
+    expect(
+      mathSourceText(screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' })),
+    ).toContain('hipérbola con $e$ = 1,330');
     expect(screen.getByText(svgText('δ = 97,5°'))).toBeInTheDocument();
     expect(screen.getByText(svgText('rp = 10,09 RJ'))).toBeInTheDocument();
     expect(screen.getAllByText(svgText('v∞'))).toHaveLength(2);

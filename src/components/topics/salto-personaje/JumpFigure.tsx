@@ -49,7 +49,7 @@ function seriesFor(
   return { id: presetId, label, points, color: worldForPreset(presetId).color };
 }
 
-const AXES = { xLabel: 't', xUnit: 's', yLabel: 'y', yUnit: 'm' } as const;
+const AXES = { xLabel: '$t$', xUnit: 's', yLabel: '$y$', yUnit: 'm' } as const;
 
 function FreeFall(): JSX.Element {
   const earth = verticalJump(IMPULSE, G_EARTH);

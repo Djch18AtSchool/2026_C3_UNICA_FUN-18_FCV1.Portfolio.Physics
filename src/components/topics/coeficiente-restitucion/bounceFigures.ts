@@ -92,7 +92,7 @@ export function apexPoints(h0: number, e: number, g: number, count: number): Ape
   const { heights, flightTimes } = bounceSeries(h0, e, g, count);
   const ends = impactTimes(h0, e, g, count);
   return heights.map((h, n) => {
-    const shortLabel = `h_${n} = ${comma(h, 2)}`;
+    const shortLabel = `$h_{${n}}$ = ${comma(h, 2)}`;
     return {
       n,
       t: n === 0 ? 0 : ends[n - 1] + flightTimes[n] / 2,

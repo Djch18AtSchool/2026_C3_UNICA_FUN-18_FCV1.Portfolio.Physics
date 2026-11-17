@@ -40,9 +40,9 @@ describe('RegenFigure', () => {
     const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
     expect(mathSourceText(legend)).toContain('Energía cinética $K = \\tfrac12 m v^2$');
-    expect(legend).toHaveTextContent('Frenadas: K baja');
-    expect(screen.getByText('Tiempo t (s)')).toBeInTheDocument();
-    expect(screen.getByText('Energía cinética K (kJ)')).toBeInTheDocument();
+    expect(mathSourceText(legend)).toContain('Frenadas: $K$ baja');
+    expect(screen.getByText(svgText('Tiempo t (s)'))).toBeInTheDocument();
+    expect(screen.getByText(svgText('Energía cinética K (kJ)'))).toBeInTheDocument();
     expect(screen.getByText('−202 kJ en 12 s')).toBeInTheDocument();
     expect(strokeOf(container, 'k')).toBe('var(--chart-1)');
     expect(strokeOf(container, 'frenadas')).toBe('var(--fg)');
@@ -78,7 +78,7 @@ describe('RegenFigure', () => {
     }
     expect(strokeOf(container, 'total')).toBe('var(--fg)');
     expect(strokeOf(container, 'lineal')).not.toBe('var(--chart-6)');
-    expect(screen.getByText('Velocidad v (m/s)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('Velocidad v (m/s)'))).toBeInTheDocument();
     expect(screen.getByText(svgText('Cv2 = A a 21,0 m/s'))).toBeInTheDocument();
   });
 
@@ -100,7 +100,7 @@ describe('RegenFigure', () => {
     expect(strokeOf(container, 'freno')).toBe('var(--chart-4)');
     expect(container.querySelector('[data-series="sin-fv"]')).toHaveAttribute('stroke-dasharray');
     expect(container.querySelectorAll('[data-area]')).toHaveLength(3);
-    expect(screen.getByText('Potencia P (kW)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('Potencia P (kW)'))).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /224\skJ/ })).toBeInTheDocument();
   });
 
@@ -116,6 +116,6 @@ describe('RegenFigure', () => {
       .map(Number);
 
     expect(height / width).toBeGreaterThan(wide[3] / wide[2]);
-    expect(screen.getByText('Tiempo t (s)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('Tiempo t (s)'))).toBeInTheDocument();
   });
 });
