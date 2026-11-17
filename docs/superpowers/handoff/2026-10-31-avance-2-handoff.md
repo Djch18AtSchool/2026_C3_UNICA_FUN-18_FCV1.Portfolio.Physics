@@ -1865,6 +1865,17 @@ en el lugar donde estaba:
   `chip` desaparecen); vista y ciclo (Tema 6), compuesto (Tema 4) y amortiguación (Tema 5) pasan del cajón
   al nivel 2. Nada se pega a la ventana: `lab-split`, `--lab-transport-room*` y `useFitsInWindow` se fueron.
   El «dock» (P4) queda como opción documentada, no hecha.
+- **E5 (fase E, ronda de arreglos de E1 y E3)**, informe en `task-E5-report.md` de la misma carpeta: la ayuda del
+  Tema 6 promete «Evento anterior / siguiente» solo en «Ciclo» con dos detenciones o más; el «Modo» del Tema 7 vive solo
+  en el escenario (el cajón en «Choque» queda con «Repetir»); su nota de cámara lenta nombra el selector de velocidad; en
+  el teléfono la línea del evento reserva los 44 px del par (el Tema 6 ya no salta 4 px de «Tramo» a «Ciclo»); el
+  selector «1×▾» mide 70 px (`pl-2 pr-6`, flecha a 8 px); con el texto al 200 % (raíz de 32 px) las franjas del zoom de
+  los Temas 3, 8 y 9 no salen de la tarjeta (punto de corte en rem; ya pasaba en `5ff337e`). **Barrido tipográfico**:
+  toda letra que nombra una magnitud y quedaba recta (prosa, pies, notas de preajuste y de conexión, etiquetas, ejes,
+  tablas) va entre `$…$`, sin cambiar palabras, con una guardia unitaria nueva (`src/content/looseSymbols.test.ts`,
+  README «Notación matemática»). La lista completa de textos tocados, para que Dylan la lea, está en el informe. Las
+  fórmulas conservan el peso del texto (medido y descartado fijarlas en 400: −74 KiB por página, pero la cursiva fina
+  desentona en cabeceras y rótulos en 500/600; capturas en `shots/E5/`).
 
 - **Estado de la fase D:** cerrada en `fase-d` (`8d91641`, sin empujar); ver «Fase D cerrada». Falta la
   puerta del controlador, las revisiones finales de la rama, el CI y `git push origin fase-d:main`
