@@ -23,6 +23,7 @@ import {
   presetIdFor,
   tyreReadings,
   type TyreLabState,
+  type TyreReadings,
 } from './tyreLabModel';
 import { PlotPoints } from '../../lab/PlotPoints';
 import {
@@ -48,15 +49,81 @@ const COMPOUND_OPTIONS = COMPOUNDS.map((compound) => ({
 const DRAG_HINT =
   'Arrastra el cursor de cada gráfica, o enfócalo y muévelo con las flechas (1 % del eje; con Mayús, 10 %).';
 
+interface PlotProps {
+  state: TyreLabState;
+}
+
+/** The scene: μ(T) over the compound's 2019 window, its cursor bound to T. */
+function TemperaturePlot({
+  state,
+  mu,
+  decimals,
+  onTemperature,
+}: PlotProps & { mu: number; decimals: number; onTemperature(t: number): void }) {
+  return (
+    <div data-testid="tyre-temperature-plot">
+      <SvgPlot
+        aspectRatio={STAGE_PLOT_ASPECT}
+        title="Coeficiente de agarre $\mu$ frente a la temperatura"
+        {...temperaturePlot(state.compound)}
+        cursor={{
+          x: state.t,
+          onChange: onTemperature,
+          label: (t) => `T = ${formatNumber(t, { precision: 0, unit: TEMPERATURE_AXIS.unit })}`,
+        }}
+        marker={{ x: state.t, y: mu }}
+        ariaLabel={mathTextToString(
+          `μ(T) del compuesto ${state.compound}: a ${formatNumber(state.t, { precision: 0 })} °C, μ = ${formatNumber(mu, { precision: decimals })}.`,
+        )}
+      />
+    </div>
+  );
+}
+
+/** The support plot after the readouts: the peak lateral force of both models, its cursor bound to F_z. */
+function LoadPlot({
+  state,
+  readings,
+  onLoad,
+}: PlotProps & { readings: TyreReadings; onLoad(fz: number): void }) {
+  return (
+    <div data-testid="tyre-load-plot">
+      <SvgPlot
+        aspectRatio={STAGE_PLOT_ASPECT}
+        title="Fuerza lateral máxima frente a la carga vertical"
+        {...loadPlot(readings.factor)}
+        cursor={{
+          x: state.fz,
+          onChange: onLoad,
+          label: (fz) => `F_z = ${formatNumber(fz, { precision: 0, unit: LOAD_AXIS.unit })}`,
+        }}
+        overlay={(scales) => (
+          <PlotPoints
+            scales={scales}
+            points={[
+              { id: 'lineal', x: state.fz, y: readings.linear, color: LINEAR_COLOR },
+              { id: 'real', x: state.fz, y: readings.real, color: REAL_COLOR },
+            ]}
+          />
+        )}
+        ariaLabel={mathTextToString(
+          `A ${formatNumber(state.fz, { precision: 0, unit: 'N' })}, el modelo lineal da ${formatNumber(readings.linear, { precision: 0, unit: 'N' })} y el de sensibilidad a la carga, ${formatNumber(readings.real, { precision: 0, unit: 'N' })}.`,
+        )}
+      />
+    </div>
+  );
+}
+
 export interface TyreLabProps {
   /** «Qué deja fuera el modelo», written in the topic's MDX so it travels with its text. */
   leftOut?: string;
 }
 
 /**
- * Tema 4's laboratory on LabShell, with no clock: two stacked plots, each with a draggable
- * cursor (temperature, which reads μ(T) over the chosen compound's 2019 window, and load, which
- * reads the linear and the load-sensitive peak lateral force), the parameters T and F_z bound to
+ * Tema 4's laboratory on LabShell, with no clock: two plots, each with a draggable cursor
+ * (temperature, the scene, which reads μ(T) over the chosen compound's 2019 window; and load, a
+ * support plot after the readouts, which reads the linear and the load-sensitive peak lateral
+ * force), the parameters T and F_z bound to
  * those cursors, the compound and the presets from the topic's numbers as the scenario, and the
  * readouts μ(T), F_y (both) and μ efectivo. Nothing of its own in the drawer.
  * The load curves are multiplied by μ(T)/μ_pico, so moving the temperature moves them too.
@@ -140,49 +207,14 @@ export default function TyreLab({ leftOut }: TyreLabProps): JSX.Element {
       notes={{ usage: [DRAG_HINT], leftOut: leftOut ? [leftOut] : [] }}
       onReset={() => setState(INITIAL_TYRE_STATE)}
       testId="tyre-lab"
+      charts={<LoadPlot state={state} readings={readings} onLoad={onLoad} />}
     >
-      <div className="flex flex-col gap-6">
-        <div data-testid="tyre-temperature-plot">
-          <SvgPlot
-            aspectRatio={STAGE_PLOT_ASPECT}
-            title="Coeficiente de agarre $\mu$ frente a la temperatura"
-            {...temperaturePlot(state.compound)}
-            cursor={{
-              x: state.t,
-              onChange: onTemperature,
-              label: (t) => `T = ${formatNumber(t, { precision: 0, unit: TEMPERATURE_AXIS.unit })}`,
-            }}
-            marker={{ x: state.t, y: readings.mu }}
-            ariaLabel={mathTextToString(
-              `μ(T) del compuesto ${state.compound}: a ${formatNumber(state.t, { precision: 0 })} °C, μ = ${formatNumber(readings.mu, { precision: decimals })}.`,
-            )}
-          />
-        </div>
-        <div data-testid="tyre-load-plot">
-          <SvgPlot
-            aspectRatio={STAGE_PLOT_ASPECT}
-            title="Fuerza lateral máxima frente a la carga vertical"
-            {...loadPlot(readings.factor)}
-            cursor={{
-              x: state.fz,
-              onChange: onLoad,
-              label: (fz) => `F_z = ${formatNumber(fz, { precision: 0, unit: LOAD_AXIS.unit })}`,
-            }}
-            overlay={(scales) => (
-              <PlotPoints
-                scales={scales}
-                points={[
-                  { id: 'lineal', x: state.fz, y: readings.linear, color: LINEAR_COLOR },
-                  { id: 'real', x: state.fz, y: readings.real, color: REAL_COLOR },
-                ]}
-              />
-            )}
-            ariaLabel={mathTextToString(
-              `A ${formatNumber(state.fz, { precision: 0, unit: 'N' })}, el modelo lineal da ${formatNumber(readings.linear, { precision: 0, unit: 'N' })} y el de sensibilidad a la carga, ${formatNumber(readings.real, { precision: 0, unit: 'N' })}.`,
-            )}
-          />
-        </div>
-      </div>
+      <TemperaturePlot
+        state={state}
+        mu={readings.mu}
+        decimals={decimals}
+        onTemperature={onTemperature}
+      />
     </LabShell>
   );
 }

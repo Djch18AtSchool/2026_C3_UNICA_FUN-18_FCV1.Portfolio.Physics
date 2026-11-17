@@ -30,13 +30,13 @@ const SEAM_COLOR = 'var(--bg-elevated)';
 const HANDLE_COLOR = TEXT_COLOR;
 
 /**
- * The scene is never wider than this, which is also the viewBox width the server (and jsdom) draw
- * before the container is measured. Its height does not follow its width (only a wrapped subtitle
- * adds lines), so the svg's box takes the drawing's height in px: the server's box is already as
- * tall as the hydrated one, with the 400 px drawing fitted inside until React measures the stage.
+ * The viewBox width the server (and jsdom) draw before the container is measured: the scene takes
+ * the canvas's whole width (no cap since E1: the two columns, ideal and engine, spread over it).
+ * Its height does not follow its width (only a wrapped subtitle adds lines, and none wraps from
+ * 320 px of canvas), so the svg's box takes the drawing's height in px: the server's box is
+ * already as tall as the hydrated one, with this drawing fitted inside until React measures it.
  */
-const MAX_WIDTH = 400;
-const FALLBACK_WIDTH = MAX_WIDTH;
+const FALLBACK_WIDTH = 720;
 const HEIGHT = 300;
 const BALL_RADIUS = 9;
 const MARGIN = { left: 44, right: 12, bottom: 80 } as const;
@@ -378,11 +378,7 @@ export default function BounceScene(props: BounceSceneProps): JSX.Element {
   const statusTop = floorY + STATUS_GAP + extraLines * STATUS_LINE;
 
   return (
-    <div
-      ref={wrapperRef}
-      className={`mx-auto w-full ${CANVAS_INSET}`}
-      style={{ maxWidth: MAX_WIDTH }}
-    >
+    <div ref={wrapperRef} className={`w-full ${CANVAS_INSET}`}>
       <svg
         data-testid="bounce-scene"
         viewBox={`0 0 ${width} ${geo.height}`}

@@ -207,8 +207,8 @@ function WheelParams({ settings, set }: WheelParamsProps): JSX.Element {
  * "Maniobra" turns the body rest to rest by a dragged target θ in T seconds, in real time, with
  * the warning when T < T_min; "Perturbación y descarga" holds the body still for three days of
  * gravity-gradient torque, time-lapsed (DAY_LAPSE), dumping from 80 % of L_max (a design choice)
- * with the magnetorquer or the thruster. Readouts, the L_w/L_max gauge and the L_w(t) plot follow
- * the clock.
+ * with the magnetorquer or the thruster. Readouts, the L_w/L_max gauge and the L_w(t) plot (a
+ * support plot after the readouts) follow the clock.
  */
 export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element {
   const [settings, setSettings] = useState<WheelSettings>(DEFAULT_SETTINGS);
@@ -314,6 +314,17 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
       }}
       onReset={onReset}
       testId="wheel-lab"
+      charts={
+        display.showPlot ? (
+          <WheelPlot
+            settings={settings}
+            t={t}
+            frame={clock.frame}
+            orbitTimeAt={toOrbitTime}
+            onSeek={seekOrbit}
+          />
+        ) : undefined
+      }
     >
       <div className="flex flex-col gap-4">
         <WheelScene
@@ -346,15 +357,6 @@ export default function WheelLab({ usage, leftOut }: WheelLabProps): JSX.Element
             onGoToDump={() => clock.seek(firstDumpPlayback(warp))}
           />
         </div>
-        {display.showPlot ? (
-          <WheelPlot
-            settings={settings}
-            t={t}
-            frame={clock.frame}
-            orbitTimeAt={toOrbitTime}
-            onSeek={seekOrbit}
-          />
-        ) : null}
       </div>
     </LabShell>
   );

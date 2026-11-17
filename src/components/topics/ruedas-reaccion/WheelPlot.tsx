@@ -23,8 +23,6 @@ const Y_GRAIN = 10;
 /** The maneuver's cursor, in seconds; the disturbance's, in hours, takes the global decimals. */
 const CURSOR_PRECISION = 1;
 const GAP: SeriesPoint = { x: Number.NaN, y: Number.NaN };
-/** The plot is never wider than the dial above it: its 400 px and the frame's padding. */
-const PLOT_MAX_WIDTH = 440;
 
 export interface WheelPlotProps {
   settings: WheelSettings;
@@ -126,7 +124,8 @@ export default function WheelPlot({
       : 'L_w respecto de L_máx durante tres días: rampas del gradiente de gravedad hasta el umbral del 80 % y caídas de la descarga, con L_máx en rojo.',
   );
   return (
-    <div className="mx-auto w-full" style={{ maxWidth: PLOT_MAX_WIDTH }}>
+    // A support plot after the readouts, at the canvas's width (no longer under the 400 px dial).
+    <div className="w-full">
       <SvgPlot
         title="Momento de la rueda frente al tiempo"
         xLabel="t"

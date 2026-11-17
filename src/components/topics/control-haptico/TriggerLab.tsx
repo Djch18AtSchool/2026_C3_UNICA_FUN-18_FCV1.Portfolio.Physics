@@ -23,6 +23,7 @@ import {
   triggerPresetIdFor,
   triggerReadings,
   type Damping,
+  type TriggerReadings,
 } from './triggerScene';
 import { useTriggerRelease } from './useTriggerRelease';
 
@@ -128,10 +129,47 @@ function ReleaseActions({
   );
 }
 
+interface ForcePlotProps {
+  spring: { k: number; x0Mm: number };
+  xMm: number;
+  readings: TriggerReadings;
+  decimals: number;
+}
+
+/**
+ * The support plot after the readouts: F–x with the ideal spring and the trigger's profile, a
+ * marker at x and a ring where the ideal spring is at the same x.
+ */
+function ForcePlot({ spring, xMm, readings, decimals }: ForcePlotProps): JSX.Element {
+  return (
+    <div data-testid="trigger-plot">
+      <SvgPlot
+        aspectRatio={STAGE_PLOT_ASPECT}
+        title="Fuerza frente al desplazamiento del gatillo"
+        {...labPlot(spring)}
+        marker={{ x: xMm, y: readings.force }}
+        overlay={(scales) => (
+          <circle
+            data-point="hooke"
+            cx={scales.x.toPx(xMm)}
+            cy={scales.y.toPx(readings.hooke)}
+            r={HOOKE_RING}
+            fill="none"
+            stroke={HOOKE_COLOR}
+            strokeWidth={2}
+            className="pointer-events-none"
+          />
+        )}
+        ariaLabel={`A ${formatNumber(xMm, { precision: X_PRECISION, unit: 'mm' })}, el gatillo empuja con ${formatNumber(readings.force, { precision: decimals, unit: 'N' })} y el resorte ideal, con ${formatNumber(readings.hooke, { precision: decimals, unit: 'N' })}.`}
+      />
+    </div>
+  );
+}
+
 /**
  * Tema 5's laboratory on LabShell, with no clock: a lever on a pivot pressed through 0–8 mm
- * (pointer, touch or keys), the F–x plot with the ideal spring and the trigger's piecewise
- * profile and a live marker, k and x₀ as main parameters, presets from the text's examples and the
+ * (pointer, touch or keys) as the scene, the F–x plot with the ideal spring and the trigger's
+ * piecewise profile and a live marker after the readouts, k and x₀ as main parameters, presets from the text's examples and the
  * readouts x, F, U and W. Let go, the lever returns with the kernel's damped spring (critical or
  * underdamped, chosen in the scenario beside the presets); "Repetir retorno" replays the last
  * release from its start. Nothing of its own in the drawer.
@@ -246,6 +284,14 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
       notes={{ usage: [USAGE], leftOut: leftOut ? [leftOut] : [] }}
       onReset={onReset}
       testId="trigger-lab"
+      charts={
+        <ForcePlot
+          spring={spring}
+          xMm={state.xMm}
+          readings={readings}
+          decimals={settings.decimals}
+        />
+      }
     >
       <div className="flex flex-col gap-4">
         <div className="relative">
@@ -269,27 +315,6 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
             if (state.lastReleaseMm !== undefined) letGo(state.lastReleaseMm);
           }}
         />
-        <div data-testid="trigger-plot">
-          <SvgPlot
-            aspectRatio={STAGE_PLOT_ASPECT}
-            title="Fuerza frente al desplazamiento del gatillo"
-            {...labPlot(spring)}
-            marker={{ x: state.xMm, y: readings.force }}
-            overlay={(scales) => (
-              <circle
-                data-point="hooke"
-                cx={scales.x.toPx(state.xMm)}
-                cy={scales.y.toPx(readings.hooke)}
-                r={HOOKE_RING}
-                fill="none"
-                stroke={HOOKE_COLOR}
-                strokeWidth={2}
-                className="pointer-events-none"
-              />
-            )}
-            ariaLabel={`A ${formatNumber(state.xMm, { precision: X_PRECISION, unit: 'mm' })}, el gatillo empuja con ${formatNumber(readings.force, { precision: settings.decimals, unit: 'N' })} y el resorte ideal, con ${formatNumber(readings.hooke, { precision: settings.decimals, unit: 'N' })}.`}
-          />
-        </div>
       </div>
     </LabShell>
   );

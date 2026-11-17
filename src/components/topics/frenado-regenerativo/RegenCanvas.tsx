@@ -49,16 +49,47 @@ function useCanvasLive(
 }
 
 /**
- * The lab's canvas: the minimap, the scene with its time-scale badge, the energy bars and the
- * energy plot. In «Tramo» the bars count from the stretch's start and the energy cursor stays
- * inside the stretch (the view changes only from the drawer). One t on screen, the cycle's: the
- * cursor reads it as the transport does through its timeOrigin, with the same unit and decimals.
+ * The lab's canvas, the scene first: the minimap and the scene with its time-scale badge. Its
+ * energies (the bars and the plot) are the support plots under the readouts (RegenCharts).
  */
 export default function RegenCanvas(props: RegenCanvasProps): JSX.Element {
   const { view, cycleId, cycle, steps, distances, stretch, timing, clock, at } = props;
+  const isStretch = view === 'tramo';
+  const { live, minimapLive } = useCanvasLive(clock, steps, distances, timing.offset);
+  return (
+    <div className="flex flex-col gap-3">
+      <CycleMinimap
+        samples={cycle.samples}
+        stops={STOPS[cycleId]}
+        stretch={isStretch ? stretch : undefined}
+        cycleName={cycle.name}
+        live={minimapLive}
+      />
+      <RegenScene
+        at={at}
+        live={live}
+        totalDistance={distances[distances.length - 1]}
+        road={roadRange(view, stretch, steps, distances)}
+        vehicleName={props.vehicleName}
+        cycleName={cycle.name}
+        decimals={props.decimals}
+        timeScale={<TimeScaleBadge clock={clock} />}
+      />
+    </div>
+  );
+}
+
+/**
+ * The scene's energies, after the readouts: the bars and the energy plot. In «Tramo» the bars
+ * count from the stretch's start and the energy cursor stays inside the stretch. One t on screen,
+ * the cycle's: the cursor reads it as the transport does through its timeOrigin, with the same
+ * unit and decimals.
+ */
+export function RegenCharts(props: RegenCanvasProps): JSX.Element {
+  const { view, steps, distances, stretch, timing, clock, at } = props;
   const { offset } = timing;
   const isStretch = view === 'tramo';
-  const { toCycle, live, minimapLive } = useCanvasLive(clock, steps, distances, offset);
+  const { toCycle } = useCanvasLive(clock, steps, distances, offset);
   const scale = useMemo(
     () => energyScale(view, stretch, steps, distances),
     [view, stretch, steps, distances],
@@ -67,26 +98,7 @@ export default function RegenCanvas(props: RegenCanvasProps): JSX.Element {
   const seekCycle = (cycleT: number) =>
     clock.seek(viewInstant(cycleT, isStretch ? stretch : undefined) - offset);
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
-        <CycleMinimap
-          samples={cycle.samples}
-          stops={STOPS[cycleId]}
-          stretch={isStretch ? stretch : undefined}
-          cycleName={cycle.name}
-          live={minimapLive}
-        />
-        <RegenScene
-          at={at}
-          live={live}
-          totalDistance={distances[distances.length - 1]}
-          road={roadRange(view, stretch, steps, distances)}
-          vehicleName={props.vehicleName}
-          cycleName={cycle.name}
-          decimals={props.decimals}
-          timeScale={<TimeScaleBadge clock={clock} />}
-        />
-      </div>
+    <>
       <EnergyBars at={shownBalance(at, view, stretch, steps, distances)} scale={scale} />
       <RegenEnergyPlot
         steps={steps}
@@ -99,6 +111,6 @@ export default function RegenCanvas(props: RegenCanvasProps): JSX.Element {
         cursorLabel={(x) => transportTimeText(x, timing.duration, 's')}
         stretch={isStretch ? stretch : undefined}
       />
-    </div>
+    </>
   );
 }

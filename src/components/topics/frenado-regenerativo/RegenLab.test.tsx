@@ -414,8 +414,23 @@ describe('RegenLab', () => {
     expect(notes).toHaveTextContent('La barra del frenado en las ruedas se reparte');
     expect(notes.querySelector('button, a, input, select, [tabindex]')).toBeNull();
     expect(canvas.querySelector('[aria-label="Leyenda del flujo de potencia"]')).toBeNull();
-    expect(canvas).toHaveTextContent(STRETCH_BARS);
     expect(canvas).not.toHaveTextContent('El grosor es proporcional');
+  });
+
+  test('scene first: the canvas is the minimap and the scene; the energies follow the readouts', () => {
+    const { container } = renderLab();
+    const canvas = container.querySelector('[data-lab-canvas]') as HTMLElement;
+    const charts = container.querySelector('[data-lab-charts]') as HTMLElement;
+
+    expect(within(canvas).getByTestId('regen-minimap')).toBeInTheDocument();
+    expect(within(canvas).getByTestId('regen-scene')).toBeInTheDocument();
+    expect(canvas).not.toHaveTextContent(STRETCH_BARS);
+    expect(charts).toHaveTextContent(STRETCH_BARS);
+    expect(within(charts).getByTestId('regen-energy-plot')).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: 'Lecturas' }).compareDocumentPosition(charts) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   test('the drawings keep their height until they measure: fixed scene, SvgPlot-reserved plot, bars by container', () => {

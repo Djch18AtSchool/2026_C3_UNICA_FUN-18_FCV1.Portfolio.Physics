@@ -269,14 +269,14 @@ describe('WheelLab', () => {
     expect(scene().getAttribute('viewBox')).toBe('0 0 400 400');
   });
 
-  test('the plot is at most 440 px wide, under the dial, and reserves the phone aspect it draws there', () => {
+  test('the plot, after the readouts, takes the canvas width and reserves both of its aspects', () => {
     renderLab();
     const plot = screen.getByTestId('wheel-plot');
     const wrapper = plot.parentElement as HTMLElement;
     const plotSvg = plot.querySelector('svg[role="img"]') as SVGSVGElement;
 
-    expect(wrapper.style.maxWidth).toBe('440px');
-    // 440 px less the frame is under SvgPlot's 480 px switch: the compact 1,25 always.
+    // No longer under the 400 px dial: no cap of its own.
+    expect(wrapper.style.maxWidth).toBe('');
     expect(plotSvg.style.getPropertyValue('--plot-aspect-compact')).toBe('1.25');
     expect(plotSvg.style.getPropertyValue('--plot-aspect-wide')).toBe('1.6');
   });
@@ -627,5 +627,18 @@ describe('WheelLab', () => {
     await user.click(screen.getByRole('button', { name: 'Restablecer' }));
     expect(handle()).toHaveAttribute('aria-valuenow', '90');
     expect(durationField()).toHaveValue('60');
+  });
+
+  test('scene first: the L_w(t) plot follows the readouts, out of the canvas', () => {
+    const { container } = renderLab();
+    const canvas = container.querySelector('[data-lab-canvas]') as HTMLElement;
+    const charts = container.querySelector('[data-lab-charts]') as HTMLElement;
+
+    expect(within(canvas).queryByTestId('wheel-plot')).toBeNull();
+    expect(within(charts).getByTestId('wheel-plot')).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: 'Lecturas' }).compareDocumentPosition(charts) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });

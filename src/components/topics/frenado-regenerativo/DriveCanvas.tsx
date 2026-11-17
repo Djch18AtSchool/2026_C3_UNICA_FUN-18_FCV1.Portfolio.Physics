@@ -74,10 +74,10 @@ function useDriveLive(props: DriveCanvasProps) {
 }
 
 /**
- * The canvas of «Conducir»: the minimap with the stretch, the scene with your car, the cycle's car
- * as a dashed outline and the stop line, the pedals with the status line, your speed against the
- * cycle's, and your energies on the scale of the cycle's stretch. The flows, the phase, the bars and
- * the readouts follow your run at the clock's settled time; the cars and the pedals, every frame.
+ * The canvas of «Conducir», the scene first: the minimap with the stretch, the scene with your car,
+ * the cycle's car as a dashed outline and the stop line, and the pedals with the status line. The
+ * flows and the phase follow your run at the clock's settled time; the cars and the pedals, every
+ * frame. Your speed against the cycle's and your energies are the support plots (DriveCharts).
  */
 export default function DriveCanvas(props: DriveCanvasProps): JSX.Element {
   const { cycleId, cycle, steps, distances, stretch, course, clock, session } = props;
@@ -85,44 +85,53 @@ export default function DriveCanvas(props: DriveCanvasProps): JSX.Element {
   const own = driveBalance(session.settled, course);
   const reference = referenceAt(steps, distances, course, t);
   const live = useDriveLive(props);
+  const reserve = useMemo(() => longestSummary(course, cycle.name), [course, cycle.name]);
+  return (
+    <div className="flex flex-col gap-3">
+      <CycleMinimap
+        samples={cycle.samples}
+        stops={STOPS[cycleId]}
+        stretch={stretch}
+        cycleName={cycle.name}
+        live={live.minimap}
+      />
+      <RegenScene
+        at={own}
+        live={live.own}
+        ghost={live.ghost}
+        totalDistance={distances[distances.length - 1]}
+        road={driveRoad(course)}
+        vehicleName={props.vehicleName}
+        cycleName={cycle.name}
+        decimals={props.decimals}
+        timeScale={<TimeScaleBadge clock={clock} />}
+        caption={driveSceneCaption(own, reference, course, cycle.name)}
+      />
+      <DrivePedals
+        frame={clock.frame}
+        liveAt={session.liveAt}
+        version={session.run}
+        press={session.press}
+        release={session.release}
+        releaseAll={session.releaseAll}
+        message={statusText(props)}
+        reserve={reserve}
+      />
+    </div>
+  );
+}
+
+/** «Conducir»'s support plots: your speed against the cycle's, and your energies on the scale of the cycle's stretch. */
+export function DriveCharts(props: DriveCanvasProps): JSX.Element {
+  const { cycle, steps, distances, stretch, course, clock, session } = props;
+  const t = clock.state.t;
+  const own = driveBalance(session.settled, course);
   const stretchAxis = useMemo(
     () => energyScale('tramo', stretch, steps, distances).axisMax,
     [stretch, steps, distances],
   );
-  const reserve = useMemo(() => longestSummary(course, cycle.name), [course, cycle.name]);
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
-        <CycleMinimap
-          samples={cycle.samples}
-          stops={STOPS[cycleId]}
-          stretch={stretch}
-          cycleName={cycle.name}
-          live={live.minimap}
-        />
-        <RegenScene
-          at={own}
-          live={live.own}
-          ghost={live.ghost}
-          totalDistance={distances[distances.length - 1]}
-          road={driveRoad(course)}
-          vehicleName={props.vehicleName}
-          cycleName={cycle.name}
-          decimals={props.decimals}
-          timeScale={<TimeScaleBadge clock={clock} />}
-          caption={driveSceneCaption(own, reference, course, cycle.name)}
-        />
-        <DrivePedals
-          frame={clock.frame}
-          liveAt={session.liveAt}
-          version={session.run}
-          press={session.press}
-          release={session.release}
-          releaseAll={session.releaseAll}
-          message={statusText(props)}
-          reserve={reserve}
-        />
-      </div>
+    <>
       <DriveSpeedPlot
         samples={cycle.samples}
         course={course}
@@ -131,6 +140,6 @@ export default function DriveCanvas(props: DriveCanvasProps): JSX.Element {
         t={t}
       />
       <EnergyBars at={own} scale={driveEnergyScale(own, stretchAxis)} />
-    </div>
+    </>
   );
 }

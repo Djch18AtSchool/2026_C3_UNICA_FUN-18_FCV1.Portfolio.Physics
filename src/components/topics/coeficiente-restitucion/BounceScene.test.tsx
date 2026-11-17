@@ -112,17 +112,26 @@ describe('BounceScene before it measures its width (the server, and the lab stag
     vi.unstubAllGlobals();
   });
 
-  test('draws the scene at the width it is capped to, in a box as tall as the drawing', () => {
+  test('draws the scene at a typical lab width, in a box as tall as the drawing, with no cap', () => {
     vi.stubGlobal('ResizeObserver', undefined);
     render(<BounceScene {...PROPS} />);
     const svg = screen.getByTestId('bounce-scene');
 
-    expect(viewBoxOf(svg)).toEqual([0, 0, 400, 300]);
+    expect(viewBoxOf(svg)).toEqual([0, 0, 720, 300]);
     expect(svg.getAttribute('height')).toBe('300');
-    expect((svg.parentElement as HTMLElement).style.maxWidth).toBe('400px');
+    expect((svg.parentElement as HTMLElement).style.maxWidth).toBe('');
   });
 
-  test('a stage narrower than the cap: the box keeps the drawing’s height, whatever its width', () => {
+  test('a wide canvas: the scene takes its whole width (766 px at 1 280), the height stays', () => {
+    stubResizeObserver(766);
+    render(<BounceScene {...PROPS} />);
+    const svg = screen.getByTestId('bounce-scene');
+
+    expect(viewBoxOf(svg)).toEqual([0, 0, 766, 300]);
+    expect(svg.getAttribute('height')).toBe('300');
+  });
+
+  test('a narrow stage: the box keeps the drawing’s height, whatever its width', () => {
     for (const width of [250, 360]) {
       stubResizeObserver(width);
       render(<BounceScene {...PROPS} />);

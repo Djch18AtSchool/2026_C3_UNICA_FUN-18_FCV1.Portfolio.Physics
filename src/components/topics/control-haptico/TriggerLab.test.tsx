@@ -493,4 +493,18 @@ describe('TriggerLab', () => {
       /empuja el dedo con 3,2\sN\.$/,
     );
   });
+
+  test('scene first: the F–x plot follows the readouts, out of the canvas', () => {
+    const { container } = renderLab();
+    const canvas = container.querySelector('[data-lab-canvas]') as HTMLElement;
+    const charts = container.querySelector('[data-lab-charts]') as HTMLElement;
+
+    expect(within(canvas).queryByTestId('trigger-plot')).toBeNull();
+    expect(within(charts).getByTestId('trigger-plot')).toBeInTheDocument();
+    expect(within(canvas).getByTestId('trigger-lever')).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: 'Lecturas' }).compareDocumentPosition(charts) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
 });

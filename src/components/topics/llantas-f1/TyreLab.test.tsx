@@ -309,4 +309,18 @@ describe('TyreLab', () => {
     expect(readout('Coeficiente efectivo $\\mu$')).toBe('1,6');
     expect(readout('Fuerza lateral real $F_y$')).toBe('6 400 N');
   });
+
+  test('scene first: the load plot follows the readouts, out of the canvas', () => {
+    const { container } = renderLab();
+    const canvas = container.querySelector('[data-lab-canvas]') as HTMLElement;
+    const charts = container.querySelector('[data-lab-charts]') as HTMLElement;
+
+    expect(within(canvas).queryByTestId('tyre-load-plot')).toBeNull();
+    expect(within(charts).getByTestId('tyre-load-plot')).toBeInTheDocument();
+    expect(within(canvas).getByTestId('tyre-temperature-plot')).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: 'Lecturas' }).compareDocumentPosition(charts) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
 });

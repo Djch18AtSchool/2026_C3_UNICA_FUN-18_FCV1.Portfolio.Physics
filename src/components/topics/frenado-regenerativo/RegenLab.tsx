@@ -5,7 +5,7 @@ import { cycleBalance } from '../../../lib/physics/energy';
 import LabPresets from '../../lab/LabPresets';
 import LabShell from '../../lab/LabShell';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
-import RegenCanvas from './RegenCanvas';
+import RegenCanvas, { RegenCharts } from './RegenCanvas';
 import ChoiceField from '../../lab/ChoiceField';
 import { SelectField } from '../../lab/SettingsFields';
 import {
@@ -29,7 +29,7 @@ import {
 import { balanceAt, cumulativeDistance } from './regenScene';
 import { BRAKING_PAD_S } from './regenFigures';
 import { readoutsFor, shownBalance, viewMarkers } from './regenViews';
-import DriveCanvas from './DriveCanvas';
+import DriveCanvas, { DriveCharts } from './DriveCanvas';
 import { DRIVE_LEFT_OUT, DRIVE_USAGE } from './driveText';
 import { DRIVE_CARS, DRIVE_COURSES, driveBalance, driveReadouts, referenceAt } from './driveViews';
 import { useDriveSession } from './useDriveSession';
@@ -171,8 +171,19 @@ function labReadouts(lab: RegenLabModel) {
   return driveReadouts(own, reference, course, cycle.name);
 }
 
-/** The canvas of the view: the cycle played («Tramo», «Ciclo») or driven («Conducir»). */
-function LabCanvas({ lab, decimals }: { lab: RegenLabModel; decimals: number }): JSX.Element {
+/**
+ * The canvas of the view (the cycle played in «Tramo» and «Ciclo», or driven in «Conducir»), or,
+ * with `part="charts"`, its support plots: the energies, and in «Conducir» the speeds too.
+ */
+function LabCanvas({
+  lab,
+  decimals,
+  part = 'scene',
+}: {
+  lab: RegenLabModel;
+  decimals: number;
+  part?: 'scene' | 'charts';
+}): JSX.Element {
   const { view, state, steps, distances, stretch } = lab;
   const shared = {
     cycleId: state.cycle,
@@ -185,8 +196,9 @@ function LabCanvas({ lab, decimals }: { lab: RegenLabModel; decimals: number }):
   };
   if (view === 'conducir') {
     const { course, model, session } = lab.drive;
+    const Drive = part === 'scene' ? DriveCanvas : DriveCharts;
     return (
-      <DriveCanvas
+      <Drive
         {...shared}
         course={course}
         regen={model.regen}
@@ -195,7 +207,8 @@ function LabCanvas({ lab, decimals }: { lab: RegenLabModel; decimals: number }):
       />
     );
   }
-  return <RegenCanvas {...shared} view={view} timing={lab.timing} clock={lab.clock} at={lab.at} />;
+  const Played = part === 'scene' ? RegenCanvas : RegenCharts;
+  return <Played {...shared} view={view} timing={lab.timing} clock={lab.clock} at={lab.at} />;
 }
 
 /**
@@ -221,6 +234,7 @@ export default function RegenLab({ usage, leftOut }: RegenLabProps): JSX.Element
       // «Conducir» says its own summary on a pause (useDriveSession): said once, not twice.
       announceReadouts={lab.view !== 'conducir'}
       levels={regenLevels(lab)}
+      charts={<LabCanvas lab={lab} decimals={decimals} part="charts" />}
       canvasNotes={<RegenNotes view={lab.view} />}
       notes={{
         usage: [VIEW_HINT, CURSOR_HINT, FADE_HINT, DRIVE_USAGE, ...(usage ? [usage] : [])],
