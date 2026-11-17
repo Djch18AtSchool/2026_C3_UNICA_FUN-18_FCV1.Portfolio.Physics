@@ -34,7 +34,7 @@ export function jumpSeries(
       : []),
     {
       id: 'live',
-      label: `${world.name}, g = ${gravityText(settings.g)}`,
+      label: `${world.name}, $g$ = ${gravityText(settings.g)}`,
       points: toXY(live),
       color: world.color,
     },

@@ -54,7 +54,7 @@ export default function JumpDesigner({ current, onApply }: JumpDesignerProps) {
         Diseñar el salto
         <span className="font-normal text-fg-muted">
           {' '}
-          · <InlineMath text="altura y tiempo al ápice $\to$ g y $v_0$" />
+          · <InlineMath text="altura y tiempo al ápice $\to$ $g$ y $v_0$" />
         </span>
       </h3>
       <div className="flex flex-wrap items-end gap-x-4 gap-y-3">

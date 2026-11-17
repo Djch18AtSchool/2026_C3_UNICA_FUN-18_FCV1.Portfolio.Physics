@@ -30,9 +30,9 @@ describe('JumpFigure', () => {
     const { container } = render(<JumpFigure variant="gravedades" />);
     const legend = screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' });
 
-    expect(legend).toHaveTextContent('Tierra, g = 9,81 m/s²');
-    expect(legend).toHaveTextContent('Super Mario Bros., g = 28,1 m/s²');
-    expect(legend).toHaveTextContent('Celeste, g = 112,5 m/s²');
+    expect(mathSourceText(legend)).toContain('Tierra, $g$ = 9,81 m/s²');
+    expect(mathSourceText(legend)).toContain('Super Mario Bros., $g$ = 28,1 m/s²');
+    expect(mathSourceText(legend)).toContain('Celeste, $g$ = 112,5 m/s²');
     expect(strokeOf(container, 'tierra')).toBe('var(--chart-1)');
     expect(strokeOf(container, 'super-mario-bros')).toBe('var(--chart-3)');
     expect(strokeOf(container, 'celeste')).toBe('var(--chart-4)');
@@ -90,7 +90,7 @@ describe('JumpFigure', () => {
     const design = render(<JumpFigure variant="diseno" />);
     expect(
       mathSourceText(screen.getByRole('toolbar', { name: 'Leyenda: realzar una serie' })),
-    ).toContain('Celeste: g = 112,5 m/s², $v_0$ = 13,1 m/s');
+    ).toContain('Celeste: $g$ = 112,5 m/s², $v_0$ = 13,1 m/s');
     expect(design.container.querySelector('svg[role="img"]')?.getAttribute('aria-label')).toContain(
       't sub h',
     );

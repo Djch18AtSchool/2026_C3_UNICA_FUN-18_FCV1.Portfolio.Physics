@@ -77,7 +77,7 @@ function Gravities(): JSX.Element {
       {...AXES}
       title={`El mismo impulso, ${String(IMPULSE).replace('.', ',')} m/s, con tres gravedades`}
       series={jumps.map(({ id, g, result }) =>
-        seriesFor(id, `${worldForPreset(id).name}, g = ${gravity(g)}`, heightOverTime(result)),
+        seriesFor(id, `${worldForPreset(id).name}, $g$ = ${gravity(g)}`, heightOverTime(result)),
       )}
       ariaLabel={`Altura y(t) con el mismo impulso: ${jumps
         .map(
@@ -158,7 +158,7 @@ function Design(): JSX.Element {
   const celeste = verticalJump(CELESTE_JUMP.v0, CELESTE_JUMP.g);
   const mario = verticalJump(SMB.v0, SMB.g);
   const label = (id: string, settings: JumpSettings) =>
-    `${worldForPreset(id).name}: g = ${gravity(settings.g)}, $v_0$ = ${String(settings.v0).replace('.', ',')} m/s`;
+    `${worldForPreset(id).name}: $g$ = ${gravity(settings.g)}, $v_0$ = ${String(settings.v0).replace('.', ',')} m/s`;
   return (
     <SvgPlot
       {...AXES}

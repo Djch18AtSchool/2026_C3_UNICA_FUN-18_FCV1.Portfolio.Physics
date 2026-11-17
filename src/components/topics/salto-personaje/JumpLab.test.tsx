@@ -72,7 +72,7 @@ describe('JumpLab', () => {
     expect(readout('Tiempo en el aire')).toBe('0,23 s');
     expect(readout('Alcance')).toBe('2,62 m');
     expect(mathSourceText(document.body)).toMatch(/Referencia terrestre, \$g\$ = 9,81/);
-    expect(screen.getByText(/^Celeste, g = 112,50/)).toBeInTheDocument();
+    expect(mathSourceText(document.body)).toMatch(/Celeste, \$g\$ = 112,50/);
   });
 
   test('dragging the launch-vector handle upwards raises v0 and the maximum height', () => {
