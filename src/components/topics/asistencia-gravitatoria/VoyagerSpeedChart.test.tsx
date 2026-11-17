@@ -56,8 +56,8 @@ describe('VoyagerSpeedChart', () => {
     );
     expect(container.querySelector('[data-series="v2"]')?.getAttribute('stroke')).toBe('var(--fg)');
     expect(container.querySelector('[data-series="solo-sol-r"]')).not.toBeNull();
-    expect(screen.getByText('|v| (km/s)')).toBeInTheDocument();
-    expect(screen.getByText('r (UA)')).toBeInTheDocument();
+    expect(screen.getByText(svgText('|v| (km/s)'))).toBeInTheDocument();
+    expect(screen.getByText(svgText('r (UA)'))).toBeInTheDocument();
   });
 
   test('a legend names every line; the footnote explains Δ|v| and leaves the source to the Figure', () => {
@@ -123,7 +123,7 @@ describe('VoyagerSpeedChart', () => {
     expect(screen.getByText(`+10,2 km/s`)).toBeInTheDocument();
     expect(screen.getByText(svgText('t − tMA (d)'))).toHaveAttribute(
       'data-notation',
-      't − t_{MA} (d)',
+      String.raw`$t - t_\text{MA}$ (d)`,
     );
     expect(plexViolations(container)).toEqual([]);
     expect(screen.getByTestId('voyager-detail-numbers')).toHaveTextContent(

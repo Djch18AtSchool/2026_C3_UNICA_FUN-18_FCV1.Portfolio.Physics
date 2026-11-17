@@ -203,12 +203,12 @@ const VoyagerDetailPlot = memo(function VoyagerDetailPlot({
           <SeriesPath spec={DETAIL_LINES.v2} points={detail.speed} scales={scales} />
           <Annotations detail={detail} geometry={geometry} />
         </g>
-        <YAxis area={area} ticks={yTicks} scale={y} title="|v| (km/s)" />
+        <YAxis area={area} ticks={yTicks} scale={y} title="$|v|$ (km/s)" />
         <XAxis
           area={area}
           ticks={ticks}
           scale={x}
-          title="t − t_{MA} (d)"
+          title="$t - t_\text{MA}$ (d)"
           viewWidth={geometry.width}
         />
       </g>

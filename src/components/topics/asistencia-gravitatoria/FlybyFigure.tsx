@@ -460,7 +460,7 @@ function TrianglePlot({
         <Arrow from={origin} to={px(t.outTip)} color={TEXT_COLOR} />
         <Arrow from={origin} to={vpTip} color={color} />
         <Label at={px({ x: t.Vp / 2, y: 0 })} dx={0} dy={18} anchor="middle">
-          {`V_p ${speedNumber(t.Vp)}`}
+          {`$V_p$ ${speedNumber(t.Vp)}`}
         </Label>
         {tipLabel(t.inTip, t.vIn)}
         {tipLabel(t.outTip, t.vOut)}

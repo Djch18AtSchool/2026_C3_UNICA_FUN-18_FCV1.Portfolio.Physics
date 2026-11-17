@@ -41,10 +41,10 @@ export default function FlybyComparison({
 
   const kms = (value: number) => formatNumber(value, { precision: decimals, unit: 'km/s' });
   const rows = [
-    { label: '|v| antes', model: kms(result.vIn), data: kms(encounter.conicBefore) },
-    { label: '|v| después', model: kms(result.vOut), data: kms(encounter.conicAfter) },
+    { label: '$|v|$ antes', model: kms(result.vIn), data: kms(encounter.conicBefore) },
+    { label: '$|v|$ después', model: kms(result.vOut), data: kms(encounter.conicAfter) },
     {
-      label: 'Δ|v|',
+      label: '$\\Delta|v|$',
       model: signed(result.vOut - result.vIn, decimals, 'km/s'),
       data: signed(encounter.conicAfter - encounter.conicBefore, decimals, 'km/s'),
     },
@@ -73,7 +73,7 @@ export default function FlybyComparison({
           {rows.map((row) => (
             <tr key={row.label} className="border-b border-border">
               <th scope="row" className="px-2 py-1 text-left font-normal text-fg-muted">
-                {row.label}
+                <InlineMath text={row.label} />
               </th>
               <td className={CELL}>{row.model}</td>
               <td className={CELL}>{row.data}</td>

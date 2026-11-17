@@ -42,14 +42,14 @@ const plain = (text: string | null | undefined) => (text ?? '').replace(/\s/g, '
 const readoutValue = (label: string) =>
   Number((/^[−\d,]+/.exec(readout(label))?.[0] ?? 'NaN').replace(',', '.').replace('−', '-'));
 
-const DELTA_V = 'Ganancia de rapidez Δ|v|';
+const DELTA_V = String.raw`Ganancia de rapidez $\Delta|v|$`;
 const TURN = 'Ángulo de giro $\\delta$';
 const ALL_READOUTS = [
   'Excentricidad $e$',
   TURN,
   String.raw`Cambio de velocidad $|\Delta \vec v|$`,
-  '|v| antes, marco del Sol',
-  '|v| después, marco del Sol',
+  '$|v|$ antes, marco del Sol',
+  '$|v|$ después, marco del Sol',
   DELTA_V,
 ];
 
@@ -170,8 +170,8 @@ describe('FlybyLab', () => {
 
     expect(readout('Excentricidad $e$')).toBe('1,330');
     expect(readout(TURN)).toBe('97,5°');
-    expect(readout('|v| antes, marco del Sol')).toBe('9,59 km/s');
-    expect(readout('|v| después, marco del Sol')).toBe('19,53 km/s');
+    expect(readout('$|v|$ antes, marco del Sol')).toBe('9,59 km/s');
+    expect(readout('$|v|$ después, marco del Sol')).toBe('19,53 km/s');
     expect(readout(DELTA_V)).toBe('9,94 km/s');
     expect(presetSelect()).toHaveValue('v2-jupiter');
     expect(rpField()).toHaveValue('10,09');
@@ -288,11 +288,11 @@ describe('FlybyLab', () => {
     const table = comparison();
     const rows = within(table)
       .getAllByRole('row')
-      .map((row) => plain(row.textContent));
+      .map((row) => plain(mathSourceText(row)));
     expect(within(table).getByRole('columnheader', { name: 'Modelo plano' })).toBeInTheDocument();
     expect(within(table).getByRole('columnheader', { name: /^Dato/ })).toBeInTheDocument();
-    expect(rows).toContain('Δ|v|+9,94 km/s+9,91 km/s');
-    expect(rows).toContain('|v| después19,53 km/s19,50 km/s');
+    expect(rows).toContain(String.raw`$\Delta|v|$+9,94 km/s+9,91 km/s`);
+    expect(rows).toContain('$|v|$ después19,53 km/s19,50 km/s');
   });
 
   test('closer is not always more: 2 R_J beats the real r_p, 100 R_J falls short', async () => {
@@ -320,7 +320,7 @@ describe('FlybyLab', () => {
 
     await user.click(screen.getByRole('radio', { name: 'delante' }));
 
-    expect(readout('|v| después, marco del Sol')).toBe('6,76 km/s');
+    expect(readout('$|v|$ después, marco del Sol')).toBe('6,76 km/s');
     expect(readoutValue(DELTA_V)).toBeLessThan(0);
   });
 
@@ -430,8 +430,8 @@ describe('FlybyLab', () => {
     ).toBeInTheDocument();
     const rows = within(comparison())
       .getAllByRole('row')
-      .map((row) => plain(row.textContent));
-    expect(rows).toContain('Δ|v|−4,91 km/s−2,13 km/s');
+      .map((row) => plain(mathSourceText(row)));
+    expect(rows).toContain(String.raw`$\Delta|v|$−4,91 km/s−2,13 km/s`);
     expect(screen.getByRole('radio', { name: 'delante' })).toBeChecked();
     expect(rpField()).toHaveValue('1,18');
   });

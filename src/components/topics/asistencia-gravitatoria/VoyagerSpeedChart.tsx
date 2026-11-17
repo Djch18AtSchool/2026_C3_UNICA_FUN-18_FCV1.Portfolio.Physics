@@ -49,7 +49,7 @@ const ANNOUNCE_DELAY_MS = 750;
 const TITLE = 'Rapidez de las Voyager respecto al Sol, 1977–1990';
 /** The source line goes in the page's Figure (VOYAGER_CHART_SOURCE); the footnote says how Δ|v| is measured. */
 const FOOTNOTE =
-  'Cada salto Δ|v| es la diferencia de rapidez que daría solo el Sol a la distancia del encuentro con la energía de la sonda 120 días antes y 120 días después (vis-viva).';
+  'Cada salto $\\Delta|v|$ es la diferencia de rapidez que daría solo el Sol a la distancia del encuentro con la energía de la sonda 120 días antes y 120 días después (vis-viva).';
 
 const BUTTON_BASE =
   'inline-flex min-h-10 items-center gap-2 rounded-base border px-3 py-2 text-sm font-medium transition-colors';

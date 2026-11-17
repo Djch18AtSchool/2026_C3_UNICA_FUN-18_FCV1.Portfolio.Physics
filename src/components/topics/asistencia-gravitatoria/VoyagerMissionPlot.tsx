@@ -146,7 +146,7 @@ function SpeedPanel({ geometry, clipId }: { geometry: MissionGeometry; clipId: s
         <SeriesPath spec={MISSION_LINES.escape} points={speed.escape} scales={scales} />
         <SeriesPath spec={MISSION_LINES.v2} points={speed.v2} scales={scales} />
       </g>
-      <YAxis area={area} ticks={SPEED_TICKS} scale={scales.y} title="|v| (km/s)" />
+      <YAxis area={area} ticks={SPEED_TICKS} scale={scales.y} title="$|v|$ (km/s)" />
       <XAxis area={area} ticks={ticks} scale={x} viewWidth={geometry.width} />
     </g>
   );
@@ -169,7 +169,7 @@ function DistancePanel({ geometry, clipId }: { geometry: MissionGeometry; clipId
         <SeriesPath spec={inDistance(MISSION_LINES.v1)} points={distance.v1} scales={scales} />
         <SeriesPath spec={inDistance(MISSION_LINES.v2)} points={distance.v2} scales={scales} />
       </g>
-      <YAxis area={area} ticks={DISTANCE_TICKS} scale={scales.y} title="r (UA)" />
+      <YAxis area={area} ticks={DISTANCE_TICKS} scale={scales.y} title="$r$ (UA)" />
       <XAxis area={area} ticks={ticks} scale={x} title="Fecha (año)" viewWidth={geometry.width} />
     </g>
   );
