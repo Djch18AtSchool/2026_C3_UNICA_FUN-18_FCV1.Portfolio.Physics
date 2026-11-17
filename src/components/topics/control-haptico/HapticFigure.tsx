@@ -123,7 +123,7 @@ function EnergyArea({ scales }: { scales: { x: Scale; y: Scale } }): JSX.Element
         fillOpacity={AREA_OPACITY}
       />
       <Label at={centroid} dx={0} dy={AREA_LABEL_DROP} anchor="middle">
-        {`U = ${formatNumber(bottom.energy, { precision: 1, unit: 'mJ' })}`}
+        {`$U$ = ${formatNumber(bottom.energy, { precision: 1, unit: 'mJ' })}`}
       </Label>
     </g>
   );

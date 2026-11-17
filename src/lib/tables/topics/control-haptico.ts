@@ -51,7 +51,7 @@ const VIBRATION: DataTableSpec = {
     },
     {
       key: 'spring',
-      label: `Resorte de ${SPRING_LABEL}, k x`,
+      label: `Resorte de ${SPRING_LABEL}, $k x$`,
       unit: 'N',
       align: 'num',
       precision: 1,
@@ -63,7 +63,7 @@ const VIBRATION: DataTableSpec = {
     spring: triggerReadings(IDEAL_SPRING, x).hooke,
   })),
   source: {
-    text: `Cálculo propio con las ecuaciones (5.1) y (5.2); recorrido de ${TRAVEL_LABEL}, k y $F_0$ ilustrativos`,
+    text: `Cálculo propio con las ecuaciones (5.1) y (5.2); recorrido de ${TRAVEL_LABEL}, $k$ y $F_0$ ilustrativos`,
   },
 };
 
@@ -76,20 +76,20 @@ function energyRow(point: string, x: number) {
 const BOTTOM_M = TRIGGER_TRAVEL_MM / MM_PER_M;
 const BOTTOM = triggerReadings(IDEAL_SPRING, TRIGGER_TRAVEL_MM);
 const BOTTOM_SUBSTITUTION = [
-  `F = ${IDEAL_SPRING.k} · ${formatNumber(BOTTOM_M, { precision: 3 })} = ${newtons(BOTTOM.hooke)} N`,
-  `U = ½ · ${IDEAL_SPRING.k} · ${formatNumber(BOTTOM_M, { precision: 3 })}² = ${formatNumber(BOTTOM.energy / MILLIJOULES_PER_JOULE, { precision: 4 })} J = ${formatNumber(BOTTOM.energy, { precision: 1 })} mJ`,
+  `$F$ = ${IDEAL_SPRING.k} · ${formatNumber(BOTTOM_M, { precision: 3 })} = ${newtons(BOTTOM.hooke)} N`,
+  `$U$ = ½ · ${IDEAL_SPRING.k} · ${formatNumber(BOTTOM_M, { precision: 3 })}² = ${formatNumber(BOTTOM.energy / MILLIJOULES_PER_JOULE, { precision: 4 })} J = ${formatNumber(BOTTOM.energy, { precision: 1 })} mJ`,
 ].join(' y ');
 
 const ENERGY: DataTableSpec = {
   id: 'control-haptico-energia',
-  caption: `Resorte ideal de ${SPRING_LABEL} a mitad del recorrido y al fondo, donde ${BOTTOM_SUBSTITUTION}; el trabajo de la propia fuerza elástica vale −U (Módulo 2, Tema 03, concepto 03).`,
+  caption: `Resorte ideal de ${SPRING_LABEL} a mitad del recorrido y al fondo, donde ${BOTTOM_SUBSTITUTION}; el trabajo de la propia fuerza elástica vale $-U$ (Módulo 2, Tema 03, concepto 03).`,
   columns: [
     { key: 'point', label: 'Punto del recorrido', align: 'text' },
     { key: 'x', label: 'Desplazamiento $x$', unit: 'mm', align: 'num', precision: 0 },
     { key: 'force', label: 'Fuerza, $k x$', unit: 'N', align: 'num', precision: 1 },
     {
       key: 'energy',
-      label: 'Energía guardada, U = ½ k x²',
+      label: 'Energía guardada, $U = \\tfrac12 k x^2$',
       unit: 'mJ',
       align: 'num',
       precision: 1,
@@ -104,7 +104,7 @@ const ENERGY: DataTableSpec = {
   ],
   rows: [energyRow('A mitad', MID_MM), energyRow('Al fondo', TRIGGER_TRAVEL_MM)],
   source: {
-    text: `Cálculo propio con la ecuación (5.2); resorte ideal según Serway y Jewett (2018), fuente 5; k y recorrido de ${TRAVEL_LABEL} ilustrativos`,
+    text: `Cálculo propio con la ecuación (5.2); resorte ideal según Serway y Jewett (2018), fuente 5; $k$ y recorrido de ${TRAVEL_LABEL} ilustrativos`,
   },
 };
 
@@ -118,14 +118,14 @@ const TRIGGER: DataTableSpec = {
   caption: `Fuerza del perfil y trabajo del dedo al fondo, a ${TRAVEL_LABEL}, en dos preajustes del laboratorio, con valores ilustrativos.`,
   columns: [
     { key: 'preset', label: 'Preajuste', align: 'text' },
-    { key: 'k', label: 'k', unit: 'N/m', align: 'num', precision: 0 },
+    { key: 'k', label: '$k$', unit: 'N/m', align: 'num', precision: 0 },
     { key: 'x0', label: '$x_0$', unit: 'mm', align: 'num', precision: 0 },
-    { key: 'force', label: 'F al fondo', unit: 'N', align: 'num', precision: 1 },
+    { key: 'force', label: '$F$ al fondo', unit: 'N', align: 'num', precision: 1 },
     { key: 'work', label: 'Trabajo del dedo al fondo', unit: 'mJ', align: 'num', precision: 1 },
   ],
   rows: [IDEAL, LATE].map(triggerRow),
   source: {
-    text: `Cálculo propio con las ecuaciones (5.2) y (5.4) sobre src/lib/physics/spring.ts; recorrido supuesto de ${TRAVEL_LABEL}; k y $x_0$ ilustrativos`,
+    text: `Cálculo propio con las ecuaciones (5.2) y (5.4) sobre src/lib/physics/spring.ts; recorrido supuesto de ${TRAVEL_LABEL}; $k$ y $x_0$ ilustrativos`,
   },
 };
 
@@ -141,11 +141,11 @@ const APPLE_API_URL =
 /** The modes of GCDualSenseAdaptiveTrigger (fuente 2) and how the topic reads each as an F(x). */
 const MODES: DataTableSpec = {
   id: 'control-haptico-modos',
-  caption: `Los cuatro modos con que la API de Apple programa el gatillo adaptativo del DualSense y cómo leo cada uno como una fuerza F(x). Posiciones e intensidades van de 0 a 1, sin milímetros ni newtons; según la ingeniería inversa de Klein, el firmware recibe la resistencia en ${FIRMWARE_ZONES} zonas del recorrido, cada una con una intensidad entera de 0 a ${FIRMWARE_MAX_INTENSITY}, y la pendiente se redondea a esa escalera.`,
+  caption: `Los cuatro modos con que la API de Apple programa el gatillo adaptativo del DualSense y cómo leo cada uno como una fuerza $F(x)$. Posiciones e intensidades van de 0 a 1, sin milímetros ni newtons; según la ingeniería inversa de Klein, el firmware recibe la resistencia en ${FIRMWARE_ZONES} zonas del recorrido, cada una con una intensidad entera de 0 a ${FIRMWARE_MAX_INTENSITY}, y la pendiente se redondea a esa escalera.`,
   columns: [
     { key: 'mode', label: 'Modo', align: 'text', minWidthCh: 12 },
     { key: 'parameters', label: 'Parámetros de la API', align: 'text', minWidthCh: 18 },
-    { key: 'shape', label: 'Forma de F(x)', align: 'text', minWidthCh: 18 },
+    { key: 'shape', label: 'Forma de $F(x)$', align: 'text', minWidthCh: 18 },
     { key: 'equation', label: 'Ecuación del sitio', align: 'text', minWidthCh: 14 },
   ],
   rows: [
@@ -175,7 +175,7 @@ const MODES: DataTableSpec = {
     },
   ],
   source: {
-    text: 'Modos y parámetros: Apple, GCDualSenseAdaptiveTrigger, fuente 2; zonas e intensidades del firmware: ingeniería inversa de Klein (2022), fuente 6; lectura como F(x): del autor',
+    text: 'Modos y parámetros: Apple, GCDualSenseAdaptiveTrigger, fuente 2; zonas e intensidades del firmware: ingeniería inversa de Klein (2022), fuente 6; lectura como $F(x)$: del autor',
     url: APPLE_API_URL,
   },
 };

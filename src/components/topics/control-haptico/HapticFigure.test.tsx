@@ -3,6 +3,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
+import { svgText } from '../../../test-svg-text';
 import HapticFigure from './HapticFigure';
 
 const strokeOf = (container: HTMLElement, id: string) =>
@@ -57,7 +58,7 @@ describe('HapticFigure', () => {
     const { container } = render(<HapticFigure variant="hooke" />);
 
     expect(container.querySelector('[data-area="energia"]')).not.toBeNull();
-    expect(screen.getByText('U = 12,8 mJ')).toBeInTheDocument();
+    expect(screen.getByText(svgText('U = 12,8 mJ'))).toBeInTheDocument();
     expect(screen.getByText('1,6 N')).toBeInTheDocument();
     expect(screen.getByText('3,2 N')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /12,8 mJ/ })).toBeInTheDocument();
@@ -67,7 +68,7 @@ describe('HapticFigure', () => {
     stubWidth(340);
     render(<HapticFigure variant="hooke" />);
 
-    expect(screen.getByText('U = 12,8 mJ')).toBeInTheDocument();
+    expect(screen.getByText(svgText('U = 12,8 mJ'))).toBeInTheDocument();
   });
 
   test.each(['vibracion', 'hooke', 'tercera-ley'] as const)(

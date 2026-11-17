@@ -269,7 +269,7 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
   const canvasNotes = (
     <p className="m-0 text-sm text-fg-muted">
       <InlineMath
-        text={`$U = \\tfrac12 k x^2$ es la energía elástica del resorte ideal en el x actual; $W = \\tfrac12 k (x - x_0)^2$, el área bajo el perfil, es el trabajo del dedo contra el gatillo, que el actuador absorbe en lugar de guardarlo. La flecha F es la fuerza del gatillo sobre el dedo, a escala; el aro marca el resorte ideal en el mismo x. Al soltarla, la palanca vuelve ${SLOW_MOTION} veces más lenta que el retorno calculado, para que se vea, y se detiene en el tope del reposo.`}
+        text={`$U = \\tfrac12 k x^2$ es la energía elástica del resorte ideal en el $x$ actual; $W = \\tfrac12 k (x - x_0)^2$, el área bajo el perfil, es el trabajo del dedo contra el gatillo, que el actuador absorbe en lugar de guardarlo. La flecha $F$ es la fuerza del gatillo sobre el dedo, a escala; el aro marca el resorte ideal en el mismo $x$. Al soltarla, la palanca vuelve ${SLOW_MOTION} veces más lenta que el retorno calculado, para que se vea, y se detiene en el tope del reposo.`}
       />
     </p>
   );

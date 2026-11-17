@@ -36,7 +36,7 @@ describe('control-haptico tables', () => {
     expect(header).toEqual([
       'Desplazamiento $x$ (mm)',
       'Vibración fija, amplitud $F_0$ (N)',
-      'Resorte de 400 N/m, k x (N)',
+      'Resorte de 400 N/m, $k x$ (N)',
     ]);
     expect(rows).toEqual([
       ['2', '1,6', '0,8'],
@@ -51,7 +51,7 @@ describe('control-haptico tables', () => {
     expect(caption.replace(/\s/g, ' ')).toContain(
       '$F_0$ = 1,6 N es un supuesto del modelo, igual a la fuerza del resorte a 4 mm',
     );
-    expect(source.text).toContain('recorrido de 8 mm, k y $F_0$ ilustrativos');
+    expect(source.text).toContain('recorrido de 8 mm, $k$ y $F_0$ ilustrativos');
   });
 
   test('energia: 1,6 N and 3,2 N, 12,8 mJ stored at the bottom and −12,8 mJ of work by the spring', () => {
@@ -61,7 +61,7 @@ describe('control-haptico tables', () => {
       'Punto del recorrido',
       'Desplazamiento $x$ (mm)',
       'Fuerza, $k x$ (N)',
-      'Energía guardada, U = ½ k x² (mJ)',
+      String.raw`Energía guardada, $U = \tfrac12 k x^2$ (mJ)`,
       'Trabajo de la fuerza elástica (mJ)',
     ]);
     expect(rows).toEqual([
@@ -70,7 +70,7 @@ describe('control-haptico tables', () => {
     ]);
     expect(TABLES[1].caption).toContain('Módulo 2, Tema 03, concepto 03');
     expect(TABLES[1].caption).toContain(
-      'F = 400 · 0,008 = 3,2 N y U = ½ · 400 · 0,008² = 0,0128 J = 12,8 mJ',
+      '$F$ = 400 · 0,008 = 3,2 N y $U$ = ½ · 400 · 0,008² = 0,0128 J = 12,8 mJ',
     );
     expect(TABLES[1].source.text).toContain('Serway y Jewett (2018), fuente 5');
   });
@@ -80,9 +80,9 @@ describe('control-haptico tables', () => {
 
     expect(header).toEqual([
       'Preajuste',
-      'k (N/m)',
+      '$k$ (N/m)',
       '$x_0$ (mm)',
-      'F al fondo (N)',
+      '$F$ al fondo (N)',
       'Trabajo del dedo al fondo (mJ)',
     ]);
     expect(rows).toEqual([
@@ -95,7 +95,12 @@ describe('control-haptico tables', () => {
   test('modos: the four API modes, with vibration read as (5.1) and the slope as (5.4)', () => {
     const [header, , ...rows] = rowsOf(3);
 
-    expect(header).toEqual(['Modo', 'Parámetros de la API', 'Forma de F(x)', 'Ecuación del sitio']);
+    expect(header).toEqual([
+      'Modo',
+      'Parámetros de la API',
+      'Forma de $F(x)$',
+      'Ecuación del sitio',
+    ]);
     expect(rows.map(([mode]) => mode)).toEqual([
       'Resistencia (feedback)',
       'Arma (weapon)',
