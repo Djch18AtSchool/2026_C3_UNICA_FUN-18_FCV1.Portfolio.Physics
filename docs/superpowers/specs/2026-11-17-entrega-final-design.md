@@ -126,7 +126,8 @@ rama no se integra (la guardia «todo tema con archivo está publicado» sigue r
 ### 4.3 Medios alojados y datos reproducibles
 
 - `public/media/<slug>/` con codificaciones que reproducen todos los navegadores: video en **WebM (VP9) y MP4
-  (H.264)**, audio en **WebM (Opus) y M4A (AAC)**. Los originales grandes no entran en git (`media-raw/`,
+  (H.264)**, audio en **MP3** (un solo formato: lo reproducen todos los navegadores, también los de Playwright;
+  decisión del plan). Los originales grandes no entran en git (`media-raw/`,
   ya ignorado); el script los descarga y los regenera. Cada archivo publicado se cita con su fuente y su
   licencia en la página.
 - `pnpm run data:harmonics` (Tema 11): descarga las dos muestras del MIS de Iowa, recorta, normaliza a
