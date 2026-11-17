@@ -38,6 +38,17 @@
   --flow-step: var(--space-12);
   --flow-section: var(--space-16);
 
+  /*
+   * Vertical rhythm of a laboratory (LabShell, Dylan 2026-11-16: «que respire»): a label to its
+   * control; the title to the scene, the scene to the transport and the rows of the parameters;
+   * the transport to the parameters and these to the scenario; the scenario to the readouts and
+   * these to the support plots.
+   */
+  --lab-flow-tight: var(--space-2);
+  --lab-flow: var(--space-6);
+  --lab-flow-section: var(--space-8);
+  --lab-flow-block: var(--space-12);
+
   /* The one separator stroke: every rule between parts of the content. */
   --rule-width: 1px;
   --rule-color: var(--border);

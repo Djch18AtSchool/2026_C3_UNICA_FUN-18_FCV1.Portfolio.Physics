@@ -160,7 +160,12 @@ describe('WheelLab', () => {
     expect(within(params).queryByRole('radio')).toBeNull();
     expect(within(params).queryByRole('button', { name: /^90° en 60 s/ })).toBeNull();
     expect(within(scenario).getByRole('radio', { name: 'Maniobra' })).toBeChecked();
-    expect(within(scenario).getAllByRole('button')).toHaveLength(3);
+    expect(
+      within(within(scenario).getByRole('group', { name: 'Valores de referencia' })).getAllByRole(
+        'button',
+      ),
+    ).toHaveLength(3);
+    expect(within(scenario).getByRole('button', { name: 'Restablecer' })).toBeInTheDocument();
     expect(within(scenario).getByTestId('preset-note')).toHaveTextContent(
       /^Giro de reposo a reposo/,
     );

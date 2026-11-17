@@ -1,37 +1,34 @@
 /**
- * The classes of LabShell's card and grid, shared with what stands in for a lab while it loads
- * (Tema 1's DroneSkeleton): the same boxes, so nothing moves when the lab arrives.
+ * The classes of LabShell's card and of its parts, shared with what stands in for a lab while it
+ * loads (Tema 1's DroneSkeleton): the same boxes, so nothing moves when the lab arrives. One
+ * column at every width: the scene first, at the column's full width; the transport under it;
+ * the control deck (parameters, then the scenario with «Restablecer»); the readouts; the support
+ * plots; the canvas notes; the disclosures. The rhythm between them is scale.css's --lab-flow-*.
  */
 
 /** Inside a figure the frame lends its border (content.css); alone the card draws its own. */
 export const LAB_CARD =
-  '@container/lab flex flex-col gap-4 rounded-base border border-border bg-bg-elevated p-4 in-[.figure-frame]:border-0';
+  '@container/lab flex flex-col rounded-base border border-border bg-bg-elevated p-4 in-[.figure-frame]:border-0';
+/** The title row, then the scene. */
+export const LAB_STAGE = 'mt-(--lab-flow) flex flex-col gap-(--lab-flow)';
 /**
- * Row 1: stage and panel cells; the canvas notes, when there are any, open an implicit row 2 across
- * both (an explicit empty row would still add its gap). In one column they follow the DOM: stage,
- * panel, canvas notes.
+ * The control deck and the readouts, a section's step under the transport (air, not a rule: a
+ * rule's own margins put the first slider under the fold of a 1 280 × 800 window in Tema 3), one
+ * block of controls the reader moves while the scene stays above it, no scroll of its own.
  */
-export const LAB_COLUMNS =
-  'flex flex-col gap-6 lab-split:grid lab-split:grid-cols-[minmax(0,1fr)_20rem]';
-/** The CSS variable the stage sticks at (under the topic bar): global.css owns its value. */
-export const LAB_STAGE_TOP = '--topic-bar-clearance';
-/** Each cell spans row 1 only, so what sticks inside it never slides over the canvas notes. */
-export const LAB_STAGE_CELL = 'min-w-0 lab-split:col-start-1 lab-split:row-start-1';
-/** The panel's cell is its container: the panel sets its levels by its own width. */
-export const LAB_PANEL_CELL =
-  '@container/panel min-w-0 lab-split:col-start-2 lab-split:row-start-1';
-export const LAB_CANVAS_NOTES = 'min-w-0 lab-split:col-span-2 lab-split:row-start-2';
+export const LAB_PANEL = 'mt-(--lab-flow-section) flex flex-col';
 /**
- * The panel flows with the page: nothing it holds hides behind a scroll of its own. A wide one (a
- * lab in one column at ~900 px) flows its levels into two balanced columns, in reading order (CSS
- * columns: down the left, then down the right), so no label sits half a screen from its value and
- * no column ends half a screen before the other.
+ * Level 1, the parameters: two to a row where the lab is wide enough for a label, its slider and
+ * its number on one line each (36 rem); a paragraph among them (a note, a warning) takes the row.
  */
-export const LAB_PANEL =
-  'flex flex-col gap-6 @2xl/panel:block @2xl/panel:columns-2 @2xl/panel:gap-x-8';
-/**
- * Each level of a wide panel: the gap the flex column gave, now a margin in the columns. A level
- * moves whole, its title with everything it holds: cut between columns, a piece read as part of
- * the level beside it (Tema 9's «Llegada» under «Lecturas», Tema 7's presets beside «Parámetros»).
- */
-export const LAB_LEVEL_IN_COLUMNS = '@2xl/panel:mb-6 @2xl/panel:last:mb-0 break-inside-avoid';
+export const LAB_PARAMS =
+  'grid grid-cols-1 gap-x-8 gap-y-(--lab-flow) @xl/lab:grid-cols-2 [&>p]:col-span-full';
+/** Level 2, the scenario: its choices one under the other, under the parameters. */
+export const LAB_SCENARIO = 'mt-(--lab-flow-section) flex flex-col gap-(--lab-flow)';
+/** «Lecturas»: two to a row, four in a wide lab (42 rem). */
+export const LAB_READOUTS =
+  'mt-(--lab-flow-block) grid grid-cols-2 gap-x-6 gap-y-(--lab-flow) @2xl/lab:grid-cols-4';
+/** The support plots, after the readouts («escena primero»). */
+export const LAB_CHARTS = 'mt-(--lab-flow-block) flex flex-col gap-(--lab-flow)';
+export const LAB_CANVAS_NOTES = 'mt-(--lab-flow-section) min-w-0';
+export const LAB_DISCLOSURES = 'mt-(--lab-flow) empty:hidden';

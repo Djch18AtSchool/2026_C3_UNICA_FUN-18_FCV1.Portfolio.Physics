@@ -19,31 +19,32 @@
  *     <FlybyScene … />
  *   </LabShell>
  *
- * One card: the title and the gear; the stage (canvas, then transport); the
- * panel (level 1 «Parámetros» with «Restablecer», level 2 «Escenario», «Lecturas» in two narrow
- * columns); the canvas notes; and «Cómo se usa» and «Qué deja fuera el modelo» at the end. The
- * order of the DOM is the order of reading and of the layout, in one column and in two. In two
- * columns (the lab-split variant, global.css: lg and a lab 42rem wide) the stage and the 20rem
- * panel sit side by side: the panel flows with the page, and the stage sticks under the topic bar
- * while it fits the window (a taller one flows too, its transport pinned at the window's bottom);
- * the canvas notes take the row under both, the disclosures follow. The shell owns only whether
- * the drawer is open; the simulation state belongs to the laboratory.
+ * One card, one column at every width (Dylan 2026-11-16: the scene is never smaller than the
+ * article column gives it): the title and the gear; the scene, then the transport in one row; the
+ * control deck (level 1 «Parámetros», two to a row, then level 2 «Escenario» with «Restablecer»),
+ * always in sight under the scene, with no titles or box of its own (the regions keep their names
+ * for screen readers); «Lecturas», four to a row; the support plots (`charts`, «escena
+ * primero»); the canvas notes; and «Cómo se usa» and «Qué deja fuera el modelo» at the end. The
+ * order of the DOM is the order of reading and of the layout. Nothing sticks to the window. The
+ * shell owns only whether the drawer is open; the simulation state belongs to the laboratory.
  */
 import { useCallback, useId, useRef, type JSX, type ReactNode, type RefObject } from 'react';
 import Readout from '../controls/Readout';
-import { useFitsInWindow } from '../hooks/useFitsInWindow';
 import { CANVAS_BLEED } from './canvasInset';
 import {
   LAB_CANVAS_NOTES,
   LAB_CARD,
-  LAB_COLUMNS,
+  LAB_CHARTS,
+  LAB_DISCLOSURES,
   LAB_PANEL,
-  LAB_PANEL_CELL,
-  LAB_LEVEL_IN_COLUMNS,
-  LAB_STAGE_CELL,
-  LAB_STAGE_TOP,
+  LAB_PARAMS,
+  LAB_READOUTS,
+  LAB_SCENARIO,
+  LAB_STAGE,
 } from './labShellClasses';
 import LabNotes from './LabNotes';
+import LabPresets from './LabPresets';
+import { LabResetContext, ResetButton, scenarioHolds } from './labReset';
 import { GearButton, ReadoutAnnouncer, useLabDrawer, type LabDrawer } from './labShellParts';
 import { PresetTransitionContext, playPresetTransition } from './presetTransition';
 import { useMotionReduced } from './useMotionReduced';
@@ -54,56 +55,22 @@ import TransportBar from './TransportBar';
 export { READOUT_ANNOUNCE_DELAY_MS } from './labShellParts';
 export type { LabLevels, LabReadout, LabShellProps } from './labShellTypes';
 
-/**
- * The stage sticks only while it fits the window under the topic bar: data-lab-stage-fits is
- * "true" or "false" once measured (absent on the server, so nothing sticks before). The sticky
- * top is the CSS variable the fit is measured against (LAB_STAGE_TOP): Tailwind needs the class
- * literal, and LabShell.layout.test checks that it names the same variable.
- */
-export const STAGE =
-  'flex flex-col gap-4 lab-split:data-[lab-stage-fits=true]:sticky lab-split:data-[lab-stage-fits=true]:top-(--topic-bar-clearance)';
-/**
- * Over a stage taller than the window, the transport waits at the window's bottom. Its height (the
- * 44 px buttons of TransportBar, py-3 and the 1 px rule; a second row with events) is copied once,
- * in --lab-transport-room and --lab-transport-room-events (global.css, which also switches the
- * stage to the second): change them together (lab-shell.spec.ts and time-scale.spec.ts fail when
- * they drift).
- */
-const TRANSPORT =
-  'lab-split:sticky lab-split:bottom-0 lab-split:z-10 lab-split:border-t lab-split:border-border lab-split:bg-bg-elevated lab-split:py-3';
-/**
- * In a narrow lab the canvas bleeds into the card's padding (canvasInset.ts). In two columns,
- * whatever in it takes focus keeps the pinned transport's room below it (WCAG 2.4.11):
- * scroll-margin on its own descendants, so nothing is reserved where the transport cannot pin
- * (one column, or below lg).
- */
-const CANVAS = `${CANVAS_BLEED} lab-split:**:scroll-mb-[calc(var(--lab-transport-room)+0.5rem)]`;
-const RESET =
-  'min-h-10 rounded-base border border-border px-3 text-sm text-fg-muted transition-colors hover:border-fg-muted hover:text-fg';
-
 interface SectionProps {
   level: 'params' | 'scenario' | 'readouts';
+  /** The region's name, said by screen readers and not shown: the deck has no titles. */
   title: string;
-  action?: ReactNode;
-  className?: string;
+  className: string;
   children: ReactNode;
 }
 
-/** A level of the panel: a region named by its heading. */
-function Section({ level, title, action, className = '', children }: SectionProps): JSX.Element {
+/** A level of the panel: a region named by a heading only screen readers see. */
+function Section({ level, title, className, children }: SectionProps): JSX.Element {
   const headingId = `${useId()}-heading`;
   return (
-    <section
-      aria-labelledby={headingId}
-      data-lab-level={level}
-      className={`flex flex-col gap-4 ${className}`}
-    >
-      <div className="flex items-center justify-between gap-3 border-b border-border pb-2">
-        <h3 id={headingId} className="m-0 text-sm font-semibold">
-          {title}
-        </h3>
-        {action}
-      </div>
+    <section aria-labelledby={headingId} data-lab-level={level} className={className}>
+      <h3 id={headingId} className="sr-only">
+        {title}
+      </h3>
       {children}
     </section>
   );
@@ -124,40 +91,51 @@ function Header({ title, drawer }: { title: string; drawer: LabDrawer }) {
   );
 }
 
+/**
+ * Level 2 and «Restablecer»: LabPresets carries it at the end of its row when it stands at the
+ * scenario's top (labReset.tsx); otherwise it closes the scenario's last row here. A lab without
+ * a scenario keeps it alone, at the end of the parameters (Panel).
+ */
+function Scenario({ scenario, onReset }: { scenario: ReactNode; onReset(): void }) {
+  const carried = scenarioHolds(scenario, LabPresets);
+  return (
+    <Section level="scenario" title="Escenario" className={LAB_SCENARIO}>
+      {carried ? (
+        <LabResetContext value={onReset}>{scenario}</LabResetContext>
+      ) : (
+        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-(--lab-flow)">
+          <div className="flex min-w-0 flex-col gap-(--lab-flow)">{scenario}</div>
+          <ResetButton onReset={onReset} />
+        </div>
+      )}
+    </Section>
+  );
+}
+
 interface PanelProps {
   levels: LabLevels;
   readouts: readonly LabReadout[];
   onReset(): void;
 }
 
-/** The three levels, in the page's flow. */
+/** The control deck (parameters, scenario and «Restablecer») and the readouts, in the page's flow. */
 function Panel({ levels, readouts, onReset }: PanelProps): JSX.Element {
   return (
     <div data-lab-panel="" className={LAB_PANEL}>
-      <Section
-        level="params"
-        title="Parámetros"
-        className={LAB_LEVEL_IN_COLUMNS}
-        action={
-          <button type="button" onClick={onReset} className={RESET}>
-            Restablecer
-          </button>
-        }
-      >
+      <Section level="params" title="Parámetros" className={LAB_PARAMS}>
         {levels.params}
-      </Section>
-      {levels.scenario ? (
-        <Section level="scenario" title="Escenario" className={LAB_LEVEL_IN_COLUMNS}>
-          {levels.scenario}
-        </Section>
-      ) : null}
-      {readouts.length > 0 ? (
-        <Section level="readouts" title="Lecturas" className={LAB_LEVEL_IN_COLUMNS}>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-            {readouts.map((readout) => (
-              <Readout key={readout.id} layout="cell" {...readout} />
-            ))}
+        {levels.scenario ? null : (
+          <div className="col-span-full justify-self-end">
+            <ResetButton onReset={onReset} />
           </div>
+        )}
+      </Section>
+      {levels.scenario ? <Scenario scenario={levels.scenario} onReset={onReset} /> : null}
+      {readouts.length > 0 ? (
+        <Section level="readouts" title="Lecturas" className={LAB_READOUTS}>
+          {readouts.map((readout) => (
+            <Readout key={readout.id} layout="cell" {...readout} />
+          ))}
         </Section>
       ) : null}
     </div>
@@ -170,7 +148,7 @@ type TransportProps = Pick<
   'clock' | 'timeUnit' | 'markers' | 'timeOrigin' | 'formatTime' | 'speeds'
 >;
 
-/** The stage, in its cell: the canvas, then the transport when the lab has a clock. */
+/** The stage: the canvas, at the column's full width, then the transport when there is a clock. */
 function Stage({
   clock,
   children,
@@ -178,24 +156,16 @@ function Stage({
   ...reading
 }: TransportProps &
   Pick<LabShellProps, 'children'> & { canvasRef: RefObject<HTMLDivElement | null> }): JSX.Element {
-  const [ref, fits] = useFitsInWindow<HTMLDivElement>(`var(${LAB_STAGE_TOP})`);
   return (
-    <div className={LAB_STAGE_CELL}>
-      <div
-        ref={ref}
-        data-lab-stage=""
-        data-lab-stage-fits={fits === undefined ? undefined : String(fits)}
-        className={STAGE}
-      >
-        <div ref={canvasRef} data-lab-canvas="" className={CANVAS}>
-          {children}
-        </div>
-        {clock ? (
-          <div data-lab-transport="" className={TRANSPORT}>
-            <TransportBar clock={clock} {...reading} />
-          </div>
-        ) : null}
+    <div data-lab-stage="" className={LAB_STAGE}>
+      <div ref={canvasRef} data-lab-canvas="" className={CANVAS_BLEED}>
+        {children}
       </div>
+      {clock ? (
+        <div data-lab-transport="">
+          <TransportBar clock={clock} {...reading} />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -212,6 +182,13 @@ function usePresetTransition(canvasRef: RefObject<HTMLDivElement | null>, isRedu
   }, [canvasRef]);
 }
 
+/** The lab's reset as a stable callback: LabPresets, memoized, never re-renders for a new one. */
+function useStableReset(onReset: () => void): () => void {
+  const onResetRef = useRef(onReset);
+  onResetRef.current = onReset;
+  return useCallback(() => onResetRef.current(), []);
+}
+
 /** What the announcer says while a view speaks for itself (announceReadouts false). */
 const NO_READOUTS: readonly LabReadout[] = Object.freeze([]);
 
@@ -220,6 +197,7 @@ export default function LabShell({
   readouts,
   announceReadouts = true,
   levels,
+  charts,
   canvasNotes,
   notes,
   onReset,
@@ -230,6 +208,7 @@ export default function LabShell({
   const drawer = useLabDrawer();
   const canvasRef = useRef<HTMLDivElement>(null);
   const playTransition = usePresetTransition(canvasRef, useMotionReduced());
+  const reset = useStableReset(onReset);
   return (
     <div
       role="group"
@@ -240,22 +219,25 @@ export default function LabShell({
       className={LAB_CARD}
     >
       <Header title={title} drawer={drawer} />
-      <div data-lab-columns="" className={LAB_COLUMNS}>
-        <Stage {...transport} canvasRef={canvasRef}>
-          {children}
-        </Stage>
-        <div className={LAB_PANEL_CELL}>
-          <PresetTransitionContext value={playTransition}>
-            <Panel levels={levels} readouts={readouts} onReset={onReset} />
-          </PresetTransitionContext>
+      <Stage {...transport} canvasRef={canvasRef}>
+        {children}
+      </Stage>
+      <PresetTransitionContext value={playTransition}>
+        <Panel levels={levels} readouts={readouts} onReset={reset} />
+      </PresetTransitionContext>
+      {charts ? (
+        <div data-lab-charts="" className={`${LAB_CHARTS} ${CANVAS_BLEED}`}>
+          {charts}
         </div>
-        {canvasNotes ? (
-          <div data-lab-canvas-notes="" className={LAB_CANVAS_NOTES}>
-            {canvasNotes}
-          </div>
-        ) : null}
+      ) : null}
+      {canvasNotes ? (
+        <div data-lab-canvas-notes="" className={LAB_CANVAS_NOTES}>
+          {canvasNotes}
+        </div>
+      ) : null}
+      <div className={LAB_DISCLOSURES}>
+        <LabNotes {...notes} />
       </div>
-      <LabNotes {...notes} />
       <ReadoutAnnouncer readouts={announceReadouts ? readouts : NO_READOUTS} />
       <SettingsDrawer
         id={drawer.drawerId}

@@ -6,19 +6,6 @@
 /* Dark utilities follow the data-theme attribute set by the head script, not the OS. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
-/*
- * A tiered laboratory in two columns (LabShell): a window with the topic bar (lg, which is
- * also when its figure frame stops scrolling, content.css) and a lab at least 42rem wide. Below
- * either, at 200 % zoom too, the lab is one column and nothing in it sticks.
- */
-@custom-variant lab-split {
-  @media (width >= 64rem) {
-    @container lab (width >= 42rem) {
-      @slot;
-    }
-  }
-}
-
 /* Tokens switch per theme at runtime, so Tailwind must reference them, not copy them. */
 @theme inline {
   --color-bg: var(--bg);
@@ -55,26 +42,13 @@
 }
 
 /*
- * Lengths the topic bar and the tiered laboratories share: the bar's height (TopicStickyBar), the
- * clearance below it where keyboard focus, #anchors and a lab's sticky stage stop, and the
- * room a transport pinned to the window's bottom takes, kept free under a focused canvas control.
- * The room is the one copy of the transport's height in CSS: LabShell's TRANSPORT (2 × 12 px
- * padding, 1 px rule) around TransportBar's row of 44 px buttons; with events (TransportBar
- * `markers`, data-transport-events) a second row 12 px below, and the stage takes that height.
- * Change them with LabShell's TRANSPORT and TransportBar; lab-shell.spec.ts and
- * time-scale.spec.ts fail when they drift.
+ * The topic bar's height (TopicStickyBar) and the clearance below it where keyboard focus and
+ * #anchors stop. A laboratory pins nothing to the window (LabShell is one column that flows with
+ * the page), so it reserves no room at the window's foot.
  */
 :root {
   --topic-bar-height: 3rem;
   --topic-bar-clearance: calc(var(--topic-bar-height) + 1rem);
-  --lab-transport-room: calc(var(--icon-button-touch) + 2 * var(--space-3) + 1px);
-  --lab-transport-room-events: calc(
-    var(--lab-transport-room) + var(--icon-button-touch) + var(--space-3)
-  );
-}
-
-[data-lab-stage]:has([data-transport-events]) {
-  --lab-transport-room: var(--lab-transport-room-events);
 }
 
 /*
@@ -125,21 +99,6 @@
 
 :root[data-motion='reduced'] .series-emphasis {
   transition: none;
-}
-
-/*
- * In two columns the stage is the card less the 20 rem panel and its gap. Under 43.25 rem of card
- * it is too narrow for the event row (two 44 px buttons, the event's 128 px and the t reading),
- * and the reading drops to a third line: 32 px more (a 20 px line and the row's 12 px gap). The
- * widest reading (Tema 6) sets the width; Temas 1 and 9 keep the line to 42.75 rem, so between the
- * two they reserve a line they do not use. lab-shell.spec.ts measures the band.
- */
-@media (width >= 64rem) {
-  @container lab (width < 43.25rem) {
-    [data-lab-stage]:has([data-transport-events]) {
-      --lab-transport-room: calc(var(--lab-transport-room-events) + var(--space-8));
-    }
-  }
 }
 
 @layer base {

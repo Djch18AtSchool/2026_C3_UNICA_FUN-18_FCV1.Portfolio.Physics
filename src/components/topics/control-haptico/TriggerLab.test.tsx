@@ -226,7 +226,7 @@ describe('TriggerLab', () => {
     const { container } = renderLab();
     fireEvent.click(screen.getByRole('button', { name: /^Resorte tardío/ }));
 
-    expect(mathSourceText(startField().closest('div'))).toContain('$x_0$');
+    expect(mathSourceText(startField().closest('[data-param-field]'))).toContain('$x_0$');
     expect(container.querySelector('[data-mark="x0"] [data-notation]')).not.toBeNull();
     const note = mathSourceText(screen.getByText(/energía elástica del resorte ideal/i));
     expect(note).toContain('$U = \\tfrac12 k x^2$');

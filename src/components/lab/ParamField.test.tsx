@@ -117,7 +117,33 @@ describe('ParamField', () => {
     expect(range()).toHaveAttribute('max', '30');
     expect(range()).toHaveAttribute('step', '0.01');
     expect(field().nextElementSibling).toHaveTextContent('m/s²');
-    expect(field()).toHaveAccessibleDescription('m/s²');
+    expect(field()).toHaveAccessibleDescription('m/s² de 1,00 a 30,00');
+  });
+
+  test('compact: the full label alone on top, then the slider and the number on one line', () => {
+    const { container } = render(<Controlled />);
+    const root = container.firstElementChild as HTMLElement;
+    const [label, line] = [...root.children];
+
+    expect(root).toHaveAttribute('data-param-field');
+    expect(label.tagName).toBe('LABEL');
+    expect(label).toHaveAttribute('for', 'jump-g');
+    // One line: the range grows, the number and its unit keep their width at its end.
+    expect(line).toContainElement(range());
+    expect(line).toContainElement(field());
+    expect(range()).toHaveClass('flex-1');
+    expect(
+      range().compareDocumentPosition(field()) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  test('the limits are not printed: the slider and the number say them, the number as a tooltip too', () => {
+    const { container } = render(<Controlled />);
+
+    expect(range()).toHaveAccessibleDescription('de 1,00 a 30,00');
+    expect(field()).toHaveAttribute('title', '1,00–30,00');
+    const hint = container.querySelector(`#${range().getAttribute('aria-describedby')}`);
+    expect(hint).toHaveClass('sr-only');
   });
 
   test('shows the value with a decimal comma in the number field', () => {
@@ -275,7 +301,8 @@ describe('ParamField', () => {
     const box = field().nextElementSibling;
     expect(box).toBeEmptyDOMElement();
     expect(box).toHaveAttribute('aria-hidden', 'true');
-    expect(field()).not.toHaveAttribute('aria-describedby');
+    // No unit to say: only the limits.
+    expect(field()).toHaveAccessibleDescription('de 1,00 a 30,00');
   });
 });
 
@@ -309,9 +336,10 @@ describe('ParamField range hint', () => {
     );
     render(<ParamField {...BASE} value={9.81} onChange={() => {}} />);
 
-    expect(screen.getByText('40–160')).toBeInTheDocument();
-    expect(screen.getByText('0–10 000')).toBeInTheDocument();
-    expect(screen.getByText('1,00–30,00')).toBeInTheDocument();
+    expect(screen.getByText('de 40 a 160')).toHaveClass('sr-only');
+    expect(screen.getByText('de 0 a 10 000')).toHaveClass('sr-only');
+    expect(screen.getByText('de 1,00 a 30,00')).toHaveClass('sr-only');
+    expect(screen.getByRole('textbox', { name: 'F' }).title).toMatch(/^0–10\s000$/u);
   });
 });
 

@@ -10,12 +10,14 @@
  * once its list passes four (a missing one throws, so the build fails rather than print TeX).
  * `groups` splits the select into <optgroup>s by each preset's `group` (Tema 7's thirteen).
  * After an edit the last active preset's note stays, led by «Valores modificados a partir de «…»; la nota describe el preajuste original.»,
- * and the note line never shrinks when that happens.
+ * and the note line never shrinks when that happens. Inside a LabShell, «Restablecer» closes the
+ * chips' or the select's row, before the note (labReset.tsx).
  */
 import { useContext, useLayoutEffect, useRef, useState, type JSX } from 'react';
 import { hasInlineMath, inlineMathToSpeech } from '../../lib/inlineMath';
 import type { Preset, PresetGroup } from '../../lib/presets';
 import InlineMath from './InlineMath';
+import { LabResetContext, ResetButton } from './labReset';
 import { PresetTransitionContext } from './presetTransition';
 import { SelectField, type SelectOption, type SelectOptionGroup } from './SettingsFields';
 import { withStableCallbacks } from './withStableCallbacks';
@@ -225,19 +227,32 @@ function useTransitionOnSelect<T>({ activeId, onSelect }: LabPresetsProps<T>) {
   };
 }
 
+/**
+ * The choice and, in a LabShell, «Restablecer» at the end of the same row: beside the chips' first
+ * line, or level with the select (under its label). It wraps under them when there is no room.
+ */
+const ROW: Readonly<Record<'chips' | 'select', string>> = {
+  chips: 'flex flex-wrap items-start justify-between gap-x-4 gap-y-2',
+  select: 'flex flex-wrap items-end justify-between gap-x-4 gap-y-2',
+};
+
 function LabPresetsBase<T>(props: LabPresetsProps<T>): JSX.Element {
   const { presets, activeId, basedOnId, label = PRESETS_LABEL } = props;
-  const isSelect = presets.length > MAX_PRESET_CHIPS;
+  const kind = presets.length > MAX_PRESET_CHIPS ? 'select' : 'chips';
   const active = presets.find((preset) => preset.id === activeId);
   const basedOn = useBasedOn(presets, activeId, basedOnId);
   const onSelect = useTransitionOnSelect(props);
+  const onReset = useContext(LabResetContext);
   return (
-    <div data-lab-presets={isSelect ? 'select' : 'chips'} className="flex flex-col gap-2">
-      {isSelect ? (
-        <PresetSelect {...props} label={label} onSelect={onSelect} />
-      ) : (
-        <PresetChips {...props} label={label} onSelect={onSelect} />
-      )}
+    <div data-lab-presets={kind} className="flex flex-col gap-2">
+      <div data-preset-row="" className={ROW[kind]}>
+        {kind === 'select' ? (
+          <PresetSelect {...props} label={label} onSelect={onSelect} />
+        ) : (
+          <PresetChips {...props} label={label} onSelect={onSelect} />
+        )}
+        {onReset ? <ResetButton onReset={onReset} /> : null}
+      </div>
       <NoteLine preset={active ?? basedOn} isModified={basedOn !== undefined} />
     </div>
   );

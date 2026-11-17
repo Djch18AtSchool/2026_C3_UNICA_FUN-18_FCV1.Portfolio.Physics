@@ -65,10 +65,16 @@ export interface LabShellProps {
   children: ReactNode;
   levels: LabLevels;
   /**
+   * The support plots of the scene (a second plot, F–x, the energies, L_w(t)), after the readouts:
+   * the scene comes first, with the parameters in sight under it («escena primero»). They may
+   * hold controls (a legend that highlights a series, a cursor that seeks): unlike the canvas
+   * notes, they are part of the lab, at the canvas's width.
+   */
+  charts?: ReactNode;
+  /**
    * What reads the canvas without being a control (a legend, the stated time lapse, a model
-   * versus data table): after the panel in one column, under both columns at the card's full width
-   * in two, so the order of reading is the visual one in both. Still no controls here: they belong
-   * to the levels or, if they act on the drawing, to the canvas.
+   * versus data table): after the readouts and the support plots. Still no controls here: they
+   * belong to the levels, to the support plots or, if they act on the drawing, to the canvas.
    */
   canvasNotes?: ReactNode;
   /** «Cómo se usa» and «Qué deja fuera el modelo», closed disclosures at the end of the card. */
@@ -77,9 +83,16 @@ export interface LabShellProps {
 
 /** The three levels of a laboratory (auditoría §12.1). */
 export interface LabLevels {
-  /** Level 1, the topic's physical parameters: always visible beside the canvas. */
+  /**
+   * Level 1, the topic's physical parameters: always in sight under the transport, two to a row.
+   * ParamFields (or fields on ParamFrame) and ChoiceFields take a cell each; a paragraph (a note,
+   * a warning) takes a whole row.
+   */
   params: ReactNode;
-  /** Level 2, scenario and presets (LabPresets), compact; omitted when the lab has none. */
+  /**
+   * Level 2, the scenario: its choices (a mode, a view, a cycle) one under the other, and the
+   * presets (LabPresets) with «Restablecer» at the end of their row; omitted when the lab has none.
+   */
   scenario?: ReactNode;
   /** Level 3, personalization: only in the settings drawer (no chip repeats it by the gear). */
   display: SettingOption[];

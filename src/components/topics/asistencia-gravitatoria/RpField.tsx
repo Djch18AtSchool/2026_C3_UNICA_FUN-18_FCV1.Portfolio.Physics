@@ -1,9 +1,10 @@
 import { useState, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
-import { mathAriaLabel } from '../../../lib/inlineMath';
+import { inlineMathToSpeech, mathAriaLabel } from '../../../lib/inlineMath';
 import { mathTextToString } from '../../../lib/mathNotation';
 import InlineMath from '../../lab/InlineMath';
 import { UNIT_BOX } from '../../lab/ParamField';
+import ParamFrame, { PARAM_NUMBER, PARAM_RANGE } from '../../lab/ParamFrame';
 import { unitTex } from './flybyFormat';
 import { withStableCallbacks } from '../../lab/withStableCallbacks';
 import { RP_RANGE, rpToSlider, sliderToRp, type RpWarning } from './flybyScene';
@@ -45,13 +46,19 @@ export function rpText(rp: number, unit: string, radiusKm: number): string {
 
 /**
  * r_p as a range over the logarithmic bar (1 to 100 planet radii; its middle is 10) and a number
- * field in planet radii that commits on blur or Enter. Out-of-range values go to the laboratory,
- * which clamps them and says why.
+ * field in planet radii that commits on blur or Enter, in the compact frame every parameter uses
+ * (ParamFrame): its limits and its logarithmic scale are said and shown as a tooltip, not printed.
+ * Out-of-range values go to the laboratory, which clamps them and says why.
  */
 function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
   const labelId = `${ID}-label`;
   const unitId = `${ID}-unit`;
+  const hintId = `${ID}-limits`;
+  // Said, and shown as a tooltip: «de 1 a 100 R sub J, escala logarítmica».
+  const limits = inlineMathToSpeech(
+    `de ${RP_RANGE.min} a ${RP_RANGE.max} ${unitTex(unit)}, escala logarítmica`,
+  );
 
   const commitDraft = () => {
     if (draft === null) return;
@@ -61,51 +68,51 @@ function RpField({ rp, unit, radiusKm, onChange }: RpFieldProps): JSX.Element {
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* As every ParamField: the same 40 × 64 px number box beside its label (its longest text,
-          «99,99», fits with px-1) and the unit in the shared unit box, so it lines up with the
-          other labs' fields at every width. */}
-      <div className="flex items-center justify-between gap-3">
-        <label id={labelId} htmlFor={ID} className="text-sm font-medium text-balance">
-          <InlineMath text={LABEL} />
-        </label>
-        <span className="flex items-center gap-2">
-          <input
-            id={`${ID}-number`}
-            type="text"
-            inputMode="decimal"
-            autoComplete="off"
-            aria-label={SPOKEN_LABEL}
-            aria-describedby={unitId}
-            value={draft ?? toFieldText(rp)}
-            onChange={(event) => setDraft(event.target.value)}
-            onBlur={commitDraft}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') commitDraft();
-            }}
-            className="h-10 w-16 rounded-base border border-border bg-bg px-1 text-right font-mono text-sm tabular-nums text-fg"
-          />
-          <span id={unitId} className={UNIT_BOX}>
-            <InlineMath text={unitTex(unit)} />
-          </span>
+    <ParamFrame
+      id={ID}
+      labelId={labelId}
+      label={<InlineMath text={LABEL} />}
+      hintId={hintId}
+      hint={limits}
+      range={
+        <input
+          id={ID}
+          type="range"
+          min={0}
+          max={RANGE_STEPS}
+          step={1}
+          value={Math.round(rpToSlider(rp) * RANGE_STEPS)}
+          aria-label={SPOKEN_LABEL}
+          aria-describedby={hintId}
+          aria-valuetext={mathTextToString(rpText(rp, unit, radiusKm))}
+          onChange={(event) => onChange(sliderToRp(Number(event.target.value) / RANGE_STEPS))}
+          className={PARAM_RANGE}
+        />
+      }
+      number={
+        <input
+          id={`${ID}-number`}
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          title={limits}
+          aria-label={SPOKEN_LABEL}
+          aria-describedby={`${unitId} ${hintId}`}
+          value={draft ?? toFieldText(rp)}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={commitDraft}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') commitDraft();
+          }}
+          className={PARAM_NUMBER}
+        />
+      }
+      unit={
+        <span id={unitId} className={UNIT_BOX}>
+          <InlineMath text={unitTex(unit)} />
         </span>
-      </div>
-      <input
-        id={ID}
-        type="range"
-        min={0}
-        max={RANGE_STEPS}
-        step={1}
-        value={Math.round(rpToSlider(rp) * RANGE_STEPS)}
-        aria-label={SPOKEN_LABEL}
-        aria-valuetext={mathTextToString(rpText(rp, unit, radiusKm))}
-        onChange={(event) => onChange(sliderToRp(Number(event.target.value) / RANGE_STEPS))}
-        className="h-6 w-full cursor-pointer accent-accent"
-      />
-      <span className="font-mono text-xs tabular-nums text-fg-muted">
-        <InlineMath text={`${RP_RANGE.min}–${RP_RANGE.max} ${unitTex(unit)}, escala logarítmica`} />
-      </span>
-    </div>
+      }
+    />
   );
 }
 

@@ -2,6 +2,7 @@ import { useState, type JSX, type ReactNode } from 'react';
 import { formatNumber, MINUS_SIGN } from '../../lib/format';
 import { mathAriaLabel } from '../../lib/inlineMath';
 import InlineMath from './InlineMath';
+import ParamFrame, { PARAM_NUMBER, PARAM_RANGE } from './ParamFrame';
 import { useGlobalSettings } from './useGlobalSettings';
 import { withStableCallbacks } from './withStableCallbacks';
 
@@ -65,10 +66,11 @@ function snapToStep(value: number, min: number, max: number, step: number): numb
 export const UNIT_BOX = 'w-[5ch] shrink-0 font-mono text-sm text-fg-muted';
 
 /**
- * A parameter as a range and a number field bound to the same value. The range commits on every
- * move; the field keeps what is typed and commits on blur or Enter, snapped to the step grid
- * min + k·step and clamped to [min, max]. Memoized with stable callbacks: a playing lab's 10 Hz
- * renders never reach its inputs.
+ * A parameter as a range and a number field bound to the same value, in the compact frame
+ * (ParamFrame): the label on top, the slider and the number on one line, the limits said, not
+ * printed. The range commits on every move; the field keeps what is typed and commits on blur or
+ * Enter, snapped to the step grid min + k·step and clamped to [min, max]. Memoized with stable
+ * callbacks: a playing lab's 10 Hz renders never reach its inputs.
  */
 function ParamField({
   id,
@@ -82,11 +84,12 @@ function ParamField({
 }: ParamFieldProps): JSX.Element {
   const { decimals } = useGlobalSettings();
   const [draft, setDraft] = useState<string | null>(null);
-  /** The range hint prints the grid's own precision (40–160, 0,25–2,00), not the global one. */
+  /** The limits print the grid's own precision (40–160, 0,25–2,00), not the global one. */
   const gridDecimals = Math.max(decimalsOf(step), decimalsOf(min));
+  const [low, high] = [min, max].map((end) => formatNumber(end, { precision: gridDecimals }));
   const labelId = `${id}-label`;
-  const numberId = `${id}-number`;
   const unitId = `${id}-unit`;
+  const hintId = `${id}-limits`;
   /** A label with $…$ names both inputs in words (KaTeX's MathML would read unevenly). */
   const spokenLabel = typeof label === 'string' ? mathAriaLabel(label) : undefined;
 
@@ -100,55 +103,58 @@ function ParamField({
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-3">
-        <label id={labelId} htmlFor={id} className="text-sm font-medium text-balance">
-          {typeof label === 'string' ? <InlineMath text={label} /> : label}
-        </label>
-        <span className="flex items-center gap-2">
-          <input
-            id={numberId}
-            type="text"
-            inputMode="decimal"
-            autoComplete="off"
-            aria-labelledby={spokenLabel ? undefined : labelId}
-            aria-label={spokenLabel}
-            aria-describedby={unit ? unitId : undefined}
-            value={draft ?? toFieldText(value)}
-            onChange={(event) => setDraft(event.target.value)}
-            onBlur={commitDraft}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') commitDraft();
-            }}
-            className="h-10 w-16 rounded-base border border-border bg-bg px-1 text-right font-mono text-sm tabular-nums text-fg"
-          />
-          {/* A unit box of one width in every field (none is longer than «m/s²»), empty without
-              a unit, so the number boxes of a level line up in a column. */}
-          {unit ? (
-            <span id={unitId} className={UNIT_BOX}>
-              {unit}
-            </span>
-          ) : (
-            <span aria-hidden="true" className={UNIT_BOX} />
-          )}
-        </span>
-      </div>
-      <input
-        id={id}
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        aria-label={spokenLabel}
-        aria-valuetext={formatNumber(value, { precision: decimals, unit })}
-        onChange={(event) => onChange(Number(event.target.value))}
-        className="h-6 w-full cursor-pointer accent-accent"
-      />
-      <span className="font-mono text-xs tabular-nums text-fg-muted">
-        {`${formatNumber(min, { precision: gridDecimals })}–${formatNumber(max, { precision: gridDecimals })}`}
-      </span>
-    </div>
+    <ParamFrame
+      id={id}
+      labelId={labelId}
+      label={typeof label === 'string' ? <InlineMath text={label} /> : label}
+      hintId={hintId}
+      hint={`de ${low} a ${high}`}
+      range={
+        <input
+          id={id}
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          aria-label={spokenLabel}
+          aria-describedby={hintId}
+          aria-valuetext={formatNumber(value, { precision: decimals, unit })}
+          onChange={(event) => onChange(Number(event.target.value))}
+          className={PARAM_RANGE}
+        />
+      }
+      number={
+        <input
+          id={`${id}-number`}
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          title={`${low}–${high}`}
+          aria-labelledby={spokenLabel ? undefined : labelId}
+          aria-label={spokenLabel}
+          aria-describedby={unit ? `${unitId} ${hintId}` : hintId}
+          value={draft ?? toFieldText(value)}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={commitDraft}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') commitDraft();
+          }}
+          className={PARAM_NUMBER}
+        />
+      }
+      // A unit box of one width in every field (none is longer than «m/s²»), empty without a
+      // unit, so the number boxes of a level line up in a column.
+      unit={
+        unit ? (
+          <span id={unitId} className={UNIT_BOX}>
+            {unit}
+          </span>
+        ) : (
+          <span aria-hidden="true" className={UNIT_BOX} />
+        )
+      }
+    />
   );
 }
 

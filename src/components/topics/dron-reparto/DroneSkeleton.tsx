@@ -26,11 +26,9 @@ import { PLOT_ASPECT } from '../../lab/svgPlotReserve';
 import {
   LAB_CANVAS_NOTES,
   LAB_CARD,
-  LAB_COLUMNS,
+  LAB_DISCLOSURES,
   LAB_PANEL,
-  LAB_PANEL_CELL,
-  LAB_LEVEL_IN_COLUMNS,
-  LAB_STAGE_CELL,
+  LAB_STAGE,
 } from '../../lab/labShellClasses';
 import TexSeed, { formulasOf } from '../../lab/TexSeed';
 import { DRONE_LAB_FORMULAS } from './droneLabFormulas';
@@ -49,7 +47,6 @@ const STATUS_TEXT: Record<DroneSkeletonProps['status'], string> = {
 };
 // scale-exempt: the outline of a loading placeholder marks a state, it separates no content
 const PLACE = 'rounded-base border border-dashed border-border';
-const CHIP_PLACES = 3;
 
 /**
  * The widths of the card's content box (rem; the container query's width, the card less its 1 rem
@@ -142,17 +139,12 @@ function Place({ heights, className = '' }: { heights: PlaceHeights; className?:
   );
 }
 
-/** The header row of the loaded lab: its title, three chips and the gear, wrapping the same way. */
+/** The header row of the loaded lab: its title and the gear. */
 function HeaderPlace(): JSX.Element {
   return (
-    <div aria-hidden="true" className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <span className="max-w-full grow text-sm font-semibold">Laboratorio del dron</span>
-      <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-        {Array.from({ length: CHIP_PLACES }, (_, index) => (
-          <div key={index} className={`h-8 w-16 ${PLACE}`} />
-        ))}
-        <div className={`size-11 ${PLACE}`} />
-      </div>
+    <div aria-hidden="true" className="flex flex-nowrap items-center gap-3">
+      <span className="min-w-0 grow text-sm font-semibold">Laboratorio del dron</span>
+      <div className={`size-11 shrink-0 ${PLACE}`} />
     </div>
   );
 }
@@ -160,7 +152,7 @@ function HeaderPlace(): JSX.Element {
 /** The map's place, which says the loading state, over the transport's. */
 function StagePlace({ status }: Pick<DroneSkeletonProps, 'status'>): JSX.Element {
   return (
-    <div data-skeleton="stage" className={`flex flex-col gap-4 ${LAB_STAGE_CELL}`}>
+    <div data-skeleton="stage" className={LAB_STAGE}>
       <div style={MAP_FIGURE_STYLE} className={`@container ${CANVAS_BLEED}`}>
         <div className={`${MAP_FIGURE_CLASS} flex items-center justify-center p-4 ${PLACE}`}>
           <p role="status" className="m-0 text-center text-sm text-fg-muted">
@@ -173,15 +165,13 @@ function StagePlace({ status }: Pick<DroneSkeletonProps, 'status'>): JSX.Element
   );
 }
 
-/** The panel's three blocks, beside the stage in two columns, in two columns in a wide panel. */
+/** The panel's blocks under the stage: the parameters, the scenario and the readouts. */
 function PanelPlace(): JSX.Element {
   return (
-    <div data-skeleton="panel" aria-hidden="true" className={LAB_PANEL_CELL}>
-      <div className={LAB_PANEL}>
-        <Place heights={PARAMS} className={LAB_LEVEL_IN_COLUMNS} />
-        <Place heights={SCENARIO} className={LAB_LEVEL_IN_COLUMNS} />
-        <Place heights={READOUTS} className={LAB_LEVEL_IN_COLUMNS} />
-      </div>
+    <div data-skeleton="panel" aria-hidden="true" className={LAB_PANEL}>
+      <Place heights={PARAMS} />
+      <Place heights={SCENARIO} className="mt-(--lab-flow-section)" />
+      <Place heights={READOUTS} className="mt-(--lab-flow-block)" />
     </div>
   );
 }
@@ -215,12 +205,10 @@ export default function DroneSkeleton({ status, usage, leftOut }: DroneSkeletonP
       {/* The attribute makes the figure's frame lend its width now, as it will to the lab. */}
       <div data-lab-shell="tiered" className={LAB_CARD}>
         <HeaderPlace />
-        <div className={LAB_COLUMNS}>
-          <StagePlace status={status} />
-          <PanelPlace />
-          <Place heights={NOTES} className={LAB_CANVAS_NOTES} />
-        </div>
-        <div aria-hidden="true" className="flex flex-col">
+        <StagePlace status={status} />
+        <PanelPlace />
+        <Place heights={NOTES} className={LAB_CANVAS_NOTES} />
+        <div aria-hidden="true" className={`flex flex-col ${LAB_DISCLOSURES}`}>
           {Array.from({ length: DISCLOSURES }, (_, index) => (
             <div
               key={index}

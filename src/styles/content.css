@@ -223,9 +223,8 @@
   }
   /*
    * A tiered laboratory is its own card (LabShell): its frame lends it the whole width and
-   * its border. From lg its stage and panel can stick to the window (the lab-split variant needs lg
-   * too): a frame that scrolls would become their scroll container and pin them to itself, so from
-   * lg it does not scroll (the lab fits it).
+   * its border. From lg the lab fits the frame, which then does not scroll: nothing of the lab
+   * (a focus ring, a drawer's backdrop) is clipped by a scroll box it does not need.
    */
   .figure-frame:has([data-lab-shell='tiered']) {
     padding: 0;

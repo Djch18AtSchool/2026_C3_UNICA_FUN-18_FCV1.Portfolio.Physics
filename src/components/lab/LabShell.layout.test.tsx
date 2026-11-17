@@ -1,22 +1,16 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetSettingsForTests } from '../../lib/settingsStore';
 import { installDialogPolyfill } from '../../test-dialog';
 import { fakeClock } from '../../test-fake-clock';
-import LabShell, { STAGE, type LabShellProps } from './LabShell';
-import { LAB_STAGE_TOP } from './labShellClasses';
+import LabPresets from './LabPresets';
+import LabShell, { type LabShellProps } from './LabShell';
 import type { SettingOption } from './SettingsDrawer';
 
 const display = (trail = true): SettingOption[] => [
-  {
-    key: 'trail',
-    label: 'Estela de la sonda',
-    kind: 'toggle',
-    value: trail,
-    onChange: () => {},
-  },
+  { key: 'trail', label: 'Estela de la sonda', kind: 'toggle', value: trail, onChange: () => {} },
   { key: 'grid', label: 'Rejilla fina', kind: 'toggle', value: true, onChange: () => {} },
 ];
 
@@ -46,6 +40,7 @@ const renderTiered = (overrides: Partial<LabShellProps> = {}) =>
 const gear = () => screen.getByRole('button', { name: 'Ajustes del simulador' });
 const dialogOf = (container: HTMLElement) => container.querySelector('dialog') as HTMLDialogElement;
 const region = (name: string) => screen.getByRole('region', { name });
+const reset = () => screen.getByRole('button', { name: 'Restablecer' });
 
 function expectInOrder(nodes: readonly Node[]): void {
   nodes.slice(1).forEach((node, index) => {
@@ -55,7 +50,12 @@ function expectInOrder(nodes: readonly Node[]): void {
   });
 }
 
-describe('LabShell layout: levels, stage and panel', () => {
+const PRESETS = [
+  { id: 'jupiter', name: 'Júpiter', values: { rp: 10 }, note: 'Nota de Júpiter.' },
+  { id: 'saturno', name: 'Saturno', values: { rp: 20 }, note: 'Nota de Saturno.' },
+];
+
+describe('LabShell layout: one column, the scene first, the control deck under it', () => {
   let uninstall: () => void;
   beforeEach(() => {
     uninstall = installDialogPolyfill();
@@ -63,9 +63,7 @@ describe('LabShell layout: levels, stage and panel', () => {
   afterEach(() => {
     cleanup();
     uninstall();
-    vi.useRealTimers();
     vi.restoreAllMocks();
-    vi.unstubAllGlobals();
     localStorage.clear();
     resetSettingsForTests();
   });
@@ -90,63 +88,101 @@ describe('LabShell layout: levels, stage and panel', () => {
     expect(screen.queryByRole('group', { name: 'Ajustes activos' })).toBeNull();
   });
 
-  test('the gear still opens the drawer and gets focus back', async () => {
+  test('the gear opens the drawer and gets focus back', async () => {
     const user = userEvent.setup();
     const { container } = renderTiered();
 
     await user.click(gear());
     expect(dialogOf(container).open).toBe(true);
+    expect(
+      within(dialogOf(container)).getByRole('switch', { name: 'Estela de la sonda' }),
+    ).toBeChecked();
     await user.keyboard('{Escape}');
 
     expect(gear()).toHaveFocus();
   });
 
-  test('levels are named regions: Parámetros (with Restablecer), Escenario, Lecturas', async () => {
+  test('levels are regions named for screen readers only: no visible titles in the deck', () => {
+    renderTiered();
+
+    for (const [name, level] of [
+      ['Parámetros', 'params'],
+      ['Escenario', 'scenario'],
+      ['Lecturas', 'readouts'],
+    ] as const) {
+      expect(region(name)).toHaveAttribute('data-lab-level', level);
+      const heading = within(region(name)).getByRole('heading', { name });
+      expect(heading).toHaveClass('sr-only');
+    }
+    expect(within(region('Escenario')).getByText('escenario del encuentro')).toBeInTheDocument();
+  });
+
+  test('parameters go two to a row in a wide lab; a paragraph among them takes the row', () => {
+    renderTiered();
+
+    expect(region('Parámetros').className).toMatch(/\bgrid\b/u);
+    expect(region('Parámetros').className).toContain('@xl/lab:grid-cols-2');
+    expect(region('Parámetros').className).toContain('[&>p]:col-span-full');
+  });
+
+  test('without LabPresets, «Restablecer» closes the scenario; it calls the lab’s reset', async () => {
     const user = userEvent.setup();
     const onReset = vi.fn();
     renderTiered({ onReset });
 
-    expect(
-      within(region('Parámetros')).getByRole('textbox', { name: 'Máxima aproximación' }),
-    ).toBeInTheDocument();
-    expect(within(region('Escenario')).getByText('escenario del encuentro')).toBeInTheDocument();
-    expect(region('Parámetros')).toHaveAttribute('data-lab-level', 'params');
-    expect(region('Escenario')).toHaveAttribute('data-lab-level', 'scenario');
-    expect(region('Lecturas')).toHaveAttribute('data-lab-level', 'readouts');
-
-    await user.click(within(region('Parámetros')).getByRole('button', { name: 'Restablecer' }));
+    expect(within(region('Escenario')).getAllByRole('button')).toEqual([reset()]);
+    expectInOrder([screen.getByText('escenario del encuentro'), reset()]);
+    await user.click(reset());
     expect(onReset).toHaveBeenCalledTimes(1);
   });
 
-  test('a lab without a scenario has no Escenario region; one without readouts, no Lecturas', () => {
+  test('with LabPresets at the scenario’s top, they carry «Restablecer» in their row: one button', () => {
+    const onReset = vi.fn();
+    renderTiered({
+      onReset,
+      levels: {
+        params: null,
+        scenario: (
+          <>
+            <p>modo</p>
+            <LabPresets id="p" presets={PRESETS} activeId="jupiter" onSelect={() => {}} />
+          </>
+        ),
+        display: [],
+      },
+    });
+
+    expect(screen.getAllByRole('button', { name: 'Restablecer' })).toHaveLength(1);
+    expect(reset().closest('[data-preset-row]')).not.toBeNull();
+    expectInOrder([screen.getByRole('button', { name: 'Saturno' }), reset()]);
+    expectInOrder([reset(), screen.getByTestId('preset-note')]);
+    reset().click();
+    expect(onReset).toHaveBeenCalledTimes(1);
+  });
+
+  test('a lab without a scenario has no Escenario region; «Restablecer» ends its parameters', () => {
     renderTiered({ readouts: [], levels: { params: <p>solo parámetros</p>, display: [] } });
 
     expect(screen.queryByRole('region', { name: 'Escenario' })).toBeNull();
     expect(screen.queryByRole('region', { name: 'Lecturas' })).toBeNull();
-    expect(region('Parámetros')).toHaveTextContent('solo parámetros');
+    expect(region('Parámetros')).toContainElement(reset());
   });
 
-  test('readouts are cells in two narrow columns', () => {
+  test('readouts are cells, two to a row, four in a wide lab', () => {
     renderTiered();
 
     const cells = region('Lecturas').querySelectorAll('[data-readout]');
     expect([...cells].map((cell) => cell.getAttribute('data-layout'))).toEqual(['cell', 'cell']);
-    expect(cells[0].parentElement).toHaveClass('grid-cols-2');
+    expect(cells[0].parentElement).toBe(region('Lecturas'));
+    expect(region('Lecturas')).toHaveClass('grid-cols-2', '@2xl/lab:grid-cols-4');
   });
 
-  test('the canvas and the transport share the stage; the levels share the panel', () => {
-    const { container } = renderTiered({ clock: fakeClock() });
-
-    const stage = container.querySelector('[data-lab-stage]') as HTMLElement;
-    const panel = container.querySelector('[data-lab-panel]') as HTMLElement;
-    expect(within(stage).getByTestId('canvas')).toBeInTheDocument();
-    expect(within(stage).getByRole('group', { name: 'Reproducción' })).toBeInTheDocument();
-    expect(within(panel).getAllByRole('region')).toHaveLength(3);
-    expect(stage.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  });
-
-  test('reading and focus order: canvas, transport, params, scenario, readouts, notes', () => {
-    renderTiered({ clock: fakeClock() });
+  test('reading and focus order: scene, transport, parameters, scenario, readouts, plots, notes', () => {
+    renderTiered({
+      clock: fakeClock(),
+      charts: <button type="button">Realzar la serie</button>,
+      canvasNotes: <ul aria-label="Leyenda del dibujo" />,
+    });
 
     expectInOrder([
       gear(),
@@ -154,47 +190,44 @@ describe('LabShell layout: levels, stage and panel', () => {
       screen.getByRole('group', { name: 'Reproducción' }),
       screen.getByRole('textbox', { name: 'Máxima aproximación' }),
       screen.getByText('escenario del encuentro'),
+      reset(),
       screen.getByText('Excentricidad e'),
+      screen.getByRole('button', { name: 'Realzar la serie' }),
+      screen.getByRole('list', { name: 'Leyenda del dibujo' }),
       screen.getByText('Cómo se usa'),
       screen.getByText('Qué deja fuera el modelo'),
     ]);
   });
 
-  test('the disclosures sit under both columns, out of the scrolling panel, still last in order', () => {
-    const { container } = renderTiered({ clock: fakeClock() });
+  test('the support plots have a place of their own, after the readouts, bleeding like the canvas', () => {
+    const { container } = renderTiered({ charts: <svg data-testid="plot" /> });
 
-    const panel = container.querySelector('[data-lab-panel]') as HTMLElement;
-    const columns = container.querySelector('[data-lab-columns]') as HTMLElement;
-    const notes = [...container.querySelectorAll('details')];
-    expect(notes).toHaveLength(2);
-    for (const details of notes) {
-      expect(panel).not.toContainElement(details);
-      expect(columns).not.toContainElement(details);
-      expect(
-        columns.compareDocumentPosition(details) & Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
-    }
+    const charts = container.querySelector('[data-lab-charts]') as HTMLElement;
+    const canvas = container.querySelector('[data-lab-canvas]') as HTMLElement;
+    expect(within(charts).getByTestId('plot')).toBeInTheDocument();
+    expect(canvas).not.toContainElement(charts);
+    expect(charts.className).toContain('-mx-3');
+    expect(canvas.className).toContain('-mx-3');
   });
 
-  test('canvas notes: after the panel in reading order (as they are seen), in their own cell under the columns', () => {
-    const { container } = renderTiered({
-      clock: fakeClock(),
-      canvasNotes: <ul aria-label="Leyenda del dibujo" />,
-    });
-
-    const notes = container.querySelector('[data-lab-canvas-notes]') as HTMLElement;
-    const stage = container.querySelector('[data-lab-stage]') as HTMLElement;
-    const panel = container.querySelector('[data-lab-panel]') as HTMLElement;
-    expect(within(notes).getByRole('list', { name: 'Leyenda del dibujo' })).toBeInTheDocument();
-    expect(stage).not.toContainElement(notes);
-    expectInOrder([screen.getByRole('group', { name: 'Reproducción' }), panel, notes]);
-    expect(notes.parentElement).toBe(container.querySelector('[data-lab-columns]'));
-  });
-
-  test('without canvas notes there is no empty cell', () => {
+  test('without plots or canvas notes there is no empty place for them', () => {
     const { container } = renderTiered();
 
+    expect(container.querySelector('[data-lab-charts]')).toBeNull();
     expect(container.querySelector('[data-lab-canvas-notes]')).toBeNull();
+  });
+
+  test('one column everywhere: nothing sticks, no two-column variant, the canvas has no cap', () => {
+    const { container } = renderTiered({ clock: fakeClock() });
+    // The card without its drawer (whose own header sticks inside the dialog).
+    const card = container.querySelector('[data-lab-shell]')?.cloneNode(true) as HTMLElement;
+    card.querySelector('dialog')?.remove();
+
+    expect(card.innerHTML).not.toMatch(/lab-split|sticky|max-w-\[36rem\]/u);
+    expect(container.querySelector('[data-lab-stage-fits]')).toBeNull();
+    const stage = container.querySelector('[data-lab-stage]') as HTMLElement;
+    expect(within(stage).getByTestId('canvas')).toBeInTheDocument();
+    expect(within(stage).getByRole('group', { name: 'Reproducción' })).toBeInTheDocument();
   });
 
   test('the panel flows with the page: no scroll of its own, no region or tab stop of its own', () => {
@@ -206,41 +239,7 @@ describe('LabShell layout: levels, stage and panel', () => {
     expect(panel.className).not.toMatch(/overflow|max-h|sticky/);
   });
 
-  test('the stage sticks at the very variable its fit is measured against', () => {
-    expect(STAGE).toContain(`top-(${LAB_STAGE_TOP})`);
-  });
-
-  test('the stage sticks only once it is measured to fit the window under the topic bar', () => {
-    const observers: ResizeObserverCallback[] = [];
-    vi.stubGlobal(
-      'ResizeObserver',
-      class {
-        constructor(callback: ResizeObserverCallback) {
-          observers.push(callback);
-        }
-        observe() {}
-        disconnect() {}
-      },
-    );
-    vi.stubGlobal('innerHeight', 800);
-    let stageHeight = 900;
-    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
-      this: HTMLElement,
-    ) {
-      return { height: this.hasAttribute('data-lab-stage') ? stageHeight : 64 } as DOMRect;
-    });
-    const { container } = renderTiered();
-    const stage = container.querySelector('[data-lab-stage]') as HTMLElement;
-    expect(stage).toHaveAttribute('data-lab-stage-fits', 'false');
-    expect(stage.className).toMatch(/lab-split:data-\[lab-stage-fits=true\]:sticky/);
-
-    stageHeight = 600;
-    act(() => observers.forEach((callback) => callback([], {} as ResizeObserver)));
-
-    expect(stage).toHaveAttribute('data-lab-stage-fits', 'true');
-  });
-
-  test('the notes are two closed disclosures; without notes there are none', () => {
+  test('the notes are two closed disclosures; without notes their place collapses', () => {
     const { container, unmount } = renderTiered();
     expect([...container.querySelectorAll('details')].map((details) => details.open)).toEqual([
       false,
@@ -250,9 +249,12 @@ describe('LabShell layout: levels, stage and panel', () => {
 
     const bare = renderTiered({ notes: undefined });
     expect(bare.container.querySelector('details')).toBeNull();
+    const place = bare.container.querySelector('[data-lab-panel]')?.nextElementSibling;
+    expect(place).toBeEmptyDOMElement();
+    expect(place).toHaveClass('empty:hidden');
   });
 
-  test('data-playing mirrors the clock and the transport sits in the stage', () => {
+  test('data-playing mirrors the clock', () => {
     const { rerender } = renderTiered({ clock: fakeClock({ playing: true }) });
     expect(screen.getByTestId('flyby-lab')).toHaveAttribute('data-playing', 'true');
 
