@@ -5,9 +5,13 @@
  * its laboratory and figures show as text (preset names and notes, select options, hints, table
  * captions): whatever passes through KaTeX inline (`$…$`) or is a reader-facing text by its key.
  * Accessible names (aria-label, an SVG's <title>/<desc>) are spoken, not drawn: not read here.
- * A new topic is walked as soon as its MDX exists.
+ * In the code it also reads the text a JSX element holds as written (`<p>…</p>`, an SVG
+ * `<text>…</text>`, a `{`…`}` child), not only keyed strings.
+ * A new topic is walked as soon as its MDX exists; it needs its lab folder
+ * `src/components/topics/<slug>/` and its table `src/lib/tables/topics/<slug>.ts` (the site's
+ * convention), and says which one is missing.
  */
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import matter from 'gray-matter';
 import { describe, expect, test } from 'vitest';
@@ -18,16 +22,17 @@ const ROOT = process.cwd();
 const TOPICS_DIR = join(ROOT, 'src/content/topics');
 
 /**
- * Loose letters that are not magnitudes, each with its reason. A context is matched as a
- * substring of the text around the letter (looseSymbols' `context`), so keep it short and exact.
+ * Loose letters that are not magnitudes, each with its reason. A context is matched against the
+ * twelve characters each side of the letter (looseSymbols' `near`), so keep it short and exact:
+ * a wider window would let one name hide another loose letter close by.
  */
 const EXCEPTIONS: readonly { context: RegExp; reason: string }[] = [
-  { context: /M\. A\. Minovitch/u, reason: 'iniciales de un nombre propio (Tema 9)' },
+  { context: /M\. A\. Minov/u, reason: 'iniciales de un nombre propio (Tema 9)' },
   { context: /Panel B:/u, reason: 'nombre del panel de la figura (Tema 8)' },
   { context: /Espacio o K reproduce/u, reason: 'nombre de una tecla del atajo (Tema 7)' },
   { context: /^m$/u, reason: 'la unidad de una barra de escala (ScaleUnit.label): metros' },
   {
-    context: /Target Coef A, B, C/u,
+    context: /Coef A, B, C/u,
     reason: 'nombres de los campos de la lista de la EPA, citados en inglés (Tema 6)',
   },
 ];
@@ -112,14 +117,27 @@ function isReaderString([key, separator, constant]: (string | undefined)[], text
 }
 
 const COMMENTS = /\/\*[\s\S]*?\*\/|^\s*\/\/.*$/gmu;
+/**
+ * A JSX element's own text, as written: words right before a closing tag (`<p>… e² …</p>`, an SVG
+ * `<text>M</text>`), or a literal child (`>{`v antes = ${…}`}<`). Code comparisons (`a < b`)
+ * are never followed by `</`.
+ */
+const JSX_TEXT = />([^<>{}]*[A-Za-z][^<>{}]*)<\/|>\s*\{\s*`((?:[^`\\]|\\.)*)`\s*\}\s*</gu;
+
+const jsxTexts = (code: string) =>
+  [...code.matchAll(JSX_TEXT)].map(([, text, literal]) => unescape(text ?? literal ?? ''));
 
 function codeSources(paths: readonly string[]): Omit<TopicSources, 'slug'> {
   const texts = paths.flatMap((path) => {
     const code = readFileSync(join(ROOT, path), 'utf8').replace(COMMENTS, ' ');
-    return [...code.matchAll(KEYED_STRING)].flatMap(([, key, separator, constant, ...values]) => {
-      const text = unescape(values.find((value) => value !== undefined) ?? '');
-      return isReaderString([key, separator, constant], text) ? [{ where: path, text }] : [];
-    });
+    const keyed = [...code.matchAll(KEYED_STRING)].flatMap(
+      ([, key, separator, constant, ...values]) => {
+        const text = unescape(values.find((value) => value !== undefined) ?? '');
+        return isReaderString([key, separator, constant], text) ? [{ where: path, text }] : [];
+      },
+    );
+    const jsx = path.endsWith('.tsx') ? jsxTexts(code).map((text) => ({ where: path, text })) : [];
+    return [...keyed, ...jsx];
   });
   return { texts, formulas: texts.flatMap(({ text }) => inlineFormulas(text)) };
 }
@@ -127,10 +145,17 @@ function codeSources(paths: readonly string[]): Omit<TopicSources, 'slug'> {
 /** A topic's laboratory, figures and table: its own folder and its table module. */
 function codePaths(slug: string): string[] {
   const folder = `src/components/topics/${slug}`;
+  const table = `src/lib/tables/topics/${slug}.ts`;
+  const missing = [folder, table].filter((path) => !existsSync(join(ROOT, path)));
+  if (missing.length > 0) {
+    throw new Error(
+      `${slug}: falta ${missing.join(' y ')}. Cada tema tiene su carpeta de laboratorio y su tabla (README, «Estructura»); la guardia lee las dos.`,
+    );
+  }
   const own = readdirSync(join(ROOT, folder))
     .filter((name) => /\.tsx?$/u.test(name) && !/\.test\.|TestKit/u.test(name))
     .map((name) => `${folder}/${name}`);
-  return [...own, `src/lib/tables/topics/${slug}.ts`];
+  return [...own, table];
 }
 
 function topicSources(slug: string): TopicSources {
@@ -147,7 +172,7 @@ const SLUGS = readdirSync(TOPICS_DIR)
   .filter((name) => name.endsWith('.mdx'))
   .map((name) => name.replace(/\.mdx$/u, ''));
 
-const isExcepted = (context: string) => EXCEPTIONS.some(({ context: c }) => c.test(context));
+const isExcepted = (near: string) => EXCEPTIONS.some(({ context }) => context.test(near));
 
 describe('ninguna letra de magnitud suelta fuera de una fórmula', () => {
   test.each(SLUGS)('%s', (slug) => {
@@ -155,7 +180,7 @@ describe('ninguna letra de magnitud suelta fuera de una fórmula', () => {
     const symbols = new Set(formulas.flatMap(texVariables));
     const loose = texts.flatMap(({ where, text }) =>
       looseSymbols(text, symbols)
-        .filter(({ context }) => !isExcepted(context))
+        .filter(({ near }) => !isExcepted(near))
         .map(({ letter, context }) => `${where} [${letter}] …${context}…`),
     );
 

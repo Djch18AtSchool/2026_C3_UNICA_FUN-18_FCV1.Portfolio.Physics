@@ -14,7 +14,29 @@ describe('looseSymbols', () => {
 
   test('a letter inside a formula, or joined to other letters, digits or indices, is not loose', () => {
     expect(letters('La posición crece con $t$ y $v_x = v\\cos\\theta$.')).toEqual([]);
-    expect(letters('mg, v0, v_x, x², h′, m/s, kg·m/s, L-rueda')).toEqual([]);
+    expect(letters('mg, v0, x², h′, m/s, kg·m/s, L-rueda')).toEqual([]);
+  });
+
+  test('a letter with a subscript or a power outside a formula is the mini-notation left loose, any letter', () => {
+    expect(letters('Carga F_z = 4 000 N, apex t_h y T_mín; ω_0 y r^2')).toEqual([
+      'F',
+      't',
+      'T',
+      'ω',
+      'r',
+    ]);
+    // Names with an underscore are not notation: each part has two characters or more.
+    expect(letters('contact_solver.c, DY_REF y MPC_XY_VEL_MAX')).toEqual([]);
+  });
+
+  test('a short window around the letter (`near`, ±12 characters) is what an exception is matched on', () => {
+    const [found] = looseSymbols(
+      'Una frase larga antes de todo, con t y nada más que decir aquí.',
+      SYMBOLS,
+    );
+
+    expect(found.near).toBe('e todo, con t y nada más ');
+    expect(found.context.length).toBeGreaterThan(found.near.length);
   });
 
   test('a letter the page never uses as a variable is a name, not a magnitude', () => {

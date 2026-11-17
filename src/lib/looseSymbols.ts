@@ -12,7 +12,10 @@
  * - a unit: after a number («900 m», «3 h», «12 N»), alone in parentheses («(m)», «(d)») or after
  *   a degree sign («°C»);
  * - a name the guard is told about (an exception with its reason, at the call site).
- * Greek letters are always magnitudes.
+ * Greek letters are always magnitudes. A letter with a subscript or a power written outside a
+ * formula («F_z = 4 000 N», «t_h», «r^2») is always one: the mini-notation of an SVG label, left
+ * loose in a text that reads `$…$` (a name with an underscore, «contact_solver», «DY_REF», has
+ * two characters or more before it, so it is joined on the left and passes).
  */
 import { splitInlineMath } from './inlineSegments';
 
@@ -28,6 +31,9 @@ const UNIT_LETTERS = new Set(['m', 's', 'h', 'd', 'g', 'N', 'J', 'W']);
 const UNIT_IN_PARENTHESES = { before: /\($/u, after: /^\)/u };
 const GREEK = 'α-ωΑ-Ωϑϕϵ';
 const LETTER = new RegExp(`[A-Za-z${GREEK}]`, 'u');
+const GREEK_LETTER = new RegExp(`[${GREEK}]`, 'u');
+/** A subscript or a power right after the letter: the mini-notation outside a formula. */
+const SCRIPT_AFTER = /^[_^]/u;
 /** What may sit right before a loose letter: not a letter, digit or the pieces of a formula. */
 const LEFT_JOINED = new RegExp(`[\\p{L}\\p{N}\\\\$_^'’′.\\-/·°${GREEK}]`, 'u');
 /** What may sit right after it: not a letter, digit, index, prime, power, unit slash or hyphen. */
@@ -60,6 +66,11 @@ export interface LooseSymbol {
   letter: string;
   /** The text around it, to find it in its source. */
   context: string;
+  /**
+   * A short window around it (NEAR_CHARS each side), what an exception is matched on: a wide one
+   * would let an exception for one name hide another loose letter a sentence away.
+   */
+  near: string;
 }
 
 /** The text outside every `$…$` formula, each formula replaced by a placeholder. */
@@ -86,12 +97,18 @@ function isLoose(text: string, index: number, symbols: ReadonlySet<string>): boo
   const letter = text[index];
   const before = text.slice(0, index);
   const after = text.slice(index + 1);
-  if (LEFT_JOINED.test(before.at(-1) ?? ' ') || RIGHT_JOINED.test(after[0] ?? ' ')) return false;
-  if (!symbols.has(letter) && !new RegExp(`[${GREEK}]`, 'u').test(letter)) return false;
+  if (LEFT_JOINED.test(before.at(-1) ?? ' ')) return false;
+  if (SCRIPT_AFTER.test(after)) return true;
+  if (RIGHT_JOINED.test(after[0] ?? ' ')) return false;
+  if (!symbols.has(letter) && !GREEK_LETTER.test(letter)) return false;
   return !isUnit(letter, before, after) && !isWordHere(letter, before, after);
 }
 
 const CONTEXT_CHARS = 32;
+const NEAR_CHARS = 12;
+
+const around = (text: string, index: number, chars: number) =>
+  text.slice(Math.max(0, index - chars), index + chars + 1).replace(/\s+/gu, ' ');
 
 /** Every loose magnitude letter of `text`, with a little of the text around it. */
 export function looseSymbols(text: string, symbols: ReadonlySet<string>): LooseSymbol[] {
@@ -101,9 +118,8 @@ export function looseSymbols(text: string, symbols: ReadonlySet<string>): LooseS
       ? [
           {
             letter: char,
-            context: prose
-              .slice(Math.max(0, index - CONTEXT_CHARS), index + CONTEXT_CHARS)
-              .replace(/\s+/gu, ' '),
+            context: around(prose, index, CONTEXT_CHARS),
+            near: around(prose, index, NEAR_CHARS),
           },
         ]
       : [],
