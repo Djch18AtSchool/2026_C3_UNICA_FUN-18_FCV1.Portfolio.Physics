@@ -7,13 +7,7 @@
 import MathText from '../../lab/MathText';
 import { createContext, useContext, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
-import {
-  CHART_COLORS,
-  SURFACE_COLOR,
-  TEXT_COLOR,
-  TICK_FONT_FAMILY,
-  TICK_FONT_SIZE,
-} from '../../charts/chartTheme';
+import { CHART_COLORS, SURFACE_COLOR, TEXT_COLOR, TICK_FONT_SIZE } from '../../charts/chartTheme';
 import InlineMath from '../../lab/InlineMath';
 import { textWidth, type Scale } from '../../lab/plotScales';
 import type { PlotSeries } from '../../lab/SvgPlot';
