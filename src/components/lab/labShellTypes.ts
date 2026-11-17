@@ -97,3 +97,9 @@ export interface LabLevels {
   /** Level 3, personalization: only in the settings drawer (no chip repeats it by the gear). */
   display: SettingOption[];
 }
+
+/**
+ * `display` for a lab whose drawer holds only the global settings: every choice of its own is a
+ * parameter or the scenario's (Tema 4's compound, Tema 5's damping). One empty list for all.
+ */
+export const NO_LOCAL_SETTINGS: [] = [];

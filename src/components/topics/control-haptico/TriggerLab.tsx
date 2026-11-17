@@ -12,6 +12,7 @@ import SvgPlot, { STAGE_PLOT_ASPECT } from '../../lab/SvgPlot';
 import TimeScaleBadge from '../../lab/TimeScaleBadge';
 import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import { usePrefersReducedMotion } from '../../lab/useSimClock';
+import { NO_LOCAL_SETTINGS } from '../../lab/labShellTypes';
 import { HOOKE_COLOR, labPlot } from './hapticPlots';
 import TriggerLever from './TriggerLever';
 import {
@@ -39,8 +40,6 @@ interface TriggerLabState {
   lastReleaseMm?: number;
 }
 
-/** The drawer holds only the global settings: the damping is part of the scenario. */
-const NO_DISPLAY: [] = [];
 /** The worked example of the text at rest: k = 400 N/m, resistance from x₀ = 0, critical damping. */
 const INITIAL_STATE: Readonly<TriggerLabState> = { k: 400, x0Mm: 0, xMm: 0, damping: 'critica' };
 const K_STEP = 10;
@@ -279,7 +278,7 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
     <LabShell
       title="Laboratorio del gatillo"
       readouts={readouts}
-      levels={{ params, scenario, display: NO_DISPLAY }}
+      levels={{ params, scenario, display: NO_LOCAL_SETTINGS }}
       canvasNotes={canvasNotes}
       notes={{ usage: [USAGE], leftOut: leftOut ? [leftOut] : [] }}
       onReset={onReset}

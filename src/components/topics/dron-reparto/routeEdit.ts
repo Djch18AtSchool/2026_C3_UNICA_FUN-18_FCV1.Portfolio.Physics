@@ -13,14 +13,13 @@ import { indexBefore } from './routeSeries';
 
 /** Stops snap to a 10 m grid, so a dragged route reads as round numbers. */
 export const STOP_GRID_M = 10;
-const GRID_M = STOP_GRID_M;
 const DEPOT_NAME = 'Depósito';
 const KEEP_LAST = 'Se conserva la última ruta válida.';
 const GENERIC_ERROR = `No se pudo generar la ruta con estos valores. ${KEEP_LAST}`;
 
 export type GenerateResult = { ok: true; samples: RouteSample[] } | { ok: false; error: string };
 
-const snap = (metres: number) => Math.round(metres / GRID_M) * GRID_M;
+const snap = (metres: number) => Math.round(metres / STOP_GRID_M) * STOP_GRID_M;
 
 /** A new route with stop `index` (A = 1, B = 2, C = 3) at (x, y) rounded to 10 m. */
 export function moveStop(

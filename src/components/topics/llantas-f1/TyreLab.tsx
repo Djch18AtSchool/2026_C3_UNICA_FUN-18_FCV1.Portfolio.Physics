@@ -26,6 +26,7 @@ import {
   type TyreReadings,
 } from './tyreLabModel';
 import { PlotPoints } from '../../lab/PlotPoints';
+import { NO_LOCAL_SETTINGS } from '../../lab/labShellTypes';
 import {
   LINEAR_COLOR,
   LOAD_AXIS,
@@ -35,8 +36,6 @@ import {
   temperaturePlot,
 } from './tyrePlots';
 
-/** The drawer holds only the global settings: the compound is part of the scenario. */
-const NO_DISPLAY: [] = [];
 /** Forces read in whole newtons; the global decimals would print 11 942,90 N. */
 const FORCE_PRECISION = 0;
 
@@ -203,7 +202,7 @@ export default function TyreLab({ leftOut }: TyreLabProps): JSX.Element {
     <LabShell
       title="Laboratorio de la llanta"
       readouts={readouts}
-      levels={{ params, scenario, display: NO_DISPLAY }}
+      levels={{ params, scenario, display: NO_LOCAL_SETTINGS }}
       notes={{ usage: [DRAG_HINT], leftOut: leftOut ? [leftOut] : [] }}
       onReset={() => setState(INITIAL_TYRE_STATE)}
       testId="tyre-lab"
