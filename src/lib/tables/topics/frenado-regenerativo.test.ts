@@ -58,7 +58,7 @@ describe('frenado-regenerativo tables', () => {
     expect(header).toEqual([
       'Vehículo',
       'Masa de prueba, ETW (lb)',
-      'Masa m (kg)',
+      'Masa $m$ (kg)',
       'A (lbf)',
       'A (N)',
       'B (lbf/mph)',

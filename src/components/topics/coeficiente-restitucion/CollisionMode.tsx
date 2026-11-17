@@ -328,7 +328,7 @@ export function CollisionParams({ settings: s, onChange }: CollisionParamsProps)
       {s.isWall ? null : field('v2', 'Velocidad $v_2$', 'm/s', [V_MIN, V_MAX], VELOCITY_STEP)}
       <ParamField
         id="collision-e"
-        label="Coeficiente de restitución e"
+        label="Coeficiente de restitución $e$"
         unit=""
         min={E_MIN}
         max={E_MAX}

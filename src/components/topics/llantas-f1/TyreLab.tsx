@@ -159,7 +159,7 @@ export default function TyreLab({ leftOut }: TyreLabProps): JSX.Element {
     <>
       <ParamField
         id="tyre-t"
-        label="Temperatura de la banda T"
+        label="Temperatura de la banda $T$"
         unit="°C"
         min={TEMPERATURE_DOMAIN.min}
         max={TEMPERATURE_DOMAIN.max}

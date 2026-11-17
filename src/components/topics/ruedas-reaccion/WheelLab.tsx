@@ -190,7 +190,7 @@ function WheelParams({ settings, set }: WheelParamsProps): JSX.Element {
       />
       <ParamField
         id="wheel-T"
-        label="Duración de la maniobra T"
+        label="Duración de la maniobra $T$"
         unit="s"
         min={WHEEL_LIMITS.T[0]}
         max={WHEEL_LIMITS.T[1]}

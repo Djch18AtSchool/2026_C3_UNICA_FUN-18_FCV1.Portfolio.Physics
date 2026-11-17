@@ -307,7 +307,7 @@ function H0Handle({
 }): JSX.Element {
   const at = { x: (geo.columns[0] + geo.columns[1]) / 2, y: geo.toPx(h0) };
   const grabOffsetRef = useRef(0);
-  const text = `h_0 = ${formatNumber(h0, { precision: decimals, unit: 'm' })}`;
+  const text = `$h_0$ = ${formatNumber(h0, { precision: decimals, unit: 'm' })}`;
 
   const drag = useDrag(({ y, phase }: DragPoint) => {
     if (phase === 'start') {
@@ -408,15 +408,13 @@ export default function BounceScene(props: BounceSceneProps): JSX.Element {
               </text>
             </g>
           ))}
-          <text
+          <MathText
+            source="$y$ (m)"
             x={4}
             y={geo.areaTop - 8}
-            fontFamily={TICK_FONT_FAMILY}
             fontSize={NOTE_SIZE}
             fill={TICK_COLOR}
-          >
-            y (m)
-          </text>
+          />
           <line
             x1={MARGIN.left}
             x2={MARGIN.left}

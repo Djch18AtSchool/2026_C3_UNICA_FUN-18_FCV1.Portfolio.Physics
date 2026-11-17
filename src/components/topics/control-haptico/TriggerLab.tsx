@@ -224,7 +224,7 @@ export default function TriggerLab({ leftOut }: TriggerLabProps): JSX.Element {
     <>
       <ParamField
         id="trigger-k"
-        label="Rigidez k"
+        label="Rigidez $k$"
         unit="N/m"
         min={TRIGGER_LIMITS.k[0]}
         max={TRIGGER_LIMITS.k[1]}

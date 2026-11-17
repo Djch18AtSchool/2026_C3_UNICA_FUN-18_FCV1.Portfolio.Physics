@@ -60,14 +60,17 @@ function Force({
   return (
     <g data-force={kind} stroke={color}>
       <Arrow from={{ x, y: from }} to={{ x, y: to }} color={color} />
-      <MathText
-        source={label}
-        x={labelX}
-        y={(from + to) / 2 + 5}
-        anchor={side}
-        fontSize={TEXT_SIZE}
-        fill={TEXT_COLOR}
-      />
+      {/* The arrow's group strokes in its color; the label does not take it. */}
+      <g stroke="none">
+        <MathText
+          source={label}
+          x={labelX}
+          y={(from + to) / 2 + 5}
+          anchor={side}
+          fontSize={TEXT_SIZE}
+          fill={TEXT_COLOR}
+        />
+      </g>
     </g>
   );
 }

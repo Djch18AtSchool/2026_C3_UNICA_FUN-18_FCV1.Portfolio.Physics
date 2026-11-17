@@ -65,7 +65,7 @@ describe('EnergyBalanceChart', () => {
   test('starts at the end of the cycle, with the totals, the dissipated sum and the share', () => {
     render(<EnergyBalanceChart />);
 
-    expect(readoutValue('Tiempo t')).toBe('1 369 s');
+    expect(readoutValue('Tiempo $t$')).toBe('1 369 s');
     expect(readoutValue('Tracción en las ruedas')).toBe('1,597 kWh');
     expect(readoutValue('A la batería')).toBe('0,645 kWh');
     expect(readoutValue(LOSS_LABEL)).toBe('0,161 kWh');
@@ -85,13 +85,13 @@ describe('EnergyBalanceChart', () => {
     expect(sliders).toHaveLength(1);
     expect(container.querySelectorAll('[data-cursor]')).toHaveLength(2);
     fireEvent.keyDown(sliders[0], { key: 'Home' });
-    expect(readoutValue('Tiempo t')).toBe('0 s');
+    expect(readoutValue('Tiempo $t$')).toBe('0 s');
     expect(readoutValue('Batería / tracción')).toBe('0,0 %');
     const atStart = cursorAt('energy-balance-speed');
 
     fireEvent.keyDown(sliders[0], { key: 'ArrowRight', shiftKey: true });
 
-    expect(readoutValue('Tiempo t')).toBe('137 s');
+    expect(readoutValue('Tiempo $t$')).toBe('137 s');
     expect(sliders[0]).toHaveAttribute('aria-valuenow', '137');
     expect(cursorAt('energy-balance-speed')).not.toBe(atStart);
     expect(readoutValue('Tracción en las ruedas')).not.toBe('0,000 kWh');

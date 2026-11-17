@@ -34,7 +34,7 @@ describe('control-haptico tables', () => {
     const [header, , ...rows] = rowsOf(0);
 
     expect(header).toEqual([
-      'Desplazamiento x (mm)',
+      'Desplazamiento $x$ (mm)',
       'Vibración fija, amplitud $F_0$ (N)',
       'Resorte de 400 N/m, k x (N)',
     ]);
@@ -59,8 +59,8 @@ describe('control-haptico tables', () => {
 
     expect(header).toEqual([
       'Punto del recorrido',
-      'Desplazamiento x (mm)',
-      'Fuerza, k x (N)',
+      'Desplazamiento $x$ (mm)',
+      'Fuerza, $k x$ (N)',
       'Energía guardada, U = ½ k x² (mJ)',
       'Trabajo de la fuerza elástica (mJ)',
     ]);

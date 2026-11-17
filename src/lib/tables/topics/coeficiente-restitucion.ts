@@ -131,7 +131,7 @@ const MOTORES: DataTableSpec = {
   columns: [
     { key: 'motor', label: 'Motor', align: 'text' },
     { key: 'umbral', label: 'Umbral', unit: 'm/s', align: 'num', precision: 1 },
-    { key: 'mezcla', label: 'Mezcla de e', align: 'text' },
+    { key: 'mezcla', label: 'Mezcla de $e$', align: 'text' },
     { key: 'fuente', label: 'Fuente', align: 'text' },
   ],
   rows: ENGINE_RESTITUTION.map(engineRow),

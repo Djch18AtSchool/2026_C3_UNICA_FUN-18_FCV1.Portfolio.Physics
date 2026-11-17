@@ -32,7 +32,7 @@ export const FORCE_AXES = {
 } as const;
 
 /** The ideal spring's F = k x (magnitude of −k x) over the travel, dashed. */
-export function hookeSeries(k: number, label = 'Resorte ideal, F = k x'): PlotSeries {
+export function hookeSeries(k: number, label = 'Resorte ideal, $F = k x$'): PlotSeries {
   return {
     id: 'hooke',
     label,

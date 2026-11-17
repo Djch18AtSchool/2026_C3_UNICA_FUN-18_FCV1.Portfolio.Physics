@@ -313,10 +313,10 @@ export default function TriggerLever({
         <Label
           at={tip}
           dx={VALUE_LABEL_LEAN}
-          dy={valueLabelDrop(angle, `x = ${xText(xMm)}`)}
+          dy={valueLabelDrop(angle, `$x$ = ${xText(xMm)}`)}
           anchor="end"
         >
-          {`x = ${xText(xMm)}`}
+          {`$x$ = ${xText(xMm)}`}
         </Label>
       </svg>
     </div>

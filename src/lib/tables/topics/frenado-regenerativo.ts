@@ -34,7 +34,7 @@ const VEHICLES: DataTableSpec = {
     // «Tesla Model 3 / Long Range RWD / 2025» in three lines, not six, on a phone.
     { key: 'vehiculo', label: 'Vehículo', align: 'text', minWidthCh: 15 },
     { key: 'etw', label: 'Masa de prueba, ETW', unit: 'lb', align: 'num', precision: 0 },
-    { key: 'm', label: 'Masa m', unit: 'kg', align: 'num', precision: 2 },
+    { key: 'm', label: 'Masa $m$', unit: 'kg', align: 'num', precision: 2 },
     { key: 'aEpa', label: 'A', unit: 'lbf', align: 'num', precision: 2 },
     { key: 'aSi', label: 'A', unit: 'N', align: 'num', precision: 2 },
     { key: 'bEpa', label: 'B', unit: 'lbf/mph', align: 'num', precision: 4 },

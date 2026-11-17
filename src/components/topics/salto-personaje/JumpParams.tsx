@@ -37,7 +37,7 @@ export default function JumpParams({ settings, clamped, onField }: JumpParamsPro
       />
       <ParamField
         id="jump-g"
-        label="Gravedad g"
+        label="Gravedad $g$"
         unit="m/s²"
         min={JUMP_LIMITS.g[0]}
         max={JUMP_LIMITS.g[1]}

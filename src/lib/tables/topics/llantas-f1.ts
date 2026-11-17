@@ -61,7 +61,7 @@ const TEMPERATURE: DataTableSpec = {
   id: 'llantas-f1-temperatura',
   caption: `Agarre de la campana del C3, ecuación (4.3), en el óptimo, en los bordes de su ventana de 2019 y fuera de ella; dentro de la ventana $\\mu$ no baja del ${formatNumber(shareOfPeak(C3_WINDOW.from) * PERCENT, { precision: 0 })} % del pico.`,
   columns: [
-    { key: 't', label: 'Temperatura T', unit: '°C', align: 'num', precision: 0 },
+    { key: 't', label: 'Temperatura $T$', unit: '°C', align: 'num', precision: 0 },
     { key: 'mu', label: '$\\mu(T)$', align: 'num', precision: 2 },
     { key: 'loss', label: 'Pérdida respecto del pico', unit: '%', align: 'num', precision: 0 },
   ],

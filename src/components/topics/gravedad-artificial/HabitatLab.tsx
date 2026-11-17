@@ -103,7 +103,7 @@ export default function HabitatLab({ usage, leftOut }: HabitatLabProps): JSX.Ele
     <>
       <ParamField
         id="habitat-rpm"
-        label="Velocidad de giro N"
+        label="Velocidad de giro $N$"
         unit="RPM"
         min={HABITAT_LIMITS.rpm[0]}
         max={HABITAT_LIMITS.rpm[1]}
@@ -113,7 +113,7 @@ export default function HabitatLab({ usage, leftOut }: HabitatLabProps): JSX.Ele
       />
       <ParamField
         id="habitat-r"
-        label="Radio del piso r"
+        label="Radio del piso $r$"
         unit="m"
         min={HABITAT_LIMITS.r[0]}
         max={HABITAT_LIMITS.r[1]}

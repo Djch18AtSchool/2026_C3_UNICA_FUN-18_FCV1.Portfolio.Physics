@@ -41,7 +41,7 @@ const VIBRATION: DataTableSpec = {
   id: 'control-haptico-vibracion',
   caption: `Fuerza sobre el dedo en tres puntos del recorrido. $F_0$ = ${newtons(VIBRATION_N)} N es un supuesto del modelo, igual a la fuerza del resorte a ${MID_MM} mm para poder compararlas.`,
   columns: [
-    { key: 'x', label: 'Desplazamiento x', unit: 'mm', align: 'num', precision: 0 },
+    { key: 'x', label: 'Desplazamiento $x$', unit: 'mm', align: 'num', precision: 0 },
     {
       key: 'vibration',
       label: 'Vibración fija, amplitud $F_0$',
@@ -85,8 +85,8 @@ const ENERGY: DataTableSpec = {
   caption: `Resorte ideal de ${SPRING_LABEL} a mitad del recorrido y al fondo, donde ${BOTTOM_SUBSTITUTION}; el trabajo de la propia fuerza elástica vale −U (Módulo 2, Tema 03, concepto 03).`,
   columns: [
     { key: 'point', label: 'Punto del recorrido', align: 'text' },
-    { key: 'x', label: 'Desplazamiento x', unit: 'mm', align: 'num', precision: 0 },
-    { key: 'force', label: 'Fuerza, k x', unit: 'N', align: 'num', precision: 1 },
+    { key: 'x', label: 'Desplazamiento $x$', unit: 'mm', align: 'num', precision: 0 },
+    { key: 'force', label: 'Fuerza, $k x$', unit: 'N', align: 'num', precision: 1 },
     {
       key: 'energy',
       label: 'Energía guardada, U = ½ k x²',

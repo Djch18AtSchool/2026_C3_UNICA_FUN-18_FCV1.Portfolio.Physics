@@ -222,7 +222,7 @@ export default function BounceLab({ usage, leftOut }: BounceLabProps): JSX.Eleme
         <div className="flex flex-col gap-1">
           <ParamField
             id="bounce-e"
-            label="Coeficiente de restitución e"
+            label="Coeficiente de restitución $e$"
             unit=""
             min={E_MIN}
             max={E_MAX}
@@ -311,7 +311,7 @@ export default function BounceLab({ usage, leftOut }: BounceLabProps): JSX.Eleme
             ideal={ideal}
             engine={{ y: engine.y, isResting: engine.resting }}
             live={live}
-            engineSubtitle={`Δt\u00a0=\u00a01/${settings.rate}\u00a0s ×\u00a0${settings.substeps}`}
+            engineSubtitle={`$\\Delta{}t$\u00a0=\u00a01/${settings.rate}\u00a0s ×\u00a0${settings.substeps}`}
             decimals={decimals}
             onH0Change={(h0) => edit({ h0 })}
             onH0DragPhase={onH0DragPhase}
