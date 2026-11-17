@@ -293,7 +293,6 @@ export default function BounceLab({ usage, leftOut }: BounceLabProps): JSX.Eleme
           ),
           display: bounceLocalSettings({
             mode,
-            onModeChange: setMode,
             settings,
             onSettingsChange: edit,
             clock,

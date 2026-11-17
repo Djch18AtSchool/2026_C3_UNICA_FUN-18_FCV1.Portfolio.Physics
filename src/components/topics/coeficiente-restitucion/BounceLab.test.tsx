@@ -309,7 +309,7 @@ describe('BounceLab', () => {
     expect(screen.getByTestId('engine-config')).toHaveTextContent(/Δt = 1\/30 s × 4/);
   });
 
-  test('the drawer changes the mixing rule, and its Modo select reaches the collision mode', async () => {
+  test('the drawer changes the mixing rule; the mode is the scenario’s alone', async () => {
     const user = userEvent.setup();
     renderLab();
     const dialog = await openDrawer(user);
@@ -325,10 +325,20 @@ describe('BounceLab', () => {
       /Valores modificados a partir de «Tenis ITF/,
     );
 
-    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Modo' }), 'collision');
+    // One source (E1's rule for the scenario): the drawer never offers «Modo» again.
+    expect(within(dialog).queryByRole('combobox', { name: 'Modo' })).toBeNull();
+  });
+
+  test('in the collision mode the drawer holds only «Repetir»: the engine is the bounce’s', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    await user.click(screen.getByRole('radio', { name: 'Choque de dos cuerpos' }));
+    const dialog = await openDrawer(user);
 
     expect(screen.getByTestId('collision-scene')).toBeInTheDocument();
+    expect(within(dialog).queryByRole('combobox', { name: 'Modo' })).toBeNull();
     expect(within(dialog).queryByRole('combobox', { name: 'Paso del motor delta t' })).toBeNull();
+    expect(within(dialog).getByRole('switch', { name: 'Repetir' })).toBeInTheDocument();
   });
 
   test('the Unity preset credits Unity only with the threshold and the rule, and says why the floor is 0,9', async () => {

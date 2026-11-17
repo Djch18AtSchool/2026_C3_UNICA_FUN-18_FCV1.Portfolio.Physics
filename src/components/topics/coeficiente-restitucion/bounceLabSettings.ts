@@ -31,15 +31,12 @@ const THRESHOLD_STEP = 0.05;
 const COEFFICIENT_STEP = 0.05;
 const SUBSTEP_STEP = 1;
 
-const isMode = (value: string): value is LabMode =>
-  MODE_OPTIONS.some((option) => option.value === value);
 const isRule = (value: string): value is CombineRule =>
   COMBINE_OPTIONS.some((option) => option.value === value);
 const isRate = (value: number): value is StepRate => STEP_RATES.some((rate) => rate === value);
 
 export interface BounceLocalSettingsInput {
   mode: LabMode;
-  onModeChange(mode: LabMode): void;
   settings: BounceSettings;
   onSettingsChange(patch: Partial<BounceSettings>): void;
   clock: SimClock;
@@ -103,29 +100,18 @@ function engineOptions(
 }
 
 /**
- * Modo; in the bounce mode the engine (Δt, subpasos, umbral, regla, e del suelo, β, e(v)); then
- * repetir, which lives on the clock (the speed, 0,25× being the slow motion, is the transport's).
- * The engine's state is read in the lab's «Motor» chips, not here.
+ * In the bounce mode the engine (Δt, subpasos, umbral, regla, e del suelo, β, e(v)); then repetir,
+ * which lives on the clock (the speed, 0,25× being the slow motion, is the transport's). The mode
+ * itself is the scenario's alone («Modo», a ChoiceField under the parameters): one source, as E1
+ * did for the other labs' scenario choices. The engine's state is read in the lab's «Motor» chips.
  */
 export function bounceLocalSettings({
   mode,
-  onModeChange,
   settings,
   onSettingsChange,
   clock,
 }: BounceLocalSettingsInput): SettingOption[] {
-  const modeOption: SettingOption = {
-    key: 'mode',
-    label: 'Modo',
-    kind: 'select',
-    value: mode,
-    options: [...MODE_OPTIONS],
-    onChange: (value) => {
-      if (isMode(value)) onModeChange(value);
-    },
-  };
   return [
-    modeOption,
     ...(mode === 'bounce' ? engineOptions(settings, onSettingsChange) : []),
     ...clockSettings(clock),
   ];
