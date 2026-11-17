@@ -1,13 +1,13 @@
 /**
  * The shared time pieces (B4.1) on a test page outside the site (tests/e2e/fixtures/lab-time):
- * TransportBar's events (marks, «Evento anterior / siguiente», the announced event) and
+ * TransportBar's events (marks, «Evento anterior | siguiente», the announced event) and
  * TimeScaleBadge, in a LabShell with a 1 369 s run at ×20, 17 stops and one peak. The labs that
  * use them have their own specs.
  */
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { FIXTURE_BUILD_TIMEOUT_MS, startFixtureSite, type FixtureSite } from './fixtureSite';
-import { cssLengthPxIn, waitForIsland } from './helpers';
+import { waitForIsland } from './helpers';
 import { expectSameHeightAfterHydration, HYDRATION_WIDTHS } from './hydrationStability';
 
 const LAB = '[data-testid="time-fixture-lab"]';
@@ -139,18 +139,34 @@ test('la línea de tiempo conserva sus teclas nativas', async ({ page }) => {
   await expect(next(lab)).toHaveAttribute('aria-disabled', 'true');
 });
 
-test('la reproducción con eventos reserva sus dos filas bajo un control del lienzo', async ({
+test('a 1 280 px la reproducción con eventos va en una fila (botones, velocidad, línea, t y el par) y el evento debajo', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   const lab = await openFixture(page);
-  const stage = lab.locator('[data-lab-stage]');
+  const transport = lab.locator('[data-lab-transport]');
+  const centre = async (locator: Locator) => {
+    const box = (await locator.boundingBox())!;
+    return box.y + box.height / 2;
+  };
+  const row = await centre(transport.getByRole('button', { name: 'Reproducir' }));
 
-  const room = await cssLengthPxIn(stage, 'var(--lab-transport-room)');
-  const bar = await lab.locator('[data-lab-transport]').boundingBox();
-
-  // At the 16 px root the room and the transport are whole pixels: they match exactly.
-  expect(room).toBe(bar!.height);
+  for (const part of [
+    transport.getByRole('combobox', { name: 'Velocidad de reproducción' }),
+    timeline(lab),
+    transport.locator('[data-transport-time]'),
+    next(lab),
+    previous(lab),
+  ]) {
+    expect(Math.abs((await centre(part)) - row)).toBeLessThanOrEqual(2);
+  }
+  // The pair closes the row, joined: «anterior» right against «siguiente».
+  const [left, right] = [(await previous(lab).boundingBox())!, (await next(lab).boundingBox())!];
+  expect(Math.abs(left.x + left.width - right.x)).toBeLessThanOrEqual(1);
+  const line = (await lab.locator('[data-transport-event]').boundingBox())!;
+  const range = (await timeline(lab).boundingBox())!;
+  expect(line.y).toBeGreaterThanOrEqual(range.y + range.height - 1);
+  expect(Math.abs(line.x - range.x)).toBeLessThanOrEqual(1);
 });
 
 test('el factor de tiempo va en la esquina del lienzo, sin tapar ni atrapar el puntero', async ({
@@ -208,8 +224,7 @@ test('un cambio de velocidad sí se anuncia', async ({ page }) => {
   // that, as a reader would, so the change below is a change.
   await expect(status).toHaveAttribute('data-settled', 'true');
 
-  await lab.getByRole('button', { name: 'Velocidad 1×' }).click();
-  await page.getByRole('dialog').getByRole('combobox', { name: 'Velocidad' }).selectOption('0.25');
+  await lab.getByRole('combobox', { name: 'Velocidad de reproducción' }).selectOption('0.25');
 
   await expect(status).toHaveText('Escala de tiempo: 5 veces la velocidad real, cámara rápida');
 });
@@ -253,11 +268,20 @@ for (const width of [360, 320]) {
 
     const overflow = await transport.evaluate((node) => {
       const box = node.getBoundingClientRect();
-      return [...node.querySelectorAll('button, [data-transport-event], span.font-mono')]
-        .map((child) => child.getBoundingClientRect())
-        .filter((child) => child.left < box.left - 1 || child.right > box.right + 1).length;
+      return [
+        ...node.querySelectorAll('button, select, [data-transport-event], [data-transport-time]'),
+      ]
+        .filter((child) => {
+          const { left, right } = child.getBoundingClientRect();
+          return left < box.left - 1 || right > box.right + 1;
+        })
+        .map((child) => {
+          const { left, right } = child.getBoundingClientRect();
+          const name = child.getAttribute('aria-label') ?? child.textContent ?? '';
+          return `${name.trim()}: ${left.toFixed(1)}–${right.toFixed(1)} en ${box.left.toFixed(1)}–${box.right.toFixed(1)}`;
+        });
     });
-    expect(overflow).toBe(0);
+    expect(overflow).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       width,
     );

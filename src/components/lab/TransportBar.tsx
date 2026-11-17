@@ -161,18 +161,18 @@ type Layout = 'plain' | 'events' | 'pair';
 
 const GRID = 'grid items-center gap-x-3 gap-y-2 @xl/transport:gap-y-1';
 /**
- * One grid, phone first: the buttons with the t readout at their right, the timeline under them at
- * full width, and under it the event line (beside the pair, when there is one). From 36 rem of bar,
- * one row: ▶ ↺ 1×▾, the timeline, t and the pair, with the event line under the timeline. The DOM
- * keeps the order of reading in both (buttons, timeline, readout, pair): Tab never goes back up.
- * Tailwind needs each class literal.
+ * One grid, phone first: the buttons (▶ ↺ 1×▾) on their own row, the timeline with the t readout
+ * at its right under them, and under those the event line (beside the pair, when there is one);
+ * so nothing passes a 320 px card. From 36 rem of bar, one row: ▶ ↺ 1×▾, the timeline, t and the
+ * pair, with the event line under the timeline. The DOM keeps the order of reading in both
+ * (buttons, timeline, readout, pair): Tab never goes back up. Tailwind needs each class literal.
  */
 const LAYOUT: Readonly<Record<Layout, string>> = {
   plain:
-    'grid-cols-[auto_minmax(0,1fr)] [grid-template-areas:"buttons_time"_"timeline_timeline"] @xl/transport:grid-cols-[auto_minmax(8rem,1fr)_auto] @xl/transport:[grid-template-areas:"buttons_timeline_time"]',
+    'grid-cols-[minmax(0,1fr)_auto] [grid-template-areas:"buttons_buttons"_"timeline_time"] @xl/transport:grid-cols-[auto_minmax(8rem,1fr)_auto] @xl/transport:[grid-template-areas:"buttons_timeline_time"]',
   events:
-    'grid-cols-[auto_minmax(0,1fr)] [grid-template-areas:"buttons_time"_"timeline_timeline"_"event_event"] @xl/transport:grid-cols-[auto_minmax(8rem,1fr)_auto] @xl/transport:[grid-template-areas:"buttons_timeline_time"_"._event_event"]',
-  pair: 'grid-cols-[auto_minmax(0,1fr)_auto] [grid-template-areas:"buttons_._time"_"timeline_timeline_timeline"_"event_event_pair"] @xl/transport:grid-cols-[auto_minmax(8rem,1fr)_auto_auto] @xl/transport:[grid-template-areas:"buttons_timeline_time_pair"_"._event_event_event"]',
+    'grid-cols-[minmax(0,1fr)_auto] [grid-template-areas:"buttons_buttons"_"timeline_time"_"event_event"] @xl/transport:grid-cols-[auto_minmax(8rem,1fr)_auto] @xl/transport:[grid-template-areas:"buttons_timeline_time"_"._event_event"]',
+  pair: 'grid-cols-[minmax(0,1fr)_auto] [grid-template-areas:"buttons_buttons"_"timeline_time"_"event_pair"] @xl/transport:grid-cols-[auto_minmax(8rem,1fr)_auto_auto] @xl/transport:[grid-template-areas:"buttons_timeline_time_pair"_"._event_event_event"]',
 };
 /** The event line keeps two lines on a phone (beside the pair) and one in the row; never less. */
 const EVENT_LINE =
