@@ -67,13 +67,18 @@ const VIEWPORTS = [
 
 test.use({ viewport: DESKTOP });
 
-async function openLab(page: Page, path: string, testId: string): Promise<Locator> {
+async function openLab(
+  page: Page,
+  path: string,
+  testId: string,
+  options?: { drawingsMeasured?: boolean },
+): Promise<Locator> {
   await page.goto(path);
   const lab = page.getByTestId(testId);
   // Tema 1's lab shows a placeholder while its dataset chunk loads.
   await labOrPlaceholder(page, testId).scrollIntoViewIfNeeded();
   await expect(lab).toBeVisible();
-  await waitForIsland(page, `[data-testid="${testId}"]`);
+  await waitForIsland(page, `[data-testid="${testId}"]`, options);
   return lab;
 }
 
@@ -313,7 +318,8 @@ test.describe('guardias del cascarón por niveles, autocomprobadas', () => {
     const sent = await measureServer(browser, path, lab, width);
     await page.setViewportSize({ width, height: 800 });
     await holdMeasuring(page);
-    await openLab(page, path, 'bounce-lab');
+    // Hydrated, not measured: the measures are held, and that is what is being checked.
+    await openLab(page, path, 'bounce-lab', { drawingsMeasured: false });
     await page.evaluate(() => document.fonts.ready);
 
     // What a comparison right after waitForIsland reads: the drawing as the server drew it.

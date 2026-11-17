@@ -72,7 +72,11 @@ export const HYDRATION_TIMEOUT_MS = 15_000;
  * read could move under the test (a point taken at ×1 before a zoom, a knob before a drag), so
  * that is waited for too (README, «Todo dibujo del lienzo mide su ancho»).
  */
-export async function waitForIsland(page: Page, inner: string): Promise<void> {
+export async function waitForIsland(
+  page: Page,
+  inner: string,
+  { drawingsMeasured = true }: { drawingsMeasured?: boolean } = {},
+): Promise<void> {
   const islands = page.locator(`astro-island:has(${inner}):not([ssr])`);
   await islands.first().waitFor({ state: 'attached', timeout: HYDRATION_TIMEOUT_MS });
   // One island holds `inner`: a selector that matched two would make every read below depend on
@@ -94,6 +98,8 @@ export async function waitForIsland(page: Page, inner: string): Promise<void> {
       { message: `la isla de ${inner} hidratada por React`, timeout: HYDRATION_TIMEOUT_MS },
     )
     .toBe(true);
+  // The hydration check's own self-test holds every measure on purpose: it opts out.
+  if (!drawingsMeasured) return;
   await expect
     .poll(() => island.evaluate(unmeasuredDrawings, DRAWING_SLACK_PX), {
       message: `los dibujos de ${inner} medidos`,
