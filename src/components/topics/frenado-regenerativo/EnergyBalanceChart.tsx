@@ -4,6 +4,7 @@ import { MODEL3_LR_RWD_2025 } from '../../../lib/data/evModels';
 import { formatNumber } from '../../../lib/format';
 import { cycleBalance, DEFAULT_REGEN, type BalanceStep } from '../../../lib/physics/energy';
 import { mathAriaLabel } from '../../../lib/inlineMath';
+import InlineMath from '../../lab/InlineMath';
 import { regenModelText } from '../../../lib/physics/regenModelText';
 import Readout from '../../controls/Readout';
 import { useElementWidth } from '../../hooks/useElementWidth';
@@ -163,10 +164,7 @@ export default function EnergyBalanceChart({
         />
       </div>
       <p className="m-0 text-sm text-fg-muted">
-        Arrastra el cursor de la gráfica de energías, o enfócalo y muévelo con las flechas (1 % del
-        ciclo; con Mayús, 10 %; Inicio y Fin van a los extremos); la línea de la velocidad lo sigue.
-        Las lecturas suman desde t = 0 hasta el cursor; lo disipado son las pérdidas de conversión
-        más el calor de fricción.
+        <InlineMath text="Arrastra el cursor de la gráfica de energías, o enfócalo y muévelo con las flechas (1 % del ciclo; con Mayús, 10 %; Inicio y Fin van a los extremos); la línea de la velocidad lo sigue. Las lecturas suman desde $t = 0$ hasta el cursor; lo disipado son las pérdidas de conversión más el calor de fricción." />
       </p>
       <p role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {announcement}

@@ -93,7 +93,9 @@ function GainZone({ e }: { e: number }) {
       </div>
       <div className="relative h-4 text-xs text-fg-muted">
         <span className="absolute left-0">0</span>
-        <span className="absolute right-0">e &gt; 1: gana energía</span>
+        <span className="absolute right-0">
+          <InlineMath text="$e > 1$: gana energía" />
+        </span>
       </div>
     </div>
   );

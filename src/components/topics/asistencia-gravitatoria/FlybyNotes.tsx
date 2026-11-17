@@ -51,8 +51,12 @@ export default function FlybyNotes({
         <LegendItem color={TRACK_COLOR} shape="line">
           Hipérbola
         </LegendItem>
-        <LegendItem color={V_BEFORE_COLOR}>{`v antes = ${kms(result.vIn)}`}</LegendItem>
-        <LegendItem color={V_AFTER_COLOR}>{`v después = ${kms(result.vOut)}`}</LegendItem>
+        <LegendItem color={V_BEFORE_COLOR}>
+          <InlineMath text={`$v$ antes = ${kms(result.vIn)}`} />
+        </LegendItem>
+        <LegendItem color={V_AFTER_COLOR}>
+          <InlineMath text={`$v$ después = ${kms(result.vOut)}`} />
+        </LegendItem>
       </ul>
       <p data-testid="flyby-lapse" className="m-0 text-sm text-fg-muted">
         {`Cámara rápida: el paso dibujado dura ${transportTimeValue(passSeconds, passSeconds)} y a 1× y sin movimiento reducido se ve en ${playbackSeconds} s, unas ${lapseFactorText(passSeconds, playbackSeconds)} veces más rápido; el factor en curso está sobre el dibujo.`}

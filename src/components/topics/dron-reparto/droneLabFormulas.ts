@@ -11,6 +11,7 @@ export const DRONE_LAB_FORMULAS: readonly string[] = [
   String.raw`\vec v`,
   String.raw`\vec a`,
   String.raw`\vec a = 0`,
+  't',
   'x',
   'y',
   'x(t)',

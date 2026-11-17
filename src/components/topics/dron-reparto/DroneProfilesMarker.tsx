@@ -126,8 +126,10 @@ export function ProfileReading({
     >
       {/* The bare spaces are not laid out by the flex boxes but keep the text content readable. */}
       <div className="flex items-baseline gap-2">
-        {/* The time variable, in italic like a formula's letter. */}
-        <dt className="text-fg-muted italic">t</dt>{' '}
+        {/* The time variable, a formula's letter like every symbol. */}
+        <dt className="text-fg-muted">
+          <InlineMath text="$t$" />
+        </dt>{' '}
         <dd className="m-0">{formatNumber(at, { precision: timeDecimals, unit: 's' })}</dd>
       </div>
       {source.series.map((series, k) => (

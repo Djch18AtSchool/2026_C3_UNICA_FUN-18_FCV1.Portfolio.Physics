@@ -115,9 +115,14 @@ function TopView(): JSX.Element {
       <text x={TOP.x} y={TITLE_Y} textAnchor="middle" {...textStyle}>
         Vista desde arriba
       </text>
-      <text x={TOP.x} y={TITLE_Y + 18} textAnchor="middle" {...textStyle} fill={TICK_COLOR}>
-        (z apunta hacia ti)
-      </text>
+      <MathText
+        source="($z$ apunta hacia ti)"
+        x={TOP.x}
+        y={TITLE_Y + 18}
+        anchor="middle"
+        fontSize={textStyle.fontSize}
+        fill={TICK_COLOR}
+      />
       <rect
         x={TOP.x - BODY.width / 2}
         y={TOP.y - BODY.height / 2}
@@ -185,16 +190,15 @@ function AxisView(): JSX.Element {
         stroke={TICK_COLOR}
         strokeDasharray="10 3 2 3"
       />
-      {/* The axis is the variable z: italic, as a formula's letter. */}
-      <text
+      {/* The axis is the variable z: a formula's letter, like every symbol. */}
+      <MathText
+        source="$z$"
         x={AXIS_X - 8}
         y={ORIGIN_Y - AXIS_REACH + 6}
-        textAnchor="end"
-        fontStyle="italic"
-        {...textStyle}
-      >
-        z
-      </text>
+        anchor="end"
+        fontSize={textStyle.fontSize}
+        fill={textStyle.fill}
+      />
       <Vector
         name="L-rueda"
         from={origin}
