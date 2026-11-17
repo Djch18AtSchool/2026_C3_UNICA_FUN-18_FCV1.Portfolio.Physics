@@ -1853,6 +1853,19 @@ en el lugar donde estaba:
 
 ## Después del Avance 2
 
+- **Fase E (laboratorio), en curso en `fase-e-laboratorio`** (desde `5ff337e`): E1 rediseñó el cascarón
+  compartido según las decisiones de Dylan del 16 de noviembre sobre las maquetas 2
+  (`.superpowers/sdd/2026-10-31-fases-b-c-d/mocks2-report.md`, informe en `task-E1-report.md` de esa
+  carpeta). Cambia el contrato de `LabShell` (README, «Laboratorios por niveles» y «Escala de tiempo y
+  eventos»): una columna a todo el ancho de la columna del artículo, la escena primero, la reproducción en
+  una fila con su selector de velocidad («1×▾», prop `speeds`; «Repetir» sigue en el cajón) y el par
+  «Evento anterior | siguiente» solo con dos eventos o más; el mando compacto (dos parámetros por fila,
+  `ParamFrame`) con el escenario debajo y «Restablecer» al final de la fila de los preajustes; las gráficas
+  de apoyo en el hueco nuevo `charts`, tras las lecturas; sin fichas junto al engranaje (`settingChips` y
+  `chip` desaparecen); vista y ciclo (Tema 6), compuesto (Tema 4) y amortiguación (Tema 5) pasan del cajón
+  al nivel 2. Nada se pega a la ventana: `lab-split`, `--lab-transport-room*` y `useFitsInWindow` se fueron.
+  El «dock» (P4) queda como opción documentada, no hecha.
+
 - **Estado de la fase D:** cerrada en `fase-d` (`8d91641`, sin empujar); ver «Fase D cerrada». Falta la
   puerta del controlador, las revisiones finales de la rama, el CI y `git push origin fase-d:main`
   (FD-R2); después, la lectura de Dylan de los textos y su auditoría con Fable.
