@@ -140,7 +140,19 @@ describe('TransportBar in one row', () => {
     expect(line).toHaveAttribute('data-transport-event', '');
     expect(line.textContent).toBe(' ');
     expect(line).not.toHaveAttribute('title');
-    expect(line.className).toMatch(/\bmin-h-10\b/u);
+    expect(line.className).toMatch(/\bmin-h-11\b/u);
+  });
+
+  test('on a phone the event line is as tall as the pair (44 px), so one event or two never changes the bar', () => {
+    const { container } = render(
+      <TransportBar clock={fakeClock({ duration: UDDS, t: 100 })} markers={[TWO_STOPS[0]]} />,
+    );
+    const line = container.querySelector('[data-transport-event]') as HTMLElement;
+
+    expect(container.querySelector('[data-transport-pair]')).toBeNull();
+    // The pair's buttons are 44 px (ICON_BUTTON): its row is never taller than the lone line.
+    expect(line.className).toMatch(/(?:^|\s)min-h-11(?:\s|$)/u);
+    expect(line.className).toMatch(/@xl\/transport:min-h-0\b/u);
   });
 
   test('the t readout reserves its longest text also without events', () => {

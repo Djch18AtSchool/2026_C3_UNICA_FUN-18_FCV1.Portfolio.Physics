@@ -331,6 +331,26 @@ test.describe('a 360 px', () => {
     const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(documentWidth).toBeLessThanOrEqual(PHONE.width);
   });
+
+  test('la reproducción mide lo mismo en «Tramo» (una detención) que en «Ciclo» (con el par)', async ({
+    page,
+  }) => {
+    await page.goto(PAGE);
+    await page.evaluate(() => document.fonts.ready);
+    await openLab(page);
+    const lab = page.locator(LAB);
+    const transport = lab.getByRole('group', { name: 'Reproducción' });
+    const heightOf = async () => (await transport.boundingBox())?.height ?? 0;
+
+    await expect(lab.getByRole('button', { name: 'Evento siguiente' })).toHaveCount(0);
+    const stretchHeight = await heightOf();
+    await chooseView(page, lab, VIEW_CYCLE);
+    await expect(lab.getByRole('button', { name: 'Evento siguiente' })).toBeVisible();
+
+    // The event line reserves the pair's 44 px: nothing under the bar jumps on changing view.
+    expect(stretchHeight).toBeGreaterThan(0);
+    expect(await heightOf()).toBe(stretchHeight);
+  });
 });
 
 for (const theme of THEMES) {

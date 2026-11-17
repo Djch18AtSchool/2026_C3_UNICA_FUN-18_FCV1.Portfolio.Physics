@@ -7,7 +7,12 @@ import {
   RANGE_WITH_MARKS,
   TimelineMarks,
 } from './TransportEvents';
-import { markerTolerance, normalizeMarkers, type TransportMarker } from './transportMarkers';
+import {
+  markerTolerance,
+  normalizeMarkers,
+  type NormalizedMarkers,
+  type TransportMarker,
+} from './transportMarkers';
 import {
   readingFormatter,
   transportTexts,
@@ -148,6 +153,42 @@ function Timeline({ clock, valueText, className }: TimelineProps): JSX.Element {
   );
 }
 
+/** The timeline in its grid cell, with the events' marks under it when there are any. */
+function TimelineCell({
+  clock,
+  events,
+  valueText,
+}: {
+  clock: SimClock;
+  events: NormalizedMarkers;
+  valueText: string;
+}): JSX.Element {
+  const hasEvents = events.length > 0;
+  return (
+    <div className="relative min-w-0 [grid-area:timeline]">
+      {hasEvents ? <TimelineMarks markers={events} duration={clock.state.duration} /> : null}
+      <Timeline
+        clock={clock}
+        valueText={valueText}
+        className={hasEvents ? RANGE_WITH_MARKS : 'block h-6 w-full'}
+      />
+    </div>
+  );
+}
+
+/** «t = …», as wide as its longest text; the first letter is the time variable, in italic. */
+function TimeReading({ text, minWidth }: { text: string; minWidth: string }): JSX.Element {
+  return (
+    <span
+      data-transport-time=""
+      style={{ minWidth }}
+      className="justify-self-end text-right text-sm tabular-nums [grid-area:time] first-letter:italic"
+    >
+      {text}
+    </span>
+  );
+}
+
 /** The bar's root: a named group that tells whether it plays, the container of its own layout. */
 const transportRoot = (playing: boolean) =>
   ({
@@ -174,9 +215,13 @@ const LAYOUT: Readonly<Record<Layout, string>> = {
     'grid-cols-[minmax(0,1fr)_auto] [grid-template-areas:"buttons_buttons"_"timeline_time"_"event_event"] @xl/transport:grid-cols-[auto_minmax(8rem,1fr)_auto] @xl/transport:[grid-template-areas:"buttons_timeline_time"_"._event_event"]',
   pair: 'grid-cols-[minmax(0,1fr)_auto] [grid-template-areas:"buttons_buttons"_"timeline_time"_"event_pair"] @xl/transport:grid-cols-[auto_minmax(8rem,1fr)_auto_auto] @xl/transport:[grid-template-areas:"buttons_timeline_time_pair"_"._event_event_event"]',
 };
-/** The event line keeps two lines on a phone (beside the pair) and one in the row; never less. */
+/**
+ * The event line keeps two lines on a phone and one in the row; never less. On a phone it is as
+ * tall as the pair beside it (44 px, ICON_BUTTON), so a lab whose events change from one to two
+ * (Tema 6, «Tramo» to «Ciclo») keeps its bar's height.
+ */
 const EVENT_LINE =
-  '[grid-area:event] line-clamp-2 min-h-10 @xl/transport:line-clamp-1 @xl/transport:min-h-0';
+  '[grid-area:event] line-clamp-2 min-h-11 @xl/transport:line-clamp-1 @xl/transport:min-h-0';
 
 function layoutOf(eventCount: number): Layout {
   if (eventCount >= MIN_EVENTS_FOR_PAIR) return 'pair';
@@ -225,22 +270,8 @@ export default function TransportBar({
           <TransportButtons clock={clock} />
           <TransportSpeed clock={clock} speeds={speeds} />
         </div>
-        <div className="relative min-w-0 [grid-area:timeline]">
-          {hasEvents ? <TimelineMarks markers={events} duration={duration} /> : null}
-          <Timeline
-            clock={clock}
-            valueText={valueText}
-            className={hasEvents ? RANGE_WITH_MARKS : 'block h-6 w-full'}
-          />
-        </div>
-        <span
-          data-transport-time=""
-          style={{ minWidth: longestTime }}
-          // «t = …»: the first letter is the time variable, in italic like a formula's letter.
-          className="justify-self-end text-right text-sm tabular-nums [grid-area:time] first-letter:italic"
-        >
-          {timeText}
-        </span>
+        <TimelineCell clock={clock} events={events} valueText={valueText} />
+        <TimeReading text={timeText} minWidth={longestTime} />
         {layout === 'pair' ? (
           <EventPair
             clock={clock}
