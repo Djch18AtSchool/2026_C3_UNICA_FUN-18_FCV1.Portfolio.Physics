@@ -5,6 +5,7 @@
  * defaultMass (spring.ts L24) and Apple's.
  */
 import { fromPerceptual, type SpringParams } from '../physics/dampedSpring';
+import { APPLE_FORWARD_EXAMPLE } from './springReferences';
 
 const MOTION = 'Motion v14.14.0, packages/motion-dom/src/animation';
 
@@ -43,10 +44,9 @@ export const SPRING_PRESETS: readonly SpringPreset[] = [
   {
     id: 'apple-ejemplo',
     label: 'Apple, ejemplo de la documentación',
-    params: fromPerceptual(0.5, 0.3),
+    params: fromPerceptual(APPLE_FORWARD_EXAMPLE.duration, APPLE_FORWARD_EXAMPLE.bounce),
     origin: 'producto',
-    source:
-      'Apple Developer Documentation, SwiftUI, Spring (https://developer.apple.com/documentation/swiftui/spring): Spring(duration: 0.5, bounce: 0.3) da (1.0, 157.9, 17.6)',
+    source: `${APPLE_FORWARD_EXAMPLE.source}: ${APPLE_FORWARD_EXAMPLE.call} da ${APPLE_FORWARD_EXAMPLE.printed}`,
   },
   {
     id: 'sobreamortiguado',

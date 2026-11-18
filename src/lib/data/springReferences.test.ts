@@ -5,6 +5,7 @@ import {
   naturalAngularFrequency,
   springState,
 } from '../physics/dampedSpring';
+import { SPRING_PRESETS } from './springPresets';
 import {
   APPLE_FORWARD_EXAMPLE,
   APPLE_INVERSE_EXAMPLE,
@@ -69,6 +70,24 @@ describe("Apple's documented conversions (SwiftUI Spring)", () => {
     expect(b.toFixed(1)).toBe(published.b.toFixed(1));
     expect(origin).toBe('producto');
     expect(source).toContain('https://developer.apple.com/documentation/swiftui/spring');
+  });
+
+  test('each example keeps its call and the tuple Apple prints, with a point', () => {
+    expect(APPLE_FORWARD_EXAMPLE.call).toBe('Spring(duration: 0.5, bounce: 0.3)');
+    expect(APPLE_FORWARD_EXAMPLE.printed).toBe('(1.0, 157.9, 17.6)');
+    expect(APPLE_INVERSE_EXAMPLE.call).toBe('Spring(mass: 1, stiffness: 100, damping: 10)');
+    expect(APPLE_INVERSE_EXAMPLE.printed).toBe('(0.63, 0.5)');
+  });
+
+  test('is the one source of the preset «Apple, ejemplo de la documentación»', () => {
+    const preset = SPRING_PRESETS.find(({ id }) => id === 'apple-ejemplo');
+
+    expect(preset?.params).toEqual(
+      fromPerceptual(APPLE_FORWARD_EXAMPLE.duration, APPLE_FORWARD_EXAMPLE.bounce),
+    );
+    expect(preset?.source).toBe(
+      'Apple Developer Documentation, SwiftUI, Spring (https://developer.apple.com/documentation/swiftui/spring): Spring(duration: 0.5, bounce: 0.3) da (1.0, 157.9, 17.6)',
+    );
   });
 
   test('Spring(mass: 1, stiffness: 100, damping: 10) gives (0.63, 0.5): d = 2π/ω₀ and β = 1 − ζ', () => {

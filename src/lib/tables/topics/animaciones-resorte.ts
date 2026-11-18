@@ -88,10 +88,6 @@ const PREAJUSTES: DataTableSpec = {
 const springValues = ({ k, b }: SpringParams) =>
   `$k$ = ${comma(k, PARAM_DECIMALS)} N/m, $b$ = ${comma(b, PARAM_DECIMALS)} N·s/m`;
 
-/** Apple's (1.0, 157.9, 17.6) and (0.63, 0.5), as its code comments write them. */
-const appleTuple = (values: readonly number[], decimals: readonly number[]) =>
-  `(${values.map((value, i) => value.toFixed(decimals[i])).join(', ')})`;
-
 function appleRows(): Record<string, TableCell>[] {
   const forward = APPLE_FORWARD_EXAMPLE;
   const inverse = APPLE_INVERSE_EXAMPLE;
@@ -99,20 +95,17 @@ function appleRows(): Record<string, TableCell>[] {
   const bounce = 1 - dampingRatio(inverse.params);
   return [
     {
-      llamada: `Apple, SwiftUI: Spring(duration: ${forward.duration}, bounce: ${forward.bounce})`,
+      llamada: `Apple, SwiftUI: ${forward.call}`,
       conversion: String.raw`$k = m\,(2\pi/d)^2$, $b = 4\pi m\,(1-\beta)/d$`,
       calculo: springValues(fromPerceptual(forward.duration, forward.bounce)),
-      publicado: appleTuple(
-        [forward.published.m, forward.published.k, forward.published.b],
-        [1, 1, 1],
-      ),
+      publicado: forward.printed,
       fuente: forward.source,
     },
     {
-      llamada: `Apple, SwiftUI: Spring(mass: ${inverse.params.m}, stiffness: ${inverse.params.k}, damping: ${inverse.params.b})`,
+      llamada: `Apple, SwiftUI: ${inverse.call}`,
       conversion: String.raw`$d = 2\pi/\omega_0$, $\beta = 1 - \zeta$`,
       calculo: String.raw`$d$ = ${comma(period, 2)} s, $\beta$ = ${comma(bounce, 1)}`,
-      publicado: appleTuple([inverse.published.duration, inverse.published.bounce], [2, 1]),
+      publicado: inverse.printed,
       fuente: inverse.source,
     },
   ];

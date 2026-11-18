@@ -64,19 +64,36 @@ export const MOTION_SPRING_TESTS: readonly MotionSpringTest[] = [
 const APPLE_SPRING =
   'Apple Developer Documentation, SwiftUI, Spring (https://developer.apple.com/documentation/swiftui/spring)';
 
-/** `Spring(duration: 0.5, bounce: 0.3)` → `// (1.0, 157.9, 17.6)`: (mass, stiffness, damping). */
+/** A tuple as Apple's code comments print it, with a point: (1.0, 157.9, 17.6). */
+const printedTuple = (values: readonly number[], decimals: readonly number[]) =>
+  `(${values.map((value, i) => value.toFixed(decimals[i])).join(', ')})`;
+
+const FORWARD = { duration: 0.5, bounce: 0.3 } as const;
+const FORWARD_PUBLISHED = { m: 1, k: 157.9, b: 17.6 } as const;
+
+/**
+ * `Spring(duration: 0.5, bounce: 0.3)` → `// (1.0, 157.9, 17.6)`: (mass, stiffness, damping). The
+ * one source of the preset «Apple, ejemplo de la documentación» (springPresets.ts) and of the row
+ * of table 10.2.
+ */
 export const APPLE_FORWARD_EXAMPLE = {
-  duration: 0.5,
-  bounce: 0.3,
-  published: { m: 1, k: 157.9, b: 17.6 },
+  ...FORWARD,
+  published: FORWARD_PUBLISHED,
+  call: `Spring(duration: ${FORWARD.duration}, bounce: ${FORWARD.bounce})`,
+  printed: printedTuple([FORWARD_PUBLISHED.m, FORWARD_PUBLISHED.k, FORWARD_PUBLISHED.b], [1, 1, 1]),
   origin: 'producto',
   source: APPLE_SPRING,
 } as const;
 
+const INVERSE_PARAMS = { k: 100, b: 10, m: 1 } as const;
+const INVERSE_PUBLISHED = { duration: 0.63, bounce: 0.5 } as const;
+
 /** `Spring(mass: 1, stiffness: 100, damping: 10)` → `// (0.63, 0.5)`: (duration, bounce). */
 export const APPLE_INVERSE_EXAMPLE = {
-  params: { k: 100, b: 10, m: 1 },
-  published: { duration: 0.63, bounce: 0.5 },
+  params: INVERSE_PARAMS,
+  published: INVERSE_PUBLISHED,
+  call: `Spring(mass: ${INVERSE_PARAMS.m}, stiffness: ${INVERSE_PARAMS.k}, damping: ${INVERSE_PARAMS.b})`,
+  printed: printedTuple([INVERSE_PUBLISHED.duration, INVERSE_PUBLISHED.bounce], [2, 1]),
   origin: 'producto',
   source: APPLE_SPRING,
 } as const;

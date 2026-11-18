@@ -48,6 +48,12 @@ sources:
     publisher: 'Apple Developer Documentation, iOS 17.0 y posteriores'
     url: 'https://developer.apple.com/documentation/swiftui/spring'
     accessed: '2026-11-17'
+  - id: apple-animation-default
+    title: 'Animation.default (SwiftUI)'
+    authors: 'Apple'
+    publisher: 'Apple Developer Documentation'
+    url: 'https://developer.apple.com/documentation/swiftui/animation/default'
+    accessed: '2026-11-17'
   - id: androidx
     title: 'AndroidX (commit b192298)'
     authors: 'The Android Open Source Project'
@@ -186,7 +192,7 @@ Le añado una fuerza opuesta a la velocidad, <Equation inline latex="-b\,\dot u"
   id="ec-resorte-energia"
   latex="E = \tfrac12\,m v^2 + \tfrac12\,k u^2, \qquad \frac{dE}{dt} = -b\,v^2 \le 0"
   symbols={[
-    { symbol: 'E', meaning: 'energía mecánica del resorte', unit: 'J' },
+    { symbol: 'E', meaning: 'energía mecánica del resorte', unit: 'kg·px²/s²' },
     { symbol: 'v', meaning: 'velocidad, $\\dot u$', unit: 'px/s' },
   ]}
 />
@@ -264,7 +270,7 @@ Con cualquier <Equation inline latex="u_0" /> y <Equation inline latex="v_0" />,
 
 <Fragment slot="fenomeno">
 
-Con <Equation inline latex="\zeta < 1" /> el elemento se pasa y oscila; con <Equation inline latex="\zeta = 1" /> llega sin pasarse en el menor tiempo; con <Equation inline latex="\zeta > 1" />, sin pasarse pero más tarde. Ninguno termina en un instante preciso.
+Con <Equation inline latex="\zeta < 1" /> el elemento se pasa y oscila; con <Equation inline latex="\zeta = 1" /> llega sin pasarse; con <Equation inline latex="\zeta > 1" />, sin pasarse pero más tarde. Ninguno termina en un instante preciso.
 
 </Fragment>
 
@@ -294,7 +300,7 @@ La (10.7) es la (10.6) en el primer <Equation inline latex="v = 0" />; la (10.8)
 
 <Step n={4} title="Lo que hace una biblioteca real">
 
-Si el destino cambia a mitad de camino, la biblioteca reinicia la (10.6) desde el estado actual; Motion pasa `value.getVelocity()` a la animación nueva <Cite id="motion-v14140" sources={frontmatter.sources} />. Apple cambió $m$, $k$ y $b$, que «are not very intuitive» <Cite id="wwdc23-springs" sources={frontmatter.sources} />, por una duración $d$ y un rebote $\beta$ <Cite id="apple-spring" sources={frontmatter.sources} />. Un umbral de reposo corta la cola.
+Si el destino cambia a mitad de camino, la biblioteca reinicia la (10.6) desde el estado actual; Motion pasa `value.getVelocity()` a la animación nueva <Cite id="motion-v14140" sources={frontmatter.sources} />. Apple cambió $m$, $k$ y $b$ («they're not very intuitive» <Cite id="wwdc23-springs" sources={frontmatter.sources} />) por una duración $d$ y un rebote $\beta$ <Cite id="apple-spring" sources={frontmatter.sources} />. Un umbral de reposo corta la cola.
 
 <Equation
   id="ec-resorte-redireccion"
@@ -365,7 +371,7 @@ Con la (10.9), $x$ y $v$ son continuas en <Equation inline latex="t^*" />; solo 
 
 <Fragment slot="caso">
 
-Motion (antes Framer Motion, licencia MIT) anima interfaces web <Cite id="motion-blog-2024" sources={frontmatter.sources} />. Su generador `spring` (tag v14.14.0, commit `f95ab94`) escribe las tres ramas de la (10.6) <Cite id="motion-v14140" sources={frontmatter.sources} />. Apple explica el porqué en la WWDC23; desde iOS 17, los resortes animan SwiftUI por omisión <Cite id="wwdc23-springs" sources={frontmatter.sources} />. En Android, Material 3 pasó de duraciones con curvas de Bézier a tokens con $k$ y $\zeta$ <Cite id="androidx" sources={frontmatter.sources} />.
+Motion (antes Framer Motion, licencia MIT) anima interfaces web <Cite id="motion-blog-2024" sources={frontmatter.sources} />. Su generador `spring` (tag v14.14.0, commit `f95ab94`) escribe las tres ramas de la (10.6) <Cite id="motion-v14140" sources={frontmatter.sources} />. Apple explica el porqué en la WWDC23 <Cite id="wwdc23-springs" sources={frontmatter.sources} />; desde iOS 17, los resortes animan SwiftUI por omisión <Cite id="apple-animation-default" sources={frontmatter.sources} />. En Android, Material 3 pasó de duraciones con curvas de Bézier a tokens con $k$ y $\zeta$ <Cite id="androidx" sources={frontmatter.sources} />.
 
 </Fragment>
 
@@ -391,7 +397,7 @@ Gano continuidad de velocidad con solo tres números, $m$, $k$ y $b$. Cuesta no 
 
 <Callout variant="clase" title="Módulo 5 · Temas 1 y 3; Módulo 2 · Temas 02 y 04, y SPAA 02">
 
-El Módulo 5 escribe la (10.2), la (10.3), <Equation inline latex="b_c = 2\sqrt{km}" /> y la (10.5); su envolvente <Equation inline latex="e^{-(b/2m)t}" /> es la de la (10.6), porque <Equation inline latex="\zeta\omega_0 = b/2m" />. El Módulo 2 da Hooke («No corresponde usar MRUA») y la energía elástica <Equation inline latex="\tfrac12 k x^2" />. La regla B de su SPAA 02, «su velocidad se vuelve cero», es el error de la curva con duración. Las (10.7) a (10.11) son extensiones.
+El Módulo 5 escribe la (10.2), la (10.3), <Equation inline latex="b_c = 2\sqrt{km}" /> y la (10.5); su envolvente <Equation inline latex="e^{-(b/2m)t}" /> es la de la (10.6), porque <Equation inline latex="\zeta\omega_0 = b/2m" />. El Módulo 2 da Hooke («No corresponde usar MRUA») y la energía elástica <Equation inline latex="\tfrac12 k x^2" />. La regla B de su SPAA 02, «su velocidad se vuelve cero», es el error de la curva con duración. $\zeta$, la (10.6) completa y las (10.7) a (10.11) son extensiones.
 
 </Callout>
 
