@@ -52,6 +52,8 @@ const MBL = 'LBNL, Modelica Buildings Library v14.0.0';
 const EPANET = 'US EPA, EPANET 2.2 User Manual';
 const GF = 'Freda y Kugele (GF Piping Systems), Hydraulic design principles for DLC (2026)';
 const SHAHI = 'Shahi et al., IPACK2023-114351 (ASME InterPACK 2023)';
+const SCHNEIDER = 'Schneider Electric, EcoStruxure Reference Design 109 (NVIDIA GB200), 2026';
+const NIST = 'NIST Chemistry WebBook (Lemmon et al.), agua en la isobara de 0,3 MPa';
 const FT = 0.3048;
 
 /**
@@ -65,6 +67,16 @@ export const PG25_40C: Fluid & Provenance & { label: string; temperatureC: numbe
   origin: 'calculo',
   source: `Cálculo propio con los polinomios de Melinder (2010) en ${MBL}`,
 };
+
+/**
+ * Water at 40 °C as NIST publishes it: a published reference, not a model assumption, against
+ * which Melinder's fit with no glycol is checked (research §5.1).
+ */
+export const WATER_40C_NIST = {
+  temperatureC: 40,
+  rho: sourced(992.3, 'producto', `${NIST}: 992,30 kg/m³ a 40 °C`),
+  mu: sourced(0.65275e-3, 'producto', `${NIST}: 0,65275 mPa·s a 40 °C`),
+} as const;
 
 /** OCP's design rule: «A typical design target is 10°C temperature rise, i.e. 1.5 LPM/kW». */
 export const FLOW_PER_KW_LPM = 1.5;
@@ -174,6 +186,7 @@ export const RD109 = {
   racks: sourced(8, 'producto', `${GF}: 8 racks de 132 kW por CDU`),
   servers: sourced(24, 'producto', `${GF}, tabla 1: manifold «with 24 outlets»`),
   inletPressure: sourced(4 * PA_PER_BAR, 'producto', `${GF}, fig. 1: entrada a 4,000 bar abs`),
+  supplyTemperature: sourced(40, 'producto', `${SCHNEIDER}: «TCS loop supply temperature 104 °F»`),
   mainPipeDiameter: sourced(
     MAIN_OUTER - (2 * MAIN_OUTER) / MAIN_SDR,
     'calculo',

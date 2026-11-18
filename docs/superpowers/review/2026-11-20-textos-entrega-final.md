@@ -1176,3 +1176,250 @@ Para leer con atención:
 398. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:183`, nombre accesible de la gráfica (se oye): — → «Tras un empujón la estructura oscila y se apaga despacio; con los dos impulsos del filtro, el segundo a los ${…} s, queda, según la estimación de Klipper, un ${…} % de la vibración de un empujón.»
 399. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:36`, rótulo del cursor de tiempo: — → «$t$ = ${…} s»
 400. `src/lib/tables/topics/resonancia-estructural.ts:206`, tabla 12.2, celda «Fuente» de $N_L$ (cambio de forma, no de texto: la guardia de glifos pedía la $\pi$ en cursiva, como fórmula): «8π × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m» → «$8\pi$ × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m»
+
+## Tema 13
+
+Los `${…}` son valores que el código calcula y escribe; entre corchetes, el valor que sale hoy.
+
+Tema nuevo (Task 13): todo lo de esta sección es "nuevo". Son borradores de Claude y no cuentan como publicados
+hasta que Dylan los lea. La prosa del MDX suma 645 palabras (límite 650).
+
+### Página: `src/content/topics/enfriamiento-liquido.mdx`
+
+Frontmatter:
+
+1. `:5` shortTitle — nuevo: «Enfriamiento líquido».
+2. `:6` concept — nuevo: «Continuidad, Bernoulli y la ecuación generalizada con pérdidas; cómo se reparte el caudal
+   entre servidores en paralelo para que le llegue suficiente a cada uno.»
+3. `:9-10` caso de uso — nuevo: producto «Circuito de un rack de clase NVIDIA GB200 NVL72 con el CDU Google Project
+   Deschutes (OCP)»; industria «Centros de datos: enfriamiento líquido directo al chip».
+4. `:105` nota de clase (Módulo 6, Tema 2) — nuevo: «$Q = A_1 v_1 = A_2 v_2$ y Bernoulli con $\rho g z$: son la (13.1) y
+   la (13.2), con la altura escrita $y$.»
+5. `:108` nota de clase (Módulo 6, Tema 3) — nuevo: «La ecuación generalizada con $h_b$ y $h_L$ es la (13.3), escrita en
+   presiones. Darcy–Weisbach y $K$, que el módulo solo nombra, son extensión.»
+6. `:111` nota de clase (Módulo 6, Tema 4) — nuevo: «$\mathrm{Re} = \rho v D/\mu$, con los límites de la clase: laminar
+   bajo 2300 y turbulento sobre 4000.»
+
+Prosa:
+
+7. `:129` entrada — nuevo: «Un rack de IA de clase NVIDIA GB200 NVL72 disipa unos 120 kW [1] con un líquido que pasa por
+   placas frías. Sigo un litro desde la bomba hasta el servidor más lejano y de vuelta.»
+8. `:131` título del paso 1 — nuevo: «El caudal se conserva».
+9. `:133` — nuevo: «Uso el circuito RD109 de Schneider Electric [2], analizado por GF [3]: un CDU entrega 23 L/s a 8
+   racks de 24 servidores. NVIDIA no publica el caudal por bandeja; el de cada servidor sale de la regla de OCP,
+   1,5 L/min por kW [4], que tomo como dato.»
+10. `:141-146` símbolos de la (13.1) — nuevo: $Q$ «caudal: volumen por unidad de tiempo; en las tablas, en L/min»; $A$
+    «área de la sección»; $v$ «velocidad media del líquido en la sección»; $D$ «diámetro interior del tramo».
+11. `:154` Por qué, fenómeno — nuevo: «Donde la tubería se estrecha, el líquido va más rápido; en cada derivación, el
+    caudal se reparte.»
+12. `:160` Por qué, ecuación — nuevo: «Cada servidor recibe $q$ = 7,19 L/min: 1,69 m/s en su manguera de 9,5 mm y
+    2,91 m/s en la boca de 7,24 mm del conector UQD04. Modelo simple: cada servidor recibe su parte.»
+13. `:169` pie de la figura 13.1 — nuevo: «Continuidad: velocidad media frente al área de las secciones del circuito RD109,
+    con el eje de áreas logarítmico. Cada caudal fija una hipérbola $v = Q/A$; el manifold baja de la del rack a la de
+    un servidor a medida que reparte el caudal.»
+14. `:171` fuente de la figura 13.1 — nuevo: «Calculé las velocidades con la ecuación (13.1); caudales de GF para el RD109
+    y diámetros de GF, OCP y NVIDIA MGX (tablas 13.1 a 13.3)».
+15. `:181` título del paso 2 — nuevo: «Bernoulli: donde la velocidad sube, la presión baja».
+16. `:183` — nuevo: «La (13.2) es el teorema trabajo–energía por unidad de volumen de un fluido ideal; como el libro [5],
+    escribo la altura $y$.»
+17. `:189-196` símbolos de la (13.2) — nuevo: $p$ «presión absoluta»; $\rho$ «densidad del PG25 a 40 °C, 1 010,6 kg/m³
+    (tabla 13.1)»; $g$ «aceleración de la gravedad, 9,81 m/s²»; $y$ «altura del punto».
+18. `:204` Por qué, fenómeno — nuevo: «Al entrar al conector, el líquido acelera y su presión baja; al subir, también.»
+19. `:210` Por qué, ecuación — nuevo: «De la manguera al conector, la presión baja $\tfrac12\rho(v_2^2 - v_1^2)$ = 2,8 kPa;
+    al subir 1,07 m de manifold, $\rho g\,\Delta y$ = 10,6 kPa. Sin pérdidas, ambas se recuperan y la presión vuelve a
+    400 kPa al cerrar el lazo.»
+20. `:218` pie de la figura 13.2 (el recurso prescrito) — nuevo: «Velocidad y presión a lo largo del recorrido de un
+    litro de PG25, del CDU al servidor 24 (el de arriba) y de vuelta, con retorno directo. La presión ideal de
+    Bernoulli, discontinua, vuelve a 400 kPa; la real, continua, llega con 1,80 bar menos. Debajo, cada tramo con su
+    sección; los parámetros están en las tablas 13.1 a 13.3.»
+21. `:220` fuente de la figura 13.2 — nuevo: «Calculé el perfil con las ecuaciones (13.1) a (13.3): circuito RD109 de
+    Schneider Electric con los caudales, los diámetros y la caída de la placa de GF; UQD04 de OCP v2.0.0 y su $C_v$ de
+    Amphenol; manifold MGX de NVIDIA (OCP); PG25 a 40 °C con los polinomios de Melinder de la Modelica Buildings Library
+    de LBNL; rugosidad y $K$ de EPANET».
+22. `:230` título del paso 3 — nuevo: «Por qué no basta: la fricción y los accesorios disipan energía».
+23. `:232` — nuevo: «Paso a presiones la ecuación generalizada de la clase. Darcy–Weisbach y $K$, que la clase nombra,
+    los uso con los valores de EPANET [6]; los conectores dan $C_v$ [7], y la placa fría, los 1,2 bar de diseño de GF,
+    no una curva medida.»
+24. `:238-249` símbolos de la (13.3) — nuevo: $h_b$ «altura que da la bomba»; $h_L$ «pérdida de carga entre los dos
+    puntos»; $f$ «factor de fricción de Darcy: $64/\mathrm{Re}$ bajo 2300; sobre 4000, la fórmula de Swamee y Jain que
+    usa EPANET»; $L$ «longitud del tramo»; $K$ «coeficiente de pérdida local de un accesorio (una te: 1,8)»; $\mu$
+    «viscosidad del PG25 a 40 °C, 1,394 mPa·s (tabla 13.1)».
+25. `:259` Por qué, fenómeno — nuevo: «La viscosidad y los remolinos convierten energía mecánica en interna: esa presión
+    no vuelve, y la bomba la repone.»
+26. `:265` Por qué, ecuación — nuevo: «La tubería principal va a $\mathrm{Re}$ = 162 000, turbulenta; el último tramo del
+    manifold, a unos 2 100, laminar. Cada UQD04 pierde 15,1 kPa, 5,3 veces su caída reversible, y la placa, 120 kPa:
+    1,80 bar en total, 9,2 % menos que los 1,98 bar de GF (tabla 13.4).»
+27. `:277` título del paso 4 — nuevo: «Servidores en paralelo: ¿le llega a todos?».
+28. `:279` — nuevo: «Cada servidor es una rama entre los dos manifolds. Con retorno directo, entrada y salida quedan
+    abajo y el servidor de abajo tiene el camino más corto; con retorno invertido, la salida está arriba y los caminos
+    se igualan.»
+29. `:287-295` símbolos de la (13.4) — nuevo: $\Delta p_i$ «caída en la rama del servidor $i$, de un manifold al otro»;
+    $R_i$ «resistencia de la rama: la suma de sus pérdidas al caudal de diseño»; $n$ «exponente: 1,85 con placa fría
+    (Modelica Buildings), 2 sin ella»; $N$ «servidores del rack, 24».
+30. `:303` Por qué, fenómeno — nuevo: «Si el manifold pierde presión, la rama más cercana recibe más; una rama muy
+    resistente, como la placa fría, iguala el reparto.»
+31. `:309` Por qué, ecuación — nuevo: «Con placas, el caudal varía un 0,27 % entre servidores; sin ellas, un 1,0 %. Si el
+    peor servidor no llega a su mínimo, hay que subir el caudal total, y con $\Delta p \propto Q^{1{,}9}$ la potencia
+    $P = \Delta p\,Q$ crece como $Q^{2{,}9}$: un 51 % más triplica el bombeo.»
+32. `:318` pie de la figura 13.3 — nuevo: «Caudal por servidor del rack de 24 con retorno directo (continua) e invertido
+    (discontinua), con placas frías y sin ellas, solo mangueras y conectores. Debajo, el banco de NVIDIA y UT
+    Arlington: 6 puertos sin placas a 49,5 L/min, su modelo de red (línea) y su medición (puntos).»
+33. `:320` fuente de la figura 13.3 — nuevo: «Calculé los repartos con la ecuación (13.4) sobre el manifold MGX (tablas
+    13.2 y 13.3); modelo de red y medición: Shahi et al. (2023), fig. 5 y fig. 4, esta en lectura aproximada».
+34. `:333` caso de uso, el caso — nuevo: «Google publicó en OCP su CDU Project Deschutes: 500 GPM a 80–90 psi, con la
+    bomba a $\Delta p$ fijo [12]. La Modelica Buildings Library v14.0.0 de LBNL modela este sistema en
+    `Buildings.Fluid.DataCenters` [10].»
+35. `:339` caso de uso, la ecuación — nuevo: «Cada pieza sigue $\Delta p \propto \dot m^{\,n}$, como la (13.4), con
+    $n$ = 1,85 en la placa; la tubería, Darcy–Weisbach; y la bomba da la suma de las caídas en serie
+    (`dpPumpExt_nominal`).»
+36. `:345` caso de uso, justificación — nuevo: «La alternativa no física es la regla fija: 1,5 L/min por kW da el caudal,
+    pero no la presión de la bomba ni el reparto. NVIDIA y UT Arlington validaron un modelo de red así, midiendo el
+    caudal de cada puerto [13]: con el $C_v$ de catálogo, fallaba. EPANET resuelve lo mismo en acueductos.»
+37. `:351` caso de uso, balance — nuevo: «Se gana el caudal mínimo del servidor más lejano sin sobredimensionar la bomba:
+    bombear 23 L/s cuesta 4,1 kW, el 0,39 % de los 1,06 MW de TI. Cuesta conocer el fluido, cuya viscosidad se divide
+    entre 2,3 de 20 a 50 °C, estimar pérdidas locales y medir conectores.»
+38. `:357` título del recuadro de clase — nuevo: «Módulo 6 · Temas 1.2 a 1.4, con una extensión».
+39. `:359` recuadro de clase — nuevo: «La (13.1) y la (13.2) son las del Tema 1.2, con la altura $z$; la (13.3), la
+    ecuación generalizada del Tema 1.3, y $\mathrm{Re}$ usa los límites del Tema 1.4. Darcy–Weisbach, $f$, $K$ y $C_v$
+    son extensión: la clase los nombra; aquí los uso.»
+40. `:365` conexiones — nuevo: «Bernoulli es el teorema trabajo–energía del Tema 6 por unidad de volumen:
+    $P = \Delta p\,Q$ es la gemela de $P = F v$, y la pérdida de carga acaba en calor, como en el freno de fricción. A
+    diferencia de la fricción seca del Tema 4, la viscosa depende de la rapidez.»
+41. `:12-100` fuentes — nuevo: trece entradas (títulos y editores tal como los publica cada fuente; los de Melinder y
+    NIST, en la entrada de la MBL y del WebBook).
+
+### Figura 13.1: `src/components/topics/enfriamiento-liquido/VelocityAreaFigure.tsx`
+
+42. `:44` título — nuevo: «Velocidad media frente al área de cada sección del circuito RD109».
+43. `:45` eje x — nuevo: «Área de la sección $A$ (mm², escala logarítmica)»; `:47` en el teléfono: «Área $A$ (mm²,
+    escala log.)».
+44. `:50` eje y — nuevo: «Velocidad media $v$ (m/s)».
+45. `:52-54` leyenda — nuevo: «Hipérbola $v = Q/A$ de cada caudal»; «Sección del circuito (punto)»; «Manifold: su
+    caudal baja de puerto en puerto».
+46. `src/components/topics/enfriamiento-liquido/coolingCharts.ts:147-149` rótulos de las hipérbolas — nuevo:
+    «$Q_\text{CDU}$ = `${…}` L/s» [23], «$Q_\text{rack}$ = `${…}` L/min» [172,5], «$q$ = `${…}` L/min» [7,19].
+47. `:49` línea bajo el gráfico, solo si las hipérbolas no caben con su rótulo (teléfono) — nuevo: «Hipérbolas, de
+    izquierda a derecha: $q$ = 7,19 L/min; $Q_\text{rack}$ = 172,5 L/min; $Q_\text{CDU}$ = 23 L/s.»
+48. `coolingCharts.ts:115-128` clave numerada de las secciones — nuevo: «Tubería principal», «Manguera de rack»,
+    «Manifold, primer tramo: lleva el caudal de los `${N}` servidores» [24], «Manifold, último tramo: lleva el de un
+    servidor», «Manguera 3/8″ del servidor», «Boca del UQD04», cada una con «$A$ = … mm², $v$ = … m/s»; la lista se
+    llama «Secciones del circuito» (`:253`).
+49. `:146` nombre hablado del dibujo — nuevo: «Velocidad media frente al área de la sección, con el eje de áreas
+    logarítmico. Tres hipérbolas v = Q/A: … Secciones: 1, Tubería principal: A = … ; …».
+
+### Figura 13.2 (recurso prescrito): `CircuitProfileFigure.tsx`, `SectionStrip.tsx`, `stripLayout.ts`, `coolingPlots.ts`
+
+50. `CircuitProfileFigure.tsx:49` título — nuevo: «Velocidad y presión a lo largo del recorrido, del CDU al servidor 24
+    y de vuelta».
+51. `CircuitProfileFigure.tsx:51` nota al pie — nuevo: «En la franja, el largo de cada tramo está a escala, y su alto es
+    proporcional a su diámetro interior con la escala de cada vista; la placa fría va sin escala.»
+52. `CircuitProfileFigure.tsx:52-54` ejes — nuevo: «Posición en el recorrido $x$ (m)», «Velocidad media $v$ (m/s)»,
+    «Presión absoluta $p$ (kPa)».
+53. `CircuitProfileFigure.tsx:59-67` leyenda — nuevo: «Impulsión, del CDU a la placa fría: $v$ y $p$ real»; «Retorno,
+    de la placa fría al CDU: $v$ y $p$ real»; «$p$ ideal de Bernoulli, sin pérdidas».
+54. `CircuitProfileFigure.tsx:148` y `coolingPlots.ts:141-143` botones de vista — nuevo: grupo «Vista del recorrido»
+    con «Todo el circuito», «Rack», «Servidor».
+55. `SectionStrip.tsx:40` título de la franja — nuevo: «Tramos: alto proporcional a su diámetro $D$».
+56. `stripLayout.ts:55-72` nombres de los tramos — nuevo: «Tubería principal», «Manguera de rack», «Manifold»,
+    «Manguera 3/8″», «UQD04», «Placa fría», y los grupos «Rack» y «Servidor»; segunda línea «$D$ = … mm» (el
+    manifold, «$D_h$ = … mm»; la placa, «sin escala»).
+57. `SectionStrip.tsx:148` clave de la franja en el teléfono — nuevo: lista «Tramos de la franja»: «1 Manguera de rack,
+    $D$ = 50,8 mm», etc.
+58. `coolingPlots.ts:193` lectura de la vista «Todo el circuito» — nuevo: «Del CDU al servidor 24 y de vuelta, la
+    presión baja de 400,0 a 220,1 kPa: 179,9 kPa, o 1,80 bar. El 89 % se pierde dentro del servidor. Sin pérdidas,
+    Bernoulli volvería a 400,0 kPa.»
+59. `coolingPlots.ts:200` lectura de la vista «Rack» — nuevo: «Al subir 1,07 m por el manifold de impulsión, la presión
+    baja $\rho g \Delta y$ = 10,6 kPa, que recupera al bajar por el de retorno. En el manifold, la velocidad baja de
+    1,84 a 0,08 m/s: cada puerto se lleva el caudal de un servidor.»
+60. `coolingPlots.ts:204` lectura de la vista «Servidor» — nuevo: «En la boca del UQD04 el líquido va a 2,91 m/s:
+    Bernoulli baja la presión 2,8 kPa y la devuelve en la manguera, pero cada conector pierde 15,1 kPa. La placa fría
+    pierde 120,0 kPa, el valor de diseño de GF. Dentro de la placa dibujo la velocidad de la manguera: su interior no es
+    público.»
+61. `CircuitProfileFigure.tsx:121` nombre hablado del dibujo — nuevo: «Velocidad y presión del refrigerante a lo largo
+    de 79,4 m de recorrido; vista: … La presión real sale del CDU a 400,0 kPa y vuelve a 220,1 kPa, 1,80 bar menos; la
+    de Bernoulli sin pérdidas vuelve a 400,0 kPa.» y la lectura de la vista.
+
+### Figura 13.3: `BranchFlowFigure.tsx`, `coolingCharts.ts`
+
+62. `BranchFlowFigure.tsx:35` título — nuevo: «Caudal que recibe cada servidor del rack».
+63. `BranchFlowFigure.tsx:36-37` ejes — nuevo: «Puerto $i$ (1 = abajo)», «Caudal $Q_i$ (L/min)».
+64. `BranchFlowFigure.tsx:200` y `:208` encabezados de los paneles — nuevo: «Mi modelo: rack RD109 de 24 servidores a
+    172,5 L/min»; «Banco de NVIDIA y UT Arlington: 6 puertos sin placas frías a 49,5 L/min».
+65. `coolingCharts.ts:212` leyenda del modelo — nuevo: «Con placa fría, retorno directo», «Con placa fría, retorno
+    invertido», «Sin placa fría, retorno directo», «Sin placa fría, retorno invertido».
+66. `BranchFlowFigure.tsx:61-64` leyenda del banco — nuevo: «Modelo de red de Shahi et al.: línea»; «Medición de Shahi
+    et al.: puntos, lectura aproximada».
+67. `BranchFlowFigure.tsx:190-193` nombres hablados de los paneles — nuevo: «Caudal por puerto del rack de 24 servidores
+    a 172,5 L/min: con placa fría, retorno directo, de … a …; …» y «Banco de 6 puertos sin placas frías a 49,5 L/min: el
+    modelo de red de Shahi et al. baja de 8,97 L/min en el puerto 1 a 7,91 L/min en el 6; la medición varía sin orden
+    entre 8,00 L/min y 8,54 L/min.»
+
+### Tablas: `src/lib/tables/topics/enfriamiento-liquido.ts` y `src/lib/data/liquidCoolingParameters.ts`
+
+68. `enfriamiento-liquido.ts:37-41` palabras de la columna «Origen» — nuevo: «Producto», «Supuesto», «Cálculo propio» y,
+    para $g$, «Constante».
+69. `enfriamiento-liquido.ts:53-59` columnas de las tablas 13.1 a 13.3 — nuevo: «Parámetro», «Símbolo», «Valor»,
+    «Unidad», «Origen», «Fuente».
+70. `enfriamiento-liquido.ts:91` pie de la tabla 13.1 — nuevo: «Fluido y caudales del circuito de referencia, el RD109 de
+    Schneider Electric analizado por GF. Origen: «Producto» es un valor publicado del producto o de su especificación;
+    «Supuesto», una hipótesis de mi modelo; «Cálculo propio», lo que calculé con esos valores. Uso las propiedades a
+    40 °C en todo el lazo, aunque el retorno vuelve más caliente. Con 0 % de glicol, el polinomio de Melinder da el
+    agua del NIST a 40 °C con una diferencia de 0,02 % en la densidad y de 0,37 % en la viscosidad (cálculo propio).»
+71. `enfriamiento-liquido.ts:94` fuente de la tabla 13.1 — nuevo: «Polinomios de Melinder (2010) en la Modelica
+    Buildings Library v14.0.0 de LBNL; agua: NIST Chemistry WebBook; caudales: GF Piping Systems (2026) y Schneider
+    Electric (RD109); regla de caudal: OCP OAI (2023); cada fila con su fuente».
+72. `enfriamiento-liquido.ts:100` pie de la tabla 13.2 — nuevo: «Geometría de cada tramo del recorrido, de la salida del
+    CDU al servidor y de vuelta (origen, como en la tabla 13.1). Las longitudes son supuestos míos: GF da la tubería
+    principal de ida y vuelta, y nadie publica las de las mangueras.»
+73. `enfriamiento-liquido.ts:104` fuente de la tabla 13.2 — nuevo: «GF Piping Systems (2026), tabla 1; NVIDIA, MGX Rev.
+    1.0 (OCP, 2024), fig. 7-13 a 7-15; rugosidad y $K$ de las tablas del manual de EPANET 2.2; cada fila con su
+    fuente».
+74. `enfriamiento-liquido.ts:110` pie de la tabla 13.3 — nuevo: «El conector UQD04 de cada bandeja y la placa fría
+    (origen, como en la tabla 13.1). El $C_v$ se define con el caudal en gal/min y la caída en psi. Con 24 servidores
+    por rack, cada UQD04 lleva 7,19 L/min, más que sus 6,44 L/min nominales. NVIDIA no publica el caudal por bandeja,
+    y la caída de la placa es el valor de diseño que GF da para todas las placas y su tubería interna, no la curva
+    medida de un modelo con nombre.»
+75. `enfriamiento-liquido.ts:114` fuente de la tabla 13.3 — nuevo: «OCP, Universal Quick Disconnect Design Specification
+    v2.0.0 (2026), tablas 1, 2 y 6; Amphenol, catálogo UQD/UQDB (2025); GF Piping Systems (2026), tabla 1; exponente
+    $n$ por omisión de la Modelica Buildings Library v14.0.0; cada fila con su fuente».
+76. `liquidCoolingParameters.ts:81-344` nombres de los parámetros — nuevo: «Densidad del PG25 a 40 °C», «Viscosidad del
+    PG25 a 40 °C», «Temperatura de impulsión», «Aceleración de la gravedad», «Presión absoluta a la salida del CDU»,
+    «Caudal del CDU», «Racks por CDU», «Servidores por rack», «Caudal por rack», «Caudal medio por servidor», «Caudal
+    por potencia, regla de diseño»; «Tubería principal: diámetro interior / longitud por sentido», «Manguera de rack:
+    …», «Manifold: área interior», «Manifold: diámetro hidráulico», «Manifold: paso entre puertos», «Manifold: subida
+    hasta el servidor 24», «Manguera del servidor: …», «Rugosidad de tuberías y mangueras», «Rugosidad del manifold de
+    acero», «Te de derivación, a la entrada de cada manguera»; «UQD04: coeficiente de flujo», «UQD04: rango de la
+    especificación», «UQD04: caudal nominal», «UQD04: boca del tapón», «UQD04: longitud dibujada», «Placa fría: caída
+    de diseño», «Placa fría: exponente de su ley», «Placa fría: caudal al que pierde esa caída», «Placa fría: longitud
+    dibujada».
+77. `liquidCoolingParameters.ts:111`, `:159`, `:239` fuentes escritas aquí — nuevo: «Valor del curso (Módulo 6) y de
+    Serway y Jewett»; «Cálculo propio: $q = Q_\text{rack}/N$»; «Cálculo propio: 24 puertos por el paso de 44,45 mm».
+    Las demás fuentes de fila son las de `src/lib/data/liquidCooling.ts` (Task 12), más las dos nuevas de abajo.
+78. `src/lib/data/liquidCooling.ts:77-78`, `:189` fuentes nuevas — nuevo: «NIST Chemistry WebBook (Lemmon et al.), agua
+    en la isobara de 0,3 MPa: 992,30 kg/m³ a 40 °C» y «…: 0,65275 mPa·s a 40 °C»; «Schneider Electric, EcoStruxure
+    Reference Design 109 (NVIDIA GB200), 2026: «TCS loop supply temperature 104 °F»».
+79. `enfriamiento-liquido.ts:155` pie de la tabla 13.4 — nuevo: «Pérdidas hasta el servidor más lejano (el 24, arriba,
+    con retorno directo), agrupadas como en la fig. 2 de GF, frente a lo que GF publica para el mismo circuito con su
+    programa Sinetz. Un componente con $C_v$ o con curva medida lleva toda su pérdida en esa ley.»
+80. `enfriamiento-liquido.ts:158-161` columnas de la tabla 13.4 — nuevo: «Grupo de pérdidas», «Este cálculo (bar)»,
+    «GF, Sinetz (bar)», «Cómo lo calculo».
+81. `src/lib/data/liquidCoolingBreakdown.ts:25-33` filas de la tabla 13.4 — nuevo: «Placas frías y su tubería interna»,
+    «Conectores pequeños (UQD04, ida y vuelta)», «Mangueras de 3/8″ del servidor», «Mangueras de rack de 2″»,
+    «Conector grande», «Accesorios (tes)», «Manifolds», «Tuberías principales», «Válvulas mariposa»; y
+    `enfriamiento-liquido.ts:171` «Total hasta el servidor más lejano».
+82. `enfriamiento-liquido.ts:138-174` columna «Cómo lo calculo» — nuevo: «Curva de la placa: 1,2 bar de GF a su caudal de
+    diseño»; «Dos conectores con $C_v$ = 1,29 de Amphenol»; «Darcy–Weisbach, 0,5 m por sentido»; «Darcy–Weisbach, 3 m
+    por sentido; GF no tiene esta fila»; «No lo modelo»; «Cuatro tes con $K$ = 1,8 de EPANET»; «Darcy–Weisbach con el
+    caudal de cada tramo»; «Darcy–Weisbach, 35 m por sentido»; «No las modelo»; «Suma: 9,2 % por debajo de GF».
+83. `enfriamiento-liquido.ts:178` fuente de la tabla 13.4 — nuevo: «Este cálculo: cálculo propio con las ecuaciones
+    (13.1) a (13.3) y los parámetros de las tablas 13.1 a 13.3; GF: Freda y Kugele, GF Piping Systems (2026), fig. 2,
+    configuración de polímero».
+
+### Decisiones de redacción que conviene mirar
+
+- Las líneas de fuente de las figuras van en primera persona («Calculé…»), como pide la regla de la Entrega Final.
+- «Supuesto» es la palabra de la tabla para lo que el código llama `ilustrativo`; «Producto» abarca también la
+  especificación (OCP) y los datos publicados del circuito (GF, Schneider). El pie de la tabla 13.1 lo define.
+- La altura es $y$ (decisión de Dylan del 17 de noviembre); el recuadro de clase y la nota de clase dicen que la clase
+  escribe $z$.
+- «Re» va como $\mathrm{Re}$, en recta, como la clase lo escribe.

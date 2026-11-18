@@ -64,6 +64,12 @@ const LABS: Readonly<
     hasEvents: true,
     hasZoom: false,
   },
+  'enfriamiento-liquido': {
+    labTestId: 'cooling-lab',
+    hasClock: false,
+    hasEvents: false,
+    hasZoom: false,
+  },
 };
 
 export interface TopicPage {

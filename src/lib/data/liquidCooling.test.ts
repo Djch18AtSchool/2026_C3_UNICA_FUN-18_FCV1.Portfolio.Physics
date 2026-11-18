@@ -13,8 +13,10 @@ import {
   RD109,
   SHAHI_2023_PORT_FLOWS,
   UQD04,
+  WATER_40C_NIST,
   type Provenance,
 } from './liquidCooling';
+import { propyleneGlycolWater } from '../physics/propyleneGlycol';
 
 /*
  * Every number below is printed in docs/superpowers/research/2026-11-17-enfriamiento-liquido.md
@@ -30,6 +32,23 @@ describe('PG25 at 40 °C, the RD109 supply', () => {
     expect(PG25_40C.mu * 1e3).toBeCloseTo(1.394, 3);
     expect(PG25_40C.temperatureC).toBe(40);
     expect(PG25_40C.origin).toBe('calculo');
+  });
+
+  test('40 °C is Schneider’s TCS supply, 104 °F', () => {
+    expect(RD109.supplyTemperature.value).toBe(PG25_40C.temperatureC);
+    expect(((104 - 32) * 5) / 9).toBeCloseTo(RD109.supplyTemperature.value, 10);
+    expect(RD109.supplyTemperature.origin).toBe('producto');
+    expect(RD109.supplyTemperature.source).toMatch(/Schneider.*104 °F/);
+  });
+
+  test('with no glycol, Melinder’s fit lands within 0,03 % of NIST’s water density at 40 °C and 0,4 % of its viscosity', () => {
+    const water = propyleneGlycolWater(0, WATER_40C_NIST.temperatureC);
+
+    expect(WATER_40C_NIST.rho.value).toBe(992.3);
+    expect(WATER_40C_NIST.mu.value * 1e3).toBeCloseTo(0.65275, 10);
+    expect(WATER_40C_NIST.rho.source).toMatch(/NIST/);
+    expect(Math.abs(water.rho / WATER_40C_NIST.rho.value - 1)).toBeLessThan(3e-4);
+    expect(Math.abs(water.mu / WATER_40C_NIST.mu.value - 1)).toBeLessThan(4e-3);
   });
 });
 
@@ -144,6 +163,7 @@ describe('model vs product: every value says its origin and its source', () => {
     ...Object.values(SHAHI_2023_PORT_FLOWS),
     ...DESCHUTES_PUMP.curves,
     ...GF_PUBLISHED.breakdown,
+    ...Object.values(WATER_40C_NIST),
     PG25_40C,
   ];
   const sourced = everything.filter((item): item is Provenance => {

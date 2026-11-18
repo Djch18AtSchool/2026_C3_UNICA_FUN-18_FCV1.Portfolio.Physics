@@ -90,6 +90,12 @@ export const TOPICS: readonly ConsignaTopic[] = Object.freeze(
       title:
         'Resonancia estructural: Tacoma Narrows y por qué las tropas rompen el paso al cruzar un puente',
     },
+    {
+      number: 13,
+      slug: 'enfriamiento-liquido',
+      phase: 3,
+      title: 'Enfriamiento líquido de un centro de datos: continuidad, caudal y Bernoulli',
+    },
   ].map((topic) => Object.freeze(topic) as ConsignaTopic),
 );
 
