@@ -1,9 +1,15 @@
 import { describe, expect, test } from 'vitest';
 import {
+  cents,
+  chromiumPeriodicWaveMemory,
   classicAmplitudes,
   halfWaveCorrelation,
   maxHarmonicBelowNyquist,
   oddEvenPowerDb,
+  pipeLength,
+  pipeModeNumbers,
+  predictedHalfWaveCorrelation,
+  standingWaveProfile,
   synthesize,
   toPeriodicWave,
   waveform,
@@ -225,5 +231,105 @@ describe('maxHarmonicBelowNyquist: ⌊f_s/(2 f₁)⌋, equation (11.9)', () => {
   test('rejects a non-positive f₁ or sample rate', () => {
     expect(() => maxHarmonicBelowNyquist(0, 44100)).toThrow(RangeError);
     expect(() => maxHarmonicBelowNyquist(310, -1)).toThrow(RangeError);
+  });
+});
+
+describe('predictedHalfWaveCorrelation: equation (11.6) from the odd/even power', () => {
+  test('is (r − 1)/(r + 1) with r = 10^(dB/10): 25,7 dB predicts 0,995 and −0,7 dB predicts −0,083', () => {
+    expect(predictedHalfWaveCorrelation(25.6662)).toBeCloseTo(0.9946, 4);
+    expect(predictedHalfWaveCorrelation(-0.7247)).toBeCloseTo(-0.0832, 4);
+    expect(predictedHalfWaveCorrelation(0)).toBe(0);
+  });
+
+  test('matches the correlation measured on a synthesised recipe with both parities', () => {
+    const amplitudes = [1, 0.5, 0.3, 0.2, 0.1, 0.05];
+    const { y } = waveform(amplitudes, [0.3, -1, 2, 0.5, 1.4, -2.2], 3, 256);
+
+    expect(halfWaveCorrelation(y, 256)).toBeCloseTo(
+      predictedHalfWaveCorrelation(oddEvenPowerDb(amplitudes)),
+      6,
+    );
+  });
+
+  test('one silent parity gives ±1, and NaN is rejected', () => {
+    expect(predictedHalfWaveCorrelation(Infinity)).toBe(1);
+    expect(predictedHalfWaveCorrelation(-Infinity)).toBe(-1);
+    expect(() => predictedHalfWaveCorrelation(Number.NaN)).toThrow(RangeError);
+  });
+});
+
+describe('cents: the interval between two frequencies', () => {
+  test('an octave is 1 200 cents and the two recordings are 1,37 cents apart', () => {
+    expect(cents(220, 440)).toBeCloseTo(1200, 9);
+    expect(cents(310.0964, 310.3424)).toBeCloseTo(1.373, 3);
+    expect(cents(440, 220)).toBeCloseTo(-1200, 9);
+  });
+
+  test('rejects a non-positive frequency', () => {
+    expect(() => cents(0, 440)).toThrow(RangeError);
+    expect(() => cents(440, -1)).toThrow(RangeError);
+  });
+});
+
+describe('pipe modes: equations (11.2) and (11.3)', () => {
+  test('an open-open pipe admits every n and a closed-open one only odd n', () => {
+    expect(pipeModeNumbers('abierto', 4)).toEqual([1, 2, 3, 4]);
+    expect(pipeModeNumbers('cerrado', 4)).toEqual([1, 3, 5, 7]);
+    expect(() => pipeModeNumbers('abierto', 0)).toThrow(RangeError);
+  });
+
+  test('310 Hz with v = 340 m/s needs 0,548 m open and 0,274 m closed (research §4.4)', () => {
+    expect(pipeLength('abierto', 310, 340)).toBeCloseTo(0.548, 3);
+    expect(pipeLength('cerrado', 310, 340)).toBeCloseTo(0.274, 3);
+    expect(() => pipeLength('cerrado', 0, 340)).toThrow(RangeError);
+  });
+
+  test('the open pipe has displacement antinodes at both ends', () => {
+    [1, 2, 3].forEach((n) => {
+      expect(Math.abs(standingWaveProfile('abierto', n, 0))).toBeCloseTo(1, 12);
+      expect(Math.abs(standingWaveProfile('abierto', n, 1))).toBeCloseTo(1, 12);
+    });
+    expect(standingWaveProfile('abierto', 1, 0.5)).toBeCloseTo(0, 12);
+  });
+
+  test('the closed pipe has a node at the closed end and an antinode at the open one', () => {
+    [1, 3, 5].forEach((n) => {
+      expect(standingWaveProfile('cerrado', n, 0)).toBeCloseTo(0, 12);
+      expect(Math.abs(standingWaveProfile('cerrado', n, 1))).toBeCloseTo(1, 12);
+    });
+    // n = 3 has one more node inside, at a third of the length: L = 3λ/4, λ/2 from the open end.
+    expect(standingWaveProfile('cerrado', 3, 2 / 3)).toBeCloseTo(0, 12);
+  });
+
+  test('rejects an even mode in a closed pipe or a position outside it', () => {
+    expect(() => standingWaveProfile('cerrado', 2, 0.5)).toThrow(RangeError);
+    expect(() => standingWaveProfile('abierto', 1, 1.2)).toThrow(RangeError);
+  });
+});
+
+describe('chromiumPeriodicWaveMemory: the tables Chromium builds per recipe (periodic_wave_handler.cc)', () => {
+  test('at 44,1 and 48 kHz: 4 096 samples, 36 ranges of a third of an octave, 576 KiB (research §4.4)', () => {
+    for (const rate of [44100, 48000]) {
+      expect(chromiumPeriodicWaveMemory(rate)).toEqual({
+        tableSize: 4096,
+        ranges: 36,
+        bytes: 589824,
+      });
+    }
+    expect(chromiumPeriodicWaveMemory(48000).bytes / 1024).toBe(576);
+  });
+
+  test('2 048 samples up to 24 kHz and 16 384 above 88,2 kHz (L42-L54)', () => {
+    expect(chromiumPeriodicWaveMemory(22050).tableSize).toBe(2048);
+    expect(chromiumPeriodicWaveMemory(96000).tableSize).toBe(16384);
+    expect(chromiumPeriodicWaveMemory(96000).ranges).toBe(42);
+    expect(() => chromiumPeriodicWaveMemory(0)).toThrow(RangeError);
+  });
+});
+
+describe('the Hammond organ’s tempered harmonics (patent US 1 956 350, research §4.4)', () => {
+  test('the 5th harmonic taken from the tempered scale (28 semitones) is 13,69 cents sharp', () => {
+    expect(cents(5, 2 ** (28 / 12))).toBeCloseTo(13.69, 2);
+    expect(cents(3, 2 ** (19 / 12))).toBeCloseTo(-1.96, 2);
   });
 });

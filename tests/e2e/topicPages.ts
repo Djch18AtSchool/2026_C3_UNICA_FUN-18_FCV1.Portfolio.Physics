@@ -52,6 +52,12 @@ const LABS: Readonly<
     hasEvents: true,
     hasZoom: false,
   },
+  'sintesis-sonido': {
+    labTestId: 'synth-lab',
+    hasClock: false,
+    hasEvents: false,
+    hasZoom: false,
+  },
 };
 
 export interface TopicPage {

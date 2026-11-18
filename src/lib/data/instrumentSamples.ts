@@ -58,6 +58,15 @@ export interface InstrumentSample {
 
 const NAMES: Record<InstrumentId, string> = { flauta: 'Flauta', clarinete: 'Clarinete en si♭' };
 
+const FLAT = '♭';
+
+/** A note or a name with its flat sign typeset by KaTeX, which IBM Plex lacks: «si$\flat$». */
+export const typesetFlat = (text: string): string => text.replaceAll(FLAT, '$\\flat$');
+
+/** The same text as a screen reader should say it: «Clarinete en si bemol», «mi bemol 4». */
+export const spokenFlat = (text: string): string =>
+  text.replace(/♭(?=\d)/gu, ' bemol ').replaceAll(FLAT, ' bemol');
+
 const spanSchema = z.object({ startS: z.number().nonnegative(), endS: z.number().positive() });
 const recipe = z.array(z.number()).length(MEASURED_HARMONICS);
 

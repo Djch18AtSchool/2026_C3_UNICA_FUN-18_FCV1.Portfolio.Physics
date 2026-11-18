@@ -170,3 +170,84 @@ export function maxHarmonicBelowNyquist(f1: number, sampleRate: number): number 
   requirePositive('sampleRate', sampleRate);
   return Math.floor(sampleRate / (2 * f1));
 }
+
+/**
+ * Equation (11.6) predicted (cálculo propio, research §5 Paso 3): the odd and even parts of a
+ * recipe are orthogonal over whole periods, so corr(y(t), −y(t + T/2)) = (P_odd − P_even) /
+ * (P_odd + P_even) = (r − 1)/(r + 1) with r = 10^(dB/10) from oddEvenPowerDb. One silent parity
+ * (±∞ dB) gives ±1.
+ */
+export function predictedHalfWaveCorrelation(oddEvenDb: number): number {
+  if (Number.isNaN(oddEvenDb)) throw new RangeError('oddEvenDb must be a number, got NaN');
+  if (oddEvenDb === Infinity) return 1;
+  if (oddEvenDb === -Infinity) return -1;
+  const ratio = 10 ** (oddEvenDb / 10);
+  return (ratio - 1) / (ratio + 1);
+}
+
+/** The interval from `from` to `to` (Hz) in cents: 1 200 log₂(to/from); an octave is 1 200. */
+export function cents(from: number, to: number): number {
+  requirePositive('from', from);
+  requirePositive('to', to);
+  return 1200 * Math.log2(to / from);
+}
+
+/** An ideal pipe open at both ends (a flute) or closed at one and open at the other (a clarinet). */
+export type PipeKind = 'abierto' | 'cerrado';
+
+/** The first `count` mode numbers n: every n open at both ends (11.2), only odd n closed (11.3). */
+export function pipeModeNumbers(kind: PipeKind, count: number): number[] {
+  requirePositiveInteger('count', count);
+  return Array.from({ length: count }, (_, i) => (kind === 'abierto' ? i + 1 : 2 * i + 1));
+}
+
+/**
+ * The (effective) length whose fundamental is f₁ (Hz) with sound speed v (m/s): L = v/(2 f₁) open
+ * at both ends, from (11.2) with n = 1, and L = v/(4 f₁) closed at one end, from (11.3).
+ */
+export function pipeLength(kind: PipeKind, f1: number, v: number): number {
+  requirePositive('f1', f1);
+  requirePositive('v', v);
+  return v / ((kind === 'abierto' ? 2 : 4) * f1);
+}
+
+/**
+ * The displacement amplitude of mode n along the pipe, at x/L in [0, 1], peak 1: cos(nπx/L) open at
+ * both ends (antinodes at both), sin(nπx/2L) closed at x = 0 (a node there, an antinode at the
+ * open end; n odd only). OpenStax University Physics 1, §17.4.
+ */
+export function standingWaveProfile(kind: PipeKind, n: number, xOverL: number): number {
+  requirePositiveInteger('n', n);
+  if (kind === 'cerrado' && n % 2 === 0) {
+    throw new RangeError(`a closed pipe has only odd modes, got n = ${n}`);
+  }
+  if (!(xOverL >= 0 && xOverL <= 1)) {
+    throw new RangeError(`x/L must lie in [0, 1], got ${xOverL}`);
+  }
+  return kind === 'abierto' ? Math.cos(n * Math.PI * xOverL) : Math.sin((n * Math.PI * xOverL) / 2);
+}
+
+/** Chromium's table sizes by sample rate (periodic_wave_handler.cc L42-L54, tag 160.0.8168.1). */
+const CHROMIUM_TABLE_SIZES = [
+  { upTo: 24000, size: 2048 },
+  { upTo: 88200, size: 4096 },
+  { upTo: Infinity, size: 16384 },
+] as const;
+const CHROMIUM_BANDS_PER_OCTAVE = 3;
+const FLOAT_BYTES = 4;
+
+/**
+ * The memory one PeriodicWave takes in Chromium (cálculo propio with its constants): a table of
+ * `tableSize` floats per range, round(3 log₂ tableSize) ranges of a third of an octave (L80-L87),
+ * so 36 × 4 096 × 4 B = 576 KiB at 44,1 or 48 kHz, whatever the recipe, the note or the duration.
+ */
+export function chromiumPeriodicWaveMemory(sampleRate: number): {
+  tableSize: number;
+  ranges: number;
+  bytes: number;
+} {
+  requirePositive('sampleRate', sampleRate);
+  const tableSize = CHROMIUM_TABLE_SIZES.find(({ upTo }) => sampleRate <= upTo)?.size ?? 0;
+  const ranges = Math.round(CHROMIUM_BANDS_PER_OCTAVE * Math.log2(tableSize));
+  return { tableSize, ranges, bytes: ranges * tableSize * FLOAT_BYTES };
+}

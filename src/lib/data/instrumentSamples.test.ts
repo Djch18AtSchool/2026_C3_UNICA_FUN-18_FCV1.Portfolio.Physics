@@ -7,6 +7,8 @@ import { halfWaveCorrelation, oddEvenPowerDb, synthesize } from '../physics/harm
 import {
   INSTRUMENT_SAMPLES,
   parseInstrumentHarmonics,
+  spokenFlat,
+  typesetFlat,
   type InstrumentId,
 } from './instrumentSamples';
 
@@ -269,5 +271,15 @@ describe('parseInstrumentHarmonics', () => {
         withFlute({ mp3: { ...raw.samples.flauta.mp3, src: '../flauta.mp3' } }),
       ),
     ).toThrow();
+  });
+});
+
+describe('the flat sign, which IBM Plex does not draw', () => {
+  test('typesetFlat hands ♭ to KaTeX and spokenFlat says it in words', () => {
+    expect(typesetFlat(clarinete.name)).toBe('Clarinete en si$\\flat$');
+    expect(typesetFlat('mi♭4')).toBe('mi$\\flat$4');
+    expect(spokenFlat(clarinete.name)).toBe('Clarinete en si bemol');
+    expect(spokenFlat('mi♭4')).toBe('mi bemol 4');
+    expect(typesetFlat(flauta.name)).toBe('Flauta');
   });
 });

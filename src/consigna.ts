@@ -77,6 +77,12 @@ export const TOPICS: readonly ConsignaTopic[] = Object.freeze(
       title:
         'Spring animations: el resorte amortiguado detrás de las animaciones de iOS y de Framer Motion',
     },
+    {
+      number: 11,
+      slug: 'sintesis-sonido',
+      phase: 3,
+      title: 'Síntesis de sonido: armónicos, timbre y el sintetizador',
+    },
   ].map((topic) => Object.freeze(topic) as ConsignaTopic),
 );
 

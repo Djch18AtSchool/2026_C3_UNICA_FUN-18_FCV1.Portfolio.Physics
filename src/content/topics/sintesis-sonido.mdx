@@ -1,0 +1,408 @@
+---
+number: 11
+phase: 3
+title: 'Síntesis de sonido: armónicos, timbre y el sintetizador'
+shortTitle: 'Síntesis de sonido'
+concept: 'Tono puro, modos normales de un tubo y superposición de armónicos (series de Fourier): por qué una flauta y un clarinete en la misma nota no suenan igual, y cómo un sintetizador escribe un timbre como una receta de amplitudes.'
+resourceType: multimedia
+useCase:
+  product: 'Web Audio API del W3C (OscillatorNode y PeriodicWave) y su implementación en Chromium'
+  industry: 'Navegadores web y síntesis de audio por software'
+sources:
+  - id: webaudio-2021
+    title: 'Web Audio API'
+    authors: 'Paul Adenot y Hongchan Choi (editores), W3C'
+    year: 2021
+    publisher: 'Recomendación del W3C, 17 de junio de 2021: §1.6.2, §1.9, §1.26 y §1.28.4 a §1.28.6'
+    url: 'https://www.w3.org/TR/2021/REC-webaudio-20210617/'
+    accessed: '2026-11-17'
+  - id: chromium-160
+    title: 'Chromium 160.0.8168.1 (commit 22cf9aec), periodic_wave_handler.cc'
+    authors: 'The Chromium Authors'
+    year: 2026
+    publisher: 'Repositorio de Chromium, licencia BSD; third_party/blink/renderer/modules/webaudio/periodic_wave_handler.cc L42-L54, L80-L87, L105-L109, L320-L335 y L408-L428'
+    url: 'https://chromium.googlesource.com/chromium/src/+/refs/tags/160.0.8168.1/third_party/blink/renderer/modules/webaudio/periodic_wave_handler.cc'
+    accessed: '2026-11-17'
+  - id: iowa-mis
+    title: 'Musical Instrument Samples'
+    authors: 'University of Iowa Electronic Music Studios, dir. Lawrence Fritts'
+    publisher: 'University of Iowa; flauta de Sonja Feig (2000) y clarinete en si bemol de Christine Bellomy (1998), grabados en cámara anecoica'
+    url: 'https://theremin.music.uiowa.edu/MIS.html'
+    accessed: '2026-11-17'
+  - id: wolfe-spectrum
+    title: 'What is a Sound Spectrum?'
+    authors: 'Joe Wolfe'
+    publisher: 'Music Acoustics, UNSW Sydney'
+    url: 'https://newt.phys.unsw.edu.au/jw/sound.spectrum.html'
+    accessed: '2026-11-17'
+  - id: wolfe-pipes
+    title: 'Open vs Closed pipes (Flutes vs Clarinets)'
+    authors: 'Joe Wolfe'
+    publisher: 'Music Acoustics, UNSW Sydney'
+    url: 'https://newt.phys.unsw.edu.au/jw/flutes.v.clarinets.html'
+    accessed: '2026-11-17'
+  - id: wolfe-clarinet
+    title: 'Clarinet acoustics: an introduction'
+    authors: 'Joe Wolfe'
+    publisher: 'Music Acoustics, UNSW Sydney'
+    url: 'https://newt.phys.unsw.edu.au/jw/clarinetacoustics.html'
+    accessed: '2026-11-17'
+  - id: wolfe-harmonics
+    title: 'How harmonic are harmonics?'
+    authors: 'Joe Wolfe'
+    publisher: 'Music Acoustics, UNSW Sydney'
+    url: 'https://newt.phys.unsw.edu.au/jw/harmonics.html'
+    accessed: '2026-11-17'
+  - id: openstax-up1
+    title: 'University Physics, Volume 1: §15.3, §16.6 y §17.4'
+    authors: 'William Moebs, Samuel J. Ling y Jeff Sanny'
+    year: 2016
+    publisher: 'OpenStax, Rice University'
+    url: 'https://openstax.org/books/university-physics-volume-1/pages/17-4-normal-modes-of-a-standing-sound-wave'
+    accessed: '2026-11-17'
+  - id: smith-pasp
+    title: 'Physical Audio Signal Processing: Dispersion Filter-Design'
+    authors: 'Julius O. Smith III'
+    publisher: 'CCRMA, Stanford University'
+    url: 'https://ccrma.stanford.edu/~jos/pasp/Dispersion_Filter_Design_I.html'
+    accessed: '2026-11-17'
+  - id: chrome-music-lab
+    title: 'Chrome Music Lab, «Harmonics & Strings» (commit e54bb41)'
+    authors: 'Google Creative Lab'
+    year: 2022
+    publisher: 'Repositorio googlecreativelab/chrome-music-lab en GitHub, licencia Apache-2.0; harmonics & strings/js/Harmonic.js L66-L71 y L257, index.js L36-L37'
+    url: 'https://github.com/googlecreativelab/chrome-music-lab/tree/e54bb414908da2b6286a6ad6431a5fcf8b68dc3f'
+    accessed: '2026-11-17'
+  - id: hammond-1934
+    title: 'Electrical musical instrument, patente US 1 956 350'
+    authors: 'Laurens Hammond'
+    year: 1934
+    publisher: 'Oficina de Patentes de los Estados Unidos, concedida el 24 de abril de 1934'
+    url: 'https://patents.google.com/patent/US1956350A/en'
+    accessed: '2026-11-17'
+related: ['control-haptico', 'gravedad-artificial']
+classRefs:
+  - module: 'Módulo 5'
+    topic: 'Tema 4 · Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras · Ondas Armónicas y Sonoras'
+    note: 'Cada partícula del medio hace un MAS, $y(x,t) = A\sin(kx - \omega t)$; en un punto fijo es la (11.1).'
+  - module: 'Módulo 5'
+    topic: 'Tema 4 · Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras · Sistemas Acoplados'
+    note: 'Los modos normales, que según el módulo explican el acoplamiento acústico en los instrumentos: en un tubo son los de las (11.2) y (11.3).'
+  - module: 'Módulo 1'
+    topic: 'Tema 1.4 · Movimiento Circular Uniforme (MCU)'
+    note: '$T = 2\pi/\omega$ y $f = 1/T$ en Hz: el periodo y la frecuencia de la (11.1), que es la proyección de un MCU.'
+updated: 2026-11-18
+---
+
+import Step from '../../components/ui/Step.astro';
+import Why from '../../components/ui/Why.astro';
+import UseCase from '../../components/ui/UseCase.astro';
+import Equation from '../../components/ui/Equation.astro';
+import Figure from '../../components/ui/Figure.astro';
+import DataTable from '../../components/ui/DataTable.astro';
+import Cite from '../../components/ui/Cite.astro';
+import Callout from '../../components/ui/Callout.astro';
+import Connections from '../../components/ui/Connections.astro';
+import Sources from '../../components/ui/Sources.astro';
+import PipeModes from '../../components/topics/sintesis-sonido/PipeModes';
+import SampleAnalysis from '../../components/topics/sintesis-sonido/SampleAnalysis';
+import SampleContrast from '../../components/topics/sintesis-sonido/SampleContrast';
+import ToneFigure from '../../components/topics/sintesis-sonido/ToneFigure';
+
+Una flauta y un clarinete en la misma nota no suenan igual. Un sintetizador escribe esa diferencia como una receta de armónicos.
+
+<Step n={1} title="Un tono puro">
+
+El sonido más simple es un seno: la presión del aire en un punto oscila con una sola frecuencia <Cite id="openstax-up1" sources={frontmatter.sources} />.
+
+<Equation
+  id="ec-sonido-tono"
+  latex="y(t) = A\sin(2\pi f t), \qquad f = \frac{1}{T}"
+  symbols={[
+    {
+      symbol: 'y',
+      meaning: 'presión acústica en un punto, respecto de la del ambiente',
+      unit: 'Pa',
+    },
+    { symbol: 'A', meaning: 'amplitud: fija la sonoridad', unit: 'Pa' },
+    { symbol: 'f', meaning: 'frecuencia: fija el tono, grave o agudo', unit: 'Hz' },
+    { symbol: 'T', meaning: 'periodo', unit: 's' },
+    { symbol: 't', meaning: 'tiempo', unit: 's' },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Subir $f$ sube la nota; subir $A$ la hace más fuerte. Con la misma $f$ y la misma $A$, dos tonos puros suenan idénticos.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+La (11.1) es la proyección de un MCU con <Equation inline latex="\omega = 2\pi f" />. Con dos números no distingue instrumentos: le falta el timbre, lo que separa dos sonidos «which have the same pitch and the same loudness» <Cite id="wolfe-spectrum" sources={frontmatter.sources} />.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Un tono puro de 310,10 Hz, el $f_1$ medido del clarinete: cuatro periodos de $T$ = 3,22 ms y su contenido armónico, una sola barra en $n$ = 1. Los ejes son los de las figuras 11.3 y 11.4."
+  source={{
+    text: 'Gráfica que calculé con la (11.1); la frecuencia es la del clarinete de la figura 11.4',
+  }}
+>
+  <ToneFigure variant="seno" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={2} title="Los modos de un tubo">
+
+Un tubo solo deja sonar sus ondas estacionarias: abierto en los dos extremos, como la flauta, todas; cerrado en uno, como el clarinete con su caña, solo las impares <Cite id="openstax-up1" sources={frontmatter.sources} /> <Cite id="wolfe-pipes" sources={frontmatter.sources} />.
+
+<Equation
+  id="ec-sonido-abierto"
+  latex="f_n = \frac{n\,v}{2L} = n f_1, \qquad n = 1, 2, 3, \dots"
+  symbols={[
+    { symbol: 'f_n', meaning: 'frecuencia del modo $n$, el armónico $n$', unit: 'Hz' },
+    { symbol: 'f_1', meaning: 'frecuencia fundamental, la del modo 1', unit: 'Hz' },
+    { symbol: 'v', meaning: 'rapidez del sonido en el aire, unos 340 m/s', unit: 'm/s' },
+    { symbol: 'L', meaning: 'longitud efectiva del tubo', unit: 'm' },
+  ]}
+/>
+
+<Equation id="ec-sonido-cerrado" latex="f_n = \frac{n\,v}{4L} = n f_1, \qquad n = 1, 3, 5, \dots" />
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Con la misma longitud, el clarinete suena «one octave lower than the flute» <Cite id="wolfe-pipes" sources={frontmatter.sources} />; para dar los mismos 310 Hz, su columna de aire mide la mitad.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+El aire no se mueve en el extremo cerrado, un nodo, y se mueve al máximo en el abierto, un vientre: solo caben <Equation inline latex="L = \lambda/4,\ 3\lambda/4,\ 5\lambda/4, \dots" />, con $n$ impar. Las dos ecuaciones dicen qué frecuencias suenan, no cuánto.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="diagrama"
+  showBadge={false}
+  caption="Los tres primeros modos de dos tubos ideales con $f_1$ = 310 Hz, a la misma escala: el abierto-abierto mide 0,55 m y admite $n$ = 1, 2 y 3; el cerrado-abierto mide 0,27 m y solo $n$ = 1, 3 y 5. Las curvas son la amplitud del desplazamiento del aire: vientres en los extremos abiertos, un nodo en el cerrado."
+  source={{
+    text: 'Diagrama que dibujé con las (11.2) y (11.3) y $v$ ≈ 340 m/s de Wolfe (UNSW), fuente 5; longitudes efectivas (cálculo propio), sin la corrección de extremo',
+  }}
+>
+  <PipeModes />
+</Figure>
+
+</Step>
+
+<Step n={3} title="La receta de armónicos">
+
+Toda vibración que se repite cada $T$ es una suma de armónicos <Cite id="wolfe-spectrum" sources={frontmatter.sources} />. La Web Audio API la escribe con senos y cosenos <Cite id="webaudio-2021" sources={frontmatter.sources} />.
+
+<Equation
+  id="ec-sonido-suma"
+  latex="y(t) = \sum_{n=1}^{N} A_n \sin(2\pi n f_1 t + \varphi_n)"
+  symbols={[
+    { symbol: 'A_n', meaning: 'amplitud del armónico $n$', unit: 'Pa' },
+    { symbol: '\\varphi_n', meaning: 'fase del armónico $n$', unit: 'rad' },
+    { symbol: 'N', meaning: 'número de armónicos de la receta' },
+  ]}
+/>
+
+<Equation
+  id="ec-sonido-api"
+  latex="y(t) = \sum_{k=1}^{N}\left[a_k\cos\frac{2\pi k t}{T} + b_k\sin\frac{2\pi k t}{T}\right], \qquad a_k = A_k\sin\varphi_k, \quad b_k = A_k\cos\varphi_k"
+  symbols={[
+    {
+      symbol: 'a_k,\\ b_k',
+      meaning: 'coeficientes de coseno y de seno: los arreglos real e imag de una PeriodicWave',
+    },
+  ]}
+/>
+
+<Equation
+  id="ec-sonido-media-onda"
+  latex="y\left(t + \tfrac{T}{2}\right) = -y(t) \ \ \text{si solo hay impares}, \qquad \rho = \frac{P_\text{imp} - P_\text{par}}{P_\text{imp} + P_\text{par}}"
+  symbols={[
+    {
+      symbol: '\\rho',
+      meaning: 'correlación entre $y(t)$ y $-y(t + T/2)$ sobre periodos completos',
+    },
+    {
+      symbol: 'P_\\text{imp},\\ P_\\text{par}',
+      meaning: 'potencia de los armónicos impares y de los pares, la suma de sus $A_n^2$',
+    },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Cada término se repite cada $T$: la suma conserva el tono y cambia la forma, el timbre. Con solo impares, la segunda mitad de cada periodo es la primera invertida.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Desarrollando <Equation inline latex="\sin(\alpha + \varphi)" />, la (11.4) da la (11.5). Medio periodo multiplica el armónico $n$ por <Equation inline latex="(-1)^n" />: los impares cambian de signo y los pares no. Con los dos, $\rho$ pesa sus potencias (cálculo propio).
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Dos recetas de la Web Audio API con $f_1$ = 310,10 Hz y doce armónicos: la onda cuadrada, solo impares, y el diente de sierra, todos (tabla 11.1). En la cuadrada, $-y(t + T/2)$ cae sobre $y(t)$, como pide la (11.6); en el diente de sierra, no: $\rho$ = 0,52."
+  source={{
+    text: 'Gráfica que calculé con la (11.4) y las recetas de la §1.28.6 de la Web Audio API (W3C, 2021), fuente 1',
+  }}
+>
+  <ToneFigure variant="recetas" client:visible />
+</Figure>
+
+<DataTable id="sintesis-sonido-recetas" />
+
+</Step>
+
+<Step n={4} title="Dos instrumentos reales">
+
+Comparo una flauta y un clarinete en si$\flat$ de la University of Iowa, en mi$\flat$4, fortísimo y sin vibrato <Cite id="iowa-mis" sources={frontmatter.sources} />, y mido sus recetas con un FFT propio. Una nota real empieza y termina: la (11.7) multiplica la receta por la exponencial de `setTargetAtTime` <Cite id="webaudio-2021" sources={frontmatter.sources} />.
+
+<Equation
+  id="ec-sonido-envolvente"
+  latex="y(t) = E(t)\sum_{n=1}^{N} A_n \sin(2\pi n f_1 t + \varphi_n), \qquad E(t) = V_1 + (V_0 - V_1)\,e^{-(t - T_0)/\tau}"
+  symbols={[
+    { symbol: 'E(t)', meaning: 'envolvente: el nivel de la nota en cada instante' },
+    { symbol: 'V_0,\\ V_1', meaning: 'nivel al empezar la rampa y nivel al que tiende' },
+    { symbol: 'T_0', meaning: 'instante en que empieza la rampa', unit: 's' },
+    { symbol: '\\tau', meaning: 'constante de tiempo de la rampa', unit: 's' },
+  ]}
+/>
+
+<Equation
+  id="ec-sonido-inarmonicidad"
+  latex="f_n = n f_1\sqrt{1 + B n^2}"
+  symbols={[
+    {
+      symbol: 'B',
+      meaning:
+        'coeficiente de inarmonicidad de una cuerda rígida, adimensional; 0 en una cuerda ideal',
+    },
+  ]}
+/>
+
+<Equation
+  id="ec-sonido-nyquist"
+  latex="n \le \left\lfloor \frac{f_s}{2 f_1} \right\rfloor, \qquad f_\text{alias} = |n f_1 - m f_s|"
+  symbols={[
+    { symbol: 'f_s', meaning: 'frecuencia de muestreo del audio digital', unit: 'Hz' },
+    {
+      symbol: 'f_\\text{alias}',
+      meaning:
+        'frecuencia a la que se pliega un armónico por encima de $f_s/2$, con el entero $m$ que la deja entre 0 y $f_s/2$',
+      unit: 'Hz',
+    },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Con el mismo tono cambian los armónicos y el arranque. Soplados, sus armónicos son múltiplos exactos de $f_1$; una cuerda pulsada o golpeada los estira <Cite id="wolfe-harmonics" sources={frontmatter.sources} />.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+La (11.8) aparta los parciales de <Equation inline latex="n f_1" /> <Cite id="smith-pasp" sources={frontmatter.sources} />, y una `PeriodicWave`, periódica por definición, no la puede tocar. La (11.9) limita la receta: con 310 Hz y 44,1 kHz caben 71 armónicos (cálculo propio).
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="multimedia"
+  caption="Flauta y clarinete en si$\flat$ en la misma nota, mi$\flat$4, igualados en sonoridad: lo que cambia es el timbre. Bajo cada audio analizo dos instantes, el ataque y el sostenido, y muestro con los mismos ejes su envolvente, cuatro periodos de su forma de onda y sus doce armónicos; al final, qué diferencia produce qué."
+  source={{
+    text: 'Grabaciones: University of Iowa Electronic Music Studios, Musical Instrument Samples (dir. Lawrence Fritts), fuente 3: flauta de Sonja Feig (2000) y clarinete en si bemol Buffet R13 de Christine Bellomy (1998), en cámara anecoica con un micrófono Neumann KM 84. Los recorté, los pasé a mono e igualé su sonoridad a −20 LUFS; el MIS permite usarlos «for any projects, without restrictions». Envolventes, formas de onda y espectros: cálculo propio sobre los archivos originales',
+    url: 'https://theremin.music.uiowa.edu/MIS.html',
+  }}
+>
+  <SampleAnalysis sample="flauta" client:visible />
+  <SampleAnalysis sample="clarinete" client:visible />
+  <SampleContrast />
+</Figure>
+
+<DataTable id="sintesis-sonido-armonicos" />
+
+<DataTable id="sintesis-sonido-muestras" />
+
+</Step>
+
+<UseCase>
+
+<Fragment slot="caso">
+
+La Web Audio API del W3C es el sintetizador de cada navegador: un `OscillatorNode` toca una `PeriodicWave` hecha con las amplitudes de sus armónicos <Cite id="webaudio-2021" sources={frontmatter.sources} />. Chromium la implementa en `periodic_wave_handler.cc` (tag 160.0.8168.1, commit `22cf9aec`) <Cite id="chromium-160" sources={frontmatter.sources} />.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+La §1.28.4 escribe la (11.5); la §1.28.6, las recetas de la tabla 11.1. Chromium aplica la (11.9) en tablas por tercio de octava: `number_of_partials = culling_scale * max_number_of_partials` (L320-L335) recorta «just in time to truncate partials before aliasing occurs» (L105-L109).
+
+</Fragment>
+
+<Fragment slot="justificacion">
+
+Una muestra grabada vale para una nota y una intensidad; transponerla con `playbackRate` la acelera y corre su espectro (§1.9). Doce amplitudes en la (11.4) tocan ese timbre en cualquier nota y duración.
+
+</Fragment>
+
+<Fragment slot="balance">
+
+Gano cualquier timbre periódico con pocos números. Cuesta memoria, 576 KiB por receta en 36 tablas (cálculo propio), y filtrar sobre Nyquist, un trato entre CPU y fidelidad (§1.26); normalizar al pico cambia la sonoridad entre recetas (§1.28.5), y la (11.4) no tiene ataque, ruido ni inarmonicidad.
+
+</Fragment>
+
+</UseCase>
+
+<Callout variant="nota" title="Otro diseño: Chrome Music Lab">
+
+Su experimento «Harmonics» usa un oscilador seno por armónico: `startingFrequency * (this.ind+1)` es <Equation inline latex="f_n = n f_1" />, con seis armónicos <Cite id="chrome-music-lab" sources={frontmatter.sources} />. Cada armónico cuesta un oscilador; la `PeriodicWave`, una tabla para todos.
+
+</Callout>
+
+<Callout variant="nota" title="Antes del software: el órgano Hammond">
+
+Su patente de 1934 ya sumaba al fundamental «the first eight harmonics» <Cite id="hammond-1934" sources={frontmatter.sources} />, tomados de la escala temperada: su quinto armónico queda 13,69 cents alto (cálculo propio).
+
+</Callout>
+
+<Callout variant="clase" title="Módulo 5 · Tema 4, introductorio; Módulo 1 · Tema 1.4">
+
+En el Módulo 5, cada partícula del medio hace un MAS: la (11.1) en un punto. Sus modos normales son, en un tubo, los de las (11.2) y (11.3). El Módulo 1 da <Equation inline latex="T = 2\pi/\omega" /> y <Equation inline latex="f = 1/T" /> en el MCU, con $\omega$ como frecuencia angular. Las (11.2) a (11.9) son extensiones.
+
+</Callout>
+
+<Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
+
+Con el Tema 5: el actuador del DualSense vibra «like a small speaker» con <Equation inline latex="F_0\sin(\omega t)" />, un tono puro; con varios armónicos haría la (11.4). Con el Tema 3: la (11.1) proyecta el MCU del hábitat.
+
+</Connections>
+
+<Sources sources={frontmatter.sources} />
