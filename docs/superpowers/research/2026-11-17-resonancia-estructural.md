@@ -331,6 +331,13 @@ Para el sitio: el `.ogv` (Theora) no se reproduce en Safari. Hay dos salidas: us
   Media 3,45 s ≈ 103 cuadros de video (Olson contó 100). Sin corregir: 17,4 ciclos/min. Corregido ×1,5: **5,2 s, 11,6 ciclos/min, 0,19 Hz**, un 3 % por debajo de los 12 ciclos/min de Farquharson. Dicho al revés: si el periodo real es 5,0 s, la cámara iba a 24 × 3,45/5,0 = 16,6 fps; si fuera 4,29 s (14 ciclos/min), a 19,3 fps. Las tres tomas son coherentes con la cámara de 16 fps.
 - **Consecuencia para la página:** la página puede pedir al lector que cuente ciclos con el cronómetro (verá ≈ 3,4 s) y luego explicarle por qué hay que multiplicar por 1,5. Es un buen momento de «medir con cuidado»: el error no es de la física sino del instrumento. El control «Velocidad real» (`playbackRate = 2/3`) solo debe aplicarse a las tomas de Elliott, no al colapso.
 
+**Errata (2026-11-17, implementación).** La medición reproducible (`pnpm run data:tacoma`, `src/data/tacoma-torsion.json`) da en la toma 1 (0:14,3–0:25,3) **3,58 s, no 3,49 s**. Las tomas 2 y 3 dan 3,45 s y 3,43 s. La media en el video es **3,49 s, no 3,45 s**; corregida ×1,5 da **5,23 s, 0,191 Hz, ≈ 11,5 ciclos/min**, un 4 % por debajo de los 12 de Farquharson. Dos causas:
+
+- El 3,49 s de la toma 1 salía del suavizado de `edge.py` y `tilt.py` (`np.convolve(…, "same")`). Ese suavizado rellena con ceros y fabrica un escalón falso al fondo de la ventana de búsqueda; la fila detectada saltaba allí y la inclinación se volvía una onda cuadrada. Sin ese relleno, la inclinación real del horizonte en la toma 1 es de apenas ±2 px: es la toma menos segura.
+- El periodo se lee ahora con la autocorrelación normalizada por el solapamiento de cada desfase (coeficiente de Pearson), no por la energía en desfase cero como en `period.py`. Con registros de dos o tres ciclos, como estas tomas, la normalización original lee el periodo ≈ 3 % corto.
+
+La misma medición sobre la transcodificación VP9 de Commons coincide en 0,01 s por toma.
+
 ### 6.3 Instantes del archivo de Commons para el análisis
 
 | mm:ss | Qué se ve | Con qué ecuación se conecta |

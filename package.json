@@ -19,6 +19,7 @@
     "data:cycles": "tsx scripts/generate-drive-cycles.ts",
     "data:voyager": "tsx scripts/generate-voyager-speed.ts",
     "data:harmonics": "tsx scripts/generate-instrument-harmonics.ts",
+    "data:tacoma": "tsx scripts/generate-tacoma-torsion.ts",
     "data:fonts": "tsx scripts/font-data.ts && prettier --write src/lib/plexCoverage.ts src/lib/glyphAdvances.ts",
     "measure:labs": "tsx scripts/measure-labs.ts",
     "scale:report": "tsx scripts/scale-report.ts",
