@@ -32,16 +32,15 @@ const scaledCritical = (k: number, m: number, factor: number): SpringParams => (
 const expectWithinThousandth = (actual: number, expected: number) =>
   expect(Math.abs(actual - expected)).toBeLessThanOrEqual(1e-3);
 
-/** The last grid time at which |u| is outside the band ε·|u₀|: a brute-force settling time. */
+/** The last grid time at which |u| is outside the band: a brute-force settling time. */
 function scannedSettling(
   p: SpringParams,
   u0: number,
   v0: number,
-  eps: number,
+  band: number,
   tMax: number,
   dt: number,
 ) {
-  const band = eps * Math.abs(u0);
   const steps = Math.round(tMax / dt);
   return Array.from({ length: steps + 1 }, (_, i) => i * dt).reduce(
     (last, t) => (Math.abs(springState(p, u0, v0, t).u) > band ? t : last),
@@ -101,6 +100,7 @@ describe('dampedSpring: reproduces the sources', () => {
   });
 
   test('the critical settling root e^(−u)(1 + u) = ε of research §4 and Motion plan 033', () => {
+    // §4: «u = 5,834 (2 %), 6,638 (1 %) y 9,2334 (0,1 %)»; plan 033: «u ≈ 9.2334134764516».
     expect(settlingTime(unitSpring(1), 1, 0, 0.001)).toBeCloseTo(9.2334134764516, 9);
     expectWithinThousandth(settlingTime(unitSpring(1), 1, 0, 0.02), 5.834);
     expectWithinThousandth(settlingTime(unitSpring(1), 1, 0, 0.01), 6.638);
@@ -120,18 +120,18 @@ describe('dampedSpring: reproduces the sources', () => {
     });
   });
 
-  test('ω₀·t_s at 2 % against ζ (research §4), the three regimes', () => {
+  test('ω₀·t_s at 2 % against ζ (research §4, printed to 2 decimals), the three regimes', () => {
     const table: [number, number][] = [
-      [0.2, 19.601],
-      [0.5, 8.076],
-      [0.8, 3.755],
-      [1, 5.833],
-      [1.5, 10.654],
-      [2, 14.877],
-      [3, 22.975],
+      [0.2, 19.6],
+      [0.5, 8.08],
+      [0.8, 3.76],
+      [1, 5.83],
+      [1.5, 10.65],
+      [2, 14.88],
+      [3, 22.98],
     ];
     table.forEach(([zeta, expected]) =>
-      expectWithinThousandth(settlingTime(unitSpring(zeta), -1, 0, 0.02), expected),
+      expect(settlingTime(unitSpring(zeta), -1, 0, 0.02)).toBeCloseTo(expected, 2),
     );
   });
 
@@ -256,15 +256,28 @@ describe('dampedSpring: regimes and continuity', () => {
     expect(us.at(-1)).toBeLessThanOrEqual(0);
     expect(Number.isFinite(settlingTime(p, -1, 0, 0.02))).toBe(true);
   });
+
+  test('an extreme overdamping (b = 10¹⁶⁰) stays finite: ζ² never overflows', () => {
+    const p = { k: 1, b: 1e160, m: 1 };
+    expect(dampingRegime(p)).toBe('sobreamortiguado');
+    [0, 1, 1e3].forEach((t) => {
+      const { u, v } = springState(p, -1, 2, t);
+      expect(Number.isFinite(u) && Number.isFinite(v)).toBe(true);
+    });
+    // The slow time constant is b/k = 10¹⁶⁰ s: after 1000 s the offset has not moved.
+    expect(springState(p, -1, 0, 1e3).u).toBeCloseTo(-1, 12);
+    expect(Number.isFinite(settlingTime(p, -1, 0, 0.02))).toBe(true);
+  });
 });
 
-describe('settlingTime: the last time |u| leaves ε·|u₀|', () => {
+describe('settlingTime: the last time |u| leaves the band ε·reference', () => {
   const cases: {
     name: string;
     p: SpringParams;
     u0: number;
     v0: number;
     eps: number;
+    reference?: number;
     tMax: number;
   }[] = [
     // The first extremum is already inside the band: the entry is before it.
@@ -324,22 +337,94 @@ describe('settlingTime: the last time |u| leaves ε·|u₀|', () => {
       eps: 0.02,
       tMax: 40,
     },
+    // Kicked from the target (u₀ = 0), with the band of a 1-unit step: the start is inside.
+    {
+      name: 'underdamped, kicked from the target',
+      p: unitSpring(0.3),
+      u0: 0,
+      v0: 2,
+      eps: 0.02,
+      reference: 1,
+      tMax: 40,
+    },
+    {
+      name: 'critical, kicked from the target',
+      p: unitSpring(1),
+      u0: 0,
+      v0: 1,
+      eps: 0.02,
+      reference: 1,
+      tMax: 20,
+    },
+    {
+      name: 'overdamped, kicked from the target',
+      p: unitSpring(2),
+      u0: 0,
+      v0: 1,
+      eps: 0.02,
+      reference: 1,
+      tMax: 40,
+    },
   ];
 
-  test.each(cases)('$name matches a brute-force scan', ({ p, u0, v0, eps, tMax }) => {
-    const dt = tMax / 20000;
-    const scanned = scannedSettling(p, u0, v0, eps, tMax, dt);
-    const settled = settlingTime(p, u0, v0, eps);
-    expect(settled).toBeGreaterThanOrEqual(scanned);
-    expect(settled).toBeLessThan(scanned + dt);
-    expect(Math.abs(springState(p, u0, v0, settled).u)).toBeCloseTo(eps * Math.abs(u0), 9);
+  test.each(cases)(
+    '$name matches a brute-force scan',
+    ({ p, u0, v0, eps, reference = Math.abs(u0), tMax }) => {
+      const dt = tMax / 20000;
+      const band = eps * reference;
+      const scanned = scannedSettling(p, u0, v0, band, tMax, dt);
+      const settled = settlingTime(p, u0, v0, eps, reference);
+      expect(settled).toBeGreaterThanOrEqual(scanned);
+      expect(settled).toBeLessThan(scanned + dt);
+      expect(Math.abs(springState(p, u0, v0, settled).u)).toBeCloseTo(band, 9);
+    },
+  );
+
+  test('is 0 when u never leaves the band, in every regime', () => {
+    const inside: [SpringParams, number, number][] = [
+      [unitSpring(0.5), 0, 0],
+      [unitSpring(0.5), 0.01, 0],
+      [unitSpring(0.5), 0, 0.01],
+      [unitSpring(1), 0.01, 0],
+      [unitSpring(1), -0.019, 0.069], // overshoots, but only to 0,013
+      [unitSpring(2), 0.01, 0],
+      [unitSpring(2), 0, 0.01],
+    ];
+    inside.forEach(([p, u0, v0]) => expect(settlingTime(p, u0, v0, 0.02, 1)).toBe(0));
   });
 
-  test('is 0 for a spring already at rest on its target', () =>
-    expect(settlingTime(unitSpring(0.5), 0, 0, 0.02)).toBe(0));
+  test('a restart as the card crosses its target reads the rest of the step, not 3 s', () => {
+    // Motion's default spring on a 0 → 300 px move, restarted (10.9) 7·10⁻⁴ px short of the target,
+    // as a second press of «Interrumpir» does. With the step's 300 px as the reference the reading
+    // continues the step's (0,81 s in all); with |u₀| the band shrinks to 1,4·10⁻⁵ px.
+    const p = { k: 100, b: 10, m: 1 };
+    const tStar = 0.2418391333805981;
+    const { u, v } = springState(p, -300, 0, tStar);
+    expect(u).toBeCloseTo(-7e-4, 9);
+    const step = settlingTime(p, -300, 0, 0.02);
+    expect(step).toBeCloseTo(0.81, 2);
+    expect(tStar + settlingTime(p, u, v, 0.02, 300)).toBeCloseTo(step, 9);
+    expect(settlingTime(p, u, v, 0.02)).toBeGreaterThan(3);
+  });
 
-  test('needs an initial offset to scale ε, and ε strictly between 0 and 1', () => {
+  test('b = 0 never settles once it moves, even from the target or inside the band', () => {
+    const p = { k: 1, b: 0, m: 1 };
+    expect(settlingTime(p, 0, 2, 0.02)).toBe(Infinity);
+    expect(settlingTime(p, 0, 2, 0.02, 1)).toBe(Infinity);
+    expect(settlingTime(p, 1e-6, 0, 0.02, 1)).toBe(Infinity);
+    expect(settlingTime(p, 0, 0, 0.02)).toBe(0);
+  });
+
+  test('a vanishing b returns a huge finite time, and Infinity once ζω₀ underflows', () => {
+    const settled = settlingTime({ k: 1, b: 1e-20, m: 1 }, -1, 0, 0.02);
+    expect(Number.isFinite(settled) && settled > 1e20).toBe(true);
+    expect(settlingTime({ k: 1, b: Number.MIN_VALUE, m: 1 }, -1, 0, 0.02)).toBe(Infinity);
+  });
+
+  test('rejects ε outside (0, 1), a negative reference and a zero one for a moving damped spring', () => {
     expect(() => settlingTime(unitSpring(0.5), 0, 2, 0.02)).toThrow(RangeError);
+    expect(() => settlingTime(unitSpring(0.5), -1, 0, 0.02, 0)).toThrow(RangeError);
+    expect(() => settlingTime(unitSpring(0.5), -1, 0, 0.02, -1)).toThrow(RangeError);
     expect(() => settlingTime(unitSpring(0.5), -1, 0, 0)).toThrow(RangeError);
     expect(() => settlingTime(unitSpring(0.5), -1, 0, 1)).toThrow(RangeError);
     expect(() => settlingTime(unitSpring(0.5), -1, Number.NaN, 0.02)).toThrow(RangeError);

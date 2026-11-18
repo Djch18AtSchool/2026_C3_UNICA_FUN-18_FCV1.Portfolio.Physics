@@ -25,9 +25,14 @@ export const CRITICAL_TOLERANCE = 1e-9;
 
 /** Bisection steps for the band entry: 2⁻⁶⁴ of the bracket, far below any plotted resolution. */
 const SETTLING_BISECTION_STEPS = 64;
+/**
+ * Forward steps over the extrema after the logarithmic estimate, which starts at most two early.
+ * The cap only stops the walk where t is so large (n ≥ 2⁵³) that n + 1 rounds to n.
+ */
+const MAX_EXTREMUM_STEPS = 8;
 
-/** Offset from the target u and velocity v. */
-interface OffsetState {
+/** Offset from the target u and velocity v: what springState returns. */
+export interface OffsetState {
   u: number;
   v: number;
 }
@@ -35,7 +40,7 @@ interface OffsetState {
 /** One regime's closed form for given u₀ and v₀: its state and its settling time. */
 interface Solution {
   state: (t: number) => OffsetState;
-  /** The last time |u| is above `band` (0 < band < |u₀|). */
+  /** The last time |u| is above `band` (> 0), or 0 if it never is. */
   settle: (band: number) => number;
 }
 
@@ -79,6 +84,11 @@ function bandEntry(isOutside: (t: number) => boolean, low: number, high: number)
   return hi;
 }
 
+/** The band entry in [0, end], one monotonic stretch of u; 0 if u starts inside and so stays. */
+function entryFromStart(isOutside: (t: number) => boolean, end: number): number {
+  return isOutside(0) ? bandEntry(isOutside, 0, end) : 0;
+}
+
 /** Wraps an angle into [0, π) (atan2 gives (−π, π]). */
 const wrapHalfTurn = (angle: number) => ((angle % Math.PI) + Math.PI) % Math.PI;
 
@@ -98,18 +108,20 @@ function underdamped(w0: number, zeta: number, u0: number, v0: number): Solution
     return { u: envelope * (u0 * cos + sinU * sin), v: envelope * (v0 * cos - sinV * sin) };
   };
   const settle = (band: number): number => {
-    if (decay === 0) return Infinity;
+    // b = 0 (or a b so small that ζω₀ underflows): the spring never settles, whatever the band.
+    if (!(decay > 0)) return Infinity;
     const isOutside = (t: number) => Math.abs(state(t).u) > band;
     const halfPeriod = Math.PI / wd;
     // v = 0 where v₀ cos ω_d t = sinV · sin ω_d t: the extrema of u, every half period.
     const first = wrapHalfTurn(Math.atan2(v0, sinV)) / wd;
-    if (!isOutside(first)) return bandEntry(isOutside, 0, first);
+    // Every later extremum is smaller, so if the first is inside, u never leaves after it.
+    if (!isOutside(first)) return entryFromStart(isOutside, first);
     const extremum = (n: number) => first + n * halfPeriod;
     // The last n with |u(first)|·e^(−n·ζω₀π/ω_d) > band. The logarithm can round either way near an
     // integer, so start one extremum early (still outside, as they shrink) and step forward.
     const halfPeriods = Math.log(Math.abs(state(first).u) / band) / (decay * halfPeriod);
     let n = Math.max(0, Math.ceil(halfPeriods) - 2);
-    while (isOutside(extremum(n + 1))) n++;
+    for (let step = 0; step < MAX_EXTREMUM_STEPS && isOutside(extremum(n + 1)); step++) n++;
     return bandEntry(isOutside, extremum(n), extremum(n + 1));
   };
   return { state, settle };
@@ -127,10 +139,10 @@ function settleWithoutOscillation(
   band: number,
 ): number {
   const isOutside = (t: number) => Math.abs(u(t)) > band;
-  if (!(extremum > 0 && extremum < bound)) return bandEntry(isOutside, 0, bound);
+  if (!(extremum > 0 && extremum < bound)) return entryFromStart(isOutside, bound);
   return isOutside(extremum)
     ? bandEntry(isOutside, extremum, bound)
-    : bandEntry(isOutside, 0, extremum);
+    : entryFromStart(isOutside, extremum);
 }
 
 /** ζ = 1: u = e^(−ω₀t)[u₀ + (v₀ + ω₀u₀) t]. */
@@ -154,10 +166,10 @@ function critical(w0: number, u0: number, v0: number): Solution {
 /**
  * ζ > 1: u = C_s e^(r_s t) + C_f e^(r_f t), a slow and a fast decaying exponential as in Motion, so
  * no term overflows however heavy the damping. r_s = ω₀²/r_f avoids the cancellation in
- * −ω₀(ζ − √(ζ² − 1)).
+ * −ω₀(ζ − √(ζ² − 1)), and ζ√(1 − 1/ζ²) avoids overflowing ζ² beyond ζ ≈ 1,3·10¹⁵⁴.
  */
 function overdamped(w0: number, zeta: number, u0: number, v0: number): Solution {
-  const fast = -w0 * (zeta + Math.sqrt(zeta * zeta - 1));
+  const fast = -w0 * (zeta + zeta * Math.sqrt(1 - 1 / (zeta * zeta)));
   const slow = (w0 * w0) / fast;
   const cFast = (v0 - slow * u0) / (fast - slow);
   const cSlow = u0 - cFast;
@@ -212,22 +224,38 @@ export function peakTime(p: SpringParams): number {
 }
 
 /**
- * Settling time t_s(ε): the last time |u| exceeds ε·|u₀|, with ε relative to the initial offset
- * (research §4: «el último instante con |x − x_obj| > ε»). Found on the analytic solution (10.6),
- * bracketed by the envelope and closed by bisection: for ζ < 1 the extrema shrink by the envelope
- * e^(−ζω₀t) of (10.8), so the last one outside the band is a logarithm away and the entry lies
- * before the next one; for ζ ≥ 1 u has at most one extremum and an envelope bound of |u| closes the
- * bracket. Infinity when b = 0 (the spring never settles); 0 when it starts at rest on its target.
- * ε must be in (0, 1), and u₀ ≠ 0 when v₀ ≠ 0, since the band is measured from u₀.
+ * Settling time t_s(ε): the last time |u| exceeds the band ε·reference (research §4: «el último
+ * instante con |x − x_obj| > ε»), or 0 if u never leaves it; the start may be inside the band.
+ * `reference` is the distance ε is relative to: |u₀| by default, a step from rest. For a restart
+ * mid-flight (10.9), pass the distance between the two targets (as the lab does), so the band stays
+ * the step's and the reading does not grow like ln(1/|u₀|) as u₀ → 0.
+ *
+ * Found on the analytic solution (10.6), bracketed by the envelope and closed by bisection: for
+ * ζ < 1 the extrema shrink by the envelope e^(−ζω₀t) of (10.8), so the last one outside the band is
+ * a logarithm away and the entry lies before the next one; for ζ ≥ 1 u has at most one extremum and
+ * an envelope bound of |u| closes the bracket.
+ *
+ * 0 when the spring starts at rest on its target. Infinity when b = 0 and it does not, even if its
+ * swing fits in the band: an undamped spring never comes to rest (Motion: «Springs with
+ * `damping: 0` will run forever»). ε must be in (0, 1); reference = 0 is rejected for a damped spring
+ * that is not at rest.
  */
-export function settlingTime(p: SpringParams, u0: number, v0: number, epsilon: number): number {
+export function settlingTime(
+  p: SpringParams,
+  u0: number,
+  v0: number,
+  epsilon: number,
+  reference = Math.abs(u0),
+): number {
   requirePositive('epsilon', epsilon);
   if (!(epsilon < 1)) throw new RangeError(`epsilon must be less than 1, got ${epsilon}`);
   const solution = solve(p, u0, v0);
+  requireNonNegative('reference', reference);
   if (u0 === 0 && v0 === 0) return 0;
-  if (u0 === 0)
-    throw new RangeError('settlingTime needs u0 ≠ 0: the band ε·|u0| is measured from it');
-  return solution.settle(epsilon * Math.abs(u0));
+  if (reference === 0 && p.b > 0) {
+    throw new RangeError('settlingTime needs a reference > 0 for a spring that is not at rest');
+  }
+  return solution.settle(epsilon * reference);
 }
 
 /**

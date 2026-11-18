@@ -57,6 +57,7 @@ describe('springPresets', () => {
     expect(params).toEqual(fromPerceptual(0.5, 0.3));
     expect(origin).toBe('producto');
     expect(source).toContain('Spring(duration: 0.5, bounce: 0.3)');
+    expect(source).toContain('https://developer.apple.com/documentation/swiftui/spring');
   });
 
   test('the overdamped preset is an illustrative model assumption, ζ = 2', () => {

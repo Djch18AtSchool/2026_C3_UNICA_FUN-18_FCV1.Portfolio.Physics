@@ -46,7 +46,7 @@ export const SPRING_PRESETS: readonly SpringPreset[] = [
     params: fromPerceptual(0.5, 0.3),
     origin: 'producto',
     source:
-      'Apple Developer Documentation, SwiftUI, Spring: Spring(duration: 0.5, bounce: 0.3) da (1.0, 157.9, 17.6)',
+      'Apple Developer Documentation, SwiftUI, Spring (https://developer.apple.com/documentation/swiftui/spring): Spring(duration: 0.5, bounce: 0.3) da (1.0, 157.9, 17.6)',
   },
   {
     id: 'sobreamortiguado',
