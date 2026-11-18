@@ -1,5 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
-import { REPO_URL, TOPICS, topicsByPhase } from '../../src/consigna';
+import { PHASE_LABELS, PHASES, REPO_URL, TOPICS, topicsByPhase } from '../../src/consigna';
+
+/** A phase is future iff no registered topic belongs to it. */
+const phaseIndexes = (isFuture: boolean) =>
+  PHASES.flatMap((phase, index) =>
+    (topicsByPhase(phase, TOPICS).length === 0) === isFuture ? [index] : [],
+  );
+const FUTURE_PHASE_INDEXES = phaseIndexes(true);
+const PUBLISHED_PHASE_INDEXES = phaseIndexes(false);
 
 test('la portada lista los temas con sus títulos exactos agrupados por avance', async ({
   page,
@@ -11,17 +19,14 @@ test('la portada lista los temas con sus títulos exactos agrupados por avance',
 
   const groups = page.getByTestId('phase-group');
   await expect(groups).toHaveCount(3);
-  await expect(groups.getByRole('heading', { level: 2 })).toHaveText([
-    'Avance 1',
-    'Avance 2',
-    'Entrega Final',
-  ]);
-  await expect(groups.nth(0).getByTestId('topic-card')).toHaveCount(
-    topicsByPhase(1, TOPICS).length,
+  await expect(groups.getByRole('heading', { level: 2 })).toHaveText(
+    PHASES.map((phase) => PHASE_LABELS[phase]),
   );
-  await expect(groups.nth(1).getByTestId('topic-card')).toHaveCount(
-    topicsByPhase(2, TOPICS).length,
-  );
+  for (const n of PUBLISHED_PHASE_INDEXES) {
+    await expect(groups.nth(n).getByTestId('topic-card')).toHaveCount(
+      topicsByPhase(PHASES[n], TOPICS).length,
+    );
+  }
 
   await expect(page.locator('main')).not.toContainText('de 13 temas publicados');
   await expect(page.locator('main')).not.toContainText('Temas 1 a 5');
@@ -32,9 +37,10 @@ test('la fase futura de la portada solo muestra su encabezado y la insignia', as
   await page.goto('./');
   const groups = page.getByTestId('phase-group');
 
-  await expect(groups.nth(0).getByTestId('upcoming-phase')).toHaveCount(0);
-  await expect(groups.nth(1).getByTestId('upcoming-phase')).toHaveCount(0);
-  for (const n of [2]) {
+  for (const n of PUBLISHED_PHASE_INDEXES) {
+    await expect(groups.nth(n).getByTestId('upcoming-phase')).toHaveCount(0);
+  }
+  for (const n of FUTURE_PHASE_INDEXES) {
     const group = groups.nth(n);
     await expect(group.getByTestId('topic-card')).toHaveCount(0);
     await expect(group.getByRole('listitem')).toHaveCount(0);
@@ -148,7 +154,7 @@ for (const { width, isStacked } of [
     await page.goto('./');
     const groups = page.getByTestId('phase-group');
 
-    for (const n of [2]) {
+    for (const n of FUTURE_PHASE_INDEXES) {
       const heading = await groups.nth(n).getByRole('heading', { level: 2 }).boundingBox();
       const badge = await groups.nth(n).getByTestId('upcoming-phase').boundingBox();
       if (!heading || !badge) throw new Error('missing heading or badge');
@@ -238,7 +244,7 @@ test('la página 404 muestra la navegación', async ({ page }) => {
   const nav = page.locator('nav[aria-label="Temas"]');
   await expect(nav).toBeVisible();
   await expect(nav.getByTestId('topic-link')).toHaveCount(TOPICS.length);
-  await expect(nav.locator('[data-phase-future]')).toHaveCount(1);
+  await expect(nav.locator('[data-phase-future]')).toHaveCount(FUTURE_PHASE_INDEXES.length);
   await expect(page.locator('main')).not.toContainText('trece');
   await expect(page.locator('main')).toContainText('ver los temas por avance');
 });

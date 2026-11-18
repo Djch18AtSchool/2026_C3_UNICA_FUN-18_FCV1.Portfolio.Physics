@@ -1,30 +1,33 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
-import { TOPICS } from '../../src/consigna';
+import { PHASE_LABELS, PHASES, TOPICS, topicsByPhase } from '../../src/consigna';
 
 /**
- * Topics of the Entrega Final (10 to 13) do not exist on the site until their consigna
- * arrives: no page, no link, no name. These are the names and slugs they had while the site
- * listed them by name only, and nothing built may carry them now. The Avance 2 consigna arrived
- * on 2026-10-30, so its topics (6 to 9) left this list. Update the guard when the final
- * delivery's consigna arrives: a retired name or slug may legitimately come back with it.
+ * Names and slugs the final delivery's topics had while the site listed them by name only. A name
+ * or slug that now belongs to a registered topic stops being retired; the rest must not appear in
+ * anything built.
  */
+const REGISTERED_SLUGS: readonly string[] = TOPICS.map((topic) => topic.slug);
+const REGISTERED_TITLES = TOPICS.map((topic) => topic.title.toLowerCase());
 const RETIRED_SLUGS = [
   'spring-animations',
   'sintesis-sonido',
   'resonancia-tacoma',
   'enfriamiento-datacenter',
-] as const;
+].filter((slug) => !REGISTERED_SLUGS.includes(slug));
 const RETIRED_NAMES = [
   'Spring animations',
   'Síntesis de sonido',
   'Tacoma',
   'Enfriamiento líquido',
-] as const;
+].filter((name) => !REGISTERED_TITLES.some((title) => title.includes(name.toLowerCase())));
 const DIST_DIR = join(process.cwd(), 'dist');
 const TEXT_FILE = /\.(html|js|mjs|css|json|txt|xml|svg)$/;
-const FUTURE_PHASE_LABELS = ['Entrega Final'];
+/** A phase is future iff no registered topic belongs to it. */
+const FUTURE_PHASES = PHASES.filter((phase) => topicsByPhase(phase, TOPICS).length === 0);
+const FUTURE_PHASE_LABELS = FUTURE_PHASES.map((phase) => PHASE_LABELS[phase]);
+const PHASES_WITH_TOPICS = PHASES.filter((phase) => topicsByPhase(phase, TOPICS).length > 0);
 /** The pages that are not a topic: the cover and the 404. */
 const NON_TOPIC_PAGES = ['404.html', 'index.html'];
 
@@ -70,7 +73,7 @@ for (const slug of RETIRED_SLUGS) {
   });
 }
 
-test('la portada conserva la Entrega Final, solo con su insignia', async ({ page }) => {
+test('la portada conserva cada fase futura, solo con su insignia', async ({ page }) => {
   await page.goto('./');
 
   for (const label of FUTURE_PHASE_LABELS) {
@@ -84,16 +87,20 @@ test('la portada conserva la Entrega Final, solo con su insignia', async ({ page
   }
 });
 
-test('la portada muestra el Avance 2 con sus cuatro temas', async ({ page }) => {
-  await page.goto('./');
-  const group = page.getByTestId('phase-group').filter({
-    has: page.getByRole('heading', { level: 2, name: 'Avance 2' }),
-  });
+for (const phase of PHASES_WITH_TOPICS) {
+  const label = PHASE_LABELS[phase];
+  const count = topicsByPhase(phase, TOPICS).length;
+  test(`la portada muestra ${label} con sus ${count} temas`, async ({ page }) => {
+    await page.goto('./');
+    const group = page.getByTestId('phase-group').filter({
+      has: page.getByRole('heading', { level: 2, name: label }),
+    });
 
-  await expect(group).toHaveCount(1);
-  await expect(group.getByTestId('upcoming-phase')).toHaveCount(0);
-  await expect(group.getByRole('listitem')).toHaveCount(4);
-});
+    await expect(group).toHaveCount(1);
+    await expect(group.getByTestId('upcoming-phase')).toHaveCount(0);
+    await expect(group.getByRole('listitem')).toHaveCount(count);
+  });
+}
 
 test('la barra lateral conserva la fase futura, deshabilitada', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });

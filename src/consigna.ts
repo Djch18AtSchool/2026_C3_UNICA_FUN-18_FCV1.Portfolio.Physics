@@ -9,8 +9,9 @@ export interface ConsignaTopic {
 }
 
 /**
- * The topics whose consigna has arrived, by number. The final delivery's topics join this list, and
- * get their page, only when the professor publishes its consigna.
+ * The topics that exist on the site, by number. A phase is future iff `topicsByPhase(phase, TOPICS)`
+ * is empty: the registry tests and the e2e suites derive from this list, so each topic of the final
+ * delivery joins it on its own, with its page, without touching the others.
  */
 export const TOPICS: readonly ConsignaTopic[] = Object.freeze(
   [
