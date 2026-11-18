@@ -152,21 +152,24 @@ describe('RD109_CIRCUIT: the path to the farthest server (24th, top), direct ret
     expect(heights.at(-1)).toBeCloseTo(0, 12);
   });
 
-  test('totals 1,83 ± 0,02 bar, 7,5 % below GF’s published 1,98 bar', () => {
+  // Ruling R7: the research's 1,83 bar counted friction twice in the UQDs and the cold plate
+  // (research §7.1, errata of 2026-11-17); a component with a Cv or a curve carries its whole loss.
+  test('totals 1,80 ± 0,02 bar (1,799), 9,2 % below GF’s published 1,98 bar', () => {
     expect(GF_PUBLISHED_DROP_BAR).toBe(1.98);
-    expect(Math.abs(drop / PA_PER_BAR - 1.83)).toBeLessThanOrEqual(0.02);
-    expect(drop / PA_PER_BAR).toBeCloseTo(1.832, 3);
-    expect((1 - drop / PA_PER_BAR / GF_PUBLISHED_DROP_BAR) * 100).toBeCloseTo(7.5, 1);
+    expect(Math.abs(drop / PA_PER_BAR - 1.8)).toBeLessThanOrEqual(0.02);
+    expect(drop / PA_PER_BAR).toBeCloseTo(1.799, 3);
+    expect((1 - drop / PA_PER_BAR / GF_PUBLISHED_DROP_BAR) * 100).toBeCloseTo(9.2, 1);
   });
 
-  test('the pressure falls from 400,0 to 216,8 kPa abs while the ideal one closes at 400,0', () => {
+  test('the pressure falls from 400,0 to 220,1 kPa abs while the ideal one closes at 400,0', () => {
     expect(profile[0].pReal / KPA).toBeCloseTo(400, 6);
-    expect(lastPressure(REFERENCE) / KPA).toBeCloseTo(216.8, 1);
+    expect(lastPressure(REFERENCE) / KPA).toBeCloseTo(220.1, 1);
     expect((profile.at(-1)?.pIdeal ?? 0) / KPA).toBeCloseTo(400, 6);
   });
 
-  // The research table prints 24,2 kPa, a second rounding of the prototype's 24,15 (24,146).
-  test('friction adds 24,15 kPa and the local losses 159,1 kPa (research §7.1, prototype output)', () => {
+  // Friction is the pipes, hoses and manifold only: 20,78 kPa (the research's 24,2 counted 3,37 kPa
+  // of friction inside the UQDs and the cold plate as well).
+  test('friction adds 20,78 kPa and the local losses 159,08 kPa', () => {
     const local = RD109_CIRCUIT.reduce((sum, s) => {
       const q = serverFlow(REFERENCE) * (s.flowMultiple ?? 1);
       const k = s.K ? s.K * 0.5 * PG25_40C.rho * flowVelocity(q, s.diameter) ** 2 : 0;
@@ -174,8 +177,8 @@ describe('RD109_CIRCUIT: the path to the farthest server (24th, top), direct ret
       return sum + k + cv + (s.curve ? curveLoss(s.curve, q) : 0);
     }, 0);
 
-    expect(local / KPA).toBeCloseTo(159.1, 1);
-    expect((drop - local) / KPA).toBeCloseTo(24.15, 2);
+    expect(local / KPA).toBeCloseTo(159.08, 2);
+    expect((drop - local) / KPA).toBeCloseTo(20.78, 2);
   });
 
   test('the main pipe is the fastest pipework, 1,71 m/s, as GF’s 1,7 m/s', () => {
@@ -189,8 +192,10 @@ describe('RD109_CIRCUIT: the path to the farthest server (24th, top), direct ret
     const bottom = totalDrop(REFERENCE, 1);
     const topReverse = totalDrop({ ...REFERENCE, layout: 'invertido' });
 
-    expect(bottom / PA_PER_BAR).toBeCloseTo(1.824, 3);
-    expect(topReverse / PA_PER_BAR).toBeCloseTo(1.828, 2);
+    expect(bottom / PA_PER_BAR).toBeCloseTo(1.791, 3);
+    // The reverse-return outlet sits one pitch above port N, as in manifold.py (profile.py, and
+    // so the research's 1,828 before the errata, left that last header piece out).
+    expect(topReverse / PA_PER_BAR).toBeCloseTo(1.795, 3);
     expect(Math.abs(drop - bottom) / 100).toBeLessThan(10);
   });
 
@@ -202,11 +207,11 @@ describe('RD109_CIRCUIT: the path to the farthest server (24th, top), direct ret
     expect(cvLoss(q, UQD04.cvMax.value, PG25_40C) / KPA).toBeCloseTo(9.8, 1);
   });
 
-  test('pumping it at 23 L/s takes Δp·Q = 4,2 kW, 0,40 % of the 1,06 MW of IT (8 × 132 kW)', () => {
+  test('pumping it at 23 L/s takes Δp·Q = 4,14 kW, 0,39 % of the 1,06 MW of IT (8 × 132 kW)', () => {
     const power = hydraulicPower(drop, RD109.cduFlow.value);
 
-    expect(power / 1e3).toBeCloseTo(4.2, 1);
-    expect((power / (8 * 132e3)) * 100).toBeCloseTo(0.4, 2);
+    expect(power / 1e3).toBeCloseTo(4.14, 2);
+    expect((power / (8 * 132e3)) * 100).toBeCloseTo(0.39, 2);
   });
 
   test('GF’s published breakdown adds up to its 1,98 bar', () => {
@@ -224,13 +229,13 @@ describe('PRESETS', () => {
     expect([REFERENCE.servers, MGX44.servers]).toEqual([24, 44]);
   });
 
-  test('mgx44: 170 L/min over 44 ports is 3,86 L/min, 0,91 m/s in the hose and 4,4 kPa per UQD; 1,53 bar', () => {
+  test('mgx44: 170 L/min over 44 ports is 3,86 L/min, 0,91 m/s in the hose and 4,4 kPa per UQD; 1,518 bar', () => {
     const q = serverFlow(MGX44);
 
     expect(q / LPM).toBeCloseTo(3.86, 2);
     expect(flowVelocity(q, MGX44.serverHoseDiameter)).toBeCloseTo(0.908, 3);
     expect(cvLoss(q, UQD04.cv.value, PG25_40C) / KPA).toBeCloseTo(4.37, 2);
-    expect(totalDrop(MGX44) / PA_PER_BAR).toBeCloseTo(1.529, 3);
+    expect(totalDrop(MGX44) / PA_PER_BAR).toBeCloseTo(1.518, 3);
   });
 
   test('mgx44 keeps every UQD04 within its 6,44 L/min while referencia24 runs it at 7,19 L/min', () => {
@@ -257,7 +262,7 @@ describe('PRESETS', () => {
     expect(Math.max(...flows) / mean).toBeCloseTo(1.0019, 3);
   });
 
-  test('the branch is the server’s hoses, UQDs and cold plate: about 1,6 bar at its flow', () => {
+  test('the branch is the server’s hoses, UQDs and cold plate: 159,98 kPa, manifold.py’s 159,96', () => {
     const branch = serverBranch(REFERENCE);
 
     expect(branch.map((s) => s.id)).toEqual([
@@ -267,7 +272,7 @@ describe('PRESETS', () => {
       'uqd-vuelta',
       'manguera-servidor-vuelta',
     ]);
-    expect(seriesLoss(branch, serverFlow(REFERENCE), PG25_40C) / PA_PER_BAR).toBeCloseTo(1.6, 1);
+    expect(seriesLoss(branch, serverFlow(REFERENCE), PG25_40C) / KPA).toBeCloseTo(159.96, 1);
   });
 
   test('every field of a preset says where it comes from', () => {
@@ -335,7 +340,7 @@ describe('DESCHUTES_PUMP (OCP Project Deschutes, fig. 5.1.1, PG25, two pumps)', 
     expect(DESCHUTES_PUMP.curves.map((c) => c.pwm)).toEqual([100, 95, 90, 83, 80, 75, 66, 50, 33]);
   });
 
-  test('on 15 RD109 racks (684 GPM at 26,6 psi) the 66 % curve settles at 635 GPM', () => {
+  test('on 15 RD109 racks (684 GPM at 26,1 psi) the 66 % curve settles at 638 GPM', () => {
     const nominalFlow = 15 * REFERENCE.rackFlow;
     const system = powerLawCurve(totalDrop(REFERENCE), nominalFlow, RD109.systemExponent.value);
 
@@ -346,8 +351,8 @@ describe('DESCHUTES_PUMP (OCP Project Deschutes, fig. 5.1.1, PG25, two pumps)', 
     );
 
     expect(nominalFlow / M3S_PER_GPM).toBeCloseTo(684, 0);
-    expect(totalDrop(REFERENCE) / PA_PER_PSI).toBeCloseTo(26.6, 1);
-    expect((point?.Q ?? 0) / M3S_PER_GPM).toBeCloseTo(635, -1);
+    expect(totalDrop(REFERENCE) / PA_PER_PSI).toBeCloseTo(26.1, 1);
+    expect((point?.Q ?? 0) / M3S_PER_GPM).toBeCloseTo(638, 0);
     expect((point?.Q ?? 0) / nominalFlow).toBeCloseTo(0.93, 2);
   });
 });

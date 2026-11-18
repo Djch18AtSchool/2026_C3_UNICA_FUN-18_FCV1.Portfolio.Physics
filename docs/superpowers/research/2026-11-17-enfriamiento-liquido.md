@@ -407,6 +407,17 @@ Parámetros declarados:
 - Cada UQD pierde 4,4 kPa; el total es de 1,53 bar con la placa fija en 1,2 bar.
 - El UQD04 queda dentro de su caudal nominal v2 (6,44 L/min). En el preset de 24 servidores, 7,19 L/min lo **supera**: ver §10.
 
+**Errata (2026-11-17, implementación).** Al portar `profile.py` a TypeScript encontré una doble cuenta. Cada UQD04 sumaba, además de su pérdida por Cv, la fricción de Darcy a lo largo de sus 60 mm con la boca de 7,24 mm (1,34 kPa cada uno). La placa fría sumaba la fricción de sus 0,15 m dibujados (0,68 kPa) además de los 1,2 bar de GF. El Cv se define a través del conector acoplado y los 1,2 bar de GF cubren «all cold plates and internal piping», así que esos 3,37 kPa ya estaban dentro. Un componente caracterizado por un Cv o por una curva medida lleva toda su pérdida en esa ley; su longitud solo lo ubica en x (`segmentLoss` en `src/lib/physics/hydraulics.ts`). Valores corregidos, calculados por el código con sus pruebas:
+- Fricción: 24,2 → **20,8 kPa** (20,78). Las pérdidas locales no cambian (159,1 kPa).
+- Total hasta el servidor más lejano: 1,83 → **1,80 bar** (1,799), es decir, **9,2 %** por debajo de los 1,98 bar de GF, no 7,5 %. La presión baja de 400,0 a 220,1 kPa abs.
+- Servidor de abajo con retorno directo: 1,824 → 1,791 bar. Servidor de arriba con retorno invertido: 1,828 → 1,795 bar; el código, como `manifold.py`, cuenta también el tramo de manifold sobre el puerto 24 hasta la salida, que `profile.py` omitía.
+- Preset de 44 puertos: 1,53 → **1,52 bar** (1,518).
+- Con agua a 40 °C (NIST) y el mismo caudal: 1,79 → 1,76 bar.
+- Potencia hidráulica a 23 L/s: 4,2 → **4,1 kW** (4,14), el 0,39 % de 1,06 MW de TI.
+- En la tabla de comparación con GF, las filas no cambian. Lo que no queda en ninguna fila baja de 5,85 a 2,48 kPa: la fricción de la manguera de rack.
+- Reparto (§7.2): la curva de la rama sale de la suma de sus piezas, 159,98 kPa, de acuerdo con los 159,96 kPa sumados a mano en `manifold.py`; los cocientes de la tabla de §7.2 no cambian.
+- Punto de operación de §8 con 15 racks: el sistema pide 684 GPM a 26,1 psi (no 26,6), y con 66 % de PWM cae en 638 GPM (0,93 del nominal).
+
 ### 7.2 Reparto entre servidores (`manifold.py`)
 
 Modelo:

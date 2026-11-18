@@ -40,7 +40,9 @@ export interface LossCurve {
 
 /**
  * One stretch of the circuit: length L, inner diameter D, roughness ε (m) and rise Δy (m), plus
- * optional local losses: a K on its velocity head, a Cv, or a curve.
+ * optional local losses: a K on its velocity head, a Cv, or a measured curve. A component
+ * characterised by a Cv or a curve (a coupling, a cold plate) carries its whole loss in that law:
+ * its length only places it along x and adds no Darcy friction.
  */
 export interface Segment {
   id: string;
@@ -50,7 +52,9 @@ export interface Segment {
   roughness: number;
   dy: number;
   K?: number;
+  /** Flow coefficient of a component measured as a whole; replaces the segment's friction. */
   cv?: number;
+  /** Measured law of a component as a whole; replaces the segment's friction. */
   curve?: LossCurve;
   /** Flow area (m²) of a section that is not circular; `diameter` is then D_h = 4A/P. */
   area?: number;
@@ -211,14 +215,20 @@ function segmentArea(s: Segment): number {
   return s.area;
 }
 
-/** Loss in one segment carrying its own flow Q: friction, then K, Cv and curve. */
+/**
+ * Loss in one segment carrying its own flow Q: Darcy friction plus K for a plain stretch of pipe
+ * or hose; a component with a Cv or a measured curve takes its loss from that law alone (Cv is
+ * defined across the mated coupling, and a cold plate's curve covers its internal piping), so
+ * adding friction over its drawn length would count it twice. K adds in both cases.
+ */
 export function segmentLoss(s: Segment, Q: number, f: Fluid): number {
   requireNonNegative('Q', Q);
   requireFluid(f);
   if (Q === 0) return 0;
   const v = Q / segmentArea(s);
+  const isMeasuredComponent = s.cv !== undefined || s.curve !== undefined;
   const friction =
-    s.length > 0
+    s.length > 0 && !isMeasuredComponent
       ? darcyLoss(
           frictionFactor(reynolds(f, v, s.diameter), s.roughness, s.diameter),
           s.length,
@@ -242,7 +252,8 @@ export function seriesLoss(segments: readonly Segment[], Q: number, f: Fluid): n
  * v(x), ideal p(x) and real p(x) along a path that starts at y = 0 with pressure p₀: two points
  * per segment, at its ends, so velocity steps where the section changes. The ideal pressure keeps
  * p + ½ρv² + ρgy constant (13.2); the real one also subtracts the losses, spread linearly over
- * each segment.
+ * each segment. Q is the path flow: each segment carries Q × its flowMultiple (for a rack, Q is
+ * one server's flow, and rackProfile in the liquid-cooling data builds that call).
  */
 export function circuitProfile(
   segments: readonly Segment[],

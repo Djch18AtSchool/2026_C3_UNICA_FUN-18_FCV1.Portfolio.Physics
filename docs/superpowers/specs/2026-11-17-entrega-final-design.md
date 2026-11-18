@@ -316,9 +316,9 @@ ecuaciones, trampas) está en la nota de investigación de cada tema; este spec 
   secciones dibujada debajo y la $p$ ideal de Bernoulli superpuesta a la real con pérdidas; ejes con unidades
   (m, m/s, kPa) y una tabla con **todos los parámetros declarados** y su fuente (PG25 a 40 °C de Melinder vía
   LBNL; geometría del manifold MGX; UQD04 de OCP v2.0.0; Deschutes; RD109 de Schneider con el desglose de GF).
-  Validación propia: 1,83 bar calculados frente a 1,98 bar publicados (7,5 %). (b) $v$ frente a $A$ con las
-  hipérbolas $Q = Av$. (c) El caudal por servidor con retorno directo y con retorno invertido, contrastado con
-  los caudales medidos de Shahi et al. (2023).
+  Validación propia: 1,80 bar calculados frente a 1,98 bar publicados (9,2 %; fe de erratas de la
+  investigación, §7.1). (b) $v$ frente a $A$ con las hipérbolas $Q = Av$. (c) El caudal por servidor con
+  retorno directo y con retorno invertido, contrastado con los caudales medidos de Shahi et al. (2023).
 - **Laboratorio:** caudal de la bomba, diámetro de la manguera, número de servidores y tipo de retorno →
   $v(x)$, $p(x)$ y el caudal por servidor recalculados; el punto de operación sobre la curva de bomba de
   Deschutes. Preajustes: **24 servidores** (valida contra GF; el UQD04 va a 7,19 L/min, sobre sus 6,44

@@ -224,12 +224,12 @@ describe('losses (13.3): Darcy–Weisbach, K and Cv', () => {
     expect(() => curveLoss({ a: 1, b: 2.5 }, SERVER_FLOW)).toThrow(RangeError);
   });
 
-  test('pumping 1,83 bar at 23 L/s takes Δp·Q = 4,2 kW of hydraulic power', () => {
-    expect(hydraulicPower(1.83 * PA_PER_BAR, 0.023) / 1e3).toBeCloseTo(4.2, 1);
+  test('pumping 1,80 bar at 23 L/s takes Δp·Q = 4,14 kW of hydraulic power', () => {
+    expect(hydraulicPower(1.8 * PA_PER_BAR, 0.023) / 1e3).toBeCloseTo(4.14, 2);
   });
 
   test('with Δp ∝ Q^1,9, oversupplying 51 % triples the pumping power (1,512 → ×3,32)', () => {
-    const system = powerLawCurve(1.83e5, 0.023, 1.9);
+    const system = powerLawCurve(1.8e5, 0.023, 1.9);
     const power = (q: number) => hydraulicPower(curveLoss(system, q), q);
 
     expect(power(1.512 * 0.023) / power(0.023)).toBeCloseTo(3.32, 2);
@@ -238,19 +238,27 @@ describe('losses (13.3): Darcy–Weisbach, K and Cv', () => {
 });
 
 describe('segmentLoss and seriesLoss', () => {
-  test('a segment adds its friction, its K, its Cv and its curve', () => {
-    const plate = segment({ id: 'placa', length: 0.15, K: 1.8, cv: 1.29 });
-    const curve = powerLawCurve(1.2e5, SERVER_FLOW, 1.85);
+  test('a stretch of hose adds its Darcy friction and its K', () => {
+    const hose = segment({ id: 'manguera', length: 0.5, K: 1.8 });
     const v = flowVelocity(SERVER_FLOW, HOSE_D);
     const f = frictionFactor(reynolds(PG25, v, HOSE_D), PLASTIC, HOSE_D);
 
-    const loss = segmentLoss({ ...plate, curve }, SERVER_FLOW, PG25);
+    const loss = segmentLoss(hose, SERVER_FLOW, PG25);
 
-    expect(loss).toBeCloseTo(
-      darcyLoss(f, 0.15, HOSE_D, PG25, v) +
-        minorLoss(1.8, PG25, v) +
-        cvLoss(SERVER_FLOW, 1.29, PG25) +
-        1.2e5,
+    expect(loss).toBeCloseTo(darcyLoss(f, 0.5, HOSE_D, PG25, v) + minorLoss(1.8, PG25, v), 9);
+  });
+
+  test('a component with a Cv or a measured curve carries its whole loss: no friction over its drawn length', () => {
+    const coupling = segment({ id: 'uqd', length: 0.06, diameter: UQD_BORE, cv: 1.29 });
+    const curve = powerLawCurve(1.2e5, SERVER_FLOW, 1.85);
+    const plate = segment({ id: 'placa', length: 0.15, curve });
+    const both = segment({ id: 'ambos', length: 0.15, K: 1.8, cv: 1.29, curve });
+    const v = flowVelocity(SERVER_FLOW, HOSE_D);
+
+    expect(segmentLoss(coupling, SERVER_FLOW, PG25)).toBe(cvLoss(SERVER_FLOW, 1.29, PG25));
+    expect(segmentLoss(plate, SERVER_FLOW, PG25)).toBeCloseTo(1.2e5, 6);
+    expect(segmentLoss(both, SERVER_FLOW, PG25)).toBeCloseTo(
+      minorLoss(1.8, PG25, v) + cvLoss(SERVER_FLOW, 1.29, PG25) + 1.2e5,
       6,
     );
   });
