@@ -144,6 +144,17 @@ export function energyChangePerCycle(zetaNet: number): number {
 }
 
 /**
+ * (12.12), exact over one natural period T0 = 2π/ω0: the envelope e^{−ζ_net ω0 t} scales the
+ * amplitude by e^{−2πζ_net} and the energy, ∝ amplitude², by e^{−4πζ_net}, so
+ * ΔE/E = e^{−4πζ_net} − 1. Positive (ζ_net < 0): energy gained; `energyChangePerCycle` is its
+ * linear form for small ζ, always a little below it (e^x − 1 > x).
+ */
+export function energyGrowthPerCycle(zetaNet: number): number {
+  requireFinite('zetaNet', zetaNet);
+  return Math.expm1(-4 * Math.PI * zetaNet);
+}
+
+/**
  * One semi-implicit (symplectic) Euler step of (12.2) with any force F (N) at this instant,
  * m ẍ = F − k x − b ẋ: v′ = v + (F − k x − b v)/m · dt, then x′ = x + v′ · dt (as `dampedSpringStep`
  * in spring.ts, plus the force).

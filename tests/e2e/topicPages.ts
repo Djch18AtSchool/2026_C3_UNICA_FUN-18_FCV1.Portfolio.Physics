@@ -58,6 +58,12 @@ const LABS: Readonly<
     hasEvents: false,
     hasZoom: false,
   },
+  'resonancia-estructural': {
+    labTestId: 'resonance-lab',
+    hasClock: true,
+    hasEvents: true,
+    hasZoom: false,
+  },
 };
 
 export interface TopicPage {

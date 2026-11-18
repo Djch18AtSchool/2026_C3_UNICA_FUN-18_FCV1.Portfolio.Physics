@@ -83,6 +83,13 @@ export const TOPICS: readonly ConsignaTopic[] = Object.freeze(
       phase: 3,
       title: 'Síntesis de sonido: armónicos, timbre y el sintetizador',
     },
+    {
+      number: 12,
+      slug: 'resonancia-estructural',
+      phase: 3,
+      title:
+        'Resonancia estructural: Tacoma Narrows y por qué las tropas rompen el paso al cruzar un puente',
+    },
   ].map((topic) => Object.freeze(topic) as ConsignaTopic),
 );
 

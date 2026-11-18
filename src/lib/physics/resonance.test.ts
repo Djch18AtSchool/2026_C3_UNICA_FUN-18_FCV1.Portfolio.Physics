@@ -3,6 +3,7 @@ import {
   criticalPedestrians,
   cycleEnergies,
   energyChangePerCycle,
+  energyGrowthPerCycle,
   forcedStep,
   naturalFrequency,
   resonanceGain,
@@ -302,6 +303,32 @@ describe('self-excitation: energy change per cycle (12.12)', () => {
 
   test('rejects a non-finite ζ', () => {
     expect(() => energyChangePerCycle(Number.NaN)).toThrow(RangeError);
+  });
+});
+
+describe('self-excitation: exact energy change per natural period (12.12)', () => {
+  // The research's flutter table (§4) with ζ_s = 0,005 and Billah and Scanlan's Table I.
+  test('e^{−4πζ} − 1: +6,48 %, +13,4 % and +20,7 % at ζ_net = −0,005, −0,010 and −0,015', () => {
+    expect(energyGrowthPerCycle(-0.005)).toBeCloseTo(Math.exp(0.02 * Math.PI) - 1, 12);
+    expect(energyGrowthPerCycle(-0.005)).toBeCloseTo(0.0648, 4);
+    expect(energyGrowthPerCycle(-0.01)).toBeCloseTo(0.134, 3);
+    expect(energyGrowthPerCycle(-0.015)).toBeCloseTo(0.207, 3);
+  });
+
+  test('a positive ζ loses energy: −6,1 % per cycle with the structural ζ = 0,005', () => {
+    expect(energyGrowthPerCycle(0.005)).toBeCloseTo(-0.0609, 4);
+    expect(energyGrowthPerCycle(0)).toBeCloseTo(0, 15);
+  });
+
+  test('the linear −4πζ is its small-ζ limit and always below the exact gain', () => {
+    for (const zeta of [-0.033, -0.015, -0.001, 0.001, 0.015]) {
+      expect(energyGrowthPerCycle(zeta)).toBeGreaterThan(energyChangePerCycle(zeta));
+    }
+    expect(energyGrowthPerCycle(-1e-6) / energyChangePerCycle(-1e-6)).toBeCloseTo(1, 4);
+  });
+
+  test('rejects a non-finite ζ', () => {
+    expect(() => energyGrowthPerCycle(Number.POSITIVE_INFINITY)).toThrow(RangeError);
   });
 });
 

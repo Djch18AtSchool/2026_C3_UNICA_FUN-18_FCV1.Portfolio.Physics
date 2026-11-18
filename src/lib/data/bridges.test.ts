@@ -5,12 +5,16 @@ import { criticalPedestrians, vortexFrequency } from '../physics/resonance';
 import { estimatePeriod } from '../video/periodEstimate';
 import raw from '../../data/tacoma-torsion.json';
 import {
+  BROUGHTON,
   FT_TO_M,
   MARCH_PACE,
   MARCH_PACE_HZ,
   MILLENNIUM,
   MPH_TO_M_PER_S,
+  PEDESTRIAN,
+  PEDESTRIAN_FORCES,
   SETRA_RANGES,
+  STEEL_FOOTBRIDGE_DAMPING,
   TACOMA,
   TACOMA_SI,
   TACOMA_TORSION,
@@ -39,6 +43,8 @@ describe('Tacoma Narrows (FWA 1941; Billah and Scanlan 1991)', () => {
     expect(TACOMA.torsionDampingRatio.value).toBe(0.005);
     expect(TACOMA.deckDepthFt.value).toBe(8);
     expect(TACOMA.strouhal.value).toBe(0.11);
+    expect(TACOMA.verticalAtSwitchCyclesPerMin.value).toBe(37);
+    expect(TACOMA.verticalAtSwitchCyclesPerMin.source).toContain('from 37 to 14');
     Object.values(TACOMA).forEach(expectSourced);
     Object.values(TACOMA).forEach((entry) => expect(entry.origin).toBe('producto'));
   });
@@ -119,6 +125,35 @@ describe('Sétra ranges and the march pace', () => {
     expect(MARCH_PACE_HZ).toBe(2);
     expect(MARCH_PACE_HZ).toBeGreaterThanOrEqual(SETRA_RANGES.vertical.min);
     expect(MARCH_PACE_HZ).toBeLessThanOrEqual(SETRA_RANGES.vertical.max);
+  });
+});
+
+describe('a pedestrian and a steel footbridge (Sétra 2006)', () => {
+  test('G0 = 700 N; vertical 0,4 G0 at the pace and lateral 0,05 G0 at half the pace', () => {
+    expect(PEDESTRIAN.weightN.value).toBe(700);
+    expect(PEDESTRIAN.verticalFactor.value).toBe(0.4);
+    expect(PEDESTRIAN.lateralFactor.value).toBe(0.05);
+    expect(PEDESTRIAN_FORCES.verticalN.value).toBeCloseTo(280, 12);
+    expect(PEDESTRIAN_FORCES.lateralN.value).toBeCloseTo(35, 12);
+    Object.values(PEDESTRIAN_FORCES).forEach((entry) => expect(entry.origin).toBe('calculo'));
+  });
+
+  test('normal walking: 1,6–2,4 Hz, mean 2 Hz with σ ≈ 0,2 Hz', () => {
+    expect([PEDESTRIAN.walkingHz.min, PEDESTRIAN.walkingHz.max]).toEqual([1.6, 2.4]);
+    expect(PEDESTRIAN.walkingMeanHz.value).toBe(2);
+    expect(PEDESTRIAN.walkingSigmaHz.value).toBe(0.2);
+    Object.values(PEDESTRIAN).forEach(expectSourced);
+  });
+
+  test('about sixty soldiers were on the Broughton bridge (Phil. Mag. 1831)', () => {
+    expect(BROUGHTON.soldiersOnBridge.value).toBe(60);
+    expect(BROUGHTON.soldiersOnBridge.source).toContain('Philosophical Magazine');
+    expectSourced(BROUGHTON.soldiersOnBridge);
+  });
+
+  test('a steel footbridge is designed with 0,4 % of critical damping', () => {
+    expect(STEEL_FOOTBRIDGE_DAMPING.value).toBe(0.004);
+    expectSourced(STEEL_FOOTBRIDGE_DAMPING);
   });
 });
 

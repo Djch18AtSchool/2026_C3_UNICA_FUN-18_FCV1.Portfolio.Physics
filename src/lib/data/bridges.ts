@@ -36,6 +36,8 @@ const DALLARD =
 const NEWLAND =
   'Newland, Vibration of the London Millennium Footbridge: Part 2 — Cure (ICSV9, 2002)';
 const SETRA = 'Sétra/AFGC, Footbridges: assessment of vibrational behaviour (2006)';
+const PHILMAG =
+  'Fall of the Broughton Suspension Bridge, near Manchester, The Philosophical Magazine 9(53), 384-389 (1831)';
 const FM = 'Department of the Army, FM 3-21.5 Drill and Ceremonies (2003)';
 const OWN = 'cálculo propio';
 
@@ -70,6 +72,11 @@ export const TACOMA = {
   torsionDampingRatio: product(0.005, `${BILLAH}, pág. 123: δ ≈ 0,03, ζ ≈ 0,005`),
   deckDepthFt: product(8, `${FWA}, pág. 11; ${BILLAH}, pág. 120`),
   strouhal: product(0.11, `${BILLAH}, pág. 120: «about 0.11»`),
+  /** The vertical mode just before the torsion began (≈ 10:00). */
+  verticalAtSwitchCyclesPerMin: product(
+    37,
+    `${FWA}, pág. 31: «The frequency suddenly changed from 37 to 14»`,
+  ),
 } as const;
 
 const windMs = TACOMA.windMph.value * MPH_TO_M_PER_S;
@@ -140,6 +147,43 @@ export const SETRA_RANGES = {
     origin: 'producto',
     source: `${SETRA}, tabla 2.4 (pág. 80)`,
   } satisfies SourcedRange,
+} as const;
+
+/** Sétra's design pedestrian (§1.2.1 and tabla 1.1): weight, force factors and walking pace. */
+export const PEDESTRIAN = {
+  weightN: product(700, `${SETRA}, §1.2.1 (G₀)`),
+  /** Vertical force amplitude 0,4 G₀, at the walking frequency f_m. */
+  verticalFactor: product(0.4, `${SETRA}, §1.2.1: F_v = G₀ + 0,4 G₀ sen(2π f_m t)`),
+  /** Lateral force amplitude 0,05 G₀, at half the walking frequency. */
+  lateralFactor: product(0.05, `${SETRA}, §1.2.1: F_ht = 0,05 G₀ sen(2π (f_m/2) t)`),
+  walkingHz: {
+    min: 1.6,
+    max: 2.4,
+    origin: 'producto',
+    source: `${SETRA}, tabla 1.1 (marcha)`,
+  } satisfies SourcedRange,
+  walkingMeanHz: product(2, `${SETRA}, §1.2.1: «a mean of 2 Hz»`),
+  walkingSigmaHz: product(0.2, `${SETRA}, §1.2.1: «a standard deviation of around 0.20 Hz»`),
+} as const;
+
+/** The force amplitudes of one pedestrian, 0,4 × 700 = 280 N and 0,05 × 700 = 35 N. */
+export const PEDESTRIAN_FORCES = {
+  verticalN: calculated(
+    PEDESTRIAN.verticalFactor.value * PEDESTRIAN.weightN.value,
+    `${OWN}: 0,4 × 700 N`,
+  ),
+  lateralN: calculated(
+    PEDESTRIAN.lateralFactor.value * PEDESTRIAN.weightN.value,
+    `${OWN}: 0,05 × 700 N`,
+  ),
+} as const;
+
+/** Design damping ratio of a steel footbridge (Sétra, tabla 2.6: 0,4 %). */
+export const STEEL_FOOTBRIDGE_DAMPING: SourcedValue = product(0.004, `${SETRA}, tabla 2.6`);
+
+/** The company of the 60th Rifles on the Broughton bridge in 1831 (the date is not asserted). */
+export const BROUGHTON = {
+  soldiersOnBridge: product(60, `${PHILMAG}: «about sixty … were upon the bridge»`),
 } as const;
 
 /** Quick time, in steps per minute. */

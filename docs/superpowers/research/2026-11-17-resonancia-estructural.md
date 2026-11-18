@@ -22,7 +22,7 @@ Motivos:
 3. **Brendan Gregg, «Shouting in the Datacenter» (Sun Fishworks, 2008).** Vibración acústica que se ve como latencia de disco en la herramienta de análisis basada en DTrace. Es forzamiento, no resonancia demostrada (no hay frecuencia). Vale como *callout*.
 4. **Compensación de vibración rotacional en discos de servidor (WD «RAFF», sensores en el chasis y *feed-forward* en el servo).** Solo lo vi en fuentes secundarias y en una patente que no abrí: NO CONFIRMADO. No lo usaría.
 
-**Video del recurso prescrito: `File:Tacoma Narrows Bridge destruction.ogv` (Wikimedia Commons), dominio público por dedicación de los Prelinger Archives, filmado el 7 de noviembre de 1940 por Barney Elliott y Harbine Monroe (The Camera Shop, Tacoma).** La trampa de los fps está **resuelta y medida**: las tomas de torsión (Elliott, cámara a 16 fps copiada como si fuera de 24) se ven **1,5 veces más rápidas** que en la realidad; el colapso (Monroe, 24 fps) va a velocidad real (Olson et al., 2015). Mi prueba de factibilidad sobre el propio archivo da un periodo de 3,45 s en el video, que corregido es **5,2 s, unos 11,6 ciclos por minuto**, contra los **12 ciclos por minuto (5 s, 0,20 Hz)** que cronometró Farquharson (§6).
+**Video del recurso prescrito: `File:Tacoma Narrows Bridge destruction.ogv` (Wikimedia Commons), dominio público por dedicación de los Prelinger Archives, filmado el 7 de noviembre de 1940 por Barney Elliott y Harbine Monroe (The Camera Shop, Tacoma).** La trampa de los fps está **resuelta y medida**: las tomas de torsión (Elliott, cámara a 16 fps copiada como si fuera de 24) se ven **1,5 veces más rápidas** que en la realidad; el colapso (Monroe, 24 fps) va a velocidad real (Olson et al., 2015). Mi prueba de factibilidad sobre el propio archivo da un periodo de 3,45 s en el video, que corregido es **5,2 s, unos 11,6 ciclos por minuto**, contra los **12 ciclos por minuto (5 s, 0,20 Hz)** que cronometró Farquharson (§6) (corregido en la errata de §6.2: 3,49 s → 5,23 s, ≈ 11,5 ciclos/min).
 
 **Decisión de enfoque que hay que tomar con Dylan (la más importante del tema).** La consigna presenta Tacoma como resonancia («qué pasa cuando la frecuencia de excitación coincide con la frecuencia natural»). La fuente primaria (informe federal de 1941) y la literatura (Billah y Scanlan, 1991) dicen que **no fue resonancia forzada clásica**: el viento era casi constante y la oscilación se alimentaba de su propio movimiento (amortiguamiento aerodinámico negativo, aleteo torsional). La página puede cumplir la consigna sin repetir el error de los libros: el paso 2 muestra la resonancia forzada (tropas, Rhythm Nation, Klipper), el paso 3 la retroalimentación (Millennium) y el paso 4 explica Tacoma como autoexcitación a la frecuencia natural. Billah y Scanlan dan la frase puente: si la fuente de los impulsos es el propio movimiento, «It would appear not to contradict the qualitative definition of resonance» (§3.1).
 
@@ -197,7 +197,7 @@ Motivos:
 | Viento del colapso en unidades reducidas | U/nB = 18,78/(0,2 × 11,89) = **7,9** (cálculo propio), por encima del último punto de la Tabla I (5,75) | — |
 | Película | 16 mm; Elliott a 16 fps, copiada como 24 fps → **1,5 veces más rápida**; Monroe (colapso) a 24 fps → velocidad real | olson-2015; chm-palin |
 | Archivo de Commons | 640 × 480, 29,97 fps, 149,65 s, mudo, dominio público (Prelinger) | commons-tacoma |
-| Periodo de torsión medido en el archivo | 3,44 / 3,49 / 3,42 s en tres tomas (media 3,45 s ≈ 103 cuadros de video); ×1,5 → **5,2 s, 11,6 ciclos/min, 0,19 Hz** (cálculo propio). Sin corregir: 17,4 ciclos/min (Olson contó 100 cuadros: 18 ciclos/min) | §6 |
+| Periodo de torsión medido en el archivo | 3,44 / 3,49 / 3,42 s en tres tomas (media 3,45 s ≈ 103 cuadros de video); ×1,5 → **5,2 s, 11,6 ciclos/min, 0,19 Hz** (cálculo propio). Sin corregir: 17,4 ciclos/min (Olson contó 100 cuadros: 18 ciclos/min) (corregido en la errata de §6.2: 3,49 s → 5,23 s, ≈ 11,5 ciclos/min) | §6 |
 | Broughton, 12 de abril de 1831 | 74 hombres del 60.º de fusileros, ≈ 60 sobre el puente, de cuatro en fondo; más de 20 heridos, ningún muerto; caída de 16-18 ft | philmag-1831 |
 | Angers, 16 de abril de 1850 | 3.er batallón del 11.º ligero; tormenta; más de 200 muertos (223 o 226 según la fuente) | ad49-angers; Wikipedia FR (NO CONFIRMADO el número exacto) |
 | Paso militar | 120 pasos/min = **2,0 Hz** (cálculo propio de la conversión); paso doble 180 = 3,0 Hz | fm-3-21-5 párr. 4-5 |
@@ -240,7 +240,7 @@ El informe de 1941 dice lo mismo con otras palabras: la amplificación es invers
 | 22,9 mph | −0,005 | 1,032 | 366 s (73 ciclos) | +6,5 % |
 | 27,4 mph | −0,010 | 1,065 | 183 s (37 ciclos) | +13 % |
 | 30,6 mph (último punto de la tabla) | −0,015 | 1,099 | 122 s (24 ciclos) | +21 % |
-| 42 mph (**extrapolado**: A₂* ≈ 0,55) | ≈ −0,033 | ≈ 1,23 | ≈ 55 s (11 ciclos) | ≈ +52 % |
+| 42 mph (**extrapolado**: A₂* ≈ 0,55) | ≈ −0,033 | ≈ 1,23 | ≈ 55 s (11 ciclos) | ≈ +52 % (con A₂* = 0,550 y la forma exacta e^(−4πζ_neto) − 1: +51,4 %; tabla 12.3 de la página, 2026-11-18) |
 
 La última fila sale de prolongar en línea recta los dos últimos puntos de la tabla: es ilustrativa, no un dato. El orden de magnitud cuadra con lo que contó Arkin (de un movimiento nuevo a «great proportions» en unos tres minutos).
 

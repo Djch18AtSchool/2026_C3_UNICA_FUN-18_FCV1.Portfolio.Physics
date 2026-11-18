@@ -1,0 +1,609 @@
+---
+number: 12
+phase: 3
+title: 'Resonancia estructural: Tacoma Narrows y por qué las tropas rompen el paso al cruzar un puente'
+shortTitle: 'Resonancia estructural'
+concept: 'Frecuencia natural, oscilación forzada amortiguada y resonancia, suma de fuerzas con fases y autoexcitación: por qué un pelotón rompe el paso, cómo Klipper anula la vibración de una impresora y qué derribó el puente de Tacoma Narrows.'
+resourceType: multimedia
+useCase:
+  product: 'Klipper v0.13.0: barrido de resonancia y filtro ZV'
+  industry: 'Firmware de impresoras 3D'
+sources:
+  - id: klipper-v0130
+    title: 'Klipper v0.13.0 (tag v0.13.0, commit 61c0c8d)'
+    authors: 'Kevin O’Connor y colaboradores; filtros de Dmitry Butyugin'
+    year: 2025
+    publisher: 'Repositorio Klipper3d/klipper en GitHub, licencia GPL-3.0; klippy/extras: resonance_tester.py L49-L78, shaper_defs.py L8-L23 y shaper_calibrate.py L14'
+    url: 'https://github.com/Klipper3d/klipper/blob/v0.13.0/klippy/extras/shaper_defs.py'
+    accessed: '2026-11-17'
+  - id: klipper-docs
+    title: 'Resonance Compensation (documentación de Klipper v0.13.0)'
+    authors: 'Kevin O’Connor y colaboradores'
+    year: 2025
+    publisher: 'Repositorio Klipper3d/klipper en GitHub; docs/Resonance_Compensation.md L10-L19, L185-L188, L206-L209, L413-L415 y L466-L482'
+    url: 'https://github.com/Klipper3d/klipper/blob/v0.13.0/docs/Resonance_Compensation.md'
+    accessed: '2026-11-17'
+  - id: openstax-15-6
+    title: 'University Physics Volume 1, §15.6 Forced Oscillations'
+    authors: 'William Moebs, Samuel J. Ling y Jeff Sanny'
+    year: 2016
+    publisher: 'OpenStax, ecuaciones 15.27 y 15.29'
+    url: 'https://openstax.org/books/university-physics-volume-1/pages/15-6-forced-oscillations'
+    accessed: '2026-11-17'
+  - id: chen-2022a
+    title: 'Janet Jackson had the power to crash laptop computers'
+    authors: 'Raymond Chen'
+    year: 2022
+    publisher: 'The Old New Thing, Microsoft DevBlogs, 16 de agosto de 2022'
+    url: 'https://devblogs.microsoft.com/oldnewthing/20220816-00/?p=106994'
+    accessed: '2026-11-17'
+  - id: chen-2022b
+    title: 'Janet Jackson had the power to crash laptop computers, follow-up'
+    authors: 'Raymond Chen'
+    year: 2022
+    publisher: 'The Old New Thing, Microsoft DevBlogs, 20 de septiembre de 2022'
+    url: 'https://devblogs.microsoft.com/oldnewthing/20220920-00/?p=107201'
+    accessed: '2026-11-17'
+  - id: nvd-cve-2022-38392
+    title: 'CVE-2022-38392'
+    authors: 'NIST, National Vulnerability Database'
+    year: 2022
+    publisher: 'NVD, publicado el 17 de agosto de 2022'
+    url: 'https://nvd.nist.gov/vuln/detail/CVE-2022-38392'
+    accessed: '2026-11-17'
+  - id: fm-3-21-5
+    title: 'FM 3-21.5, Drill and Ceremonies'
+    authors: 'Headquarters, Department of the Army'
+    year: 2003
+    publisher: 'Ejército de los Estados Unidos, con el cambio 1 de abril de 2006; párr. 4-5e'
+    url: 'https://elon.edu/assets/docs/rotc/FM%203-21.5%20Drill%20and%20Ceremonies.pdf'
+    accessed: '2026-11-17'
+  - id: setra-2006
+    title: 'Footbridges: Assessment of vibrational behaviour of footbridges under pedestrian loading'
+    authors: 'Sétra y AFGC'
+    year: 2006
+    publisher: 'Guía técnica, junio de 2006; tablas 1.1, 2.3, 2.4 y 2.6 y §1.2.1'
+    url: 'https://piles.cerema.fr/IMG/pdf/guide_afgc_evaluation_comportement_vibratoire_passerelles_pietonnes_juin_2006_cle287f87.pdf'
+    accessed: '2026-11-17'
+  - id: philmag-1831
+    title: 'Fall of the Broughton Suspension Bridge, near Manchester'
+    year: 1831
+    publisher: 'The Philosophical Magazine and Annals of Philosophy, N. S., vol. 9, n.º 53, págs. 384-389; Internet Archive'
+    url: 'https://archive.org/details/philosophicalmax09lond'
+    accessed: '2026-11-17'
+  - id: dallard-2001
+    title: 'The London Millennium Footbridge'
+    authors: 'P. Dallard, A. J. Fitzpatrick, A. Flint, S. Le Bourva, A. Low, R. M. Ridsdill Smith y M. Willford (Arup)'
+    year: 2001
+    publisher: 'The Structural Engineer 79(22), 17-33'
+    url: 'https://www.istructe.org/journal/volumes/volume-79-(published-in-2001)/issue-22/the-london-millennium-footbridge/'
+    accessed: '2026-11-17'
+  - id: newland-2002
+    title: 'Vibration of the London Millennium Footbridge: Part 2 — Cure'
+    authors: 'David E. Newland'
+    year: 2002
+    publisher: 'ICSV9, Universidad de Cambridge'
+    url: 'https://lru.praxis.dk/Lru/microsites/hem/fra_gymportal/docs/Projekt_8-6_-_MillenniumBridgeDel2.pdf'
+    accessed: '2026-11-17'
+  - id: itn-millennium
+    title: "2000: 'Wobbly' Millennium Bridge Closed Days After Opening"
+    authors: 'Frontline by ITN'
+    year: 2022
+    publisher: 'YouTube, 10 de junio de 2022 (archivo de ITN)'
+    url: 'https://www.youtube.com/watch?v=Hz72lzDxMfc'
+    accessed: '2026-11-17'
+  - id: fwa-1941
+    title: 'The Failure of the Tacoma Narrows Bridge'
+    authors: 'O. H. Ammann, Th. von Kármán y G. B. Woodruff'
+    year: 1941
+    publisher: 'Informe a la Federal Works Agency, 28 de marzo de 1941; CaltechAUTHORS'
+    url: 'https://authors.library.caltech.edu/records/q1ehq-5e206'
+    accessed: '2026-11-17'
+  - id: billah-scanlan-1991
+    title: 'Resonance, Tacoma Narrows bridge failure, and undergraduate physics textbooks'
+    authors: 'K. Yusuf Billah y Robert H. Scanlan'
+    year: 1991
+    publisher: 'American Journal of Physics 59(2), 118-124'
+    url: 'https://ketchum.org/billah/Billah-Scanlan.pdf'
+    accessed: '2026-11-17'
+  - id: olson-2015
+    title: 'The Tacoma Narrows Bridge collapse'
+    authors: 'Donald W. Olson, Steven F. Wolf y Joseph M. Hook'
+    year: 2015
+    publisher: 'Physics Today 68(11), 64-65'
+    url: 'https://physicstoday.aip.org/quick-study/the-tacoma-narrows-bridge-collapse-1760014552637'
+    accessed: '2026-11-17'
+  - id: commons-tacoma
+    title: 'File:Tacoma Narrows Bridge destruction.ogv'
+    authors: 'Barney Elliott y Harbine Monroe (The Camera Shop, Tacoma)'
+    year: 1940
+    publisher: 'Wikimedia Commons; dominio público por la dedicación de los Prelinger Archives'
+    url: 'https://commons.wikimedia.org/wiki/File:Tacoma_Narrows_Bridge_destruction.ogv'
+    accessed: '2026-11-17'
+related: ['control-haptico', 'coeficiente-restitucion']
+classRefs:
+  - module: 'Módulo 5'
+    topic: 'Tema 4 · Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras · Oscilaciones Forzadas y Resonancia'
+    note: '$F(t) = F_0\cos(\omega_d t)$ y $A = F_0/\sqrt{(k - m\omega_d^2)^2 + b^2\omega_d^2}$: la (12.3); en $\omega_d \approx \omega_0$, fuerza y velocidad en fase: la (12.4).'
+  - module: 'Módulo 5'
+    topic: 'Tema 3 · Oscilaciones Amortiguadas Simples · Tres regímenes'
+    note: '$b_c = 2\sqrt{km}$, que define mi $\zeta = b/b_c$, y la envolvente $e^{-(b/2m)t}$ de la (12.11).'
+  - module: 'Módulo 5'
+    topic: 'Tema 1 · Ecuaciones Diferenciales y Movimiento Oscilatorio · Solución General y Parámetros Cinemáticos'
+    note: '$f = \frac{1}{2\pi}\sqrt{k/m}$, independiente de la amplitud: la (12.1).'
+  - module: 'Módulo 2'
+    topic: 'Tema 04 · Energía mecánica · Concepto 05 · Trabajo no conservativo y balance de energía'
+    note: '$\Delta(K+U) = W_\text{otras}$ en cada ciclo: la (12.4) y la (12.12).'
+updated: 2026-11-18
+---
+
+import Step from '../../components/ui/Step.astro';
+import Why from '../../components/ui/Why.astro';
+import UseCase from '../../components/ui/UseCase.astro';
+import Equation from '../../components/ui/Equation.astro';
+import Figure from '../../components/ui/Figure.astro';
+import DataTable from '../../components/ui/DataTable.astro';
+import Cite from '../../components/ui/Cite.astro';
+import Callout from '../../components/ui/Callout.astro';
+import Connections from '../../components/ui/Connections.astro';
+import Sources from '../../components/ui/Sources.astro';
+import AnalyzedMedia from '../../components/media/AnalyzedMedia';
+import ResonanceFigure from '../../components/topics/resonancia-estructural/ResonanceFigure';
+import TacomaMeasurement from '../../components/topics/resonancia-estructural/TacomaMeasurement';
+import {
+  TACOMA_FILM,
+  TACOMA_MARKS,
+  TACOMA_REAL_SPEED,
+} from '../../components/topics/resonancia-estructural/tacomaFilm';
+
+Todo lo que oscila tiene ritmos propios; si algo le entrega energía a ese ritmo, la amplitud crece.
+
+<Step n={1} title="Frecuencia natural">
+
+Con Hooke y la segunda ley, un cuerpo sujeto a un resorte oscila solo <Cite id="openstax-15-6" sources={frontmatter.sources} />:
+
+<Equation
+  id="ec-resonancia-natural"
+  latex="m\,\ddot x = -k\,x \;\Rightarrow\; x(t) = A\cos(\omega_0 t + \varphi), \qquad f_0 = \frac{\omega_0}{2\pi} = \frac{1}{2\pi}\sqrt{\frac{k}{m}} = \frac{1}{T_0}"
+  symbols={[
+    { symbol: 'm', meaning: 'masa', unit: 'kg' },
+    { symbol: 'k', meaning: 'constante elástica', unit: 'N/m' },
+    { symbol: 'x', meaning: 'desplazamiento desde el equilibrio', unit: 'm' },
+    { symbol: 'A,\\ \\varphi', meaning: 'amplitud y fase inicial', unit: 'm, rad' },
+    { symbol: '\\omega_0', meaning: 'frecuencia angular natural', unit: 'rad/s' },
+    { symbol: 'f_0,\\ T_0', meaning: 'frecuencia natural y periodo', unit: 'Hz, s' },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+El resorte lo devuelve al equilibrio y la inercia lo pasa de largo: el vaivén tiene un ritmo propio, el mismo con cualquier amplitud.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Más masa, menos frecuencia: $f_0$ va como <Equation inline latex="1/\sqrt{m}" />; por eso la cama cargada de filamento resuena más bajo <Cite id="klipper-docs" sources={frontmatter.sources} />. Medir $f_0$ es contar ciclos.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Los dos modos del puente de Tacoma Narrows el 7 de noviembre de 1940, como oscilaciones libres de la ecuación (12.1) con la misma amplitud, que es ilustrativa: el vertical de 8 o 9 nodos a 37 ciclos por minuto y la torsión de un nodo a 12. Hacia las 10:00 el puente pasó de uno al otro, «from 37 to 14», y la torsión terminó en 12: cada modo tiene su propia frecuencia natural, y contar ciclos la mide."
+  source={{
+    text: 'Gráfica del autor con la ecuación (12.1); frecuencias del informe a la Federal Works Agency (1941), págs. 30-31 y V-12; amplitudes ilustrativas',
+  }}
+>
+  <ResonanceFigure variant="libre" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={2} title="Resonancia forzada">
+
+Ahora empujo con una fuerza periódica y le pongo un amortiguador viscoso <Cite id="openstax-15-6" sources={frontmatter.sources} />:
+
+<Equation
+  id="ec-resonancia-forzada"
+  latex="m\,\ddot x + b\,\dot x + k\,x = F_0\cos(\omega_d t), \qquad \zeta = \frac{b}{b_c} = \frac{b}{2\sqrt{k m}}"
+  symbols={[
+    { symbol: 'b', meaning: 'coeficiente de amortiguamiento viscoso', unit: 'N·s/m' },
+    { symbol: 'F_0', meaning: 'amplitud de la fuerza', unit: 'N' },
+    { symbol: '\\omega_d', meaning: 'frecuencia angular de la fuerza', unit: 'rad/s' },
+    { symbol: 'b_c', meaning: 'amortiguamiento crítico', unit: 'N·s/m' },
+    { symbol: '\\zeta', meaning: 'razón de amortiguamiento, sin unidades' },
+  ]}
+/>
+
+<Equation
+  id="ec-resonancia-amplitud"
+  latex="A(\omega_d) = \frac{F_0/m}{\sqrt{(\omega_0^2 - \omega_d^2)^2 + (b\,\omega_d/m)^2}}, \qquad A(\omega_0) = \frac{F_0/k}{2\zeta}"
+  symbols={[
+    { symbol: 'A', meaning: 'amplitud estacionaria, pasado el transitorio', unit: 'm' },
+    { symbol: 'F_0/k', meaning: 'deformación estática, la que daría una fuerza quieta', unit: 'm' },
+  ]}
+/>
+
+<Equation
+  id="ec-resonancia-energia"
+  latex="W_F = \pi F_0 A \sin\delta, \qquad W_b = \pi\, b\, \omega_d A^2"
+  symbols={[
+    {
+      symbol: 'W_F',
+      meaning: 'energía que entrega la fuerza en un ciclo, la integral de $F v$ (cálculo propio)',
+      unit: 'J',
+    },
+    { symbol: 'W_b', meaning: 'energía que disipa el amortiguador en un ciclo', unit: 'J' },
+    { symbol: '\\delta', meaning: 'retraso de $x$ respecto de la fuerza', unit: 'rad' },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Si empujo al ritmo del vaivén, cada empujón suma; a contrarritmo, resta.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+En <Equation inline latex="\omega_d = \omega_0" /> solo $b$ limita: la deformación estática se multiplica por <Equation inline latex="1/(2\zeta)" />, y con la velocidad en fase con la fuerza, <Equation inline latex="\delta = 90^\circ" />, $W_F$ es máximo; en régimen estacionario, <Equation inline latex="W_F = W_b" />.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Amplitud estacionaria de la ecuación (12.3), relativa a la deformación estática $F_0/k$, frente a la frecuencia de la fuerza, con las tres razones de amortiguamiento con que Klipper evalúa sus filtros. En $\omega_d = \omega_0$ cada curva vale $1/(2\zeta)$. La torsión del Tacoma, con $\zeta$ = 0,005, llegaría a 100 (tabla 12.4): veinte veces la impresora con $\zeta$ = 0,1. El barrido de Klipper, de 5 a 135 Hz, traza esta curva en cada eje."
+  source={{
+    text: 'Gráfica del autor con la ecuación (12.3); razones de amortiguamiento de Klipper v0.13.0, klippy/extras/shaper_calibrate.py L14; barrido de resonance_tester.py L49-L78',
+  }}
+>
+  <ResonanceFigure variant="curva" client:visible />
+</Figure>
+
+<Callout variant="nota" title="Rhythm Nation y el CVE-2022-38392">
+
+Un fabricante de portátiles vio que el video de «Rhythm Nation» los tumbaba: la canción contenía una frecuencia natural de sus discos de 5400 rpm <Cite id="chen-2022a" sources={frontmatter.sources} />. Quitó esa banda del audio, la $F_0$ cerca de <Equation inline latex="\omega_0" />: «It is much less expensive to fix the problem in software» <Cite id="chen-2022b" sources={frontmatter.sources} />. Es el CVE-2022-38392 <Cite id="nvd-cve-2022-38392" sources={frontmatter.sources} />.
+
+</Callout>
+
+</Step>
+
+<Step n={3} title="Al paso o rompiendo el paso">
+
+Un pelotón son $N$ fuerzas, cada una con su fase:
+
+<Equation
+  id="ec-resonancia-tropa"
+  latex="F(t) = \sum_{i=1}^{N} F_1\cos(2\pi f_i t + \varphi_i), \qquad |F|_\text{al paso} = N F_1, \qquad |F|_\text{rompiendo el paso} \approx \sqrt{N}\,F_1"
+  symbols={[
+    { symbol: 'N', meaning: 'personas que cruzan' },
+    { symbol: 'F_1', meaning: 'amplitud de la fuerza de una persona', unit: 'N' },
+    {
+      symbol: 'f_i,\\ \\varphi_i',
+      meaning: 'frecuencia y fase de la persona $i$',
+      unit: 'Hz, rad',
+    },
+    {
+      symbol: '\\sqrt{N}\\,F_1',
+      meaning: 'valor cuadrático medio de $|F|$ con fases al azar (cálculo propio)',
+      unit: 'N',
+    },
+  ]}
+/>
+
+El paso militar, 120 por minuto, son 2,0 Hz <Cite id="fm-3-21-5" sources={frontmatter.sources} />: dentro del rango de riesgo máximo de Sétra (tabla 12.1) <Cite id="setra-2006" sources={frontmatter.sources} />. Klipper rompe el paso a propósito, con dos impulsos en contrafase que se anulan <Cite id="klipper-v0130" sources={frontmatter.sources} />:
+
+<Equation
+  id="ec-resonancia-zv"
+  latex="a_1 = \frac{1}{1+K}, \quad a_2 = \frac{K}{1+K}, \quad t_2 = \frac{T'}{2} = \frac{1}{2 f_0\sqrt{1-\zeta^2}}, \qquad K = e^{-\zeta\pi/\sqrt{1-\zeta^2}}"
+  symbols={[
+    {
+      symbol: 'a_1,\\ a_2',
+      meaning:
+        'fracción de la orden en cada impulso; Klipper escribe $[1, K]$ y los divide por su suma',
+    },
+    { symbol: 't_2', meaning: 'instante del segundo impulso, el primero en 0', unit: 's' },
+    { symbol: "T'", meaning: 'periodo amortiguado, que el código llama $t_d$', unit: 's' },
+    { symbol: 'K', meaning: 'cociente entre el segundo impulso y el primero' },
+  ]}
+/>
+
+En el Millennium Bridge la gente acompasó el paso al balanceo, y su fuerza creció con la velocidad del tablero <Cite id="dallard-2001" sources={frontmatter.sources} />:
+
+<Equation
+  id="ec-resonancia-peatones"
+  latex="F_e = k_p\,N\,V"
+  symbols={[
+    { symbol: 'F_e', meaning: 'fuerza lateral acompasada de $N$ personas', unit: 'N' },
+    { symbol: 'k_p', meaning: 'coeficiente de fuerza lateral por persona', unit: 'N·s/m' },
+    { symbol: 'V', meaning: 'velocidad lateral del tablero', unit: 'm/s' },
+  ]}
+/>
+
+<Equation
+  id="ec-resonancia-umbral"
+  latex="N_L = \frac{8\pi\,\zeta f M}{k_p}"
+  symbols={[
+    { symbol: 'N_L', meaning: 'personas a partir de las que el puente se balancea solo' },
+    { symbol: 'f,\\ M', meaning: 'frecuencia y masa modal del modo lateral', unit: 'Hz, kg' },
+  ]}
+/>
+
+Al Tacoma nada lo empujaba a 0,20 Hz; el ritmo de los vórtices del viento era otro <Cite id="billah-scanlan-1991" sources={frontmatter.sources} />:
+
+<Equation
+  id="ec-resonancia-vortices"
+  latex="f_s = \frac{S\,U}{D}"
+  symbols={[
+    { symbol: 'f_s', meaning: 'frecuencia de desprendimiento de vórtices', unit: 'Hz' },
+    { symbol: 'S', meaning: 'número de Strouhal del tablero, unos 0,11' },
+    { symbol: 'U', meaning: 'rapidez del viento', unit: 'm/s' },
+    { symbol: 'D', meaning: 'canto del tablero', unit: 'm' },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Rompiendo el paso, unos empujones anulan a otros: «the tread of one person would have counteracted the vibration arising from that of another» <Cite id="philmag-1831" sources={frontmatter.sources} />.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Con fases al azar, $|F|$ crece como <Equation inline latex="\sqrt{N}" /> y la potencia, con su cuadrado: $N$ veces menos. Una fuerza que crece con $V$ es un $b$ negativo: pasadas <Equation inline latex="N_L" /> personas, el puente se balancea solo.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Amplitud de la fuerza vertical de $N$ personas con la ecuación (12.5), $F_1$ = 280 N cada una (tabla 12.1). Al paso, todas en fase, crece en recta; rompiendo el paso, con fases al azar, como $\sqrt{N}$, y los puntos son un sorteo de esas fases para cada $N$. Con los unos 60 soldados que cruzaban el puente de Broughton en 1831, 16,8 kN contra 2,2 kN: en resonancia la energía que entra va con el cuadrado, 60 veces menos."
+  source={{
+    text: 'Gráfica del autor con la ecuación (12.5); fuerza por persona de Sétra (2006), §1.2.1; unos 60 soldados según The Philosophical Magazine (1831); fases sorteadas con una semilla fija',
+  }}
+>
+  <ResonanceFigure variant="tropa" client:visible />
+</Figure>
+
+<DataTable id="resonancia-estructural-setra" />
+
+<Figure
+  type="multimedia"
+  showBadge={false}
+  caption="Reportaje de ITN de junio de 2000 sobre el cierre del Millennium Bridge, dos días después de abrirlo. Analizo dos instantes: el balanceo lateral del tablero y la gente que acompasa el paso a él. Los números de la ecuación (12.8) están en la tabla 12.2."
+  source={{
+    text: 'Análisis del autor sobre el video de Frontline by ITN (2022, archivo de 2000); datos de Dallard et al. (2001) y Newland (2002)',
+    url: 'https://www.youtube.com/watch?v=Hz72lzDxMfc',
+  }}
+>
+  <AnalyzedMedia
+    client:visible
+    testId="millennium-video"
+    source={{
+      kind: 'youtube',
+      id: 'Hz72lzDxMfc',
+      title: "2000: 'Wobbly' Millennium Bridge Closed Days After Opening",
+      channel: 'Frontline by ITN',
+      published: '2022-06-10',
+      duration: 93,
+    }}
+    markers={[
+      {
+        time: 0,
+        title: 'El balanceo lateral',
+        analysis:
+          'El tablero se mueve de lado bajo la gente. Según Arup, el día de la inauguración, el 10 de junio de 2000, la aceleración lateral llegó a 200–250 milésimas de $g$, sobre todo en el vano sur, a unos 0,8 Hz, y en el central, a algo menos de 0,5 Hz y a 1,0 Hz: modos laterales, cada uno con su frecuencia natural de la (12.1). El empuje lateral de cada pie va a la mitad de la frecuencia del paso, cerca de 1 Hz, justo sobre esos modos (tabla 12.1).',
+      },
+      {
+        time: 30,
+        title: 'La gente acompasa el paso',
+        analysis:
+          'Arup lo explica así: «it is more comfortable for pedestrians to walk in synchronisation with the natural swaying of the bridge» («es más cómodo caminar al ritmo del balanceo natural del puente»), y así cada pie empuja a la frecuencia del puente y en la fase que aumenta el movimiento. Es la retroalimentación de la (12.7): más balanceo, más gente acompasada, más fuerza. Con la (12.8), el modo central se desestabilizaba con unas 37 personas; la cura fue subir $\\zeta$ de menos del 1 % al 15–20 % con 37 amortiguadores viscosos y masas sintonizadas (tabla 12.2).',
+      },
+    ]}
+  />
+</Figure>
+
+<DataTable id="resonancia-estructural-millennium" />
+
+</Step>
+
+<Step n={4} title="Autoexcitación: el Tacoma Narrows">
+
+El 7 de noviembre de 1940 el viento era casi constante <Cite id="fwa-1941" sources={frontmatter.sources} />. Billah y Scanlan suman a la torsión un término del viento proporcional a la velocidad de giro <Cite id="billah-scanlan-1991" sources={frontmatter.sources} />:
+
+<Equation
+  id="ec-resonancia-torsion"
+  latex="I\left(\ddot\theta + 2\zeta_s\,\omega_0\,\dot\theta + \omega_0^2\,\theta\right) = \rho B^4 \omega_0\, A_2^*(U)\,\dot\theta"
+  symbols={[
+    { symbol: '\\theta', meaning: 'ángulo de giro del tablero', unit: 'rad' },
+    { symbol: 'I', meaning: 'momento de inercia del tablero por metro de vano', unit: 'kg·m²/m' },
+    { symbol: '\\zeta_s', meaning: 'amortiguamiento estructural de la torsión, unos 0,005' },
+    { symbol: '\\rho,\\ B', meaning: 'densidad del aire y ancho del tablero', unit: 'kg/m³, m' },
+    {
+      symbol: 'A_2^*(U)',
+      meaning: 'coeficiente aerodinámico que crece con el viento, medido en maqueta',
+    },
+  ]}
+/>
+
+<Equation
+  id="ec-resonancia-neto"
+  latex="\zeta_\text{neto}(U) = \zeta_s - \frac{\rho B^4 A_2^*(U)}{2I} = \zeta_s - \frac{A_2^*(U)}{14{,}48}, \qquad \theta(t) = \theta_0\, e^{-\zeta_\text{neto}\,\omega_0 t}\cos(\omega' t)"
+  symbols={[
+    { symbol: '\\zeta_\\text{neto}', meaning: 'amortiguamiento neto: estructura menos viento' },
+    {
+      symbol: '14{,}48',
+      meaning: '$2I/(\\rho B^4)$ con los datos del tablero, de Billah y Scanlan',
+    },
+    {
+      symbol: "\\omega'",
+      meaning: 'frecuencia angular amortiguada, $\\omega_0\\sqrt{1 - \\zeta_\\text{neto}^2}$',
+      unit: 'rad/s',
+    },
+  ]}
+/>
+
+<Equation
+  id="ec-resonancia-crecimiento"
+  latex="\left.\frac{\Delta E}{E}\right|_\text{ciclo} = e^{-4\pi\zeta_\text{neto}} - 1 \approx -4\pi\,\zeta_\text{neto}"
+  symbols={[
+    {
+      symbol: '\\Delta E/E',
+      meaning:
+        'cambio relativo de la energía en un periodo natural; la forma lineal vale para $\\zeta$ pequeño',
+    },
+  ]}
+/>
+
+¿Fue resonancia? Con impulsos que vienen del propio movimiento, «It would appear not to contradict the qualitative definition of resonance»; pero la (12.10) no tiene fuerza externa: es otra ecuación <Cite id="billah-scanlan-1991" sources={frontmatter.sources} />.
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+El viento no tenía ritmo: el ritmo lo ponía el tablero; el viento, la energía.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Sobre 18,6 mph, <Equation inline latex="\zeta_\text{neto} < 0" /> (tabla 12.3) y el término en <Equation inline latex="\dot\theta" /> empuja en vez de frenar. Lo que entra y lo que sale crecen con <Equation inline latex="\theta_0^2" />: no hay equilibrio, y la amplitud crece en progresión geométrica hasta romper.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Torsión del Tacoma con la ecuación (12.11) a 0,20 Hz, sin ninguna fuerza que oscile, con tres vientos de la tabla 12.3: a 17 mph el amortiguamiento neto es positivo y la amplitud baja; a 30,6 mph es negativo y sube; a 42 mph, el viento de esa mañana, la tabla se prolonga en recta y sube más rápido. Las etiquetas dan la amplitud al cabo de 30 s, seis vueltas."
+  source={{
+    text: 'Gráfica del autor con las ecuaciones (12.11) y (12.12); $A_2^*$ de la Tabla I de Billah y Scanlan (1991); la curva de 42 mph es una extrapolación',
+  }}
+>
+  <ResonanceFigure variant="autoexcitacion" client:visible />
+</Figure>
+
+<DataTable id="resonancia-estructural-aleteo" />
+
+<Figure
+  type="multimedia"
+  caption="Película muda del 7 de noviembre de 1940, alojada en el sitio. Mi análisis por instante responde lo que pide el recurso: la frecuencia natural (1:01), la fuente de la excitación (0:51) y por qué crece la amplitud (0:51 y 1:55), además del nodo de la torsión (0:14) y la sección del tablero (0:32). Las tomas de torsión corren 1,5 veces más rápido que en la realidad; el botón «Velocidad real (×2/3)» las frena y deja el colapso a 1×."
+  source={{
+    text: 'Película de Barney Elliott y Harbine Monroe en Wikimedia Commons, dominio público por la dedicación de los Prelinger Archives que registra Commons; la pasé a WebM y MP4 sin tocar la imagen. Análisis mío; velocidad de las cámaras según Olson et al. (2015)',
+    url: 'https://commons.wikimedia.org/wiki/File:Tacoma_Narrows_Bridge_destruction.ogv',
+  }}
+>
+  <AnalyzedMedia
+    client:visible
+    testId="tacoma-video"
+    source={TACOMA_FILM}
+    realSpeed={TACOMA_REAL_SPEED}
+    markers={[
+      {
+        time: TACOMA_MARKS.nodo,
+        title: 'La línea central es el nodo de la torsión',
+        analysis:
+          'Sobre la calzada, la línea central blanca casi no sube ni baja, mientras los bordes suben y bajan en contrafase: el tablero gira alrededor de su eje. Olson et al. llaman a esa línea «the stationary line about which the twisting occurred» («la línea quieta alrededor de la que ocurría la torsión»). Es el modo de torsión de un nodo, el $\\theta(t)$ de la (12.10); el informe de 1941 sitúa ese nodo a mitad del vano, así que cada mitad giraba al revés que la otra.',
+      },
+      {
+        time: TACOMA_MARKS.viga,
+        title: 'La viga de alma llena: un tablero en H',
+        analysis:
+          'Mirando hacia abajo desde el borde se ve la viga de alma llena, de 8 ft (2,44 m) de canto, con sus remaches: el tablero era una sección en H, roma, de solo 39 ft de ancho, 1/72 del vano. Esa forma fija el $A_2^*$ de la (12.11). El informe de 1941 lo concluye: «Its appearance and destructive effect in the Tacoma Narrows Bridge resulted from its narrow width and lack of structural damping» («su aparición y su efecto destructivo se debieron a su ancho estrecho y a la falta de amortiguamiento estructural»).',
+      },
+      {
+        time: TACOMA_MARKS.viento,
+        title: 'El viento: la fuente de energía',
+        analysis:
+          'El oleaje del estrecho delata el viento: 42 mph (18,8 m/s), medido hacia las 9:00. Es la fuente de la excitación, pero no oscila a 0,20 Hz: su único ritmo propio, el desprendimiento de vórtices, da 0,85 Hz con la (12.9), 4,2 veces la torsión (tabla 12.4). Por qué crece la amplitud: el giro decide cuándo empuja el viento, «the wind supplying the power, and the motion supplying the power-tapping mechanism» («el viento pone la potencia y el movimiento, el mecanismo que la toma»), según Billah y Scanlan. Con $\\zeta_\\text{neto} < 0$, la (12.12) da más energía en cada vuelta: un 20,8 % a 30,6 mph (tabla 12.3).',
+      },
+      {
+        time: TACOMA_MARKS.ciclos,
+        title: 'Contar ciclos: 3,43 s en el video son 5,15 s reales',
+        analysis:
+          'Desde debajo de la torre, el borde del tablero baja y sube dos veces. Cuadro a cuadro mido 3,43 s por ciclo (figura 12.7 y tabla 12.5). Elliott filmó a 16 cuadros por segundo y el video los pasa como 24, así que cada segundo del video son 1,5 reales: 5,15 s. Con la media de tres tomas, 3,49 s, el periodo real es 5,23 s y la frecuencia 0,191 Hz, unos 11,5 ciclos por minuto, un 4 % por debajo de los 12 que cronometró Farquharson: es la frecuencia natural de la torsión, la $f_0$ de la (12.1) para ese modo. Con «Velocidad real» la toma se ve a su ritmo.',
+      },
+      {
+        time: TACOMA_MARKS.colapso,
+        title: 'El colapso, a velocidad real',
+        analysis:
+          'Esta toma es de Monroe, que filmó a 24 cuadros por segundo: Olson et al. comprobaron que los trozos caen con la aceleración de la gravedad solo a esa velocidad, así que va a velocidad real y el botón no la frena. Es el final del crecimiento de la (12.12): sin amplitud de equilibrio, solo la rotura lo detuvo. La torsión había empezado hacia las 10:00; hacia las 11:00 cayeron unos 600 ft del tablero, y a las 11:10, el resto (informe de 1941).',
+      },
+    ]}
+  />
+</Figure>
+
+<DataTable id="resonancia-estructural-tacoma" />
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Mi medición cuadro a cuadro de la toma de 1:01,7: la altura del borde del tablero, en píxeles. Tal como corre el video, el ciclo dura 3,43 s; estirada al tiempo real, 5,15 s, y una cosenoide de 5,0 s, el periodo que cronometró Farquharson, ajustada solo en amplitud y fase, la sigue de cerca. Las tres tomas están en la tabla 12.5."
+  source={{
+    text: 'Medición del autor (pnpm run data:tacoma) sobre el archivo de Wikimedia Commons; 16 y 24 cuadros por segundo según Olson et al. (2015); 12 ciclos por minuto de Farquharson en el informe de 1941, pág. V-12',
+  }}
+>
+  <TacomaMeasurement client:visible />
+</Figure>
+
+<DataTable id="resonancia-estructural-medicion" />
+
+</Step>
+
+<UseCase>
+
+<Fragment slot="caso">
+
+Klipper (v0.13.0, commit 61c0c8d), firmware libre de impresoras 3D, mide con un acelerómetro las resonancias del marco y las correas, causa del _ringing_ de las piezas, y las compensa con _input shaping_ <Cite id="klipper-v0130" sources={frontmatter.sources} /> <Cite id="klipper-docs" sources={frontmatter.sources} />.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+`resonance_tester.py` (L49-L78) barre de 5 a 135 Hz a 1 Hz/s; los picos son las $f_0$ de la (12.3). `shaper_defs.py` (L17-L23) arma con ellas el ZV de la (12.6), con <Equation inline latex="\zeta = 0{,}1" />.
+
+</Fragment>
+
+<Fragment slot="justificacion">
+
+Sin el modelo, lo seguro es bajar la aceleración en todo o imprimir torres de prueba a ciegas. El filtro anula la vibración solo en la frecuencia medida y deja intacto el resto.
+
+</Fragment>
+
+<Fragment slot="balance">
+
+Gano velocidad sin _ringing_. Cuesta: el ZV divide la vibración por 10 solo dentro de ±5 % de $f_0$; $\zeta$ «is usually unknown» y se fija en 0,1; el filtro redondea esquinas; y si las correas se aflojan o la cama gana masa, $f_0$ cambia y hay que medir otra vez <Cite id="klipper-docs" sources={frontmatter.sources} />.
+
+</Fragment>
+
+</UseCase>
+
+<Callout variant="clase" title="Módulo 5 · Temas 1, 3 y 4; Módulo 2 · Tema 04">
+
+El Tema 4 da la (12.3) con <Equation inline latex="F_0\cos(\omega_d t)" /> y llama resonancia a <Equation inline latex="\omega_d \approx \omega_0" />, cuando «la fuerza y la velocidad quedan en fase»: la (12.4). Mi $\zeta$ es <Equation inline latex="b/b_c" />, con el <Equation inline latex="b_c" /> del Tema 3. Su amortiguador de masa sintonizado (Taipei 101) es parte de la cura del Millennium. Las fases y la autoexcitación son extensión.
+
+</Callout>
+
+<Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
+
+Con el Tema 5: su vibración <Equation inline latex="F_0 \sin(\omega t)" /> es la fuerza de la (12.2). Con el Tema 7: un rebote conserva la fracción <Equation inline latex="e^2" /> de la energía cinética, y un ciclo amortiguado, una fracción fija por la (12.12): la energía cae en progresión geométrica.
+
+</Connections>
+
+<Sources sources={frontmatter.sources} />

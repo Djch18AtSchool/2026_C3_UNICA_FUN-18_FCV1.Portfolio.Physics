@@ -35,6 +35,11 @@ const EXCEPTIONS: readonly { context: RegExp; reason: string }[] = [
     context: /Coef A, B, C/u,
     reason: 'nombres de los campos de la lista de la EPA, citados en inglés (Tema 6)',
   },
+  {
+    context: /Tabla I(?![\p{L}])/u,
+    reason:
+      'número romano de la tabla de Billah y Scanlan (1991), citada como la numeran (Tema 12)',
+  },
 ];
 
 const LATEX_ATTRIBUTE = /\blatex=(?:"([^"]*)"|\{`([^`]*)`\})/gu;
