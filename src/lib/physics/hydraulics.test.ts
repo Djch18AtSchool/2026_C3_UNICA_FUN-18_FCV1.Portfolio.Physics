@@ -401,15 +401,20 @@ describe('branchFlows (13.4): servers in parallel between two headers', () => {
     expect(spread(reverse.flows)).toBeLessThan(spread(direct.flows));
   });
 
-  test('reproduces research §7.2 for the narrow 3/4″ header: q_min/q̄ 0,634 and q_max/q̄ 1,919', () => {
+  test('reproduces research §7.2 for the narrow 3/4″ header: direct 0,634 · 1,919 · 1,578, reverse 0,734 · 1,426', () => {
     const narrow: Segment = { ...MGX_HEADER, diameter: 0.019, area: undefined };
 
     const { flows, converged } = split('directo', narrow);
     const mean = RACK_FLOW / 24;
 
     expect(converged).toBe(true);
-    expect(Math.min(...flows) / mean).toBeCloseTo(0.634, 2);
-    expect(Math.max(...flows) / mean).toBeCloseTo(1.919, 1);
+    const reverse = split('invertido', narrow).flows;
+
+    expect(Math.min(...flows) / mean).toBeCloseTo(0.634, 3);
+    expect(Math.max(...flows) / mean).toBeCloseTo(1.919, 3);
+    expect(mean / Math.min(...flows)).toBeCloseTo(1.578, 3);
+    expect(Math.min(...reverse) / mean).toBeCloseTo(0.734, 3);
+    expect(Math.max(...reverse) / mean).toBeCloseTo(1.426, 3);
   });
 
   test('a single server takes the whole rack flow at once', () => {

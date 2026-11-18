@@ -118,7 +118,7 @@ export function serverBranch(config: RackConfig): Segment[] {
   const uqd = (direction: Direction): Segment => ({
     id: `uqd-${direction}`,
     label: `UQD04 (${direction})`,
-    length: UQD04.length.value,
+    length: UQD04.drawnLength.value,
     diameter: UQD04.bore.value,
     roughness: STEEL,
     dy: 0,
@@ -180,7 +180,10 @@ export function branchCurve(config: RackConfig, f: Fluid = PG25_40C): LossCurve 
   return powerLawCurve(seriesLoss(serverBranch(config), q, f), q, RD109.plateExponent.value);
 }
 
-/** Per-server flows of the rack (branchFlows over the MGX manifold). */
+/**
+ * Per-server flows of the rack (branchFlows over the MGX manifold). Throws a RangeError for a rack
+ * flow that is not positive (rackFlow: 0 has no branch curve); the lab guards it before calling.
+ */
 export function rackSplit(config: RackConfig, f: Fluid = PG25_40C): BranchFlowsResult {
   return branchFlows({
     Qrack: config.rackFlow,
@@ -192,7 +195,10 @@ export function rackSplit(config: RackConfig, f: Fluid = PG25_40C): BranchFlowsR
   });
 }
 
-/** v(x) and p(x) along the path to `server`, at the mean server flow. */
+/**
+ * v(x) and p(x) along the path to `server`, at the mean server flow. Throws a RangeError for a rack
+ * flow that is not positive (circuitProfile needs a positive path flow); the lab guards it.
+ */
 export function rackProfile(
   config: RackConfig,
   server = config.servers,
@@ -230,8 +236,9 @@ export const PRESETS: Readonly<Record<CoolingPreset['id'], CoolingPreset>> = {
       serverHoseDiameter: provenanceOf(RD109.serverHoseDiameter),
       layout: DIRECT_RETURN,
       plateDesignFlow: {
-        origin: 'calculo',
-        source: 'Cálculo propio: el caudal medio por servidor, al que GF da 1,2 bar',
+        origin: 'ilustrativo',
+        source:
+          'Supuesto: la placa pierde los 1,2 bar de GF al caudal medio por servidor; GF no da el caudal de ese valor',
       },
       inletPressure: provenanceOf(RD109.inletPressure),
     },
@@ -257,7 +264,8 @@ export const PRESETS: Readonly<Record<CoolingPreset['id'], CoolingPreset>> = {
       layout: DIRECT_RETURN,
       plateDesignFlow: {
         origin: 'ilustrativo',
-        source: 'Supuesto: la placa pierde sus 1,2 bar al caudal medio de este preset',
+        source:
+          'Supuesto: la placa pierde los 1,2 bar de GF al caudal medio de este preset; GF no da el caudal de ese valor',
       },
       inletPressure: provenanceOf(RD109.inletPressure),
     },

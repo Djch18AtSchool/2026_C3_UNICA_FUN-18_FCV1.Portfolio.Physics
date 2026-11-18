@@ -55,6 +55,8 @@ describe('the flow rule and the parts of the circuit', () => {
     expect(UQD04.bore.value).toBe(7.24e-3);
     expect(UQD04.nominalFlow.source).toMatch(/OCP/);
     expect([UQD04.cvMin.value, UQD04.cvMax.value]).toEqual([1.1, 1.6]);
+    expect(UQD04.drawnLength.origin).toBe('ilustrativo');
+    expect(UQD04.drawnLength.source).toMatch(/longitud dibujada.*DD máx\. de 60 mm/);
   });
 
   test('MGX manifold: 35 × 60 mm tube with 3 mm wall, 1566 mm² inside, D_h = 37,7 mm, 44 ports at 44,45 mm', () => {
@@ -104,6 +106,9 @@ describe('DESCHUTES_PUMP (OCP Project Deschutes, fig. 5.1.1, PG25, two pumps)', 
     expect(psiAt500(95)).toBeCloseTo(91.9, 1);
     expect(psiAt500(90)).toBeCloseTo(80.5, 1);
     expect(DESCHUTES_PUMP.curves.map((c) => c.pwm)).toEqual([100, 95, 90, 83, 80, 75, 66, 50, 33]);
+    expect(DESCHUTES_PUMP.curveMaxFlow.value / M3S_PER_GPM).toBeCloseTo(650, 10);
+    expect(DESCHUTES_PUMP.curveMaxFlow.approximate).toBe(true);
+    expect(DESCHUTES_PUMP.curveMaxFlow.source).toMatch(/lectura aproximada/);
   });
 });
 

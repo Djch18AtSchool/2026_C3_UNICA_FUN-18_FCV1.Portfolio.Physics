@@ -227,6 +227,18 @@ describe('Review Focus 3: a single server and a tiny hose', () => {
     for (const flow of split.flows) expect(Number.isFinite(flow)).toBe(true);
   });
 
+  test('GF gives no flow for its 1,2 bar, so both presets mark the plate’s design flow as an assumption', () => {
+    expect(REFERENCE.provenance.plateDesignFlow.origin).toBe('ilustrativo');
+    expect(MGX44.provenance.plateDesignFlow.origin).toBe('ilustrativo');
+  });
+
+  test('a rack flow of 0 is rejected with a RangeError, never drawn as NaN', () => {
+    const stopped: RackConfig = { ...REFERENCE, rackFlow: 0 };
+
+    expect(() => rackProfile(stopped)).toThrow(RangeError);
+    expect(() => rackSplit(stopped)).toThrow(RangeError);
+  });
+
   test('rackPath rejects a server outside 1…N', () => {
     expect(() => rackPath(REFERENCE, 0)).toThrow(RangeError);
     expect(() => rackPath(REFERENCE, 25)).toThrow(RangeError);

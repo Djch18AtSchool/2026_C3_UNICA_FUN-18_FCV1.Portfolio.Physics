@@ -32,6 +32,8 @@ export interface Provenance {
 
 export interface SourcedValue extends Provenance {
   value: number;
+  /** A reading of a figure rather than a printed number. */
+  approximate?: boolean;
 }
 
 const sourced = (value: number, origin: ValueOrigin, source: string): SourcedValue => ({
@@ -86,7 +88,11 @@ export const UQD04 = {
   cvMax: sourced(1.6, 'producto', `${OCP_UQD}, tabla 6`),
   nominalFlow: sourced(6.44 * M3S_PER_LPM, 'producto', `${OCP_UQD}, tabla 6: 6,44 L/min`),
   bore: sourced(7.24e-3, 'producto', `${OCP_UQD}, tabla 2: boca del tapón, ØL`),
-  length: sourced(0.06, 'producto', `${OCP_UQD}, tabla 1: DD máx.`),
+  drawnLength: sourced(
+    0.06,
+    'ilustrativo',
+    `Supuesto: longitud dibujada del conector, la DD máx. de 60 mm de ${OCP_UQD}, tabla 1`,
+  ),
 } as const;
 
 const MGX_WIDTH = 0.035;
@@ -135,7 +141,14 @@ export const DESCHUTES_PUMP = {
   ratedFlow: sourced(500 * M3S_PER_GPM, 'producto', `${DESCHUTES}, §2.2: «500 GPM at 80-90 psi»`),
   ratedDpMin: sourced(80 * PA_PER_PSI, 'producto', `${DESCHUTES}, §2.2: «500 GPM at 80-90 psi»`),
   ratedDpMax: sourced(90 * PA_PER_PSI, 'producto', `${DESCHUTES}, §2.2: «500 GPM at 80-90 psi»`),
-  curveMaxFlow: sourced(650 * M3S_PER_GPM, 'producto', `${DESCHUTES}, fig. 5.1.1: rango medido`),
+  curveMaxFlow: {
+    ...sourced(
+      650 * M3S_PER_GPM,
+      'producto',
+      `${DESCHUTES}, fig. 5.1.1: final del eje de caudal, lectura aproximada`,
+    ),
+    approximate: true,
+  },
   curves: DESCHUTES_CURVES.map(([pwm, c0, c1, c2]): PumpCurve => ({
     pwm,
     c0,
