@@ -113,7 +113,7 @@ export function collide1D(m1: number, v1: number, m2: number, v2: number, e: num
 
 /**
  * How many impacts get restitution before one falls to the threshold (research §5, Paso 3):
- * N = ⌊ln(v₀/v_th)/ln(1/e)⌋ + 1, the impacts eⁿv₀ strictly above v_th (Box2D's test is strict,
+ * N = ⌈ln(v₀/v_th)/ln(1/e)⌉, the impacts eⁿv₀ strictly above v_th (Box2D's test is strict,
  * so an impact exactly at v_th sticks). 0 if v₀ ≤ v_th; Infinity when it never drops below
  * (e ≥ 1, or v_th = 0 with e > 0). For e = 0 it is 0: the formula's limit, 1, would count an
  * impact that leaves no rebound, and the `bounces` of engineStep and idealBallAt count rebounds.

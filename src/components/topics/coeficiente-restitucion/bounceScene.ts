@@ -300,7 +300,7 @@ export interface ThresholdPrediction {
 }
 
 /**
- * N = ⌊ln(v₀/v_th)/ln(1/e)⌋ + 1 and h_N = e^{2N} h₀ for the engine's pair e (research §5 Paso 3;
+ * N = ⌈ln(v₀/v_th)/ln(1/e)⌉ and h_N = e^{2N} h₀ for the engine's pair e (research §5 Paso 3;
  * kernel bouncesAboveThreshold and bounceSeries), or the impacts walked with e(v). Undefined
  * without a threshold, where the series is the ideal one.
  */

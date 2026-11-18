@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 import {
   bounceSeries,
@@ -738,5 +739,26 @@ describe('idealBallAt threshold 0', () => {
 
   test('throws instead of looping without end when flights never shrink', () => {
     expect(() => idealBallAt(1e7, 1, 1, G)).toThrow(RangeError);
+  });
+});
+
+describe('published bounce-count formula (Tema 7, equation 7.3)', () => {
+  test('la fórmula publicada, con techo, coincide con el conteo del código', () => {
+    const ceilForm = (v0: number, e: number, vth: number) =>
+      Math.ceil(Math.log(v0 / vth) / Math.log(1 / e));
+    for (const [v0, e, vth] of [
+      [4.43, 0.9, 2],
+      [4.43, 0.9, 1],
+      [3, 0.7, 0.5],
+      [10, 0.8, 1.3],
+    ] as const)
+      expect(ceilForm(v0, e, vth)).toBe(bouncesAboveThreshold(v0, e, vth));
+    expect(bouncesAboveThreshold(4, 0.5, 1)).toBe(2); // the professor's example: 4, 2 and 1 m/s
+  });
+
+  test('la ecuación (7.3) de la página usa el techo y no el piso más uno', () => {
+    const mdx = readFileSync('src/content/topics/coeficiente-restitucion.mdx', 'utf8');
+    expect(mdx).toContain('N = \\left\\lceil');
+    expect(mdx).not.toContain('\\right\\rfloor + 1');
   });
 });

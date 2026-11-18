@@ -287,7 +287,7 @@ Con <Equation inline latex="0 < e < 1" /> hay infinitos botes en un tiempo finit
 
 <Equation
   id="ec-restitucion-motor"
-  latex="\begin{gathered} T = t_0\,\frac{1+e}{1-e}, \qquad t_0 = \sqrt{\frac{2h_0}{g}} \\ j = -m_\text{ef}\,\bigl(v_n + e_\text{ef}\,v_n^-\bigr), \qquad e_\text{ef} = \begin{cases} e & \text{si } -v_n^- > v_\text{th} \\ 0 & \text{si } -v_n^- \le v_\text{th} \end{cases} \\ N = \left\lfloor \frac{\ln(v_0/v_\text{th})}{\ln(1/e)} \right\rfloor + 1 \end{gathered}"
+  latex="\begin{gathered} T = t_0\,\frac{1+e}{1-e}, \qquad t_0 = \sqrt{\frac{2h_0}{g}} \\ j = -m_\text{ef}\,\bigl(v_n + e_\text{ef}\,v_n^-\bigr), \qquad e_\text{ef} = \begin{cases} e & \text{si } -v_n^- > v_\text{th} \\ 0 & \text{si } -v_n^- \le v_\text{th} \end{cases} \\ N = \left\lceil \frac{\ln(v_0/v_\text{th})}{\ln(1/e)} \right\rceil \end{gathered}"
   symbols={[
     { symbol: 'T', meaning: 'tiempo total de botes, desde que se suelta', unit: 's' },
     {
@@ -309,7 +309,7 @@ Con <Equation inline latex="0 < e < 1" /> hay infinitos botes en un tiempo finit
     {
       symbol: 'N',
       meaning:
-        'rebotes antes de que el impacto, $e^n v_0$ con $v_0 = \\sqrt{2gh_0}$, deje de superar el umbral',
+        'rebotes: impactos $e^n v_0$, con $v_0 = \\sqrt{2gh_0}$, estrictamente por encima del umbral; uno que cae justo en $v_\\text{th}$ no rebota',
     },
   ]}
 />
@@ -324,7 +324,7 @@ Sin umbral, la pelota temblaría en microrrebotes y nunca se «dormiría» <Cite
 
 <Fragment slot="ecuacion">
 
-El impulso deja la velocidad normal en <Equation inline latex="-e\,v_n^-" />, la (7.1). Los impactos bajan como <Equation inline latex="e^n v_0" />, y el umbral corta la serie en $N$ botes; con Box2D, 15.
+El impulso deja la velocidad normal en <Equation inline latex="-e\,v_n^-" />, la (7.1). Los impactos bajan como <Equation inline latex="e^n v_0" />, y el umbral corta la serie en $N$ botes; con Box2D, 15. Con <Equation inline latex="v_0 = 4" /> m/s, <Equation inline latex="v_\text{th} = 1" /> m/s y <Equation inline latex="e = 0{,}5" />, los impactos son de 4, 2 y 1 m/s; el tercero, justo en el umbral, no rebota: <Equation inline latex="N = 2" />.
 
 </Fragment>
 
