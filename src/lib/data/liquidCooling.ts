@@ -1,27 +1,21 @@
 import {
-  branchFlows,
-  circuitProfile,
   M3S_PER_GPM,
   M3S_PER_LPM,
   PA_PER_BAR,
   PA_PER_PSI,
-  powerLawCurve,
-  seriesLoss,
-  type BranchFlowsResult,
   type Fluid,
-  type LossCurve,
-  type ProfilePoint,
   type ReturnLayout,
-  type Segment,
 } from '../physics/hydraulics';
-import { requireFinite } from '../physics/validate';
+import { propyleneGlycolWater } from '../physics/propyleneGlycol';
 
 /*
- * Tema 13 data: the liquid-cooling circuit of a GB200 NVL72-class rack (Schneider RD109 analysed
- * by GF), its parts from open specifications (OCP UQD v2.0.0, NVIDIA MGX, Google Project
- * Deschutes), the fluid (Melinder via LBNL) and the per-port flows measured by Shahi et al.
- * (2023). Every number: docs/superpowers/research/2026-11-17-enfriamiento-liquido.md (§5 values,
- * §7 reference calculation), accessed 2026-11-17. SI units unless a name says otherwise.
+ * Tema 13 sourced catalogue: the values of the liquid-cooling circuit of a GB200 NVL72-class rack
+ * (Schneider RD109 analysed by GF), its parts from open specifications (OCP UQD v2.0.0, NVIDIA
+ * MGX, Google Project Deschutes), the fluid (Melinder via LBNL) and the per-port flows measured by
+ * Shahi et al. (2023), each with its origin and source. The path and the presets built from them
+ * live in liquidCoolingCircuit.ts. Every number: docs/superpowers/research/
+ * 2026-11-17-enfriamiento-liquido.md (§5 values, §7 reference calculation), accessed 2026-11-17.
+ * SI units unless a name says otherwise.
  */
 
 /**
@@ -57,62 +51,6 @@ const EPANET = 'US EPA, EPANET 2.2 User Manual';
 const GF = 'Freda y Kugele (GF Piping Systems), Hydraulic design principles for DLC (2026)';
 const SHAHI = 'Shahi et al., IPACK2023-114351 (ASME InterPACK 2023)';
 const FT = 0.3048;
-
-/*
- * Propylene glycol–water from Melinder (2010), as Modelica Buildings v14.0.0 codes it
- * (Buildings/Media/Antifreeze/Functions/PropyleneGlycolWater.mo): a polynomial in the mass
- * fraction and the temperature around a reference point (prototype pg_props.py).
- */
-const MELINDER = {
-  massFractionRef: 0.307031,
-  temperatureRef: 32.7083,
-  maxMassFraction: 0.6,
-  termsPerPower: [4, 4, 4, 3, 2, 1],
-  density: [
-    1.018e3, -5.406e-1, -2.666e-3, 1.347e-5, 7.604e-1, -9.45e-3, 5.541e-5, -1.343e-7, -2.498e-3,
-    2.7e-5, -4.018e-7, 3.376e-9, -1.55e-4, 2.829e-6, -7.175e-9, -1.131e-6, -2.221e-8, 2.342e-8,
-  ],
-  logViscosity: [
-    6.837e-1, -3.045e-2, 2.525e-4, -1.399e-6, 3.328e-2, -3.984e-4, 4.332e-6, -1.86e-8, 5.453e-5,
-    -8.6e-8, -1.593e-8, -4.465e-11, -3.9e-6, 1.054e-7, -1.589e-9, -1.587e-8, 4.475e-10, 3.564e-9,
-  ],
-} as const;
-
-function melinder(coefficients: readonly number[], massFraction: number, tC: number): number {
-  const dx = 100 * (massFraction - MELINDER.massFractionRef);
-  const dt = tC - MELINDER.temperatureRef;
-  const terms = MELINDER.termsPerPower.flatMap((count, i) =>
-    Array.from({ length: count }, (_, j) => dx ** i * dt ** j),
-  );
-  return terms.reduce((sum, term, n) => sum + coefficients[n] * term, 0);
-}
-
-const density = (massFraction: number, tC: number) => melinder(MELINDER.density, massFraction, tC);
-
-/** MBL's volumeToMassFraction: the glycol density extrapolated from 60 % to pure glycol. */
-export function volumeToMassFraction(volumeFraction: number, tC: number): number {
-  const xMax = MELINDER.maxMassFraction;
-  const water = density(0, tC);
-  const glycol =
-    density(xMax, tC) + ((1 - xMax) * (density(xMax, tC) - density(xMax - 0.01, tC))) / 0.01;
-  return (volumeFraction * glycol) / (volumeFraction * glycol + (1 - volumeFraction) * water);
-}
-
-/** MBL converts the volume fraction at 20 °C. */
-const MIXING_TEMPERATURE_C = 20;
-
-/** PG–water by volume fraction (mixed at 20 °C, as MBL) at temperature tC (°C). */
-export function propyleneGlycolWater(volumeFraction: number, tC: number): Fluid {
-  requireFinite('tC', tC);
-  if (!(volumeFraction >= 0 && volumeFraction <= 1)) {
-    throw new RangeError(`volumeFraction must be between 0 and 1, got ${volumeFraction}`);
-  }
-  const x = volumeToMassFraction(volumeFraction, MIXING_TEMPERATURE_C);
-  if (x > MELINDER.maxMassFraction) {
-    throw new RangeError(`mass fraction ${x} is beyond Melinder's fit (0.6)`);
-  }
-  return { rho: density(x, tC), mu: 1e-3 * Math.exp(melinder(MELINDER.logViscosity, x, tC)) };
-}
 
 /**
  * PG25 (25 % propylene glycol by volume) at 40 °C, the RD109 supply: ρ = 1010,6 kg/m³ and
@@ -270,6 +208,11 @@ export const GF_PUBLISHED = {
     'producto',
     `${GF}: «maximum velocity in the pipework was 1.7 m/s»`,
   ),
+  cfdManifoldFlow: sourced(
+    170 * M3S_PER_LPM,
+    'producto',
+    `${GF}, fig. 5: 44 ramas, «The volume flow is defined as 170 l/min»`,
+  ),
   breakdown: GF_BREAKDOWN_BAR.map(([id, label, bar]) => ({
     id,
     label,
@@ -297,243 +240,3 @@ export const SHAHI_2023_PORT_FLOWS = {
     source: `${SHAHI}, fig. 4: medición, lectura aproximada de la figura`,
   },
 } as const;
-
-/** What sizes one rack's circuit; every preset says where each field comes from. */
-export interface RackConfig {
-  /** Racks on the CDU: the main pipe carries all of them. */
-  racks: number;
-  /** Servers on the manifold, one per port. */
-  servers: number;
-  /** Flow into the rack (m³/s). */
-  rackFlow: number;
-  serverHoseDiameter: number;
-  layout: ReturnLayout;
-  /** Server flow (m³/s) at which the cold plate drops RD109.plateDrop. */
-  plateDesignFlow: number;
-  /** Absolute pressure at the CDU outlet (Pa). */
-  inletPressure: number;
-}
-
-export interface CoolingPreset extends RackConfig {
-  id: 'referencia24' | 'mgx44';
-  label: string;
-  provenance: Readonly<Record<keyof RackConfig, Provenance>>;
-}
-
-/** Mean flow per server (m³/s). */
-export function serverFlow(config: RackConfig): number {
-  return config.rackFlow / config.servers;
-}
-
-const PLASTIC = EPANET_VALUES.roughnessPlastic.value;
-const STEEL = EPANET_VALUES.roughnessSteel.value;
-const TEE_K = EPANET_VALUES.teeK.value;
-const PITCH = MGX_MANIFOLD.portPitch.value;
-type Direction = 'ida' | 'vuelta';
-
-/** One piece of the MGX manifold between two ports, rising one pitch (the split's header). */
-export const MANIFOLD_PIECE: Segment = {
-  id: 'manifold',
-  label: 'Tramo de manifold',
-  length: PITCH,
-  diameter: MGX_MANIFOLD.hydraulicDiameter.value,
-  area: MGX_MANIFOLD.innerArea.value,
-  roughness: STEEL,
-  dy: PITCH,
-};
-
-const manifoldPiece = (id: string, label: string, servers: number, dy: number): Segment => ({
-  ...MANIFOLD_PIECE,
-  id,
-  label,
-  dy,
-  flowMultiple: servers,
-});
-
-function mainPipe(direction: Direction, config: RackConfig): Segment {
-  return {
-    id: `tuberia-${direction}`,
-    label: `Tubería principal (${direction})`,
-    length: RD109.mainPipeLength.value,
-    diameter: RD109.mainPipeDiameter.value,
-    roughness: PLASTIC,
-    dy: 0,
-    flowMultiple: config.racks * config.servers,
-  };
-}
-
-function rackHose(direction: Direction, config: RackConfig, dy: number): Segment {
-  return {
-    id: `manguera-rack-${direction}`,
-    label: `Te y manguera de rack (${direction})`,
-    length: RD109.rackHoseLength.value,
-    diameter: RD109.rackHoseDiameter.value,
-    roughness: PLASTIC,
-    dy,
-    K: TEE_K,
-    flowMultiple: config.servers,
-  };
-}
-
-/** The parallel branch of one server, port to port: tee and hose, UQD04, cold plate and back. */
-export function serverBranch(config: RackConfig): Segment[] {
-  const hose = (direction: Direction): Segment => ({
-    id: `manguera-servidor-${direction}`,
-    label: `Te y manguera del servidor (${direction})`,
-    length: RD109.serverHoseLength.value,
-    diameter: config.serverHoseDiameter,
-    roughness: PLASTIC,
-    dy: 0,
-    K: TEE_K,
-  });
-  const uqd = (direction: Direction): Segment => ({
-    id: `uqd-${direction}`,
-    label: `UQD04 (${direction})`,
-    length: UQD04.length.value,
-    diameter: UQD04.bore.value,
-    roughness: STEEL,
-    dy: 0,
-    cv: UQD04.cv.value,
-  });
-  const plate: Segment = {
-    id: 'placa-fria',
-    label: 'Placa fría y tubería interna',
-    length: RD109.plateLength.value,
-    diameter: config.serverHoseDiameter,
-    roughness: PLASTIC,
-    dy: 0,
-    curve: powerLawCurve(RD109.plateDrop.value, config.plateDesignFlow, RD109.plateExponent.value),
-  };
-  return [hose('ida'), uqd('ida'), plate, uqd('vuelta'), hose('vuelta')];
-}
-
-const ports = (from: number, to: number) =>
-  Array.from({ length: Math.abs(to - from) + 1 }, (_, i) => (to >= from ? from + i : from - i));
-
-/**
- * The path CDU → main pipe → rack hose → supply manifold up to `server` (1 = bottom) → branch →
- * return manifold → rack hose → main pipe → CDU (research §7.1). Each segment's flowMultiple
- * counts the servers whose flow it carries, so the path flow is one server's mean flow. Direct
- * return goes back down to the outlet below port 1; reverse return climbs to the outlet above
- * port N and the rack hose brings it down.
- */
-export function rackPath(config: RackConfig, server = config.servers): Segment[] {
-  const n = config.servers;
-  if (!Number.isInteger(server) || server < 1 || server > n) {
-    throw new RangeError(`server must be an integer between 1 and ${n}, got ${server}`);
-  }
-  const supply = ports(1, server).map((j) =>
-    manifoldPiece(`manifold-ida-${j}`, 'Manifold de impulsión', n - j + 1, PITCH),
-  );
-  const isDirect = config.layout === 'directo';
-  const back = isDirect
-    ? ports(server, 1).map((p) =>
-        manifoldPiece(`manifold-vuelta-${p}`, 'Manifold de retorno', n - p + 1, -PITCH),
-      )
-    : ports(server, n).map((p) =>
-        manifoldPiece(`manifold-vuelta-${p}`, 'Manifold de retorno', p, PITCH),
-      );
-  const outletHeight = isDirect ? 0 : (n + 1) * PITCH;
-  return [
-    mainPipe('ida', config),
-    rackHose('ida', config, 0),
-    ...supply,
-    ...serverBranch(config),
-    ...back,
-    rackHose('vuelta', config, -outletHeight),
-    mainPipe('vuelta', config),
-  ];
-}
-
-/** The branch as one curve: its loss at the mean server flow, with the cold plate's exponent. */
-export function branchCurve(config: RackConfig, f: Fluid = PG25_40C): LossCurve {
-  const q = serverFlow(config);
-  return powerLawCurve(seriesLoss(serverBranch(config), q, f), q, RD109.plateExponent.value);
-}
-
-/** Per-server flows of the rack (branchFlows over the MGX manifold). */
-export function rackSplit(config: RackConfig, f: Fluid = PG25_40C): BranchFlowsResult {
-  return branchFlows({
-    Qrack: config.rackFlow,
-    branchCurve: branchCurve(config, f),
-    header: MANIFOLD_PIECE,
-    ports: config.servers,
-    layout: config.layout,
-    f,
-  });
-}
-
-/** v(x) and p(x) along the path to `server`, at the mean server flow. */
-export function rackProfile(
-  config: RackConfig,
-  server = config.servers,
-  f: Fluid = PG25_40C,
-): ProfilePoint[] {
-  return circuitProfile(rackPath(config, server), serverFlow(config), f, config.inletPressure);
-}
-
-const provenanceOf = ({ origin, source }: Provenance): Provenance => ({ origin, source });
-const REFERENCE_RACK_FLOW = RD109.cduFlow.value / RD109.racks.value;
-const MGX_RACK_FLOW = 170 * M3S_PER_LPM;
-const DIRECT_RETURN: Provenance = {
-  origin: 'ilustrativo',
-  source: 'Supuesto: retorno directo, con la entrada y la salida abajo',
-};
-
-export const PRESETS: Readonly<Record<CoolingPreset['id'], CoolingPreset>> = {
-  referencia24: {
-    id: 'referencia24',
-    label: 'Referencia: 24 servidores (RD109)',
-    racks: RD109.racks.value,
-    servers: RD109.servers.value,
-    rackFlow: REFERENCE_RACK_FLOW,
-    serverHoseDiameter: RD109.serverHoseDiameter.value,
-    layout: 'directo',
-    plateDesignFlow: REFERENCE_RACK_FLOW / RD109.servers.value,
-    inletPressure: RD109.inletPressure.value,
-    provenance: {
-      racks: provenanceOf(RD109.racks),
-      servers: provenanceOf(RD109.servers),
-      rackFlow: { origin: 'calculo', source: `Cálculo propio: los 23 L/s de ${GF} entre 8 racks` },
-      serverHoseDiameter: provenanceOf(RD109.serverHoseDiameter),
-      layout: DIRECT_RETURN,
-      plateDesignFlow: {
-        origin: 'calculo',
-        source: 'Cálculo propio: el caudal medio por servidor, al que GF da 1,2 bar',
-      },
-      inletPressure: provenanceOf(RD109.inletPressure),
-    },
-  },
-  mgx44: {
-    id: 'mgx44',
-    label: 'MGX: 44 puertos',
-    racks: RD109.racks.value,
-    servers: MGX_MANIFOLD.ports.value,
-    rackFlow: MGX_RACK_FLOW,
-    serverHoseDiameter: RD109.serverHoseDiameter.value,
-    layout: 'directo',
-    plateDesignFlow: MGX_RACK_FLOW / MGX_MANIFOLD.ports.value,
-    inletPressure: RD109.inletPressure.value,
-    provenance: {
-      racks: {
-        origin: 'ilustrativo',
-        source: 'Supuesto: el mismo CDU de 8 racks que la referencia',
-      },
-      servers: provenanceOf(MGX_MANIFOLD.ports),
-      rackFlow: {
-        origin: 'producto',
-        source: `${GF}, fig. 5: «The volume flow is defined as 170 l/min»`,
-      },
-      serverHoseDiameter: provenanceOf(RD109.serverHoseDiameter),
-      layout: DIRECT_RETURN,
-      plateDesignFlow: {
-        origin: 'ilustrativo',
-        source: 'Supuesto: la placa pierde sus 1,2 bar al caudal medio de este preset',
-      },
-      inletPressure: provenanceOf(RD109.inletPressure),
-    },
-  },
-};
-
-/** The research §7.1 reference: the path to the farthest server (24th, top), direct return. */
-export const RD109_CIRCUIT: readonly Segment[] = rackPath(PRESETS.referencia24);
