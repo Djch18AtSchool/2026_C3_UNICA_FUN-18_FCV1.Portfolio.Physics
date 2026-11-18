@@ -3,20 +3,10 @@ import {
   activeMarkerIndex,
   formatTimestamp,
   formatVideoDate,
-  requireEmbeddedVideo,
-  type EmbeddedVideo,
-  type VideoMarker,
+  requireMarkersInside,
 } from './videoMarkers';
 
-const VIDEO: EmbeddedVideo = {
-  id: 'CaPHUZapCTI',
-  title: "A Game Developer Explains How PS5's DualSense Actually Works",
-  channel: 'PlayStation Access',
-  published: '2021-08-05',
-  duration: 610,
-};
-
-const marker = (time: number): VideoMarker => ({ time, title: 't', analysis: 'a' });
+const marker = (time: number) => ({ time });
 
 describe('formatTimestamp', () => {
   test('writes minutes and two-digit seconds', () => {
@@ -56,25 +46,20 @@ describe('activeMarkerIndex', () => {
   });
 });
 
-describe('requireEmbeddedVideo', () => {
-  test('returns a valid video with markers inside it, in order', () => {
-    const markers = [marker(138), marker(255)];
-
-    expect(requireEmbeddedVideo(VIDEO, markers)).toBe(VIDEO);
+describe('requireMarkersInside', () => {
+  test('accepts markers inside the medium, in ascending order', () => {
+    expect(() => requireMarkersInside([marker(0), marker(138), marker(609.9)], 610)).not.toThrow();
   });
 
-  test('rejects an invalid id, a non-positive duration or a date that is not a day', () => {
-    expect(() => requireEmbeddedVideo({ ...VIDEO, id: 'x' }, [])).toThrow(RangeError);
-    expect(() => requireEmbeddedVideo({ ...VIDEO, duration: 0 }, [])).toThrow(/duración/);
-    expect(() => requireEmbeddedVideo({ ...VIDEO, published: '5/8/2021' }, [])).toThrow(/fecha/);
-    expect(() => requireEmbeddedVideo({ ...VIDEO, published: '2021-13-45' }, [])).toThrow(/fecha/);
-    expect(() => requireEmbeddedVideo({ ...VIDEO, published: '2021-02-30' }, [])).toThrow(/fecha/);
+  test('rejects a marker outside [0, duration), naming the medium', () => {
+    expect(() => requireMarkersInside([marker(610)], 610)).toThrow(
+      new RangeError('La marca de 610 s está fuera del video (0 a 610 s)'),
+    );
+    expect(() => requireMarkersInside([marker(-1)], 4, 'audio')).toThrow(/fuera del audio/);
   });
 
-  test('rejects markers outside the video or out of order', () => {
-    expect(() => requireEmbeddedVideo(VIDEO, [marker(611)])).toThrow(/fuera del video/);
-    expect(() => requireEmbeddedVideo(VIDEO, [marker(-1)])).toThrow(/fuera del video/);
-    expect(() => requireEmbeddedVideo(VIDEO, [marker(255), marker(138)])).toThrow(/orden/);
-    expect(() => requireEmbeddedVideo(VIDEO, [marker(138), marker(138)])).toThrow(/orden/);
+  test('rejects markers out of order or repeated', () => {
+    expect(() => requireMarkersInside([marker(255), marker(138)], 610)).toThrow(/orden/);
+    expect(() => requireMarkersInside([marker(138), marker(138)], 610)).toThrow(/orden/);
   });
 });

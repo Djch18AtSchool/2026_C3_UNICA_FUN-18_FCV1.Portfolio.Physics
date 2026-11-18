@@ -1,29 +1,10 @@
-import { requireVideoId } from './youtube';
-
-/** A third-party video embedded from YouTube, with what its credit line needs. */
-export interface EmbeddedVideo {
-  /** YouTube id, 11 characters. */
-  id: string;
-  /** Original title, as the channel published it. */
-  title: string;
-  channel: string;
-  /** Publication day, YYYY-MM-DD. */
-  published: string;
-  /** Length, s. */
-  duration: number;
-}
-
-/** One analysed instant of the video: when (s), its title and the written analysis. */
-export interface VideoMarker {
-  time: number;
-  title: string;
-  analysis: string;
-}
-
+/**
+ * The timed markers of an analysed medium (AnalyzedMedia): how a time reads, which marker the
+ * playback has reached, and the check that every marker lies inside the medium.
+ */
 const SECONDS_PER_MINUTE = 60;
 /** A seek lands on the nearest frame, a few ms before the requested time; still "at" the marker. */
 const SEEK_TOLERANCE_S = 0.05;
-const DAY = /^\d{4}-\d{2}-\d{2}$/;
 // Calendar days ("2021-08-05"): formatted in UTC so the day never shifts.
 const DATE_FORMAT = new Intl.DateTimeFormat('es-CR', { dateStyle: 'long', timeZone: 'UTC' });
 
@@ -44,16 +25,18 @@ export function activeMarkerIndex(times: readonly number[], time: number): numbe
   return times.map((markerTime) => markerTime <= time + SEEK_TOLERANCE_S).lastIndexOf(true);
 }
 
-/** "2021-08-05" is a day; "5/8/2021" or "2021-02-30" are not (the round trip must match). */
-function isCalendarDay(text: string): boolean {
-  const date = new Date(text);
-  return DAY.test(text) && !Number.isNaN(date.getTime()) && date.toISOString().startsWith(text);
-}
-
-function requireMarkersInside(markers: readonly VideoMarker[], duration: number): void {
+/**
+ * Fails the build unless every marker lies inside the medium, [0, `duration`) s, in ascending
+ * order; `noun` names the medium in the message ("video", "audio").
+ */
+export function requireMarkersInside(
+  markers: readonly { time: number }[],
+  duration: number,
+  noun = 'video',
+): void {
   markers.forEach(({ time }, index) => {
     if (!(time >= 0 && time < duration)) {
-      throw new RangeError(`La marca de ${time} s está fuera del video (0 a ${duration} s)`);
+      throw new RangeError(`La marca de ${time} s está fuera del ${noun} (0 a ${duration} s)`);
     }
     if (index > 0 && time <= markers[index - 1].time) {
       throw new RangeError(
@@ -61,23 +44,4 @@ function requireMarkersInside(markers: readonly VideoMarker[], duration: number)
       );
     }
   });
-}
-
-/**
- * The video, if its data can be trusted to build the player: a valid id, a positive duration, a
- * publication day and markers inside the video in ascending order. Fails the build otherwise.
- */
-export function requireEmbeddedVideo(
-  video: EmbeddedVideo,
-  markers: readonly VideoMarker[],
-): EmbeddedVideo {
-  requireVideoId(video.id);
-  if (!(video.duration > 0)) {
-    throw new RangeError(`La duración del video debe ser positiva, no ${video.duration} s`);
-  }
-  if (!isCalendarDay(video.published)) {
-    throw new RangeError(`La fecha del video debe ser AAAA-MM-DD, no "${video.published}"`);
-  }
-  requireMarkersInside(markers, video.duration);
-  return video;
 }

@@ -86,8 +86,8 @@ import Cite from '../../components/ui/Cite.astro';
 import Callout from '../../components/ui/Callout.astro';
 import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
+import AnalyzedMedia from '../../components/media/AnalyzedMedia';
 import HapticFigure from '../../components/topics/control-haptico/HapticFigure';
-import HapticVideo from '../../components/topics/control-haptico/HapticVideo';
 import TriggerLab from '../../components/topics/control-haptico/TriggerLab';
 import { SLOW_MOTION } from '../../components/topics/control-haptico/triggerScene';
 
@@ -273,9 +273,11 @@ Para <Equation inline latex="x \ge x_0" />, la (5.4) es la (5.2) corrida a <Equa
     url: 'https://www.youtube.com/watch?v=CaPHUZapCTI',
   }}
 >
-  <HapticVideo
+  <AnalyzedMedia
     client:visible
-    video={{
+    testId="haptic-video"
+    source={{
+      kind: 'youtube',
       id: 'CaPHUZapCTI',
       title: "A Game Developer Explains How PS5's DualSense Actually Works",
       channel: 'PlayStation Access',

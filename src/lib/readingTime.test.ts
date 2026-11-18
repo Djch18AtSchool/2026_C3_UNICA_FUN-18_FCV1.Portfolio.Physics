@@ -77,7 +77,7 @@ describe('readingMinutes', () => {
   });
 
   test('las props que no se leen (id, latex, src, variant, símbolos) no suman palabras', () => {
-    const tag = `<HapticVideo id="${tokens(10)}" src="${tokens(10)}" variant="${tokens(10)}" poster='${tokens(10)}' symbols={[{ symbol: '${tokens(10)}', unit: '${tokens(10)}' }]} />`;
+    const tag = `<AnalyzedMedia id="${tokens(10)}" src="${tokens(10)}" variant="${tokens(10)}" poster='${tokens(10)}' symbols={[{ symbol: '${tokens(10)}', unit: '${tokens(10)}' }]} />`;
 
     expect(readingStats(`${words(10)}\n${tag}`)).toEqual({
       proseWords: 10,

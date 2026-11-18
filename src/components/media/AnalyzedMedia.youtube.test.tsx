@@ -2,19 +2,20 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import type { EmbeddedVideo, VideoMarker } from '../../../lib/videoMarkers';
-import { YOUTUBE_EMBED_ORIGIN } from '../../../lib/youtube';
-import { mathSourceText } from '../../../test-inline-math';
-import HapticVideo from './HapticVideo';
+import type { MediaMarker, YouTubeSource } from '../../lib/media';
+import { YOUTUBE_EMBED_ORIGIN } from '../../lib/youtube';
+import { mathSourceText } from '../../test-inline-math';
+import AnalyzedMedia from './AnalyzedMedia';
 
-const VIDEO: EmbeddedVideo = {
+const VIDEO: YouTubeSource = {
+  kind: 'youtube',
   id: 'CaPHUZapCTI',
   title: "A Game Developer Explains How PS5's DualSense Actually Works",
   channel: 'PlayStation Access',
   published: '2021-08-05',
   duration: 610,
 };
-const MARKERS: VideoMarker[] = [
+const MARKERS: MediaMarker[] = [
   { time: 138, title: 'Vibración', analysis: 'Un altavoz, no un resorte.' },
   { time: 198, title: 'Un motor empuja', analysis: 'Tercera ley.' },
   { time: 255, title: 'El arco', analysis: 'La tensión crece con el recorrido.' },
@@ -24,7 +25,7 @@ const STILL = `https://i.ytimg.com/vi/${VIDEO.id}`;
 const PLAY = /^Reproducir el video aquí/;
 
 function renderPlayer() {
-  return render(<HapticVideo video={VIDEO} markers={MARKERS} />);
+  return render(<AnalyzedMedia source={VIDEO} markers={MARKERS} testId="haptic-video" />);
 }
 
 function frame(): HTMLIFrameElement {
@@ -53,7 +54,7 @@ function sentMessages(spy: { mock: { calls: unknown[][] } }): unknown[] {
   return spy.mock.calls.map(([message]) => JSON.parse(String(message)));
 }
 
-describe('HapticVideo', () => {
+describe('AnalyzedMedia, YouTube', () => {
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
@@ -61,7 +62,9 @@ describe('HapticVideo', () => {
 
   test('without JS (server render) the facade and every marker link to YouTube, with no embed', () => {
     const container = document.createElement('div');
-    container.innerHTML = renderToString(<HapticVideo video={VIDEO} markers={MARKERS} />);
+    container.innerHTML = renderToString(
+      <AnalyzedMedia source={VIDEO} markers={MARKERS} testId="haptic-video" />,
+    );
 
     const facade = container.querySelector('[data-testid="haptic-video-facade"]');
     expect(facade?.tagName).toBe('A');
@@ -91,12 +94,14 @@ describe('HapticVideo', () => {
 
   test('an analysis with $…$ is typeset as KaTeX, in the server render too', () => {
     const markers = [{ time: 138, title: 'Vibración', analysis: 'Amplitud $F_0$ constante.' }];
-    render(<HapticVideo video={VIDEO} markers={markers} />);
+    render(<AnalyzedMedia source={VIDEO} markers={markers} testId="haptic-video" />);
 
     const analysis = screen.getByTestId('marker-analysis');
     expect(analysis.querySelector('.katex')).not.toBeNull();
     expect(mathSourceText(analysis)).toBe('Amplitud $F_0$ constante.');
-    expect(renderToString(<HapticVideo video={VIDEO} markers={markers} />)).toContain('katex');
+    expect(
+      renderToString(<AnalyzedMedia source={VIDEO} markers={markers} testId="haptic-video" />),
+    ).toContain('katex');
   });
 
   test('the facade shows only the still, the title and the play control', () => {
@@ -324,11 +329,15 @@ describe('HapticVideo', () => {
   test('invalid video data fails the render with a clear message', () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    expect(() => render(<HapticVideo video={{ ...VIDEO, id: 'bad' }} markers={MARKERS} />)).toThrow(
-      /identificador de YouTube/,
-    );
-    expect(() => render(<HapticVideo video={VIDEO} markers={[...MARKERS].reverse()} />)).toThrow(
-      /orden creciente/,
-    );
+    expect(() =>
+      render(
+        <AnalyzedMedia source={{ ...VIDEO, id: 'bad' }} markers={MARKERS} testId="haptic-video" />,
+      ),
+    ).toThrow(/identificador de YouTube/);
+    expect(() =>
+      render(
+        <AnalyzedMedia source={VIDEO} markers={[...MARKERS].reverse()} testId="haptic-video" />,
+      ),
+    ).toThrow(/orden creciente/);
   });
 });

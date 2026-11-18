@@ -5,7 +5,7 @@ import {
   parsePlayerMessage,
   playerCommand,
   YOUTUBE_EMBED_ORIGIN,
-} from '../../../lib/youtube';
+} from '../../lib/youtube';
 
 /** No iframe yet (privacy facade); an iframe that has not answered; a player that answers. */
 export type PlayerPhase = 'facade' | 'loading' | 'connected';
