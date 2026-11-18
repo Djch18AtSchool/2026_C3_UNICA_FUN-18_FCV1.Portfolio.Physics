@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { hydrateAllIslands, labOrPlaceholder, waitForIsland } from './helpers';
 import { TOPICS, topicsByPhase } from '../../src/consigna';
+import { FUTURE_PHASES } from './phasesKit';
 import { TOPIC_PAGES } from './topicPages';
 
 /** Topics of the Avance 1, the phase open on a topic of it. */
@@ -58,7 +59,7 @@ test('el cajón de temas se abre en móvil y lista los temas', async ({ page }) 
     await expect(link).toBeVisible();
   }
   await expect(nav.locator('[data-outline-current]')).toBeVisible();
-  for (const phase of [3]) {
+  for (const phase of FUTURE_PHASES) {
     const future = nav.locator(`[data-phase-future="${phase}"]`);
     await expect(future.getByRole('button')).toBeDisabled();
     await expect(future).toContainText('se publica con su consigna');

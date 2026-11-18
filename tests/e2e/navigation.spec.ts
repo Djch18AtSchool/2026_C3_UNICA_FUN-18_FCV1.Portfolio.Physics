@@ -1,13 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { PHASE_LABELS, PHASES, REPO_URL, TOPICS, topicsByPhase } from '../../src/consigna';
+import { FUTURE_PHASES, PUBLISHED_PHASES } from './phasesKit';
 
-/** A phase is future iff no registered topic belongs to it. */
-const phaseIndexes = (isFuture: boolean) =>
-  PHASES.flatMap((phase, index) =>
-    (topicsByPhase(phase, TOPICS).length === 0) === isFuture ? [index] : [],
-  );
-const FUTURE_PHASE_INDEXES = phaseIndexes(true);
-const PUBLISHED_PHASE_INDEXES = phaseIndexes(false);
+/** Position of each phase in the cover's groups. */
+const FUTURE_PHASE_INDEXES = FUTURE_PHASES.map((phase) => PHASES.indexOf(phase));
+const PUBLISHED_PHASE_INDEXES = PUBLISHED_PHASES.map((phase) => PHASES.indexOf(phase));
 
 test('la portada lista los temas con sus títulos exactos agrupados por avance', async ({
   page,

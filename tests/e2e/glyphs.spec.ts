@@ -1,5 +1,5 @@
 /**
- * The glyph guard (ruling R4): in the nine topic pages and the cover, at 1 280 and 360 px, light
+ * The glyph guard (ruling R4): in every topic page and the cover, at 1 280 and 360 px, light
  * and dark, no text outside KaTeX holds a character IBM Plex does not draw or a notation mark left
  * raw (`_`, `^`, `$`), and the fonts the browser really used (CSS.getPlatformFontsForNode) are only
  * IBM Plex Sans, IBM Plex Mono and KaTeX_*: never a system font. The second check is the one that

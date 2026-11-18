@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
-import { PHASE_LABELS, PHASES, TOPICS, topicsByPhase } from '../../src/consigna';
+import { PHASE_LABELS, TOPICS, topicsByPhase } from '../../src/consigna';
+import { FUTURE_PHASES, PUBLISHED_PHASES } from './phasesKit';
 
 /**
  * Names and slugs the final delivery's topics had while the site listed them by name only. A name
@@ -24,10 +25,7 @@ const RETIRED_NAMES = [
 ].filter((name) => !REGISTERED_TITLES.some((title) => title.includes(name.toLowerCase())));
 const DIST_DIR = join(process.cwd(), 'dist');
 const TEXT_FILE = /\.(html|js|mjs|css|json|txt|xml|svg)$/;
-/** A phase is future iff no registered topic belongs to it. */
-const FUTURE_PHASES = PHASES.filter((phase) => topicsByPhase(phase, TOPICS).length === 0);
 const FUTURE_PHASE_LABELS = FUTURE_PHASES.map((phase) => PHASE_LABELS[phase]);
-const PHASES_WITH_TOPICS = PHASES.filter((phase) => topicsByPhase(phase, TOPICS).length > 0);
 /** The pages that are not a topic: the cover and the 404. */
 const NON_TOPIC_PAGES = ['404.html', 'index.html'];
 
@@ -87,7 +85,7 @@ test('la portada conserva cada fase futura, solo con su insignia', async ({ page
   }
 });
 
-for (const phase of PHASES_WITH_TOPICS) {
+for (const phase of PUBLISHED_PHASES) {
   const label = PHASE_LABELS[phase];
   const count = topicsByPhase(phase, TOPICS).length;
   test(`la portada muestra ${label} con sus ${count} temas`, async ({ page }) => {

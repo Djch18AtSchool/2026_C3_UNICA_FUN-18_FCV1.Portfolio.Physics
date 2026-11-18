@@ -2,12 +2,14 @@ import { expect, test, type Page } from '@playwright/test';
 import { PHASE_LABELS, TOPICS, type Phase } from '../../src/consigna';
 import { NAV_CLOSED, NAV_OPEN, phaseKey } from '../../src/lib/navState';
 import { waitForIsland } from './helpers';
+import { CURRENT_PHASE, FUTURE_PHASES, PUBLISHED_PHASES } from './phasesKit';
 
 const DESKTOP = { width: 1280, height: 800 };
 const TALL = { width: 1280, height: 2000 };
 const PHASE_1_TOPIC = './temas/dron-reparto/';
 const NOT_FOUND_PAGE = './no-existe/';
-const FUTURE_PHASES = [3] as const;
+const FIRST_FUTURE_PHASE = FUTURE_PHASES[0];
+const NO_FUTURE_PHASE = 'Todas las entregas tienen temas';
 const FUTURE_NOTE = 'se publica con su consigna';
 
 test.use({ viewport: DESKTOP });
@@ -45,15 +47,20 @@ test('en un tema del Avance 1, el Avance 1 está desplegado y las fases futuras 
 
   await expect(phase(page, 1)).toHaveAttribute('open', '');
   await expect(phase(page, 1).locator('> summary')).toHaveText('Avance 1');
-  await expect(phase(page, 2).locator('> summary')).toHaveText('Avance 2');
-  await expect(page.locator('nav[aria-label="Temas"] details[data-phase]')).toHaveCount(2);
+  for (const n of PUBLISHED_PHASES) {
+    await expect(phase(page, n).locator('> summary')).toHaveText(PHASE_LABELS[n]);
+  }
+  await expect(page.locator('nav[aria-label="Temas"] details[data-phase]')).toHaveCount(
+    PUBLISHED_PHASES.length,
+  );
   await expectFuturePhasesDisabled(page);
 });
 
 test('los encabezados de fase van en mayúsculas pequeñas', async ({ page }) => {
+  test.skip(FUTURE_PHASES.length === 0, NO_FUTURE_PHASE);
   await page.goto(PHASE_1_TOPIC);
   const summary = phase(page, 1).locator('> summary');
-  const header = futurePhase(page, 3).getByRole('button');
+  const header = futurePhase(page, FIRST_FUTURE_PHASE).getByRole('button');
 
   await expect(summary).toHaveCSS('text-transform', 'uppercase');
   await expect(summary).toHaveCSS('font-size', '12px');
@@ -66,8 +73,9 @@ test('los encabezados de fase van en mayúsculas pequeñas', async ({ page }) =>
 });
 
 test('el encabezado de una fase futura no responde al clic ni recibe el foco', async ({ page }) => {
+  test.skip(FUTURE_PHASES.length === 0, NO_FUTURE_PHASE);
   await page.goto(PHASE_1_TOPIC);
-  const future = futurePhase(page, 3);
+  const future = futurePhase(page, FIRST_FUTURE_PHASE);
   const header = future.getByRole('button');
   const before = {
     html: await future.innerHTML(),
@@ -141,7 +149,11 @@ test('un avance plegado sigue plegado al recargar', async ({ page }) => {
 });
 
 test('un valor guardado de una fase futura no la abre', async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.setItem('portafolio.nav.avance-3', 'open'));
+  test.skip(FUTURE_PHASES.length === 0, NO_FUTURE_PHASE);
+  await page.addInitScript(
+    (key) => window.localStorage.setItem(key, 'open'),
+    phaseKey(FIRST_FUTURE_PHASE),
+  );
   await page.goto(PHASE_1_TOPIC);
 
   await expectFuturePhasesDisabled(page);
@@ -170,18 +182,23 @@ test('en la página 404 el avance en curso está abierto, sin fila actual', asyn
   await page.goto(NOT_FOUND_PAGE);
   const nav = page.locator('nav[aria-label="Temas"]');
 
-  await expect(phase(page, 2)).toHaveAttribute('open', '');
-  await expect(phase(page, 1)).not.toHaveAttribute('open');
+  await expect(phase(page, CURRENT_PHASE)).toHaveAttribute('open', '');
+  for (const n of PUBLISHED_PHASES.filter((n) => n !== CURRENT_PHASE)) {
+    await expect(phase(page, n)).not.toHaveAttribute('open');
+  }
   await expectFuturePhasesDisabled(page);
   await expect(nav.locator('[aria-current="page"]')).toHaveCount(0);
   await expect(nav.locator('[data-outline-current]')).toHaveCount(0);
 });
 
-test('en la página 404 se respeta el Avance 2 plegado', async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.setItem('portafolio.nav.avance-2', 'closed'));
+test('en la página 404 se respeta el avance en curso plegado', async ({ page }) => {
+  await page.addInitScript(
+    (key) => window.localStorage.setItem(key, 'closed'),
+    phaseKey(CURRENT_PHASE),
+  );
   await page.goto(NOT_FOUND_PAGE);
 
-  await expect(phase(page, 2)).not.toHaveAttribute('open');
+  await expect(phase(page, CURRENT_PHASE)).not.toHaveAttribute('open');
 });
 
 test('con el almacenamiento bloqueado la página carga y el avance actual está abierto', async ({
