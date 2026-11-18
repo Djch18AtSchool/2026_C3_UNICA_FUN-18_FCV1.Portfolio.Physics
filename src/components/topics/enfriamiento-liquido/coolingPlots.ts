@@ -169,7 +169,8 @@ export function viewYDomains(data: CircuitProfileData, x: Domain): { v: Domain; 
 
 /* ── What each view shows, in words ──────────────────────────────────────────────────── */
 
-const PA_PER_BAR_KPA = 100;
+/** 1 bar = 100 kPa. */
+export const KPA_PER_BAR = 100;
 const PERCENT = 100;
 const number = (value: number, precision: number) => formatNumber(value, { precision });
 
@@ -190,7 +191,7 @@ export function viewNote(
   const drop = (from: ProfilePoint, to: ProfilePoint) => kpa(from.pReal - to.pReal);
   if (view === 'circuito') {
     const server = drop(start('manguera-servidor-ida'), end('manguera-servidor-vuelta'));
-    return `Del CDU al servidor ${data.path.filter((s) => s.id.startsWith('manifold-ida')).length} y de vuelta, la presión baja de ${number(data.inlet, 1)} a ${number(data.outlet, 1)} kPa: ${number(data.loss, 1)} kPa, o ${number(data.loss / PA_PER_BAR_KPA, 2)} bar. El ${number((server / data.loss) * PERCENT, 0)} % se pierde dentro del servidor. Sin pérdidas, Bernoulli volvería a ${number(data.ideal[data.ideal.length - 1].y, 1)} kPa.`;
+    return `Del CDU al servidor ${data.path.filter((s) => s.id.startsWith('manifold-ida')).length} y de vuelta, la presión baja de ${number(data.inlet, 1)} a ${number(data.outlet, 1)} kPa: ${number(data.loss, 1)} kPa, o ${number(data.loss / KPA_PER_BAR, 2)} bar. El ${number((server / data.loss) * PERCENT, 0)} % se pierde dentro del servidor. Sin pérdidas, Bernoulli volvería a ${number(data.ideal[data.ideal.length - 1].y, 1)} kPa.`;
   }
   if (view === 'rack') {
     const supply = path.filter((segment) => segment.id.startsWith('manifold-ida'));

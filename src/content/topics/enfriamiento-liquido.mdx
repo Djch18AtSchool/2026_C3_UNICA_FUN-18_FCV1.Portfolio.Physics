@@ -105,7 +105,7 @@ classRefs:
     note: '$Q = A_1 v_1 = A_2 v_2$ y Bernoulli con $\rho g z$: son la (13.1) y la (13.2), con la altura escrita $y$.'
   - module: 'Módulo 6'
     topic: 'Tema 3 · 1.3 Movimiento de Fluidos y Aplicaciones en Ingeniería'
-    note: 'La ecuación generalizada con $h_b$ y $h_L$ es la (13.3), escrita en presiones. Darcy–Weisbach y $K$, que el módulo solo nombra, son extensión.'
+    note: 'La ecuación generalizada con $h_b$ y $h_L$ es la (13.3), escrita en presiones. Darcy–Weisbach y Moody, que el módulo solo nombra, y los $K$ y $C_v$ son extensión.'
   - module: 'Módulo 6'
     topic: 'Tema 4 · 1.4 Viscosidad, Turbulencia y Ecuaciones de Navier-Stokes'
     note: '$\mathrm{Re} = \rho v D/\mu$, con los límites de la clase: laminar bajo 2300 y turbulento sobre 4000.'
@@ -124,13 +124,14 @@ import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
 import VelocityAreaFigure from '../../components/topics/enfriamiento-liquido/VelocityAreaFigure';
 import CircuitProfileFigure from '../../components/topics/enfriamiento-liquido/CircuitProfileFigure';
+import LossBreakdownFigure from '../../components/topics/enfriamiento-liquido/LossBreakdownFigure';
 import BranchFlowFigure from '../../components/topics/enfriamiento-liquido/BranchFlowFigure';
 
-Un rack de IA de clase NVIDIA GB200 NVL72 disipa unos 120 kW <Cite id="nvidia-dgx-gb200" sources={frontmatter.sources} /> con un líquido que pasa por placas frías. Sigo un litro desde la bomba hasta el servidor más lejano y de vuelta.
+Un rack de IA de clase NVIDIA GB200 NVL72 disipa unos 120 kW <Cite id="nvidia-dgx-gb200" sources={frontmatter.sources} /> con líquido que pasa por placas frías. Sigo un litro desde la bomba hasta el servidor más lejano y de vuelta.
 
 <Step n={1} title="El caudal se conserva">
 
-Uso el circuito RD109 de Schneider Electric <Cite id="schneider-rd109" sources={frontmatter.sources} />, analizado por GF <Cite id="gf-2026" sources={frontmatter.sources} />: un CDU entrega 23 L/s a 8 racks de 24 servidores. NVIDIA no publica el caudal por bandeja; el de cada servidor sale de la regla de OCP, 1,5 L/min por kW <Cite id="ocp-oai-2023" sources={frontmatter.sources} />, que tomo como dato.
+Uso el circuito RD109 de Schneider Electric <Cite id="schneider-rd109" sources={frontmatter.sources} />, analizado por GF <Cite id="gf-2026" sources={frontmatter.sources} />: un CDU entrega 23 L/s a 8 racks de 24 servidores. NVIDIA no publica el caudal por bandeja: reparto por igual los 23 L/s; la regla de OCP, 1,5 L/min por kW <Cite id="ocp-oai-2023" sources={frontmatter.sources} />, que tomo como dato, da lo que pide cada uno.
 
 <Equation
   id="ec-enfriamiento-continuidad"
@@ -229,21 +230,33 @@ De la manguera al conector, la presión baja $\tfrac12\rho(v_2^2 - v_1^2)$ = 2,8
 
 <Step n={3} title="Por qué no basta: la fricción y los accesorios disipan energía">
 
-Paso a presiones la ecuación generalizada de la clase. Darcy–Weisbach y $K$, que la clase nombra, los uso con los valores de EPANET <Cite id="epanet-2-3-5" sources={frontmatter.sources} />; los conectores dan $C_v$ <Cite id="amphenol-uqd" sources={frontmatter.sources} />, y la placa fría, los 1,2 bar de diseño de GF, no una curva medida.
+Paso a presiones la ecuación generalizada de la clase. Para Darcy–Weisbach y los $K$ de los accesorios uso los valores de EPANET <Cite id="epanet-2-3-5" sources={frontmatter.sources} />; los conectores dan $C_v$ <Cite id="amphenol-uqd" sources={frontmatter.sources} />, y la placa fría, los 1,2 bar de diseño de GF, no una curva medida.
 
 <Equation
   id="ec-enfriamiento-perdidas"
-  latex="\begin{gathered} p_1 + \tfrac{1}{2} \rho v_1^2 + \rho g y_1 + \rho g h_b = p_2 + \tfrac{1}{2} \rho v_2^2 + \rho g y_2 + \rho g h_L \\ \rho g h_L = \sum f\,\frac{L}{D}\,\tfrac{1}{2} \rho v^2 + \sum K\,\tfrac{1}{2} \rho v^2, \qquad \mathrm{Re} = \frac{\rho v D}{\mu} \end{gathered}"
+  latex="\begin{gathered} p_1 + \tfrac{1}{2} \rho v_1^2 + \rho g y_1 + \rho g h_b \\ = p_2 + \tfrac{1}{2} \rho v_2^2 + \rho g y_2 + \rho g h_L \\ \rho g h_L = \sum f\,\frac{L}{D}\,\tfrac{1}{2} \rho v^2 + \sum K\,\tfrac{1}{2} \rho v^2 \\ + \sum \Delta p_{C_v} + \Delta p_\text{placa}, \qquad \mathrm{Re} = \frac{\rho v D}{\mu} \end{gathered}"
   symbols={[
     { symbol: 'h_b', meaning: 'altura que da la bomba', unit: 'm' },
     { symbol: 'h_L', meaning: 'pérdida de carga entre los dos puntos', unit: 'm' },
     {
       symbol: 'f',
       meaning:
-        'factor de fricción de Darcy: $64/\\mathrm{Re}$ bajo 2300; sobre 4000, la fórmula de Swamee y Jain que usa EPANET',
+        'factor de fricción de Darcy: $64/\\mathrm{Re}$ bajo 2300 y la fórmula de Swamee y Jain sobre 4000, como EPANET; entre los dos límites de la clase, la cúbica de transición de EPANET, que en su código empieza en 2000',
     },
     { symbol: 'L', meaning: 'longitud del tramo', unit: 'm' },
     { symbol: 'K', meaning: 'coeficiente de pérdida local de un accesorio (una te: 1,8)' },
+    {
+      symbol: '\\Delta p_{C_v}',
+      meaning:
+        'caída de un conector con su coeficiente de flujo: $\\Delta p = \\mathrm{SG}\\,(Q/C_v)^2$, en psi con $Q$ en gal/min, donde SG es la densidad relativa al agua',
+      unit: 'Pa',
+    },
+    {
+      symbol: '\\Delta p_\\text{placa}',
+      meaning:
+        'caída de la placa fría, $R\\,Q^n$ con los 1,2 bar de GF; con los dos conectores suma 1,50 de los 1,80 bar',
+      unit: 'Pa',
+    },
     {
       symbol: '\\mu',
       meaning: 'viscosidad del PG25 a 40 °C, 1,394 mPa·s (tabla 13.1)',
@@ -268,6 +281,18 @@ La tubería principal va a $\mathrm{Re}$ = 162 000, turbulenta; el último tra
 
 </Why>
 
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Dónde se va la presión hasta el servidor más lejano: mi cálculo por grupo de pérdidas, en barras, frente a lo que publica GF, en puntos, con los grupos de la tabla 13.4."
+  source={{
+    text: 'Calculé las pérdidas con las ecuaciones (13.1) a (13.3) y los parámetros de las tablas 13.1 a 13.3; valores publicados: GF Piping Systems (2026), fig. 2, configuración de polímero',
+    url: 'https://www.gfps.com/content/dam/gfps/com/whitepapers/en/gfps-whitepaper-hydraulic-design-principles-en.pdf',
+  }}
+>
+  <LossBreakdownFigure client:visible />
+</Figure>
+
 <DataTable id="enfriamiento-liquido-conectores" />
 
 <DataTable id="enfriamiento-liquido-desglose" />
@@ -289,7 +314,8 @@ Cada servidor es una rama entre los dos manifolds. Con retorno directo, entrada 
     },
     {
       symbol: 'R_i',
-      meaning: 'resistencia de la rama: la suma de sus pérdidas al caudal de diseño',
+      meaning:
+        'resistencia de la rama, $R_i = \\Delta p_\\text{diseño}/Q_\\text{diseño}^{\\,n}$: la suma de sus pérdidas al caudal de diseño, dividida entre ese caudal elevado a $n$',
     },
     { symbol: 'n', meaning: 'exponente: 1,85 con placa fría (Modelica Buildings), 2 sin ella' },
     { symbol: 'N', meaning: 'servidores del rack, 24' },
@@ -306,7 +332,7 @@ Si el manifold pierde presión, la rama más cercana recibe más; una rama muy r
 
 <Fragment slot="ecuacion">
 
-Con placas, el caudal varía un 0,27 % entre servidores; sin ellas, un 1,0 %. Si el peor servidor no llega a su mínimo, hay que subir el caudal total, y con $\Delta p \propto Q^{1{,}9}$ la potencia $P = \Delta p\,Q$ crece como $Q^{2{,}9}$: un 51 % más triplica el bombeo.
+Con placas, el caudal varía un 0,27 % entre servidores; sin ellas, un 1,0 %. Si el peor servidor no llega a su mínimo, hay que subir el caudal total, y con $\Delta p \propto Q^{1{,}9}$ la potencia $P = \Delta p\,Q$ crece como $Q^{2{,}9}$.
 
 </Fragment>
 
@@ -348,7 +374,7 @@ La alternativa no física es la regla fija: 1,5 L/min por kW da el caudal, pero 
 
 <Fragment slot="balance">
 
-Se gana el caudal mínimo del servidor más lejano sin sobredimensionar la bomba: bombear 23 L/s cuesta 4,1 kW, el 0,39 % de los 1,06 MW de TI. Cuesta conocer el fluido, cuya viscosidad se divide entre 2,3 de 20 a 50 °C, estimar pérdidas locales y medir conectores.
+Se gana dar al servidor más lejano su caudal mínimo sin sobredimensionar la bomba: subir el caudal un 51 % triplicaría el bombeo (paso 4). Cuesta conocer el fluido, cuya viscosidad se divide entre 2,3 de 20 a 50 °C, estimar pérdidas locales y medir conectores.
 
 </Fragment>
 
@@ -356,7 +382,7 @@ Se gana el caudal mínimo del servidor más lejano sin sobredimensionar la bomba
 
 <Callout variant="clase" title="Módulo 6 · Temas 1.2 a 1.4, con una extensión">
 
-La (13.1) y la (13.2) son las del Tema 1.2, con la altura $z$; la (13.3), la ecuación generalizada del Tema 1.3, y $\mathrm{Re}$ usa los límites del Tema 1.4. Darcy–Weisbach, $f$, $K$ y $C_v$ son extensión: la clase los nombra; aquí los uso.
+La (13.1) y la (13.2) son las del Tema 1.2, con la altura $z$; la (13.3), la ecuación generalizada del Tema 1.3, y $\mathrm{Re}$ usa los límites del Tema 1.4. La clase nombra Darcy–Weisbach, Moody y los accesorios; el $f$, los $K$ y el $C_v$ con que los calculo son extensión.
 
 </Callout>
 

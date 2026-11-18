@@ -23,7 +23,7 @@ export type BreakdownId =
 /** The rows in GF's order, with the rack hoses (which fig. 2 has no row for) after the 3/8″ ones. */
 export const BREAKDOWN_ROWS: readonly { id: BreakdownId; label: string }[] = [
   { id: 'placas-frias', label: 'Placas frías y su tubería interna' },
-  { id: 'qd-pequenos', label: 'Conectores pequeños (UQD04, ida y vuelta)' },
+  { id: 'qd-pequenos', label: 'Conectores UQD04, ida y vuelta' },
   { id: 'mangueras', label: 'Mangueras de 3/8″ del servidor' },
   { id: 'mangueras-rack', label: 'Mangueras de rack de 2″' },
   { id: 'qd-grande', label: 'Conector grande' },

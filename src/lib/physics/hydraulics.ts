@@ -56,7 +56,7 @@ export interface Segment {
   cv?: number;
   /** Measured law of a component as a whole; replaces the segment's friction. */
   curve?: LossCurve;
-  /** Flow area (m²) of a section that is not circular; `diameter` is then D_h = 4A/P. */
+  /** Flow area (m²) of a section that is not circular; `diameter` is then D_h = 4A/P_m (P_m: wetted perimeter). */
   area?: number;
   /** Times the path's flow Q crosses this segment (continuity at the nodes); 1 by default. */
   flowMultiple?: number;

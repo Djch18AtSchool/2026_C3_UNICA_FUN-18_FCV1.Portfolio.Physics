@@ -124,7 +124,7 @@ export const MGX_MANIFOLD = {
   hydraulicDiameter: sourced(
     (4 * MGX_AREA) / (2 * (MGX_INNER[0] + MGX_INNER[1])),
     'calculo',
-    'Cálculo propio: $D_h = 4A/P$ de la sección interior',
+    'Cálculo propio: $D_h = 4A/P_m$ de la sección interior, con $P_m$ su perímetro mojado',
   ),
 } as const;
 
@@ -206,7 +206,7 @@ export const RD109 = {
     'Supuesto: 0,5 m de manguera de servidor por sentido',
   ),
   plateDrop: sourced(1.2 * PA_PER_BAR, 'producto', `${GF}, tabla 1: 1,2 bar, valor de diseño`),
-  plateExponent: sourced(1.85, 'ilustrativo', `${MBL}: n = 1,85 por omisión, ajustado a OCP`),
+  plateExponent: sourced(1.85, 'ilustrativo', `${MBL}: $n$ = 1,85 por omisión, ajustado a OCP`),
   plateLength: sourced(0.15, 'ilustrativo', 'Supuesto: 0,15 m dibujados para la placa fría'),
   systemExponent: sourced(
     1.9,

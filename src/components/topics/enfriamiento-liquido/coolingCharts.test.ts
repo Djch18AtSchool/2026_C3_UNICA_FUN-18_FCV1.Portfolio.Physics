@@ -1,11 +1,13 @@
 import { describe, expect, test } from 'vitest';
-import { SHAHI_2023_PORT_FLOWS } from '../../../lib/data/liquidCooling';
-import { PRESETS, serverFlow } from '../../../lib/data/liquidCoolingCircuit';
+import { PG25_40C, SHAHI_2023_PORT_FLOWS } from '../../../lib/data/liquidCooling';
+import { BREAKDOWN_ROWS, lossBreakdown } from '../../../lib/data/liquidCoolingBreakdown';
+import { PRESETS, rackPath, serverFlow } from '../../../lib/data/liquidCoolingCircuit';
 import { M3S_PER_LPM } from '../../../lib/physics/hydraulics';
 import {
   branchFlowSeries,
   decadeTicks,
   logScale,
+  lossChartData,
   NO_PLATE_COLOR,
   shahiSeries,
   velocityAreaData,
@@ -150,5 +152,37 @@ describe('velocityAreaData for another rack (the lab, Task 14)', () => {
       serverFlow(PRESETS.mgx44),
       12,
     );
+  });
+});
+
+describe('lossChartData: where the pressure goes (step 3), the groups of table 13.4', () => {
+  const data = lossChartData(PRESETS.referencia24);
+  const row = (id: string) => data.rows.find((candidate) => candidate.id === id);
+
+  test('the same groups as table 13.4, in its order, in kPa: mine from lossBreakdown, GF’s from fig. 2', () => {
+    const path = rackPath(PRESETS.referencia24);
+    const breakdown = lossBreakdown(path, serverFlow(PRESETS.referencia24), PG25_40C);
+
+    expect(data.rows.map((r) => r.id)).toEqual(BREAKDOWN_ROWS.map((r) => r.id));
+    for (const [i, r] of data.rows.entries()) {
+      const source = breakdown[i];
+      expect(r.computed, r.id).toBe(source.computed === null ? null : source.computed / 1e3);
+      expect(r.published, r.id).toBe(source.published === null ? null : source.published / 1e3);
+    }
+    expect(row('placas-frias')?.computed).toBeCloseTo(120, 6);
+    expect(row('qd-grande')?.computed).toBeNull();
+    expect(row('mangueras-rack')?.published).toBeNull();
+  });
+
+  test('cold plates and small couplings: 83,5 % of my loss and 86,4 % of GF’s', () => {
+    expect(data.serverShare.computed).toBeCloseTo(0.835, 3);
+    expect(data.serverShare.published).toBeCloseTo(171 / 198, 6);
+  });
+
+  test('the kPa axis reaches past the largest value, mine or GF’s', () => {
+    const values = data.rows.flatMap((r) => [r.computed ?? 0, r.published ?? 0]);
+
+    expect(data.max).toBeGreaterThan(Math.max(...values));
+    expect(data.max).toBeLessThan(Math.max(...values) * 1.2);
   });
 });

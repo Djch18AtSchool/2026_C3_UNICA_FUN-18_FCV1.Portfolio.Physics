@@ -9,6 +9,7 @@
  */
 import {
   EPANET_VALUES,
+  FLOW_PER_KW,
   GF_PUBLISHED,
   PG25_40C,
   RD109,
@@ -16,7 +17,7 @@ import {
   WATER_40C_NIST,
   type ValueOrigin,
 } from '../../data/liquidCooling';
-import { lossBreakdown } from '../../data/liquidCoolingBreakdown';
+import { lossBreakdown, type BreakdownId } from '../../data/liquidCoolingBreakdown';
 import { PRESETS, rackPath, serverFlow } from '../../data/liquidCoolingCircuit';
 import {
   CONNECTOR_PARAMETERS,
@@ -26,7 +27,7 @@ import {
   type ParameterSpec,
 } from '../../data/liquidCoolingParameters';
 import { formatNumber } from '../../format';
-import { M3S_PER_LPM, PA_PER_BAR, seriesLoss } from '../../physics/hydraulics';
+import { hydraulicPower, M3S_PER_LPM, PA_PER_BAR, seriesLoss } from '../../physics/hydraulics';
 import { propyleneGlycolWater } from '../../physics/propyleneGlycol';
 import type { DataTableSpec, TableColumn } from '../types';
 
@@ -41,6 +42,8 @@ export const ORIGIN_LABELS: Readonly<Record<ValueOrigin, string>> = {
 const CONSTANT = 'Constante';
 const NONE = '—';
 const PERCENT = 100;
+const W_PER_KW = 1e3;
+const L_PER_M3 = 1e3;
 
 const REFERENCE = PRESETS.referencia24;
 const PATH = rackPath(REFERENCE);
@@ -85,10 +88,12 @@ const NIST_WATER = propyleneGlycolWater(0, WATER_40C_NIST.temperatureC);
 const lpm = (flow: number) => formatNumber(flow / M3S_PER_LPM, { precision: 2, unit: 'L/min' });
 const percentOff = (value: number, reference: number, precision: number) =>
   formatNumber(Math.abs(value / reference - 1) * PERCENT, { precision, unit: '%' });
+/** The load (kW) OCP's rule (L/min per kW) gives for one rack's share of GF's flow. */
+const RACK_LOAD_KW = REFERENCE.rackFlow / M3S_PER_LPM / FLOW_PER_KW.value;
 
 const FLUID: DataTableSpec = parameterTable(
   'enfriamiento-liquido-fluido',
-  `Fluido y caudales del circuito de referencia, el RD109 de Schneider Electric analizado por GF. Origen: «Producto» es un valor publicado del producto o de su especificación; «Supuesto», una hipótesis de mi modelo; «Cálculo propio», lo que calculé con esos valores. Uso las propiedades a 40 °C en todo el lazo, aunque el retorno vuelve más caliente. Con 0 % de glicol, el polinomio de Melinder da el agua del NIST a 40 °C con una diferencia de ${percentOff(NIST_WATER.rho, WATER_40C_NIST.rho.value, 2)} en la densidad y de ${percentOff(NIST_WATER.mu, WATER_40C_NIST.mu.value, 2)} en la viscosidad (cálculo propio).`,
+  `Fluido y caudales del circuito de referencia, el RD109 de Schneider Electric analizado por GF. Origen: «Producto» es un valor publicado del producto o de su especificación; «Supuesto», una hipótesis de mi modelo; «Cálculo propio», lo que calculé con esos valores. Los ${formatNumber(REFERENCE.rackFlow / M3S_PER_LPM, { precision: 1, unit: 'L/min' })} por rack equivalen a la regla de OCP con ${formatNumber(RACK_LOAD_KW, { precision: 0, unit: 'kW' })} (cálculo propio). Uso las propiedades a 40 °C en todo el lazo, aunque el retorno vuelve más caliente. Con 0 % de glicol, el polinomio de Melinder da el agua del NIST a 40 °C con una diferencia de ${percentOff(NIST_WATER.rho, WATER_40C_NIST.rho.value, 2)} en la densidad y de ${percentOff(NIST_WATER.mu, WATER_40C_NIST.mu.value, 2)} en la viscosidad (cálculo propio).`,
   FLUID_PARAMETERS,
   {
     text: 'Polinomios de Melinder (2010) en la Modelica Buildings Library v14.0.0 de LBNL; agua: NIST Chemistry WebBook; caudales: GF Piping Systems (2026) y Schneider Electric (RD109); regla de caudal: OCP OAI (2023); cada fila con su fuente',
@@ -134,7 +139,7 @@ export const PARAMETER_ROWS = Object.fromEntries(
 const bar = (pa: number | null) => (pa === null ? NONE : pa / PA_PER_BAR);
 const decimals = (value: number, precision: number) => formatNumber(value, { precision });
 
-const HOW: Readonly<Record<string, string>> = {
+const HOW: Readonly<Record<BreakdownId, string>> = {
   'placas-frias': `Curva de la placa: ${decimals(RD109.plateDrop.value / PA_PER_BAR, 1)} bar de GF a su caudal de diseño`,
   'qd-pequenos': `Dos conectores con $C_v$ = ${decimals(UQD04.cv.value, 2)} de Amphenol`,
   mangueras: `Darcy–Weisbach, ${decimals(RD109.serverHoseLength.value, 1)} m por sentido`,
@@ -149,11 +154,11 @@ const HOW: Readonly<Record<string, string>> = {
 const BREAKDOWN = lossBreakdown(PATH, Q_SERVER, PG25_40C);
 const TOTAL = seriesLoss(PATH, Q_SERVER, PG25_40C);
 const BELOW_GF = (1 - TOTAL / GF_PUBLISHED.totalDrop.value) * PERCENT;
+const PUMP_POWER_KW = hydraulicPower(TOTAL, RD109.cduFlow.value) / W_PER_KW;
 
 const DESGLOSE: DataTableSpec = {
   id: 'enfriamiento-liquido-desglose',
-  caption:
-    'Pérdidas hasta el servidor más lejano (el 24, arriba, con retorno directo), agrupadas como en la fig. 2 de GF, frente a lo que GF publica para el mismo circuito con su programa Sinetz. Un componente con $C_v$ o con curva medida lleva toda su pérdida en esa ley.',
+  caption: `Pérdidas hasta el servidor más lejano (el 24, arriba, con retorno directo), agrupadas como en la fig. 2 de GF, frente a lo que GF publica para el mismo circuito con su programa Sinetz. Un componente con $C_v$ o con curva medida lleva toda su pérdida en esa ley. Bombear los ${formatNumber(RD109.cduFlow.value * L_PER_M3, { precision: 0, unit: 'L/s' })} contra esa pérdida pide $P = \\Delta p\\,Q$ = ${formatNumber(PUMP_POWER_KW, { precision: 1, unit: 'kW' })} (cálculo propio).`,
   columns: [
     { key: 'grupo', label: 'Grupo de pérdidas', align: 'text', minWidthCh: 18 },
     { key: 'calculo', label: 'Este cálculo', unit: 'bar', align: 'num', precision: 3 },

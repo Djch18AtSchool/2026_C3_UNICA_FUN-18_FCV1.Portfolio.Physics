@@ -4,6 +4,7 @@
  * servers (step 4, against the bench of Shahi et al., 2023). Pure, as coolingPlots.ts.
  */
 import { PG25_40C, SHAHI_2023_PORT_FLOWS } from '../../../lib/data/liquidCooling';
+import { lossBreakdown, type BreakdownId } from '../../../lib/data/liquidCoolingBreakdown';
 import {
   MANIFOLD_PIECE,
   rackPath,
@@ -21,11 +22,13 @@ import {
   type ReturnLayout,
   type Segment,
 } from '../../../lib/physics/hydraulics';
+import { formatNumber } from '../../../lib/format';
 import { TEXT_COLOR, TICK_COLOR } from '../../charts/chartTheme';
 import type { Domain, Scale } from '../../lab/plotScales';
 import { REFERENCE, type Point } from './coolingPlots';
 
 const MM2_PER_M2 = 1e6;
+const L_PER_M3 = 1e3;
 
 /* ── Log scale for the area axis ─────────────────────────────────────────────────────── */
 
@@ -141,7 +144,7 @@ export function velocityAreaData(config: RackConfig = REFERENCE): VelocityAreaDa
     points: areas.map((area) => ({ x: area, y: flows[id] / (area / MM2_PER_M2) })),
   });
   const liters = (flow: number, unit: 'L/s' | 'L/min', precision: number) =>
-    `${(unit === 'L/s' ? flow * 1e3 : flow / M3S_PER_LPM).toFixed(precision).replace('.', ',')} ${unit}`;
+    formatNumber(unit === 'L/s' ? flow * L_PER_M3 : flow / M3S_PER_LPM, { precision, unit });
   return {
     curves: [
       curve('cdu', flowLabel('$Q_\\text{CDU}$', liters(flows.cdu, 'L/s', 0))),
@@ -224,5 +227,60 @@ export function shahiSeries(): { fnm: Point[]; measured: Point[] } {
   return {
     fnm: toPoints(SHAHI_2023_PORT_FLOWS.fnm.flows),
     measured: toPoints(SHAHI_2023_PORT_FLOWS.measured.flows),
+  };
+}
+
+/* ── Step 3: where the pressure goes ─────────────────────────────────────────────────── */
+
+/** My model's losses in ink (bars); GF's published ones in green (points), a reference. */
+export const MODEL_LOSS_COLOR = TEXT_COLOR;
+export const PUBLISHED_LOSS_COLOR = 'var(--chart-3)';
+const PA_PER_KPA = 1e3;
+const LOSS_HEADROOM = 1.08;
+/** The groups inside the server's branch that GF says take most of the loss. */
+const SERVER_GROUPS: readonly BreakdownId[] = ['placas-frias', 'qd-pequenos'];
+
+export interface LossBar {
+  id: BreakdownId;
+  label: string;
+  /** kPa; null for a group I do not model. */
+  computed: number | null;
+  /** kPa; null for a group GF's fig. 2 has no row for. */
+  published: number | null;
+}
+
+export interface LossChartData {
+  rows: LossBar[];
+  /** End of the kPa axis. */
+  max: number;
+  /** Share of the plates and small couplings in my total and in GF's. */
+  serverShare: { computed: number; published: number };
+}
+
+const toKpa = (pa: number | null) => (pa === null ? null : pa / PA_PER_KPA);
+
+/** Table 13.4 as a chart: lossBreakdown's groups for the path to the farthest server, in kPa. */
+export function lossChartData(config: RackConfig = REFERENCE): LossChartData {
+  const rows = lossBreakdown(rackPath(config), serverFlow(config), PG25_40C).map((row) => ({
+    id: row.id,
+    label: row.label,
+    computed: toKpa(row.computed),
+    published: toKpa(row.published),
+  }));
+  const share = (pick: (row: LossBar) => number | null) => {
+    const total = rows.reduce((sum, row) => sum + (pick(row) ?? 0), 0);
+    const server = rows
+      .filter((row) => SERVER_GROUPS.includes(row.id))
+      .reduce((sum, row) => sum + (pick(row) ?? 0), 0);
+    return server / total;
+  };
+  const largest = Math.max(...rows.flatMap((row) => [row.computed ?? 0, row.published ?? 0]));
+  return {
+    rows,
+    max: largest * LOSS_HEADROOM,
+    serverShare: {
+      computed: share((row) => row.computed),
+      published: share((row) => row.published),
+    },
   };
 }

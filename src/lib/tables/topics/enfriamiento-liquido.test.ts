@@ -1,4 +1,8 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
+import { splitInlineMath } from '../../inlineSegments';
+import { looseSymbols, texVariables, withoutInterpolations } from '../../looseSymbols';
 import { RD109, UQD04 } from '../../data/liquidCooling';
 import { PRESETS, rackPath } from '../../data/liquidCoolingCircuit';
 import { tableById } from '../index';
@@ -80,6 +84,11 @@ describe('enfriamiento-liquido tables', () => {
       rowNamed('enfriamiento-liquido-fluido', 'Caudal por potencia, regla de diseño')?.[2],
     ).toBe('1,5');
     expect(tableById('enfriamiento-liquido-fluido').caption).toMatch(/NIST/);
+    // One source per number: each server's 7,19 L/min is GF's 23 L/s shared out; OCP's rule only
+    // says what flow a load asks for, and the caption gives the load these flows stand for.
+    expect(tableById('enfriamiento-liquido-fluido').caption.replace(/\s+/g, ' ')).toContain(
+      'Los 172,5 L/min por rack equivalen a la regla de OCP con 115 kW (cálculo propio).',
+    );
   });
 
   test('geometria: the main pipe is computed from d160 SDR11, the lengths are assumptions', () => {
@@ -137,6 +146,10 @@ describe('enfriamiento-liquido tables', () => {
     ]);
     expect(total?.slice(0, 3)).toEqual(['Total hasta el servidor más lejano', '1,799', '1,98']);
     expect(total?.[3]).toContain('9,2 %');
+    // The pumping power the page no longer argues in its prose: P = Δp·Q at 23 L/s.
+    expect(tableById('enfriamiento-liquido-desglose').caption.replace(/\s+/g, ' ')).toContain(
+      'Bombear los 23 L/s contra esa pérdida pide $P = \\Delta p\\,Q$ = 4,1 kW (cálculo propio).',
+    );
   });
 });
 
@@ -165,5 +178,68 @@ describe('PARAMETER_ROWS: every declared parameter, by id, as its table prints i
     expect(mm('uqd-cv')).toBe('1,29');
     expect(segment('tuberia-ida')?.length).toBe(35);
     expect(mm('tuberia-longitud')).toBe('35');
+  });
+});
+
+/*
+ * The loose-letter guard (src/content/looseSymbols.test.ts) reads this module's own literals,
+ * but the tables also print strings written in the data modules (every «Fuente» cell, the
+ * breakdown's group names). Here every caption, source line and text cell the page prints goes
+ * through the same check, with the page's magnitudes collected as the guard collects them.
+ */
+describe('no loose magnitude letter in what the tables print', () => {
+  const LATEX_ATTRIBUTE = /\blatex=(?:"([^"]*)"|\{`([^`]*)`\})/gu;
+  const SYMBOL_KEY = /\bsymbol:\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/gu;
+  // Not the unit column: a lone «m» there is metres, as the guard's own exception for a scale bar.
+  const TEXT_CELLS = ['parametro', 'simbolo', 'origen', 'fuente', 'grupo', 'como'];
+  const mdx = readFileSync(
+    join(process.cwd(), 'src/content/topics/enfriamiento-liquido.mdx'),
+    'utf8',
+  );
+  const groups = (text: string, pattern: RegExp) =>
+    [...text.matchAll(pattern)].map((match) =>
+      (match.slice(1).find((group) => group !== undefined) ?? '').replace(/\\\\/gu, '\\'),
+    );
+  const formulas = (text: string) =>
+    splitInlineMath(withoutInterpolations(text)).flatMap((segment) =>
+      segment.kind === 'math' ? [segment.tex] : [],
+    );
+  const printed = TABLES.flatMap((table) => [
+    { where: `${table.id}: pie`, text: table.caption },
+    { where: `${table.id}: fuente`, text: table.source.text },
+    ...table.rows.flatMap((row) =>
+      TEXT_CELLS.filter((key) => key in row).map((key) => ({
+        where: `${table.id}: ${key} de «${String(row.parametro ?? row.grupo)}»`,
+        text: String(row[key]),
+      })),
+    ),
+  ]);
+  const symbols = new Set(
+    [
+      ...groups(mdx, LATEX_ATTRIBUTE),
+      ...groups(mdx, SYMBOL_KEY),
+      ...formulas(mdx),
+      ...printed.flatMap(({ text }) => formulas(text)),
+    ].flatMap(texVariables),
+  );
+
+  test('the page writes its magnitudes: n, P, Q, D and the rest are symbols here', () => {
+    for (const letter of ['n', 'P', 'Q', 'D', 'L', 'K', 'y'])
+      expect(symbols.has(letter)).toBe(true);
+  });
+
+  test('every caption, source line and text cell keeps its letters inside $…$', () => {
+    const loose = printed.flatMap(({ where, text }) =>
+      looseSymbols(text, symbols).map(({ letter, context }) => `${where} [${letter}] …${context}…`),
+    );
+
+    expect(loose).toEqual([]);
+  });
+
+  test('the perimeter of D_h is P_m: P stays the pump’s power on this page', () => {
+    const dh = printed.find(({ text }) => text.includes('D_h = 4A'));
+
+    expect(dh?.text).toContain('$D_h = 4A/P_m$');
+    expect(dh?.text).toContain('perímetro mojado');
   });
 });

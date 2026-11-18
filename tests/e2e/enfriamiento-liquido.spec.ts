@@ -10,13 +10,14 @@ const PAGE = './temas/enfriamiento-liquido/';
 const TITLE = 'Enfriamiento líquido de un centro de datos: continuidad, caudal y Bernoulli';
 const PROFILE = '[data-testid="circuit-profile-figure"]';
 const VELOCITY_AREA = '[data-testid="velocity-area-figure"]';
+const LOSSES = '[data-testid="loss-breakdown-figure"]';
 const BRANCH = '[data-testid="branch-flow-figure"]';
 const PHONE = { width: 360, height: 800 };
 const THEMES = ['light', 'dark'] as const;
 const BLOCKING_IMPACTS = ['serious', 'critical'];
 const STEP_COUNT = 4;
 const EQUATION_COUNT = 4;
-const FIGURES = [VELOCITY_AREA, PROFILE, BRANCH];
+const FIGURES = [VELOCITY_AREA, PROFILE, LOSSES, BRANCH];
 const TABLE_IDS = [
   'enfriamiento-liquido-fluido',
   'enfriamiento-liquido-geometria',
@@ -64,12 +65,13 @@ test.describe('página', () => {
       const step = page.locator(`section.step#paso-${n}`);
       await expect(step).toContainText(`Paso ${n}`);
       await expect(step.locator('.why')).toHaveCount(1);
-      expect(await step.locator('figure').count()).toBeGreaterThanOrEqual(1);
+      // Its own Figure: a DataTable is a <figure> too, and does not count (ruling R16).
+      expect(await step.locator('figure[data-testid="figure"]').count()).toBeGreaterThanOrEqual(1);
     }
     await expect(page.locator('.equation')).toHaveCount(EQUATION_COUNT);
   });
 
-  test('las tres figuras se numeran 13.1 a 13.3 y solo el perfil lleva la insignia', async ({
+  test('las cuatro figuras se numeran 13.1 a 13.4 y solo el perfil lleva la insignia', async ({
     page,
   }) => {
     for (const [index, selector] of FIGURES.entries()) {

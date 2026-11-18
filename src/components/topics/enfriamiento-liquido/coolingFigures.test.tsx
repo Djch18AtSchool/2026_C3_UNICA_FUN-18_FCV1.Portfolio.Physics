@@ -4,7 +4,11 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { plexViolations } from '../../../test-glyphs';
 import { mathSourceText } from '../../../test-inline-math';
 import { svgText } from '../../../test-svg-text';
+import { BREAKDOWN_ROWS } from '../../../lib/data/liquidCoolingBreakdown';
+import { TICK_FONT_SIZE } from '../../charts/chartTheme';
+import { textWidth } from '../../lab/plotScales';
 import BranchFlowFigure from './BranchFlowFigure';
+import LossBreakdownFigure from './LossBreakdownFigure';
 import VelocityAreaFigure from './VelocityAreaFigure';
 
 const legends = () => screen.getAllByRole('toolbar', { name: 'Leyenda: realzar una serie' });
@@ -72,9 +76,9 @@ describe('VelocityAreaFigure: continuity as v against A (step 1)', () => {
     render(<VelocityAreaFigure />);
 
     expect(screen.getByText(svgText('Área A (mm², escala log.)'))).toBeInTheDocument();
-    expect(mathSourceText(screen.getByTestId('velocity-area-flows'))).toContain(
-      'Hipérbolas, de izquierda a derecha: $q$ = 7,19 L/min',
-    );
+    expect(
+      mathSourceText(screen.getByTestId('velocity-area-flows')).replace(/\s+/g, ' '),
+    ).toContain('Hipérbolas, de izquierda a derecha: $q$ = 7,19 L/min');
   });
 
   test('every character outside KaTeX is one IBM Plex draws', () => {
@@ -144,5 +148,79 @@ describe('BranchFlowFigure: the flow each server gets (step 4) against Shahi et 
     const { container } = render(<BranchFlowFigure />);
 
     expect(plexViolations(container)).toEqual([]);
+  });
+});
+
+describe('LossBreakdownFigure: where the pressure goes (step 3)', () => {
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  test('my losses are bars, GF’s published values are points, and the legend says which', () => {
+    const { container } = render(<LossBreakdownFigure />);
+    const text = mathSourceText(legends()[0]);
+
+    // Seven groups modelled (not the big QD nor the valves); eight published (not the rack hoses).
+    expect(container.querySelectorAll('rect[data-series="calculo"]')).toHaveLength(7);
+    expect(container.querySelectorAll('circle[data-series="gf"]')).toHaveLength(8);
+    expect(text).toContain('Este cálculo (barras)');
+    expect(text).toContain('GF, publicado con Sinetz (puntos)');
+  });
+
+  test('the axis is the pressure lost, in kPa, and every group of table 13.4 is named', () => {
+    render(<LossBreakdownFigure />);
+
+    expect(screen.getByText(svgText('Pérdida de presión (kPa)'))).toBeInTheDocument();
+    for (const { label } of BREAKDOWN_ROWS) {
+      expect(screen.getByText(svgText(label))).toBeInTheDocument();
+    }
+    expect(screen.getAllByText(svgText('sin modelar'))).toHaveLength(2);
+  });
+
+  test('the bars are to scale: the plates’ is 120/30,2 times the couplings’', () => {
+    const { container } = render(<LossBreakdownFigure />);
+    const width = (id: string) =>
+      Number(container.querySelector(`rect[data-group="${id}"]`)?.getAttribute('width'));
+
+    expect(width('placas-frias') / width('qd-pequenos')).toBeCloseTo(120 / 30.2235, 2);
+  });
+
+  test('a note says the plates and couplings take 84 % of my loss and 86 % of GF’s', () => {
+    render(<LossBreakdownFigure />);
+
+    expect(mathSourceText(screen.getByTestId('loss-breakdown-note')).replace(/\s+/g, ' ')).toBe(
+      'Las placas frías y los conectores UQD04 se llevan el 84 % de mi pérdida y el 86 % de la de GF.',
+    );
+  });
+
+  test.each([720, 264])('at %i px every group name fits inside the drawing', (width) => {
+    stubWidth(width);
+    const { container } = render(<LossBreakdownFigure />);
+    const [, , viewWidth] = (
+      container.querySelector('svg[role="img"]')?.getAttribute('viewBox') ?? ''
+    )
+      .split(' ')
+      .map(Number);
+
+    for (const { label } of BREAKDOWN_ROWS) {
+      expect(textWidth(label, TICK_FONT_SIZE) + 16, label).toBeLessThanOrEqual(viewWidth);
+    }
+    expect(plexViolations(container)).toEqual([]);
+  });
+});
+
+describe('LossBreakdownFigure: a group I do not model', () => {
+  afterEach(cleanup);
+
+  test('«sin modelar» starts past GF’s point, so the point never covers the words', () => {
+    const { container } = render(<LossBreakdownFigure />);
+    const row = container.querySelector('[data-row="qd-grande"]');
+    const dot = row?.querySelector('circle[data-series="gf"]');
+    const note = [...(row?.querySelectorAll('text') ?? [])].find(
+      (t) => t.textContent === 'sin modelar',
+    );
+
+    expect(Number(note?.getAttribute('x'))).toBeGreaterThan(Number(dot?.getAttribute('cx')) + 5);
   });
 });

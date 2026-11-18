@@ -1,7 +1,14 @@
 import { describe, expect, test } from 'vitest';
 import { PG25_40C } from '../../../lib/data/liquidCooling';
 import { PRESETS, rackPath, serverFlow } from '../../../lib/data/liquidCoolingCircuit';
-import { flowVelocity, seriesLoss, PA_PER_BAR } from '../../../lib/physics/hydraulics';
+import {
+  flowVelocity,
+  LAMINAR_RE,
+  PA_PER_BAR,
+  reynolds,
+  seriesLoss,
+  TURBULENT_RE,
+} from '../../../lib/physics/hydraulics';
 import { PARAMETER_ROWS } from '../../../lib/tables/topics/enfriamiento-liquido';
 import {
   circuitProfileData,
@@ -82,6 +89,20 @@ describe('circuitProfileData: v(x) and p(x) of the RD109 path to the farthest se
   });
 });
 
+describe('the class’s regimes along the path (13.3)', () => {
+  test('the main pipe is turbulent, Re ≈ 162 000; the last manifold piece laminar, Re ≈ 2 100', () => {
+    const top = PATH.find((s) => s.id === `manifold-ida-${REFERENCE.servers}`);
+    const main = PATH[0];
+    const reTop = reynolds(PG25_40C, Q / (top?.area ?? Number.NaN), top?.diameter ?? Number.NaN);
+    const reMain = reynolds(PG25_40C, segmentVelocity(0), main.diameter);
+
+    expect(Math.round(reTop / 100) * 100).toBe(2100);
+    expect(reTop).toBeLessThan(LAMINAR_RE);
+    expect(Math.round(reMain / 1000) * 1000).toBe(162_000);
+    expect(reMain).toBeGreaterThan(TURBULENT_RE);
+  });
+});
+
 describe('colours with meaning, never series order', () => {
   test('cold supply in blue and warm return in orange-red, the OCP convention', () => {
     expect(SUPPLY_COLOR).toBe('var(--chart-1)');
@@ -115,9 +136,12 @@ describe('the three views of the profile', () => {
 
       expect(v.min, view.id).toBe(0);
       for (const point of inside) {
+        expect(point.v, view.id).toBeGreaterThanOrEqual(v.min);
         expect(point.v, view.id).toBeLessThanOrEqual(v.max);
-        expect(point.pReal / KPA, view.id).toBeGreaterThanOrEqual(p.min);
-        expect(point.pIdeal / KPA, view.id).toBeLessThanOrEqual(p.max);
+        for (const pressure of [point.pReal / KPA, point.pIdeal / KPA]) {
+          expect(pressure, view.id).toBeGreaterThanOrEqual(p.min);
+          expect(pressure, view.id).toBeLessThanOrEqual(p.max);
+        }
       }
     }
   });

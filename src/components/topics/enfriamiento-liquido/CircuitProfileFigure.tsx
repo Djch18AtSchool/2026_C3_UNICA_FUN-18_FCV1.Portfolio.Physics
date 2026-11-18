@@ -22,6 +22,7 @@ import { axisTicks, yTickLabelChars } from '../../lab/SvgPlotAxes';
 import {
   circuitProfileData,
   IDEAL_COLOR,
+  KPA_PER_BAR,
   PROFILE_VIEWS,
   profileParameterIds,
   SIDE_COLORS,
@@ -119,7 +120,7 @@ const kpa = (value: number) => formatNumber(value, { precision: 1, unit: 'kPa' }
 function spokenSummary(data: CircuitProfileData, view: ProfileViewId): string {
   const name = PROFILE_VIEWS.find((candidate) => candidate.id === view)?.label ?? '';
   return mathTextToString(
-    `Velocidad y presión del refrigerante a lo largo de ${formatNumber(data.bounds[data.bounds.length - 1], { precision: 1, unit: 'm' })} de recorrido; vista: ${name}. La presión real sale del CDU a ${kpa(data.inlet)} y vuelve a ${kpa(data.outlet)}, ${formatNumber(data.loss / 100, { precision: 2, unit: 'bar' })} menos; la de Bernoulli sin pérdidas vuelve a ${kpa(data.ideal[data.ideal.length - 1].y)}. ${viewNote(data, view)}`,
+    `Velocidad y presión del refrigerante a lo largo de ${formatNumber(data.bounds[data.bounds.length - 1], { precision: 1, unit: 'm' })} de recorrido; vista: ${name}. La presión real sale del CDU a ${kpa(data.inlet)} y vuelve a ${kpa(data.outlet)}, ${formatNumber(data.loss / KPA_PER_BAR, { precision: 2, unit: 'bar' })} menos; la de Bernoulli sin pérdidas vuelve a ${kpa(data.ideal[data.ideal.length - 1].y)}. ${viewNote(data, view)}`,
   );
 }
 
