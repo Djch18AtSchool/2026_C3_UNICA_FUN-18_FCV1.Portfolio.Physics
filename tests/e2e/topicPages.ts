@@ -46,6 +46,12 @@ const LABS: Readonly<
     hasEvents: true,
     hasZoom: true,
   },
+  'animaciones-resorte': {
+    labTestId: 'spring-lab',
+    hasClock: true,
+    hasEvents: true,
+    hasZoom: false,
+  },
 };
 
 export interface TopicPage {

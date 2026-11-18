@@ -70,6 +70,13 @@ export const TOPICS: readonly ConsignaTopic[] = Object.freeze(
       phase: 2,
       title: 'Asistencia gravitatoria: cómo la Voyager ganó velocidad sin gastar combustible',
     },
+    {
+      number: 10,
+      slug: 'animaciones-resorte',
+      phase: 3,
+      title:
+        'Spring animations: el resorte amortiguado detrás de las animaciones de iOS y de Framer Motion',
+    },
   ].map((topic) => Object.freeze(topic) as ConsignaTopic),
 );
 

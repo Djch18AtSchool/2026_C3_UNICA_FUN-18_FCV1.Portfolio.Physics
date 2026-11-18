@@ -1,0 +1,404 @@
+---
+number: 10
+phase: 3
+title: 'Spring animations: el resorte amortiguado detrás de las animaciones de iOS y de Framer Motion'
+shortTitle: 'Animaciones con resorte'
+concept: 'Oscilador amortiguado: ley de Hooke, amortiguamiento viscoso, regímenes subamortiguado, crítico y sobreamortiguado, y por qué una interfaz anima con rigidez y amortiguamiento en vez de con una duración.'
+resourceType: simulacion
+useCase:
+  product: 'Motion (antes Framer Motion) y las animaciones con resorte de Apple'
+  industry: 'Interfaces de usuario y animación web'
+sources:
+  - id: motion-v14140
+    title: 'Motion v14.14.0 (tag v14.14.0, commit f95ab94)'
+    authors: 'Matt Perry y colaboradores, Motion B.V.'
+    year: 2026
+    publisher: 'Repositorio motiondivision/motion en GitHub, licencia MIT; packages/motion-dom/src/animation: generators/spring.ts L22-L50, L240-L248, L305-L318, L335-L455 y L463-L490, utils/default-transitions.ts L4-L18, interfaces/motion-value.ts L48 y la prueba spring.test.ts L41-L121; CHANGELOG.md L106-L120'
+    url: 'https://github.com/motiondivision/motion/blob/v14.14.0/packages/motion-dom/src/animation/generators/spring.ts'
+    accessed: '2026-11-17'
+  - id: motion-blog-2024
+    title: 'Framer Motion is now independent, introducing Motion'
+    authors: 'Matt Perry'
+    year: 2024
+    publisher: 'Blog de motion.dev, 12 de noviembre de 2024'
+    url: 'https://motion.dev/blog/framer-motion-is-now-independent-introducing-motion'
+    accessed: '2026-11-17'
+  - id: motion-docs-spring
+    title: 'spring'
+    authors: 'Motion'
+    publisher: 'Documentación de Motion'
+    url: 'https://motion.dev/docs/spring'
+    accessed: '2026-11-17'
+  - id: motion-docs-transitions
+    title: 'Transitions (React)'
+    authors: 'Motion'
+    publisher: 'Documentación de Motion'
+    url: 'https://motion.dev/docs/react-transitions'
+    accessed: '2026-11-17'
+  - id: wwdc23-springs
+    title: 'Animate with springs (sesión 10158)'
+    authors: 'Apple'
+    year: 2023
+    publisher: 'WWDC23, Apple Developer; transcripción oficial de la página'
+    url: 'https://developer.apple.com/videos/play/wwdc2023/10158/'
+    accessed: '2026-11-17'
+  - id: apple-spring
+    title: 'Spring (SwiftUI)'
+    authors: 'Apple'
+    publisher: 'Apple Developer Documentation, iOS 17.0 y posteriores'
+    url: 'https://developer.apple.com/documentation/swiftui/spring'
+    accessed: '2026-11-17'
+  - id: androidx
+    title: 'AndroidX (commit b192298)'
+    authors: 'The Android Open Source Project'
+    year: 2026
+    publisher: 'Repositorio androidx/androidx en GitHub, licencia Apache 2.0; compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/tokens: MotionTokens.kt L24-L39, StandardMotionTokens.kt L20-L31 y ExpressiveMotionTokens.kt L22-L33'
+    url: 'https://github.com/androidx/androidx/tree/b192298bee5cff524471e0eac2f294aa59794ca6'
+    accessed: '2026-11-17'
+  - id: react-spring-v1012
+    title: 'react-spring v10.1.2 (tag v10.1.2, commit 59b1e53)'
+    authors: 'pmndrs'
+    publisher: 'Repositorio pmndrs/react-spring en GitHub, licencia MIT; packages/core/src/SpringValue.ts L310-L337'
+    url: 'https://github.com/pmndrs/react-spring/blob/v10.1.2/packages/core/src/SpringValue.ts'
+    accessed: '2026-11-17'
+  - id: css-easing-1
+    title: 'CSS Easing Functions Level 1'
+    authors: 'W3C'
+    year: 2023
+    publisher: 'Candidate Recommendation Draft, 13 de febrero de 2023'
+    url: 'https://www.w3.org/TR/css-easing-1/'
+    accessed: '2026-11-17'
+  - id: serway-jewett-2018
+    title: 'Física para ciencias e ingeniería, Vol. 1, 10.ª edición'
+    authors: 'Raymond A. Serway y John W. Jewett Jr.'
+    year: 2018
+    publisher: 'Cengage Learning'
+    url: 'https://cengagelatam.editorialdc.com/libros/fisica-para-ciencias-e-ingenieria-vol-1/'
+    accessed: '2026-10-08'
+related: ['control-haptico', 'coeficiente-restitucion']
+classRefs:
+  - module: 'Módulo 5'
+    topic: 'Tema 1 · Ecuaciones Diferenciales y Movimiento Oscilatorio · Ecuación Diferencial del Movimiento Armónico Simple (MAS)'
+    note: '$m\,d^2x/dt^2 = -kx$ con $\omega = \sqrt{k/m}$ y $T = 2\pi\sqrt{m/k}$: las (10.1) y (10.2).'
+  - module: 'Módulo 5'
+    topic: 'Tema 3 · Oscilaciones Amortiguadas Simples · Tres regímenes'
+    note: 'La (10.3), $b_c = 2\sqrt{km}$ y $dE/dt = -b v_x^2$; su $\omega^\prime$ es el de la (10.6).'
+  - module: 'Módulo 2'
+    topic: 'Tema 02 · Fricción y resortes · Concepto 04 · Fuerza elástica y ley de Hooke'
+    note: '$a_x = -(k/m)\,x$: una aceleración que cambia con la deformación, la de la (10.1).'
+  - module: 'Módulo 2'
+    topic: 'Tema 04 · Energía mecánica · Concepto 03 · Energía potencial elástica'
+    note: '$U_\text{el} = kx^2/2$: el segundo término de la $E$ de la (10.5).'
+  - module: 'Módulo 2'
+    topic: 'Tema 04 · Energía mecánica · Concepto 05 · Trabajo no conservativo y balance de energía'
+    note: '$\Delta(K+U) = W_\text{otras}$: con la fuerza viscosa, la (10.5).'
+updated: 2026-11-17
+---
+
+import Step from '../../components/ui/Step.astro';
+import Why from '../../components/ui/Why.astro';
+import UseCase from '../../components/ui/UseCase.astro';
+import Equation from '../../components/ui/Equation.astro';
+import Figure from '../../components/ui/Figure.astro';
+import DataTable from '../../components/ui/DataTable.astro';
+import Cite from '../../components/ui/Cite.astro';
+import Callout from '../../components/ui/Callout.astro';
+import Connections from '../../components/ui/Connections.astro';
+import Sources from '../../components/ui/Sources.astro';
+import SpringFigure from '../../components/topics/animaciones-resorte/SpringFigure';
+
+Lo que se desliza o se abre en iOS y en Motion no sigue una curva dibujada a mano: sigue un resorte amortiguado, calculado en cada cuadro.
+
+<Step n={1} title="Un resorte sin amortiguar">
+
+Llamo $u$ al desplazamiento del elemento respecto de su destino; con solo Hooke, su aceleración cambia con $u$.
+
+<Equation
+  id="ec-resorte-hooke"
+  latex="m\,\ddot u = -k\,u, \qquad u = x - x_\text{obj}"
+  symbols={[
+    { symbol: 'x', meaning: 'posición del elemento en su eje', unit: 'px' },
+    { symbol: 'x_\\text{obj}', meaning: 'destino de la animación', unit: 'px' },
+    { symbol: 'm', meaning: 'masa; las bibliotecas usan 1 kg', unit: 'kg' },
+    { symbol: 'k', meaning: 'rigidez del resorte', unit: 'N/m' },
+  ]}
+/>
+
+<Equation
+  id="ec-resorte-libre"
+  latex="u(t) = u_0 \cos(\omega_0 t), \qquad \omega_0 = \sqrt{\frac{k}{m}}, \qquad T_0 = \frac{2\pi}{\omega_0}"
+  symbols={[
+    { symbol: 'u_0', meaning: 'desplazamiento inicial, soltado desde el reposo', unit: 'px' },
+    { symbol: '\\omega_0', meaning: 'frecuencia angular natural', unit: 'rad/s' },
+    { symbol: 'T_0', meaning: 'periodo', unit: 's' },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+El elemento cruza el destino a su rapidez máxima y sigue de largo, porque nada le quita energía: «Springs with `damping: 0` will run forever» <Cite id="motion-docs-spring" sources={frontmatter.sources} />.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Derivo dos veces la (10.2): <Equation inline latex="\ddot u = -\omega_0^2\,u" />, la (10.1). Con los valores por omisión de Motion, 100 N/m y 1 kg, <Equation inline latex="T_0" /> = 0,63 s.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Valor animado de 100 a 1 000 con $k$ = 100 N/m, $m$ = 1 kg y $b$ = 0. Es un coseno de periodo $T_0$ = 0,63 s: vuelve a 100 en cada periodo y nunca se queda en la banda de ±2 % del destino."
+  source={{
+    text: 'Gráfica que calculé con la (10.2); $k$ y $m$ por omisión de Motion v14.14.0 (spring.ts L22 y L24), con $b$ = 0',
+  }}
+>
+  <SpringFigure variant="libre" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={2} title="El amortiguamiento viscoso">
+
+Le añado una fuerza opuesta a la velocidad, <Equation inline latex="-b\,\dot u" /> <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. La razón $\zeta$ compara $b$ con el amortiguamiento crítico <Equation inline latex="b_c" />.
+
+<Equation
+  id="ec-resorte-amortiguado"
+  latex="m\,\ddot u + b\,\dot u + k\,u = 0"
+  symbols={[{ symbol: 'b', meaning: 'coeficiente de amortiguamiento viscoso', unit: 'N·s/m' }]}
+/>
+
+<Equation
+  id="ec-resorte-zeta"
+  latex="\zeta = \frac{b}{2\sqrt{k\,m}}, \qquad b_c = 2\sqrt{k\,m}"
+  symbols={[
+    { symbol: '\\zeta', meaning: 'razón de amortiguamiento, adimensional' },
+    { symbol: 'b_c', meaning: 'amortiguamiento crítico, el de $\\zeta = 1$', unit: 'N·s/m' },
+  ]}
+/>
+
+<Equation
+  id="ec-resorte-energia"
+  latex="E = \tfrac12\,m v^2 + \tfrac12\,k u^2, \qquad \frac{dE}{dt} = -b\,v^2 \le 0"
+  symbols={[
+    { symbol: 'E', meaning: 'energía mecánica del resorte', unit: 'J' },
+    { symbol: 'v', meaning: 'velocidad, $\\dot u$', unit: 'px/s' },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Cada vaivén es menor: la fuerza viscosa siempre frena, y el elemento acaba en una banda alrededor del destino.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Con la (10.3), <Equation inline latex="\dot E = v\,(m\dot v + k u) = -b v^2" />. Si <Equation inline latex="\zeta < 1" />, <Equation inline latex="u = A_0 e^{-\zeta\omega_0 t}\cos(\omega' t + \phi)" /> con <Equation inline latex="\omega' = \omega_0\sqrt{1-\zeta^2}" />: un coseno por una exponencial, el «damped cosine» de Apple <Cite id="wwdc23-springs" sources={frontmatter.sources} />.
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Los valores por omisión de Motion, $k$ = 100 N/m, $b$ = 10 N·s/m y $m$ = 1 kg ($\zeta$ = 0,5), de 100 a 1 000. La curva queda entre las envolventes $x_\text{obj} \pm A_0 e^{-\zeta\omega_0 t}$, con $A_0 = |u_0|/\sqrt{1-\zeta^2}$, y entra para siempre en la banda de ±2 % a los 0,81 s."
+  source={{
+    text: 'Gráfica que calculé con la (10.6); valores por omisión de Motion v14.14.0 (spring.ts L22-L24)',
+  }}
+>
+  <SpringFigure variant="amortiguado" client:visible />
+</Figure>
+
+</Step>
+
+<Step n={3} title="Tres regímenes y ninguna duración">
+
+Con cualquier <Equation inline latex="u_0" /> y <Equation inline latex="v_0" />, la (10.3) tiene tres soluciones según $\zeta$: las tres ramas del generador de Motion <Cite id="motion-v14140" sources={frontmatter.sources} />. Con ellas reproduzco, valor por valor, sus tres pruebas (cálculo propio).
+
+<Equation
+  id="ec-resorte-regimenes"
+  latex="\begin{gathered} u(t) = \begin{cases} e^{-\zeta\omega_0 t}\left[u_0\cos\omega' t + \dfrac{v_0 + \zeta\omega_0 u_0}{\omega'}\,\sin\omega' t\right] & \zeta < 1 \\[6pt] e^{-\omega_0 t}\left[u_0 + (v_0 + \omega_0 u_0)\,t\right] & \zeta = 1 \\[6pt] C_1 e^{r_1 t} + C_2 e^{r_2 t} & \zeta > 1 \end{cases} \\[6pt] \omega' = \omega_0\sqrt{1-\zeta^2}, \qquad r_{1,2} = -\zeta\omega_0 \pm \omega_0\sqrt{\zeta^2 - 1}, \qquad C_2 = \frac{v_0 - r_1 u_0}{r_2 - r_1}, \quad C_1 = u_0 - C_2 \end{gathered}"
+  symbols={[
+    { symbol: 'v_0', meaning: 'velocidad inicial, por ejemplo la de un gesto', unit: 'px/s' },
+    { symbol: "\\omega'", meaning: 'frecuencia angular amortiguada', unit: 'rad/s' },
+    {
+      symbol: 'r_{1,2}',
+      meaning: 'tasas de las dos exponenciales, una lenta y una rápida',
+      unit: '1/s',
+    },
+  ]}
+/>
+
+<Equation
+  id="ec-resorte-sobrepaso"
+  latex="t_p = \frac{\pi}{\omega'}, \qquad M_p = \frac{|u(t_p)|}{|u_0|} = e^{-\zeta\pi/\sqrt{1-\zeta^2}} \qquad (\zeta < 1,\ v_0 = 0)"
+  symbols={[
+    { symbol: 't_p', meaning: 'instante del primer sobrepaso', unit: 's' },
+    { symbol: 'M_p', meaning: 'sobrepaso, como fracción del recorrido' },
+  ]}
+/>
+
+<Equation
+  id="ec-resorte-asentamiento"
+  latex="t_s \approx \frac{1}{\zeta\omega_0}\,\ln\frac{1}{\varepsilon\sqrt{1-\zeta^2}} \quad (\zeta < 1), \qquad e^{-\omega_0 t_s}\,(1 + \omega_0 t_s) = \varepsilon \quad (\zeta = 1)"
+  symbols={[
+    {
+      symbol: 't_s',
+      meaning: 'tiempo de asentamiento: desde ahí, $|u| \\le \\varepsilon\\,|u_0|$',
+      unit: 's',
+    },
+    { symbol: '\\varepsilon', meaning: 'ancho de la banda de reposo, como fracción del recorrido' },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Con <Equation inline latex="\zeta < 1" /> el elemento se pasa y oscila; con <Equation inline latex="\zeta = 1" /> llega sin pasarse en el menor tiempo; con <Equation inline latex="\zeta > 1" />, sin pasarse pero más tarde. Ninguno termina en un instante preciso.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+La (10.7) es la (10.6) en el primer <Equation inline latex="v = 0" />; la (10.8), cuándo la envolvente cae a $\varepsilon$. El asentamiento depende de $\zeta$, <Equation inline latex="\omega_0" />, $\varepsilon$ y del estado inicial: no hay una duración. Con una banda del 2 %, <Equation inline latex="\zeta = 0{,}8" /> entra antes que el crítico (cálculo propio).
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="Las tres pruebas del resorte de Motion, de 100 a 1 000 con $m$ = 1 kg: subamortiguada ($k$ = 300 N/m, $b$ = 10 N·s/m), crítica (100 y 20) y sobreamortiguada (300 y 100). Las curvas son la (10.6); los puntos, los valores que cada prueba espera cada 0,2 s, y coinciden al redondear."
+  source={{
+    text: 'Gráfica que calculé con la (10.6); valores esperados de la prueba spring.test.ts de Motion v14.14.0, L41-L121',
+    url: 'https://github.com/motiondivision/motion/blob/v14.14.0/packages/motion-dom/src/animation/generators/__tests__/spring.test.ts#L41-L121',
+  }}
+>
+  <SpringFigure variant="regimenes" client:visible />
+</Figure>
+
+<DataTable id="animaciones-resorte-preajustes" />
+
+</Step>
+
+<Step n={4} title="Lo que hace una biblioteca real">
+
+Si el destino cambia a mitad de camino, la biblioteca reinicia la (10.6) desde el estado actual; Motion pasa `value.getVelocity()` a la animación nueva <Cite id="motion-v14140" sources={frontmatter.sources} />. Apple cambió $m$, $k$ y $b$, que «are not very intuitive» <Cite id="wwdc23-springs" sources={frontmatter.sources} />, por una duración $d$ y un rebote $\beta$ <Cite id="apple-spring" sources={frontmatter.sources} />. Un umbral de reposo corta la cola.
+
+<Equation
+  id="ec-resorte-redireccion"
+  latex="u_0 \leftarrow x(t^*) - x_\text{nuevo}, \qquad v_0 \leftarrow \dot x(t^*)"
+  symbols={[
+    { symbol: 't^*', meaning: 'instante en que cambia el destino', unit: 's' },
+    { symbol: 'x_\\text{nuevo}', meaning: 'el destino nuevo', unit: 'px' },
+  ]}
+/>
+
+<Equation
+  id="ec-resorte-perceptual"
+  latex="k = m\left(\frac{2\pi}{d}\right)^2, \qquad b = \frac{4\pi m\,(1-\beta)}{d}"
+  symbols={[
+    { symbol: 'd', meaning: 'duración perceptual: $\\omega_0 = 2\\pi/d$', unit: 's' },
+    {
+      symbol: '\\beta',
+      meaning: 'rebote: $\\zeta = 1 - \\beta$; 0 es crítico y 1, sin amortiguar',
+    },
+  ]}
+/>
+
+<Equation
+  id="ec-resorte-reposo"
+  latex="|v| \le v_\text{rep} \ \text{y}\ |u| \le \delta \;\Longrightarrow\; x \leftarrow x_\text{obj}, \quad v \leftarrow 0"
+  symbols={[
+    { symbol: 'v_\\text{rep}', meaning: 'umbral de rapidez; Motion usa 2 px/s', unit: 'px/s' },
+    {
+      symbol: '\\delta',
+      meaning: 'umbral de distancia; Motion usa 0,5 px, «selected empirically»',
+      unit: 'px',
+    },
+  ]}
+/>
+
+<Why>
+
+<Fragment slot="fenomeno">
+
+Interrumpido, el resorte sigue con su velocidad y vuelve sin sacudida; una curva con duración arranca otra vez desde el reposo, y su velocidad cae a cero de golpe.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+Con la (10.9), $x$ y $v$ son continuas en <Equation inline latex="t^*" />; solo salta la aceleración, una cantidad finita por la (10.3). La (10.10) da <Equation inline latex="\omega_0 = 2\pi/d" /> y <Equation inline latex="\zeta = 1 - \beta" />: con 0,5 s y 0,3, los 157,9 N/m y 17,6 N·s/m de Apple (tabla 10.2).
+
+</Fragment>
+
+</Why>
+
+<Figure
+  type="visualizacion"
+  showBadge={false}
+  caption="La transición por omisión de Motion para una traslación ($k$ = 500 N/m, $b$ = 25 N·s/m) frente a una curva ease-in-out que dura 0,26 s, lo que tarda el resorte en asentarse al 2 %. A $t^*$ = 0,10 s el destino vuelve a 100. Arriba, la posición; abajo, la velocidad: la del resorte sigue en unos 6 680 px/s y la de la curva cae de 5 330 px/s a 0."
+  source={{
+    text: 'Gráfica que calculé con las (10.6) y (10.9); $k$ y $b$ de Motion v14.14.0 (default-transitions.ts L4-L9); curva ease-in-out, cubic-bezier(0.42, 0, 0.58, 1), de CSS Easing Functions Level 1 (W3C)',
+  }}
+>
+  <SpringFigure variant="interrupcion" client:visible />
+</Figure>
+
+<DataTable id="animaciones-resorte-conversion" />
+
+</Step>
+
+<UseCase>
+
+<Fragment slot="caso">
+
+Motion (antes Framer Motion, licencia MIT) anima interfaces web <Cite id="motion-blog-2024" sources={frontmatter.sources} />. Su generador `spring` (tag v14.14.0, commit `f95ab94`) escribe las tres ramas de la (10.6) <Cite id="motion-v14140" sources={frontmatter.sources} />. Apple explica el porqué en la WWDC23; desde iOS 17, los resortes animan SwiftUI por omisión <Cite id="wwdc23-springs" sources={frontmatter.sources} />. En Android, Material 3 pasó de duraciones con curvas de Bézier a tokens con $k$ y $\zeta$ <Cite id="androidx" sources={frontmatter.sources} />.
+
+</Fragment>
+
+<Fragment slot="ecuacion">
+
+`return s.target - c.env * (c.A * c.sin + s.delta * c.cos)` (L392) es la (10.6) si `s.delta` vale <Equation inline latex="-u_0" /> y `s.velocity`, <Equation inline latex="-v_0" />. `damping / (2 * Math.sqrt(stiffness * mass))` (L314) es la (10.4), y la escala hacia 0 usa `2 * Math.sqrt(550)`: el crítico exacto, para que la escala no se vuelva negativa.
+
+</Fragment>
+
+<Fragment slot="justificacion">
+
+Una curva con duración «is just a prespecified curve, so there's no way to represent an initial velocity» <Cite id="wwdc23-springs" sources={frontmatter.sources} />. El resorte acepta cualquier distancia y cualquier <Equation inline latex="v_0" />: un gesto o una animación interrumpida entregan su velocidad sin salto (figura 10.4). Con curvas haría falta una por caso.
+
+</Fragment>
+
+<Fragment slot="balance">
+
+Gano continuidad de velocidad con solo tres números, $m$, $k$ y $b$. Cuesta no tener duración («a bit unpredictable», dice Apple <Cite id="wwdc23-springs" sources={frontmatter.sources} />), umbrales empíricos, parámetros sin objeto real y trampas numéricas: la 14.7.0 corrigió sobreamortiguados que saltaban al destino <Cite id="motion-v14140" sources={frontmatter.sources} />. Los resortes por duración de Motion terminan a tiempo, pero ignoran la velocidad heredada <Cite id="motion-docs-transitions" sources={frontmatter.sources} />.
+
+</Fragment>
+
+</UseCase>
+
+<Callout variant="clase" title="Módulo 5 · Temas 1 y 3; Módulo 2 · Temas 02 y 04, y SPAA 02">
+
+El Módulo 5 escribe la (10.2), la (10.3), <Equation inline latex="b_c = 2\sqrt{km}" /> y la (10.5); su envolvente <Equation inline latex="e^{-(b/2m)t}" /> es la de la (10.6), porque <Equation inline latex="\zeta\omega_0 = b/2m" />. El Módulo 2 da Hooke («No corresponde usar MRUA») y la energía elástica <Equation inline latex="\tfrac12 k x^2" />. La regla B de su SPAA 02, «su velocidad se vuelve cero», es el error de la curva con duración. Las (10.7) a (10.11) son extensiones.
+
+</Callout>
+
+<Connections related={frontmatter.related} classRefs={frontmatter.classRefs}>
+
+Con el Tema 5: el mismo oscilador devuelve el gatillo al reposo, crítico o a 0,3 del crítico, con $c$ en lugar de $b$. Con el Tema 7: `bounce` de react-spring invierte la velocidad en el destino y la escala, como una restitución <Cite id="react-spring-v1012" sources={frontmatter.sources} />. Con el Tema 12: el mismo oscilador, forzado a su frecuencia natural.
+
+</Connections>
+
+<Sources sources={frontmatter.sources} />
