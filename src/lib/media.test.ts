@@ -107,9 +107,13 @@ describe('requireMedia, hosted video or audio', () => {
     expect(() =>
       requireMedia({ ...AUDIO, files: [{ src: 'media/prueba/nota.mp4', type: 'video/mp4' }] }, []),
     ).toThrow(/un audio admite audio\/mpeg/);
+    // A key every object inherits is not an accepted type either.
+    expect(() => requireMedia(withFile('media/prueba/puente.webm', 'toString'), [])).toThrow(
+      /«toString»/,
+    );
   });
 
-  test('rejects a file or a poster that is not under public/media/', () => {
+  test('rejects a file or a poster that is not a file under public/media/', () => {
     expect(() => requireMedia(withFile('/media/prueba/puente.webm', 'video/webm'), [])).toThrow(
       /public\/media/,
     );
@@ -120,6 +124,13 @@ describe('requireMedia, hosted video or audio', () => {
       /public\/media/,
     );
     expect(() => requireMedia({ ...VIDEO, poster: 'puente.jpg' }, [])).toThrow(/public\/media/);
+    // Without an extension withBase would turn it into a folder ("…/puente/").
+    expect(() => requireMedia(withFile('media/prueba/puente', 'video/webm'), [])).toThrow(
+      /public\/media/,
+    );
+    expect(() => requireMedia(withFile('media/prueba/', 'video/webm'), [])).toThrow(
+      /public\/media/,
+    );
   });
 });
 

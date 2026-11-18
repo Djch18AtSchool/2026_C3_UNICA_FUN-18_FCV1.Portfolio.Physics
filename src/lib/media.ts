@@ -15,7 +15,10 @@ export interface YouTubeSource {
   duration: number;
 }
 
-/** One encoding of a hosted medium: its path under public/ ("media/<slug>/…") and MIME type. */
+/**
+ * One encoding of a hosted medium: its file under public/, with its extension
+ * ("media/resonancia-estructural/tacoma-1940.webm"), and its MIME type.
+ */
 export interface MediaFile {
   src: string;
   type: string;
@@ -49,9 +52,11 @@ export interface MediaMarker {
 }
 
 /**
- * A rate the reader can switch on that applies only inside `ranges` (s, [start, end), ascending):
- * Tema 12's «Velocidad real (×2/3)» plays the shots filmed at 16 fps at their real speed and
- * leaves the rest of the film at 1×.
+ * A rate the reader can switch on that applies only inside `ranges` (s, ascending, without
+ * overlapping): Tema 12's «Velocidad real (×2/3)» plays the shots filmed at 16 fps at their real
+ * speed and leaves the rest of the film at 1×. Each range is half-open, [start, end): `start`
+ * plays at `rate`, `end` already at 1×. A range that ends where a marker starts the next shot
+ * should end one frame before that marker, so the frame shown at the marker is never slowed down.
  */
 export interface RealSpeed {
   label: string;
@@ -65,8 +70,11 @@ const ACCEPTED_TYPES: Readonly<Record<HostedSource['kind'], Readonly<Record<stri
   video: { 'video/webm': 'WebM', 'video/mp4': 'MP4' },
   audio: { 'audio/mpeg': 'MP3' },
 };
-/** A path under public/media/, with no way out of it ("..") and no scheme or leading slash. */
-const PUBLIC_MEDIA_PATH = /^media\/(?!.*\.\.)[\w./-]+$/;
+/**
+ * A file under public/media/ with its extension (without one, withBase would make it a folder,
+ * "…/x/"), with no way out of it ("..") and no scheme or leading slash.
+ */
+const PUBLIC_MEDIA_PATH = /^media\/(?!.*\.\.)[\w./-]*[\w-]\.[A-Za-z0-9]+$/;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 /** "2021-08-05" is a day; "5/8/2021" or "2021-02-30" are not (the round trip must match). */
@@ -93,7 +101,7 @@ function requireYouTube(source: YouTubeSource): void {
 function requirePublicMedia(path: string): void {
   if (!PUBLIC_MEDIA_PATH.test(path)) {
     throw new RangeError(
-      `"${path}" debe ser una ruta dentro de public/media/, como "media/tema/x"`,
+      `"${path}" debe ser un archivo de public/media/ con su extensión, como "media/<slug>/archivo.webm"`,
     );
   }
 }
@@ -105,7 +113,7 @@ function requireHosted(source: HostedSource): void {
   const accepted = ACCEPTED_TYPES[source.kind];
   source.files.forEach(({ src, type }) => {
     requirePublicMedia(src);
-    if (!(type in accepted)) {
+    if (!Object.hasOwn(accepted, type)) {
       throw new RangeError(
         `El archivo ${src} es de tipo «${type}»; un ${source.kind} admite ${Object.keys(accepted).join(', ')}`,
       );

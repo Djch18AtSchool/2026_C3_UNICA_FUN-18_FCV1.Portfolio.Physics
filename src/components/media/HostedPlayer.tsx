@@ -7,10 +7,15 @@ const KIND_LABEL: Readonly<Record<HostedSource['kind'], string>> = {
   audio: 'Audio',
 };
 
+/** A timeout with no delay runs in the next task, after the current one's microtasks. */
+const NEXT_TASK_MS = 0;
+
 /**
  * Whether no file can play: the medium reported an error (decoding, or the network once loaded),
- * or it tried every <source> and is left without one. Read on mount, because with the sources in
- * the server HTML that can happen before the island hydrates and its error events are missed.
+ * or it tried every <source> and is left without one. Read one task after mounting: with the
+ * sources in the server HTML that can happen before the island hydrates, and its error events are
+ * missed; and a medium the client just created has no source only until its resource selection
+ * starts (the next stable state), so it counts as failed only if it still has none a task later.
  */
 function hasFailed(media: HTMLMediaElement): boolean {
   return Boolean(media.error) || media.networkState === HTMLMediaElement.NETWORK_NO_SOURCE;
@@ -41,7 +46,12 @@ export function HostedPlayer({ source, mediaRef, playerId, onTime, onFail }: Hos
     [mediaRef],
   );
   useEffect(() => {
-    if (mediaRef.current && hasFailed(mediaRef.current)) onFail();
+    const media = mediaRef.current;
+    if (!media) return undefined;
+    const check = window.setTimeout(() => {
+      if (hasFailed(media)) onFail();
+    }, NEXT_TASK_MS);
+    return () => window.clearTimeout(check);
   }, [mediaRef, onFail]);
 
   const report = (event: SyntheticEvent<HTMLMediaElement>) =>
@@ -110,16 +120,28 @@ export function HostedCredit({ source, testId }: { source: HostedSource; testId:
   );
 }
 
+interface PlaybackStatusProps {
+  source: HostedSource;
+  isFailed: boolean;
+  testId: string;
+}
+
 /**
- * What a reader whose browser cannot play the medium (no codec, file missing, network off) sees:
- * the first file, offered as a download. The markers and their analyses stay as they are.
+ * What a reader whose browser cannot play the medium (no codec, file missing, network off) sees
+ * and hears: the first file, offered as a download. The live region is always there, empty and
+ * without height until the failure fills it (a region announces changes, not its own insertion);
+ * the line brings its own 16 px above it. The markers and their analyses stay as they are.
  */
-export function PlaybackFailure({ source, testId }: { source: HostedSource; testId: string }) {
+export function PlaybackStatus({ source, isFailed, testId }: PlaybackStatusProps) {
   const file = source.files[0];
   return (
-    <p role="status" data-testid={`${testId}-error`} className="m-0 text-sm">
-      {'No se pudo reproducir el archivo en este navegador: '}
-      <a href={withBase(file.src)} download>{`descárgalo en ${formatName(file)}`}</a>.
-    </p>
+    <div role="status">
+      {isFailed ? (
+        <p data-testid={`${testId}-error`} className="m-0 mt-4 text-sm">
+          {'No se pudo reproducir el archivo en este navegador: '}
+          <a href={withBase(file.src)} download>{`descárgalo en ${formatName(file)}`}</a>.
+        </p>
+      ) : null}
+    </div>
   );
 }

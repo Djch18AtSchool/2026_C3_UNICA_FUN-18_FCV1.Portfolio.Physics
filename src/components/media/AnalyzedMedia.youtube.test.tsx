@@ -165,6 +165,16 @@ describe('AnalyzedMedia, YouTube', () => {
     expect(markerButton(/El arco/)).toHaveFocus();
   });
 
+  test('a marker announces that the video plays from its instant', () => {
+    renderPlayer();
+
+    fireEvent.click(markerButton(/El arco/));
+
+    expect(
+      screen.getByTestId('haptic-video-markers').parentElement?.querySelector('[aria-live]'),
+    ).toHaveTextContent('Reproduciendo desde 4:15: El arco');
+  });
+
   test('once loaded, the page subscribes to the player events', () => {
     renderPlayer();
     fireEvent.click(screen.getByRole('button', { name: PLAY }));

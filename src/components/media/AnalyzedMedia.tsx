@@ -12,7 +12,7 @@ import { withBase } from '../../lib/url';
 import { activeMarkerIndex, formatTimestamp } from '../../lib/videoMarkers';
 import { watchUrl } from '../../lib/youtube';
 import InlineMath from '../lab/InlineMath';
-import { HostedCredit, HostedPlayer, PlaybackFailure, seekAndPlay } from './HostedPlayer';
+import { HostedCredit, HostedPlayer, PlaybackStatus, seekAndPlay } from './HostedPlayer';
 import { useRealSpeed, type RealSpeedToggle } from './useRealSpeed';
 import { useYouTubePlayer } from './useYouTubePlayer';
 import { YouTubeCredit, YouTubeEmbed } from './YouTubeEmbed';
@@ -127,7 +127,8 @@ function MarkerList({
 
 /**
  * The highlighted marker (the playback position once the player reports it, else the last pick)
- * and the seek of a marker: pick it, announce its instant and title, move the player there.
+ * and the seek of a marker: pick it, move the player there and play, and announce that it plays
+ * from that instant (every kind of medium plays from a marker: ruling R11).
  */
 function useMarkers(
   markers: readonly MediaMarker[],
@@ -141,7 +142,7 @@ function useMarkers(
   const seekMarker = (index: number) => {
     const { time, title } = markers[index];
     setPicked(index);
-    setAnnouncement(`Instante ${formatTimestamp(time)}: ${title}`);
+    setAnnouncement(`Reproduciendo desde ${formatTimestamp(time)}: ${title}`);
     seek(time);
   };
   return { active, announcement, seekMarker };
@@ -248,14 +249,17 @@ function HostedMedia({ source, markers, realSpeed, testId }: HostedMediaProps) {
 
   return (
     <div data-testid={`${testId}-player`} className={PLAYER}>
-      <HostedPlayer
-        source={source}
-        mediaRef={mediaRef}
-        playerId={playerId}
-        onTime={setReportedTime}
-        onFail={fail}
-      />
-      {isFailed ? <PlaybackFailure source={source} testId={testId} /> : null}
+      {/* A block, not a flex item each: the empty status region adds no gap under the player. */}
+      <div>
+        <HostedPlayer
+          source={source}
+          mediaRef={mediaRef}
+          playerId={playerId}
+          onTime={setReportedTime}
+          onFail={fail}
+        />
+        <PlaybackStatus source={source} isFailed={isFailed} testId={testId} />
+      </div>
       {realSpeed && !isFailed ? (
         <RealSpeedButton
           label={realSpeed.label}

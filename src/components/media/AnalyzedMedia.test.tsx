@@ -104,7 +104,7 @@ describe('AnalyzedMedia, hosted video or audio', () => {
     expect(markerButton(/El viento/)).toHaveAttribute('aria-current', 'true');
     expect(markerButton(/La línea central/)).not.toHaveAttribute('aria-current');
     expect(markerButton(/El viento/)).toHaveAttribute('aria-controls', media().parentElement?.id);
-    expect(announcer()).toHaveTextContent('Instante 0:50: El viento');
+    expect(announcer()).toHaveTextContent('Reproduciendo desde 0:50: El viento');
   });
 
   test('the playback position highlights the last marker reached', () => {
