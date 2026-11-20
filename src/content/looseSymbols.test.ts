@@ -76,11 +76,16 @@ interface TopicSources {
   formulas: string[];
 }
 
-/** The MDX body's prose: no imports, no tags (their text props are read apart), no equations. */
+/**
+ * The MDX body's prose: no imports, no tags (their text props are read apart), no equations.
+ * The text props go before the tags: a «>» inside one (Tema 7's «$v_0 > v_\\text{th}$») would
+ * otherwise end its tag early.
+ */
 function mdxProse(body: string): string {
   return body
     .replace(IMPORT_LINE, ' ')
     .replace(LATEX_ATTRIBUTE, ' ')
+    .replace(TEXT_PROP, ' ')
     .replace(/<Equation\s+inline\b[^>]*\/>/gsu, '§')
     .replace(/<[A-Za-z/][^>]*?(?:\/>|>)/gsu, ' ');
 }

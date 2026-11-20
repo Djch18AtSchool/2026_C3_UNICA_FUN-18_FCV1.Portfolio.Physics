@@ -1952,3 +1952,13 @@ prosa la cita. Prosa del tema: 647 → 649.
 5. `src/lib/tables/topics/enfriamiento-liquido.ts:119`, línea de fuente de la tabla 13.3: «…exponente $n$ por omisión
    de la Modelica Buildings Library v14.0.0; cada fila con su fuente» → «…exponente $n$ por omisión de la Modelica
    Buildings Library v14.0.0; exponente del lazo: OCP OAI (2023), fig. 4; cada fila con su fuente».
+
+### 3. Tema 7: el dominio de la ecuación (7.3) (corrección del profesor)
+
+La fórmula de $N$ solo cuenta rebotes si el primer impacto supera el umbral; el código ya daba $N = 0$ fuera de ese
+dominio y ahora la página lo dice. El significado de un símbolo no cuenta para las 650 palabras (prosa: 650).
+
+6. `src/content/topics/coeficiente-restitucion.mdx:312`, ecuación (7.3), significado de $N$: «rebotes: impactos
+   $e^n v_0$, con $v_0 = \sqrt{2gh_0}$, estrictamente por encima del umbral; uno que cae justo en $v_\text{th}$ no
+   rebota» → «rebotes: impactos $e^n v_0$, con $v_0 = \sqrt{2gh_0}$, estrictamente por encima del umbral; uno que cae
+   justo en $v_\text{th}$ no rebota (con $v_0 > v_\text{th}$; si no, $N = 0$)».

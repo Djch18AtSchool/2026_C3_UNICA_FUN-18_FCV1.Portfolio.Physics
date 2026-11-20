@@ -761,4 +761,13 @@ describe('published bounce-count formula (Tema 7, equation 7.3)', () => {
     expect(mdx).toContain('N = \\left\\lceil');
     expect(mdx).not.toContain('\\right\\rfloor + 1');
   });
+
+  // The professor's correction: the logarithm is only a count for v0 > v_th; below it, no bounce.
+  test('la página declara el dominio de (7.3), $v_0 > v_\\text{th}$, y el código da N = 0 fuera de él', () => {
+    const mdx = readFileSync('src/content/topics/coeficiente-restitucion.mdx', 'utf8');
+
+    expect(mdx).toContain('(con $v_0 > v_\\\\text{th}$; si no, $N = 0$)');
+    expect(bouncesAboveThreshold(1, 0.9, 2)).toBe(0);
+    expect(bouncesAboveThreshold(2, 0.9, 2)).toBe(0);
+  });
 });
