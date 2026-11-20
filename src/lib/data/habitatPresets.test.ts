@@ -48,6 +48,8 @@ describe('HABITAT_PRESETS', () => {
     const stanford = presetById('toro-stanford');
     expect(stanford.values).toEqual({ r: 830, rpm: 1 });
     expect(solveHabitat(stanford.values).gRatio).toBeCloseTo(0.93, 2);
+    // The magnitude g is a formula; «0,93 g» is a multiple of g, written as the page writes «1 g».
+    expect(stanford.note).toContain('con $g$ = 9,81 m/s² resulta 0,93 g');
   });
 
   test('the SP-413 limit is 895 m at 1 rpm and gives 1.00 g', () => {

@@ -260,7 +260,12 @@ describe('JumpLab', () => {
 
     await user.click(screen.getByRole('button', { name: /^Tierra/ }));
 
-    expect(screen.getByTestId('preset-note')).toHaveTextContent('Fuente: g estándar, 9,81 m/s²');
+    const earthNote = screen.getByTestId('preset-note');
+    // The source writes the magnitude as a formula, $g$ (KaTeX repeats its letter in the text).
+    expect(earthNote).toHaveTextContent(/Fuente: g+ estándar, 9,81 m\/s²/);
+    expect([...earthNote.querySelectorAll('annotation')].map((tex) => tex.textContent)).toContain(
+      'g',
+    );
     expect(within(screen.getByTestId('preset-note')).queryByRole('link')).toBeNull();
   });
 

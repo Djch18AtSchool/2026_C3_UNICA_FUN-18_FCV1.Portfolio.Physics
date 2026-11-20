@@ -31,7 +31,7 @@ export const HABITAT_PRESETS: Preset<HabitatSettings>[] = [
     values: { r: STANFORD_TORUS_SP413.R, rpm: 1 },
     sourceLabel: 'NASA SP-413 (1977)',
     sourceUrl: SP413_URL,
-    note: 'Radio mayor de 830 m girando a 1 RPM, el límite de rotación que fija el estudio para las zonas habitadas: con g = 9,81 m/s² resulta 0,93 g, y SP-413 reporta 0,95 ± 0,05 g.',
+    note: 'Radio mayor de 830 m girando a 1 RPM, el límite de rotación que fija el estudio para las zonas habitadas: con $g$ = 9,81 m/s² resulta 0,93 g, y SP-413 reporta 0,95 ± 0,05 g.',
   },
   {
     id: 'limite-sp413',

@@ -43,6 +43,11 @@ describe('JUMP_PRESETS', () => {
     expect(presetById('luna').values.g).toBe(1.62);
   });
 
+  test('the source labels write the magnitude g as a formula, $g$, as the page does', () => {
+    expect(presetById('tierra').sourceLabel).toBe('$g$ estándar, 9,81 m/s²');
+    expect(presetById('luna').sourceLabel).toBe('$g$ lunar, 1,62 m/s²');
+  });
+
   test('Celeste converts Player.cs at 8 px = 1 m', () => {
     // Gravity 900 px/s², JumpSpeed 105 px/s, MaxRun 90 px/s divided by 8 px/m.
     expect(presetById('celeste').values).toEqual({

@@ -107,8 +107,8 @@ function ballPreset(
 ): BouncePreset {
   const range =
     standard.eMin === standard.eMax
-      ? `e = ${comma(standard.eMin, E_DECIMALS)}`
-      : `e entre ${comma(standard.eMin, E_DECIMALS)} y ${comma(standard.eMax, E_DECIMALS)}`;
+      ? `$e$ = ${comma(standard.eMin, E_DECIMALS)}`
+      : `$e$ entre ${comma(standard.eMin, E_DECIMALS)} y ${comma(standard.eMax, E_DECIMALS)}`;
   return {
     id,
     name,
@@ -197,7 +197,7 @@ export const BOUNCE_PRESETS: readonly BouncePreset[] = [
     optionLabel: 'e = 1,1',
     group: 'se-siente-mal',
     values: { ...ENGINE_DEFAULTS, e: GAINING_E, h0: DEFAULT_DROP, ball: 'neutra' },
-    sourceLabel: 'Unity, PhysicsMaterial2D.bounciness (permite e > 1 con advertencia)',
+    sourceLabel: 'Unity, PhysicsMaterial2D.bounciness (permite $e > 1$ con advertencia)',
     note: `Con $e > 1$ cada bote devuelve más energía de la que recibe: $E$ sube un factor $e^2$ = ${comma(GAINING_E ** 2, 2)} por bote y la pelota se dispara.`,
   },
   {

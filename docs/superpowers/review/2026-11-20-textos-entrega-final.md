@@ -1962,3 +1962,22 @@ dominio y ahora la página lo dice. El significado de un símbolo no cuenta para
    $e^n v_0$, con $v_0 = \sqrt{2gh_0}$, estrictamente por encima del umbral; uno que cae justo en $v_\text{th}$ no
    rebota» → «rebotes: impactos $e^n v_0$, con $v_0 = \sqrt{2gh_0}$, estrictamente por encima del umbral; uno que cae
    justo en $v_\text{th}$ no rebota (con $v_0 > v_\text{th}$; si no, $N = 0$)».
+
+### 4. Letras sueltas en los preajustes de los Temas 2, 3 y 7 (textos del Avance 1 y 2)
+
+La letra de una magnitud va ahora entre `$…$`, como en la página; ninguna palabra cambia. «0,93 g» y «0,95 ± 0,05 g»
+se quedan como están: son múltiplos de $g$, escritos como la página escribe «1 g».
+
+7. `src/lib/data/jumpPresets.ts:38`, Tema 2, fuente del preajuste «Tierra»: «g estándar, 9,81 m/s²» → «$g$ estándar,
+   9,81 m/s²».
+8. `src/lib/data/jumpPresets.ts:45`, Tema 2, fuente del preajuste «Luna»: «g lunar, 1,62 m/s²» → «$g$ lunar,
+   1,62 m/s²».
+9. `src/lib/data/habitatPresets.ts:34`, Tema 3, nota del preajuste «Toro de Stanford»: «…con g = 9,81 m/s² resulta
+   0,93 g, y SP-413 reporta 0,95 ± 0,05 g.» → «…con $g$ = 9,81 m/s² resulta 0,93 g, y SP-413 reporta 0,95 ± 0,05 g.»
+10. `src/components/topics/coeficiente-restitucion/bouncePresets.ts:110-111`, Tema 7, el rango medido en la nota de las
+    seis pelotas (Tenis ITF, Baloncesto FIBA, Fútbol FIFA Quality PRO, Superbola, Béisbol y Plastilina): «de ahí e entre
+    0,729 y 0,761 (cálculo propio…» → «de ahí $e$ entre 0,729 y 0,761 (cálculo propio…», y «de ahí e = 0,864…» → «de
+    ahí $e$ = 0,864…» (los números de cada pelota no cambian).
+11. `src/components/topics/coeficiente-restitucion/bouncePresets.ts:200`, Tema 7, fuente del preajuste «$e = 1{,}1$»:
+    «Unity, PhysicsMaterial2D.bounciness (permite e > 1 con advertencia)» → «Unity, PhysicsMaterial2D.bounciness
+    (permite $e > 1$ con advertencia)»; también se oye en el nombre del botón del preajuste.

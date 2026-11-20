@@ -35,14 +35,14 @@ export const JUMP_PRESETS: Preset<JumpSettings>[] = [
     id: 'tierra',
     name: 'Tierra',
     values: { v0: 8, g: G_EARTH, vx: 3, fallMultiplier: 1 },
-    sourceLabel: 'g estándar, 9,81 m/s²',
+    sourceLabel: '$g$ estándar, 9,81 m/s²',
     note: 'Gravedad terrestre estándar con el mismo impulso de 8 m/s; $v_x$ = 3 m/s es un valor ilustrativo.',
   },
   {
     id: 'luna',
     name: 'Luna',
     values: { v0: 8, g: G_MOON, vx: 3, fallMultiplier: 1 },
-    sourceLabel: 'g lunar, 1,62 m/s²',
+    sourceLabel: '$g$ lunar, 1,62 m/s²',
     note: 'Gravedad en la superficie lunar con el mismo impulso: la altura y el tiempo en el aire salen unas 6 veces los terrestres (9,81 / 1,62 = 6,06).',
   },
   {

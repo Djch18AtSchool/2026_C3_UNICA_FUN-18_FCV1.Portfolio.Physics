@@ -233,7 +233,9 @@ test('el laboratorio va por niveles: v₀ y g, los cuatro preajustes con su fuen
   await scenario.getByRole('button', { name: /^Luna/ }).click();
 
   await expect(params.getByRole('slider', { name: 'Gravedad g' })).toHaveValue('1.62');
-  await expect(scenario.getByTestId('preset-note')).toContainText('Fuente: g lunar, 1,62 m/s²');
+  // The source writes the magnitude as a formula, $g$ (KaTeX repeats its letter in the text).
+  await expect(scenario.getByTestId('preset-note')).toContainText(/Fuente: g+ lunar, 1,62 m\/s²/);
+  await expect(scenario.getByTestId('preset-note').locator('.katex annotation')).toHaveText('g');
   // No chips by the gear: the speed is the transport's select.
   await expect(lab.getByRole('group', { name: 'Ajustes activos' })).toHaveCount(0);
   await expect(lab.getByRole('combobox', { name: 'Velocidad de reproducción' })).toHaveValue('1');

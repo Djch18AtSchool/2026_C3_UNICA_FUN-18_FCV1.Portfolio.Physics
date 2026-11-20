@@ -27,12 +27,17 @@ describe('BOUNCE_PRESETS', () => {
 
   test('the ball presets keep the measured range and the e and h0 the lab uses', () => {
     expect(presetById('tenis-itf').note).toMatch(
-      /e entre 0,729 y 0,761 .*uso 0,745 con \$h_0\$ = 2,54 m en el motor/,
+      /\$e\$ entre 0,729 y 0,761 .*uso 0,745 con \$h_0\$ = 2,54 m en el motor/,
     );
     expect(presetById('baloncesto-fiba').note).toMatch(
       /uso 0,767 con \$h_0\$ = 1,80 m en el motor/,
     );
-    expect(presetById('superbola').note).toMatch(/e = 0,864 .*uso 0,860/);
+    expect(presetById('superbola').note).toMatch(/\$e\$ = 0,864 .*uso 0,860/);
+    // The magnitude e is a formula in every text of a preset, its range and Unity's warning too.
+    for (const { id, note } of BOUNCE_PRESETS) expect(note, id).not.toMatch(/(^|[ (])e (entre|=) /);
+    expect(presetById('e-mayor-que-uno').sourceLabel).toBe(
+      'Unity, PhysicsMaterial2D.bounciness (permite $e > 1$ con advertencia)',
+    );
   });
 
   test('the ball notes say where the engine’s values come from: the chips show values, not origin', () => {
