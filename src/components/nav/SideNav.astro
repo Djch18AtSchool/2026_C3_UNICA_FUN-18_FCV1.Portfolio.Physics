@@ -30,7 +30,8 @@ const groups = groupByPhase(topics);
 const LIST_ID = 'sidenav-lista';
 const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phase)]));
 // One list serves both layouts: a closed <details> drawer on narrow screens (no JS), and on
-// wide screens the summary hides and the content is forced visible (see the scoped style).
+// wide screens the summary hides and the content is forced visible (see the scoped style); the
+// inline script also opens it there, so it is open for assistive technology too.
 ---
 
 <nav aria-label="Temas" class="text-sm" data-sidenav>
@@ -105,8 +106,8 @@ const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phas
 <!--
   Runs as soon as the list is parsed, before it is painted, and cannot import modules: mirrors
   readOpenPhases from src/lib/navState.ts over the collapsible phases, the only <details> with a
-  data-phase (the server already opened the default phase; future phases never open).
-  Storage is guarded because touching or reading it may throw.
+  data-phase (the server already opened the default phase; future phases never open), and opens
+  the drawer itself on wide screens. Storage is guarded because touching or reading it may throw.
 -->
 <script
   is:inline
@@ -124,6 +125,27 @@ const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phas
     } catch (error) {}
     if (stored === openValue) phases[i].open = true;
     if (stored === closedValue) phases[i].open = false;
+  }
+
+  // On wide screens the drawer is the permanent sidebar: open it, so what the style shows is also
+  // open for assistive technology and for axe (a closed <details> hides its content from both, and
+  // a long list of results then reads as a scrollable region with nothing to focus). Back on a
+  // narrow screen it closes again, unless the reader had opened it.
+  var drawer = document.querySelector('[data-sidenav] > details');
+  var wide = window.matchMedia ? window.matchMedia('(min-width: 64rem)') : null;
+  var openedForWidth = false;
+  function syncDrawer() {
+    if (wide.matches && !drawer.open) {
+      drawer.open = true;
+      openedForWidth = true;
+    } else if (!wide.matches && openedForWidth) {
+      drawer.open = false;
+      openedForWidth = false;
+    }
+  }
+  if (drawer && wide) {
+    syncDrawer();
+    wide.addEventListener('change', syncDrawer);
   }
 </script>
 
@@ -224,8 +246,8 @@ const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phas
 
   /*
    * Without ::details-content support the list cannot be forced open, so keep the summary on
-   * wide screens too and the sidebar degrades to a working collapsed drawer. This unlayered
-   * rule beats Tailwind's layered lg:hidden utility.
+   * wide screens too: the inline script opens the drawer, and without JS the sidebar degrades to
+   * a working collapsed drawer. This unlayered rule beats Tailwind's layered lg:hidden utility.
    */
   @supports not selector(::details-content) {
     @media (width >= 64rem) {
