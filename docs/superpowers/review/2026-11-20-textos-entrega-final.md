@@ -1427,35 +1427,35 @@ En la página (`src/content/topics/enfriamiento-liquido.mdx`):
 
 El mando y las lecturas:
 
-127. `CL:168` título — nuevo: «Laboratorio del circuito de un rack».
-128. `CL:122-149` parámetros — nuevo: «Caudal de la bomba por rack $Q_\text{rack}$» (L/min, de 10,0 a 300,0),
+127. `CL:177` título — nuevo: «Laboratorio del circuito de un rack».
+128. `CL:124-157` parámetros — nuevo: «Caudal de la bomba por rack $Q_\text{rack}$» (L/min, de 10,0 a 300,0),
      «Servidores en el rack $N$» (de 1 a 44), «Manguera de cada servidor» y «Retorno».
-129. `clt:58` y `lc` (`SERVER_HOSES`) opciones de la manguera — nuevo: «1/4″ (6,35 mm)», «5/16″ (7,94 mm)», «3/8″
-     (9,5 mm)», «1/2″ (12,7 mm)»; `clt:62-63` del retorno: «Directo», «Invertido».
-130. `clt:90-100` preajustes — los nombres son los de `liquidCoolingCircuit.ts`: «Referencia: 24 servidores (RD109)» y
+129. `clt:56-59` y `lc` (`SERVER_HOSES`) opciones de la manguera — nuevo: «1/4″ (6,35 mm)», «5/16″ (7,94 mm)», «3/8″
+     (9,5 mm)», «1/2″ (12,7 mm)»; `clt:61-64` del retorno: «Directo», «Invertido».
+130. `clt:87-102` preajustes — los nombres son los de `liquidCoolingCircuit.ts`: «Referencia: 24 servidores (RD109)» y
      «MGX: 44 puertos». Fuentes: «GF Piping Systems (2026), tabla 1 y fig. 2; OCP, UQD v2.0.0, tabla 6» y «GF Piping
      Systems (2026), fig. 5; NVIDIA, MGX (OCP, 2024), fig. 7-13».
-131. `clt:79` nota del preajuste de referencia — nuevo: «Valida contra GF: hasta el servidor más lejano se pierden
+131. `clt:78` nota del preajuste de referencia — nuevo: «Valida contra GF: hasta el servidor más lejano se pierden
      ${…} [1,80] bar, frente a sus ${…} [1,98]; cada UQD04 lleva ${…} [7,19 L/min], más que sus ${…} [6,44 L/min]
      nominales.»
-132. `clt:84` nota del preajuste MGX — nuevo: «Los ${…} [170 L/min] del CFD de GF en los ${…} [44] puertos del manifold
+132. `clt:83` nota del preajuste MGX — nuevo: «Los ${…} [170 L/min] del CFD de GF en los ${…} [44] puertos del manifold
      MGX: cada UQD04 lleva ${…} [3,86 L/min], dentro de sus ${…} [6,44 L/min] nominales, y hasta el más lejano se
      pierden ${…} [1,52] bar.»
-133. `clt:205-210` lecturas — nuevo: «Caudal del servidor ${N}, el más lejano» (con retorno invertido, «Caudal del
+133. `clt:202-209` lecturas — nuevo: «Caudal del servidor ${N}, el más lejano» (con retorno invertido, «Caudal del
      servidor ${…}, el peor servido»: el que menos recibe ya no es el de arriba), «Mínimo de cada servidor, 1,5 L/min
      por kW», «Caída hasta el más lejano $\Delta p$», «Potencia de bombeo del CDU $P = \Delta p\,Q$». En la referencia:
      7,18 L/min, 6,38 L/min, 179,9 kPa y 4,14 kW.
 
 El lienzo (`RD`):
 
-134. `RD:186` y `clt:215-222` fichas, lista «Estado del circuito» — nuevo: «El reparto no converge con estos valores»
+134. `RD:233` y `clt:212-225` fichas, lista «Estado del circuito» — nuevo: «El reparto no converge con estos valores»
      (solo entonces, la primera); «El servidor más lejano llega a su mínimo» / «… no llega a su mínimo» (o «El servidor
      peor servido …»); «Cada UQD04 pasa de su caudal nominal» / «Cada UQD04 va dentro de su caudal nominal».
 135. `RD:43` aviso hablado (región de estado, oculta) — nuevo: «El reparto no converge con estos valores: el dibujo y las
      lecturas son los del último reparto válido.»
-136. `RD:218-225` rótulos del dibujo — nuevo: «Entra», «Sale»; números de puerto: el 1, el último y, en negrita, el que
+136. `RD:213-221` rótulos del dibujo — nuevo: «Entra», «Sale»; números de puerto: el 1, el último y, en negrita, el que
      menos recibe.
-137. `clt:262` nombre hablado del dibujo — nuevo: «Rack de ${…} servidores con retorno ${directo|invertido}: el líquido
+137. `clt:259-264` nombre hablado del dibujo — nuevo: «Rack de ${…} servidores con retorno ${directo|invertido}: el líquido
      entra abajo por el manifold de impulsión y sale ${abajo|arriba} por el de retorno. Cada barra es el caudal de un
      servidor, y la línea discontinua, su mínimo de ${…} [6,38 L/min]. El servidor ${…} [24], el ${más lejano|peor
      servido}, recibe ${…} [7,18 L/min].»
@@ -1473,7 +1473,7 @@ Las gráficas de apoyo (`CLC`, `clp`):
      ${…} L/s», nombre «Caudal de la bomba, $Q_\text{CDU}$» (`CLC:73`).
 140. `clt:275` «Cómo se usa», del laboratorio — nuevo: «Arrastra el cursor de la gráfica de la bomba, o enfócalo y
      muévelo con las flechas (1 % del eje; con Mayús, 10 %): cambia el caudal de la bomba, como su deslizador.»
-141. `clt:241-255` lectura de la bomba (bajo su gráfica, y su nombre hablado) — nuevo, según el caso:
+141. `clt:243-257` lectura de la bomba (bajo su gráfica, y su nombre hablado) — nuevo, según el caso:
      - «Para mover ${…} [23,0 L/s] por los ${…} [8] racks, la bomba tiene que vencer ${…} [179,9 kPa]: el punto pedido.
        La curva publicada más baja que lo da es la de ${…} [66] % PWM; a esa velocidad fija, la bomba trabajaría en
        ${…} [28,6 L/s] y ${…} [270,6 kPa]. El control por omisión de Deschutes ajusta la velocidad para sostener una
@@ -1483,9 +1483,9 @@ Las gráficas de apoyo (`CLC`, `clp`):
      - «… Ese caudal pasa de los 650 GPM de las curvas publicadas de Deschutes.»
      - «… Ninguna curva publicada de Deschutes, ni la de 100 % PWM, da esa presión a ese caudal.»
 142. Perfil — es la figura 13.2 con el rack del laboratorio (`CircuitProfileFigure` con `config`): su título dice el
-     servidor más lejano de ese rack (`CircuitProfileFigure.tsx:50`, punto 53: antes «… del CDU al servidor 24 y de
+     servidor más lejano de ese rack (`CircuitProfileFigure.tsx:52`, punto 53: antes «… del CDU al servidor 24 y de
      vuelta» fijo → después «… del CDU al servidor ${N} y de vuelta»; en la página sigue en 24). En la vista
-     «Servidor», fuera del caudal de diseño de la placa, la última frase del punto 63 cambia (`coolingPlots.ts:218`):
+     «Servidor», fuera del caudal de diseño de la placa, la última frase del punto 63 cambia (`coolingPlots.ts:213-219`):
      «La placa fría pierde ${…} kPa: los 120,0 kPa de diseño de GF, llevados a este caudal con
      $\Delta p = R\,Q^{\,n}$.» En la página no cambia.
 
@@ -1496,11 +1496,11 @@ Las notas del lienzo (`CN`):
 144. `clt:272` qué está a escala — nuevo: «En el dibujo del rack, el largo de cada barra es proporcional al caudal de su
      servidor, y la línea discontinua marca el mínimo. Las alturas no están a escala: en el manifold MGX, los puertos
      están a ${…} [44,45 mm].»
-145. `clt:233-235` margen del peor servidor — nuevo: «El servidor ${…} [24], el ${más lejano|peor servido}, recibe ${…}
+145. `clt:230-239` margen del peor servidor — nuevo: «El servidor ${…} [24], el ${más lejano|peor servido}, recibe ${…}
      [7,18 L/min]: un ${…} [12,7] % más que su mínimo de ${…} [6,38 L/min].» Si no llega: «Para que el servidor ${…}
      llegue a su mínimo, el caudal de la bomba tiene que subir un ${…} %, a ${…} L/min por rack, y la potencia de
      bombeo se multiplica por ${…}.» (a 150 L/min: 2,1 %, 153,1 L/min, 1,06).
-146. `CN:49` y `clt:157-191` «De dónde sale cada valor», lista «Origen de cada valor»; cada fila, «valor. Origen:
+146. `CN:49` y `clt:153-194` «De dónde sale cada valor», lista «Origen de cada valor»; cada fila, «valor. Origen:
      fuente» (el origen con las palabras de las tablas: Producto, Supuesto, Cálculo propio) — nuevo:
      - «Caudal de la bomba por rack, ${…} L/min.» con la fuente del preajuste que tenga ese valor, o «Supuesto: valor
        elegido en el laboratorio»;
@@ -1512,7 +1512,7 @@ Las notas del lienzo (`CN`):
      - «Placa fría: 1,2 bar a ${…} L/min.» y «${…} racks por CDU.», con las fuentes del preajuste base;
      - «Mínimo de cada servidor, ${…} L/min.» con «Cálculo propio: 1,5 L/min por kW (OCP) por los ${…} [4,25] kW de
        cada servidor, su parte de los 102 kW que el líquido saca de un rack MGX de 120 kW (85 %), repartidos por igual»
-       (`clt:147`);
+       (`clt:145-148`);
      - «Curvas de la bomba de Deschutes, de 33 a 100 % PWM.» con la fuente de la figura 5.1.1 y «el eje de caudal acaba
        en 650 GPM, lectura aproximada».
 147. `CN:19` cierre de la lista — nuevo: «Los demás valores (el fluido, las tuberías, el manifold, el UQD04 y las
