@@ -54,7 +54,9 @@ const FACT_COLUMNS: readonly TableColumn[] = [
   { key: 'valor', label: 'Valor', align: 'num', precision: 2 },
   { key: 'unidad', label: 'Unidad', align: 'text' },
   { key: 'origen', label: 'Origen', align: 'text' },
-  { key: 'fuente', label: 'Fuente', align: 'text', minWidthCh: 28 },
+  // Sources run to ~200 characters: at 40ch a phone row is a few lines, and a desktop table
+  // still fits its frame.
+  { key: 'fuente', label: 'Fuente', align: 'text', minWidthCh: 40 },
 ];
 
 interface Fact {

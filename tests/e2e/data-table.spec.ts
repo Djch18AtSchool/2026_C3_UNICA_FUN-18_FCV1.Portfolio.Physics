@@ -152,3 +152,62 @@ test.describe('DataTable en un teléfono, Tabla 6.1', () => {
     for (const count of lines) expect(count).toBeLessThanOrEqual(MAX_NAME_LINES);
   });
 });
+
+/**
+ * Tables of facts with a long «Fuente» (Temas 12 and 13): on a phone the column keeps a reading
+ * width, so a row is a few lines instead of a tall, mostly empty box (the table scrolls in its
+ * frame anyway); on a desktop the same tables still fit their frame.
+ */
+test.describe('DataTable, tablas con una fuente larga por fila', () => {
+  const TABLES = [
+    { path: './temas/resonancia-estructural/', id: 'resonancia-estructural-setra' },
+    { path: './temas/resonancia-estructural/', id: 'resonancia-estructural-millennium' },
+    { path: './temas/resonancia-estructural/', id: 'resonancia-estructural-tacoma' },
+    { path: './temas/enfriamiento-liquido/', id: 'enfriamiento-liquido-fluido' },
+    { path: './temas/enfriamiento-liquido/', id: 'enfriamiento-liquido-geometria' },
+    { path: './temas/enfriamiento-liquido/', id: 'enfriamiento-liquido-conectores' },
+  ] as const;
+  /** Lines a «Fuente» cell may take on a phone: the longest sources run to about 200 characters. */
+  const MAX_SOURCE_LINES = 5;
+  const DESKTOP = { width: 1280, height: 800 };
+
+  for (const { path, id } of TABLES) {
+    test(`a 360 px, cada «Fuente» de #${id} ocupa ${MAX_SOURCE_LINES} líneas o menos`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(PHONE);
+      await page.goto(path);
+      await page.evaluate(() => document.fonts.ready);
+
+      const lines = await page.locator(`#${id}`).evaluate((figure) => {
+        const headers = [...figure.querySelectorAll('thead th')].map((th) => th.textContent?.trim());
+        const column = headers.indexOf('Fuente');
+        return [...figure.querySelectorAll('tbody tr')].map((row) => {
+          // The text's own box over its line height (a formula's rects would count apart).
+          const cell = row.children[column];
+          const range = document.createRange();
+          range.selectNodeContents(cell);
+          const lineHeight = parseFloat(getComputedStyle(cell).lineHeight);
+          return Math.round(range.getBoundingClientRect().height / lineHeight);
+        });
+      });
+
+      expect(lines.length).toBeGreaterThan(0);
+      for (const count of lines) expect(count).toBeLessThanOrEqual(MAX_SOURCE_LINES);
+    });
+
+    test(`a 1 280 px, #${id} cabe en su marco sin desplazarse`, async ({ page }) => {
+      await page.setViewportSize(DESKTOP);
+      await page.goto(path);
+      await page.evaluate(() => document.fonts.ready);
+
+      const frame = page.locator(`#${id} .table-frame`);
+      const { scroll, client } = await frame.evaluate((element) => ({
+        scroll: element.scrollWidth,
+        client: element.clientWidth,
+      }));
+
+      expect(scroll).toBeLessThanOrEqual(client + OVERFLOW_TOLERANCE_PX);
+    });
+  }
+});

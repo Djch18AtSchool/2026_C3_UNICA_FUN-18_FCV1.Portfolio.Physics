@@ -59,7 +59,9 @@ const COLUMNS: readonly TableColumn[] = [
   { key: 'valor', label: 'Valor', align: 'num', precision: 0 },
   { key: 'unidad', label: 'Unidad', align: 'text' },
   { key: 'origen', label: 'Origen', align: 'text', minWidthCh: 10 },
-  { key: 'fuente', label: 'Fuente', align: 'text', minWidthCh: 28 },
+  // Sources run to ~200 characters: at 38ch a phone row is a few lines, and a desktop table
+  // (six columns) still fits its frame.
+  { key: 'fuente', label: 'Fuente', align: 'text', minWidthCh: 38 },
 ];
 
 const printed = (spec: ParameterSpec) =>
