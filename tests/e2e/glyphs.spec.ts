@@ -205,7 +205,8 @@ const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
     [
       'tropa sin amortiguamiento al paso, fuera de escala',
       async (_page, lab) => {
-        await lab.getByRole('radio', { name: 'Al paso' }).check({ force: true });
+        // From the troop's preset at the march pace: the earlier presets left f0 at 2,5 Hz.
+        await lab.locator('[data-lab-presets="select"] select').selectOption('tropa-al-paso');
         const zeta = lab.getByRole('textbox', { name: /^Amortiguamiento zeta/ });
         await zeta.fill('0');
         await zeta.press('Enter');

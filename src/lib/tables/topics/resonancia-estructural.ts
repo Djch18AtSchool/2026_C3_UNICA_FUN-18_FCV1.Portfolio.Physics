@@ -203,7 +203,7 @@ const MILLENNIUM_TABLE: DataTableSpec = {
     },
     {
       magnitud: '$N_L$ con la (12.8), tal como se construyó',
-      ...own(nAsBuilt, 0, '8π × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m'),
+      ...own(nAsBuilt, 0, '$8\\pi$ × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m'),
       unidad: 'personas',
     },
     {

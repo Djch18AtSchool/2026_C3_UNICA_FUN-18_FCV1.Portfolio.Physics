@@ -926,7 +926,7 @@ Frontmatter, prosa, títulos de paso y recuadros, ecuaciones (lo que dice cada s
 185. `src/lib/tables/topics/resonancia-estructural.ts:195`, fila: — → «Amortiguamiento que uso, $\zeta$»
 186. `src/lib/tables/topics/resonancia-estructural.ts:200`, fila: — → «Coeficiente de fuerza lateral, $k_p$»
 187. `src/lib/tables/topics/resonancia-estructural.ts:205`, fila: — → «$N_L$ con la (12.8), tal como se construyó»
-188. `src/lib/tables/topics/resonancia-estructural.ts:206`, celda «Fuente» (tras «Cálculo propio: »): — → «8π × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m»
+188. `src/lib/tables/topics/resonancia-estructural.ts:206`, celda «Fuente» (tras «Cálculo propio: »): — → «8π × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m» (Task 11: la guardia de glifos pide la $\pi$ en cursiva, como fórmula: «$8\pi$ × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m»)
 189. `src/lib/tables/topics/resonancia-estructural.ts:210`, fila: — → «Umbral medido en el vano norte, sin amortiguadores»
 190. `src/lib/tables/topics/resonancia-estructural.ts:215`, fila: — → «Amortiguadores viscosos añadidos»
 191. `src/lib/tables/topics/resonancia-estructural.ts:220`, fila: — → «Amortiguamiento tras la reforma»
@@ -1174,3 +1174,4 @@ Para leer con atención:
 397. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:159`, leyenda: — → «Dos impulsos (ZV)»
 398. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:178`, nombre accesible de la gráfica (se oye): — → «Tras un empujón la estructura oscila y se apaga despacio; con los dos impulsos del filtro, el segundo a los ${…} s, queda un ${…} % de esa vibración.»
 399. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:35`, rótulo del cursor de tiempo: — → «$t$ = ${…} s»
+400. `src/lib/tables/topics/resonancia-estructural.ts:206`, tabla 12.2, celda «Fuente» de $N_L$ (cambio de forma, no de texto: la guardia de glifos pedía la $\pi$ en cursiva, como fórmula): «8π × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m» → «$8\pi$ × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m»
