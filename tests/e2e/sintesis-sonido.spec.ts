@@ -285,6 +285,30 @@ test.describe('Tema 11, las dos grabaciones analizadas', () => {
       }
     }
   });
+
+  // The clarinet's heading sat 5 px under the flute's last panel and read as part of it.
+  test('la flauta, el clarinete y el contraste van separados por 32 px, cada título junto a su audio', async ({
+    page,
+  }) => {
+    for (const sample of SAMPLES) await openSample(page, sample);
+
+    const gaps = await page.evaluate(() => {
+      const box = (selector: string) =>
+        document.querySelector(selector)?.getBoundingClientRect() ?? new DOMRect();
+      const flute = box('[data-testid="muestra-flauta"]');
+      const clarinet = box('[data-testid="muestra-clarinete"]');
+      const heading = box('[data-testid="muestra-clarinete"] h3');
+      const player = box('[data-testid="muestra-clarinete"] h3 + *');
+      const contrast = box('[data-testid="contraste-muestras"]');
+      return {
+        aboveHeading: Math.round(heading.top - flute.bottom),
+        belowHeading: Math.round(player.top - heading.bottom),
+        aboveContrast: Math.round(contrast.top - clarinet.bottom),
+      };
+    });
+
+    expect(gaps).toEqual({ aboveHeading: 32, belowHeading: 16, aboveContrast: 32 });
+  });
 });
 
 test.describe('Tema 11 sin JavaScript', () => {
