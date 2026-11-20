@@ -384,7 +384,7 @@ Con fases al azar, $|F|$ crece como <Equation inline latex="\sqrt{N}" /> y la po
 <Figure
   type="multimedia"
   showBadge={false}
-  caption="Reportaje de ITN de junio de 2000 sobre el cierre del Millennium Bridge, dos días después de abrirlo. Analizo dos instantes: el balanceo lateral del tablero y la gente que acompasa el paso a él. Los números de la ecuación (12.8) están en la tabla 12.2."
+  caption="Reportaje de ITN sobre el Millennium Bridge, que cerró en junio de 2000, dos días después de abrir, porque se bamboleaba. Lo analizo entero, desde el inicio, con los datos de Arup; los números de la ecuación (12.8) están en la tabla 12.2."
   source={{
     text: 'Análisis del autor sobre el video de Frontline by ITN (2022, archivo de 2000); datos de Dallard et al. (2001) y Newland (2002)',
     url: 'https://www.youtube.com/watch?v=Hz72lzDxMfc',
@@ -404,15 +404,9 @@ Con fases al azar, $|F|$ crece como <Equation inline latex="\sqrt{N}" /> y la po
     markers={[
       {
         time: 0,
-        title: 'El balanceo lateral',
+        title: 'El reportaje: un puente que se bamboleaba',
         analysis:
-          'El tablero se mueve de lado bajo la gente. Según Arup, el día de la inauguración, el 10 de junio de 2000, la aceleración lateral llegó a 200–250 milésimas de $g$, sobre todo en el vano sur, a unos 0,8 Hz, y en el central, a algo menos de 0,5 Hz y a 1,0 Hz: modos laterales, cada uno con su frecuencia natural de la (12.1). El empuje lateral de cada pie va a la mitad de la frecuencia del paso, cerca de 1 Hz, justo sobre esos modos (tabla 12.1).',
-      },
-      {
-        time: 30,
-        title: 'La gente acompasa el paso',
-        analysis:
-          'Arup lo explica así: «it is more comfortable for pedestrians to walk in synchronisation with the natural swaying of the bridge» («es más cómodo caminar al ritmo del balanceo natural del puente»), y así cada pie empuja a la frecuencia del puente y en la fase que aumenta el movimiento. Es la retroalimentación de la (12.7): más balanceo, más gente acompasada, más fuerza. Con la (12.8), el modo central se desestabilizaba con unas 37 personas; la cura fue subir $\\zeta$ de menos del 1 % al 15–20 % con 37 amortiguadores viscosos y masas sintonizadas (tabla 12.2).',
+          'El título de ITN lo resume: el puente, «wobbly» («bamboleante»), cerró días después de abrir. Según Arup, el primer día el tablero se movió de lado sobre todo a unos 0,8 Hz en el vano sur, y a algo menos de 0,5 Hz y a 1,0 Hz en el central: justo donde empuja de lado cada pie, a la mitad de la frecuencia del paso (tabla 12.1). Arup lo explica así: «it is more comfortable for pedestrians to walk in synchronisation with the natural swaying of the bridge» («es más cómodo caminar al ritmo del balanceo natural del puente»; Dallard et al., pág. 21), y así cada pie empuja a la frecuencia del puente y en la fase que aumenta el movimiento. Es la retroalimentación de la (12.7): más balanceo, más gente acompasada, más fuerza. Con la (12.8), el primer modo lateral del vano central se desestabilizaba con unas 37 personas; la cura fue subir $\\zeta$ de menos del 1 % al 15–20 % con 37 amortiguadores viscosos y masas sintonizadas (tabla 12.2).',
       },
     ]}
   />
@@ -554,7 +548,7 @@ Sobre 18,6 mph, <Equation inline latex="\zeta_\text{neto} < 0" /> (tabla 12.3) y
 <Figure
   type="visualizacion"
   showBadge={false}
-  caption="Mi medición cuadro a cuadro de la toma de 1:01,7: la altura del borde del tablero, en píxeles. Tal como corre el video, el ciclo dura 3,43 s; estirada al tiempo real, 5,15 s, y una cosenoide de 5,0 s, el periodo que cronometró Farquharson, ajustada solo en amplitud y fase, la sigue de cerca. Las tres tomas están en la tabla 12.5."
+  caption="Mi medición cuadro a cuadro de la toma de 1:01,7: la altura del borde del tablero, en píxeles. Tal como corre el video, el ciclo dura 3,43 s; estirada al tiempo real, 5,15 s, y una cosenoide de 5,0 s, el periodo que cronometró Farquharson, ajustada en amplitud, fase y nivel medio sin tocar su periodo, la sigue de cerca. Las tres tomas están en la tabla 12.5."
   source={{
     text: 'Medición del autor (pnpm run data:tacoma) sobre el archivo de Wikimedia Commons; 16 y 24 cuadros por segundo según Olson et al. (2015); 12 ciclos por minuto de Farquharson en el informe de 1941, pág. V-12',
   }}
@@ -582,7 +576,7 @@ Klipper (v0.13.0, commit 61c0c8d), firmware libre de impresoras 3D, mide con un 
 
 <Fragment slot="justificacion">
 
-Sin el modelo, lo seguro es bajar la aceleración en todo o imprimir torres de prueba a ciegas. El filtro anula la vibración solo en la frecuencia medida y deja intacto el resto.
+Sin el modelo, lo seguro es bajar la aceleración en todo o imprimir torres de prueba a ciegas. El filtro anula la vibración en la frecuencia medida y la máquina conserva su aceleración.
 
 </Fragment>
 

@@ -14,14 +14,17 @@ import { CHART_COLORS } from '../../charts/chartTheme';
 export type XY = { x: number; y: number };
 
 /*
- * Colour carries meaning across the topic's figures, never series order: orange is energy that
- * builds up (the Tacoma torsion, the troop in step, ζ_net < 0, the least damped curve), green is
- * energy that leaves (breaking step, ζ_net > 0, the most damped curve) and blue the reference (the
- * vertical mode, Klipper's default ζ, the 5 s of 1940).
+ * Colour carries meaning across the topic's figures, never series order. Orange is energy that
+ * builds up: the troop in step, ζ_net < 0 (30,6 and 42 mph), the least damped curve, and in Paso 1
+ * the torsion mode, the one that built up and destroyed the bridge. Green is energy that leaves:
+ * breaking step, ζ_net > 0 (17 mph, the same torsion below the critical wind), the most damped
+ * curve. Blue is the reference: the vertical mode, Klipper's default ζ, Farquharson's 5 s of 1940.
+ * Purple is my own measurement of the film; grey, the film's raw clock.
  */
 export const BUILDS_UP_COLOR = CHART_COLORS[1];
 export const DIES_OUT_COLOR = CHART_COLORS[2];
 export const REFERENCE_COLOR = CHART_COLORS[0];
+export const MEASURED_COLOR = CHART_COLORS[3];
 /** The film as the file plays it: an instrument's reading, not a physical result. */
 export const RAW_COLOR = 'var(--fg-muted)';
 

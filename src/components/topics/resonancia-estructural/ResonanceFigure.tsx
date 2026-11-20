@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import { BROUGHTON, PEDESTRIAN_FORCES, TACOMA_SI } from '../../../lib/data/bridges';
+import { KLIPPER } from '../../../lib/data/klipper';
 import { tacomaNetDamping } from '../../../lib/data/tacomaFlutter';
 import { formatNumber } from '../../../lib/format';
 import { mathTextToString } from '../../../lib/mathNotation';
@@ -133,7 +134,7 @@ function LibrePlot(): JSX.Element {
 
 /** Up to 8, so the ω_d = ω0 guide's label clears the tallest peak (6,7). */
 const CURVE_DOMAIN = { x: { min: 0, max: 2 }, y: { min: 0, max: 8 } } as const;
-const KLIPPER_DEFAULT = 0.1;
+const KLIPPER_DEFAULT = KLIPPER.defaultDampingRatio.value;
 /** «0,075», «0,1», «0,15»: the ζ as Klipper writes them, without trailing zeros. */
 const zetaLabel = (zeta: number) => `$\\zeta$ = ${trimTrailingZeros(comma(zeta, 3))}`;
 

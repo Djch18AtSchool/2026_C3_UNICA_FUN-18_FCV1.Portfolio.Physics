@@ -111,11 +111,16 @@ describe('ResonanceFigure', () => {
     expect(plexViolations(container)).toEqual([]);
   });
 
-  test.each(VARIANTS)('%s: on a phone the plot keeps its labels', (variant) => {
+  test.each([
+    ['libre', ['T0 = 5,0 s', 'T0 = 1,6 s']],
+    ['curva', ['6,7', '5,0', '3,3', 'ωd = ω0']],
+    ['tropa', ['16,8 kN', '2,2 kN', '60 soldados']],
+    ['autoexcitacion', ['×0,93', '×1,8', '×3,5']],
+  ] as const)('%s: on a phone (340 px) the plot keeps its labels', (variant, labels) => {
     stubWidth(340);
     const { container } = render(<ResonanceFigure variant={variant} />);
 
-    expect(container.querySelector('svg[role="img"]')).not.toBeNull();
+    for (const label of labels) expect(screen.getByText(svgText(label))).toBeInTheDocument();
     expect(plexViolations(container)).toEqual([]);
   });
 });
@@ -126,12 +131,12 @@ describe('TacomaMeasurement', () => {
     vi.unstubAllGlobals();
   });
 
-  test('the raw series, the corrected one and Farquharson’s 5 s, with their periods', () => {
+  test('the raw series in grey, my corrected measurement in its own purple, Farquharson’s 5 s in blue', () => {
     const { container } = render(<TacomaMeasurement />);
 
     expect(screen.getByTestId('tacoma-measurement')).toBeInTheDocument();
     expect(strokeOf(container, 'video')).toBe('var(--fg-muted)');
-    expect(strokeOf(container, 'real')).toBe('var(--chart-2)');
+    expect(strokeOf(container, 'real')).toBe('var(--chart-4)');
     expect(strokeOf(container, 'farquharson')).toBe('var(--chart-1)');
     const text = mathSourceText(legend());
     expect(text).toContain('Tal como corre el video ($T$ = 3,43 s)');

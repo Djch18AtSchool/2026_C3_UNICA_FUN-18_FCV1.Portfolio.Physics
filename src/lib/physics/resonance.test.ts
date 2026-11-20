@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { seededRandom } from '../random';
 import {
   criticalPedestrians,
   cycleEnergies,
@@ -23,18 +24,6 @@ const FT = 0.3048;
 function oscillator(f0: number, zeta: number, m = 1): Oscillator {
   const k = m * (TWO_PI * f0) ** 2;
   return { m, k, b: 2 * zeta * Math.sqrt(k * m) };
-}
-
-/** Mulberry32: a small seeded generator, so the random-phase test is reproducible. */
-function mulberry32(seed: number): () => number {
-  let state = seed >>> 0;
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let t = state;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
 }
 
 /** Free response of the oscillator to a unit impulse at t = 0: e^{−ζω0 t} sin(ωd t)/(m ωd). */
@@ -179,7 +168,7 @@ describe('a troop of N steps (12.5)', () => {
   test('breaking step (random phases) the rms of the sum is √N·F1, over 2 000 seeded draws', () => {
     const N = 100;
     const F1 = 280;
-    const random = mulberry32(12);
+    const random = seededRandom(12);
     const draws = 2000;
     let sumOfSquares = 0;
     for (let d = 0; d < draws; d += 1) {

@@ -1,21 +1,10 @@
 import { describe, expect, test } from 'vitest';
+import { seededRandom } from '../random';
 import { estimatePeriod } from './periodEstimate';
 
 /** The Commons file's frame rate, 30000/1001 (NTSC). */
 const FPS = 30000 / 1001;
 const TWO_PI = 2 * Math.PI;
-
-/** Mulberry32 seeded uniform generator. */
-function mulberry32(seed: number): () => number {
-  let state = seed >>> 0;
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let t = state;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 /** Standard normal samples (Box–Muller) from a seeded generator. */
 function gaussian(random: () => number): () => number {
@@ -29,7 +18,7 @@ function sampled(
   noise: number,
   seed: number,
 ): number[] {
-  const normal = gaussian(mulberry32(seed));
+  const normal = gaussian(seededRandom(seed));
   return Array.from(
     { length: Math.round(seconds * FPS) },
     (_, i) => shape(i / FPS) + noise * normal(),

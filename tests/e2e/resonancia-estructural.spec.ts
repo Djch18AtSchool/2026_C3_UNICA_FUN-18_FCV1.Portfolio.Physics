@@ -169,7 +169,8 @@ test.describe('el video del Millennium Bridge', () => {
     await waitForIsland(page, MILLENNIUM);
   });
 
-  test('una fachada sin reproductor hasta que se pide, con su crédito y dos marcas', async ({
+  // Ruling R17: one marker at 0:00 until Dylan has watched the video and given the two instants.
+  test('una fachada sin reproductor hasta que se pide, con su crédito y una sola marca, en 0:00', async ({
     page,
   }) => {
     const player = page.locator(MILLENNIUM);
@@ -178,18 +179,23 @@ test.describe('el video del Millennium Bridge', () => {
     await expect(player.getByTestId('millennium-video-facade')).toBeVisible();
     await expect(player.locator('iframe')).toHaveCount(0);
     await expect(player.getByTestId('millennium-video-credit')).toContainText('Frontline by ITN');
-    await expect(player.getByTestId('marker-label')).toHaveCount(2);
+    await expect(player.getByTestId('marker-label')).toHaveCount(1);
+    await expect(player.getByTestId('marker-label')).toHaveText(/^0:00 · /);
+    await expect(player.getByTestId('marker-analysis')).toContainText('unas 37 personas');
     await expect(player.getByTestId('millennium-video-real-speed')).toHaveCount(0);
   });
 
-  test('una marca abre el reproductor de youtube-nocookie en su instante', async ({ page }) => {
+  test('su marca abre el reproductor de youtube-nocookie desde el inicio', async ({ page }) => {
     const player = page.locator(MILLENNIUM);
-    const second = player.getByTestId('marker-label').nth(1);
+    const marker = player.getByTestId('marker-label');
 
-    await second.click();
+    await marker.click();
 
     await expect(player.locator('iframe')).toHaveAttribute('src', MILLENNIUM_EMBED);
-    await expect(second).toHaveAttribute('aria-current', 'true');
+    expect(
+      new URL((await player.locator('iframe').getAttribute('src')) ?? '').searchParams.get('start'),
+    ).toBe('0');
+    await expect(marker).toHaveAttribute('aria-current', 'true');
   });
 
   test('no lleva insignia de recurso y enlaza el video en su fuente', async ({ page }) => {
@@ -197,6 +203,8 @@ test.describe('el video del Millennium Bridge', () => {
 
     await expect(figure.locator('.figure-head')).toHaveCount(0);
     await expect(figure.locator('.figure-source a')).toHaveAttribute('href', MILLENNIUM_WATCH);
+    // Its caption claims no instant nobody has checked.
+    await expect(figure.locator('.figure-caption')).not.toContainText(/instantes?/);
   });
 });
 

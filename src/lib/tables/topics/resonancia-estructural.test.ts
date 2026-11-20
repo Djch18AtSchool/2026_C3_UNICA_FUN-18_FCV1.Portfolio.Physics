@@ -1,4 +1,8 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
+import { splitInlineMath } from '../../inlineSegments';
+import { looseSymbols, texVariables, withoutInterpolations } from '../../looseSymbols';
 import { MILLENNIUM, TACOMA_TORSION } from '../../data/bridges';
 import { tableById } from '../index';
 import { tableMarkdown } from '../markdown';
@@ -173,5 +177,66 @@ describe('my measurement of the film (Paso 4)', () => {
     expect(caption).toContain('16');
     expect(caption).toContain('24');
     expect(caption).toContain('4 %');
+  });
+});
+
+/*
+ * The loose-letter guard (src/content/looseSymbols.test.ts) reads this module's own literals, but
+ * the tables also print strings written in the data modules (every «Fuente» cell of a published
+ * value, the shot names). Here every caption, source line and text cell the page prints goes
+ * through the same check, with the page's magnitudes collected as the guard collects them.
+ */
+describe('no loose magnitude letter in what the tables print', () => {
+  const LATEX_ATTRIBUTE = /\blatex=(?:"([^"]*)"|\{`([^`]*)`\})/gu;
+  const SYMBOL_KEY = /\bsymbol:\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/gu;
+  /** Not the unit column: a lone «t» or «m» there is tonnes or metres. */
+  const TEXT_CELLS = ['magnitud', 'origen', 'fuente', 'toma', 'instantes', 'senal'];
+  /** The guard's own exception: Billah and Scanlan number their table with a Roman I. */
+  const ROMAN_TABLE = /Tabla I(?![\p{L}])/u;
+  const mdx = readFileSync(
+    join(process.cwd(), 'src/content/topics/resonancia-estructural.mdx'),
+    'utf8',
+  );
+  const groups = (text: string, pattern: RegExp) =>
+    [...text.matchAll(pattern)].map((match) =>
+      (match.slice(1).find((group) => group !== undefined) ?? '').replace(/\\\\/gu, '\\'),
+    );
+  const formulas = (text: string) =>
+    splitInlineMath(withoutInterpolations(text)).flatMap((segment) =>
+      segment.kind === 'math' ? [segment.tex] : [],
+    );
+  const printed = TABLES.flatMap((table) => [
+    { where: `${table.id}: pie`, text: table.caption },
+    { where: `${table.id}: fuente`, text: table.source.text },
+    ...table.rows.flatMap((row) =>
+      TEXT_CELLS.filter((key) => key in row).map((key) => ({
+        where: `${table.id}: ${key} de «${String(row.magnitud ?? row.toma ?? row.viento)}»`,
+        text: String(row[key]),
+      })),
+    ),
+  ]);
+  const symbols = new Set(
+    [
+      ...groups(mdx, LATEX_ATTRIBUTE),
+      ...groups(mdx, SYMBOL_KEY),
+      ...formulas(mdx),
+      ...printed.flatMap(({ text }) => formulas(text)),
+    ].flatMap(texVariables),
+  );
+
+  test('the page writes its magnitudes: k, N, D, S, U, I and the Greek are symbols here', () => {
+    for (const letter of ['k', 'N', 'D', 'S', 'U', 'I', 'f', 'b', 'ζ', 'δ']) {
+      expect(symbols.has(letter), letter).toBe(true);
+    }
+  });
+
+  test('every caption, source line and text cell keeps its letters inside $…$', () => {
+    const loose = printed.flatMap(({ where, text }) =>
+      looseSymbols(text, symbols)
+        .filter(({ near }) => !ROMAN_TABLE.test(near))
+        .map(({ letter, context }) => `${where} [${letter}] …${context}…`),
+    );
+
+    expect(loose).toEqual([]);
   });
 });

@@ -69,7 +69,7 @@ export const TACOMA = {
     source: `${FWA}, págs. 30-31 (8 o 9 nodos)`,
   } satisfies SourcedRange,
   quarterPointRotationDeg: product(45, `${FWA}, pág. 31: «nearly 45 degrees each way»`),
-  torsionDampingRatio: product(0.005, `${BILLAH}, pág. 123: δ ≈ 0,03, ζ ≈ 0,005`),
+  torsionDampingRatio: product(0.005, `${BILLAH}, pág. 123: $\\delta$ ≈ 0,03, $\\zeta$ ≈ 0,005`),
   deckDepthFt: product(8, `${FWA}, pág. 11; ${BILLAH}, pág. 120`),
   strouhal: product(0.11, `${BILLAH}, pág. 120: «about 0.11»`),
   /** The vertical mode just before the torsion began (≈ 10:00). */
@@ -105,7 +105,10 @@ export const TACOMA_SI = {
 
 /** The Millennium Bridge, London: the lateral sway of June 2000 and its cure. */
 export const MILLENNIUM = {
-  lateralForceCoefficient: product(300, `${DALLARD}, págs. 26-27 (k_p, N·s/m, 0,5-1,0 Hz)`),
+  lateralForceCoefficient: product(
+    300,
+    `${DALLARD}, págs. 26-27 ($k_p$ en N·s/m, de 0,5 a 1,0 Hz)`,
+  ),
   northSpanCriticalPedestrians: product(166, `${NEWLAND} (vano norte, sin amortiguadores)`),
   viscousDampers: product(37, `${DALLARD}; ${NEWLAND}`),
   dampingBefore: {
@@ -123,7 +126,7 @@ export const MILLENNIUM = {
   /** First central lateral mode as measured (Dallard et al., tables 1-3). */
   cl1Measured: {
     frequencyHz: product(0.48, `${DALLARD}, tablas 1-3`),
-    modalMassKg: product(130_000, `${DALLARD}, tablas 1-3 (128-130 t medida)`),
+    modalMassKg: product(130_000, `${DALLARD}, tablas 1-3 (medida: de 128 a 130 toneladas)`),
     dampingRatio: calculated(0.007, `${OWN}: centro del 0,6-0,8 % medido por ${DALLARD}`),
   },
   /** The same mode in Arup's design analysis. */
@@ -187,7 +190,7 @@ export const BROUGHTON = {
 } as const;
 
 /** Quick time, in steps per minute. */
-export const MARCH_PACE: SourcedValue = product(120, `${FM}, párr. 4-5 e («Quick Time»)`);
+export const MARCH_PACE: SourcedValue = product(120, `${FM}, párr. 4-5e («Quick Time»)`);
 /** Quick time in Hz (cálculo propio: 120/60 = 2,0 Hz), inside Sétra's vertical range. */
 export const MARCH_PACE_HZ = MARCH_PACE.value / SECONDS_PER_MINUTE;
 

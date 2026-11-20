@@ -696,197 +696,208 @@ Lecturas y gráfica de apoyo (`SynthLab.tsx`, `synthTexts.ts`):
 
 Página nueva: todo su texto es nuevo («antes» vacío). Prosa: 646 palabras según el contador del sitio (tope 650); las
 leyendas, las tablas y el análisis de las marcas no cuentan como prosa. Los valores `${…}` los pone el componente
-con datos probados: 37 y 12 ciclos/min, 5,0 y 1,6 s; 16,8 y 2,2 kN; ×0,93, ×1,8 y ×3,5; 3,43 y 5,15 s.
+con datos probados (37 y 12 ciclos/min, 5,0 y 1,6 s; 16,8 y 2,2 kN; ×0,93, ×1,8 y ×3,5; 3,43 y 5,15 s), y los números
+que el texto escribe a mano los comprueba `src/content/resonanciaNumbers.test.ts` contra los datos.
+
+> **Dylan: mira el video (93 s) y dime en qué segundo se ve el balanceo lateral y en cuál la gente acompasa el paso;
+> con eso vuelven las dos marcas.** Es el reportaje de ITN del Millennium Bridge,
+> <https://www.youtube.com/watch?v=Hz72lzDxMfc>. Mientras tanto la figura 12.4 tiene una sola marca en 0:00, que solo
+> afirma lo que dice el título de ITN y la física con fuente de Arup y Newland, y su pie no señala instantes (ruling
+> R17).
 
 Para leer con atención:
 
-- **Las dos marcas del video del Millennium Bridge (0:00 y 0:30) no están comprobadas contra el video.** No pude ver
-  el reportaje de ITN (93 s) desde esta sesión. Los títulos y el análisis describen el fenómeno con datos de Arup y
-  de Newland; los instantes hay que fijarlos viendo el video antes de publicar (`src/content/topics/resonancia-estructural.mdx`,
-  `time: 0` y `time: 30`).
+- **Decisión de Dylan: la conexión con el Tema 7** (`related`, mdx:123, y la frase de las conexiones, mdx:599). No está
+  en el spec: un rebote conserva la fracción $e^2$ de la energía cinética y un ciclo amortiguado, una fracción fija; en
+  los dos la energía cae en progresión geométrica. La dejo; quítala si no te convence. Los Temas 10 y 11 se suman en
+  la Task 17.
 - **La marca de 1:01,7 dice 3,43 s → 5,15 s**, la medición de esa toma (tabla 12.5), no el «3,44 s → 5,2 s» del plan;
   la media de las tres tomas, 3,49 s → 5,23 s, 0,191 Hz y ≈ 11,5 ciclos/min, va en el análisis (decisión R13).
 - **La energía por ciclo a 42 mph es +51,4 %** con la forma exacta $e^{-4\pi\zeta_\text{neto}} - 1$ y la recta por los
-  dos últimos puntos de la Tabla I; la investigación decía ≈ +52 %. Añadí una nota en su §4.
+  dos últimos puntos de la Tabla I; la investigación decía ≈ +52 % (nota añadida en su §4).
+- **$N_L$ con $\zeta$ = 20 % es 1 046** sobre el mismo modo medido (0,48 Hz, 130 t); la investigación daba 1 180 con
+  los valores del análisis de diseño (0,49 Hz, 144 t).
 - **No afirmo** la fecha de Broughton (solo «en 1831»), la marcha de Angers ni una orden del ejército británico.
-- La conexión con el Tema 7 (un rebote conserva $e^2$ de la energía; un ciclo amortiguado, una fracción fija) es mía;
-  la investigación solo proponía los Temas 5, 10 y 11, y estos dos últimos se suman en la Task 17.
+- Cambiaron cuatro fuentes de `src/lib/data/bridges.ts` que las tablas imprimen, para escribir sus símbolos como
+  fórmula: «($k_p$ en N·s/m, de 0,5 a 1,0 Hz)» (antes «(k_p, N·s/m, 0,5-1,0 Hz)»), «$\delta$ ≈ 0,03, $\zeta$ ≈ 0,005»
+  (antes «δ ≈ 0,03, ζ ≈ 0,005»), «(medida: de 128 a 130 toneladas)» (antes «(128-130 t medida)») y «párr. 4-5e»
+  (antes «párr. 4-5 e»).
 
 ### Página (`src/content/topics/resonancia-estructural.mdx`)
 
-Frontmatter, prosa, títulos de paso y recuadros, ecuaciones (lo que dice cada símbolo), pies y fuentes de figura, y las marcas de los dos videos con su análisis escrito.
+Frontmatter, prosa, títulos de paso y recuadros, ecuaciones (lo que dice cada símbolo), pies y fuentes de figura, y las marcas de los dos videos con su análisis escrito. Las fuentes de la bibliografía (`sources`, L11-L123) son las de la investigación, con su título y editorial.
 
 1. `src/content/topics/resonancia-estructural.mdx:6`, concepto: — → «Frecuencia natural, oscilación forzada amortiguada y resonancia, suma de fuerzas con fases y autoexcitación: por qué un pelotón rompe el paso, cómo Klipper anula la vibración de una impresora y qué derribó el puente de Tacoma Narrows.»
 2. `src/content/topics/resonancia-estructural.mdx:9`, caso de uso, producto: — → «Klipper v0.13.0: barrido de resonancia y filtro ZV»
 3. `src/content/topics/resonancia-estructural.mdx:10`, caso de uso, industria: — → «Firmware de impresoras 3D»
-4. `src/content/topics/resonancia-estructural.mdx:126`, referencia a clase, tema: — → «Tema 4 · Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras · Oscilaciones Forzadas y Resonancia»
-5. `src/content/topics/resonancia-estructural.mdx:127`, referencia a clase, nota: — → «$F(t) = F_0\cos(\omega_d t)$ y $A = F_0/\sqrt{(k - m\omega_d^2)^2 + b^2\omega_d^2}$: la (12.3); en $\omega_d \approx \omega_0$, fuerza y velocidad en fase: la (12.4).»
-6. `src/content/topics/resonancia-estructural.mdx:129`, referencia a clase, tema: — → «Tema 3 · Oscilaciones Amortiguadas Simples · Tres regímenes»
-7. `src/content/topics/resonancia-estructural.mdx:130`, referencia a clase, nota: — → «$b_c = 2\sqrt{km}$, que define mi $\zeta = b/b_c$, y la envolvente $e^{-(b/2m)t}$ de la (12.11).»
-8. `src/content/topics/resonancia-estructural.mdx:132`, referencia a clase, tema: — → «Tema 1 · Ecuaciones Diferenciales y Movimiento Oscilatorio · Solución General y Parámetros Cinemáticos»
-9. `src/content/topics/resonancia-estructural.mdx:133`, referencia a clase, nota: — → «$f = \frac{1}{2\pi}\sqrt{k/m}$, independiente de la amplitud: la (12.1).»
-10. `src/content/topics/resonancia-estructural.mdx:135`, referencia a clase, tema: — → «Tema 04 · Energía mecánica · Concepto 05 · Trabajo no conservativo y balance de energía»
-11. `src/content/topics/resonancia-estructural.mdx:136`, referencia a clase, nota: — → «$\Delta(K+U) = W_\text{otras}$ en cada ciclo: la (12.4) y la (12.12).»
-12. `src/content/topics/resonancia-estructural.mdx:159`, prosa: — → «Todo lo que oscila tiene ritmos propios; si algo le entrega energía a ese ritmo, la amplitud crece.»
-13. `src/content/topics/resonancia-estructural.mdx:161`, título del paso 1: — → «Frecuencia natural»
-14. `src/content/topics/resonancia-estructural.mdx:163`, prosa: — → «Con Hooke y la segunda ley, un cuerpo sujeto a un resorte oscila solo:»
-15. `src/content/topics/resonancia-estructural.mdx:169`, ecuación, significado de un símbolo: — → «masa»
-16. `src/content/topics/resonancia-estructural.mdx:170`, ecuación, significado de un símbolo: — → «constante elástica»
-17. `src/content/topics/resonancia-estructural.mdx:171`, ecuación, significado de un símbolo: — → «desplazamiento desde el equilibrio»
-18. `src/content/topics/resonancia-estructural.mdx:172`, ecuación, significado de un símbolo: — → «amplitud y fase inicial»
-19. `src/content/topics/resonancia-estructural.mdx:173`, ecuación, significado de un símbolo: — → «frecuencia angular natural»
-20. `src/content/topics/resonancia-estructural.mdx:174`, ecuación, significado de un símbolo: — → «frecuencia natural y periodo»
-21. `src/content/topics/resonancia-estructural.mdx:182`, prosa: — → «El resorte lo devuelve al equilibrio y la inercia lo pasa de largo: el vaivén tiene un ritmo propio, el mismo con cualquier amplitud.»
-22. `src/content/topics/resonancia-estructural.mdx:188`, prosa: — → «Más masa, menos frecuencia: $f_0$ va como $1/\sqrt{m}$; por eso la cama cargada de filamento resuena más bajo. Medir $f_0$ es contar ciclos.»
-23. `src/content/topics/resonancia-estructural.mdx:197`, pie de figura: — → «Los dos modos del puente de Tacoma Narrows el 7 de noviembre de 1940, como oscilaciones libres de la ecuación (12.1) con la misma amplitud, que es ilustrativa: el vertical de 8 o 9 nodos a 37 ciclos por minuto y la torsión de un nodo a 12. Hacia las 10:00 el puente pasó de uno al otro, «from 37 to 14», y la torsión terminó en 12: cada modo tiene su propia frecuencia natural, y contar ciclos la mide.»
-24. `src/content/topics/resonancia-estructural.mdx:199`, fuente de figura: — → «Gráfica del autor con la ecuación (12.1); frecuencias del informe a la Federal Works Agency (1941), págs. 30-31 y V-12; amplitudes ilustrativas»
-25. `src/content/topics/resonancia-estructural.mdx:207`, título del paso 2: — → «Resonancia forzada»
-26. `src/content/topics/resonancia-estructural.mdx:209`, prosa: — → «Ahora empujo con una fuerza periódica y le pongo un amortiguador viscoso:»
-27. `src/content/topics/resonancia-estructural.mdx:215`, ecuación, significado de un símbolo: — → «coeficiente de amortiguamiento viscoso»
-28. `src/content/topics/resonancia-estructural.mdx:216`, ecuación, significado de un símbolo: — → «amplitud de la fuerza»
-29. `src/content/topics/resonancia-estructural.mdx:217`, ecuación, significado de un símbolo: — → «frecuencia angular de la fuerza»
-30. `src/content/topics/resonancia-estructural.mdx:218`, ecuación, significado de un símbolo: — → «amortiguamiento crítico»
-31. `src/content/topics/resonancia-estructural.mdx:219`, ecuación, significado de un símbolo: — → «razón de amortiguamiento, sin unidades»
-32. `src/content/topics/resonancia-estructural.mdx:227`, ecuación, significado de un símbolo: — → «amplitud estacionaria, pasado el transitorio»
-33. `src/content/topics/resonancia-estructural.mdx:228`, ecuación, significado de un símbolo: — → «deformación estática, la que daría una fuerza quieta»
-34. `src/content/topics/resonancia-estructural.mdx:238`, ecuación, significado de un símbolo: — → «energía que entrega la fuerza en un ciclo, la integral de $F v$ (cálculo propio)»
-35. `src/content/topics/resonancia-estructural.mdx:241`, ecuación, significado de un símbolo: — → «energía que disipa el amortiguador en un ciclo»
-36. `src/content/topics/resonancia-estructural.mdx:242`, ecuación, significado de un símbolo: — → «retraso de $x$ respecto de la fuerza»
-37. `src/content/topics/resonancia-estructural.mdx:250`, prosa: — → «Si empujo al ritmo del vaivén, cada empujón suma; a contrarritmo, resta.»
-38. `src/content/topics/resonancia-estructural.mdx:256`, prosa: — → «En $\omega_d = \omega_0$ solo $b$ limita: la deformación estática se multiplica por $1/(2\zeta)$, y con la velocidad en fase con la fuerza, $\delta = 90^\circ$, $W_F$ es máximo; en régimen estacionario, $W_F = W_b$.»
-39. `src/content/topics/resonancia-estructural.mdx:265`, pie de figura: — → «Amplitud estacionaria de la ecuación (12.3), relativa a la deformación estática $F_0/k$, frente a la frecuencia de la fuerza, con las tres razones de amortiguamiento con que Klipper evalúa sus filtros. En $\omega_d = \omega_0$ cada curva vale $1/(2\zeta)$. La torsión del Tacoma, con $\zeta$ = 0,005, llegaría a 100 (tabla 12.4): veinte veces la impresora con $\zeta$ = 0,1. El barrido de Klipper, de 5 a 135 Hz, traza esta curva en cada eje.»
-40. `src/content/topics/resonancia-estructural.mdx:267`, fuente de figura: — → «Gráfica del autor con la ecuación (12.3); razones de amortiguamiento de Klipper v0.13.0, klippy/extras/shaper_calibrate.py L14; barrido de resonance_tester.py L49-L78»
-41. `src/content/topics/resonancia-estructural.mdx:273`, título del recuadro (nota): — → «Rhythm Nation y el CVE-2022-38392»
-42. `src/content/topics/resonancia-estructural.mdx:275`, prosa: — → «Un fabricante de portátiles vio que el video de «Rhythm Nation» los tumbaba: la canción contenía una frecuencia natural de sus discos de 5400 rpm. Quitó esa banda del audio, la $F_0$ cerca de $\omega_0$: «It is much less expensive to fix the problem in software». Es el CVE-2022-38392.»
-43. `src/content/topics/resonancia-estructural.mdx:281`, título del paso 3: — → «Al paso o rompiendo el paso»
-44. `src/content/topics/resonancia-estructural.mdx:283`, prosa: — → «Un pelotón son $N$ fuerzas, cada una con su fase:»
-45. `src/content/topics/resonancia-estructural.mdx:289`, ecuación, significado de un símbolo: — → «personas que cruzan»
-46. `src/content/topics/resonancia-estructural.mdx:290`, ecuación, significado de un símbolo: — → «amplitud de la fuerza de una persona»
-47. `src/content/topics/resonancia-estructural.mdx:293`, ecuación, significado de un símbolo: — → «frecuencia y fase de la persona $i$»
-48. `src/content/topics/resonancia-estructural.mdx:298`, ecuación, significado de un símbolo: — → «valor cuadrático medio de $|F|$ con fases al azar (cálculo propio)»
-49. `src/content/topics/resonancia-estructural.mdx:304`, prosa: — → «El paso militar, 120 por minuto, son 2,0 Hz: dentro del rango de riesgo máximo de Sétra (tabla 12.1). Klipper rompe el paso a propósito, con dos impulsos en contrafase que se anulan:»
-50. `src/content/topics/resonancia-estructural.mdx:313`, ecuación, significado de un símbolo: — → «fracción de la orden en cada impulso; Klipper escribe $[1, K]$ y los divide por su suma»
-51. `src/content/topics/resonancia-estructural.mdx:315`, ecuación, significado de un símbolo: — → «instante del segundo impulso, el primero en 0»
-52. `src/content/topics/resonancia-estructural.mdx:316`, ecuación, significado de un símbolo: — → «periodo amortiguado, que el código llama $t_d$»
-53. `src/content/topics/resonancia-estructural.mdx:317`, ecuación, significado de un símbolo: — → «cociente entre el segundo impulso y el primero»
-54. `src/content/topics/resonancia-estructural.mdx:321`, prosa: — → «En el Millennium Bridge la gente acompasó el paso al balanceo, y su fuerza creció con la velocidad del tablero:»
-55. `src/content/topics/resonancia-estructural.mdx:327`, ecuación, significado de un símbolo: — → «fuerza lateral acompasada de $N$ personas»
-56. `src/content/topics/resonancia-estructural.mdx:328`, ecuación, significado de un símbolo: — → «coeficiente de fuerza lateral por persona»
-57. `src/content/topics/resonancia-estructural.mdx:329`, ecuación, significado de un símbolo: — → «velocidad lateral del tablero»
-58. `src/content/topics/resonancia-estructural.mdx:337`, ecuación, significado de un símbolo: — → «personas a partir de las que el puente se balancea solo»
-59. `src/content/topics/resonancia-estructural.mdx:338`, ecuación, significado de un símbolo: — → «frecuencia y masa modal del modo lateral»
-60. `src/content/topics/resonancia-estructural.mdx:342`, prosa: — → «Al Tacoma nada lo empujaba a 0,20 Hz; el ritmo de los vórtices del viento era otro:»
-61. `src/content/topics/resonancia-estructural.mdx:348`, ecuación, significado de un símbolo: — → «frecuencia de desprendimiento de vórtices»
-62. `src/content/topics/resonancia-estructural.mdx:349`, ecuación, significado de un símbolo: — → «número de Strouhal del tablero, unos 0,11»
-63. `src/content/topics/resonancia-estructural.mdx:350`, ecuación, significado de un símbolo: — → «rapidez del viento»
-64. `src/content/topics/resonancia-estructural.mdx:351`, ecuación, significado de un símbolo: — → «canto del tablero»
-65. `src/content/topics/resonancia-estructural.mdx:359`, prosa: — → «Rompiendo el paso, unos empujones anulan a otros: «the tread of one person would have counteracted the vibration arising from that of another».»
-66. `src/content/topics/resonancia-estructural.mdx:365`, prosa: — → «Con fases al azar, $|F|$ crece como $\sqrt{N}$ y la potencia, con su cuadrado: $N$ veces menos. Una fuerza que crece con $V$ es un $b$ negativo: pasadas $N_L$ personas, el puente se balancea solo.»
-67. `src/content/topics/resonancia-estructural.mdx:374`, pie de figura: — → «Amplitud de la fuerza vertical de $N$ personas con la ecuación (12.5), $F_1$ = 280 N cada una (tabla 12.1). Al paso, todas en fase, crece en recta; rompiendo el paso, con fases al azar, como $\sqrt{N}$, y los puntos son un sorteo de esas fases para cada $N$. Con los unos 60 soldados que cruzaban el puente de Broughton en 1831, 16,8 kN contra 2,2 kN: en resonancia la energía que entra va con el cuadrado, 60 veces menos.»
-68. `src/content/topics/resonancia-estructural.mdx:376`, fuente de figura: — → «Gráfica del autor con la ecuación (12.5); fuerza por persona de Sétra (2006), §1.2.1; unos 60 soldados según The Philosophical Magazine (1831); fases sorteadas con una semilla fija»
-69. `src/content/topics/resonancia-estructural.mdx:387`, pie de figura: — → «Reportaje de ITN de junio de 2000 sobre el cierre del Millennium Bridge, dos días después de abrirlo. Analizo dos instantes: el balanceo lateral del tablero y la gente que acompasa el paso a él. Los números de la ecuación (12.8) están en la tabla 12.2.»
-70. `src/content/topics/resonancia-estructural.mdx:389`, fuente de figura: — → «Análisis del autor sobre el video de Frontline by ITN (2022, archivo de 2000); datos de Dallard et al. (2001) y Newland (2002)»
-71. `src/content/topics/resonancia-estructural.mdx:407`, marca, título: — → «El balanceo lateral»
-72. `src/content/topics/resonancia-estructural.mdx:409`, marca, análisis escrito: — → «El tablero se mueve de lado bajo la gente. Según Arup, el día de la inauguración, el 10 de junio de 2000, la aceleración lateral llegó a 200–250 milésimas de $g$, sobre todo en el vano sur, a unos 0,8 Hz, y en el central, a algo menos de 0,5 Hz y a 1,0 Hz: modos laterales, cada uno con su frecuencia natural de la (12.1). El empuje lateral de cada pie va a la mitad de la frecuencia del paso, cerca de 1 Hz, justo sobre esos modos (tabla 12.1).»
-73. `src/content/topics/resonancia-estructural.mdx:413`, marca, título: — → «La gente acompasa el paso»
-74. `src/content/topics/resonancia-estructural.mdx:415`, marca, análisis escrito: — → «Arup lo explica así: «it is more comfortable for pedestrians to walk in synchronisation with the natural swaying of the bridge» («es más cómodo caminar al ritmo del balanceo natural del puente»), y así cada pie empuja a la frecuencia del puente y en la fase que aumenta el movimiento. Es la retroalimentación de la (12.7): más balanceo, más gente acompasada, más fuerza. Con la (12.8), el modo central se desestabilizaba con unas 37 personas; la cura fue subir $\zeta$ de menos del 1 % al 15–20 % con 37 amortiguadores viscosos y masas sintonizadas (tabla 12.2).»
-75. `src/content/topics/resonancia-estructural.mdx:425`, título del paso 4: — → «Autoexcitación: el Tacoma Narrows»
-76. `src/content/topics/resonancia-estructural.mdx:427`, prosa: — → «El 7 de noviembre de 1940 el viento era casi constante. Billah y Scanlan suman a la torsión un término del viento proporcional a la velocidad de giro:»
-77. `src/content/topics/resonancia-estructural.mdx:433`, ecuación, significado de un símbolo: — → «ángulo de giro del tablero»
-78. `src/content/topics/resonancia-estructural.mdx:434`, ecuación, significado de un símbolo: — → «momento de inercia del tablero por metro de vano»
-79. `src/content/topics/resonancia-estructural.mdx:435`, ecuación, significado de un símbolo: — → «amortiguamiento estructural de la torsión, unos 0,005»
-80. `src/content/topics/resonancia-estructural.mdx:436`, ecuación, significado de un símbolo: — → «densidad del aire y ancho del tablero»
-81. `src/content/topics/resonancia-estructural.mdx:439`, ecuación, significado de un símbolo: — → «coeficiente aerodinámico que crece con el viento, medido en maqueta»
-82. `src/content/topics/resonancia-estructural.mdx:448`, ecuación, significado de un símbolo: — → «amortiguamiento neto: estructura menos viento»
-83. `src/content/topics/resonancia-estructural.mdx:451`, ecuación, significado de un símbolo: — → «$2I/(\rho B^4)$ con los datos del tablero, de Billah y Scanlan»
-84. `src/content/topics/resonancia-estructural.mdx:455`, ecuación, significado de un símbolo: — → «frecuencia angular amortiguada, $\omega_0\sqrt{1 - \zeta_\text{neto}^2}$»
-85. `src/content/topics/resonancia-estructural.mdx:468`, ecuación, significado de un símbolo: — → «cambio relativo de la energía en un periodo natural; la forma lineal vale para $\zeta$ pequeño»
-86. `src/content/topics/resonancia-estructural.mdx:473`, prosa: — → «¿Fue resonancia? Con impulsos que vienen del propio movimiento, «It would appear not to contradict the qualitative definition of resonance»; pero la (12.10) no tiene fuerza externa: es otra ecuación.»
-87. `src/content/topics/resonancia-estructural.mdx:479`, prosa: — → «El viento no tenía ritmo: el ritmo lo ponía el tablero; el viento, la energía.»
-88. `src/content/topics/resonancia-estructural.mdx:485`, prosa: — → «Sobre 18,6 mph, $\zeta_\text{neto} < 0$ (tabla 12.3) y el término en $\dot\theta$ empuja en vez de frenar. Lo que entra y lo que sale crecen con $\theta_0^2$: no hay equilibrio, y la amplitud crece en progresión geométrica hasta romper.»
-89. `src/content/topics/resonancia-estructural.mdx:494`, pie de figura: — → «Torsión del Tacoma con la ecuación (12.11) a 0,20 Hz, sin ninguna fuerza que oscile, con tres vientos de la tabla 12.3: a 17 mph el amortiguamiento neto es positivo y la amplitud baja; a 30,6 mph es negativo y sube; a 42 mph, el viento de esa mañana, la tabla se prolonga en recta y sube más rápido. Las etiquetas dan la amplitud al cabo de 30 s, seis vueltas.»
-90. `src/content/topics/resonancia-estructural.mdx:496`, fuente de figura: — → «Gráfica del autor con las ecuaciones (12.11) y (12.12); $A_2^*$ de la Tabla I de Billah y Scanlan (1991); la curva de 42 mph es una extrapolación»
-91. `src/content/topics/resonancia-estructural.mdx:506`, pie de figura: — → «Película muda del 7 de noviembre de 1940, alojada en el sitio. Mi análisis por instante responde lo que pide el recurso: la frecuencia natural (1:01), la fuente de la excitación (0:51) y por qué crece la amplitud (0:51 y 1:55), además del nodo de la torsión (0:14) y la sección del tablero (0:32). Las tomas de torsión corren 1,5 veces más rápido que en la realidad; el botón «Velocidad real (×2/3)» las frena y deja el colapso a 1×.»
-92. `src/content/topics/resonancia-estructural.mdx:508`, fuente de figura: — → «Película de Barney Elliott y Harbine Monroe en Wikimedia Commons, dominio público por la dedicación de los Prelinger Archives que registra Commons; la pasé a WebM y MP4 sin tocar la imagen. Análisis mío; velocidad de las cámaras según Olson et al. (2015)»
-93. `src/content/topics/resonancia-estructural.mdx:520`, marca, título: — → «La línea central es el nodo de la torsión»
-94. `src/content/topics/resonancia-estructural.mdx:522`, marca, análisis escrito: — → «Sobre la calzada, la línea central blanca casi no sube ni baja, mientras los bordes suben y bajan en contrafase: el tablero gira alrededor de su eje. Olson et al. llaman a esa línea «the stationary line about which the twisting occurred» («la línea quieta alrededor de la que ocurría la torsión»). Es el modo de torsión de un nodo, el $\theta(t)$ de la (12.10); el informe de 1941 sitúa ese nodo a mitad del vano, así que cada mitad giraba al revés que la otra.»
-95. `src/content/topics/resonancia-estructural.mdx:526`, marca, título: — → «La viga de alma llena: un tablero en H»
-96. `src/content/topics/resonancia-estructural.mdx:528`, marca, análisis escrito: — → «Mirando hacia abajo desde el borde se ve la viga de alma llena, de 8 ft (2,44 m) de canto, con sus remaches: el tablero era una sección en H, roma, de solo 39 ft de ancho, 1/72 del vano. Esa forma fija el $A_2^*$ de la (12.11). El informe de 1941 lo concluye: «Its appearance and destructive effect in the Tacoma Narrows Bridge resulted from its narrow width and lack of structural damping» («su aparición y su efecto destructivo se debieron a su ancho estrecho y a la falta de amortiguamiento estructural»).»
-97. `src/content/topics/resonancia-estructural.mdx:532`, marca, título: — → «El viento: la fuente de energía»
-98. `src/content/topics/resonancia-estructural.mdx:534`, marca, análisis escrito: — → «El oleaje del estrecho delata el viento: 42 mph (18,8 m/s), medido hacia las 9:00. Es la fuente de la excitación, pero no oscila a 0,20 Hz: su único ritmo propio, el desprendimiento de vórtices, da 0,85 Hz con la (12.9), 4,2 veces la torsión (tabla 12.4). Por qué crece la amplitud: el giro decide cuándo empuja el viento, «the wind supplying the power, and the motion supplying the power-tapping mechanism» («el viento pone la potencia y el movimiento, el mecanismo que la toma»), según Billah y Scanlan. Con $\zeta_\text{neto} < 0$, la (12.12) da más energía en cada vuelta: un 20,8 % a 30,6 mph (tabla 12.3).»
-99. `src/content/topics/resonancia-estructural.mdx:538`, marca, título: — → «Contar ciclos: 3,43 s en el video son 5,15 s reales»
-100. `src/content/topics/resonancia-estructural.mdx:540`, marca, análisis escrito: — → «Desde debajo de la torre, el borde del tablero baja y sube dos veces. Cuadro a cuadro mido 3,43 s por ciclo (figura 12.7 y tabla 12.5). Elliott filmó a 16 cuadros por segundo y el video los pasa como 24, así que cada segundo del video son 1,5 reales: 5,15 s. Con la media de tres tomas, 3,49 s, el periodo real es 5,23 s y la frecuencia 0,191 Hz, unos 11,5 ciclos por minuto, un 4 % por debajo de los 12 que cronometró Farquharson: es la frecuencia natural de la torsión, la $f_0$ de la (12.1) para ese modo. Con «Velocidad real» la toma se ve a su ritmo.»
-101. `src/content/topics/resonancia-estructural.mdx:544`, marca, título: — → «El colapso, a velocidad real»
-102. `src/content/topics/resonancia-estructural.mdx:546`, marca, análisis escrito: — → «Esta toma es de Monroe, que filmó a 24 cuadros por segundo: Olson et al. comprobaron que los trozos caen con la aceleración de la gravedad solo a esa velocidad, así que va a velocidad real y el botón no la frena. Es el final del crecimiento de la (12.12): sin amplitud de equilibrio, solo la rotura lo detuvo. La torsión había empezado hacia las 10:00; hacia las 11:00 cayeron unos 600 ft del tablero, y a las 11:10, el resto (informe de 1941).»
-103. `src/content/topics/resonancia-estructural.mdx:557`, pie de figura: — → «Mi medición cuadro a cuadro de la toma de 1:01,7: la altura del borde del tablero, en píxeles. Tal como corre el video, el ciclo dura 3,43 s; estirada al tiempo real, 5,15 s, y una cosenoide de 5,0 s, el periodo que cronometró Farquharson, ajustada solo en amplitud y fase, la sigue de cerca. Las tres tomas están en la tabla 12.5.»
-104. `src/content/topics/resonancia-estructural.mdx:559`, fuente de figura: — → «Medición del autor (pnpm run data:tacoma) sobre el archivo de Wikimedia Commons; 16 y 24 cuadros por segundo según Olson et al. (2015); 12 ciclos por minuto de Farquharson en el informe de 1941, pág. V-12»
-105. `src/content/topics/resonancia-estructural.mdx:573`, prosa: — → «Klipper (v0.13.0, commit 61c0c8d), firmware libre de impresoras 3D, mide con un acelerómetro las resonancias del marco y las correas, causa del _ringing_ de las piezas, y las compensa con _input shaping_.»
-106. `src/content/topics/resonancia-estructural.mdx:579`, prosa: — → «`resonance_tester.py` (L49-L78) barre de 5 a 135 Hz a 1 Hz/s; los picos son las $f_0$ de la (12.3). `shaper_defs.py` (L17-L23) arma con ellas el ZV de la (12.6), con $\zeta = 0{,}1$.»
-107. `src/content/topics/resonancia-estructural.mdx:585`, prosa: — → «Sin el modelo, lo seguro es bajar la aceleración en todo o imprimir torres de prueba a ciegas. El filtro anula la vibración solo en la frecuencia medida y deja intacto el resto.»
-108. `src/content/topics/resonancia-estructural.mdx:591`, prosa: — → «Gano velocidad sin _ringing_. Cuesta: el ZV divide la vibración por 10 solo dentro de ±5 % de $f_0$; $\zeta$ «is usually unknown» y se fija en 0,1; el filtro redondea esquinas; y si las correas se aflojan o la cama gana masa, $f_0$ cambia y hay que medir otra vez.»
-109. `src/content/topics/resonancia-estructural.mdx:597`, título del recuadro (clase): — → «Módulo 5 · Temas 1, 3 y 4; Módulo 2 · Tema 04»
-110. `src/content/topics/resonancia-estructural.mdx:599`, prosa: — → «El Tema 4 da la (12.3) con $F_0\cos(\omega_d t)$ y llama resonancia a $\omega_d \approx \omega_0$, cuando «la fuerza y la velocidad quedan en fase»: la (12.4). Mi $\zeta$ es $b/b_c$, con el $b_c$ del Tema 3. Su amortiguador de masa sintonizado (Taipei 101) es parte de la cura del Millennium. Las fases y la autoexcitación son extensión.»
-111. `src/content/topics/resonancia-estructural.mdx:605`, prosa: — → «Con el Tema 5: su vibración $F_0 \sin(\omega t)$ es la fuerza de la (12.2). Con el Tema 7: un rebote conserva la fracción $e^2$ de la energía cinética, y un ciclo amortiguado, una fracción fija por la (12.12): la energía cae en progresión geométrica.»
+4. `src/content/topics/resonancia-estructural.mdx:123`, temas relacionados (**decisión de Dylan**: el Tema 7 no está en el spec; ver la nota de arriba): — → «['control-haptico', 'coeficiente-restitucion']»
+5. `src/content/topics/resonancia-estructural.mdx:126`, referencia a clase, tema: — → «Tema 4 · Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras · Oscilaciones Forzadas y Resonancia»
+6. `src/content/topics/resonancia-estructural.mdx:127`, referencia a clase, nota: — → «$F(t) = F_0\cos(\omega_d t)$ y $A = F_0/\sqrt{(k - m\omega_d^2)^2 + b^2\omega_d^2}$: la (12.3); en $\omega_d \approx \omega_0$, fuerza y velocidad en fase: la (12.4).»
+7. `src/content/topics/resonancia-estructural.mdx:129`, referencia a clase, tema: — → «Tema 3 · Oscilaciones Amortiguadas Simples · Tres regímenes»
+8. `src/content/topics/resonancia-estructural.mdx:130`, referencia a clase, nota: — → «$b_c = 2\sqrt{km}$, que define mi $\zeta = b/b_c$, y la envolvente $e^{-(b/2m)t}$ de la (12.11).»
+9. `src/content/topics/resonancia-estructural.mdx:132`, referencia a clase, tema: — → «Tema 1 · Ecuaciones Diferenciales y Movimiento Oscilatorio · Solución General y Parámetros Cinemáticos»
+10. `src/content/topics/resonancia-estructural.mdx:133`, referencia a clase, nota: — → «$f = \frac{1}{2\pi}\sqrt{k/m}$, independiente de la amplitud: la (12.1).»
+11. `src/content/topics/resonancia-estructural.mdx:135`, referencia a clase, tema: — → «Tema 04 · Energía mecánica · Concepto 05 · Trabajo no conservativo y balance de energía»
+12. `src/content/topics/resonancia-estructural.mdx:136`, referencia a clase, nota: — → «$\Delta(K+U) = W_\text{otras}$ en cada ciclo: la (12.4) y la (12.12).»
+13. `src/content/topics/resonancia-estructural.mdx:159`, prosa: — → «Todo lo que oscila tiene ritmos propios; si algo le entrega energía a ese ritmo, la amplitud crece.»
+14. `src/content/topics/resonancia-estructural.mdx:161`, título del paso 1: — → «Frecuencia natural»
+15. `src/content/topics/resonancia-estructural.mdx:163`, prosa: — → «Con Hooke y la segunda ley, un cuerpo sujeto a un resorte oscila solo:»
+16. `src/content/topics/resonancia-estructural.mdx:169`, ecuación, significado de un símbolo: — → «masa»
+17. `src/content/topics/resonancia-estructural.mdx:170`, ecuación, significado de un símbolo: — → «constante elástica»
+18. `src/content/topics/resonancia-estructural.mdx:171`, ecuación, significado de un símbolo: — → «desplazamiento desde el equilibrio»
+19. `src/content/topics/resonancia-estructural.mdx:172`, ecuación, significado de un símbolo: — → «amplitud y fase inicial»
+20. `src/content/topics/resonancia-estructural.mdx:173`, ecuación, significado de un símbolo: — → «frecuencia angular natural»
+21. `src/content/topics/resonancia-estructural.mdx:174`, ecuación, significado de un símbolo: — → «frecuencia natural y periodo»
+22. `src/content/topics/resonancia-estructural.mdx:182`, prosa: — → «El resorte lo devuelve al equilibrio y la inercia lo pasa de largo: el vaivén tiene un ritmo propio, el mismo con cualquier amplitud.»
+23. `src/content/topics/resonancia-estructural.mdx:188`, prosa: — → «Más masa, menos frecuencia: $f_0$ va como $1/\sqrt{m}$; por eso la cama cargada de filamento resuena más bajo. Medir $f_0$ es contar ciclos.»
+24. `src/content/topics/resonancia-estructural.mdx:197`, pie de figura: — → «Los dos modos del puente de Tacoma Narrows el 7 de noviembre de 1940, como oscilaciones libres de la ecuación (12.1) con la misma amplitud, que es ilustrativa: el vertical de 8 o 9 nodos a 37 ciclos por minuto y la torsión de un nodo a 12. Hacia las 10:00 el puente pasó de uno al otro, «from 37 to 14», y la torsión terminó en 12: cada modo tiene su propia frecuencia natural, y contar ciclos la mide.»
+25. `src/content/topics/resonancia-estructural.mdx:199`, fuente de figura: — → «Gráfica del autor con la ecuación (12.1); frecuencias del informe a la Federal Works Agency (1941), págs. 30-31 y V-12; amplitudes ilustrativas»
+26. `src/content/topics/resonancia-estructural.mdx:207`, título del paso 2: — → «Resonancia forzada»
+27. `src/content/topics/resonancia-estructural.mdx:209`, prosa: — → «Ahora empujo con una fuerza periódica y le pongo un amortiguador viscoso:»
+28. `src/content/topics/resonancia-estructural.mdx:215`, ecuación, significado de un símbolo: — → «coeficiente de amortiguamiento viscoso»
+29. `src/content/topics/resonancia-estructural.mdx:216`, ecuación, significado de un símbolo: — → «amplitud de la fuerza»
+30. `src/content/topics/resonancia-estructural.mdx:217`, ecuación, significado de un símbolo: — → «frecuencia angular de la fuerza»
+31. `src/content/topics/resonancia-estructural.mdx:218`, ecuación, significado de un símbolo: — → «amortiguamiento crítico»
+32. `src/content/topics/resonancia-estructural.mdx:219`, ecuación, significado de un símbolo: — → «razón de amortiguamiento, sin unidades»
+33. `src/content/topics/resonancia-estructural.mdx:227`, ecuación, significado de un símbolo: — → «amplitud estacionaria, pasado el transitorio»
+34. `src/content/topics/resonancia-estructural.mdx:228`, ecuación, significado de un símbolo: — → «deformación estática, la que daría una fuerza quieta»
+35. `src/content/topics/resonancia-estructural.mdx:238`, ecuación, significado de un símbolo: — → «energía que entrega la fuerza en un ciclo, la integral de $F v$ (cálculo propio)»
+36. `src/content/topics/resonancia-estructural.mdx:241`, ecuación, significado de un símbolo: — → «energía que disipa el amortiguador en un ciclo»
+37. `src/content/topics/resonancia-estructural.mdx:242`, ecuación, significado de un símbolo: — → «retraso de $x$ respecto de la fuerza»
+38. `src/content/topics/resonancia-estructural.mdx:250`, prosa: — → «Si empujo al ritmo del vaivén, cada empujón suma; a contrarritmo, resta.»
+39. `src/content/topics/resonancia-estructural.mdx:256`, prosa: — → «En $\omega_d = \omega_0$ solo $b$ limita: la deformación estática se multiplica por $1/(2\zeta)$, y con la velocidad en fase con la fuerza, $\delta = 90^\circ$, $W_F$ es máximo; en régimen estacionario, $W_F = W_b$.»
+40. `src/content/topics/resonancia-estructural.mdx:265`, pie de figura: — → «Amplitud estacionaria de la ecuación (12.3), relativa a la deformación estática $F_0/k$, frente a la frecuencia de la fuerza, con las tres razones de amortiguamiento con que Klipper evalúa sus filtros. En $\omega_d = \omega_0$ cada curva vale $1/(2\zeta)$. La torsión del Tacoma, con $\zeta$ = 0,005, llegaría a 100 (tabla 12.4): veinte veces la impresora con $\zeta$ = 0,1. El barrido de Klipper, de 5 a 135 Hz, traza esta curva en cada eje.»
+41. `src/content/topics/resonancia-estructural.mdx:267`, fuente de figura: — → «Gráfica del autor con la ecuación (12.3); razones de amortiguamiento de Klipper v0.13.0, klippy/extras/shaper_calibrate.py L14; barrido de resonance_tester.py L49-L78»
+42. `src/content/topics/resonancia-estructural.mdx:273`, título del recuadro (nota): — → «Rhythm Nation y el CVE-2022-38392»
+43. `src/content/topics/resonancia-estructural.mdx:275`, prosa: — → «Un fabricante de portátiles vio que el video de «Rhythm Nation» los tumbaba: la canción contenía una frecuencia natural de sus discos de 5400 rpm. Quitó esa banda del audio, la $F_0$ cerca de $\omega_0$: «It is much less expensive to fix the problem in software». Es el CVE-2022-38392.»
+44. `src/content/topics/resonancia-estructural.mdx:281`, título del paso 3: — → «Al paso o rompiendo el paso»
+45. `src/content/topics/resonancia-estructural.mdx:283`, prosa: — → «Un pelotón son $N$ fuerzas, cada una con su fase:»
+46. `src/content/topics/resonancia-estructural.mdx:289`, ecuación, significado de un símbolo: — → «personas que cruzan»
+47. `src/content/topics/resonancia-estructural.mdx:290`, ecuación, significado de un símbolo: — → «amplitud de la fuerza de una persona»
+48. `src/content/topics/resonancia-estructural.mdx:293`, ecuación, significado de un símbolo: — → «frecuencia y fase de la persona $i$»
+49. `src/content/topics/resonancia-estructural.mdx:298`, ecuación, significado de un símbolo: — → «valor cuadrático medio de $|F|$ con fases al azar (cálculo propio)»
+50. `src/content/topics/resonancia-estructural.mdx:304`, prosa: — → «El paso militar, 120 por minuto, son 2,0 Hz: dentro del rango de riesgo máximo de Sétra (tabla 12.1). Klipper rompe el paso a propósito, con dos impulsos en contrafase que se anulan:»
+51. `src/content/topics/resonancia-estructural.mdx:313`, ecuación, significado de un símbolo: — → «fracción de la orden en cada impulso; Klipper escribe $[1, K]$ y los divide por su suma»
+52. `src/content/topics/resonancia-estructural.mdx:315`, ecuación, significado de un símbolo: — → «instante del segundo impulso, el primero en 0»
+53. `src/content/topics/resonancia-estructural.mdx:316`, ecuación, significado de un símbolo: — → «periodo amortiguado, que el código llama $t_d$»
+54. `src/content/topics/resonancia-estructural.mdx:317`, ecuación, significado de un símbolo: — → «cociente entre el segundo impulso y el primero»
+55. `src/content/topics/resonancia-estructural.mdx:321`, prosa: — → «En el Millennium Bridge la gente acompasó el paso al balanceo, y su fuerza creció con la velocidad del tablero:»
+56. `src/content/topics/resonancia-estructural.mdx:327`, ecuación, significado de un símbolo: — → «fuerza lateral acompasada de $N$ personas»
+57. `src/content/topics/resonancia-estructural.mdx:328`, ecuación, significado de un símbolo: — → «coeficiente de fuerza lateral por persona»
+58. `src/content/topics/resonancia-estructural.mdx:329`, ecuación, significado de un símbolo: — → «velocidad lateral del tablero»
+59. `src/content/topics/resonancia-estructural.mdx:337`, ecuación, significado de un símbolo: — → «personas a partir de las que el puente se balancea solo»
+60. `src/content/topics/resonancia-estructural.mdx:338`, ecuación, significado de un símbolo: — → «frecuencia y masa modal del modo lateral»
+61. `src/content/topics/resonancia-estructural.mdx:342`, prosa: — → «Al Tacoma nada lo empujaba a 0,20 Hz; el ritmo de los vórtices del viento era otro:»
+62. `src/content/topics/resonancia-estructural.mdx:348`, ecuación, significado de un símbolo: — → «frecuencia de desprendimiento de vórtices»
+63. `src/content/topics/resonancia-estructural.mdx:349`, ecuación, significado de un símbolo: — → «número de Strouhal del tablero, unos 0,11»
+64. `src/content/topics/resonancia-estructural.mdx:350`, ecuación, significado de un símbolo: — → «rapidez del viento»
+65. `src/content/topics/resonancia-estructural.mdx:351`, ecuación, significado de un símbolo: — → «canto del tablero»
+66. `src/content/topics/resonancia-estructural.mdx:359`, prosa: — → «Rompiendo el paso, unos empujones anulan a otros: «the tread of one person would have counteracted the vibration arising from that of another».»
+67. `src/content/topics/resonancia-estructural.mdx:365`, prosa: — → «Con fases al azar, $|F|$ crece como $\sqrt{N}$ y la potencia, con su cuadrado: $N$ veces menos. Una fuerza que crece con $V$ es un $b$ negativo: pasadas $N_L$ personas, el puente se balancea solo.»
+68. `src/content/topics/resonancia-estructural.mdx:374`, pie de figura: — → «Amplitud de la fuerza vertical de $N$ personas con la ecuación (12.5), $F_1$ = 280 N cada una (tabla 12.1). Al paso, todas en fase, crece en recta; rompiendo el paso, con fases al azar, como $\sqrt{N}$, y los puntos son un sorteo de esas fases para cada $N$. Con los unos 60 soldados que cruzaban el puente de Broughton en 1831, 16,8 kN contra 2,2 kN: en resonancia la energía que entra va con el cuadrado, 60 veces menos.»
+69. `src/content/topics/resonancia-estructural.mdx:376`, fuente de figura: — → «Gráfica del autor con la ecuación (12.5); fuerza por persona de Sétra (2006), §1.2.1; unos 60 soldados según The Philosophical Magazine (1831); fases sorteadas con una semilla fija»
+70. `src/content/topics/resonancia-estructural.mdx:387`, pie de figura: — → «Reportaje de ITN sobre el Millennium Bridge, que cerró en junio de 2000, dos días después de abrir, porque se bamboleaba. Lo analizo entero, desde el inicio, con los datos de Arup; los números de la ecuación (12.8) están en la tabla 12.2.»
+71. `src/content/topics/resonancia-estructural.mdx:389`, fuente de figura: — → «Análisis del autor sobre el video de Frontline by ITN (2022, archivo de 2000); datos de Dallard et al. (2001) y Newland (2002)»
+72. `src/content/topics/resonancia-estructural.mdx:407`, marca, título: — → «El reportaje: un puente que se bamboleaba»
+73. `src/content/topics/resonancia-estructural.mdx:409`, marca, análisis escrito: — → «El título de ITN lo resume: el puente, «wobbly» («bamboleante»), cerró días después de abrir. Según Arup, el primer día el tablero se movió de lado sobre todo a unos 0,8 Hz en el vano sur, y a algo menos de 0,5 Hz y a 1,0 Hz en el central: justo donde empuja de lado cada pie, a la mitad de la frecuencia del paso (tabla 12.1). Arup lo explica así: «it is more comfortable for pedestrians to walk in synchronisation with the natural swaying of the bridge» («es más cómodo caminar al ritmo del balanceo natural del puente»; Dallard et al., pág. 21), y así cada pie empuja a la frecuencia del puente y en la fase que aumenta el movimiento. Es la retroalimentación de la (12.7): más balanceo, más gente acompasada, más fuerza. Con la (12.8), el primer modo lateral del vano central se desestabilizaba con unas 37 personas; la cura fue subir $\zeta$ de menos del 1 % al 15–20 % con 37 amortiguadores viscosos y masas sintonizadas (tabla 12.2).»
+74. `src/content/topics/resonancia-estructural.mdx:419`, título del paso 4: — → «Autoexcitación: el Tacoma Narrows»
+75. `src/content/topics/resonancia-estructural.mdx:421`, prosa: — → «El 7 de noviembre de 1940 el viento era casi constante. Billah y Scanlan suman a la torsión un término del viento proporcional a la velocidad de giro:»
+76. `src/content/topics/resonancia-estructural.mdx:427`, ecuación, significado de un símbolo: — → «ángulo de giro del tablero»
+77. `src/content/topics/resonancia-estructural.mdx:428`, ecuación, significado de un símbolo: — → «momento de inercia del tablero por metro de vano»
+78. `src/content/topics/resonancia-estructural.mdx:429`, ecuación, significado de un símbolo: — → «amortiguamiento estructural de la torsión, unos 0,005»
+79. `src/content/topics/resonancia-estructural.mdx:430`, ecuación, significado de un símbolo: — → «densidad del aire y ancho del tablero»
+80. `src/content/topics/resonancia-estructural.mdx:433`, ecuación, significado de un símbolo: — → «coeficiente aerodinámico que crece con el viento, medido en maqueta»
+81. `src/content/topics/resonancia-estructural.mdx:442`, ecuación, significado de un símbolo: — → «amortiguamiento neto: estructura menos viento»
+82. `src/content/topics/resonancia-estructural.mdx:445`, ecuación, significado de un símbolo: — → «$2I/(\rho B^4)$ con los datos del tablero, de Billah y Scanlan»
+83. `src/content/topics/resonancia-estructural.mdx:449`, ecuación, significado de un símbolo: — → «frecuencia angular amortiguada, $\omega_0\sqrt{1 - \zeta_\text{neto}^2}$»
+84. `src/content/topics/resonancia-estructural.mdx:462`, ecuación, significado de un símbolo: — → «cambio relativo de la energía en un periodo natural; la forma lineal vale para $\zeta$ pequeño»
+85. `src/content/topics/resonancia-estructural.mdx:467`, prosa: — → «¿Fue resonancia? Con impulsos que vienen del propio movimiento, «It would appear not to contradict the qualitative definition of resonance»; pero la (12.10) no tiene fuerza externa: es otra ecuación.»
+86. `src/content/topics/resonancia-estructural.mdx:473`, prosa: — → «El viento no tenía ritmo: el ritmo lo ponía el tablero; el viento, la energía.»
+87. `src/content/topics/resonancia-estructural.mdx:479`, prosa: — → «Sobre 18,6 mph, $\zeta_\text{neto} < 0$ (tabla 12.3) y el término en $\dot\theta$ empuja en vez de frenar. Lo que entra y lo que sale crecen con $\theta_0^2$: no hay equilibrio, y la amplitud crece en progresión geométrica hasta romper.»
+88. `src/content/topics/resonancia-estructural.mdx:488`, pie de figura: — → «Torsión del Tacoma con la ecuación (12.11) a 0,20 Hz, sin ninguna fuerza que oscile, con tres vientos de la tabla 12.3: a 17 mph el amortiguamiento neto es positivo y la amplitud baja; a 30,6 mph es negativo y sube; a 42 mph, el viento de esa mañana, la tabla se prolonga en recta y sube más rápido. Las etiquetas dan la amplitud al cabo de 30 s, seis vueltas.»
+89. `src/content/topics/resonancia-estructural.mdx:490`, fuente de figura: — → «Gráfica del autor con las ecuaciones (12.11) y (12.12); $A_2^*$ de la Tabla I de Billah y Scanlan (1991); la curva de 42 mph es una extrapolación»
+90. `src/content/topics/resonancia-estructural.mdx:500`, pie de figura: — → «Película muda del 7 de noviembre de 1940, alojada en el sitio. Mi análisis por instante responde lo que pide el recurso: la frecuencia natural (1:01), la fuente de la excitación (0:51) y por qué crece la amplitud (0:51 y 1:55), además del nodo de la torsión (0:14) y la sección del tablero (0:32). Las tomas de torsión corren 1,5 veces más rápido que en la realidad; el botón «Velocidad real (×2/3)» las frena y deja el colapso a 1×.»
+91. `src/content/topics/resonancia-estructural.mdx:502`, fuente de figura: — → «Película de Barney Elliott y Harbine Monroe en Wikimedia Commons, dominio público por la dedicación de los Prelinger Archives que registra Commons; la pasé a WebM y MP4 sin tocar la imagen. Análisis mío; velocidad de las cámaras según Olson et al. (2015)»
+92. `src/content/topics/resonancia-estructural.mdx:514`, marca, título: — → «La línea central es el nodo de la torsión»
+93. `src/content/topics/resonancia-estructural.mdx:516`, marca, análisis escrito: — → «Sobre la calzada, la línea central blanca casi no sube ni baja, mientras los bordes suben y bajan en contrafase: el tablero gira alrededor de su eje. Olson et al. llaman a esa línea «the stationary line about which the twisting occurred» («la línea quieta alrededor de la que ocurría la torsión»). Es el modo de torsión de un nodo, el $\theta(t)$ de la (12.10); el informe de 1941 sitúa ese nodo a mitad del vano, así que cada mitad giraba al revés que la otra.»
+94. `src/content/topics/resonancia-estructural.mdx:520`, marca, título: — → «La viga de alma llena: un tablero en H»
+95. `src/content/topics/resonancia-estructural.mdx:522`, marca, análisis escrito: — → «Mirando hacia abajo desde el borde se ve la viga de alma llena, de 8 ft (2,44 m) de canto, con sus remaches: el tablero era una sección en H, roma, de solo 39 ft de ancho, 1/72 del vano. Esa forma fija el $A_2^*$ de la (12.11). El informe de 1941 lo concluye: «Its appearance and destructive effect in the Tacoma Narrows Bridge resulted from its narrow width and lack of structural damping» («su aparición y su efecto destructivo se debieron a su ancho estrecho y a la falta de amortiguamiento estructural»).»
+96. `src/content/topics/resonancia-estructural.mdx:526`, marca, título: — → «El viento: la fuente de energía»
+97. `src/content/topics/resonancia-estructural.mdx:528`, marca, análisis escrito: — → «El oleaje del estrecho delata el viento: 42 mph (18,8 m/s), medido hacia las 9:00. Es la fuente de la excitación, pero no oscila a 0,20 Hz: su único ritmo propio, el desprendimiento de vórtices, da 0,85 Hz con la (12.9), 4,2 veces la torsión (tabla 12.4). Por qué crece la amplitud: el giro decide cuándo empuja el viento, «the wind supplying the power, and the motion supplying the power-tapping mechanism» («el viento pone la potencia y el movimiento, el mecanismo que la toma»), según Billah y Scanlan. Con $\zeta_\text{neto} < 0$, la (12.12) da más energía en cada vuelta: un 20,8 % a 30,6 mph (tabla 12.3).»
+98. `src/content/topics/resonancia-estructural.mdx:532`, marca, título: — → «Contar ciclos: 3,43 s en el video son 5,15 s reales»
+99. `src/content/topics/resonancia-estructural.mdx:534`, marca, análisis escrito: — → «Desde debajo de la torre, el borde del tablero baja y sube dos veces. Cuadro a cuadro mido 3,43 s por ciclo (figura 12.7 y tabla 12.5). Elliott filmó a 16 cuadros por segundo y el video los pasa como 24, así que cada segundo del video son 1,5 reales: 5,15 s. Con la media de tres tomas, 3,49 s, el periodo real es 5,23 s y la frecuencia 0,191 Hz, unos 11,5 ciclos por minuto, un 4 % por debajo de los 12 que cronometró Farquharson: es la frecuencia natural de la torsión, la $f_0$ de la (12.1) para ese modo. Con «Velocidad real» la toma se ve a su ritmo.»
+100. `src/content/topics/resonancia-estructural.mdx:538`, marca, título: — → «El colapso, a velocidad real»
+101. `src/content/topics/resonancia-estructural.mdx:540`, marca, análisis escrito: — → «Esta toma es de Monroe, que filmó a 24 cuadros por segundo: Olson et al. comprobaron que los trozos caen con la aceleración de la gravedad solo a esa velocidad, así que va a velocidad real y el botón no la frena. Es el final del crecimiento de la (12.12): sin amplitud de equilibrio, solo la rotura lo detuvo. La torsión había empezado hacia las 10:00; hacia las 11:00 cayeron unos 600 ft del tablero, y a las 11:10, el resto (informe de 1941).»
+102. `src/content/topics/resonancia-estructural.mdx:551`, pie de figura: — → «Mi medición cuadro a cuadro de la toma de 1:01,7: la altura del borde del tablero, en píxeles. Tal como corre el video, el ciclo dura 3,43 s; estirada al tiempo real, 5,15 s, y una cosenoide de 5,0 s, el periodo que cronometró Farquharson, ajustada en amplitud, fase y nivel medio sin tocar su periodo, la sigue de cerca. Las tres tomas están en la tabla 12.5.»
+103. `src/content/topics/resonancia-estructural.mdx:553`, fuente de figura: — → «Medición del autor (pnpm run data:tacoma) sobre el archivo de Wikimedia Commons; 16 y 24 cuadros por segundo según Olson et al. (2015); 12 ciclos por minuto de Farquharson en el informe de 1941, pág. V-12»
+104. `src/content/topics/resonancia-estructural.mdx:567`, prosa: — → «Klipper (v0.13.0, commit 61c0c8d), firmware libre de impresoras 3D, mide con un acelerómetro las resonancias del marco y las correas, causa del _ringing_ de las piezas, y las compensa con _input shaping_.»
+105. `src/content/topics/resonancia-estructural.mdx:573`, prosa: — → «`resonance_tester.py` (L49-L78) barre de 5 a 135 Hz a 1 Hz/s; los picos son las $f_0$ de la (12.3). `shaper_defs.py` (L17-L23) arma con ellas el ZV de la (12.6), con $\zeta = 0{,}1$.»
+106. `src/content/topics/resonancia-estructural.mdx:579`, prosa: — → «Sin el modelo, lo seguro es bajar la aceleración en todo o imprimir torres de prueba a ciegas. El filtro anula la vibración en la frecuencia medida y la máquina conserva su aceleración.»
+107. `src/content/topics/resonancia-estructural.mdx:585`, prosa: — → «Gano velocidad sin _ringing_. Cuesta: el ZV divide la vibración por 10 solo dentro de ±5 % de $f_0$; $\zeta$ «is usually unknown» y se fija en 0,1; el filtro redondea esquinas; y si las correas se aflojan o la cama gana masa, $f_0$ cambia y hay que medir otra vez.»
+108. `src/content/topics/resonancia-estructural.mdx:591`, título del recuadro (clase): — → «Módulo 5 · Temas 1, 3 y 4; Módulo 2 · Tema 04»
+109. `src/content/topics/resonancia-estructural.mdx:593`, prosa: — → «El Tema 4 da la (12.3) con $F_0\cos(\omega_d t)$ y llama resonancia a $\omega_d \approx \omega_0$, cuando «la fuerza y la velocidad quedan en fase»: la (12.4). Mi $\zeta$ es $b/b_c$, con el $b_c$ del Tema 3. Su amortiguador de masa sintonizado (Taipei 101) es parte de la cura del Millennium. Las fases y la autoexcitación son extensión.»
+110. `src/content/topics/resonancia-estructural.mdx:599`, prosa de las conexiones (la frase del Tema 7 es **decisión de Dylan**): — → «Con el Tema 5: su vibración $F_0 \sin(\omega t)$ es la fuerza de la (12.2). Con el Tema 7: un rebote conserva la fracción $e^2$ de la energía cinética, y un ciclo amortiguado, una fracción fija por la (12.12): la energía cae en progresión geométrica.»
 
 ### Figuras de los pasos (`src/components/topics/resonancia-estructural/ResonanceFigure.tsx`)
 
-112. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:75`, etiqueta del periodo: — → «$T_0$ = ${comma(periodS, 1)} s»
-113. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:101`, título de la gráfica: — → «Dos modos del puente de Tacoma Narrows como oscilaciones libres»
-114. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:102`, eje: — → «$t$»
-115. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:104`, eje: — → «$x/A$»
-116. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:109`, leyenda o etiqueta: — → «Modo vertical, ${vertical.cyclesPerMin} ciclos/min»
-117. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:115`, leyenda o etiqueta: — → «Torsión de un nodo, ${torsion.cyclesPerMin} ciclos/min»
-118. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:124`, nombre accesible (se oye, no se ve): — → «Dos cosenos de amplitud 1 durante 20 s. El modo vertical, a ${vertical.cyclesPerMin} ciclos por minuto, vuelve a su punto de partida cada ${comma(vertical.periodS, 1)} s; la torsión de un nodo, a ${torsion.cyclesPerMin} ciclos por minuto, cada ${comma(torsion.periodS, 1)} s.»
-119. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:160`, título de la gráfica: — → «Curva de resonancia: amplitud frente a la frecuencia de la fuerza»
-120. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:161`, eje: — → «$\omega_d/\omega_0$»
-121. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:163`, eje: — → «Amplitud relativa $A/(F_0/k)$»
-122. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:170`, guía: — → «$\omega_d = \omega_0$»
-123. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:175`, nombre accesible (se oye, no se ve): — → «Tres curvas que valen 1 con la fuerza lenta, suben hasta un pico en ω_d = ω_0 y caen por encima. En el pico valen 1 sobre 2 zeta: 6,7 con ζ = 0,075, 5,0 con ζ = 0,1 y 3,3 con ζ = 0,15. Menos amortiguamiento, pico más alto y más angosto.»
-124. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:216`, leyenda o etiqueta: — → «${comma(inStep, 1)} kN»
-125. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:224`, leyenda o etiqueta: — → «${comma(breaking, 1)} kN»
-126. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:234`, título de la gráfica: — → «Fuerza total de $N$ personas al paso y rompiendo el paso»
-127. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:235`, eje: — → «$N$»
-128. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:237`, eje: — → «Fuerza total $|F|$»
-129. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:242`, leyenda: — → «Al paso, $N F_1$»
-130. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:248`, leyenda: — → «Rompiendo el paso, $\sqrt{N}\,F_1$»
-131. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:257`, guía: — → «${SOLDIERS} soldados»
-132. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:263`, nombre accesible (se oye, no se ve): — → «Con F_1 = ${comma(F1, 0)} N por persona, la fuerza al paso crece en recta, N F_1, hasta ${comma(200 * F1 * KN_PER_N, 0)} kN con 200 personas; rompiendo el paso crece como la raíz de N, y los puntos de un sorteo de fases al azar caen a su alrededor. Con ${SOLDIERS} soldados: ${comma(inStep, 1)} kN al paso y ${comma(breaking, 1)} kN rompiendo el paso.»
-133. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:287`, leyenda, nombre del viento: — → «${comma(mph, 1)} mph»
-134. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:291`, leyenda o etiqueta: — → «${name}: $\zeta_\text{neto}$ = ${comma(net.zetaNet, 3)}»
-135. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:310`, leyenda o etiqueta: — → «×${comma(growth, growth < 1 ? 2 : 1)}»
-136. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:319`, título de la gráfica: — → «Torsión del Tacoma con tres vientos: decae o crece sola»
-137. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:320`, eje: — → «$t$»
-138. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:322`, eje: — → «Ángulo relativo $\theta/\theta_0$»
-139. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:329`, nombre accesible (se oye, no se ve): — → «La torsión a 0,20 Hz durante ${SELF_END_S} s, seis vueltas, sin ninguna fuerza que oscile. Con 17 mph su amplitud baja a ×${comma(CASES[0].growth, 2)}; con 30,6 mph sube a ×${comma(CASES[1].growth, 1)}; con 42 mph, extrapolando la tabla, a ×${comma(CASES[2].growth, 1)}.»
-140. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:138`, leyenda de la curva de resonancia, cada $\zeta$: — → «$\zeta$ = ${…} (0,075, 0,1 y 0,15)»
-141. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:144`, leyenda de la curva con el $\zeta$ por omisión: — → «${zetaLabel(zeta)}, la de Klipper por omisión»
-142. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:287`, leyenda, nombre del viento extrapolado: — → «${comma(mph, 0)} mph, extrapolado»
+111. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:76`, etiqueta del periodo: — → «$T_0$ = ${comma(periodS, 1)} s»
+112. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:102`, título de la gráfica: — → «Dos modos del puente de Tacoma Narrows como oscilaciones libres»
+113. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:103`, eje: — → «$t$»
+114. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:105`, eje: — → «$x/A$»
+115. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:110`, leyenda o etiqueta: — → «Modo vertical, ${vertical.cyclesPerMin} ciclos/min»
+116. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:116`, leyenda o etiqueta: — → «Torsión de un nodo, ${torsion.cyclesPerMin} ciclos/min»
+117. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:125`, nombre accesible (se oye, no se ve): — → «Dos cosenos de amplitud 1 durante 20 s. El modo vertical, a ${vertical.cyclesPerMin} ciclos por minuto, vuelve a su punto de partida cada ${comma(vertical.periodS, 1)} s; la torsión de un nodo, a ${torsion.cyclesPerMin} ciclos por minuto, cada ${comma(torsion.periodS, 1)} s.»
+118. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:161`, título de la gráfica: — → «Curva de resonancia: amplitud frente a la frecuencia de la fuerza»
+119. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:162`, eje: — → «$\omega_d/\omega_0$»
+120. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:164`, eje: — → «Amplitud relativa $A/(F_0/k)$»
+121. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:171`, guía: — → «$\omega_d = \omega_0$»
+122. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:176`, nombre accesible (se oye, no se ve): — → «Tres curvas que valen 1 con la fuerza lenta, suben hasta un pico en ω_d = ω_0 y caen por encima. En el pico valen 1 sobre 2 zeta: 6,7 con ζ = 0,075, 5,0 con ζ = 0,1 y 3,3 con ζ = 0,15. Menos amortiguamiento, pico más alto y más angosto.»
+123. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:217`, leyenda o etiqueta: — → «${comma(inStep, 1)} kN»
+124. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:225`, leyenda o etiqueta: — → «${comma(breaking, 1)} kN»
+125. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:235`, título de la gráfica: — → «Fuerza total de $N$ personas al paso y rompiendo el paso»
+126. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:236`, eje: — → «$N$»
+127. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:238`, eje: — → «Fuerza total $|F|$»
+128. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:243`, leyenda: — → «Al paso, $N F_1$»
+129. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:249`, leyenda: — → «Rompiendo el paso, $\sqrt{N}\,F_1$»
+130. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:258`, guía: — → «${SOLDIERS} soldados»
+131. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:264`, nombre accesible (se oye, no se ve): — → «Con F_1 = ${comma(F1, 0)} N por persona, la fuerza al paso crece en recta, N F_1, hasta ${comma(200 * F1 * KN_PER_N, 0)} kN con 200 personas; rompiendo el paso crece como la raíz de N, y los puntos de un sorteo de fases al azar caen a su alrededor. Con ${SOLDIERS} soldados: ${comma(inStep, 1)} kN al paso y ${comma(breaking, 1)} kN rompiendo el paso.»
+132. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:292`, leyenda o etiqueta: — → «${name}: $\zeta_\text{neto}$ = ${comma(net.zetaNet, 3)}»
+133. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:311`, leyenda o etiqueta: — → «×${comma(growth, growth < 1 ? 2 : 1)}»
+134. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:320`, título de la gráfica: — → «Torsión del Tacoma con tres vientos: decae o crece sola»
+135. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:321`, eje: — → «$t$»
+136. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:323`, eje: — → «Ángulo relativo $\theta/\theta_0$»
+137. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:330`, nombre accesible (se oye, no se ve): — → «La torsión a 0,20 Hz durante ${SELF_END_S} s, seis vueltas, sin ninguna fuerza que oscile. Con 17 mph su amplitud baja a ×${comma(CASES[0].growth, 2)}; con 30,6 mph sube a ×${comma(CASES[1].growth, 1)}; con 42 mph, extrapolando la tabla, a ×${comma(CASES[2].growth, 1)}.»
+138. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:139`, leyenda de la curva de resonancia, cada $\zeta$: — → «$\zeta$ = ${…} (0,075, 0,1 y 0,15)»
+139. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:145`, leyenda de la curva con el $\zeta$ por omisión: — → «${zetaLabel(zeta)}, la de Klipper por omisión»
+140. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:288`, leyenda, nombre del viento: — → «${comma(mph, 0)} mph, extrapolado»
+141. `src/components/topics/resonancia-estructural/ResonanceFigure.tsx:288`, leyenda, nombre del viento: — → «${comma(mph, 1)} mph»
 
 ### Figura de la medición (`src/components/topics/resonancia-estructural/TacomaMeasurement.tsx`)
 
-143. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:28`, título de la gráfica: — → «Altura del borde del tablero medida cuadro a cuadro, en el tiempo del video y en el real»
-144. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:29`, eje: — → «Tiempo desde el inicio de la toma $t$»
-145. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:31`, eje: — → «Altura del borde del tablero»
-146. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:36`, leyenda: — → «Tal como corre el video ($T$ = ${VIDEO_PERIOD} s)»
-147. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:43`, leyenda: — → «Corregida a tiempo real ($T$ = ${REAL_PERIOD} s)»
-148. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:49`, leyenda: — → «Cosenoide de ${comma(PLOT.farquharsonPeriodS, 1)} s de Farquharson»
-149. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:58`, nombre accesible (se oye, no se ve): — → «El borde del tablero sube y baja dos veces en la toma. Tal como corre el video, un ciclo dura ${VIDEO_PERIOD} s; estirado ${comma(PLOT.stretch, 1)} veces al tiempo real, ${REAL_PERIOD} s, y casi coincide con una cosenoide de ${comma(PLOT.farquharsonPeriodS, 1)} s, el periodo que cronometró Farquharson.»
+142. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:28`, título de la gráfica: — → «Altura del borde del tablero medida cuadro a cuadro, en el tiempo del video y en el real»
+143. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:29`, eje: — → «Tiempo desde el inicio de la toma $t$»
+144. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:31`, eje: — → «Altura del borde del tablero»
+145. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:36`, leyenda: — → «Tal como corre el video ($T$ = ${VIDEO_PERIOD} s)»
+146. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:43`, leyenda: — → «Corregida a tiempo real ($T$ = ${REAL_PERIOD} s)»
+147. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:49`, leyenda: — → «Cosenoide de ${comma(PLOT.farquharsonPeriodS, 1)} s de Farquharson»
+148. `src/components/topics/resonancia-estructural/TacomaMeasurement.tsx:58`, nombre accesible (se oye, no se ve): — → «El borde del tablero sube y baja dos veces en la toma. Tal como corre el video, un ciclo dura ${VIDEO_PERIOD} s; estirado ${comma(PLOT.stretch, 1)} veces al tiempo real, ${REAL_PERIOD} s, y casi coincide con una cosenoide de ${comma(PLOT.farquharsonPeriodS, 1)} s, el periodo que cronometró Farquharson.»
 
 ### El video del Tacoma (`src/components/topics/resonancia-estructural/tacomaFilm.ts`)
 
-150. `src/components/topics/resonancia-estructural/tacomaFilm.ts:35`, nombre accesible del video: — → «Película muda de la destrucción del puente de Tacoma Narrows, 7 de noviembre de 1940»
-151. `src/components/topics/resonancia-estructural/tacomaFilm.ts:52`, botón de velocidad real: — → «Velocidad real (×2/3)»
+149. `src/components/topics/resonancia-estructural/tacomaFilm.ts:35`, nombre accesible del video: — → «Película muda de la destrucción del puente de Tacoma Narrows, 7 de noviembre de 1940»
+150. `src/components/topics/resonancia-estructural/tacomaFilm.ts:52`, botón de velocidad real: — → «Velocidad real (×2/3)»
 
 ### Tablas 12.1 a 12.5 (`src/lib/tables/topics/resonancia-estructural.ts`)
 
-152. `src/lib/tables/topics/resonancia-estructural.ts:41`, celda «Origen»: — → «Dato publicado»
-153. `src/lib/tables/topics/resonancia-estructural.ts:42`, celda «Origen»: — → «Cálculo propio»
-154. `src/lib/tables/topics/resonancia-estructural.ts:45`, celda «Origen»: — → «Extrapolado (cálculo propio)»
-155. `src/lib/tables/topics/resonancia-estructural.ts:53`, columna: — → «Magnitud»
-156. `src/lib/tables/topics/resonancia-estructural.ts:54`, columna: — → «Valor»
-157. `src/lib/tables/topics/resonancia-estructural.ts:55`, columna: — → «Unidad»
-158. `src/lib/tables/topics/resonancia-estructural.ts:56`, columna: — → «Origen»
-159. `src/lib/tables/topics/resonancia-estructural.ts:57`, columna: — → «Fuente»
+151. `src/lib/tables/topics/resonancia-estructural.ts:41`, celda «Origen»: — → «Dato publicado»
+152. `src/lib/tables/topics/resonancia-estructural.ts:42`, celda «Origen»: — → «Cálculo propio»
+153. `src/lib/tables/topics/resonancia-estructural.ts:45`, celda «Origen»: — → «Extrapolado (cálculo propio)»
+154. `src/lib/tables/topics/resonancia-estructural.ts:53`, columna: — → «Magnitud»
+155. `src/lib/tables/topics/resonancia-estructural.ts:54`, columna: — → «Valor»
+156. `src/lib/tables/topics/resonancia-estructural.ts:55`, columna: — → «Unidad»
+157. `src/lib/tables/topics/resonancia-estructural.ts:56`, columna: — → «Origen»
+158. `src/lib/tables/topics/resonancia-estructural.ts:57`, columna: — → «Fuente»
+159. `src/lib/tables/topics/resonancia-estructural.ts:90`, celda «Fuente»: — → «Cálculo propio: ${how}»
 160. `src/lib/tables/topics/resonancia-estructural.ts:105`, leyenda de tabla: — → «Pasarelas según la guía de Sétra y el paso militar. El rango 1 es el de riesgo máximo de resonancia; el paso de 2,0 Hz cae dentro del vertical. Las fuerzas son amplitudes por persona; la fila de 60 soldados aplica la (12.5) con todos en fase o con fases al azar (valor cuadrático medio).»
 161. `src/lib/tables/topics/resonancia-estructural.ts:109`, fila: — → «Rango 1 vertical, riesgo máximo de resonancia»
 162. `src/lib/tables/topics/resonancia-estructural.ts:113`, fila: — → «Rango 1 lateral»
@@ -895,84 +906,122 @@ Frontmatter, prosa, títulos de paso y recuadros, ecuaciones (lo que dice cada s
 165. `src/lib/tables/topics/resonancia-estructural.ts:117`, fila: — → «Paso militar, en hercios»
 166. `src/lib/tables/topics/resonancia-estructural.ts:118`, celda «Fuente» (tras «Cálculo propio: »): — → «120 pasos/min ÷ 60»
 167. `src/lib/tables/topics/resonancia-estructural.ts:122`, fila: — → «Fuerza vertical de un peatón, $F_1 = 0{,}4\,G_0$»
-168. `src/lib/tables/topics/resonancia-estructural.ts:128`, fila: — → «Fuerza lateral de un peatón, $0{,}05\,G_0$, a $f_m/2$»
-169. `src/lib/tables/topics/resonancia-estructural.ts:134`, fila: — → «Amortiguamiento de cálculo, pasarela de acero»
-170. `src/lib/tables/topics/resonancia-estructural.ts:139`, fila: — → «Ancho del pico, $2\zeta f_0$, con $f_0$ = 2,0 Hz»
-171. `src/lib/tables/topics/resonancia-estructural.ts:140`, celda «Fuente» (tras «Cálculo propio: »): — → «2 × 0,004 × 2,0 Hz»
-172. `src/lib/tables/topics/resonancia-estructural.ts:144`, fila: — → «Amplificación en resonancia, $1/(2\zeta)$»
-173. `src/lib/tables/topics/resonancia-estructural.ts:145`, celda «Fuente» (tras «Cálculo propio: »): — → «1/(2 × 0,004), (12.3)»
-174. `src/lib/tables/topics/resonancia-estructural.ts:149`, fila: — → «60 soldados al paso, $N F_1$»
-175. `src/lib/tables/topics/resonancia-estructural.ts:154`, fila: — → «60 soldados rompiendo el paso, $\sqrt{N}\,F_1$»
-176. `src/lib/tables/topics/resonancia-estructural.ts:160`, fuente de tabla: — → «Sétra/AFGC (2006), tablas 1.1, 2.3, 2.4 y 2.6 y §1.2.1; FM 3-21.5 (2003), párr. 4-5e; unos 60 soldados sobre el puente de Broughton según The Philosophical Magazine (1831); el resto, cálculo propio con las ecuaciones (12.3) y (12.5)»
-177. `src/lib/tables/topics/resonancia-estructural.ts:180`, leyenda de tabla: — → «Millennium Bridge, primer modo lateral del vano central (CL1), medido. $N_L$ es la (12.8) con un reparto uniforme de la gente; el umbral de 166 personas se midió en el vano norte, con otro modo y otra masa modal, así que no se compara con él directamente.»
-178. `src/lib/tables/topics/resonancia-estructural.ts:183`, fila: — → «Frecuencia de CL1, $f$»
-179. `src/lib/tables/topics/resonancia-estructural.ts:185`, fila: — → «Masa modal de CL1, $M$»
-180. `src/lib/tables/topics/resonancia-estructural.ts:190`, fila: — → «Amortiguamiento original»
-181. `src/lib/tables/topics/resonancia-estructural.ts:195`, fila: — → «Amortiguamiento que uso, $\zeta$»
-182. `src/lib/tables/topics/resonancia-estructural.ts:200`, fila: — → «Coeficiente de fuerza lateral, $k_p$»
-183. `src/lib/tables/topics/resonancia-estructural.ts:205`, fila: — → «$N_L$ con la (12.8), tal como se construyó»
-184. `src/lib/tables/topics/resonancia-estructural.ts:206`, celda «Fuente» (tras «Cálculo propio: »): — → «8π × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m»
-185. `src/lib/tables/topics/resonancia-estructural.ts:210`, fila: — → «Umbral medido en el vano norte, sin amortiguadores»
-186. `src/lib/tables/topics/resonancia-estructural.ts:215`, fila: — → «Amortiguadores viscosos añadidos»
-187. `src/lib/tables/topics/resonancia-estructural.ts:220`, fila: — → «Amortiguamiento tras la reforma»
-188. `src/lib/tables/topics/resonancia-estructural.ts:225`, fila: — → «$N_L$ con la (12.8) y $\zeta$ = 20 %»
-189. `src/lib/tables/topics/resonancia-estructural.ts:226`, celda «Fuente» (tras «Cálculo propio: »): — → «el mismo modo CL1 con $\zeta$ = 0,20»
-190. `src/lib/tables/topics/resonancia-estructural.ts:230`, fila: — → «Amplificación en resonancia antes, $1/(2\zeta)$»
-191. `src/lib/tables/topics/resonancia-estructural.ts:231`, celda «Fuente» (tras «Cálculo propio: »): — → «1/(2 × 0,007)»
-192. `src/lib/tables/topics/resonancia-estructural.ts:235`, fila: — → «Amplificación en resonancia después, $1/(2\zeta)$»
-193. `src/lib/tables/topics/resonancia-estructural.ts:236`, celda «Fuente» (tras «Cálculo propio: »): — → «1/(2 × 0,20)»
-194. `src/lib/tables/topics/resonancia-estructural.ts:241`, fuente de tabla: — → «Dallard et al., The Structural Engineer 79(22) (2001), tablas 1-3 y págs. 26-27; Newland, ICSV9 (2002); el resto, cálculo propio con las ecuaciones (12.3) y (12.8)»
-195. `src/lib/tables/topics/resonancia-estructural.ts:265`, leyenda de tabla: — → «Aleteo de la torsión del Tacoma con $\zeta_s$ = 0,005. Cada fila de la Tabla I de Billah y Scanlan es el viento al que $A_2^*$ anula un amortiguamiento mecánico $\zeta$; con el del puente, la (12.11) da $\zeta_\text{neto}$, y la (12.12) la energía que gana o pierde en cada periodo natural, $e^{-4\pi\zeta_\text{neto}} - 1$. La fila de 42 mph prolonga en recta los dos últimos puntos de la tabla: es una extrapolación, no un dato.»
-196. `src/lib/tables/topics/resonancia-estructural.ts:267`, columna: — → «Viento $U$»
-197. `src/lib/tables/topics/resonancia-estructural.ts:268`, columna: — → «$\zeta$ de la Tabla I»
-198. `src/lib/tables/topics/resonancia-estructural.ts:269`, columna: — → «$A_2^*$»
-199. `src/lib/tables/topics/resonancia-estructural.ts:270`, columna: — → «$\zeta_\text{neto}$»
-200. `src/lib/tables/topics/resonancia-estructural.ts:273`, columna: — → «Energía por ciclo, $\Delta E/E$»
-201. `src/lib/tables/topics/resonancia-estructural.ts:278`, columna: — → «Origen de $A_2^*$»
-202. `src/lib/tables/topics/resonancia-estructural.ts:282`, fuente de tabla: — → «Billah y Scanlan, Am. J. Phys. 59(2) (1991), Tabla I y ecuación (6), pág. 123; $\zeta_\text{neto}$, energía y extrapolación, cálculo propio con las ecuaciones (12.11) y (12.12)»
-203. `src/lib/tables/topics/resonancia-estructural.ts:295`, leyenda de tabla: — → «Puente de Tacoma Narrows, 7 de noviembre de 1940. La torsión empezó hacia las 10:00 con 14 ciclos por minuto y terminó en 12; la frecuencia de los vórtices sale de la (12.9) con el viento de esa mañana.»
-204. `src/lib/tables/topics/resonancia-estructural.ts:298`, fila: — → «Viento, medido hacia las 9:00»
-205. `src/lib/tables/topics/resonancia-estructural.ts:300`, fila: — → «El mismo viento en el SI, $U$»
-206. `src/lib/tables/topics/resonancia-estructural.ts:302`, celda «Fuente»: — → «Cálculo propio: 42 mph × 0,44704»
-207. `src/lib/tables/topics/resonancia-estructural.ts:306`, fila: — → «Modo vertical de 8 o 9 nodos, esa mañana»
-208. `src/lib/tables/topics/resonancia-estructural.ts:311`, fila: — → «Torsión de un nodo, al empezar»
-209. `src/lib/tables/topics/resonancia-estructural.ts:316`, fila: — → «Torsión de un nodo, al final»
-210. `src/lib/tables/topics/resonancia-estructural.ts:321`, fila: — → «Frecuencia de la torsión, $f_0$»
-211. `src/lib/tables/topics/resonancia-estructural.ts:322`, celda «Fuente» (tras «Cálculo propio: »): — → «12 ciclos ÷ 60 s»
-212. `src/lib/tables/topics/resonancia-estructural.ts:326`, fila: — → «Giro en los cuartos del vano»
-213. `src/lib/tables/topics/resonancia-estructural.ts:331`, fila: — → «Amortiguamiento estructural de la torsión, $\zeta_s$»
-214. `src/lib/tables/topics/resonancia-estructural.ts:336`, fila: — → «Amplificación si fuera resonancia forzada, $1/(2\zeta_s)$»
-215. `src/lib/tables/topics/resonancia-estructural.ts:337`, celda «Fuente» (tras «Cálculo propio: »): — → «1/(2 × 0,005), (12.3)»
-216. `src/lib/tables/topics/resonancia-estructural.ts:341`, fila: — → «Canto de la viga, $D$»
-217. `src/lib/tables/topics/resonancia-estructural.ts:346`, fila: — → «Número de Strouhal, $S$»
-218. `src/lib/tables/topics/resonancia-estructural.ts:348`, fila: — → «Desprendimiento de vórtices, $f_s$ con la (12.9)»
-219. `src/lib/tables/topics/resonancia-estructural.ts:349`, celda «Fuente» (tras «Cálculo propio: »): — → «0,11 × 18,8 m/s ÷ 2,44 m»
-220. `src/lib/tables/topics/resonancia-estructural.ts:353`, fila: — → «Vórtices frente a torsión, $f_s/f_0$»
-221. `src/lib/tables/topics/resonancia-estructural.ts:354`, celda «Fuente» (tras «Cálculo propio: »): — → «0,85 Hz ÷ 0,20 Hz»
-222. `src/lib/tables/topics/resonancia-estructural.ts:359`, fuente de tabla: — → «Ammann, von Kármán y Woodruff, The Failure of the Tacoma Narrows Bridge (Federal Works Agency, 1941), págs. 11, 29-31 y V-9 a V-12; Billah y Scanlan, Am. J. Phys. 59(2) (1991), págs. 120 y 123; conversiones y frecuencias, cálculo propio»
-223. `src/lib/tables/topics/resonancia-estructural.ts:368`, celda «Señal que sigo»: — → «Inclinación del horizonte»
-224. `src/lib/tables/topics/resonancia-estructural.ts:369`, celda «Señal que sigo»: — → «Altura del borde del tablero»
-225. `src/lib/tables/topics/resonancia-estructural.ts:388`, leyenda de tabla: — → «Mi medición del periodo de torsión en tres tomas del video, cuadro a cuadro. Elliott filmó a ${TACOMA_TORSION.cameraFps} cuadros por segundo y el video los pasa como si fueran ${TACOMA_TORSION.videoFps}, así que cada periodo real es ${comma(STRETCH, 1)} veces el del video. La media queda un ${comma(belowFarquharson * PERCENT, 0)} % por debajo de los 12 ciclos por minuto que cronometró Farquharson.»
-226. `src/lib/tables/topics/resonancia-estructural.ts:390`, columna: — → «Toma»
-227. `src/lib/tables/topics/resonancia-estructural.ts:391`, columna: — → «Instantes del archivo»
-228. `src/lib/tables/topics/resonancia-estructural.ts:392`, columna: — → «Señal que sigo»
-229. `src/lib/tables/topics/resonancia-estructural.ts:393`, columna: — → «Periodo en el video»
-230. `src/lib/tables/topics/resonancia-estructural.ts:394`, columna: — → «Periodo real»
-231. `src/lib/tables/topics/resonancia-estructural.ts:395`, columna: — → «Frecuencia real»
-232. `src/lib/tables/topics/resonancia-estructural.ts:396`, columna: — → «Ciclos por minuto»
-233. `src/lib/tables/topics/resonancia-estructural.ts:407`, fila: — → «Media de las tres tomas»
-234. `src/lib/tables/topics/resonancia-estructural.ts:414`, fila: — → «Farquharson, cronómetro (1940)»
-235. `src/lib/tables/topics/resonancia-estructural.ts:422`, fuente de tabla: — → «Medición propia (pnpm run data:tacoma, src/data/tacoma-torsion.json) sobre el archivo de Wikimedia Commons; velocidad de las cámaras según Olson, Wolf y Hook, Physics Today 68(11) (2015); 12 ciclos por minuto de Farquharson en el informe federal de 1941, pág. V-12»
+168. `src/lib/tables/topics/resonancia-estructural.ts:125`, celda «Fuente»: — → «${PEDESTRIAN_FORCES.verticalN.source}, con $G_0$ de Sétra, §1.2.1»
+169. `src/lib/tables/topics/resonancia-estructural.ts:128`, fila: — → «Fuerza lateral de un peatón, $0{,}05\,G_0$, a $f_m/2$»
+170. `src/lib/tables/topics/resonancia-estructural.ts:131`, celda «Fuente»: — → «${PEDESTRIAN_FORCES.lateralN.source}, con $G_0$ de Sétra, §1.2.1»
+171. `src/lib/tables/topics/resonancia-estructural.ts:134`, fila: — → «Amortiguamiento de cálculo, pasarela de acero»
+172. `src/lib/tables/topics/resonancia-estructural.ts:139`, fila: — → «Ancho del pico, $2\zeta f_0$, con $f_0$ = 2,0 Hz»
+173. `src/lib/tables/topics/resonancia-estructural.ts:140`, celda «Fuente» (tras «Cálculo propio: »): — → «2 × 0,004 × 2,0 Hz»
+174. `src/lib/tables/topics/resonancia-estructural.ts:144`, fila: — → «Amplificación en resonancia, $1/(2\zeta)$»
+175. `src/lib/tables/topics/resonancia-estructural.ts:145`, celda «Fuente» (tras «Cálculo propio: »): — → «1/(2 × 0,004), (12.3)»
+176. `src/lib/tables/topics/resonancia-estructural.ts:149`, fila: — → «60 soldados al paso, $N F_1$»
+177. `src/lib/tables/topics/resonancia-estructural.ts:150`, celda «Fuente» (tras «Cálculo propio: »): — → «60 × ${comma(F1, 0)} N, (12.5)»
+178. `src/lib/tables/topics/resonancia-estructural.ts:154`, fila: — → «60 soldados rompiendo el paso, $\sqrt{N}\,F_1$»
+179. `src/lib/tables/topics/resonancia-estructural.ts:155`, celda «Fuente» (tras «Cálculo propio: »): — → «√60 × ${comma(F1, 0)} N, (12.5)»
+180. `src/lib/tables/topics/resonancia-estructural.ts:160`, fuente de tabla: — → «Sétra/AFGC (2006), tablas 1.1, 2.3, 2.4 y 2.6 y §1.2.1; FM 3-21.5 (2003), párr. 4-5e; unos 60 soldados sobre el puente de Broughton según The Philosophical Magazine (1831); el resto, cálculo propio con las ecuaciones (12.3) y (12.5)»
+181. `src/lib/tables/topics/resonancia-estructural.ts:180`, leyenda de tabla: — → «Millennium Bridge, primer modo lateral del vano central (CL1), medido. $N_L$ es la (12.8) con un reparto uniforme de la gente; el umbral de 166 personas se midió en el vano norte, con otro modo y otra masa modal, así que no se compara con él directamente.»
+182. `src/lib/tables/topics/resonancia-estructural.ts:183`, fila: — → «Frecuencia de CL1, $f$»
+183. `src/lib/tables/topics/resonancia-estructural.ts:185`, fila: — → «Masa modal de CL1, $M$»
+184. `src/lib/tables/topics/resonancia-estructural.ts:190`, fila: — → «Amortiguamiento original»
+185. `src/lib/tables/topics/resonancia-estructural.ts:195`, fila: — → «Amortiguamiento que uso, $\zeta$»
+186. `src/lib/tables/topics/resonancia-estructural.ts:200`, fila: — → «Coeficiente de fuerza lateral, $k_p$»
+187. `src/lib/tables/topics/resonancia-estructural.ts:205`, fila: — → «$N_L$ con la (12.8), tal como se construyó»
+188. `src/lib/tables/topics/resonancia-estructural.ts:206`, celda «Fuente» (tras «Cálculo propio: »): — → «8π × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m»
+189. `src/lib/tables/topics/resonancia-estructural.ts:210`, fila: — → «Umbral medido en el vano norte, sin amortiguadores»
+190. `src/lib/tables/topics/resonancia-estructural.ts:215`, fila: — → «Amortiguadores viscosos añadidos»
+191. `src/lib/tables/topics/resonancia-estructural.ts:220`, fila: — → «Amortiguamiento tras la reforma»
+192. `src/lib/tables/topics/resonancia-estructural.ts:225`, fila: — → «$N_L$ con la (12.8) y $\zeta$ = 20 %»
+193. `src/lib/tables/topics/resonancia-estructural.ts:226`, celda «Fuente» (tras «Cálculo propio: »): — → «el mismo modo CL1 con $\zeta$ = 0,20»
+194. `src/lib/tables/topics/resonancia-estructural.ts:230`, fila: — → «Amplificación en resonancia antes, $1/(2\zeta)$»
+195. `src/lib/tables/topics/resonancia-estructural.ts:231`, celda «Fuente» (tras «Cálculo propio: »): — → «1/(2 × 0,007)»
+196. `src/lib/tables/topics/resonancia-estructural.ts:235`, fila: — → «Amplificación en resonancia después, $1/(2\zeta)$»
+197. `src/lib/tables/topics/resonancia-estructural.ts:236`, celda «Fuente» (tras «Cálculo propio: »): — → «1/(2 × 0,20)»
+198. `src/lib/tables/topics/resonancia-estructural.ts:241`, fuente de tabla: — → «Dallard et al., The Structural Engineer 79(22) (2001), tablas 1-3 y págs. 26-27; Newland, ICSV9 (2002); el resto, cálculo propio con las ecuaciones (12.3) y (12.8)»
+199. `src/lib/tables/topics/resonancia-estructural.ts:265`, leyenda de tabla: — → «Aleteo de la torsión del Tacoma con $\zeta_s$ = 0,005. Cada fila de la Tabla I de Billah y Scanlan es el viento al que $A_2^*$ anula un amortiguamiento mecánico $\zeta$; con el del puente, la (12.11) da $\zeta_\text{neto}$, y la (12.12) la energía que gana o pierde en cada periodo natural, $e^{-4\pi\zeta_\text{neto}} - 1$. La fila de 42 mph prolonga en recta los dos últimos puntos de la tabla: es una extrapolación, no un dato.»
+200. `src/lib/tables/topics/resonancia-estructural.ts:267`, columna: — → «Viento $U$»
+201. `src/lib/tables/topics/resonancia-estructural.ts:268`, columna: — → «$\zeta$ de la Tabla I»
+202. `src/lib/tables/topics/resonancia-estructural.ts:269`, columna: — → «$A_2^*$»
+203. `src/lib/tables/topics/resonancia-estructural.ts:270`, columna: — → «$\zeta_\text{neto}$»
+204. `src/lib/tables/topics/resonancia-estructural.ts:273`, columna: — → «Energía por ciclo, $\Delta E/E$»
+205. `src/lib/tables/topics/resonancia-estructural.ts:278`, columna: — → «Origen de $A_2^*$»
+206. `src/lib/tables/topics/resonancia-estructural.ts:282`, fuente de tabla: — → «Billah y Scanlan, Am. J. Phys. 59(2) (1991), Tabla I y ecuación (6), pág. 123; $\zeta_\text{neto}$, energía y extrapolación, cálculo propio con las ecuaciones (12.11) y (12.12)»
+207. `src/lib/tables/topics/resonancia-estructural.ts:295`, leyenda de tabla: — → «Puente de Tacoma Narrows, 7 de noviembre de 1940. La torsión empezó hacia las 10:00 con 14 ciclos por minuto y terminó en 12; la frecuencia de los vórtices sale de la (12.9) con el viento de esa mañana.»
+208. `src/lib/tables/topics/resonancia-estructural.ts:298`, fila: — → «Viento, medido hacia las 9:00»
+209. `src/lib/tables/topics/resonancia-estructural.ts:300`, fila: — → «El mismo viento en el SI, $U$»
+210. `src/lib/tables/topics/resonancia-estructural.ts:302`, celda «Fuente»: — → «Cálculo propio: 42 mph × 0,44704»
+211. `src/lib/tables/topics/resonancia-estructural.ts:306`, fila: — → «Modo vertical de 8 o 9 nodos, esa mañana»
+212. `src/lib/tables/topics/resonancia-estructural.ts:311`, fila: — → «Torsión de un nodo, al empezar»
+213. `src/lib/tables/topics/resonancia-estructural.ts:316`, fila: — → «Torsión de un nodo, al final»
+214. `src/lib/tables/topics/resonancia-estructural.ts:321`, fila: — → «Frecuencia de la torsión, $f_0$»
+215. `src/lib/tables/topics/resonancia-estructural.ts:322`, celda «Fuente» (tras «Cálculo propio: »): — → «12 ciclos ÷ 60 s»
+216. `src/lib/tables/topics/resonancia-estructural.ts:326`, fila: — → «Giro en los cuartos del vano»
+217. `src/lib/tables/topics/resonancia-estructural.ts:331`, fila: — → «Amortiguamiento estructural de la torsión, $\zeta_s$»
+218. `src/lib/tables/topics/resonancia-estructural.ts:336`, fila: — → «Amplificación si fuera resonancia forzada, $1/(2\zeta_s)$»
+219. `src/lib/tables/topics/resonancia-estructural.ts:337`, celda «Fuente» (tras «Cálculo propio: »): — → «1/(2 × 0,005), (12.3)»
+220. `src/lib/tables/topics/resonancia-estructural.ts:341`, fila: — → «Canto de la viga, $D$»
+221. `src/lib/tables/topics/resonancia-estructural.ts:343`, celda «Fuente»: — → «Cálculo propio: 8 ft × 0,3048; ${TACOMA.deckDepthFt.source}»
+222. `src/lib/tables/topics/resonancia-estructural.ts:346`, fila: — → «Número de Strouhal, $S$»
+223. `src/lib/tables/topics/resonancia-estructural.ts:348`, fila: — → «Desprendimiento de vórtices, $f_s$ con la (12.9)»
+224. `src/lib/tables/topics/resonancia-estructural.ts:349`, celda «Fuente» (tras «Cálculo propio: »): — → «0,11 × 18,8 m/s ÷ 2,44 m»
+225. `src/lib/tables/topics/resonancia-estructural.ts:353`, fila: — → «Vórtices frente a torsión, $f_s/f_0$»
+226. `src/lib/tables/topics/resonancia-estructural.ts:354`, celda «Fuente» (tras «Cálculo propio: »): — → «0,85 Hz ÷ 0,20 Hz»
+227. `src/lib/tables/topics/resonancia-estructural.ts:359`, fuente de tabla: — → «Ammann, von Kármán y Woodruff, The Failure of the Tacoma Narrows Bridge (Federal Works Agency, 1941), págs. 11, 29-31 y V-9 a V-12; Billah y Scanlan, Am. J. Phys. 59(2) (1991), págs. 120 y 123; conversiones y frecuencias, cálculo propio»
+228. `src/lib/tables/topics/resonancia-estructural.ts:368`, celda «Señal que sigo»: — → «Inclinación del horizonte»
+229. `src/lib/tables/topics/resonancia-estructural.ts:369`, celda «Señal que sigo»: — → «Altura del borde del tablero»
+230. `src/lib/tables/topics/resonancia-estructural.ts:388`, leyenda de tabla: — → «Mi medición del periodo de torsión en tres tomas del video, cuadro a cuadro. Elliott filmó a ${TACOMA_TORSION.cameraFps} cuadros por segundo y el video los pasa como si fueran ${TACOMA_TORSION.videoFps}, así que cada periodo real es ${comma(STRETCH, 1)} veces el del video. La media queda un ${comma(belowFarquharson * PERCENT, 0)} % por debajo de los 12 ciclos por minuto que cronometró Farquharson.»
+231. `src/lib/tables/topics/resonancia-estructural.ts:390`, columna: — → «Toma»
+232. `src/lib/tables/topics/resonancia-estructural.ts:391`, columna: — → «Instantes del archivo»
+233. `src/lib/tables/topics/resonancia-estructural.ts:392`, columna: — → «Señal que sigo»
+234. `src/lib/tables/topics/resonancia-estructural.ts:393`, columna: — → «Periodo en el video»
+235. `src/lib/tables/topics/resonancia-estructural.ts:394`, columna: — → «Periodo real»
+236. `src/lib/tables/topics/resonancia-estructural.ts:395`, columna: — → «Frecuencia real»
+237. `src/lib/tables/topics/resonancia-estructural.ts:396`, columna: — → «Ciclos por minuto»
+238. `src/lib/tables/topics/resonancia-estructural.ts:407`, fila: — → «Media de las tres tomas»
+239. `src/lib/tables/topics/resonancia-estructural.ts:414`, fila: — → «Farquharson, cronómetro (1940)»
+240. `src/lib/tables/topics/resonancia-estructural.ts:422`, fuente de tabla: — → «Medición propia (pnpm run data:tacoma, src/data/tacoma-torsion.json) sobre el archivo de Wikimedia Commons; velocidad de las cámaras según Olson, Wolf y Hook, Physics Today 68(11) (2015); 12 ciclos por minuto de Farquharson en el informe federal de 1941, pág. V-12»
 
-### Datos que la página muestra tal cual
+### Fuentes de los datos que imprimen las tablas (`src/lib/data/bridges.ts`)
 
-236. `src/data/tacoma-torsion.json:1`, tabla 12.5, nombre de la toma: — → «Sobre la calzada»
-237. `src/data/tacoma-torsion.json:1`, tabla 12.5, nombre de la toma: — → «Sobre la calzada, con el auto»
-238. `src/data/tacoma-torsion.json:1`, tabla 12.5, nombre de la toma: — → «Desde debajo de la torre»
-239. `src/data/tacoma-torsion.json:1`, crédito del video (tras «Video: »), el que fija el brief: — → «Barney Elliott y Harbine Monroe (The Camera Shop, Tacoma), 7 de noviembre de 1940. Prelinger Archives vía Wikimedia Commons, dominio público»
-240. `src/lib/data/bridges.ts:78`, fuente del modo vertical a las 10:00 (no se muestra; la figura 12.1 la usa): — → «${FWA}, pág. 31: «The frequency suddenly changed from 37 to 14»»
-241. `src/lib/data/bridges.ts:163`, celda «Fuente», marcha normal (tabla 12.1): — → «${SETRA}, tabla 1.1 (marcha)»
-242. `src/lib/data/bridges.ts:173`, celda «Fuente», fuerza vertical de un peatón (tabla 12.1): — → «${OWN}: 0,4 × 700 N»
-243. `src/lib/data/bridges.ts:177`, celda «Fuente», fuerza lateral de un peatón (tabla 12.1): — → «${OWN}: 0,05 × 700 N»
-244. `src/lib/data/bridges.ts:182`, celda «Fuente», amortiguamiento del acero (tabla 12.1): — → «${SETRA}, tabla 2.6»
-245. `src/lib/data/bridges.ts:186`, fuente de los unos 60 soldados (no se muestra; la usan la figura 12.3 y la tabla 12.1): — → «${PHILMAG}: «about sixty … were upon the bridge»»
+Las celdas «Fuente» de las filas «Dato publicado» y algunas de «Cálculo propio» muestran el `source` de cada valor tal como lo escribe el módulo de datos (Task 9 y esta tarea). Primero, las referencias que los componen (`${FWA}`, `${DALLARD}`…); luego, cada valor impreso.
+
+241. `src/lib/data/bridges.ts:32`, referencia `FWA`: — → «Ammann, von Kármán y Woodruff, The Failure of the Tacoma Narrows Bridge (FWA, 1941)»
+242. `src/lib/data/bridges.ts:33`, referencia `BILLAH`: — → «Billah y Scanlan, Am. J. Phys. 59(2), 118-124 (1991)»
+243. `src/lib/data/bridges.ts:34`, referencia `DALLARD`: — → «Dallard et al., The London Millennium Footbridge, The Structural Engineer 79(22) (2001)»
+244. `src/lib/data/bridges.ts:36`, referencia `NEWLAND`: — → «Newland, Vibration of the London Millennium Footbridge: Part 2 — Cure (ICSV9, 2002)»
+245. `src/lib/data/bridges.ts:38`, referencia `SETRA`: — → «Sétra/AFGC, Footbridges: assessment of vibrational behaviour (2006)»
+246. `src/lib/data/bridges.ts:39`, referencia `PHILMAG`: — → «Fall of the Broughton Suspension Bridge, near Manchester, The Philosophical Magazine 9(53), 384-389 (1831)»
+247. `src/lib/data/bridges.ts:41`, referencia `FM`: — → «Department of the Army, FM 3-21.5 Drill and Ceremonies (2003)»
+248. `src/lib/data/bridges.ts:42`, referencia `OWN`: — → «cálculo propio»
+249. `src/lib/data/bridges.ts:62`, tabla 12.4, viento: — → «${FWA}, pág. 29 y V-9»
+250. `src/lib/data/bridges.ts:63`, tabla 12.4, torsión al final: — → «${FWA}, V-12 (Farquharson); ${BILLAH}, pág. 120»
+251. `src/lib/data/bridges.ts:64`, tabla 12.4, torsión al empezar: — → «${FWA}, pág. 31 y V-11 (Farquharson)»
+252. `src/lib/data/bridges.ts:69`, tabla 12.4, modo vertical: — → «${FWA}, págs. 30-31 (8 o 9 nodos)»
+253. `src/lib/data/bridges.ts:71`, tabla 12.4, giro en los cuartos: — → «${FWA}, pág. 31: «nearly 45 degrees each way»»
+254. `src/lib/data/bridges.ts:72`, tabla 12.4, amortiguamiento de la torsión: — → «${BILLAH}, pág. 123: $\delta$ ≈ 0,03, $\zeta$ ≈ 0,005»
+255. `src/lib/data/bridges.ts:73`, tabla 12.4, canto (tras «Cálculo propio: 8 ft × 0,3048; »): — → «${FWA}, pág. 11; ${BILLAH}, pág. 120»
+256. `src/lib/data/bridges.ts:74`, tabla 12.4, Strouhal: — → «${BILLAH}, pág. 120: «about 0.11»»
+257. `src/lib/data/bridges.ts:78`, figura 12.1 (no se imprime): — → «${FWA}, pág. 31: «The frequency suddenly changed from 37 to 14»»
+258. `src/lib/data/bridges.ts:110`, tabla 12.2, $k_p$: — → «${DALLARD}, págs. 26-27 ($k_p$ en N·s/m, de 0,5 a 1,0 Hz)»
+259. `src/lib/data/bridges.ts:112`, tabla 12.2, umbral del vano norte: — → «${NEWLAND} (vano norte, sin amortiguadores)»
+260. `src/lib/data/bridges.ts:113`, tabla 12.2, amortiguadores viscosos: — → «${DALLARD}; ${NEWLAND}»
+261. `src/lib/data/bridges.ts:118`, tabla 12.2, amortiguamiento original: — → «${DALLARD} (0,6-0,8 % medido); ${NEWLAND} («typically 1% or less»)»
+262. `src/lib/data/bridges.ts:124`, tabla 12.2, amortiguamiento tras la reforma: — → «${NEWLAND} (modos laterales por debajo de 1,5 Hz)»
+263. `src/lib/data/bridges.ts:128`, tabla 12.2, frecuencia de CL1: — → «${DALLARD}, tablas 1-3»
+264. `src/lib/data/bridges.ts:129`, tabla 12.2, masa modal de CL1: — → «${DALLARD}, tablas 1-3 (medida: de 128 a 130 toneladas)»
+265. `src/lib/data/bridges.ts:130`, tabla 12.2, amortiguamiento que uso: — → «${OWN}: centro del 0,6-0,8 % medido por ${DALLARD}»
+266. `src/lib/data/bridges.ts:145`, tabla 12.1, rango 1 vertical: — → «${SETRA}, tabla 2.3 (pág. 80)»
+267. `src/lib/data/bridges.ts:151`, tabla 12.1, rango 1 lateral: — → «${SETRA}, tabla 2.4 (pág. 80)»
+268. `src/lib/data/bridges.ts:166`, tabla 12.1, marcha normal: — → «${SETRA}, tabla 1.1 (marcha)»
+269. `src/lib/data/bridges.ts:176`, tabla 12.1, fuerza vertical de un peatón: — → «${OWN}: 0,4 × 700 N»
+270. `src/lib/data/bridges.ts:180`, tabla 12.1, fuerza lateral de un peatón: — → «${OWN}: 0,05 × 700 N»
+271. `src/lib/data/bridges.ts:185`, tabla 12.1, amortiguamiento del acero: — → «${SETRA}, tabla 2.6»
+272. `src/lib/data/bridges.ts:189`, figura 12.3 y tabla 12.1 (no se imprime: la fila dice «60 soldados»): — → «${PHILMAG}: «about sixty … were upon the bridge»»
+273. `src/lib/data/bridges.ts:193`, tabla 12.1, paso militar: — → «${FM}, párr. 4-5e («Quick Time»)»
+
+### Datos que la página muestra tal cual (`src/data/tacoma-torsion.json`)
+
+274. `src/data/tacoma-torsion.json:1`, tabla 12.5, nombre de la toma: — → «Sobre la calzada»
+275. `src/data/tacoma-torsion.json:1`, tabla 12.5, nombre de la toma: — → «Sobre la calzada, con el auto»
+276. `src/data/tacoma-torsion.json:1`, tabla 12.5, nombre de la toma: — → «Desde debajo de la torre»
+277. `src/data/tacoma-torsion.json:1`, crédito del video (tras «Video: »), el que fija el brief: — → «Barney Elliott y Harbine Monroe (The Camera Shop, Tacoma), 7 de noviembre de 1940. Prelinger Archives vía Wikimedia Commons, dominio público»
+

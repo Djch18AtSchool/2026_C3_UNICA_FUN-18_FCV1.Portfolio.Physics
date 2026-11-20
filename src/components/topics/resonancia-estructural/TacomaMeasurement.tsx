@@ -3,7 +3,7 @@ import { TACOMA_TORSION } from '../../../lib/data/bridges';
 import { formatNumber } from '../../../lib/format';
 import { mathTextToString } from '../../../lib/mathNotation';
 import SvgPlot, { type PlotAspect } from '../../lab/SvgPlot';
-import { BUILDS_UP_COLOR, measurementPlot, RAW_COLOR, REFERENCE_COLOR } from './resonancePlots';
+import { MEASURED_COLOR, measurementPlot, RAW_COLOR, REFERENCE_COLOR } from './resonancePlots';
 
 /** The counting shot of the film (1:01,7–1:09,4): the deck edge seen from under the tower. */
 const SHOT_ID = 'torre';
@@ -18,7 +18,7 @@ const REAL_PERIOD = comma(PLOT.periodRealS, 2);
 /**
  * My frame-by-frame measurement of the deck edge in the counting shot: as the file plays it, on
  * the real clock (× 24/16, Olson et al. 2015) and against Farquharson's 5 s of 1940, a sinusoid
- * fitted to the corrected series in amplitude and phase only.
+ * fitted to the corrected series in amplitude, phase and mean level, its period kept at 5 s.
  */
 export default function TacomaMeasurement(): JSX.Element {
   return (
@@ -42,7 +42,7 @@ export default function TacomaMeasurement(): JSX.Element {
             id: 'real',
             label: `Corregida a tiempo real ($T$ = ${REAL_PERIOD} s)`,
             points: PLOT.real,
-            color: BUILDS_UP_COLOR,
+            color: MEASURED_COLOR,
           },
           {
             id: 'farquharson',
