@@ -8,7 +8,7 @@ import { formatNumber } from '../../../lib/format';
 import { TEXT_COLOR, TICK_COLOR, TICK_FONT_FAMILY, TICK_FONT_SIZE } from '../../charts/chartTheme';
 import type { FrameStore } from '../../lab/frameStore';
 import MathText from '../../lab/MathText';
-import { Arrow, LABEL_SIZE } from '../../lab/OverlayMarks';
+import { Arrow, ARROW_HEAD, LABEL_SIZE } from '../../lab/OverlayMarks';
 import { useFrameDerived } from '../../lab/useFrameTime';
 import {
   bridgeFrame,
@@ -148,6 +148,17 @@ function soldiersPath(span: Span, geometry: DeckGeometry, frame: BridgeFrame, ph
     .join(' ');
 }
 
+/**
+ * The shaker's force on the deck as one path, its shaft and its head (a single attribute changes
+ * per frame): from (x, y), `length` px up (negative: down); the head shrinks with a short arrow.
+ */
+function forcePath(x: number, y: number, length: number): string {
+  const tip = y - length;
+  const head = Math.sign(length) * Math.min(ARROW_HEAD, Math.abs(length));
+  const half = head / 2;
+  return `M${px(x)} ${px(y)} V${px(tip)} M${px(x)} ${px(tip)} L${px(x - Math.abs(half))} ${px(tip + head)} L${px(x + Math.abs(half))} ${px(tip + head)} Z`;
+}
+
 /** What drives the deck: the shaker's force, the soldiers or the ZV pushes. */
 function Drivers({
   active,
@@ -166,7 +177,6 @@ function Drivers({
     const groundY = y + room + SHAKER.gap;
     return (
       <g data-testid="shaker" className="pointer-events-none">
-        <line x1={mid} x2={mid} y1={groundY} y2={deckY} stroke={TICK_COLOR} strokeWidth={2} />
         <rect
           x={mid - SHAKER.width / 2}
           y={groundY}
@@ -174,10 +184,12 @@ function Drivers({
           height={SHAKER.height}
           fill={TICK_COLOR}
         />
-        <Arrow
-          from={{ x: mid, y: deckY }}
-          to={{ x: mid, y: deckY - (frame.force ?? 0) * FORCE_ARROW }}
-          color={REFERENCE_COLOR}
+        <path
+          data-force=""
+          d={forcePath(mid, deckY, (frame.force ?? 0) * FORCE_ARROW)}
+          stroke={REFERENCE_COLOR}
+          strokeWidth={2}
+          fill={REFERENCE_COLOR}
         />
       </g>
     );

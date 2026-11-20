@@ -111,12 +111,18 @@ function LiveMark({
   toPx(f: number): number;
   axisY: number;
 }) {
+  // One transform per frame moves the tick and its label together (lab-performance budget).
   const x = useFrameDerived(live.frame, (t) => toPx(live.at(t)));
   return (
-    <g data-testid="ruler-drive" className="pointer-events-none">
+    <g
+      data-testid="ruler-drive"
+      data-x={x.toFixed(2)}
+      transform={`translate(${x.toFixed(2)} 0)`}
+      className="pointer-events-none"
+    >
       <line
-        x1={x}
-        x2={x}
+        x1={0}
+        x2={0}
         y1={axisY - MARK_HEIGHT}
         y2={axisY + TICK_LENGTH}
         stroke={live.color}
@@ -124,7 +130,7 @@ function LiveMark({
       />
       <MathText
         source={live.label}
-        x={x}
+        x={0}
         y={axisY + TICK_LABEL_DROP * 2}
         anchor="middle"
         fontSize={TICK_FONT_SIZE}
