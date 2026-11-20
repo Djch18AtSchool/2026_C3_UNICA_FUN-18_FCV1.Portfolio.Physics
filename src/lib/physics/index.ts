@@ -10,3 +10,4 @@ export * from './energy';
 export * from './rotation';
 export * from './collision';
 export * from './gravitation';
+export * from './freeFall';

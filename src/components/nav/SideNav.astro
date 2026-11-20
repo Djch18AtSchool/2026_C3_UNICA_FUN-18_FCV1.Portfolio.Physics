@@ -1,9 +1,11 @@
 ---
 import { PHASES, type Phase } from '../../consigna';
+import { CLOSING_ANCHOR, CLOSING_TITLE } from '../../lib/closing';
 import { NAV_CLOSED, NAV_OPEN, phaseKey } from '../../lib/navState';
 import { groupByPhase, topicNumberLabel } from '../../lib/phases';
 import type { SearchEntry, SearchHeading } from '../../lib/searchIndex';
 import type { TopicSummary } from '../../lib/topics';
+import { withBase } from '../../lib/url';
 import SideNavFuturePhase from './SideNavFuturePhase.astro';
 import SideNavPhase from './SideNavPhase.astro';
 import SidebarSearch from './SidebarSearch';
@@ -28,6 +30,7 @@ const currentTopic = topics.find((topic) => topic.slug === current);
 const groups = groupByPhase(topics);
 const LIST_ID = 'sidenav-lista';
 const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phase)]));
+const closingUrl = `${withBase('')}#${CLOSING_ANCHOR}`;
 // One list serves both layouts: a closed <details> drawer on narrow screens (no JS), and on
 // wide screens the summary hides and the content is forced visible (see the scoped style).
 ---
@@ -78,6 +81,26 @@ const phaseKeys = Object.fromEntries(PHASES.map((phase) => [phase, phaseKey(phas
           ),
         )}
       </div>
+      <!-- After the deliveries, the cover's closing section; outside the list, so it is not a topic. -->
+      <a
+        href={closingUrl}
+        data-closing-link
+        class="flex w-full items-center justify-between gap-2 rounded-base px-2 py-1 text-[12px] leading-5 font-semibold tracking-[.02em] text-fg-muted uppercase no-underline hover:text-fg"
+      >
+        <span>{CLOSING_TITLE}</span>
+        <svg
+          class="size-3 shrink-0"
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m4.5 2.5 3.5 3.5-3.5 3.5" />
+        </svg>
+      </a>
     </div>
   </details>
 </nav>

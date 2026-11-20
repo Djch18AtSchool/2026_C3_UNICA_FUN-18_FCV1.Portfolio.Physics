@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { PHASE_LABELS, PHASES, REPO_URL, TOPICS, topicsByPhase } from '../../src/consigna';
+import { CLOSING_ANCHOR, CLOSING_TITLE } from '../../src/lib/closing';
 import { FUTURE_PHASES, PUBLISHED_PHASES } from './phasesKit';
 
 /** Position of each phase in the cover's groups. */
@@ -180,7 +181,7 @@ const PREV_NEXT = 'Tema anterior y siguiente';
 const LAST_TOPIC = TOPICS.at(-1)!;
 const SECOND_TO_LAST_TOPIC = TOPICS.at(-2)!;
 
-test('anterior y siguiente enlazan los temas vecinos; el último no ofrece siguiente', async ({
+test('anterior y siguiente enlazan los temas vecinos; tras el último sigue «Qué aprendí»', async ({
   page,
 }) => {
   await page.goto(`./temas/${LAST_TOPIC.slug}/`);
@@ -189,7 +190,9 @@ test('anterior y siguiente enlazan los temas vecinos; el último no ofrece sigui
     'href',
     new RegExp(`/temas/${SECOND_TO_LAST_TOPIC.slug}/$`),
   );
-  await expect(nav.locator('a[rel="next"]')).toHaveCount(0);
+  const closing = nav.locator('a[rel="next"]');
+  await expect(closing).toHaveAttribute('href', new RegExp(`/#${CLOSING_ANCHOR}$`));
+  await expect(closing).toContainText(CLOSING_TITLE);
   await expect(nav).not.toContainText('Tema siguiente');
 
   await page.goto(`./temas/${TOPICS[0].slug}/`);
@@ -199,7 +202,7 @@ test('anterior y siguiente enlazan los temas vecinos; el último no ofrece sigui
   ).toHaveAttribute('href', new RegExp(`/temas/${TOPICS[1].slug}/$`));
 });
 
-test('con un solo lado, la tarjeta ocupa su columna sin dejar el otro lado vacío', async ({
+test('en el último tema, el anterior queda a la izquierda y «Qué aprendí» a la derecha', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -209,8 +212,11 @@ test('con un solo lado, la tarjeta ocupa su columna sin dejar el otro lado vací
   // The previous card keeps the left column, where it sits on every other topic.
   const navBox = (await nav.boundingBox())!;
   const prevBox = (await nav.locator('a[rel="prev"]').boundingBox())!;
+  const nextBox = (await nav.locator('a[rel="next"]').boundingBox())!;
   expect(Math.round(prevBox.x)).toBe(Math.round(navBox.x));
-  await expect(nav.locator('> *')).toHaveCount(1);
+  expect(Math.round(nextBox.x + nextBox.width)).toBe(Math.round(navBox.x + navBox.width));
+  expect(Math.round(nextBox.y)).toBe(Math.round(prevBox.y));
+  await expect(nav.locator('> *')).toHaveCount(2);
 });
 
 test('la barra lateral marca el tema activo y navega', async ({ page }) => {

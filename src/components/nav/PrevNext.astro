@@ -1,6 +1,7 @@
 ---
+import { CLOSING_ANCHOR, CLOSING_TITLE } from '../../lib/closing';
 import { neighbors, type TopicSummary } from '../../lib/topics';
-import { topicUrl } from '../../lib/url';
+import { topicUrl, withBase } from '../../lib/url';
 
 interface Props {
   /** All topics. */
@@ -9,30 +10,35 @@ interface Props {
 }
 const { all, number } = Astro.props;
 const { prev, next } = neighbors(all, number);
+// After the last topic, the reading goes on to «Qué aprendí», at the end of the cover.
+const closingUrl = `${withBase('')}#${CLOSING_ANCHOR}`;
 
 const LINK_CLASSES =
   'flex flex-col gap-1 rounded-base border border-border bg-bg-elevated px-4 py-3 no-underline hover:border-fg-muted';
 ---
 
-{(prev || next) && (
-  <nav aria-label="Tema anterior y siguiente" class="grid gap-3 sm:grid-cols-2">
-    {prev ? (
-      <a href={topicUrl(prev.slug)} rel="prev" class={LINK_CLASSES}>
-        <span class="text-xs text-fg-muted">Tema anterior</span>
-        <span class="text-fg">
-          <span class="numbering text-fg-muted">{prev.number}</span> {prev.shortTitle}
-        </span>
-      </a>
-    ) : (
-      <span class="hidden sm:block" />
-    )}
-    {next && (
-      <a href={topicUrl(next.slug)} rel="next" class:list={[LINK_CLASSES, 'sm:text-right']}>
-        <span class="text-xs text-fg-muted">Tema siguiente</span>
-        <span class="text-fg">
-          <span class="numbering text-fg-muted">{next.number}</span> {next.shortTitle}
-        </span>
-      </a>
-    )}
-  </nav>
-)}
+<nav aria-label="Tema anterior y siguiente" class="grid gap-3 sm:grid-cols-2">
+  {prev ? (
+    <a href={topicUrl(prev.slug)} rel="prev" class={LINK_CLASSES}>
+      <span class="text-xs text-fg-muted">Tema anterior</span>
+      <span class="text-fg">
+        <span class="numbering text-fg-muted">{prev.number}</span> {prev.shortTitle}
+      </span>
+    </a>
+  ) : (
+    <span class="hidden sm:block" />
+  )}
+  {next ? (
+    <a href={topicUrl(next.slug)} rel="next" class:list={[LINK_CLASSES, 'sm:text-right']}>
+      <span class="text-xs text-fg-muted">Tema siguiente</span>
+      <span class="text-fg">
+        <span class="numbering text-fg-muted">{next.number}</span> {next.shortTitle}
+      </span>
+    </a>
+  ) : (
+    <a href={closingUrl} rel="next" class:list={[LINK_CLASSES, 'sm:text-right']}>
+      <span class="text-xs text-fg-muted">Para cerrar</span>
+      <span class="text-fg">{CLOSING_TITLE}</span>
+    </a>
+  )}
+</nav>

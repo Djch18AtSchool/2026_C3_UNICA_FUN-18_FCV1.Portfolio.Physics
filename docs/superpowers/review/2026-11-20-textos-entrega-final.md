@@ -1703,3 +1703,118 @@ Los nombres de las filas están entre `liquidCoolingParameters.ts:81` y `:344`; 
 - Ronda 1: el caudal de cada servidor (7,19 L/min) sale solo de GF (23 L/s ÷ 8 ÷ 24). La regla de OCP queda como lo que
   pide la carga, y la tabla 13.1 dice a qué carga equivalen los 172,5 L/min (115 kW). La ganancia del caso de uso
   ahora es no sobredimensionar la bomba; los 4,1 kW pasan al pie de la tabla 13.4.
+
+## Qué aprendí (Task 16)
+
+Sección nueva al final de la portada (`<section id="que-aprendi">`), con el texto en
+`src/content/closing/que-aprendi.mdx`. Todo es nuevo: «antes» es —. Los `[n]` son las citas a la lista de fuentes de
+la sección. Límites que fijan las pruebas (`src/content/closing.test.ts`): cada par ≤ 150 palabras con la leyenda de
+su ecuación (hoy 149, 146 y 150: el tercero está justo en el tope) y la aplicación propia ≤ 350 (hoy 349).
+
+**La parte (b), «La aplicación propia», es borrador de Claude: Dylan lo hace suyo.** Cuenta como su autoría
+(spec §11): el texto está en primera persona para que lo reescriba con su voz; los números y las citas se quedan.
+
+### Títulos, navegación y nombres accesibles
+
+1. `src/lib/closing.ts:17` (se muestra en `src/pages/index.astro:103`), título de la sección: — → «Qué aprendí».
+2. `src/content/closing/que-aprendi.mdx:55`, primera parte: — → «El mapa de conexiones».
+3. `src/content/closing/que-aprendi.mdx:130`, segunda parte: — → «La aplicación propia: detección de caídas».
+4. `src/lib/closing.ts:27-29`, título de cada par (y su rótulo en el mapa): — → «Momento lineal», «Energía con
+   disipación», «Frecuencia natural».
+5. `src/components/closing/ClosingPair.astro:42`, enlaces bajo cada par: — → «Tema `${n}`, `${título corto}`» (p. ej.
+   «Tema 7, Coeficiente de restitución y Tema 9, Asistencia gravitatoria»); un tema aún sin publicar sale como «Tema
+   `${n}`», sin enlace (`:45`).
+6. `src/components/nav/SideNav.astro:90`, enlace de la barra lateral, tras las tres entregas: — → «Qué aprendí»
+   (en versalitas, como los encabezados de las entregas).
+7. `src/components/nav/PrevNext.astro:40-41`, tarjeta «siguiente» del último tema: — → «Para cerrar» / «Qué aprendí»
+   (antes el último tema no tenía «siguiente»).
+
+### El mapa (Figura 1)
+
+8. `src/components/closing/ConnectionMap.astro:58`, pie: — → «Los `${n}` temas por entrega. En trazo tenue, las
+   conexiones que declara cada tema; en color, los pares que explico abajo, cada uno con su principio sobre el
+   enlace.»
+9. `ConnectionMap.astro:66`, fuente: — → «Diagrama que dibujé con las conexiones de cada tema y los pares de esta
+   sección».
+10. `ConnectionMap.astro:80`, título accesible del SVG: — → «Mapa de conexiones entre los temas del portafolio».
+11. `ConnectionMap.astro:49-56`, descripción accesible del SVG: — → «Los `${n}` temas en tres columnas, una por
+    entrega, unidos en trazo tenue por las conexiones que declara cada tema. En color, los 3 pares de esta sección:
+    Momento lineal, entre el Tema 7 (Coeficiente de restitución) y el Tema 9 (Asistencia gravitatoria); Energía con
+    disipación, entre el Tema 6 (…) y el Tema 13 (…); Frecuencia natural, entre el Tema 11 (…) y el Tema 12 (…).»
+12. `ConnectionMap.astro:173` y `:183`, leyenda: — → «Conexión que declara cada tema»; «`${principio}`: temas
+    `${a}` y `${b}`».
+13. Rótulos del SVG: los de las columnas son los de las entregas («Avance 1», «Avance 2», «Entrega Final») y los de
+    los nodos, el número y el título corto de cada tema; no hay texto nuevo.
+
+### (a) El mapa de conexiones
+
+14. `que-aprendi.mdx:57`, entrada: — → «Cada tema declara con cuáles se conecta, y el mapa reúne esas conexiones.
+    Resalto tres pares de aplicaciones muy distintas que comparten un mismo principio físico.»
+15. `que-aprendi.mdx:63`, par «Momento lineal» (Temas 7 y 9): — → «Una pelota que rebota en un videojuego y una sonda
+    que pasa junto a Júpiter obedecen las dos ecuaciones de choque del Módulo 3 (Tema 02, «Colisiones y
+    explosiones»): el momento lineal total se conserva y el coeficiente de restitución $e$ dice cuánta rapidez
+    relativa sobrevive. En el Tema 7, $e < 1$, y cada rebote pierde la fracción $1 - e^2$ de la energía del
+    movimiento relativo. En el Tema 9 no hay contacto, pero en el marco del planeta la sonda se va tan rápido como
+    llegó, solo girada: es un choque elástico, $e = 1$. Desde el Sol, esa velocidad girada se suma a la del planeta:
+    en Júpiter la sonda ganó rapidez, y el planeta perdió ese momento, casi sin cambiar de velocidad por su masa.»
+    Ecuación (1) y leyenda (`:65-81`): $|\vec v_{\infty,\text{out}}| = e\,|\vec v_{\infty,\text{in}}|$, $e = 1$,
+    $m\,\Delta\vec v = -M\,\Delta\vec V_p$; «velocidad de la sonda respecto al planeta, lejos de él», «masas de la
+    sonda y del planeta», «cambios de velocidad de la sonda y del planeta, desde el Sol».
+16. `que-aprendi.mdx:87`, par «Energía con disipación» (Temas 6 y 13): — → «Frenar un auto eléctrico y bombear
+    refrigerante por un rack son el mismo balance de energía. En el Tema 6 uso el teorema trabajo–energía del Módulo
+    2: frenar quita energía cinética, y lo que no vuelve a la batería se disipa al convertir y como calor en las
+    pastillas (Tema 04, «Trabajo no conservativo y balance de energía»). En el Tema 13, Bernoulli es ese mismo
+    teorema por unidad de volumen, como lo presenta el Módulo 6 (Tema 2, «Teorema de Bernoulli y Ecuación de
+    Continuidad»). Su forma generalizada suma la bomba, $h_b$, y las pérdidas, $h_L$, que hacen el papel del calor
+    de fricción: la viscosidad convierte energía mecánica en energía interna que no vuelve, y la bomba la repone en
+    cada vuelta.» Ecuación (2) y leyenda (`:89-105`): el balance de clase $K_i + U_i + W_\text{otras} = K_f + U_f$ y,
+    debajo, la ecuación generalizada del Módulo 6 multiplicada por $\rho g$ (altura $y$); «trabajo de las fuerzas no
+    conservativas, negativo al frenar», «presión, densidad y altura del fluido», «altura que entrega la bomba y
+    pérdida de carga».
+17. `que-aprendi.mdx:111`, par «Frecuencia natural» (Temas 11 y 12): — → «Un clarinete y un puente colgante comparten
+    algo: frecuencias naturales, una por cada modo en que pueden vibrar. En el Tema 11, los armónicos son los modos
+    normales de la columna de aire: un tubo abierto admite todos los múltiplos de $f_1$; uno cerrado por un extremo,
+    como el clarinete, solo los impares. En el Tema 12, resonar es meter energía a la frecuencia de un modo: con una
+    fuerza periódica cerca de $\omega_0$, la amplitud crece hasta que el amortiguamiento disipa lo que entra en cada
+    ciclo. El puente del video del Tema 12 cayó sin fuerza periódica: el viento era casi constante, y el propio
+    movimiento del tablero decidía cuándo lo empujaba el viento, a su frecuencia natural. Es el Módulo 5 (Tema 4,
+    «Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras»).» Ecuación (3) y leyenda (`:113-126`): $f_n = n\,f_1$
+    y la amplitud forzada del Módulo 5 con $\omega_0 = \sqrt{k/m}$; «frecuencia del modo $n$ y fundamental»,
+    «amplitud estacionaria y amplitud de la fuerza», «frecuencia angular de la fuerza y natural», «amortiguamiento».
+    Nota: en esta rama el texto no dice «Tacoma» (el nombre aún no es de un tema registrado y `site-pages.spec.ts`
+    lo prohíbe en lo construido); tras integrar el Tema 12 se puede nombrar el puente.
+
+### (b) La aplicación propia — borrador de Claude: Dylan lo hace suyo
+
+18. `que-aprendi.mdx:132`: — → «Me interesa un problema que no está entre los trece temas: cómo decide un reloj
+    inteligente que quien lo lleva se cayó. Apple detecta caídas desde el Series 4, con un acelerómetro de hasta
+    32 g: si tras la alerta la persona sigue inmóvil 60 s, llama a emergencias [1]. Google y Samsung también lo
+    hacen, y advierten que no detectan todas [2] [3]. El software solo tiene el acelerómetro, 800 lecturas por
+    segundo en la patente de Apple [4], y el giroscopio; puede fallar hacia los dos lados: llamar por un aplauso o
+    callar ante una caída real.»
+19. `que-aprendi.mdx:134`: — → «Lo resolvería con tres conceptos del curso. Primero, un acelerómetro es una báscula
+    diminuta: una masa sobre resortes que mide la fuerza de contacto por unidad de masa, $n/m = g + a_y$ (Módulo 2,
+    «Fuerza normal y tensión»). En reposo marca 1 g; en caída libre, $a_y = -g$ y marca casi 0. Segundo, la caída
+    libre del Módulo 1 dimensiona ese valle: desde la muñeca, que supongo a $h = 0{,}8$ m, dura
+    $t = \sqrt{2h/g} = 0{,}40$ s y termina a $v = \sqrt{2gh} = 3{,}96$ m/s (cálculo propio). El acelerómetro ADXL345
+    trae ese detector: los tres ejes bajo un umbral de 0,3 a 0,6 g durante 100 a 350 ms [5]. Tercero, el suelo
+    anula el momento lineal $mv$ en un instante: por el teorema impulso–momento del Módulo 3,
+    $J = \Delta p = \bar F\,\Delta t$, cuanto más breve el frenado, mayor la fuerza media. Los umbrales medidos del
+    pico van de 2,5 a 3,5 g [6] [7].»
+20. `que-aprendi.mdx:136`: — → «Por eso no programaría un umbral fijo como «más de 3 g es una caída». Un golpe en la
+    mesa da el pico sin el valle, y un salto de 30 cm pasa 0,49 s a 0 g, más que la caída (cálculo propio), pero
+    termina de pie. Los separa la secuencia: valle, pico y quietud, que la patente de Apple mide como un módulo a
+    menos de 0,025 g de 1 g [4].»
+21. `que-aprendi.mdx:138`: — → «También sé lo que cuesta. Una caída lenta casi no tiene valle, y la muñeca no cae
+    como el cuerpo. Con el sensor en el tronco, trece algoritmos publicados detectaron en promedio el 57 % ± 27 % de
+    29 caídas reales [6]. La física dice qué rasgos mirar; los datos, con qué umbrales.»
+22. `que-aprendi.mdx:1-47`, fuentes (se publican tal cual, con «Consultado el 17 de noviembre de 2026»): [1] Apple
+    Newsroom 2018 (Series 4; 32 g y 60 s); [2] blog de Google, Pixel Watch, 2023; [3] soporte de Samsung Australia;
+    [4] patente US 10,629,048 B2 (800 Hz, 0,025 g); [5] hoja de datos del ADXL345; [6] Bagalà et al. 2012 (PLoS ONE;
+    umbral de 3,52 g, 57,0 % ± 27,3 %); [7] Khojasteh et al. 2018 (Sensors; 2,5 g en la muñeca). Nada de la página
+    de soporte de Apple, que no se pudo abrir.
+
+Decisiones de Claude en (b) para que Dylan las confirme: la altura de la muñeca $h = 0{,}8$ m es un supuesto declarado
+(con 1,0 m: 0,45 s y 4,43 m/s); escribo la lectura del sensor como $n/m$ y no como $|a| \approx 0$, porque en caída
+libre la aceleración real vale $g$ y lo que se anula es la fuerza de contacto por unidad de masa (la «báscula» del
+Módulo 2); no uso el $\Delta t = 0{,}2$ s del borrador de la investigación, que era un supuesto sin fuente.

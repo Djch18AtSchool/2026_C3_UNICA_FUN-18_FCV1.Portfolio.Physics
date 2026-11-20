@@ -1,0 +1,140 @@
+---
+sources:
+  - id: apple-newsroom-2018
+    title: 'Apple Watch Series 4: Beautifully redesigned with breakthrough communication, fitness and health capabilities'
+    year: 2018
+    publisher: 'Apple Newsroom (12 de septiembre de 2018)'
+    url: 'https://www.apple.com/newsroom/2018/09/redesigned-apple-watch-series-4-revolutionizes-communication-fitness-and-health/'
+    accessed: '2026-11-17'
+  - id: google-pixel-watch-2023
+    title: 'How Google Pixel Watch knows when you fall'
+    authors: 'Alicia Cormie'
+    year: 2023
+    publisher: 'Google, blog oficial (13 de junio de 2023)'
+    url: 'https://blog.google/products/pixel/google-pixel-watch-fall-detection-ai/'
+    accessed: '2026-11-17'
+  - id: samsung-caidas
+    title: 'Activate Hard Fall Detection on my Samsung Watch'
+    publisher: 'Samsung Australia, página de soporte'
+    url: 'https://www.samsung.com/au/support/mobile-devices/activate-hard-fall-detection/'
+    accessed: '2026-11-17'
+  - id: apple-patente-caidas
+    title: 'Detecting falls using a mobile device (patente US 10,629,048 B2)'
+    authors: 'Xing Tan, Huayu Ding y otros, para Apple Inc.'
+    year: 2020
+    publisher: 'Oficina de Patentes y Marcas de Estados Unidos, concedida el 21 de abril de 2020'
+    url: 'https://patents.google.com/patent/US10629048B2/en'
+    accessed: '2026-11-17'
+  - id: adxl345
+    title: 'ADXL345: 3-Axis, ±2 g/±4 g/±8 g/±16 g Digital Accelerometer, hoja de datos (Rev. A)'
+    publisher: 'Analog Devices; copia publicada en un curso de la Universidad de Wisconsin'
+    url: 'https://www.physics.wisc.edu/courses/home/spring2023/623/Altera-DEO_reference/DEO-Nano_Datasheets/ADXL345.pdf'
+    accessed: '2026-11-17'
+  - id: bagala-2012
+    title: 'Evaluation of accelerometer-based fall detection algorithms on real-world falls'
+    authors: 'Bagalà, Becker, Cappello, Chiari, Aminian, Hausdorff, Zijlstra y Klenk'
+    year: 2012
+    publisher: 'PLoS ONE 7(5): e37062'
+    url: 'https://doi.org/10.1371/journal.pone.0037062'
+    accessed: '2026-11-17'
+  - id: khojasteh-2018
+    title: 'Improving Fall Detection Using an On-Wrist Wearable Accelerometer'
+    authors: 'Khojasteh, Villar, Chira, González y de la Cal'
+    year: 2018
+    publisher: 'Sensors 18(5): 1350'
+    url: 'https://doi.org/10.3390/s18051350'
+    accessed: '2026-11-17'
+---
+
+import Equation from '../../components/ui/Equation.astro';
+import Cite from '../../components/ui/Cite.astro';
+import Sources from '../../components/ui/Sources.astro';
+import ConnectionMap from '../../components/closing/ConnectionMap.astro';
+import ClosingPair from '../../components/closing/ClosingPair.astro';
+
+### El mapa de conexiones
+
+Cada tema declara con cuáles se conecta, y el mapa reúne esas conexiones. Resalto tres pares de aplicaciones muy distintas que comparten un mismo principio físico.
+
+<ConnectionMap />
+
+<ClosingPair index={0}>
+
+Una pelota que rebota en un videojuego y una sonda que pasa junto a Júpiter obedecen las dos ecuaciones de choque del Módulo 3 (Tema 02, «Colisiones y explosiones»): el momento lineal total se conserva y el coeficiente de restitución $e$ dice cuánta rapidez relativa sobrevive. En el Tema 7, $e < 1$, y cada rebote pierde la fracción $1 - e^2$ de la energía del movimiento relativo. En el Tema 9 no hay contacto, pero en el marco del planeta la sonda se va tan rápido como llegó, solo girada: es un choque elástico, $e = 1$. Desde el Sol, esa velocidad girada se suma a la del planeta: en Júpiter la sonda ganó rapidez, y el planeta perdió ese momento, casi sin cambiar de velocidad por su masa.
+
+<Equation
+  id="ec-cierre-momento"
+  latex="|\vec v_{\infty,\text{out}}| = e\,|\vec v_{\infty,\text{in}}|,\quad e = 1, \qquad m\,\Delta\vec v = -M\,\Delta\vec V_p"
+  symbols={[
+    {
+      symbol: '\\vec v_\\infty',
+      meaning: 'velocidad de la sonda respecto al planeta, lejos de él',
+      unit: 'km/s',
+    },
+    { symbol: 'm,\\ M', meaning: 'masas de la sonda y del planeta', unit: 'kg' },
+    {
+      symbol: '\\Delta\\vec v,\\ \\Delta\\vec V_p',
+      meaning: 'cambios de velocidad de la sonda y del planeta, desde el Sol',
+      unit: 'km/s',
+    },
+  ]}
+/>
+
+</ClosingPair>
+
+<ClosingPair index={1}>
+
+Frenar un auto eléctrico y bombear refrigerante por un rack son el mismo balance de energía. En el Tema 6 uso el teorema trabajo–energía del Módulo 2: frenar quita energía cinética, y lo que no vuelve a la batería se disipa al convertir y como calor en las pastillas (Tema 04, «Trabajo no conservativo y balance de energía»). En el Tema 13, Bernoulli es ese mismo teorema por unidad de volumen, como lo presenta el Módulo 6 (Tema 2, «Teorema de Bernoulli y Ecuación de Continuidad»). Su forma generalizada suma la bomba, $h_b$, y las pérdidas, $h_L$, que hacen el papel del calor de fricción: la viscosidad convierte energía mecánica en energía interna que no vuelve, y la bomba la repone en cada vuelta.
+
+<Equation
+  id="ec-cierre-energia"
+  latex="\begin{gathered} K_i + U_i + W_\text{otras} = K_f + U_f \\ p_1 + \tfrac12\rho v_1^2 + \rho g y_1 + \rho g h_b = p_2 + \tfrac12\rho v_2^2 + \rho g y_2 + \rho g h_L \end{gathered}"
+  symbols={[
+    {
+      symbol: 'W_\\text{otras}',
+      meaning: 'trabajo de las fuerzas no conservativas, negativo al frenar',
+      unit: 'J',
+    },
+    {
+      symbol: 'p,\\ \\rho,\\ y',
+      meaning: 'presión, densidad y altura del fluido',
+      unit: 'Pa, kg/m³, m',
+    },
+    { symbol: 'h_b,\\ h_L', meaning: 'altura que entrega la bomba y pérdida de carga', unit: 'm' },
+  ]}
+/>
+
+</ClosingPair>
+
+<ClosingPair index={2}>
+
+Un clarinete y un puente colgante comparten algo: frecuencias naturales, una por cada modo en que pueden vibrar. En el Tema 11, los armónicos son los modos normales de la columna de aire: un tubo abierto admite todos los múltiplos de $f_1$; uno cerrado por un extremo, como el clarinete, solo los impares. En el Tema 12, resonar es meter energía a la frecuencia de un modo: con una fuerza periódica cerca de $\omega_0$, la amplitud crece hasta que el amortiguamiento disipa lo que entra en cada ciclo. El puente del video del Tema 12 cayó sin fuerza periódica: el viento era casi constante, y el propio movimiento del tablero decidía cuándo lo empujaba el viento, a su frecuencia natural. Es el Módulo 5 (Tema 4, «Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras»).
+
+<Equation
+  id="ec-cierre-frecuencia"
+  latex="\begin{gathered} f_n = n\,f_1 \\ A = \frac{F_0}{\sqrt{(k - m\omega_d^2)^2 + b^2\omega_d^2}}, \qquad \omega_0 = \sqrt{k/m} \end{gathered}"
+  symbols={[
+    { symbol: 'f_n,\\ f_1', meaning: 'frecuencia del modo $n$ y fundamental', unit: 'Hz' },
+    { symbol: 'A,\\ F_0', meaning: 'amplitud estacionaria y amplitud de la fuerza', unit: 'm, N' },
+    {
+      symbol: '\\omega_d,\\ \\omega_0',
+      meaning: 'frecuencia angular de la fuerza y natural',
+      unit: 'rad/s',
+    },
+    { symbol: 'b', meaning: 'amortiguamiento', unit: 'N·s/m' },
+  ]}
+/>
+
+</ClosingPair>
+
+### La aplicación propia: detección de caídas
+
+Me interesa un problema que no está entre los trece temas: cómo decide un reloj inteligente que quien lo lleva se cayó. Apple detecta caídas desde el Series 4, con un acelerómetro de hasta 32 g: si tras la alerta la persona sigue inmóvil 60 s, llama a emergencias <Cite id="apple-newsroom-2018" sources={frontmatter.sources} />. Google y Samsung también lo hacen, y advierten que no detectan todas <Cite id="google-pixel-watch-2023" sources={frontmatter.sources} /> <Cite id="samsung-caidas" sources={frontmatter.sources} />. El software solo tiene el acelerómetro, 800 lecturas por segundo en la patente de Apple <Cite id="apple-patente-caidas" sources={frontmatter.sources} />, y el giroscopio; puede fallar hacia los dos lados: llamar por un aplauso o callar ante una caída real.
+
+Lo resolvería con tres conceptos del curso. Primero, un acelerómetro es una báscula diminuta: una masa sobre resortes que mide la fuerza de contacto por unidad de masa, $n/m = g + a_y$ (Módulo 2, «Fuerza normal y tensión»). En reposo marca 1 g; en caída libre, $a_y = -g$ y marca casi 0. Segundo, la caída libre del Módulo 1 dimensiona ese valle: desde la muñeca, que supongo a $h = 0{,}8$ m, dura $t = \sqrt{2h/g} = 0{,}40$ s y termina a $v = \sqrt{2gh} = 3{,}96$ m/s (cálculo propio). El acelerómetro ADXL345 trae ese detector: los tres ejes bajo un umbral de 0,3 a 0,6 g durante 100 a 350 ms <Cite id="adxl345" sources={frontmatter.sources} />. Tercero, el suelo anula el momento lineal $mv$ en un instante: por el teorema impulso–momento del Módulo 3, $J = \Delta p = \bar F\,\Delta t$, cuanto más breve el frenado, mayor la fuerza media. Los umbrales medidos del pico van de 2,5 a 3,5 g <Cite id="bagala-2012" sources={frontmatter.sources} /> <Cite id="khojasteh-2018" sources={frontmatter.sources} />.
+
+Por eso no programaría un umbral fijo como «más de 3 g es una caída». Un golpe en la mesa da el pico sin el valle, y un salto de 30 cm pasa 0,49 s a 0 g, más que la caída (cálculo propio), pero termina de pie. Los separa la secuencia: valle, pico y quietud, que la patente de Apple mide como un módulo a menos de 0,025 g de 1 g <Cite id="apple-patente-caidas" sources={frontmatter.sources} />.
+
+También sé lo que cuesta. Una caída lenta casi no tiene valle, y la muñeca no cae como el cuerpo. Con el sensor en el tronco, trece algoritmos publicados detectaron en promedio el 57 % ± 27 % de 29 caídas reales <Cite id="bagala-2012" sources={frontmatter.sources} />. La física dice qué rasgos mirar; los datos, con qué umbrales.
+
+<Sources sources={frontmatter.sources} />

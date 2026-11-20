@@ -3,7 +3,9 @@ import { getCollection } from 'astro:content';
 import TopicCard from '../components/nav/TopicCard.astro';
 import GithubIcon from '../components/ui/GithubIcon.astro';
 import { AUTHOR, COURSE, REPO_URL } from '../consigna';
+import QueAprendi from '../content/closing/que-aprendi.mdx';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { CLOSING_ANCHOR, CLOSING_TITLE } from '../lib/closing';
 import { LAST_UPDATE_ISO, LAST_UPDATE_LABEL } from '../lib/lastUpdate';
 import { groupByPhase } from '../lib/phases';
 import { sortByNumber, toTopicSummary } from '../lib/topics';
@@ -14,6 +16,7 @@ const entries = sortByNumber(
 
 // Future phases (no topics yet) show only their heading and a dashed badge: no rows or counts.
 const groups = groupByPhase(entries);
+const CLOSING_HEADING_ID = `${CLOSING_ANCHOR}-titulo`;
 /** «Se publica con su consigna»: a dashed frame (navigation.spec.ts checks it). */
 const UPCOMING_BADGE =
   // scale-exempt: a dashed frame marks a state (published with its brief), not a separator
@@ -93,4 +96,27 @@ const UPCOMING_BADGE =
       </section>
     ))}
   </div>
+
+  <!-- «Qué aprendí» (spec §5): the consigna's closing section, the last of the cover. -->
+  <section id={CLOSING_ANCHOR} aria-labelledby={CLOSING_HEADING_ID} class="mt-12 scroll-mt-8">
+    <div class="border-b-(length:--rule-double-width) border-double border-border pb-2">
+      <h2 id={CLOSING_HEADING_ID}>{CLOSING_TITLE}</h2>
+    </div>
+    <div class="topic-body closing-body mt-8">
+      <QueAprendi />
+    </div>
+  </section>
 </BaseLayout>
+
+<style>
+  /*
+   * The cover has no topic number for content.css's counters ("Figura N.k", "(N.k)"): the closing
+   * numbers its figure and equations on its own, "Figura 1", "(1)".
+   */
+  .closing-body :global(.content-figure > figcaption::before) {
+    content: 'Figura ' counter(figure) ' · ';
+  }
+  .closing-body :global(.equation::after) {
+    content: '(' counter(equation) ')';
+  }
+</style>

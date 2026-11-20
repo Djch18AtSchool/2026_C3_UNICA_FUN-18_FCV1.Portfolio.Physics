@@ -1,0 +1,62 @@
+---
+/*
+ * One pair of «Qué aprendí»'s map: its principle as a heading, with the colour the map gives its
+ * edge, the two topics it joins (links once they are published) and, in the slot, the paragraph
+ * that explains it. In MDX: <ClosingPair index={0}>…</ClosingPair>
+ */
+import { CLOSING_PAIRS } from '../../lib/closing';
+import { topicUrl } from '../../lib/url';
+import { loadClosingTopics, pairColor } from './closingData';
+
+interface Props {
+  /** Position in CLOSING_PAIRS. */
+  index: number;
+}
+const { index } = Astro.props;
+
+const pair = CLOSING_PAIRS[index];
+if (!pair) throw new Error(`ClosingPair: no existe el par ${index}`);
+const { topics } = await loadClosingTopics();
+const ends = [pair.a, pair.b].map((number) => ({
+  number,
+  topic: topics.find((topic) => topic.number === number),
+}));
+const headingId = `par-${index + 1}`;
+---
+
+<section class="closing-pair" aria-labelledby={headingId} data-testid="closing-pair">
+  <h4 id={headingId} class="flex items-center gap-3">
+    <span
+      class="h-1 w-6 shrink-0 rounded-full"
+      style={`background-color: ${pairColor(pair.principle)}`}
+      aria-hidden="true"
+    ></span>
+    {pair.principle}
+  </h4>
+  <p class="closing-pair-topics">
+    {ends.map(({ number, topic }, position) => (
+      <>
+        {position > 0 && ' y '}
+        {topic ? (
+          <a href={topicUrl(topic.slug)}>
+            Tema {number}, {topic.shortTitle}
+          </a>
+        ) : (
+          <span>Tema {number}</span>
+        )}
+      </>
+    ))}
+  </p>
+  <slot />
+</section>
+
+<style>
+  .closing-pair {
+    margin-top: var(--space-8);
+  }
+  .closing-pair-topics {
+    margin-block: var(--space-2) var(--space-4);
+    font-size: var(--text-aux);
+    color: var(--fg-muted);
+  }
+</style>
