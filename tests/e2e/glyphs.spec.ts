@@ -124,6 +124,25 @@ const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
       },
     ],
   ],
+  'sintesis-sonido': [
+    [
+      '«Fases aleatorias» encendido (su nota cita a Helmholtz)',
+      async (_page, lab) => {
+        await lab.getByRole('switch', { name: 'Fases aleatorias' }).check({ force: true });
+        await expect(lab.getByTestId('synth-random-note')).toContainText('Helmholtz');
+      },
+    ],
+    [
+      'armónicos sobre f_s/2 desactivados (880 Hz con 8 000 Hz)',
+      async (_page, lab) => {
+        const f1 = lab.getByRole('textbox', { name: /^Fundamental/ });
+        await f1.fill('880');
+        await f1.press('Enter');
+        await lab.getByRole('combobox', { name: /^Frecuencia de muestreo/ }).selectOption('8000');
+        await expect(lab.getByTestId('synth-nyquist')).toContainText('solo caben');
+      },
+    ],
+  ],
   'ruedas-reaccion': [
     [
       'maniobra por encima del límite (el medidor excede L_máx)',

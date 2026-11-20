@@ -114,6 +114,7 @@ import Sources from '../../components/ui/Sources.astro';
 import PipeModes from '../../components/topics/sintesis-sonido/PipeModes';
 import SampleAnalysis from '../../components/topics/sintesis-sonido/SampleAnalysis';
 import SampleContrast from '../../components/topics/sintesis-sonido/SampleContrast';
+import SynthLab from '../../components/topics/sintesis-sonido/SynthLab';
 import ToneFigure from '../../components/topics/sintesis-sonido/ToneFigure';
 
 Una flauta y un clarinete en la misma nota no suenan igual. Un sintetizador la escribe como una receta de armónicos.
@@ -361,6 +362,20 @@ La (11.8) aparta los parciales de <Equation inline latex="n f_1" /> <Cite id="sm
 <DataTable id="sintesis-sonido-armonicos" />
 
 <DataTable id="sintesis-sonido-muestras" />
+
+<Figure
+  type="simulacion"
+  showBadge={false}
+  caption="Laboratorio de síntesis aditiva con la Web Audio API: diez amplitudes $A_n$ y la fundamental $f_1$ forman la receta (11.4), que suena como una PeriodicWave (11.5) solo después de pulsar «Reproducir»; la forma de onda y el espectro se recalculan con cada control. Los preajustes son las recetas clásicas de la tabla 11.1 y las medidas de la tabla 11.2, con sus fases. «Fases aleatorias» cambia la forma y deja el espectro; con $f_s$ baja y $f_1$ alta se apagan los armónicos sobre $f_s/2$, como pide la (11.9)."
+  source={{
+    text: 'Simulación que programé con la Web Audio API (W3C, 2021), fuente 1: un OscillatorNode toca la receta como PeriodicWave; recetas clásicas de su §1.28.6 y medidas propias de las grabaciones del MIS (tabla 11.2). El pico de −18 dBFS y las frecuencias de muestreo son elecciones mías',
+  }}
+>
+  <SynthLab
+    client:visible
+    leftOut={`Lo que deja fuera: (1) el ataque y la caída, pues la nota suena entera desde el primer instante, sin la envolvente $E(t)$ de la (11.7), y solo entra y sale con una rampa de 30 ms para no hacer clic; (2) el ruido del soplido y las fluctuaciones de la flauta, pues la receta es periódica y fija, el promedio de la tabla 11.2 y no sus rangos; (3) el vibrato: $f_1$ no oscila; (4) el aliasing, pues los armónicos por encima de $f_s/2$ se apagan, como hace Chromium al recortar sus tablas, en lugar de plegarse a $|n f_1 - m f_s|$; (5) los armónicos 11 y 12 de las grabaciones y la inarmonicidad de la (11.8).`}
+  />
+</Figure>
 
 </Step>
 

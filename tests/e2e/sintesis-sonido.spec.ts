@@ -9,7 +9,14 @@ const PAGE = `./temas/${SLUG}/`;
 const TOPIC = topicBySlug(SLUG);
 const SAMPLES = ['flauta', 'clarinete'] as const;
 type Sample = (typeof SAMPLES)[number];
-const STEP_FIGURES = ['tone-figure-seno', 'pipe-modes', 'tone-figure-recetas', 'muestra-flauta'];
+/** One figure per step, and the lab (Task 8) closing Paso 4. */
+const STEP_FIGURES = [
+  'tone-figure-seno',
+  'pipe-modes',
+  'tone-figure-recetas',
+  'muestra-flauta',
+  'synth-lab',
+];
 const TABLE_IDS = [
   'sintesis-sonido-recetas',
   'sintesis-sonido-armonicos',
@@ -96,7 +103,9 @@ test.describe('Tema 11, página', () => {
     for (const step of await steps.all()) await expect(step.locator('.why')).toHaveCount(1);
   });
 
-  test('las cuatro figuras se numeran 11.1 a 11.4, una por paso', async ({ page }) => {
+  test('las cinco figuras se numeran 11.1 a 11.5: una por paso y el laboratorio al final del paso 4', async ({
+    page,
+  }) => {
     const figures = page.locator('.content-figure');
     await expect(figures).toHaveCount(STEP_FIGURES.length);
 
@@ -122,8 +131,15 @@ test.describe('Tema 11, página', () => {
       'Figura 11.2',
       'Figura 11.3',
       'Figura 11.4',
+      'Figura 11.5',
     ]);
-    expect(numbers.map(({ step }) => step)).toEqual(['paso-1', 'paso-2', 'paso-3', 'paso-4']);
+    expect(numbers.map(({ step }) => step)).toEqual([
+      'paso-1',
+      'paso-2',
+      'paso-3',
+      'paso-4',
+      'paso-4',
+    ]);
     for (const { prefix } of numbers) {
       expect(prefix).toBe('"Figura " counter(topic) "." counter(figure) " · "');
     }
