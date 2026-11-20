@@ -1,15 +1,11 @@
 import { describe, expect, test } from 'vitest';
 import {
   cents,
-  chromiumPeriodicWaveMemory,
   classicAmplitudes,
   halfWaveCorrelation,
   maxHarmonicBelowNyquist,
   oddEvenPowerDb,
-  pipeLength,
-  pipeModeNumbers,
   predictedHalfWaveCorrelation,
-  standingWaveProfile,
   synthesize,
   toPeriodicWave,
   waveform,
@@ -268,62 +264,6 @@ describe('cents: the interval between two frequencies', () => {
   test('rejects a non-positive frequency', () => {
     expect(() => cents(0, 440)).toThrow(RangeError);
     expect(() => cents(440, -1)).toThrow(RangeError);
-  });
-});
-
-describe('pipe modes: equations (11.2) and (11.3)', () => {
-  test('an open-open pipe admits every n and a closed-open one only odd n', () => {
-    expect(pipeModeNumbers('abierto', 4)).toEqual([1, 2, 3, 4]);
-    expect(pipeModeNumbers('cerrado', 4)).toEqual([1, 3, 5, 7]);
-    expect(() => pipeModeNumbers('abierto', 0)).toThrow(RangeError);
-  });
-
-  test('310 Hz with v = 340 m/s needs 0,548 m open and 0,274 m closed (research §4.4)', () => {
-    expect(pipeLength('abierto', 310, 340)).toBeCloseTo(0.548, 3);
-    expect(pipeLength('cerrado', 310, 340)).toBeCloseTo(0.274, 3);
-    expect(() => pipeLength('cerrado', 0, 340)).toThrow(RangeError);
-  });
-
-  test('the open pipe has displacement antinodes at both ends', () => {
-    [1, 2, 3].forEach((n) => {
-      expect(Math.abs(standingWaveProfile('abierto', n, 0))).toBeCloseTo(1, 12);
-      expect(Math.abs(standingWaveProfile('abierto', n, 1))).toBeCloseTo(1, 12);
-    });
-    expect(standingWaveProfile('abierto', 1, 0.5)).toBeCloseTo(0, 12);
-  });
-
-  test('the closed pipe has a node at the closed end and an antinode at the open one', () => {
-    [1, 3, 5].forEach((n) => {
-      expect(standingWaveProfile('cerrado', n, 0)).toBeCloseTo(0, 12);
-      expect(Math.abs(standingWaveProfile('cerrado', n, 1))).toBeCloseTo(1, 12);
-    });
-    // n = 3 has one more node inside, at a third of the length: L = 3λ/4, λ/2 from the open end.
-    expect(standingWaveProfile('cerrado', 3, 2 / 3)).toBeCloseTo(0, 12);
-  });
-
-  test('rejects an even mode in a closed pipe or a position outside it', () => {
-    expect(() => standingWaveProfile('cerrado', 2, 0.5)).toThrow(RangeError);
-    expect(() => standingWaveProfile('abierto', 1, 1.2)).toThrow(RangeError);
-  });
-});
-
-describe('chromiumPeriodicWaveMemory: the tables Chromium builds per recipe (periodic_wave_handler.cc)', () => {
-  test('at 44,1 and 48 kHz: 4 096 samples, 36 ranges of a third of an octave, 576 KiB (research §4.4)', () => {
-    for (const rate of [44100, 48000]) {
-      expect(chromiumPeriodicWaveMemory(rate)).toEqual({
-        tableSize: 4096,
-        ranges: 36,
-        bytes: 589824,
-      });
-    }
-    expect(chromiumPeriodicWaveMemory(48000).bytes / 1024).toBe(576);
-  });
-
-  test('2 048 samples up to 24 kHz and 16 384 above 88,2 kHz (L42-L54)', () => {
-    expect(chromiumPeriodicWaveMemory(22050).tableSize).toBe(2048);
-    expect(chromiumPeriodicWaveMemory(96000).tableSize).toBe(16384);
-    expect(chromiumPeriodicWaveMemory(96000).ranges).toBe(42);
-    expect(() => chromiumPeriodicWaveMemory(0)).toThrow(RangeError);
   });
 });
 

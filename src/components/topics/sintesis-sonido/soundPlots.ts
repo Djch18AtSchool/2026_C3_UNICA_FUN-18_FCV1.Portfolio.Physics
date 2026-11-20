@@ -7,16 +7,19 @@
  */
 import { CHART_COLORS } from '../../charts/chartTheme';
 import { MEASURED_HARMONICS } from '../../../lib/audio/sampleAnalysis';
-import { INSTRUMENT_SAMPLES, type InstrumentId } from '../../../lib/data/instrumentSamples';
 import {
-  halfWaveCorrelation,
+  INSTRUMENT_SAMPLES,
+  MS_PER_S,
+  toClipTime,
+  type InstrumentId,
+} from '../../../lib/data/instrumentSamples';
+import { halfWaveCorrelation, sampleAt, waveform } from '../../../lib/physics/harmonics';
+import {
   pipeLength,
   pipeModeNumbers,
-  sampleAt,
   standingWaveProfile,
-  waveform,
   type PipeKind,
-} from '../../../lib/physics/harmonics';
+} from '../../../lib/physics/pipes';
 
 export type XY = { x: number; y: number };
 export interface Span {
@@ -44,7 +47,6 @@ export const WAVEFORM_PERIODS = 4;
 export const RECIPE_F1 = INSTRUMENT_SAMPLES.clarinete.f1;
 /** Points per period of a synthesised recipe: even, so half a period is a whole number of points. */
 const RECIPE_SAMPLES_PER_PERIOD = 120;
-const MS_PER_S = 1000;
 
 export const SPECTRUM_HARMONICS = MEASURED_HARMONICS;
 export const SPECTRUM_FLOOR_DB = -45;
@@ -196,8 +198,9 @@ export interface EnvelopeData {
  * overlap: the research measures the window and the attack with different thresholds.
  */
 export function sampleEnvelope(id: InstrumentId): EnvelopeData {
-  const { envelope, clip, attack, analysisWindow, release } = INSTRUMENT_SAMPLES[id];
-  const toClip = (s: number) => s - clip.trimStartS;
+  const sample = INSTRUMENT_SAMPLES[id];
+  const { envelope, clip, attack, analysisWindow, release } = sample;
+  const toClip = (s: number) => toClipTime(sample, s);
   const points = envelope.level
     .map((level, i) => ({ x: toClip(i * envelope.frameS), y: level }))
     .filter(({ x }) => x > -envelope.frameS / 2 && x <= clip.durationS);

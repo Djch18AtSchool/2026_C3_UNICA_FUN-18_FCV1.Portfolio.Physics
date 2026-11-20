@@ -4,7 +4,7 @@
  * list of signed amplitudes A_n and phases φ_n with index 0 = harmonic n = 1, in the convention
  * y(t) = Σ A_n sin(2π n f₁ t + φ_n). Source: docs/superpowers/research/2026-11-17-sintesis-sonido.md §5.
  */
-import { requireFinite, requirePositive } from './validate';
+import { requireFinite, requirePositive, requirePositiveInteger } from './validate';
 
 /** The four waveforms of Web Audio's OscillatorNode (W3C Recommendation 2021-06-17, §1.28.6). */
 export type ClassicWave = 'seno' | 'cuadrada' | 'sierra' | 'triangular';
@@ -12,12 +12,6 @@ export type ClassicWave = 'seno' | 'cuadrada' | 'sierra' | 'triangular';
 /** Harmonics compared by oddEvenPowerDb: n = 1…10 (five odd, five even), as in research §4.1. */
 const ODD_EVEN_HARMONICS = 10;
 const TWO_PI = 2 * Math.PI;
-
-function requirePositiveInteger(name: string, value: number): void {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new RangeError(`${name} must be a positive integer, got ${value}`);
-  }
-}
 
 function requireMatchingPhases(amplitudes: readonly number[], phases: readonly number[]): void {
   if (amplitudes.length !== phases.length) {
@@ -190,64 +184,4 @@ export function cents(from: number, to: number): number {
   requirePositive('from', from);
   requirePositive('to', to);
   return 1200 * Math.log2(to / from);
-}
-
-/** An ideal pipe open at both ends (a flute) or closed at one and open at the other (a clarinet). */
-export type PipeKind = 'abierto' | 'cerrado';
-
-/** The first `count` mode numbers n: every n open at both ends (11.2), only odd n closed (11.3). */
-export function pipeModeNumbers(kind: PipeKind, count: number): number[] {
-  requirePositiveInteger('count', count);
-  return Array.from({ length: count }, (_, i) => (kind === 'abierto' ? i + 1 : 2 * i + 1));
-}
-
-/**
- * The (effective) length whose fundamental is f₁ (Hz) with sound speed v (m/s): L = v/(2 f₁) open
- * at both ends, from (11.2) with n = 1, and L = v/(4 f₁) closed at one end, from (11.3).
- */
-export function pipeLength(kind: PipeKind, f1: number, v: number): number {
-  requirePositive('f1', f1);
-  requirePositive('v', v);
-  return v / ((kind === 'abierto' ? 2 : 4) * f1);
-}
-
-/**
- * The displacement amplitude of mode n along the pipe, at x/L in [0, 1], peak 1: cos(nπx/L) open at
- * both ends (antinodes at both), sin(nπx/2L) closed at x = 0 (a node there, an antinode at the
- * open end; n odd only). OpenStax University Physics 1, §17.4.
- */
-export function standingWaveProfile(kind: PipeKind, n: number, xOverL: number): number {
-  requirePositiveInteger('n', n);
-  if (kind === 'cerrado' && n % 2 === 0) {
-    throw new RangeError(`a closed pipe has only odd modes, got n = ${n}`);
-  }
-  if (!(xOverL >= 0 && xOverL <= 1)) {
-    throw new RangeError(`x/L must lie in [0, 1], got ${xOverL}`);
-  }
-  return kind === 'abierto' ? Math.cos(n * Math.PI * xOverL) : Math.sin((n * Math.PI * xOverL) / 2);
-}
-
-/** Chromium's table sizes by sample rate (periodic_wave_handler.cc L42-L54, tag 160.0.8168.1). */
-const CHROMIUM_TABLE_SIZES = [
-  { upTo: 24000, size: 2048 },
-  { upTo: 88200, size: 4096 },
-  { upTo: Infinity, size: 16384 },
-] as const;
-const CHROMIUM_BANDS_PER_OCTAVE = 3;
-const FLOAT_BYTES = 4;
-
-/**
- * The memory one PeriodicWave takes in Chromium (cálculo propio with its constants): a table of
- * `tableSize` floats per range, round(3 log₂ tableSize) ranges of a third of an octave (L80-L87),
- * so 36 × 4 096 × 4 B = 576 KiB at 44,1 or 48 kHz, whatever the recipe, the note or the duration.
- */
-export function chromiumPeriodicWaveMemory(sampleRate: number): {
-  tableSize: number;
-  ranges: number;
-  bytes: number;
-} {
-  requirePositive('sampleRate', sampleRate);
-  const tableSize = CHROMIUM_TABLE_SIZES.find(({ upTo }) => sampleRate <= upTo)?.size ?? 0;
-  const ranges = Math.round(CHROMIUM_BANDS_PER_OCTAVE * Math.log2(tableSize));
-  return { tableSize, ranges, bytes: ranges * tableSize * FLOAT_BYTES };
 }

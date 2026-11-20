@@ -6,10 +6,13 @@
  */
 import {
   INSTRUMENT_SAMPLES,
+  periodMs,
+  recordingText,
   spokenFlat,
+  toClipTime,
   type InstrumentId,
 } from '../../../lib/data/instrumentSamples';
-import { formatNumber } from '../../../lib/format';
+import { formatFixed as fixed } from '../../../lib/format';
 import { cents, predictedHalfWaveCorrelation } from '../../../lib/physics/harmonics';
 import type { MediaMarker } from '../../../lib/media';
 
@@ -18,17 +21,13 @@ const { flauta, clarinete } = INSTRUMENT_SAMPLES;
 /** The attack marker opens the clip; the sustain one is 1 s in, inside both analysis windows. */
 export const ATTACK_MARKER_S = 0;
 export const SUSTAIN_MARKER_S = 1;
-const MS_PER_S = 1000;
 const EVEN_SHOWN = [2, 4, 6, 8];
 const FIRST_FLAT = 6;
 /** Above this correlation the dashed −y(t + T/2) visibly lies on the solid curve. */
 const SYMMETRIC_FROM = 0.9;
 
-const fixed = (value: number, precision: number, unit?: string) =>
-  formatNumber(value, { precision, unit });
 const signedDb = (db: number) => `${db > 0 ? '+' : ''}${fixed(db, 1, 'dB')}`;
-const clipTime = (id: InstrumentId, aiffS: number) =>
-  aiffS - INSTRUMENT_SAMPLES[id].clip.trimStartS;
+const clipTime = (id: InstrumentId, aiffS: number) => toClipTime(INSTRUMENT_SAMPLES[id], aiffS);
 const levelOf = (id: InstrumentId, n: number) => INSTRUMENT_SAMPLES[id].amplitudesDb[n - 1];
 
 /** The harmonic with the highest level, n. */
@@ -89,15 +88,11 @@ export function sampleTitle(id: InstrumentId): string {
   return spokenFlat(`${INSTRUMENT_SAMPLES[id].name}, mi♭4 fortísimo sin vibrato`);
 }
 
-const PERFORMERS: Readonly<Record<InstrumentId, string>> = {
-  flauta: 'Sonja Feig, abril de 2000',
-  clarinete: 'Christine Bellomy, clarinete Buffet R13, 3 de agosto de 1998',
-};
-
 /** The credit line under each audio (it prints after «Audio: »); the figure's source line has the rest. */
 export function sampleCredit(id: InstrumentId): string {
-  const { file, clip } = INSTRUMENT_SAMPLES[id];
-  return `${PERFORMERS[id]}; University of Iowa, Musical Instrument Samples, archivo ${file}. Lo recorté desde ${fixed(clip.trimStartS, 2, 's')} y lo igualé a ${fixed(clip.loudnessLufs, 0, 'LUFS')}.`;
+  const sample = INSTRUMENT_SAMPLES[id];
+  const { file, clip } = sample;
+  return `${recordingText(sample)}; University of Iowa, Musical Instrument Samples, archivo ${file}. Lo recorté desde ${fixed(clip.trimStartS, 2, 's')} y lo igualé a ${fixed(clip.loudnessLufs, 0, 'LUFS')}.`;
 }
 
 export interface ContrastItem {
@@ -105,13 +100,11 @@ export interface ContrastItem {
   text: string;
 }
 
-const periodMs = (id: InstrumentId) => MS_PER_S / INSTRUMENT_SAMPLES[id].f1;
-
 /** «Qué diferencia produce qué»: the joint analysis under the two recordings. */
 export const SAMPLE_CONTRAST: readonly ContrastItem[] = [
   {
     lead: 'Lo que comparten: el tono.',
-    text: `Las dos notas repiten su forma cada $T$ = ${fixed(periodMs('clarinete'), 2, 'ms')}: $f_1$ = ${fixed(clarinete.f1, 2, 'Hz')} en el clarinete y ${fixed(flauta.f1, 2, 'Hz')} en la flauta, a ${fixed(cents(clarinete.f1, flauta.f1), 1)} cents. El corchete de $T$ mide lo mismo en las dos formas de onda: por la (11.4), el tono lo pone $f_1$, no la forma.`,
+    text: `Las dos notas repiten su forma cada $T$ = ${fixed(periodMs(clarinete), 2, 'ms')}: $f_1$ = ${fixed(clarinete.f1, 2, 'Hz')} en el clarinete y ${fixed(flauta.f1, 2, 'Hz')} en la flauta, a ${fixed(cents(clarinete.f1, flauta.f1), 1)} cents. El corchete de $T$ mide lo mismo en las dos formas de onda: por la (11.4), el tono lo pone $f_1$, no la forma.`,
   },
   {
     lead: 'Lo que cambia: qué armónicos suenan.',
@@ -147,7 +140,7 @@ export function sampleDescriptions(id: InstrumentId): SampleDescriptions {
       : `los pares 2, 4, 6 y 8 entre ${fixed(evenGapDb().least, 0)} y ${fixed(evenGapDb().most, 0, 'dB')} por debajo del fundamental`;
   return {
     envelope: `Envolvente RMS ${of}, relativa a su sostenido: sube del 10 al 90 % en ${fixed(sample.attackS, 2, 's')}, ${span(sample.attack)}; la ventana de análisis va ${span(sample.analysisWindow)} y la caída, ${span(sample.release)}.`,
-    waveform: `Cuatro periodos de la forma de onda ${of}, cada uno de T = ${fixed(periodMs(id), 2, 'ms')}. La misma curva medio periodo después e invertida ${matches ? 'cae sobre la original' : 'no sigue a la original'}: correlación ${fixed(sample.halfWaveCorrelation, 3)}.`,
+    waveform: `Cuatro periodos de la forma de onda ${of}, cada uno de T = ${fixed(periodMs(sample), 2, 'ms')}. La misma curva medio periodo después e invertida ${matches ? 'cae sobre la original' : 'no sigue a la original'}: correlación ${fixed(sample.halfWaveCorrelation, 3)}.`,
     spectrum: `Espectro ${of}, armónicos 1 a 12 en dB respecto del fundamental: ${shape}; el más fuerte es el ${strongest}.º, con ${signedDb(levelOf(id, strongest))}. Los impares pesan ${signedDb(sample.oddEvenDb)} sobre los pares.`,
   };
 }

@@ -28,3 +28,8 @@ export function formatNumber(value: number, options: FormatNumberOptions = {}): 
   if (!unit) return text;
   return ATTACHED_UNITS.has(unit) ? `${text}${unit}` : `${text}${NARROW_NBSP}${unit}`;
 }
+
+/** formatNumber with a fixed number of decimals and an optional unit: formatFixed(0.4, 2, 's') → «0,40 s». */
+export function formatFixed(value: number, precision: number, unit?: string): string {
+  return formatNumber(value, { precision, unit });
+}

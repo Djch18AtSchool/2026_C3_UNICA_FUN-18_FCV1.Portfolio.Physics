@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { formatNumber } from './format';
+import { formatFixed, formatNumber } from './format';
 
 describe('formatNumber', () => {
   test('uses decimal comma, narrow no-break space for thousands and before the unit', () => {
@@ -47,5 +47,12 @@ describe('formatNumber', () => {
   test('keeps the minus sign for values that do not round to zero', () => {
     expect(formatNumber(-0.01)).toBe('\u22120,01');
     expect(formatNumber(-0.6, { precision: 0 })).toBe('\u22121');
+  });
+});
+
+describe('formatFixed', () => {
+  test('is formatNumber with the decimals and the unit as arguments', () => {
+    expect(formatFixed(0.4, 2, 's')).toBe(formatNumber(0.4, { precision: 2, unit: 's' }));
+    expect(formatFixed(-0.0844, 3)).toBe('\u22120,084');
   });
 });

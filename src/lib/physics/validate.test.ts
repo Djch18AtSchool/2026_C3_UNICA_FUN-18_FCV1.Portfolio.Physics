@@ -1,5 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import { requireFinite, requireNonNegative, requirePositive } from './validate';
+import {
+  requireFinite,
+  requireNonNegative,
+  requirePositive,
+  requirePositiveInteger,
+} from './validate';
 
 const NON_FINITE = [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY];
 
@@ -38,6 +43,16 @@ describe('requireNonNegative', () => {
     for (const value of NON_FINITE) {
       expect(() => requireNonNegative('k', value)).toThrow(RangeError);
       expect(() => requireNonNegative('k', value)).toThrow(/k must be a finite number/);
+    }
+  });
+});
+
+describe('requirePositiveInteger', () => {
+  test('accepts 1, 2, 3… and rejects 0, negatives, fractions and non-finite values', () => {
+    expect(() => requirePositiveInteger('n', 1)).not.toThrow();
+    expect(() => requirePositiveInteger('n', 12)).not.toThrow();
+    for (const value of [0, -1, 1.5, Number.NaN, Infinity]) {
+      expect(() => requirePositiveInteger('n', value)).toThrow(/n must be a positive integer/);
     }
   });
 });

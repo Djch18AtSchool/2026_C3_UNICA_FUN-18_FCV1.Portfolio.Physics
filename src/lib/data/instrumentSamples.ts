@@ -10,6 +10,10 @@ export interface InstrumentSample {
   id: InstrumentId;
   /** Spanish label. */
   name: string;
+  /** Who played it, when and on what, from the MIS page of the instrument (research §3.2). */
+  recording: Recording;
+  /** The format of the MIS file as downloaded (research §3.2 and §9), not the one the site announces. */
+  original: OriginalFormat;
   /** The original file of the MIS (AIFF, 24-bit, 44,1 kHz, two identical channels). */
   file: string;
   source: { page: string; url: string; sha256: string; retrieved: string };
@@ -57,6 +61,63 @@ export interface InstrumentSample {
 }
 
 const NAMES: Record<InstrumentId, string> = { flauta: 'Flauta', clarinete: 'Clarinete en si♭' };
+
+/** A recording's performer and date, and the instrument (with its model) when the MIS records it. */
+export interface Recording {
+  performer: string;
+  date: string;
+  instrument?: string;
+}
+
+/**
+ * The MIS instrument pages (research §3.2): the flute by Sonja Feig in April 2000; the B♭ clarinet,
+ * a Buffet R13, by Christine Bellomy on 3 August 1998.
+ */
+const RECORDINGS: Readonly<Record<InstrumentId, Recording>> = {
+  flauta: { performer: 'Sonja Feig', date: 'abril de 2000' },
+  clarinete: {
+    performer: 'Christine Bellomy',
+    date: '3 de agosto de 1998',
+    instrument: 'clarinete Buffet R13',
+  },
+};
+
+/** A file's container, bit depth, sample rate and channels. */
+export interface OriginalFormat {
+  container: string;
+  bitDepth: number;
+  sampleRateHz: number;
+  channels: number;
+  /** Both channels carry the same samples (|L − R| = 0, research §3.2). */
+  identicalChannels: boolean;
+}
+
+/**
+ * Both downloaded files (research §3.2, «MIS Pitches - 2014»): AIFF, 24 bits, 44,1 kHz, two identical
+ * channels. The MIS main page announces 24/96 since 2011; research §9 asks to state the real format.
+ */
+const ORIGINAL_FORMAT: OriginalFormat = {
+  container: 'AIFF',
+  bitDepth: 24,
+  sampleRateHz: 44100,
+  channels: 2,
+  identicalChannels: true,
+};
+
+/** «Sonja Feig, abril de 2000»; «Christine Bellomy, clarinete Buffet R13, 3 de agosto de 1998». */
+export function recordingText({ recording }: InstrumentSample): string {
+  const instrument = recording.instrument ? `${recording.instrument}, ` : '';
+  return `${recording.performer}, ${instrument}${recording.date}`;
+}
+
+export const MS_PER_S = 1000;
+
+/** T = 1/f₁, ms. */
+export const periodMs = (sample: InstrumentSample): number => MS_PER_S / sample.f1;
+
+/** A time of the original AIFF (s) on the timeline of the published clip, which starts trimStartS in. */
+export const toClipTime = (sample: InstrumentSample, aiffS: number): number =>
+  aiffS - sample.clip.trimStartS;
 
 const FLAT = '♭';
 
@@ -122,6 +183,8 @@ function toSample(id: InstrumentId, file: FileJson): InstrumentSample {
   return {
     id,
     name: NAMES[id],
+    recording: RECORDINGS[id],
+    original: ORIGINAL_FORMAT,
     file: name,
     source: { page: file.query.page, url, sha256, retrieved: file.retrieved },
     mp3: src,

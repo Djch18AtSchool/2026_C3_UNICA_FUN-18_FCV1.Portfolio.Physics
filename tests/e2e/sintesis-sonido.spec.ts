@@ -18,8 +18,8 @@ const TABLE_IDS = [
 /** (11.1) to (11.9): one in Paso 1, two in Paso 2, three in Pasos 3 and 4. */
 const DISPLAY_EQUATIONS = 9;
 const PHONE = { width: 360, height: 800 };
-/** A seek lands on an MP3 frame (26 ms) and playback runs on while the test reads it. */
-const SEEK_SLACK_S = 0.3;
+/** A seek lands on an MP3 frame (26 ms); the attack marker must land well inside the attack. */
+const SEEK_SLACK_S = 0.05;
 
 interface Span {
   startS: number;
@@ -58,8 +58,22 @@ async function openSample(page: Page, sample: Sample): Promise<void> {
     .toBeCloseTo(DATA.samples[sample].mp3.durationS, 1);
 }
 
-const currentTime = (page: Page, sample: Sample) =>
-  audioOf(page, sample).evaluate((audio: HTMLAudioElement) => audio.currentTime);
+/**
+ * Presses a marker and returns where the seek landed: the medium's time when its `seeked` event
+ * fires, read before playback moves it on (reading `currentTime` later races the playback).
+ */
+async function seekWith(page: Page, sample: Sample, time: string): Promise<number> {
+  const audio = audioOf(page, sample);
+  await audio.evaluate((element: HTMLAudioElement & { landed?: Promise<number> }) => {
+    element.landed = new Promise((resolve) =>
+      element.addEventListener('seeked', () => resolve(element.currentTime), { once: true }),
+    );
+  });
+  await markerOf(page, sample, time).click();
+  return audio.evaluate(
+    (element: HTMLAudioElement & { landed?: Promise<number> }) => element.landed ?? Number.NaN,
+  );
+}
 
 test.describe('Tema 11, página', () => {
   test.beforeEach(async ({ page }) => {
@@ -223,17 +237,15 @@ test.describe('Tema 11, las dos grabaciones analizadas', () => {
       const attack = onClip(sample, DATA.samples[sample].attack);
       const window = onClip(sample, DATA.samples[sample].analysisWindow);
 
-      await markerOf(page, sample, '0:01').click();
-      await expect.poll(() => currentTime(page, sample)).toBeGreaterThanOrEqual(1 - SEEK_SLACK_S);
-      const sustain = await currentTime(page, sample);
-      expect(sustain).toBeLessThan(1 + SEEK_SLACK_S);
+      const sustain = await seekWith(page, sample, '0:01');
+      expect(sustain).toBeCloseTo(1, 1);
       expect(sustain).toBeGreaterThan(window.start);
       expect(sustain).toBeLessThan(window.end);
       await expect(markerOf(page, sample, '0:01')).toHaveAttribute('aria-current', 'true');
 
-      await markerOf(page, sample, '0:00').click();
-      await expect.poll(() => currentTime(page, sample)).toBeLessThan(SEEK_SLACK_S);
-      expect(await currentTime(page, sample)).toBeLessThan(attack.end);
+      const onset = await seekWith(page, sample, '0:00');
+      expect(onset).toBeLessThan(SEEK_SLACK_S);
+      expect(onset).toBeLessThan(attack.end);
       await audioOf(page, sample).evaluate((audio: HTMLAudioElement) => audio.pause());
       await expect(page.getByTestId(`${sample}-audio-error`)).toHaveCount(0);
     });

@@ -85,9 +85,14 @@ describe('sintesis-sonido tables', () => {
       'desde 0,10 s del original; 2,86 s, MP3 mono a −20 LUFS',
       'desde 0,38 s del original; 2,52 s, MP3 mono a −20 LUFS',
     ]);
-    expect(byName['Formato del original'][0]).toBe(
+    expect(byName['Formato del original']).toEqual([
       'AIFF de 24 bits a 44 100 Hz, dos canales idénticos',
-    );
+      'AIFF de 24 bits a 44 100 Hz, dos canales idénticos',
+    ]);
+    expect(byName['Intérprete y fecha']).toEqual([
+      'Sonja Feig, abril de 2000',
+      'Christine Bellomy, clarinete Buffet R13, 3 de agosto de 1998',
+    ]);
     expect(byName['Origen de los números'][0]).toBe('Medida propia (cálculo propio)');
     expect(byName['Permiso de uso'][0]).toContain(
       '«may be downloaded and used for any projects, without restrictions»',

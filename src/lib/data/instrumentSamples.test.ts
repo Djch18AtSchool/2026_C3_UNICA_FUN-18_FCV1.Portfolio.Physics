@@ -7,7 +7,10 @@ import { halfWaveCorrelation, oddEvenPowerDb, synthesize } from '../physics/harm
 import {
   INSTRUMENT_SAMPLES,
   parseInstrumentHarmonics,
+  periodMs,
+  recordingText,
   spokenFlat,
+  toClipTime,
   typesetFlat,
   type InstrumentId,
 } from './instrumentSamples';
@@ -281,5 +284,33 @@ describe('the flat sign, which IBM Plex does not draw', () => {
     expect(spokenFlat(clarinete.name)).toBe('Clarinete en si bemol');
     expect(spokenFlat('mi♭4')).toBe('mi bemol 4');
     expect(typesetFlat(flauta.name)).toBe('Flauta');
+  });
+});
+
+describe('the recordings: performer, date and the original format (research §3.2)', () => {
+  test('one text per recording, the model only where the MIS gives it', () => {
+    expect(recordingText(flauta)).toBe('Sonja Feig, abril de 2000');
+    expect(recordingText(clarinete)).toBe(
+      'Christine Bellomy, clarinete Buffet R13, 3 de agosto de 1998',
+    );
+  });
+
+  test('both originals are AIFF, 24 bits at 44,1 kHz with two identical channels, the rate the analysis decoded', () => {
+    for (const sample of [flauta, clarinete]) {
+      expect(sample.original).toEqual({
+        container: 'AIFF',
+        bitDepth: 24,
+        sampleRateHz: 44100,
+        channels: 2,
+        identicalChannels: true,
+      });
+      expect(sample.waveform.sampleRate).toBe(sample.original.sampleRateHz);
+    }
+  });
+
+  test('the period in ms and a time of the AIFF on the clip’s timeline', () => {
+    expect(periodMs(clarinete)).toBeCloseTo(1000 / clarinete.f1, 12);
+    expect(toClipTime(clarinete, 0.83)).toBeCloseTo(0.45, 12);
+    expect(toClipTime(flauta, 0.1)).toBe(0);
   });
 });

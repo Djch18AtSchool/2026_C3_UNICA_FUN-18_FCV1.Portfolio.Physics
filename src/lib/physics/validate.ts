@@ -20,3 +20,10 @@ export function requireNonNegative(name: string, value: number): void {
     throw new RangeError(`${name} must be 0 or greater, got ${value}`);
   }
 }
+
+/** Throws a RangeError unless `value` is an integer greater than 0 (a count, an index n). */
+export function requirePositiveInteger(name: string, value: number): void {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new RangeError(`${name} must be a positive integer, got ${value}`);
+  }
+}

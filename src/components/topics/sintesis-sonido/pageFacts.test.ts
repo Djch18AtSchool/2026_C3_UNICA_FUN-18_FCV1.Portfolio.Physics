@@ -7,13 +7,9 @@ import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { INSTRUMENT_SAMPLES } from '../../../lib/data/instrumentSamples';
 import { formatNumber } from '../../../lib/format';
-import {
-  cents,
-  chromiumPeriodicWaveMemory,
-  classicAmplitudes,
-  maxHarmonicBelowNyquist,
-  pipeLength,
-} from '../../../lib/physics/harmonics';
+import { chromiumPeriodicWaveMemory } from '../../../lib/audio/periodicWaveMemory';
+import { cents, classicAmplitudes, maxHarmonicBelowNyquist } from '../../../lib/physics/harmonics';
+import { pipeLength } from '../../../lib/physics/pipes';
 import { RECIPE_F1, recipeHalfWave, SOUND_SPEED } from './soundPlots';
 
 const MDX = readFileSync(join(process.cwd(), 'src/content/topics/sintesis-sonido.mdx'), 'utf8');

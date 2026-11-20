@@ -5,21 +5,20 @@
  */
 import {
   INSTRUMENT_SAMPLES,
+  periodMs,
+  recordingText,
   typesetFlat,
   type InstrumentId,
   type InstrumentSample,
 } from '../../data/instrumentSamples';
-import { formatNumber } from '../../format';
+import { formatFixed as fixed } from '../../format';
 import { classicAmplitudes, type ClassicWave } from '../../physics/harmonics';
 import type { DataTableSpec, TableColumn } from '../types';
 
 const HARMONICS = 12;
-const MS_PER_S = 1000;
 const IDS: readonly InstrumentId[] = ['flauta', 'clarinete'];
 const { flauta, clarinete } = INSTRUMENT_SAMPLES;
 
-const fixed = (value: number, precision: number, unit?: string) =>
-  formatNumber(value, { precision, unit });
 const label = (sample: InstrumentSample) => typesetFlat(sample.name);
 
 const WAVES: readonly { wave: ClassicWave; label: string }[] = [
@@ -105,12 +104,16 @@ const ARMONICOS: DataTableSpec = {
   },
 };
 
-const PERFORMERS: Readonly<Record<InstrumentId, string>> = {
-  flauta: 'Sonja Feig, abril de 2000',
-  clarinete: 'Christine Bellomy, 3 de agosto de 1998; Buffet R13',
-};
 const span = ({ startS, endS }: { startS: number; endS: number }) => fixed(endS - startS, 2, 's');
 const PERMISSION = `«${flauta.license}»`;
+
+const CHANNEL_WORDS: Readonly<Record<number, string>> = { 1: 'un canal', 2: 'dos canales' };
+
+/** «AIFF de 24 bits a 44 100 Hz, dos canales idénticos», from the format research §3.2 records. */
+function originalFormatText(format: InstrumentSample['original']): string {
+  const channels = CHANNEL_WORDS[format.channels] ?? `${format.channels} canales`;
+  return `${format.container} de ${format.bitDepth} bits a ${fixed(format.sampleRateHz, 0, 'Hz')}, ${channels}${format.identicalChannels ? ' idénticos' : ''}`;
+}
 
 /** One row of the sample table: a datum and its value for each recording. */
 function row(datum: string, value: (sample: InstrumentSample) => string) {
@@ -128,13 +131,10 @@ const MUESTRAS: DataTableSpec = {
   ],
   rows: [
     row('Archivo del MIS', (s) => s.file),
-    row('Intérprete y fecha', (s) => PERFORMERS[s.id]),
-    row(
-      'Formato del original',
-      (s) => `AIFF de 24 bits a ${fixed(s.waveform.sampleRate, 0, 'Hz')}, dos canales idénticos`,
-    ),
+    row('Intérprete y fecha', recordingText),
+    row('Formato del original', (s) => originalFormatText(s.original)),
     row('Fundamental $f_1$', (s) => fixed(s.f1, 2, 'Hz')),
-    row('Periodo $T = 1/f_1$', (s) => fixed(MS_PER_S / s.f1, 3, 'ms')),
+    row('Periodo $T = 1/f_1$', (s) => fixed(periodMs(s), 3, 'ms')),
     row('Impares sobre pares ($n \\le 10$)', (s) => fixed(s.oddEvenDb, 1, 'dB')),
     row('Correlación de $y(t)$ y $-y(t + T/2)$', (s) => fixed(s.halfWaveCorrelation, 3)),
     row('Ataque, 10 → 90 %', (s) => fixed(s.attackS, 2, 's')),

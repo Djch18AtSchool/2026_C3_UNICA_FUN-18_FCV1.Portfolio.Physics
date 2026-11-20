@@ -59,18 +59,20 @@ export default function WaveformPlot({
   showShifted = true,
   testId,
 }: WaveformPlotProps): JSX.Element {
-  const series: PlotSeries[] = [
-    { id: 'senal', label: 'Señal $y(t)$', points: data.signal, color: SIGNAL_COLOR },
-  ];
-  if (showShifted) {
-    series.push({
-      id: 'media-onda',
-      label: 'Medio periodo después, invertida: $-y(t + T/2)$',
-      points: data.shifted,
-      color: SHIFTED_COLOR,
-      dashed: true,
-    });
-  }
+  const signal: PlotSeries = {
+    id: 'senal',
+    label: 'Señal $y(t)$',
+    points: data.signal,
+    color: SIGNAL_COLOR,
+  };
+  const shifted: PlotSeries = {
+    id: 'media-onda',
+    label: 'Medio periodo después, invertida: $-y(t + T/2)$',
+    points: data.shifted,
+    color: SHIFTED_COLOR,
+    dashed: true,
+  };
+  const series = showShifted ? [signal, shifted] : [signal];
   return (
     <SvgPlot
       title={title}

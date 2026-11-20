@@ -2,7 +2,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import { plexViolations } from '../../../test-glyphs';
-import PipeModes from './PipeModes';
+import PipeModes, { pipeModesDescription } from './PipeModes';
 import { EVEN_COLOR, ODD_COLOR } from './soundPlots';
 import { paints, plain } from './soundTestKit';
 
@@ -56,5 +56,13 @@ describe('PipeModes', () => {
 
     expect(plexViolations(container)).toEqual([]);
     expect(paints(container).filter((paint) => /#[0-9a-f]{3,8}\b/i.test(paint))).toEqual([]);
+  });
+});
+
+describe('pipeModesDescription', () => {
+  test('reads both pipes from their data: lengths, modes and frequencies', () => {
+    expect(plain(pipeModesDescription())).toBe(
+      'Tres primeros modos de dos tubos ideales con fundamental de 310 Hz, a la misma escala. Abierto en los dos extremos, de 0,55 m: n = 1, 2 y 3, a 310, 620 y 930 Hz, con vientres de desplazamiento en ambos extremos. Cerrado en un extremo, de 0,27 m: solo n = 1, 3 y 5, a 310, 930 y 1 550 Hz, con un nodo en el extremo cerrado y un vientre en el abierto.',
+    );
   });
 });

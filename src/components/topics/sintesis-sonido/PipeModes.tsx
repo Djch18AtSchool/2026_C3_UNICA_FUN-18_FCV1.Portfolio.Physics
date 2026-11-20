@@ -8,7 +8,7 @@ import {
 } from '../../charts/chartTheme';
 import MathText from '../../lab/MathText';
 import { formatNumber } from '../../../lib/format';
-import type { PipeKind } from '../../../lib/physics/harmonics';
+import type { PipeKind } from '../../../lib/physics/pipes';
 import { EVEN_COLOR, ODD_COLOR, pipeDrawing, type ModeCurve } from './soundPlots';
 
 /** A phone's column: the labels are 12 and 13 px there, and grow with the drawing up to 448 px. */
@@ -40,6 +40,19 @@ const PANELS: readonly { kind: PipeKind; title: string }[] = [
 
 const metres = (value: number) => formatNumber(value, { precision: 2, unit: 'm' });
 const hertz = (value: number) => formatNumber(value, { precision: 0, unit: 'Hz' });
+
+/** «1, 2 y 3»: a short list as Spanish says it. */
+const spokenList = (items: readonly (number | string)[]) =>
+  items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} y ${items.at(-1)}`;
+
+/** What a screen reader hears: both pipes, their lengths and modes, read from pipeDrawing(). */
+export function pipeModesDescription(): string {
+  const open = pipeDrawing('abierto');
+  const closed = pipeDrawing('cerrado');
+  const modes = ({ modes: list }: ReturnType<typeof pipeDrawing>) =>
+    `n = ${spokenList(list.map(({ n }) => n))}, a ${spokenList(list.map(({ frequency }) => formatNumber(frequency, { precision: 0 })))} Hz`;
+  return `Tres primeros modos de dos tubos ideales con fundamental de ${hertz(open.modes[0].frequency)}, a la misma escala. Abierto en los dos extremos, de ${metres(open.length)}: ${modes(open)}, con vientres de desplazamiento en ambos extremos. Cerrado en un extremo, de ${metres(closed.length)}: solo ${modes(closed)}, con un nodo en el extremo cerrado y un vientre en el abierto.`;
+}
 
 /** The two mirrored curves ±(displacement amplitude) of one mode inside its tube. */
 function ModeRow({ mode, centre }: { mode: ModeCurve; centre: number }): JSX.Element {
@@ -180,7 +193,7 @@ export default function PipeModes(): JSX.Element {
     <svg
       data-testid="pipe-modes"
       role="img"
-      aria-label="Tres primeros modos de dos tubos ideales con fundamental de 310 Hz, a la misma escala. Abierto en los dos extremos, de 0,55 m: n = 1, 2 y 3, a 310, 620 y 930 Hz, con vientres de desplazamiento en ambos extremos. Cerrado en un extremo, de 0,27 m: solo n = 1, 3 y 5, a 310, 930 y 1 550 Hz, con un nodo en el extremo cerrado y un vientre en el abierto."
+      aria-label={pipeModesDescription()}
       viewBox={`0 0 ${VIEW_WIDTH} ${height}`}
       width="100%"
       className="mx-auto block h-auto max-w-md"
