@@ -57,6 +57,7 @@ const MIGRATED_LABS: ReadonlySet<string> = new Set([
   'spring-lab',
   'synth-lab',
   'resonance-lab',
+  'cooling-lab',
 ]);
 /** One column at every width: two desktops, below lg (no topic bar), 200 % zoom and two phones. */
 const VIEWPORTS = [

@@ -52,9 +52,11 @@ function contrast(a: string, b: string): number {
 
 /**
  * Labs with a draggable knob in their canvas: not Temas 4 and 6, nor Tema 10, whose canvas only
- * plays the cards (its one drag is the plot's time cursor, outside the canvas).
+ * plays the cards (its one drag is the plot's time cursor, outside the canvas), nor Tema 13, whose
+ * canvas is the rack drawing (its one drag is the pump chart's cursor, a support plot outside the
+ * canvas).
  */
-const KNOB_LABS = TOPIC_PAGES.filter(({ number }) => ![4, 6, 10].includes(number));
+const KNOB_LABS = TOPIC_PAGES.filter(({ number }) => ![4, 6, 10, 13].includes(number));
 const AXIS_CURSORS = ['ew-resize', 'ns-resize'];
 
 /**
@@ -167,6 +169,7 @@ const LEGENDS: readonly LegendCase[] = [
     topic: 12,
     title: 'Curva de resonancia: la (12.3) y lo que traza',
   },
+  { name: 'la gráfica de la bomba del laboratorio', topic: 13, title: 'Bomba del CDU' },
 ];
 
 /** How many of the figure's series are drawn highlighted and faded. */

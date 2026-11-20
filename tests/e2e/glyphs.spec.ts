@@ -216,6 +216,40 @@ const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
       },
     ],
   ],
+  // The worst server short of its minimum (its chip and the shortfall), reverse return (the
+  // «peor servido» readout, the outlet on top) and a single server on a 1/4″ hose at full flow
+  // (no published pump curve reaches the duty point).
+  'enfriamiento-liquido': [
+    [
+      'el servidor más lejano no llega a su mínimo',
+      async (_page, lab) => {
+        const field = lab.getByRole('textbox', { name: /^Caudal de la bomba por rack/ });
+        await field.fill('150');
+        await field.press('Enter');
+        await expect(lab.getByTestId('cooling-status')).toContainText('no llega a su mínimo');
+      },
+    ],
+    [
+      'retorno invertido',
+      async (_page, lab) => {
+        await lab.getByRole('radio', { name: 'Invertido' }).check({ force: true });
+        await expect(lab.getByTestId('cooling-status')).toContainText('peor servido');
+      },
+    ],
+    [
+      'un servidor con manguera de 1/4″ a 300 L/min',
+      async (_page, lab) => {
+        const servers = lab.getByRole('textbox', { name: /^Servidores en el rack/ });
+        await servers.fill('1');
+        await servers.press('Enter');
+        await lab.getByRole('radio', { name: /^1\/4″/ }).check({ force: true });
+        const flow = lab.getByRole('textbox', { name: /^Caudal de la bomba por rack/ });
+        await flow.fill('300');
+        await flow.press('Enter');
+        await expect(lab.getByTestId('cooling-pump-note')).toContainText('Ninguna curva publicada');
+      },
+    ],
+  ],
 };
 
 /** Steps that choose each option of a select, by value. */
