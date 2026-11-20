@@ -1,5 +1,5 @@
 /**
- * Measures the playback cost of the seven clocked laboratories against a running `astro preview`:
+ * Measures the playback cost of the clocked laboratories (tests/e2e/labMetrics CLOCKED_LABS) against a running `astro preview`:
  *
  *   pnpm run build && pnpm run preview --port 4324
  *   pnpm run measure:labs http://localhost:4324/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics/
