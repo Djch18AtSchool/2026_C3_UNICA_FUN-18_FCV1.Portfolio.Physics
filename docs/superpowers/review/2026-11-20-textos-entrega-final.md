@@ -2036,3 +2036,12 @@ usan; ninguna frase de prosa nombraba esos símbolos.
     $E(t) = V_1 + (V_0 - V_1)\,e^{-(t - T_0)/\tau}$ → $E(t) = V_1 + (V_0 - V_1)\,e^{-(t - t_0)/\tau}$.
 26. `src/content/topics/sintesis-sonido.mdx:302`, leyenda de la (11.7): «$T_0$: instante en que empieza la rampa» →
     «$t_0$: instante en que empieza la rampa».
+
+### 8. Tema 5: enlace recíproco con el Tema 10
+
+El actuador del Tema 5 y el resorte del Tema 10 son el mismo oscilador, y el Tema 10 ya enlazaba al 5. El mapa de
+«Qué aprendí» no cambia: ya dibujaba la conexión 5–10 porque la declaraba el Tema 10. La fecha de actualización del
+Tema 5 ya era el 20 de noviembre de 2026.
+
+27. `src/content/topics/control-haptico.mdx:65-73` (Tema 5), «Conexiones», lista «Con otros temas»: «Tema 4, Tema 3,
+    Tema 7, Tema 11, Tema 12» → «Tema 4, Tema 3, Tema 7, Tema 10, Tema 11, Tema 12».

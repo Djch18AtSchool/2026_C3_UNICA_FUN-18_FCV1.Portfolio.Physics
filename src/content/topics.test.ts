@@ -113,6 +113,14 @@ describe('topic files', () => {
     file: matter(readFileSync(join(TOPICS_DIR, fileName), 'utf8')),
   }));
 
+  // Spec §6: the haptic actuator of Tema 5 and the spring of Tema 10 are the same oscillator.
+  test('el Tema 5 y el Tema 10 se enlazan en los dos sentidos', () => {
+    const relatedOf = (slug: string) => topicSchema.parse(readFrontmatter(`${slug}.mdx`)).related;
+
+    expect(relatedOf('control-haptico')).toContain('animaciones-resorte');
+    expect(relatedOf('animaciones-resorte')).toContain('control-haptico');
+  });
+
   test('ningún tema dice haberse actualizado antes de la última fuente que consultó', () => {
     for (const fileName of fileNames) {
       const data = topicSchema.parse(readFrontmatter(fileName));
