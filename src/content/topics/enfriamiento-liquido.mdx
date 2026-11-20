@@ -356,13 +356,14 @@ Con placas, el caudal varía un 0,27 % entre servidores; sin ellas, un 1,0 %. Si
   showBadge={false}
   caption="Laboratorio del circuito de un rack con las ecuaciones (13.1) a (13.4): elige el caudal de la bomba, los servidores, su manguera y el retorno, y se recalculan el reparto, el perfil y el punto de operación sobre las curvas de la bomba de Deschutes. Con $\Delta p \propto Q^{1{,}9}$, la potencia $P = \Delta p\,Q$ crece como $Q^{2{,}9}$: subir el caudal un 46 % triplica el bombeo."
   source={{
-    text: 'Simulé el circuito con las ecuaciones (13.1) a (13.4) y los parámetros de las tablas 13.1 a 13.3; curvas de la bomba: Google, Project Deschutes (OCP, 2026), fig. 5.1.1; mínimo de cada servidor: la regla de OCP sobre el rack MGX de NVIDIA, 120 kW con el 85 % al líquido',
+    text: 'Simulé el circuito con las ecuaciones (13.1) a (13.4) y los parámetros de las tablas 13.1 a 13.3; curvas de la bomba: Google, Project Deschutes (OCP, 2026), fig. 5.1.1; objetivo de cada servidor: la regla de OCP sobre el rack MGX de NVIDIA, 120 kW con el 85 % al líquido',
+    url: 'https://www.opencompute.org/documents/ocp-specification-deschutes-v1-0-pdf',
   }}
 >
   <CoolingLab
     client:visible
-    usage="El dibujo del rack, las lecturas, el reparto, el punto de operación y el perfil se recalculan con cada control. Las fichas sobre el dibujo dicen si el servidor que menos recibe llega a su mínimo y si cada UQD04 pasa de su caudal nominal; el perfil tiene las tres vistas de la figura 13.2."
-    leftOut="La placa fría sigue la ley $\Delta p = R\,Q^{\,n}$ con los 1,2 bar de diseño de GF, no una curva medida. El mínimo de cada servidor reparte por igual el calor que el líquido saca de un rack MGX. El fluido está a 40 °C en todo el lazo y los racks del CDU son iguales; el perfil y la curva del circuito usan el caudal medio de cada servidor, y el reparto deja fuera la recuperación de presión en el manifold. Sin transitorios ni golpe de ariete."
+    usage="El dibujo del rack, las lecturas, el reparto, el punto de operación y el perfil se recalculan con cada control. Las fichas sobre el dibujo dicen si el servidor que menos recibe alcanza el objetivo de diseño de OCP y si cada UQD04 pasa de su caudal nominal; el perfil tiene las tres vistas de la figura 13.2."
+    leftOut="La placa fría sigue la ley $\Delta p = R\,Q^{\,n}$ con los 1,2 bar de diseño de GF, no una curva medida. El objetivo de diseño de cada servidor reparte por igual el calor que el líquido saca de un rack MGX. El fluido está a 40 °C en todo el lazo y los racks del CDU son iguales; el perfil y la curva del circuito usan el caudal medio de cada servidor, y el reparto deja fuera la recuperación de presión en el manifold. Sin transitorios ni golpe de ariete."
   />
 </Figure>
 

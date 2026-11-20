@@ -1205,48 +1205,48 @@ Frontmatter:
 
 Prosa:
 
-8. `:130` entrada — nuevo: «Un rack de IA de clase NVIDIA GB200 NVL72 disipa unos 120 kW [1] con líquido que pasa por
+8. `:131` entrada — nuevo: «Un rack de IA de clase NVIDIA GB200 NVL72 disipa unos 120 kW [1] con líquido que pasa por
    placas frías. Sigo un litro desde la bomba hasta el servidor más lejano y de vuelta.»
-9. `:132` título del paso 1 — nuevo: «El caudal se conserva».
-10. `:134` — nuevo: «Uso el circuito RD109 de Schneider Electric [2], analizado por GF [3]: un CDU entrega 23 L/s a 8
+9. `:133` título del paso 1 — nuevo: «El caudal se conserva».
+10. `:135` — nuevo: «Uso el circuito RD109 de Schneider Electric [2], analizado por GF [3]: un CDU entrega 23 L/s a 8
     racks de 24 servidores. NVIDIA no publica el caudal por bandeja: reparto por igual los 23 L/s; la regla de OCP,
     1,5 L/min por kW [4], que tomo como dato, da lo que pide cada uno.»
-11. `:141-147` símbolos de la (13.1) — nuevo: $Q$ «caudal: volumen por unidad de tiempo; en las tablas, en L/min»; $A$
+11. `:142-148` símbolos de la (13.1) — nuevo: $Q$ «caudal: volumen por unidad de tiempo; en las tablas, en L/min»; $A$
     «área de la sección»; $v$ «velocidad media del líquido en la sección»; $D$ «diámetro interior del tramo».
-12. `:155` Por qué, fenómeno — nuevo: «Donde la tubería se estrecha, el líquido va más rápido; en cada derivación, el
+12. `:156` Por qué, fenómeno — nuevo: «Donde la tubería se estrecha, el líquido va más rápido; en cada derivación, el
     caudal se reparte.»
-13. `:161` Por qué, ecuación — nuevo: «Cada servidor recibe $q$ = 7,19 L/min: 1,69 m/s en su manguera de 9,5 mm y
+13. `:162` Por qué, ecuación — nuevo: «Cada servidor recibe $q$ = 7,19 L/min: 1,69 m/s en su manguera de 9,5 mm y
     2,91 m/s en la boca de 7,24 mm del conector UQD04. Modelo simple: cada servidor recibe su parte.»
-14. `:170` pie de la figura 13.1 — nuevo: «Continuidad: velocidad media frente al área de las secciones del circuito RD109,
+14. `:171` pie de la figura 13.1 — nuevo: «Continuidad: velocidad media frente al área de las secciones del circuito RD109,
     con el eje de áreas logarítmico. Cada caudal fija una hipérbola $v = Q/A$; el manifold baja de la del rack a la de
     un servidor a medida que reparte el caudal.»
-15. `:172` fuente de la figura 13.1 — nuevo: «Calculé las velocidades con la ecuación (13.1); caudales de GF para el RD109
+15. `:173` fuente de la figura 13.1 — nuevo: «Calculé las velocidades con la ecuación (13.1); caudales de GF para el RD109
     y diámetros de GF, OCP y NVIDIA MGX (tablas 13.1 a 13.3)».
-16. `:182` título del paso 2 — nuevo: «Bernoulli: donde la velocidad sube, la presión baja».
-17. `:184` — nuevo: «La (13.2) es el teorema trabajo–energía por unidad de volumen de un fluido ideal; como el libro [5],
+16. `:183` título del paso 2 — nuevo: «Bernoulli: donde la velocidad sube, la presión baja».
+17. `:185` — nuevo: «La (13.2) es el teorema trabajo–energía por unidad de volumen de un fluido ideal; como el libro [5],
     escribo la altura $y$.»
-18. `:190-197` símbolos de la (13.2) — nuevo: $p$ «presión absoluta»; $\rho$ «densidad del PG25 a 40 °C, 1 010,6 kg/m³
+18. `:191-198` símbolos de la (13.2) — nuevo: $p$ «presión absoluta»; $\rho$ «densidad del PG25 a 40 °C, 1 010,6 kg/m³
     (tabla 13.1)»; $g$ «aceleración de la gravedad, 9,81 m/s²»; $y$ «altura del punto».
-19. `:205` Por qué, fenómeno — nuevo: «Al entrar al conector, el líquido acelera y su presión baja; al subir, también.»
-20. `:211` Por qué, ecuación — nuevo: «De la manguera al conector, la presión baja $\tfrac12\rho(v_2^2 - v_1^2)$ =
+19. `:206` Por qué, fenómeno — nuevo: «Al entrar al conector, el líquido acelera y su presión baja; al subir, también.»
+20. `:212` Por qué, ecuación — nuevo: «De la manguera al conector, la presión baja $\tfrac12\rho(v_2^2 - v_1^2)$ =
     2,8 kPa; al subir 1,07 m de manifold, $\rho g\,\Delta y$ = 10,6 kPa. Sin pérdidas, ambas se recuperan y la presión
     vuelve a 400 kPa al cerrar el lazo.»
-21. `:219` pie de la figura 13.2 (el recurso prescrito) — nuevo: «Velocidad y presión a lo largo del recorrido de un
+21. `:220` pie de la figura 13.2 (el recurso prescrito) — nuevo: «Velocidad y presión a lo largo del recorrido de un
     litro de PG25, del CDU al servidor 24 (el de arriba) y de vuelta, con retorno directo. La presión ideal de
     Bernoulli, discontinua, vuelve a 400 kPa; la real, continua, llega con 1,80 bar menos. Debajo, cada tramo con su
     sección; los parámetros están en las tablas 13.1 a 13.3.»
-22. `:221` fuente de la figura 13.2 — nuevo: «Calculé el perfil con las ecuaciones (13.1) a (13.3): circuito RD109 de
+22. `:222` fuente de la figura 13.2 — nuevo: «Calculé el perfil con las ecuaciones (13.1) a (13.3): circuito RD109 de
     Schneider Electric con los caudales, los diámetros y la caída de la placa de GF; UQD04 de OCP v2.0.0 y su $C_v$ de
     Amphenol; manifold MGX de NVIDIA (OCP); PG25 a 40 °C con los polinomios de Melinder de la Modelica Buildings Library
     de LBNL; rugosidad y $K$ de EPANET».
-23. `:231` título del paso 3 — nuevo: «Por qué no basta: la fricción y los accesorios disipan energía».
-24. `:233` — nuevo: «Paso a presiones la ecuación generalizada de la clase. Para Darcy–Weisbach y los $K$ de los
+23. `:232` título del paso 3 — nuevo: «Por qué no basta: la fricción y los accesorios disipan energía».
+24. `:234` — nuevo: «Paso a presiones la ecuación generalizada de la clase. Para Darcy–Weisbach y los $K$ de los
     accesorios uso los valores de EPANET [6]; los conectores dan $C_v$ [7], y la placa fría, los 1,2 bar de diseño de
     GF, no una curva medida.»
-25. `:237` la (13.3), en cuatro líneas — nuevo: la ecuación generalizada en presiones, y
+25. `:238` la (13.3), en cuatro líneas — nuevo: la ecuación generalizada en presiones, y
     $\rho g h_L = \sum f\,\tfrac{L}{D}\,\tfrac12\rho v^2 + \sum K\,\tfrac12\rho v^2 + \sum \Delta p_{C_v} +
     \Delta p_\text{placa}$, con $\mathrm{Re} = \rho v D/\mu$.
-26. `:239-262` símbolos de la (13.3) — nuevo:
+26. `:240-263` símbolos de la (13.3) — nuevo:
     - $h_b$ «altura que da la bomba»;
     - $h_L$ «pérdida de carga entre los dos puntos»;
     - $f$ «factor de fricción de Darcy: $64/\mathrm{Re}$ bajo 2300 y la fórmula de Swamee y Jain sobre 4000, como
@@ -1258,9 +1258,9 @@ Prosa:
     - $\Delta p_\text{placa}$ «caída de la placa fría, $R\,Q^n$ con los 1,2 bar de GF; con los dos conectores suma 1,50
       de los 1,80 bar»;
     - $\mu$ «viscosidad del PG25 a 40 °C, 1,394 mPa·s (tabla 13.1)».
-27. `:272` Por qué, fenómeno — nuevo: «La viscosidad y los remolinos convierten energía mecánica en interna: esa presión
+27. `:273` Por qué, fenómeno — nuevo: «La viscosidad y los remolinos convierten energía mecánica en interna: esa presión
     no vuelve, y la bomba la repone.»
-28. `:278` Por qué, ecuación — nuevo: «La tubería principal va a $\mathrm{Re}$ = 162 000, turbulenta; el último tramo del
+28. `:279` Por qué, ecuación — nuevo: «La tubería principal va a $\mathrm{Re}$ = 162 000, turbulenta; el último tramo del
     manifold, a unos 2 100, laminar. Cada UQD04 pierde 15,1 kPa, 5,3 veces su caída reversible, y la placa, 120 kPa:
     1,80 bar en total, 9,2 % menos que los 1,98 bar de GF (tabla 13.4).»
 29. `:288` pie de la figura 13.3 (Task 14: «en barras… en puntos» se confundía con la barra de unidades) — antes:
@@ -1268,38 +1268,38 @@ Prosa:
     publica GF, en puntos, con los grupos de la tabla 13.4.» → después: «Dónde se va la presión hasta el servidor más
     lejano: mi cálculo por grupo de pérdidas, como barras, frente a lo que publica GF, como puntos, con los grupos de la
     tabla 13.4.»
-30. `:289` fuente de la figura 13.3 — nuevo: «Calculé las pérdidas con las ecuaciones (13.1) a (13.3) y los parámetros de
+30. `:290` fuente de la figura 13.3 — nuevo: «Calculé las pérdidas con las ecuaciones (13.1) a (13.3) y los parámetros de
     las tablas 13.1 a 13.3; valores publicados: GF Piping Systems (2026), fig. 2, configuración de polímero».
-31. `:302` título del paso 4 — nuevo: «Servidores en paralelo: ¿le llega a todos?».
-32. `:304` — nuevo: «Cada servidor es una rama entre los dos manifolds. Con retorno directo, entrada y salida quedan
+31. `:303` título del paso 4 — nuevo: «Servidores en paralelo: ¿le llega a todos?».
+32. `:305` — nuevo: «Cada servidor es una rama entre los dos manifolds. Con retorno directo, entrada y salida quedan
     abajo y el servidor de abajo tiene el camino más corto; con retorno invertido, la salida está arriba y los caminos
     se igualan.»
-33. `:311-321` símbolos de la (13.4) — nuevo:
+33. `:312-322` símbolos de la (13.4) — nuevo:
     - $\Delta p_i$ «caída en la rama del servidor $i$, de un manifold al otro»;
     - $R_i$ «resistencia de la rama, $R_i = \Delta p_\text{diseño}/Q_\text{diseño}^{\,n}$: la suma de sus pérdidas al
       caudal de diseño, dividida entre ese caudal elevado a $n$»;
     - $n$ «exponente: 1,85 con placa fría (Modelica Buildings), 2 sin ella»;
     - $N$ «servidores del rack, 24».
-34. `:329` Por qué, fenómeno — nuevo: «Si el manifold pierde presión, la rama más cercana recibe más; una rama muy
+34. `:330` Por qué, fenómeno — nuevo: «Si el manifold pierde presión, la rama más cercana recibe más; una rama muy
     resistente, como la placa fría, iguala el reparto.»
-35. `:335` Por qué, ecuación — nuevo: «Con placas, el caudal varía un 0,27 % entre servidores; sin ellas, un 1,0 %. Si el
+35. `:336` Por qué, ecuación — nuevo: «Con placas, el caudal varía un 0,27 % entre servidores; sin ellas, un 1,0 %. Si el
     peor servidor no llega a su mínimo, hay que subir el caudal total, y con $\Delta p \propto Q^{1{,}9}$ la potencia
     $P = \Delta p\,Q$ crece como $Q^{2{,}9}$.»
-36. `:344` pie de la figura 13.4 — nuevo: «Caudal por servidor del rack de 24 con retorno directo (continua) e invertido
+36. `:345` pie de la figura 13.4 — nuevo: «Caudal por servidor del rack de 24 con retorno directo (continua) e invertido
     (discontinua), con placas frías y sin ellas, solo mangueras y conectores. Debajo, el banco de NVIDIA y UT
     Arlington: 6 puertos sin placas a 49,5 L/min, su modelo de red (línea) y su medición (puntos).»
-37. `:346` fuente de la figura 13.4 — nuevo: «Calculé los repartos con la ecuación (13.4) sobre el manifold MGX (tablas
+37. `:347` fuente de la figura 13.4 — nuevo: «Calculé los repartos con la ecuación (13.4) sobre el manifold MGX (tablas
     13.2 y 13.3); modelo de red y medición: Shahi et al. (2023), fig. 5 y fig. 4, esta en lectura aproximada».
-38. `:359` caso de uso, el caso — nuevo: «Google publicó en OCP su CDU Project Deschutes: 500 GPM a 80–90 psi, con la
+38. `:376` caso de uso, el caso — nuevo: «Google publicó en OCP su CDU Project Deschutes: 500 GPM a 80–90 psi, con la
     bomba a $\Delta p$ fijo [12]. La Modelica Buildings Library v14.0.0 de LBNL modela este sistema en
     `Buildings.Fluid.DataCenters` [10].»
-39. `:365` caso de uso, la ecuación — nuevo: «Cada pieza sigue $\Delta p \propto \dot m^{\,n}$, como la (13.4), con
+39. `:382` caso de uso, la ecuación — nuevo: «Cada pieza sigue $\Delta p \propto \dot m^{\,n}$, como la (13.4), con
     $n$ = 1,85 en la placa; la tubería, Darcy–Weisbach; y la bomba da la suma de las caídas en serie
     (`dpPumpExt_nominal`).»
-40. `:371` caso de uso, justificación — nuevo: «La alternativa no física es la regla fija: 1,5 L/min por kW da el caudal,
+40. `:388` caso de uso, justificación — nuevo: «La alternativa no física es la regla fija: 1,5 L/min por kW da el caudal,
     pero no la presión de la bomba ni el reparto. NVIDIA y UT Arlington validaron un modelo de red así, midiendo el
     caudal de cada puerto [13]: con el $C_v$ de catálogo, fallaba. EPANET resuelve lo mismo en acueductos.»
-41. `:393` caso de uso, balance (Task 14: el número sale del código y apunta a algo que el paso 4 muestra) — antes:
+41. `:394` caso de uso, balance (Task 14: el número sale del código y apunta a algo que el paso 4 muestra) — antes:
     «Se gana dar al servidor más lejano su caudal mínimo sin sobredimensionar la bomba: subir el caudal un 51 %
     triplicaría el bombeo (paso 4). Cuesta conocer el fluido, cuya viscosidad se divide entre 2,3 de 20 a 50 °C, estimar
     pérdidas locales y medir conectores.» → después: «… subir el caudal un 46 % triplicaría el bombeo (paso 4). …»
@@ -1308,11 +1308,11 @@ Prosa:
     el MDX). El 51 % de la investigación (§6, §7.3) era la sobreoferta de su caso de ramas desiguales, que multiplica la
     potencia por 3,32, no por 3. El pie del laboratorio (punto 123) lo repite, así que «(paso 4)» señala algo que el
     paso muestra. Mismo número de palabras: la prosa sigue en 647.
-42. `:383` título del recuadro de clase — nuevo: «Módulo 6 · Temas 1.2 a 1.4, con una extensión».
-43. `:385` recuadro de clase — nuevo: «La (13.1) y la (13.2) son las del Tema 1.2, con la altura $z$; la (13.3), la
+42. `:400` título del recuadro de clase — nuevo: «Módulo 6 · Temas 1.2 a 1.4, con una extensión».
+43. `:402` recuadro de clase — nuevo: «La (13.1) y la (13.2) son las del Tema 1.2, con la altura $z$; la (13.3), la
     ecuación generalizada del Tema 1.3, y $\mathrm{Re}$ usa los límites del Tema 1.4. La clase nombra Darcy–Weisbach,
     Moody y los accesorios; el $f$, los $K$ y el $C_v$ con que los calculo son extensión.»
-44. `:391` conexiones — nuevo: «Bernoulli es el teorema trabajo–energía del Tema 6 por unidad de volumen:
+44. `:408` conexiones — nuevo: «Bernoulli es el teorema trabajo–energía del Tema 6 por unidad de volumen:
     $P = \Delta p\,Q$ es la gemela de $P = F v$, y la pérdida de carga acaba en calor, como en el freno de fricción. A
     diferencia de la fricción seca del Tema 4, la viscosa depende de la rapidez.»
 
@@ -1399,12 +1399,12 @@ Prosa:
     - «Banco de 6 puertos sin placas frías a 49,5 L/min: el modelo de red de Shahi et al. baja de 8,97 L/min en el
       puerto 1 a 7,91 L/min en el 6; la medición varía sin orden entre 8,00 L/min y 8,54 L/min.»
 
-### Laboratorio (figura 13.5, paso 4, Task 14): `CoolingLab.tsx`, `RackDiagram.tsx`, `CoolingLabCharts.tsx`, `CoolingNotes.tsx`, `coolingLabText.ts`, `coolingLabPlots.ts`
+### Laboratorio (figura 13.5, paso 4, Task 14): `CoolingLab.tsx`, `RackDiagram.tsx`, `CoolingLabCharts.tsx`, `CoolingNotes.tsx`, `coolingLabText.ts`, `coolingLabReadings.ts`, `coolingLabPlots.ts`
 
-Todo "nuevo" salvo donde dice antes → después. Desde la Task 14, las líneas del MDX posteriores a la `:128` bajan una
-(el `import` del laboratorio) y las posteriores a la `:350`, dieciséis más (la figura del laboratorio): el punto 41 ya
-va con su línea nueva. Abreviaturas: `clt` = `coolingLabText.ts`, `clp` = `coolingLabPlots.ts`, `CLC` =
-`CoolingLabCharts.tsx`, `CN` = `CoolingNotes.tsx`, `RD` = `RackDiagram.tsx`, `CL` = `CoolingLab.tsx`.
+Todo "nuevo" salvo donde dice antes → después. Desde la ronda 1 de la Task 14, los puntos 8 a 44 de «Página» van con
+las líneas del MDX de hoy (el `import` del laboratorio y su figura las movieron). Abreviaturas: `clt` = `coolingLabText.ts`, `clp` = `coolingLabPlots.ts`, `CLC` =
+`CoolingLabCharts.tsx`, `CN` = `CoolingNotes.tsx`, `RD` = `RackDiagram.tsx`, `CL` = `CoolingLab.tsx`, `clr` =
+`coolingLabReadings.ts` (ronda 1: las frases que leen la escena salieron de `clt`).
 
 En la página (`src/content/topics/enfriamiento-liquido.mdx`):
 
@@ -1412,68 +1412,80 @@ En la página (`src/content/topics/enfriamiento-liquido.mdx`):
      caudal de la bomba, los servidores, su manguera y el retorno, y se recalculan el reparto, el perfil y el punto de
      operación sobre las curvas de la bomba de Deschutes. Con $\Delta p \propto Q^{1{,}9}$, la potencia
      $P = \Delta p\,Q$ crece como $Q^{2{,}9}$: subir el caudal un 46 % triplica el bombeo.»
-124. `:359` fuente de la figura 13.5 — nuevo: «Simulé el circuito con las ecuaciones (13.1) a (13.4) y los parámetros de
-     las tablas 13.1 a 13.3; curvas de la bomba: Google, Project Deschutes (OCP, 2026), fig. 5.1.1; mínimo de cada
-     servidor: la regla de OCP sobre el rack MGX de NVIDIA, 120 kW con el 85 % al líquido».
-125. `:364` «Cómo se usa», del MDX (va tras la línea del cursor, punto 140) — nuevo: «El dibujo del rack, las lecturas,
+124. `:359-360` fuente de la figura 13.5, enlazada a la especificación de Deschutes (ronda 1: ahora con `url`, como las
+     otras) — nuevo: «Simulé el circuito con las ecuaciones (13.1) a (13.4) y los parámetros de las tablas 13.1 a 13.3;
+     curvas de la bomba: Google, Project Deschutes (OCP, 2026), fig. 5.1.1; objetivo de cada servidor: la regla de OCP
+     sobre el rack MGX de NVIDIA, 120 kW con el 85 % al líquido».
+125. `:365` «Cómo se usa», del MDX (va tras la línea del cursor, punto 140) — nuevo: «El dibujo del rack, las lecturas,
      el reparto, el punto de operación y el perfil se recalculan con cada control. Las fichas sobre el dibujo dicen si el
-     servidor que menos recibe llega a su mínimo y si cada UQD04 pasa de su caudal nominal; el perfil tiene las tres
-     vistas de la figura 13.2.»
-126. `:365` «Qué deja fuera el modelo», del MDX — nuevo: «La placa fría sigue la ley $\Delta p = R\,Q^{\,n}$ con los
-     1,2 bar de diseño de GF, no una curva medida. El mínimo de cada servidor reparte por igual el calor que el líquido
-     saca de un rack MGX. El fluido está a 40 °C en todo el lazo y los racks del CDU son iguales; el perfil y la curva
-     del circuito usan el caudal medio de cada servidor, y el reparto deja fuera la recuperación de presión en el
-     manifold. Sin transitorios ni golpe de ariete.»
+     servidor que menos recibe alcanza el objetivo de diseño de OCP y si cada UQD04 pasa de su caudal nominal; el
+     perfil tiene las tres vistas de la figura 13.2.»
+126. `:366` «Qué deja fuera el modelo», del MDX (va tras los puntos 150 y 151) — nuevo: «La placa fría sigue la ley
+     $\Delta p = R\,Q^{\,n}$ con los 1,2 bar de diseño de GF, no una curva medida. El objetivo de diseño de cada
+     servidor reparte por igual el calor que el líquido saca de un rack MGX. El fluido está a 40 °C en todo el lazo y
+     los racks del CDU son iguales; el perfil y la curva del circuito usan el caudal medio de cada servidor, y el
+     reparto deja fuera la recuperación de presión en el manifold. Sin transitorios ni golpe de ariete.»
 
 El mando y las lecturas:
 
-127. `CL:177` título — nuevo: «Laboratorio del circuito de un rack».
-128. `CL:124-157` parámetros — nuevo: «Caudal de la bomba por rack $Q_\text{rack}$» (L/min, de 10,0 a 300,0),
+127. `CL:184` título — nuevo: «Laboratorio del circuito de un rack».
+128. `CL:128-160` parámetros — nuevo: «Caudal de la bomba por rack $Q_\text{rack}$» (L/min, de 10,0 a 300,0),
      «Servidores en el rack $N$» (de 1 a 44), «Manguera de cada servidor» y «Retorno».
-129. `clt:56-59` y `lc` (`SERVER_HOSES`) opciones de la manguera — nuevo: «1/4″ (6,35 mm)», «5/16″ (7,94 mm)», «3/8″
-     (9,5 mm)», «1/2″ (12,7 mm)»; `clt:61-64` del retorno: «Directo», «Invertido».
-130. `clt:87-102` preajustes — los nombres son los de `liquidCoolingCircuit.ts`: «Referencia: 24 servidores (RD109)» y
+129. `clt:58-61` y `lc` (`SERVER_HOSES`) opciones de la manguera — nuevo: «1/4″ (6,35 mm)», «5/16″ (7,94 mm)», «3/8″
+     (9,5 mm)», «1/2″ (12,7 mm)»; `clt:63-66` del retorno: «Directo», «Invertido».
+130. `clt:89-104` preajustes — los nombres son los de `liquidCoolingCircuit.ts`: «Referencia: 24 servidores (RD109)» y
      «MGX: 44 puertos». Fuentes: «GF Piping Systems (2026), tabla 1 y fig. 2; OCP, UQD v2.0.0, tabla 6» y «GF Piping
      Systems (2026), fig. 5; NVIDIA, MGX (OCP, 2024), fig. 7-13».
-131. `clt:78` nota del preajuste de referencia — nuevo: «Valida contra GF: hasta el servidor más lejano se pierden
+131. `clt:80` nota del preajuste de referencia — nuevo: «Valida contra GF: hasta el servidor más lejano se pierden
      ${…} [1,80] bar, frente a sus ${…} [1,98]; cada UQD04 lleva ${…} [7,19 L/min], más que sus ${…} [6,44 L/min]
      nominales.»
-132. `clt:83` nota del preajuste MGX — nuevo: «Los ${…} [170 L/min] del CFD de GF en los ${…} [44] puertos del manifold
+132. `clt:85` nota del preajuste MGX — nuevo: «Los ${…} [170 L/min] del CFD de GF en los ${…} [44] puertos del manifold
      MGX: cada UQD04 lleva ${…} [3,86 L/min], dentro de sus ${…} [6,44 L/min] nominales, y hasta el más lejano se
      pierden ${…} [1,52] bar.»
-133. `clt:202-209` lecturas — nuevo: «Caudal del servidor ${N}, el más lejano» (con retorno invertido, «Caudal del
-     servidor ${…}, el peor servido»: el que menos recibe ya no es el de arriba), «Mínimo de cada servidor, 1,5 L/min
-     por kW», «Caída hasta el más lejano $\Delta p$», «Potencia de bombeo del CDU $P = \Delta p\,Q$». En la referencia:
-     7,18 L/min, 6,38 L/min, 179,9 kPa y 4,14 kW.
+133. `clr:18-25` lecturas (ronda 1, R28: «Mínimo de cada servidor» pasa a objetivo) — nuevo: «Caudal del servidor
+     ${N}, el más lejano» (con retorno invertido, «Caudal del servidor ${…}, el peor servido»), «Objetivo de diseño de
+     OCP por servidor (1,5 L/min por kW)», «Caída hasta el más lejano $\Delta p$», «Potencia de bombeo del CDU
+     $P = \Delta p\,Q$». En la referencia: 7,18 L/min, 6,38 L/min, 179,9 kPa y 4,14 kW. El «1,5 L/min por kW» se
+     escribe desde `FLOW_PER_KW_LPM` (`clt:42`, `RULE`).
+149. `CL:162` y `clt:221-227` placa fría en uso, bajo los parámetros (ronda 1) — nuevo: «Placa fría de «${preajuste
+     base}»: 1,2 bar a ${…} [7,19 L/min], un supuesto; «${el otro}» trae la suya, a ${…} [3,86 L/min].»
 
-El lienzo (`RD`):
+El lienzo (`RD`, `clr`):
 
-134. `RD:233` y `clt:212-225` fichas, lista «Estado del circuito» — nuevo: «El reparto no converge con estos valores»
-     (solo entonces, la primera); «El servidor más lejano llega a su mínimo» / «… no llega a su mínimo» (o «El servidor
-     peor servido …»); «Cada UQD04 pasa de su caudal nominal» / «Cada UQD04 va dentro de su caudal nominal».
-135. `RD:43` aviso hablado (región de estado, oculta) — nuevo: «El reparto no converge con estos valores: el dibujo y las
-     lecturas son los del último reparto válido.»
-136. `RD:213-221` rótulos del dibujo — nuevo: «Entra», «Sale»; números de puerto: el 1, el último y, en negrita, el que
+134. `RD:181-197` y `clr:28-48` fichas, lista «Estado del circuito» (ronda 1: sin «mínimo», R28; el texto de una ficha
+     ya puede ocupar dos líneas) — nuevo:
+     - solo si el estado no tiene escena propia, primero: «El reparto no converge con estos valores» (solo cuando el
+       reparto no converge) o «Estos valores quedan fuera del modelo» (entrada fuera del modelo, una excepción de rango
+       o un número no finito);
+     - «El servidor más lejano alcanza el objetivo de diseño de OCP (1,5 L/min por kW)» / «El servidor más lejano está
+       por debajo del objetivo de diseño de OCP (1,5 L/min por kW)» (o «El servidor peor servido …»);
+     - «Cada UQD04 pasa de su caudal nominal» / «Cada UQD04 va dentro de su caudal nominal».
+135. `RD:45` aviso hablado (región de estado, oculta) — nuevo: «${el aviso de la ficha}: el dibujo y las lecturas son
+     los del último cálculo válido.»
+136. `RD:238-246` rótulos del dibujo — nuevo: «Entra», «Sale»; números de puerto: el 1, el último y, en negrita, el que
      menos recibe.
-137. `clt:259-264` nombre hablado del dibujo — nuevo: «Rack de ${…} servidores con retorno ${directo|invertido}: el líquido
+137. `clr:77-81` nombre hablado del dibujo — nuevo: «Rack de ${…} servidores con retorno ${directo|invertido}: el líquido
      entra abajo por el manifold de impulsión y sale ${abajo|arriba} por el de retorno. Cada barra es el caudal de un
-     servidor, y la línea discontinua, su mínimo de ${…} [6,38 L/min]. El servidor ${…} [24], el ${más lejano|peor
-     servido}, recibe ${…} [7,18 L/min].»
+     servidor, y la línea discontinua, el objetivo de diseño de OCP (1,5 L/min por kW): ${…} [6,38 L/min] por servidor.
+     El servidor ${…} [24], el ${más lejano|peor servido}, recibe ${…} [7,18 L/min].»
 
 Las gráficas de apoyo (`CLC`, `clp`):
 
-138. Reparto — título «Caudal de cada servidor y su mínimo» (`CLC:30`); ejes «Puerto $i$ (1 = abajo)» y «Caudal $q_i$
-     (L/min)»; leyenda «Caudal de cada servidor», «Mínimo de cada servidor, 1,5 L/min por kW» (`clp:54-57`); rótulo del
-     punto «${…} [24], el más lejano» (`clp:72`); nombre hablado: «Caudal de los ${…} servidores, de ${…} a ${…}, frente
-     a su mínimo de ${…}. Recibe menos el servidor ${…}.» (`CLC:39`).
-139. Bomba — título «Bomba del CDU: curvas de Deschutes y curva del circuito» (`CLC:61`); ejes «Caudal del CDU
+138. Reparto — título «Caudal de cada servidor frente al objetivo de OCP» (`CLC:62`); ejes «Puerto $i$ (1 = abajo)» y
+     «Caudal $q_i$ (L/min)»; leyenda «Caudal de cada servidor», «Objetivo de diseño de OCP, 1,5 L/min por kW»
+     (`clp:54-57`); rótulo del punto «${…} [24], el más lejano» (`clp:72`); nombre hablado: «Caudal de los ${…}
+     servidores, de ${…} a ${…}, frente al objetivo de diseño de OCP, ${…} por servidor. Recibe menos el servidor ${…}.»
+     (`CLC:71`).
+139. Bomba — título «Bomba del CDU: curvas de Deschutes y curva del circuito» (`CLC:93`); ejes «Caudal del CDU
      $Q_\text{CDU}$ (L/s)» y «Presión de la bomba $\Delta p$ (kPa)»; leyenda «Curvas publicadas de Deschutes, de 33 a
-     100 % PWM», «Curva de ${…} [66] % PWM, la más baja que da el punto pedido», «Curva del circuito: la caída a cada
-     caudal» (`clp:111-128`); rótulos de los puntos «pedido» y «${…} [66] %» (`clp:133-140`); cursor «$Q_\text{CDU}$ =
-     ${…} L/s», nombre «Caudal de la bomba, $Q_\text{CDU}$» (`CLC:73`).
-140. `clt:275` «Cómo se usa», del laboratorio — nuevo: «Arrastra el cursor de la gráfica de la bomba, o enfócalo y
+     100 % PWM» (el intervalo sale de las curvas, `clt:47`), «Curva de ${…} [66] % PWM, la más baja que da el punto
+     pedido», «Curva del circuito: la caída a cada caudal» (`clp:113-130`); rótulos de los puntos «pedido» y «${…}
+     [66] %»; si el punto pedido queda por encima del eje (ronda 1), un triángulo en el borde de arriba con «pedido:
+     ${…} kPa, fuera de escala» (`clp:167`); cursor «$Q_\text{CDU}$ = ${…} L/s», nombre «Caudal de la bomba,
+     $Q_\text{CDU}$» (`CLC:105`).
+140. `clt:217` «Cómo se usa», del laboratorio — nuevo: «Arrastra el cursor de la gráfica de la bomba, o enfócalo y
      muévelo con las flechas (1 % del eje; con Mayús, 10 %): cambia el caudal de la bomba, como su deslizador.»
-141. `clt:243-257` lectura de la bomba (bajo su gráfica, y su nombre hablado) — nuevo, según el caso:
+141. `clr:61-75` lectura de la bomba (bajo su gráfica, y su nombre hablado) — nuevo, según el caso:
      - «Para mover ${…} [23,0 L/s] por los ${…} [8] racks, la bomba tiene que vencer ${…} [179,9 kPa]: el punto pedido.
        La curva publicada más baja que lo da es la de ${…} [66] % PWM; a esa velocidad fija, la bomba trabajaría en
        ${…} [28,6 L/s] y ${…} [270,6 kPa]. El control por omisión de Deschutes ajusta la velocidad para sostener una
@@ -1485,22 +1497,24 @@ Las gráficas de apoyo (`CLC`, `clp`):
 142. Perfil — es la figura 13.2 con el rack del laboratorio (`CircuitProfileFigure` con `config`): su título dice el
      servidor más lejano de ese rack (`CircuitProfileFigure.tsx:52`, punto 53: antes «… del CDU al servidor 24 y de
      vuelta» fijo → después «… del CDU al servidor ${N} y de vuelta»; en la página sigue en 24). En la vista
-     «Servidor», fuera del caudal de diseño de la placa, la última frase del punto 63 cambia (`coolingPlots.ts:213-219`):
-     «La placa fría pierde ${…} kPa: los 120,0 kPa de diseño de GF, llevados a este caudal con
-     $\Delta p = R\,Q^{\,n}$.» En la página no cambia.
+     «Servidor», fuera del caudal de diseño de la placa, la última frase del punto 63 cambia (`coolingPlots.ts`,
+     `plateSentence`): «La placa fría pierde ${…} kPa: los 120,0 kPa de diseño de GF, llevados a este caudal con
+     $\Delta p = R\,Q^{\,n}$.» En la página no cambia. Ronda 1, sin texto nuevo: en el perfil (también el de la
+     página) cada pérdida se dibuja donde ocurre (ver «Decisiones», abajo).
 
-Las notas del lienzo (`CN`):
+Las notas del lienzo (`CN`) y lo que deja fuera:
 
-143. `CN:30-42` leyenda «Leyenda del rack» — nuevo: «Manifold de impulsión, frío», «Manifold de retorno, caliente»,
-     «Caudal de cada servidor», «Mínimo de cada servidor».
-144. `clt:272` qué está a escala — nuevo: «En el dibujo del rack, el largo de cada barra es proporcional al caudal de su
-     servidor, y la línea discontinua marca el mínimo. Las alturas no están a escala: en el manifold MGX, los puertos
-     están a ${…} [44,45 mm].»
-145. `clt:230-239` margen del peor servidor — nuevo: «El servidor ${…} [24], el ${más lejano|peor servido}, recibe ${…}
-     [7,18 L/min]: un ${…} [12,7] % más que su mínimo de ${…} [6,38 L/min].» Si no llega: «Para que el servidor ${…}
-     llegue a su mínimo, el caudal de la bomba tiene que subir un ${…} %, a ${…} L/min por rack, y la potencia de
-     bombeo se multiplica por ${…}.» (a 150 L/min: 2,1 %, 153,1 L/min, 1,06).
-146. `CN:49` y `clt:153-194` «De dónde sale cada valor», lista «Origen de cada valor»; cada fila, «valor. Origen:
+143. `CN:31-43` leyenda «Leyenda del rack» — nuevo: «Manifold de impulsión, frío», «Manifold de retorno, caliente»,
+     «Caudal de cada servidor», «Objetivo de diseño de OCP por servidor».
+144. `clt:214` qué está a escala — nuevo: «En el dibujo del rack, el largo de cada barra es proporcional al caudal de su
+     servidor, y la línea discontinua marca el objetivo de diseño de OCP (1,5 L/min por kW). Las alturas no están a
+     escala: en el manifold MGX, los puertos están a ${…} [44,45 mm].»
+145. `clr:52-59` margen del peor servido — nuevo: «El servidor ${…} [24], el ${más lejano|peor servido}, recibe ${…}
+     [7,18 L/min]: un ${…} [12,7] % más que el objetivo de diseño de OCP (1,5 L/min por kW), ${…} [6,38 L/min] por
+     servidor.» Si no llega: «El servidor ${…} está por debajo del objetivo de diseño de OCP (1,5 L/min por kW): para
+     alcanzarlo, el caudal de la bomba tiene que subir un ${…} %, a ${…} L/min por rack, y la potencia de bombeo se
+     multiplica por ${…}.» (a 150 L/min: 2,1 %, 153,1 L/min, 1,06).
+146. `CN:50` y `clt:159-205` «De dónde sale cada valor», lista «Origen de cada valor»; cada fila, «valor. Origen:
      fuente» (el origen con las palabras de las tablas: Producto, Supuesto, Cálculo propio) — nuevo:
      - «Caudal de la bomba por rack, ${…} L/min.» con la fuente del preajuste que tenga ese valor, o «Supuesto: valor
        elegido en el laboratorio»;
@@ -1509,32 +1523,62 @@ Las notas del lienzo (`CN`):
        diámetro interior (1″ = 25,4 mm)» (`lc`, `SERVER_HOSES`);
      - «Retorno directo.» / «Retorno invertido.» con «Supuesto: retorno invertido, con la entrada abajo y la salida
        arriba» (`clt:130`) o la del preajuste;
+     - ronda 1, R27: «Presión de retorno al CDU, ${…} [220,1 kPa] abs; la de impulsión, ${…} [400,0 kPa] abs.» con
+       «Supuesto: el CDU sostiene su presión de retorno, como lo haría su tanque de expansión; tomo la de la referencia,
+       los 400,0 kPa abs de entrada de GF menos su caída de 179,9 kPa (cálculo propio), y la impulsión es esa más la
+       caída del circuito» (`clt:154`);
      - «Placa fría: 1,2 bar a ${…} L/min.» y «${…} racks por CDU.», con las fuentes del preajuste base;
-     - «Mínimo de cada servidor, ${…} L/min.» con «Cálculo propio: 1,5 L/min por kW (OCP) por los ${…} [4,25] kW de
-       cada servidor, su parte de los 102 kW que el líquido saca de un rack MGX de 120 kW (85 %), repartidos por igual»
-       (`clt:145-148`);
+     - ronda 1, R28: «Objetivo de diseño por servidor, ${…} L/min.» con «Cálculo propio: el objetivo típico de OCP,
+       1,5 L/min por kW (recomienda de 1,25 a 2,0), por los ${…} [4,25] kW de cada servidor, su parte de los 102 kW que
+       el líquido saca de un rack MGX de 120 kW (85 %), repartidos por igual» (`clt:147-152`);
      - «Curvas de la bomba de Deschutes, de 33 a 100 % PWM.» con la fuente de la figura 5.1.1 y «el eje de caudal acaba
        en 650 GPM, lectura aproximada».
-147. `CN:19` cierre de la lista — nuevo: «Los demás valores (el fluido, las tuberías, el manifold, el UQD04 y las
+147. `CN:20` cierre de la lista — nuevo: «Los demás valores (el fluido, las tuberías, el manifold, el UQD04 y las
      longitudes) son los de las tablas 13.1 a 13.3, cada uno con su origen.»
-148. Fuentes de datos nuevas (`src/lib/data/liquidCooling.ts`, `MGX_RACK`) — nuevo: «NVIDIA, MGX Accelerated Computing
-     Rack and Trays Specification Rev. 1.0 (OCP, 2024), §11, pág. 84: «Rack Power 120 kW»» y «…: «Rack Level Liquid
-     Heat Capture Ratio 85%»» (citas de la investigación, §5.2).
+150. `clt:229` «Qué deja fuera el modelo», del laboratorio (ronda 1, R27), el primero — nuevo: «Supongo que el CDU
+     sostiene su presión de retorno, como lo haría su tanque de expansión, en ${…} [220,1 kPa] abs: la de la referencia,
+     los ${…} [400,0 kPa] abs de entrada de GF menos su caída. La impulsión es esa más la caída del circuito, así que el
+     perfil y la gráfica de la bomba dan la misma $\Delta p$; dentro del rack, la presión baja además $\rho g y$ al
+     subir.»
+151. `clt:230` «Qué deja fuera el modelo», del laboratorio (ronda 1), el segundo — nuevo: «De las ${…} [9] curvas
+     publicadas de Deschutes, uso la más baja que alcanza el caudal; no interpolo entre curvas.»
+148. Fuentes de datos nuevas (`src/lib/data/liquidCooling.ts`):
+     - `MGX_RACK`: «NVIDIA, MGX Accelerated Computing Rack and Trays Specification Rev. 1.0 (OCP, 2024), §11, pág. 84:
+       «Rack Power 120 kW»» y «…: «Rack Level Liquid Heat Capture Ratio 85%»» (citas de la investigación, §5.2);
+     - ronda 1, `FLOW_PER_KW_RANGE`: «OCP, OAI System Liquid Cooling Guidelines (2023), §1.3, pág. 7: «1.25
+       LPM/kW~2.0 LPM/kW»» (investigación, §5.2).
 
 Decisiones de Claude en el laboratorio, para mirar:
 
-- El mínimo de cada servidor necesita una potencia por servidor, que NVIDIA no publica. Tomé el rack MGX (120 kW, el
+- **Para Dylan (R28): el objetivo de OCP frente al MGX.** OCP da 1,5 L/min por kW como «typical design target» y
+  recomienda de 1,25 a 2,0; el laboratorio lo llama «objetivo de diseño», no «mínimo». Con 102 kW al líquido, el rack
+  pide 153 L/min, pero la misma especificación MGX que da los 120 kW dice «System Target Sustained Flow Rate (lpm) up to
+  130 LPM» (investigación, §5.2), unos 1,27 L/min por kW. Es una tensión entre dos fuentes, y el laboratorio no la
+  resuelve: con el MGX, el rack quedaría por debajo del objetivo típico de OCP aunque dentro de lo que OCP recomienda.
+- **Para Dylan: la prosa del paso 4 y del caso de uso aún dice «mínimo».** El «Por qué, ecuación» (`:336`, punto 35:
+  «Si el peor servidor no llega a su mínimo…») y el balance del caso de uso (`:394`, punto 41: «su caudal mínimo»)
+  siguen como estaban; la regla R28 cubre la ficha y las lecturas. Cambiarlos para que coincidan cuesta palabras (la
+  prosa va en 647/650).
+- **R27, la presión de retorno.** El CDU sostiene su presión de retorno (la de un tanque de expansión, en un lazo
+  cerrado; la investigación no tiene una fuente para esto, así que lo digo como supuesto); el valor, 220,1 kPa abs, es
+  el de la referencia: los 4 bar abs de GF menos su caída. La impulsión es esa más la caída del rack en uso. Antes, con
+  la entrada fija en 4 bar, la presión absoluta salía negativa (12 servidores: −209 kPa; 300 L/min: −108 kPa).
+- **Cada pérdida se dibuja donde ocurre** (también en la figura 13.2 de la página, sin cambiar sus números): la
+  fricción a lo largo de su tramo; la $K$ de una te, en la te (al principio de la manguera de ida, al final de la de
+  vuelta, donde se une al manifold); la de un componente medido entero (el $C_v$ del UQD04, la curva de la placa), a su
+  salida. Antes se repartían a lo largo del tramo, y en un tramo rápido el punto final ya cargaba toda la pérdida con su
+  velocidad alta: con un solo servidor a 172,5 L/min, la presión dibujada bajaba a −600 kPa abs al final de la manguera
+  de vuelta. Ahora la presión solo baja de la de retorno por la altura, $\rho g y$, dentro del rack. En la página, la
+  caída de la placa y la de cada conector se ven como escalones a su salida en vez de rampas.
+- El objetivo de cada servidor necesita una potencia por servidor, que NVIDIA no publica. Tomé el rack MGX (120 kW, el
   85 % al líquido: 102 kW) repartido por igual: con la regla de OCP, el rack pide 153 L/min. Así la referencia
-  (172,5 L/min) llega con un 12,7 % de margen y el aviso aparece por debajo de unos 153 L/min. Con los 115 kW que
-  equivalen a los 172,5 L/min (pie de la tabla 13.1), el más lejano quedaría un 0,07 % corto ya en la referencia; con
-  los 132 kW de GF, todos quedarían cortos.
+  (172,5 L/min) lo alcanza con un 12,7 % de margen y la ficha cambia por debajo de unos 153 L/min.
 - La lectura y la ficha hablan del servidor que menos recibe: con retorno directo es el más lejano (el de arriba); con
   retorno invertido es uno del medio, y lo llaman «el peor servido».
 - El punto de operación: el caudal es el que se pide, y la gráfica muestra la curva publicada más baja de Deschutes que
-  lo da y dónde trabajaría la bomba a esa velocidad fija. No interpolo entre las nueve curvas (no hay curvas
-  intermedias publicadas).
-- El perfil del laboratorio y la caída usan el caudal medio de cada servidor, como la figura 13.2; el reparto es el de
-  la (13.4).
+  lo da y dónde trabajaría la bomba a esa velocidad fija. No interpolo entre las nueve curvas (lo dice el punto 151).
+- La placa fría viene con el preajuste base (punto 149): elegir el otro preajuste cambia la placa, y la línea bajo los
+  parámetros lo dice.
 
 ### Tablas 13.1 a 13.4: `src/lib/tables/topics/enfriamiento-liquido.ts`
 
