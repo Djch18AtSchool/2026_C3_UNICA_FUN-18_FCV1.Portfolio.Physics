@@ -209,6 +209,17 @@ export function hydraulicPower(dp: number, Q: number): number {
   return dp * Q;
 }
 
+/**
+ * The factor on the flow that multiplies the pumping power by `powerFactor` when every loss goes
+ * as Δp ∝ Qⁿ: P = Δp·Q ∝ Qⁿ⁺¹, so Q₂/Q₁ = (P₂/P₁)^(1/(n+1)). With n = 1,9 (the OAI loop),
+ * tripling the power takes 3^(1/2,9) = 1,46 times the flow.
+ */
+export function flowFactorForPower(powerFactor: number, n: number): number {
+  requirePositive('powerFactor', powerFactor);
+  requirePositive('n', n);
+  return powerFactor ** (1 / (n + 1));
+}
+
 function segmentArea(s: Segment): number {
   if (s.area === undefined) return pipeArea(s.diameter);
   requirePositive('area', s.area);

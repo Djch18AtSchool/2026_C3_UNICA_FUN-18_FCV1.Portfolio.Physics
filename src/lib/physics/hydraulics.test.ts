@@ -7,6 +7,7 @@ import {
   curveLoss,
   cvLoss,
   darcyLoss,
+  flowFactorForPower,
   flowVelocity,
   frictionFactor,
   hydraulicPower,
@@ -518,5 +519,26 @@ describe('operatingPoint', () => {
 
   test('rejects a Qmax that is not positive', () => {
     expect(() => operatingPoint(pump, system, 0)).toThrow(RangeError);
+  });
+});
+
+describe('flowFactorForPower: P = Δp·Q with Δp ∝ Qⁿ grows as Qⁿ⁺¹', () => {
+  test('tripling the pumping power with n = 1,9 takes 46 % more flow, not the 51 % of the research', () => {
+    const factor = flowFactorForPower(3, 1.9);
+
+    expect(factor).toBeCloseTo(3 ** (1 / 2.9), 12);
+    expect(factor ** 2.9).toBeCloseTo(3, 12);
+    expect(Math.round((factor - 1) * 100)).toBe(46);
+  });
+
+  test('the same power needs the same flow, and a laminar loss (n = 1) takes √k', () => {
+    expect(flowFactorForPower(1, 1.9)).toBe(1);
+    expect(flowFactorForPower(4, 1)).toBeCloseTo(2, 12);
+  });
+
+  test('rejects a power factor or an exponent that is not positive', () => {
+    expect(() => flowFactorForPower(0, 1.9)).toThrow(RangeError);
+    expect(() => flowFactorForPower(3, 0)).toThrow(RangeError);
+    expect(() => flowFactorForPower(Number.NaN, 1.9)).toThrow(RangeError);
   });
 });

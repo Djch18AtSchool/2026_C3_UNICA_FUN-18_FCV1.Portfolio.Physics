@@ -107,6 +107,13 @@ export const UQD04 = {
   ),
 } as const;
 
+/** GF's server hose, «3/8" inner diameter = 9.5 mm»: the RD109 value and the lab's reference size. */
+const RD109_SERVER_HOSE = sourced(
+  9.5e-3,
+  'producto',
+  `${GF}, tabla 1: «3/8" inner diameter = 9.5 mm»`,
+);
+
 const MGX_WIDTH = 0.035;
 const MGX_HEIGHT = 0.06;
 const MGX_WALL = 0.003;
@@ -127,6 +134,39 @@ export const MGX_MANIFOLD = {
     'Cálculo propio: $D_h = 4A/P_m$ de la sección interior, con $P_m$ su perímetro mojado',
   ),
 } as const;
+
+/**
+ * The heat an MGX rack gives its liquid, from which the lab sets each server's minimum flow with
+ * OCP's rule (research §5.2): 120 kW of rack power, 85 % of it captured by the liquid.
+ */
+export const MGX_RACK = {
+  power: sourced(120e3, 'producto', `${MGX}, §11, pág. 84: «Rack Power 120 kW»`),
+  liquidCapture: sourced(
+    0.85,
+    'producto',
+    `${MGX}, §11, pág. 84: «Rack Level Liquid Heat Capture Ratio 85%»`,
+  ),
+} as const;
+
+const M_PER_IN = 0.0254;
+const nominalHose = (inches: string, numerator: number, denominator: number) =>
+  sourced(
+    (numerator / denominator) * M_PER_IN,
+    'ilustrativo',
+    `Supuesto: manguera de ${inches} nominal, con ese diámetro interior (1″ = 25,4 mm)`,
+  );
+
+/**
+ * The server hoses the lab offers, ascending: GF's 3/8″ (9,5 mm, the product) and nominal inch
+ * sizes around it, a model assumption. A 1/4″ hose is narrower than the UQD04's 7,24 mm bore.
+ */
+export const SERVER_HOSES = [
+  { id: '1/4', label: '1/4″', diameter: nominalHose('1/4″', 1, 4) },
+  { id: '5/16', label: '5/16″', diameter: nominalHose('5/16″', 5, 16) },
+  { id: '3/8', label: '3/8″', diameter: RD109_SERVER_HOSE },
+  { id: '1/2', label: '1/2″', diameter: nominalHose('1/2″', 1, 2) },
+] as const;
+export type ServerHoseId = (typeof SERVER_HOSES)[number]['id'];
 
 /** A Deschutes pump curve at one PWM: Δp[psi] = c0 + c1·x + c2·x², x in GPM. */
 export interface PumpCurve extends Provenance {
@@ -199,7 +239,7 @@ export const RD109 = {
   ),
   rackHoseDiameter: sourced(0.0508, 'producto', `${GF}, tabla 1: manguera Parker de 2″ (nominal)`),
   rackHoseLength: sourced(3, 'ilustrativo', 'Supuesto: 3 m de manguera de rack por sentido'),
-  serverHoseDiameter: sourced(9.5e-3, 'producto', `${GF}, tabla 1: «3/8" inner diameter = 9.5 mm»`),
+  serverHoseDiameter: RD109_SERVER_HOSE,
   serverHoseLength: sourced(
     0.5,
     'ilustrativo',

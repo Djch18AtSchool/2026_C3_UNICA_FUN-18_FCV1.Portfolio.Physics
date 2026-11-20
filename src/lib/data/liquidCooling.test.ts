@@ -8,9 +8,11 @@ import {
   GF_PUBLISHED,
   GF_PUBLISHED_DROP_BAR,
   MGX_MANIFOLD,
+  MGX_RACK,
   PG25_40C,
   pumpPressure,
   RD109,
+  SERVER_HOSES,
   SHAHI_2023_PORT_FLOWS,
   UQD04,
   WATER_40C_NIST,
@@ -108,6 +110,33 @@ describe('the flow rule and the parts of the circuit', () => {
   });
 });
 
+describe('what the lab adds: the heat of an MGX rack and the server hose sizes', () => {
+  test('an MGX rack: 120 kW, 85 % of it to the liquid (NVIDIA MGX §11), so OCP’s rule asks 153 L/min', () => {
+    expect(MGX_RACK.power.value).toBe(120e3);
+    expect(MGX_RACK.liquidCapture.value).toBe(0.85);
+    expect(MGX_RACK.power.origin).toBe('producto');
+    expect(MGX_RACK.liquidCapture.origin).toBe('producto');
+    expect(MGX_RACK.power.source).toMatch(/MGX.*«Rack Power 120 kW»/);
+    expect(MGX_RACK.liquidCapture.source).toMatch(/«Rack Level Liquid Heat Capture Ratio 85%»/);
+    const heatKw = (MGX_RACK.power.value * MGX_RACK.liquidCapture.value) / 1e3;
+    expect(heatKw * FLOW_PER_KW_LPM).toBeCloseTo(153, 10);
+  });
+
+  test('hose sizes from 1/4″ to 1/2″, ascending; GF’s 3/8″ is the product value, the rest nominal sizes', () => {
+    expect(SERVER_HOSES.map((hose) => hose.id)).toEqual(['1/4', '5/16', '3/8', '1/2']);
+    const diameters = SERVER_HOSES.map((hose) => hose.diameter.value);
+    expect(diameters).toEqual([...diameters].sort((a, b) => a - b));
+    const gf = SERVER_HOSES.find((hose) => hose.id === '3/8');
+    expect(gf?.diameter).toBe(RD109.serverHoseDiameter);
+    for (const hose of SERVER_HOSES.filter((candidate) => candidate.id !== '3/8')) {
+      const [numerator, denominator] = hose.id.split('/').map(Number);
+      expect(hose.diameter.value).toBeCloseTo((numerator / denominator) * 0.0254, 12);
+      expect(hose.diameter.origin).toBe('ilustrativo');
+      expect(hose.diameter.source).toMatch(/^Supuesto: manguera de \d+\/\d+″ nominal/);
+    }
+  });
+});
+
 describe('DESCHUTES_PUMP (OCP Project Deschutes, fig. 5.1.1, PG25, two pumps)', () => {
   const curve = (pwm: number) => {
     const found = DESCHUTES_PUMP.curves.find((c) => c.pwm === pwm);
@@ -164,6 +193,8 @@ describe('model vs product: every value says its origin and its source', () => {
     ...DESCHUTES_PUMP.curves,
     ...GF_PUBLISHED.breakdown,
     ...Object.values(WATER_40C_NIST),
+    ...Object.values(MGX_RACK),
+    ...SERVER_HOSES.map((hose) => hose.diameter),
     PG25_40C,
   ];
   const sourced = everything.filter((item): item is Provenance => {
