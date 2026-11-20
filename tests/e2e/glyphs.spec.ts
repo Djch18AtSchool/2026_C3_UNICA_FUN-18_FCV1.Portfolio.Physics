@@ -92,6 +92,38 @@ const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
       },
     ],
   ],
+  // «Interrumpir» mid-flight fills the summary's jump; b = 0 brings «Sin amortiguar» and «nunca»;
+  // the overdamped preset interrupted reads a curve that lasts the spring's t_s, with no peak.
+  'animaciones-resorte': [
+    [
+      '«Interrumpir» a mitad de camino',
+      async (_page, lab) => {
+        await seekTimeline(lab.getByRole('slider', { name: 'Línea de tiempo' }), '67');
+        await lab.getByRole('button', { name: 'Interrumpir' }).click();
+        await expect(lab.getByTestId('summary-jump')).toContainText('el resorte sigue a');
+      },
+    ],
+    [
+      'sobreamortiguado tras «Interrumpir»',
+      async (_page, lab) => {
+        await lab
+          .getByRole('combobox', { name: 'Valores de referencia' })
+          .selectOption('sobreamortiguado');
+        await seekTimeline(lab.getByRole('slider', { name: 'Línea de tiempo' }), '100');
+        await lab.getByRole('button', { name: 'Interrumpir' }).click();
+        await expect(lab.getByTestId('summary-jump')).toContainText('el resorte sigue a');
+      },
+    ],
+    [
+      'sin amortiguar (b = 0): asentamiento «nunca»',
+      async (_page, lab) => {
+        const field = lab.getByRole('textbox', { name: /^Amortiguamiento b/ });
+        await field.fill('0');
+        await field.press('Enter');
+        await expect(lab.getByTestId('summary-settling')).toContainText('nunca');
+      },
+    ],
+  ],
   'ruedas-reaccion': [
     [
       'maniobra por encima del límite (el medidor excede L_máx)',

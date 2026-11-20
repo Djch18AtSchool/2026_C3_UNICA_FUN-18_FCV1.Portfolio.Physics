@@ -8,6 +8,7 @@ import { BOUNCE_PRESETS } from './coeficiente-restitucion/bouncePresets';
 import { REGEN_PRESETS } from './frenado-regenerativo/regenPresets';
 import { TYRE_PRESETS } from './llantas-f1/tyreLabModel';
 import { WHEEL_PRESETS } from './ruedas-reaccion/wheelPresets';
+import { SPRING_LAB_PRESETS } from './animaciones-resorte/springLabPresets';
 
 /** Every lab's presets (Tema 1 has none), by topic. */
 const PRESETS: Record<string, readonly Preset<unknown>[]> = {
@@ -19,6 +20,7 @@ const PRESETS: Record<string, readonly Preset<unknown>[]> = {
   'Tema 7': BOUNCE_PRESETS,
   'Tema 8': WHEEL_PRESETS,
   'Tema 9': FLYBY_PRESETS,
+  'Tema 10': SPRING_LAB_PRESETS,
 };
 
 /** A sentence ends at . ! or ? before a space or the end; a decimal comma or «1/60» does not. */

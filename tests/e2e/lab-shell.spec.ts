@@ -54,6 +54,7 @@ const MIGRATED_LABS: ReadonlySet<string> = new Set([
   'bounce-lab',
   'wheel-lab',
   'flyby-lab',
+  'spring-lab',
 ]);
 /** One column at every width: two desktops, below lg (no topic bar), 200 % zoom and two phones. */
 const VIEWPORTS = [

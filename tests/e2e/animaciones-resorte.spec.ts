@@ -96,17 +96,21 @@ test.describe('Tema 10, página', () => {
     await expect(tables.last()).toContainText('(1.0, 157.9, 17.6)');
   });
 
-  test('ninguna figura de los pasos lleva insignia: la del recurso es la del laboratorio', async ({
+  test('solo la figura del laboratorio lleva la insignia «Simulación interactiva»', async ({
     page,
   }) => {
-    // Until the lab's figure arrives (Task 5), no figure shows a resource badge; then exactly one.
     const badges = page
       .getByTestId('figure')
       .getByText(RESOURCE_LABELS.visualizacion, { exact: true })
       .or(page.getByTestId('figure').getByText(RESOURCE_LABELS.simulacion, { exact: true }));
+    const labFigure = page.locator('section.step#paso-4 figure[data-type="simulacion"]', {
+      has: page.getByTestId('spring-lab'),
+    });
 
-    await expect(badges).toHaveCount(0);
-    await expect(page.locator('.content-figure .figure-head')).toHaveCount(0);
+    await expect(badges).toHaveCount(1);
+    await expect(page.locator('.content-figure .figure-head')).toHaveCount(1);
+    await expect(labFigure.getByText(RESOURCE_LABELS.simulacion, { exact: true })).toHaveCount(1);
+    await expect(labFigure.locator('.figure-source')).toContainText('Simulación que programé');
   });
 
   test('la página cumple la estructura del tema y numera once ecuaciones', async ({ page }) => {

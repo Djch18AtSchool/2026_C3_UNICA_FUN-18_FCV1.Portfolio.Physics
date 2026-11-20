@@ -20,7 +20,7 @@ import { cardsAt, runMarkers, type SpringRun } from './springScene';
 import { useSpringRun, type SpringRunControls } from './useSpringRun';
 
 /** The playback speeds: 0,1× and 0,25× slow a stiff spring's overshoot down to watch it. */
-const SPEEDS = [0.1, 0.25, 0.5, 1, 2] as const;
+export const SPRING_SPEEDS: readonly number[] = [0.1, 0.25, 0.5, 1, 2];
 /** «,» and «.» move the clock by one frame at 60 Hz. */
 const FRAME_STEP_S = 1 / 60;
 const PERCENT = 100;
@@ -225,7 +225,7 @@ export default function SpringLab({ usage, leftOut }: SpringLabProps): JSX.Eleme
         testId="spring-lab"
         clock={clock}
         timeUnit="s"
-        speeds={SPEEDS}
+        speeds={SPRING_SPEEDS}
         markers={markers}
         readouts={springReadouts(run, t, display.showComparison)}
         levels={{

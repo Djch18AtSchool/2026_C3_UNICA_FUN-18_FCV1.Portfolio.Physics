@@ -50,7 +50,11 @@ function contrast(a: string, b: string): number {
   return (high + 0.05) / (low + 0.05);
 }
 
-const KNOB_LABS = TOPIC_PAGES.filter(({ number }) => number !== 4 && number !== 6);
+/**
+ * Labs with a draggable knob in their canvas: not Temas 4 and 6, nor Tema 10, whose canvas only
+ * plays the cards (its one drag is the plot's time cursor, outside the canvas).
+ */
+const KNOB_LABS = TOPIC_PAGES.filter(({ number }) => ![4, 6, 10].includes(number));
 const AXIS_CURSORS = ['ew-resize', 'ns-resize'];
 
 /** The labs with a handle on one axis (the jump's marker, the habitat's radius, the drop height). */
@@ -154,6 +158,7 @@ const LEGENDS: readonly LegendCase[] = [
   { name: 'la trayectoria del laboratorio', topic: 2, title: 'Trayectoria del salto' },
   { name: 'la gráfica de las Voyager', topic: 9, title: 'Rapidez de las Voyager respecto' },
   { name: 'la gráfica de los umbrales', topic: 7, title: 'Altura de cada rebote' },
+  { name: 'la gráfica x(t) del laboratorio', topic: 10, title: 'Posición de las dos tarjetas' },
 ];
 
 /** How many of the figure's series are drawn highlighted and faded. */

@@ -112,6 +112,8 @@ import Callout from '../../components/ui/Callout.astro';
 import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
 import SpringFigure from '../../components/topics/animaciones-resorte/SpringFigure';
+import SpringLab, { SPRING_SPEEDS } from '../../components/topics/animaciones-resorte/SpringLab';
+import { speedLabel } from '../../components/lab/transportSpeed';
 
 Lo que se desliza o se abre en iOS y en Motion no sigue una curva dibujada a mano: sigue un resorte amortiguado, calculado en cada cuadro.
 
@@ -361,6 +363,20 @@ Con la (10.9), $x$ y $v$ son continuas en <Equation inline latex="t^*" />; solo 
   }}
 >
   <SpringFigure variant="interrupcion" client:visible />
+</Figure>
+
+<Figure
+  type="simulacion"
+  caption="Laboratorio del resorte: una tarjeta que mueve la (10.6) y, debajo, otra con una curva ease-in-out que dura el $t_s$ del resorte. Mueve $k$, $b$ y $m$ para pasar por los tres regímenes; «Interrumpir» aplica la (10.9): el resorte conserva $x$ y $v$, y la curva arranca otra vez desde el reposo."
+  source={{
+    text: 'Simulación que programé sobre src/lib/physics/dampedSpring.ts; preajustes de Motion v14.14.0 y de Apple (tabla 10.1); curva ease-in-out, cubic-bezier(0.42, 0, 0.58, 1), de CSS Easing Functions Level 1 (W3C)',
+  }}
+>
+  <SpringLab
+    client:visible
+    usage={`A 1× la reproducción va en tiempo real, como en una interfaz, donde la animación dura menos de un segundo; con ${speedLabel(Math.min(...SPRING_SPEEDS))} o ${speedLabel(SPRING_SPEEDS[1])} se ven el sobrepaso y la interrupción de un resorte rígido.`}
+    leftOut="Calculo cada cuadro con la solución analítica (10.6), exacta en cualquier $t$, como el generador de Motion: no integro paso a paso. react-spring avanza con Euler semiimplícito en pasos de 1 ms, y el gatillo del Tema 5 en pasos de 1/4 800 s; su error crece con $\omega_0\,\Delta t$, y aquí no aparece. La unidad de longitud se cancela en $k/m$ y en $b/m$, así que $k$ en N/m vale igual con $x$ en píxeles; $m$ = 1 kg es la convención de las bibliotecas, no una masa real. Tampoco entran el gesto que entrega una $v_0$ al soltar ni la duración y el rebote de Apple, que con la (10.10) dan otros $k$ y $b$, no otra física. De los umbrales con que Motion da la animación por terminada solo uso el reposo al interrumpir."
+  />
 </Figure>
 
 <DataTable id="animaciones-resorte-conversion" />
