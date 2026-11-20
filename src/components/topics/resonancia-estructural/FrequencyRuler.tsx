@@ -193,62 +193,81 @@ function F0Knob({
   );
 }
 
-export default function FrequencyRuler(props: FrequencyRulerProps): JSX.Element {
-  const { left, right, axisY, domain, bands, marks, live } = props;
-  const span = domain.max - domain.min;
-  const toPx = (f: number) => left + ((f - domain.min) / span) * (right - left);
-  const fromPx = (px: number) => domain.min + ((px - left) / (right - left)) * span;
+interface Axis {
+  axisY: number;
+  toPx(f: number): number;
+}
+
+const BAND_OPACITY = 0.45;
+
+/** The bands that matter in the mode in view, labelled at their left edge. */
+function RulerBands({
+  bands,
+  domain,
+  axisY,
+  toPx,
+}: Axis & Pick<FrequencyRulerProps, 'bands' | 'domain'>): JSX.Element {
   return (
-    <g data-testid="frequency-ruler">
-      {bands.map((band) => (
-        <g key={band.label} data-ruler-band="" className="pointer-events-none">
-          <rect
-            x={toPx(Math.max(band.from, domain.min))}
-            y={axisY - BAND_HEIGHT}
-            width={Math.max(
-              toPx(Math.min(band.to, domain.max)) - toPx(Math.max(band.from, domain.min)),
-              1,
-            )}
-            height={BAND_HEIGHT}
-            fill={band.color}
-            opacity={0.45}
-          />
-          <MathText
-            source={band.label}
-            x={toPx(Math.max(band.from, domain.min))}
-            y={axisY - BAND_LABEL_RISE}
-            fontSize={TICK_FONT_SIZE}
-            fill={TICK_COLOR}
-            halo={HALO}
-          />
-        </g>
-      ))}
+    <>
+      {bands.map((band) => {
+        const from = toPx(Math.max(band.from, domain.min));
+        const to = toPx(Math.min(band.to, domain.max));
+        return (
+          <g key={band.label} data-ruler-band="" className="pointer-events-none">
+            <rect
+              x={from}
+              y={axisY - BAND_HEIGHT}
+              width={Math.max(to - from, 1)}
+              height={BAND_HEIGHT}
+              fill={band.color}
+              opacity={BAND_OPACITY}
+            />
+            <MathText
+              source={band.label}
+              x={from}
+              y={axisY - BAND_LABEL_RISE}
+              fontSize={TICK_FONT_SIZE}
+              fill={TICK_COLOR}
+              halo={HALO}
+            />
+          </g>
+        );
+      })}
+    </>
+  );
+}
+
+/** The axis, a tick every 0,5 Hz with its value, and the unit after the last one. */
+function RulerTicks({
+  domain,
+  axisY,
+  toPx,
+  left,
+  right,
+}: Axis & Pick<FrequencyRulerProps, 'domain' | 'left' | 'right'>): JSX.Element {
+  const text = { fontFamily: TICK_FONT_FAMILY, fontSize: TICK_FONT_SIZE, fill: TICK_COLOR };
+  return (
+    <g className="pointer-events-none">
       <line x1={left} x2={right} y1={axisY} y2={axisY} stroke={AXIS_COLOR} strokeWidth={2} />
       {ticksOf(domain).map((f) => (
-        <g key={f} className="pointer-events-none">
+        <g key={f}>
           <line x1={toPx(f)} x2={toPx(f)} y1={axisY} y2={axisY + TICK_LENGTH} stroke={AXIS_COLOR} />
-          <text
-            x={toPx(f)}
-            y={axisY + TICK_LABEL_DROP}
-            textAnchor="middle"
-            fontFamily={TICK_FONT_FAMILY}
-            fontSize={TICK_FONT_SIZE}
-            fill={TICK_COLOR}
-          >
+          <text x={toPx(f)} y={axisY + TICK_LABEL_DROP} textAnchor="middle" {...text}>
             {formatNumber(f, { precision: 1 })}
           </text>
         </g>
       ))}
-      <text
-        x={right}
-        y={axisY + TICK_LABEL_DROP}
-        dx={TICK_FONT_SIZE}
-        fontFamily={TICK_FONT_FAMILY}
-        fontSize={TICK_FONT_SIZE}
-        fill={TICK_COLOR}
-      >
+      <text x={right} y={axisY + TICK_LABEL_DROP} dx={TICK_FONT_SIZE} {...text}>
         Hz
       </text>
+    </g>
+  );
+}
+
+/** The fixed marks (the march pace, f_ZV), labelled under the axis. */
+function RulerMarks({ marks, axisY, toPx }: Axis & Pick<FrequencyRulerProps, 'marks'>) {
+  return (
+    <>
       {marks.map((mark) => (
         <g key={mark.label} data-ruler-mark="" className="pointer-events-none">
           <line
@@ -270,6 +289,20 @@ export default function FrequencyRuler(props: FrequencyRulerProps): JSX.Element 
           />
         </g>
       ))}
+    </>
+  );
+}
+
+export default function FrequencyRuler(props: FrequencyRulerProps): JSX.Element {
+  const { left, right, axisY, domain, live } = props;
+  const span = domain.max - domain.min;
+  const toPx = (f: number) => left + ((f - domain.min) / span) * (right - left);
+  const fromPx = (px: number) => domain.min + ((px - left) / (right - left)) * span;
+  return (
+    <g data-testid="frequency-ruler">
+      <RulerBands {...props} toPx={toPx} />
+      <RulerTicks {...props} toPx={toPx} />
+      <RulerMarks {...props} toPx={toPx} />
       {live ? <LiveMark live={live} toPx={toPx} axisY={axisY} /> : null}
       <F0Knob {...props} x={toPx(props.f0)} fromPx={fromPx} />
     </g>

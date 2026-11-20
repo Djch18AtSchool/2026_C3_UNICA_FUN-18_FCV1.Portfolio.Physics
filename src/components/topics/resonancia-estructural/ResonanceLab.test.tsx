@@ -186,6 +186,47 @@ describe('ResonanceLab', () => {
     expect(readout('Frecuencia de la fuerza $f_d$')).toBe('0,50 Hz');
   });
 
+  test('every field edits the value of its own mode', () => {
+    render(<ResonanceLab />);
+
+    typeInto(field(/^Amortiguamiento zeta/), '0,2');
+    expect(chips()).toContain('100 s: este lo es');
+    typeInto(field(/^Duración del barrido T sub b/), '50');
+    expect(chips()).toContain('este es rápido');
+
+    fireEvent.click(mode('Tropa'));
+    typeInto(field(/^Soldados N/), '100');
+    expect(readout('Fuerza total $|F|$')).toBe('28,0 kN');
+    typeInto(field(/^Frecuencia natural f sub 0/), '2,5');
+    expect(chips()).toContain('fuera del rango de riesgo máximo');
+    typeInto(field(/^Amortiguamiento zeta/), '1');
+    expect(chips()).toContain('al paso: ');
+    fireEvent.click(screen.getByRole('radio', { name: 'Rompiendo el paso' }));
+    expect(screen.getByRole('button', { name: 'Nuevo sorteo' })).toBeInTheDocument();
+
+    fireEvent.click(mode('Filtro ZV'));
+    typeInto(field(/^Frecuencia del filtro f sub ZV/), '1,1');
+    expect(readout('Desajuste $f_0/f_\\text{ZV} - 1$')).toBe('−9,1 %');
+    typeInto(field(/^Amortiguamiento zeta/), '0');
+    expect(readout('Fracción del primero $a_1$')).toBe('0,578');
+  });
+
+  test('«.» and «,» step a frame of playback; the plot’s cursor seeks the sweep', () => {
+    render(<ResonanceLab />);
+    const reading = () => timeline().getAttribute('aria-valuetext');
+    const start = reading();
+
+    fireEvent.keyDown(lab(), { key: '.' });
+    expect(reading()).not.toBe(start);
+    fireEvent.keyDown(lab(), { key: ',' });
+    expect(reading()).toBe(start);
+
+    fireEvent.keyDown(screen.getByRole('slider', { name: 'Frecuencia de la fuerza' }), {
+      key: 'End',
+    });
+    expect(readout('Frecuencia de la fuerza $f_d$')).toBe('1,50 Hz');
+  });
+
   test('the drawer hides the envelope band and the support plot', async () => {
     const user = userEvent.setup();
     render(<ResonanceLab />);
