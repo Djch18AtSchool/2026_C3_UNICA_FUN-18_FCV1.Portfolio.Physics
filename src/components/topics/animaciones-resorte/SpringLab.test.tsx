@@ -229,6 +229,15 @@ describe('SpringLab', () => {
 
     expect(value(LABELS.target)).toBe('1 000 px');
     expect(Number((timeline() as HTMLInputElement).value)).toBeGreaterThan((0.2 / RUN_S) * STEPS);
+
+    // «,» steps back; a key with Ctrl is the browser's; R rewinds to the start.
+    const lab = screen.getByTestId('spring-lab');
+    fireEvent.keyDown(lab, { key: ',' });
+    expect((timeline() as HTMLInputElement).value).toBe(String(Math.round((0.2 / RUN_S) * STEPS)));
+    fireEvent.keyDown(lab, { key: 'i', ctrlKey: true });
+    expect(value(LABELS.target)).toBe('1 000 px');
+    fireEvent.keyDown(lab, { key: 'r' });
+    expect((timeline() as HTMLInputElement).value).toBe('0');
   });
 
   test('with reduced motion the lab opens on the final frame, the whole plot in sight', () => {
