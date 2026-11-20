@@ -80,6 +80,8 @@ const BOTTOM_PAD = 4;
 const heightOf = (part: (typeof LAYOUT)['wide' | 'compact'], compact: boolean) =>
   part.top + part.v + part.between + part.p + part.axis + stripTotalHeight(compact) + BOTTOM_PAD;
 const HEIGHTS = { compact: heightOf(LAYOUT.compact, true), wide: heightOf(LAYOUT.wide, false) };
+/** The phone's strip key, hidden from the compact layout's width up (COMPACT_WIDTH, 480 px). */
+const KEY_RESERVE = '@min-[479.5px]/profile:hidden';
 /** v reads best with a tick every whole m/s (0 to 3): about three intervals. */
 const V_TICK_INTERVALS = 3;
 
@@ -160,7 +162,10 @@ export default function CircuitProfileFigure({
   const reserve = heightReserve(HEIGHTS, isMeasured);
   return (
     <ChartFrame title={titleFor(config.servers)} footnote={FOOTNOTE} testId={testId}>
-      <div data-parameters={profileParameterIds(data.path).join(' ')}>
+      <div
+        data-parameters={profileParameterIds(data.path).join(' ')}
+        className="@container/profile"
+      >
         <ViewButtons
           label="Vista del recorrido"
           views={PROFILE_VIEWS}
@@ -236,7 +241,24 @@ export default function CircuitProfileFigure({
             </svg>
           </div>
         </SeriesHighlightContext>
-        <StripKey placement={placement} />
+        {isMeasured ? (
+          <StripKey placement={placement} />
+        ) : (
+          // Before it measures (the server draws at 720 px), the phone's key: a compact strip
+          // numbers every section of the view whatever its width, so this is the key it will
+          // have; CSS hides it while the figure is wide, and hydrating moves nothing.
+          <div data-strip-key-reserve="" className={KEY_RESERVE}>
+            <StripKey
+              placement={stripPlacement(
+                sections,
+                view.labelLevel,
+                layout.p.scales.x,
+                labelWidth,
+                true,
+              )}
+            />
+          </div>
+        )}
         <p data-testid="circuit-profile-note" className="m-0 mt-3 text-sm">
           <InlineMath text={viewNote(data, viewId)} />
         </p>

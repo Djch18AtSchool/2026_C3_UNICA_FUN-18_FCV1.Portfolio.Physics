@@ -144,8 +144,36 @@ describe('CircuitProfileFigure: v(x) and p(x) along the circuit (the prescribed 
   });
 
   test('on a desktop the names fit under the strip and there is no key', () => {
+    stubWidth(720);
     render(<CircuitProfileFigure />);
 
     expect(screen.queryByRole('list', { name: 'Tramos de la franja' })).toBeNull();
+  });
+
+  test('before it measures (the server’s page), the phone’s key is there, hidden while the figure is wide', () => {
+    const { container } = render(<CircuitProfileFigure />);
+    const reserve = container.querySelector('[data-strip-key-reserve]');
+
+    expect(reserve?.className).toContain('@min-[479.5px]/profile:hidden');
+    expect(reserve?.closest('.\\@container\\/profile')).not.toBeNull();
+    expect(within(reserve as HTMLElement).getAllByRole('listitem').length).toBeGreaterThan(0);
+  });
+
+  test('measured on a phone, the key is the one the server reserved: same items, nothing hidden', () => {
+    const { container: before } = render(<CircuitProfileFigure />);
+    const reserved = [...before.querySelectorAll('[data-strip-key-reserve] li')].map(
+      (item) => item.textContent,
+    );
+    cleanup();
+    stubWidth(264);
+    const { container } = render(<CircuitProfileFigure />);
+
+    expect(container.querySelector('[data-strip-key-reserve]')).toBeNull();
+    const key = screen.getByRole('list', { name: 'Tramos de la franja' });
+    expect(
+      within(key)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual(reserved);
   });
 });
