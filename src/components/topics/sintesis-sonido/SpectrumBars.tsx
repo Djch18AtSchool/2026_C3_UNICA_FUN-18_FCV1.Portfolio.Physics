@@ -27,6 +27,10 @@ export interface SpectrumBarsProps {
   ariaLabel: string;
   /** Power of the odd harmonics over the even ones (n ≤ 10), dB; shown above the bars. */
   oddEvenDb?: number;
+  /** Harmonics on the x axis, n = 1…harmonics: twelve in the figures, ten in the lab. */
+  harmonics?: number;
+  /** The y axis title: the figures' A_n/A₁ by default. */
+  yTitle?: string;
   testId?: string;
 }
 
@@ -44,7 +48,7 @@ const EVEN_OPACITY = 0.85;
 const TICK_SIZE = TICK_FONT_SIZE + 1;
 const TITLE_SIZE = TICK_FONT_SIZE + 2;
 const SWATCH = { width: 16, height: 12 } as const;
-const X_DOMAIN = { min: 0.5, max: SPECTRUM_HARMONICS + 0.5 } as const;
+const DEFAULT_Y_TITLE = '$A_n/A_1$ (dB)';
 
 /** «+25,7 dB», «−0,7 dB»; a silent parity is said in words. */
 export function oddEvenText(db: number): string {
@@ -53,7 +57,7 @@ export function oddEvenText(db: number): string {
   return `${db > 0 ? '+' : ''}${formatNumber(db, { precision: 1, unit: 'dB' })}`;
 }
 
-function layoutFor(width: number) {
+function layoutFor(width: number, harmonics: number) {
   const compact = width < COMPACT_WIDTH;
   const margin = compact ? COMPACT_MARGIN : WIDE_MARGIN;
   const aspect = compact ? PLOT_ASPECT.compact : PLOT_ASPECT.wide;
@@ -69,7 +73,7 @@ function layoutFor(width: number) {
     width,
     height,
     area,
-    x: linearScale(X_DOMAIN, [area.left, area.right]),
+    x: linearScale({ min: 0.5, max: harmonics + 0.5 }, [area.left, area.right]),
     y: linearScale(SPECTRUM_DOMAIN, [area.bottom, area.top]),
   };
 }
@@ -223,14 +227,18 @@ export default function SpectrumBars({
   title,
   ariaLabel,
   oddEvenDb,
+  harmonics = SPECTRUM_HARMONICS,
+  yTitle = DEFAULT_Y_TITLE,
   testId,
 }: SpectrumBarsProps): JSX.Element {
   const patternId = `espectro-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}-impar`;
   const [ref, measuredWidth, isMeasured] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const [reserve] = useState(() => aspectReserve(PLOT_ASPECT));
-  const layout = layoutFor(measuredWidth);
+  const layout = layoutFor(measuredWidth, harmonics);
   const ticks = {
-    x: [...(layout.compact ? COMPACT_SPECTRUM_X_TICKS : SPECTRUM_TICKS.x)],
+    x: layout.compact
+      ? COMPACT_SPECTRUM_X_TICKS.filter((n) => n <= harmonics)
+      : Array.from({ length: harmonics }, (_, i) => i + 1),
     y: [...SPECTRUM_TICKS.y],
   };
   const hasRanges = bars.some((bar) => bar.range !== undefined);
@@ -261,7 +269,7 @@ export default function SpectrumBars({
             y={layout.y}
             area={layout.area}
             xTitle="Armónico $n$ (adimensional)"
-            yTitle="$A_n/A_1$ (dB)"
+            yTitle={yTitle}
             tickFontSize={TICK_SIZE}
             titleFontSize={TITLE_SIZE}
             compact={layout.compact}

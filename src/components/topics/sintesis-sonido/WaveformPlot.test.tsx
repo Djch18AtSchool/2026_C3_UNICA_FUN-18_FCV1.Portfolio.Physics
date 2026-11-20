@@ -49,6 +49,24 @@ describe('WaveformPlot', () => {
     expect(container.querySelectorAll('[data-series]')).toHaveLength(1);
   });
 
+  test('a lab may add a draggable cursor and its own marks over the bracket', () => {
+    const onChange = vi.fn();
+    const { container } = render(
+      <WaveformPlot
+        data={sampleWaveform('clarinete')}
+        title="Forma"
+        ariaLabel="Forma"
+        cursor={{ x: 2, onChange, label: (t) => `$t$ = ${t} ms` }}
+        marks={() => <circle data-testid="marca" r={3} />}
+      />,
+    );
+
+    const cursor = screen.getByRole('slider', { name: 'Tiempo t' });
+    expect(cursor.getAttribute('aria-valuenow')).toBe('2');
+    expect(screen.getByTestId('marca')).toBeTruthy();
+    expect(container.querySelector('[data-mark="periodo"]')).not.toBeNull();
+  });
+
   test.each([360, 720])('at %i px: Plex draws every character, tokens only, no raw $', (width) => {
     stubWidth(width);
     const { container } = render(

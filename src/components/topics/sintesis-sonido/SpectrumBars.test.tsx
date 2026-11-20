@@ -122,6 +122,50 @@ describe('SpectrumBars', () => {
     expect(ticks).toEqual(labels);
   });
 
+  test.each([
+    [720, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']],
+    [360, ['1', '2', '4', '6', '8', '10']],
+  ])('with ten harmonics (the lab) at %i px the x axis ticks %j', (width, labels) => {
+    stubWidth(width);
+    const { container } = render(
+      <SpectrumBars
+        bars={recipeSpectrum(classicAmplitudes('sierra', 10))}
+        harmonics={10}
+        title="T"
+        ariaLabel="A"
+      />,
+    );
+    const ticks = [
+      ...container.querySelectorAll('svg[role="img"] .tabular-nums text[text-anchor="middle"]'),
+    ]
+      .map((text) => text.textContent ?? '')
+      .filter((text) => /^\d+$/.test(text));
+
+    expect(ticks).toEqual(labels);
+    expect(container.querySelectorAll('rect[data-harmonic]')).toHaveLength(10);
+  });
+
+  test('the y axis says A_n/A_1 by default, or the title a figure gives it', () => {
+    const notation = (container: Element) =>
+      [...container.querySelectorAll('text[data-notation]')].map((text) =>
+        text.getAttribute('data-notation'),
+      );
+    const { container } = clarinet();
+    expect(notation(container)).toContain('$A_n/A_1$ (dB)');
+    cleanup();
+
+    const lab = render(
+      <SpectrumBars
+        bars={recipeSpectrum([1])}
+        yTitle="Nivel de $A_n$ (dB)"
+        title="T"
+        ariaLabel="A"
+      />,
+    );
+    expect(notation(lab.container)).toContain('Nivel de $A_n$ (dB)');
+    expect(notation(lab.container)).not.toContain('$A_n/A_1$ (dB)');
+  });
+
   test('without an odd/even value, no line is printed', () => {
     render(<SpectrumBars bars={recipeSpectrum([1])} title="T" ariaLabel="A" />);
 

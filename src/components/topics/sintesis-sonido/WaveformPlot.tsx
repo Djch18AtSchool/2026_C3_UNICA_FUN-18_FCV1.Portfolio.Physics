@@ -1,7 +1,12 @@
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { SURFACE_COLOR, TEXT_COLOR, TICK_FONT_SIZE } from '../../charts/chartTheme';
 import MathText from '../../lab/MathText';
-import SvgPlot, { type OverlayScales, type PlotSeries } from '../../lab/SvgPlot';
+import SvgPlot, {
+  type OverlayScales,
+  type PlotAspect,
+  type PlotCursor,
+  type PlotSeries,
+} from '../../lab/SvgPlot';
 import { formatNumber } from '../../../lib/format';
 import {
   PERIOD_BRACKET_Y,
@@ -18,6 +23,12 @@ export interface WaveformPlotProps {
   ariaLabel: string;
   /** Draw −y(t + T/2) dashed on top (equation 11.6); Paso 1's pure tone leaves it out. */
   showShifted?: boolean;
+  /** The lab's stage proportions; the figures keep SvgPlot's default. */
+  aspectRatio?: number | PlotAspect;
+  /** A draggable cursor along t (the lab). */
+  cursor?: PlotCursor;
+  /** More marks over the period's bracket (the lab's points at the cursor). */
+  marks?: (scales: OverlayScales) => ReactNode;
   testId?: string;
 }
 
@@ -57,6 +68,9 @@ export default function WaveformPlot({
   title,
   ariaLabel,
   showShifted = true,
+  aspectRatio,
+  cursor,
+  marks,
   testId,
 }: WaveformPlotProps): JSX.Element {
   const signal: PlotSeries = {
@@ -78,7 +92,14 @@ export default function WaveformPlot({
       title={title}
       {...WAVEFORM_AXES}
       series={series}
-      overlay={(scales) => <PeriodBracket scales={scales} periodMs={data.periodMs} />}
+      aspectRatio={aspectRatio}
+      cursor={cursor}
+      overlay={(scales) => (
+        <>
+          <PeriodBracket scales={scales} periodMs={data.periodMs} />
+          {marks?.(scales)}
+        </>
+      )}
       ariaLabel={ariaLabel}
       testId={testId}
     />
