@@ -109,7 +109,7 @@ classRefs:
   - module: 'Módulo 6'
     topic: 'Tema 4 · 1.4 Viscosidad, Turbulencia y Ecuaciones de Navier-Stokes'
     note: '$\mathrm{Re} = \rho v D/\mu$, con los límites de la clase: laminar bajo 2300 y turbulento sobre 4000.'
-updated: 2026-11-18
+updated: 2026-11-20
 ---
 
 import Step from '../../components/ui/Step.astro';
@@ -333,7 +333,7 @@ Si el manifold pierde presión, la rama más cercana recibe más; una rama muy r
 
 <Fragment slot="ecuacion">
 
-Con placas, el caudal varía un 0,27 % entre servidores; sin ellas, un 1,0 %. Si el peor servidor no llega a su mínimo, hay que subir el caudal total, y con $\Delta p \propto Q^{1{,}9}$ la potencia $P = \Delta p\,Q$ crece como $Q^{2{,}9}$.
+Con placas, el caudal varía un 0,27 % entre servidores; sin ellas, un 1,0 %. Si el peor servidor no llega a su objetivo, hay que subir el caudal total, y con $\Delta p \propto Q^{1{,}9}$ la potencia $P = \Delta p\,Q$ crece como $Q^{2{,}9}$.
 
 </Fragment>
 
@@ -391,7 +391,7 @@ La alternativa no física es la regla fija: 1,5 L/min por kW da el caudal, pero 
 
 <Fragment slot="balance">
 
-Se gana dar al servidor más lejano su caudal mínimo sin sobredimensionar la bomba: subir el caudal un 46 % triplicaría el bombeo (paso 4). Cuesta conocer el fluido, cuya viscosidad se divide entre 2,3 de 20 a 50 °C, estimar pérdidas locales y medir conectores.
+Se gana dar al servidor más lejano su caudal objetivo sin sobredimensionar la bomba: subir el caudal un 46 % triplicaría el bombeo (paso 4). Cuesta conocer el fluido, cuya viscosidad se divide entre 2,3 de 20 a 50 °C, estimar pérdidas locales y medir conectores.
 
 </Fragment>
 

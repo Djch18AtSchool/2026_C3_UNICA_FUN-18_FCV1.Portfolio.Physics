@@ -1899,3 +1899,15 @@ encontró una letra suelta:
 
 8. `src/lib/tables/topics/gravedad-artificial.ts:127`, tabla 3.2 (el Toro de Stanford), celda «Dato»: «Radio mayor R»
    → «Radio mayor $R$» (la $R$ de $a_c = \omega^2 R$ en la página).
+
+### Tema 13: el objetivo de OCP no es un mínimo (decisión R28)
+
+OCP da 1,5 L/min por kW como objetivo típico de diseño (recomienda de 1,25 a 2,0), y el laboratorio ya decía «objetivo de
+diseño de OCP»; la prosa todavía decía «mínimo». Mismo número de palabras (prosa: 647).
+
+9. `src/content/topics/enfriamiento-liquido.mdx:336`, paso 4, «Por qué», ranura `ecuacion`: «Si el peor servidor no
+   llega a su mínimo, hay que subir el caudal total…» → «Si el peor servidor no llega a su objetivo, hay que subir el
+   caudal total…».
+10. `src/content/topics/enfriamiento-liquido.mdx:394`, caso de uso, «Qué se gana»: «Se gana dar al servidor más lejano
+    su caudal mínimo sin sobredimensionar la bomba…» → «Se gana dar al servidor más lejano su caudal objetivo sin
+    sobredimensionar la bomba…».
