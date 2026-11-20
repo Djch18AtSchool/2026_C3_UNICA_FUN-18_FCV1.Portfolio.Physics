@@ -115,10 +115,13 @@ for (const viewport of VIEWPORTS) {
   }
 }
 
+/** Pages whose equations, figures or tables are numbered: the topics and the cover's closing. */
+const NUMBERED_PAGES = [{ name: 'la portada', path: './' }, ...TOPICS_SCANNED];
+
 test.describe('móvil, regiones desplazables', () => {
   test.use({ viewport: VIEWPORTS[1].size });
 
-  for (const { name, path } of TOPICS_SCANNED) {
+  for (const { name, path } of NUMBERED_PAGES) {
     test(`en ${name} cada región desplazable tiene un nombre único (landmark-unique)`, async ({
       page,
     }) => {
@@ -134,7 +137,8 @@ test.describe('móvil, regiones desplazables', () => {
       expect(new Set(names).size).toBe(names.length);
       for (const label of names)
         expect(label).toMatch(
-          /^(Ecuación \(\d+\.\d+\)|Figura \d+\.\d+|Tabla \d+\.\d+) desplazable$/,
+          // "N.k" in a topic; "k" alone on the cover, whose closing numbers on its own.
+          /^(Ecuación \((\d+\.)?\d+\)|Figura (\d+\.)?\d+|Tabla (\d+\.)?\d+) desplazable$/,
         );
 
       const { violations } = await new AxeBuilder({ page })

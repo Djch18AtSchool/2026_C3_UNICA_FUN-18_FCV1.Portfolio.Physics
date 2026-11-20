@@ -12,20 +12,29 @@ const NUMBER_PLACEHOLDER = '{n}';
 const NUMBER_SLOT = /\s*\(?\{n\}\)?/;
 
 /**
+ * Where numbering restarts: a topic body (`data-topic-number`, numbers "N.k") or a scope that
+ * numbers on its own (`data-number-scope`, numbers "k": the cover's closing, whose CSS counters
+ * print "(1)", "Figura 1").
+ */
+const NUMBERING_SCOPE = '[data-topic-number], [data-number-scope]';
+
+/**
  * The region's name. A template with "{n}" gets the number the CSS counters print beside the
- * element: the topic number (`data-topic-number` on the topic body) and the 1-based position of
- * the element matching `data-scroll-number` among those in the body, so names stay unique
- * ("Ecuación (1.3) desplazable"). Without a topic body the number is dropped.
+ * element: the topic number (`data-topic-number` on the topic body, absent in a
+ * `data-number-scope`) and the 1-based position of the element matching `data-scroll-number`
+ * among those in the scope, so names stay unique ("Ecuación (1.3) desplazable",
+ * "Ecuación (3) desplazable"). Outside any numbering scope the number is dropped.
  */
 export function scrollLabel(element: HTMLElement): string | undefined {
   const template = element.dataset.scrollLabel;
   if (!template?.includes(NUMBER_PLACEHOLDER)) return template;
-  const body = element.closest<HTMLElement>('[data-topic-number]');
+  const scope = element.closest<HTMLElement>(NUMBERING_SCOPE);
   const selector = element.dataset.scrollNumber;
   const numbered = selector ? element.closest(selector) : null;
-  if (!body || !selector || !numbered) return template.replace(NUMBER_SLOT, '');
-  const position = [...body.querySelectorAll(selector)].indexOf(numbered) + 1;
-  return template.replace(NUMBER_PLACEHOLDER, `${body.dataset.topicNumber}.${position}`);
+  if (!scope || !selector || !numbered) return template.replace(NUMBER_SLOT, '');
+  const position = [...scope.querySelectorAll(selector)].indexOf(numbered) + 1;
+  const topic = scope.dataset.topicNumber;
+  return template.replace(NUMBER_PLACEHOLDER, topic ? `${topic}.${position}` : `${position}`);
 }
 
 /** Add or remove the tab stop, the region role and its name, depending on overflow now. */

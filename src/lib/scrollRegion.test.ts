@@ -113,6 +113,26 @@ describe('numbered region names', () => {
     expect(new Set(names).size).toBe(names.length);
   });
 
+  test('a numbering scope without a topic numbers its regions alone, as the cover prints them', () => {
+    document.body.innerHTML = `
+      <div class="topic-body closing-body" data-number-scope>
+        <div class="equation"><div class="equation-math" data-scroll-label="Ecuación ({n}) desplazable" data-scroll-number=".equation"></div></div>
+        <figure class="content-figure"><div class="figure-frame" data-scroll-label="Figura {n} desplazable" data-scroll-number=".content-figure"></div></figure>
+        <div class="equation"><div class="equation-math" data-scroll-label="Ecuación ({n}) desplazable" data-scroll-number=".equation"></div></div>
+      </div>`;
+    for (const element of document.querySelectorAll<HTMLElement>(SCROLL_LABEL_SELECTOR)) {
+      resize(element, 640, 300);
+    }
+
+    const names = syncScrollRegions(document).map((element) => element.getAttribute('aria-label'));
+
+    expect(names).toEqual([
+      'Ecuación (1) desplazable',
+      'Figura 1 desplazable',
+      'Ecuación (2) desplazable',
+    ]);
+  });
+
   test('outside a topic body the number is dropped from the name', () => {
     const element = region(640, 300);
     element.dataset.scrollLabel = 'Ecuación ({n}) desplazable';

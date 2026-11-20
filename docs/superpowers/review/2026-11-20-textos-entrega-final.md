@@ -1917,3 +1917,18 @@ diseño de OCP»; la prosa todavía decía «mínimo». Mismo número de palabra
 11. `src/components/topics/animaciones-resorte/SpringLab.tsx:247` (el texto viene de `src/components/lab/clockSettings.ts`),
     cajón de ajustes del laboratorio del resorte: — → «Repetir», el interruptor de reproducción en bucle que llevan
     todos los laboratorios con reloj. Faltaba en este; la prueba de rendimiento de los laboratorios lo enciende y fallaba.
+
+## Ronda final de correcciones (Task 17)
+
+Lo que cambió con la revisión final de toda la rama y la pasada visual. Las líneas son las de la rama tras esta ronda.
+Cada grupo lleva el número del punto que corrige.
+
+### 1. Portada: los nombres de las ecuaciones desplazables de «Qué aprendí»
+
+En un teléfono, las tres ecuaciones de «Qué aprendí» no caben y se vuelven regiones desplazables con nombre (no se
+ve; lo dice el lector de pantalla). Las tres se llamaban igual porque la portada no tiene número de tema; ahora llevan
+el número que imprime la página, como en los temas.
+
+1. `src/pages/index.astro:127` (el nombre lo pone `src/lib/scrollRegion.ts:28-38`), nombre accesible de cada ecuación de
+   «Qué aprendí» cuando se desplaza: «Ecuación desplazable» (tres veces) → «Ecuación (1) desplazable», «Ecuación (2)
+   desplazable», «Ecuación (3) desplazable»; el mapa, si se desplaza, «Figura desplazable» → «Figura 1 desplazable».
