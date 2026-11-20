@@ -20,6 +20,7 @@ import {
   setRandomPhases,
   setSampleRate,
   soundingRecipe,
+  soundingRecipeFor,
   SYNTH_PRESETS,
   synthReadings,
   synthSpectrum,
@@ -310,6 +311,16 @@ describe('the synthesiser scene: Nyquist and the readouts', () => {
     expect(audibleCount(880, 16000)).toBe(9);
     expect(audibleCount(310.1, 44100)).toBe(HARMONIC_COUNT);
     expect(audibleCount(110, 8000)).toBe(HARMONIC_COUNT);
+  });
+
+  test('what sounds depends on f₁ and f_s only through how many harmonics fit', () => {
+    const state = setRandomPhases(INITIAL_SYNTH_STATE, true);
+
+    expect(soundingRecipeFor(state, 10)).toEqual(soundingRecipe(state));
+    expect(soundingRecipeFor(state, 4)).toEqual(
+      soundingRecipe(setSampleRate(setF1(state, 880), 8000)),
+    );
+    expect(soundingRecipe(setF1(state, 220))).toEqual(soundingRecipe(state));
   });
 
   test('what sounds drops the harmonics above Nyquist and keeps the sliders’ values', () => {

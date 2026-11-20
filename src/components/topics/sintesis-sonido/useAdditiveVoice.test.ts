@@ -323,3 +323,114 @@ describe('useAdditiveVoice: when it cannot sound', () => {
     );
   });
 });
+
+describe('useAdditiveVoice: a ramp interrupted, or a clock behind, never steps (fix round 1)', () => {
+  /** The gain every millisecond from now, after `act`, without the clocks having moved yet. */
+  function traceAfter(context: FakeAudioContext, action: () => void, ms: number): number[] {
+    const before = gainOf(context).value;
+    act(action);
+    return [before, ...gainTrace(context, ms)];
+  }
+
+  test('the same coefficients again (a new f₁ recomputes them) neither dip nor swap', async () => {
+    const { result } = await startVoice();
+    const context = onlyContext();
+    act(() => audio.advance(100));
+
+    const trace = traceAfter(
+      context,
+      () => result.current.setRecipe([...CLARINET.amplitudes], [...CLARINET.phases]),
+      3 * RAMP_MS,
+    );
+
+    expect(context.oscillators[0].waveSwaps).toHaveLength(1);
+    expect(largestStep(trace)).toBe(0);
+  });
+
+  test('stop 10 ms into a dip ramps down from where the gain is', async () => {
+    const { result } = await startVoice();
+    const context = onlyContext();
+    act(() => audio.advance(100));
+    act(() => result.current.setRecipe(SQUARE.amplitudes, SQUARE.phases));
+    const dip = gainTrace(context, 10);
+
+    const rest = traceAfter(context, () => result.current.stop(), 2 * RAMP_MS);
+
+    expect(largestStep([...dip, ...rest])).toBeLessThanOrEqual(MAX_STEP);
+    expect(rest.at(-1)).toBe(0);
+  });
+
+  test('a new recipe 10 ms into the ramp up starts its dip from there', async () => {
+    const { result } = await startVoice();
+    const context = onlyContext();
+    act(() => audio.advance(100));
+    act(() => result.current.setRecipe(SQUARE.amplitudes, SQUARE.phases));
+    const first = gainTrace(context, RAMP_MS + 20);
+
+    const second = traceAfter(
+      context,
+      () => result.current.setRecipe(SILENCE.amplitudes, SILENCE.phases),
+      3 * RAMP_MS,
+    );
+
+    expect(largestStep([...first, ...second])).toBeLessThanOrEqual(MAX_STEP);
+    expect(second.at(-1)).toBe(0);
+  });
+
+  test('stop 10 ms into the start ramp: no step', async () => {
+    const { result } = await startVoice();
+    const context = onlyContext();
+    const start = gainTrace(context, 10);
+
+    const rest = traceAfter(context, () => result.current.stop(), 2 * RAMP_MS);
+
+    expect(largestStep([...start, ...rest])).toBeLessThanOrEqual(MAX_STEP);
+    expect(rest.at(-1)).toBe(0);
+  });
+
+  test('a swap whose timer fires before the audio clock passes the ramp’s end waits for it: the wave changes only at gain 0', async () => {
+    const { result } = await startVoice(8000);
+    const context = onlyContext();
+    act(() => audio.advance(100));
+    act(() => result.current.setRecipe(SQUARE.amplitudes, SQUARE.phases));
+
+    // The page's timers run 40 ms; the audio clock, one 8 kHz quantum short of the ramp's end.
+    act(() => audio.advance(40, 25));
+    const trace = gainTrace(context, 3 * RAMP_MS);
+
+    const swaps = context.oscillators[0].waveSwaps;
+    expect(swaps).toHaveLength(2);
+    expect(gainOf(context).valueAt(swaps[1].time)).toBe(0);
+    expect(largestStep(trace)).toBeLessThanOrEqual(MAX_STEP);
+    expect(trace.at(-1)).toBeCloseTo(VOICE_GAIN, 12);
+  });
+
+  test('a stop whose suspend timer fires before the ramp has ended waits for the audio clock', async () => {
+    const { result } = await startVoice();
+    const context = onlyContext();
+    act(() => audio.advance(100));
+    act(() => result.current.stop());
+
+    act(() => audio.advance(40, 20));
+    expect(context.calls).not.toContain('suspend');
+    act(() => audio.advance(30));
+    expect(context.calls).toContain('suspend');
+  });
+
+  test('a stop while the context resumes suspends it once it has resumed', async () => {
+    FakeAudioContext.resumeBehaviour = 'hang';
+    const { result } = renderVoice();
+    let started: Promise<void> = Promise.resolve();
+    act(() => {
+      started = result.current.start();
+    });
+    act(() => result.current.stop());
+    await act(async () => {
+      onlyContext().release?.();
+      await started;
+    });
+
+    expect(onlyContext().calls).toContain('suspend');
+    expect(onlyContext().state).toBe('suspended');
+  });
+});

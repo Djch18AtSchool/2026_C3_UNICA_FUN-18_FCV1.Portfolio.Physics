@@ -3,7 +3,8 @@
  * every call recorded and the AudioParam automation simulated (setValueAtTime, linear ramps,
  * setTargetAtTime, cancelScheduledValues), so a test reads a gain at any instant and can prove
  * that it never steps. Time is the test's: `advance(ms)` moves every context's clock and the
- * fake timers (vi.useFakeTimers) together. The e2e uses its own stub in the page.
+ * fake timers (vi.useFakeTimers) together; `advance(ms, audioMs)` lets the audio clock lag the
+ * page's timers, as a rendering thread a quantum behind does. The e2e uses its own stub in the page.
  */
 import { vi } from 'vitest';
 
@@ -236,8 +237,8 @@ export class FakeAudioContext {
 export interface FakeAudio {
   /** Every context created, in order. */
   contexts: FakeAudioContext[];
-  /** Moves every context's clock and the fake timers by `ms`. */
-  advance(ms: number): void;
+  /** Moves the fake timers by `ms` and every context's clock by `audioMs` (by default the same). */
+  advance(ms: number, audioMs?: number): void;
   uninstall(): void;
 }
 
@@ -254,8 +255,8 @@ export function installFakeAudio(): FakeAudio {
   });
   return {
     contexts: FakeAudioContext.created,
-    advance(ms) {
-      for (const context of FakeAudioContext.created) context.currentTime += ms / 1000;
+    advance(ms, audioMs = ms) {
+      for (const context of FakeAudioContext.created) context.currentTime += audioMs / 1000;
       vi.advanceTimersByTime(ms);
     },
     uninstall() {

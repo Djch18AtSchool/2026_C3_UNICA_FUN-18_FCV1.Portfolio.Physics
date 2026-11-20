@@ -181,6 +181,21 @@ describe('SynthLab: sound only after a press, and one stop', () => {
     expect(audio.contexts[0].oscillators[0].waveSwaps).toHaveLength(2);
   });
 
+  test('a new f₁ while it plays glides the oscillator: no dip, no new wave (fix round 1)', async () => {
+    renderLab();
+    await press(playButton());
+    act(() => audio.advance(100));
+    const gain = audio.contexts[0].gains[0].gain;
+    const before = gain.value;
+
+    commit(screen.getByRole('textbox', { name: /^Fundamental/ }), '440');
+    const trace = [before, ...gainTrace(4 * RAMP_MS)];
+
+    expect(audio.contexts[0].oscillators[0].waveSwaps).toHaveLength(1);
+    expect(Math.max(...trace) - Math.min(...trace)).toBe(0);
+    expect(audio.contexts[0].oscillators[0].frequency.value).toBeCloseTo(440, 1);
+  });
+
   test('leaving the page closes the AudioContext and the button reads «Reproducir»', async () => {
     renderLab();
     await press(playButton());

@@ -15,7 +15,7 @@ import {
   setF1,
   setRandomPhases,
   setSampleRate,
-  soundingRecipe,
+  soundingRecipeFor,
   SYNTH_PRESETS,
   synthReadings,
   synthSpectrum,
@@ -80,21 +80,16 @@ function displayOptions(
   ];
 }
 
-/** What sounds, recomputed only when the recipe, the note, the rate or the phases change. */
+/**
+ * What sounds, recomputed only when the recipe, the phases or the number of harmonics under f_s/2
+ * change: a new f₁ keeps the same arrays, so the voice glides instead of swapping its wave.
+ */
 function useSounding(state: SynthState): SynthRecipe {
-  const { amplitudes, phases, f1, sampleRate, randomPhases, phaseDraw } = state;
+  const { amplitudes, phases, randomPhases, phaseDraw } = state;
+  const count = audibleCount(state.f1, state.sampleRate);
   return useMemo(
-    () =>
-      soundingRecipe({
-        ...INITIAL_SYNTH_STATE,
-        amplitudes,
-        phases,
-        f1,
-        sampleRate,
-        randomPhases,
-        phaseDraw,
-      }),
-    [amplitudes, phases, f1, sampleRate, randomPhases, phaseDraw],
+    () => soundingRecipeFor({ amplitudes, phases, randomPhases, phaseDraw }, count),
+    [amplitudes, phases, randomPhases, phaseDraw, count],
   );
 }
 

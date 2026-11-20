@@ -158,13 +158,23 @@ export function audibleCount(f1: number, sampleRate: number): number {
   return Math.min(HARMONIC_COUNT, maxHarmonicBelowNyquist(f1, sampleRate));
 }
 
-/** What the oscillator plays: no harmonic above Nyquist, and the random phases when they are on. */
-export function soundingRecipe(state: SynthState): SynthRecipe {
-  const count = audibleCount(state.f1, state.sampleRate);
+/** What sounds depends on the recipe, the phases and only how many harmonics fit, not on f₁. */
+export type SoundingInputs = Pick<
+  SynthState,
+  'amplitudes' | 'phases' | 'randomPhases' | 'phaseDraw'
+>;
+
+/** The first `count` harmonics of the recipe, with the random phases when they are on. */
+export function soundingRecipeFor(state: SoundingInputs, count: number): SynthRecipe {
   return {
     amplitudes: state.amplitudes.map((a, i) => (i < count ? a : 0)),
     phases: state.randomPhases ? randomPhases(state.phaseDraw) : [...state.phases],
   };
+}
+
+/** What the oscillator plays: no harmonic above Nyquist, and the random phases when they are on. */
+export function soundingRecipe(state: SynthState): SynthRecipe {
+  return soundingRecipeFor(state, audibleCount(state.f1, state.sampleRate));
 }
 
 /** (11.4) at f₁ = 1, so t is in periods. */
