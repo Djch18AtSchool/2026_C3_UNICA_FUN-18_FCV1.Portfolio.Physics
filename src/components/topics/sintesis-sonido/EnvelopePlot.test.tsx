@@ -32,6 +32,26 @@ describe('EnvelopePlot', () => {
     expect(container.textContent).toContain('Caída');
   });
 
+  // At 360 px the clarinet's window label crossed its attack band, where its surface halo showed
+  // as a pale blob, and «Ataque» and «Caída» sat 4 px from the band and the falling curve.
+  test('the window label lies under the bands, so a band tints its halo; the band labels keep 8 px', () => {
+    stubWidth(360);
+    const { container } = render(
+      <EnvelopePlot data={sampleEnvelope('clarinete')} title="Envolvente" ariaLabel="Env" />,
+    );
+    const marks = [...container.querySelectorAll('[data-band], text')];
+    const windowLabel = marks.findIndex((mark) => mark.textContent === 'Ventana de análisis');
+    const attack = container.querySelector('[data-band="ataque"]');
+    const release = container.querySelector('[data-band="caida"]');
+    const label = (text: string) =>
+      [...container.querySelectorAll('text')].find((mark) => mark.textContent === text) ?? null;
+
+    expect(windowLabel).toBeLessThan(marks.indexOf(attack as Element));
+    expect(windowLabel).toBeLessThan(marks.indexOf(release as Element));
+    expect(x(label('Ataque')) - (x(attack) + x(attack, 'width'))).toBeCloseTo(8, 6);
+    expect(x(release) - x(label('Caída'))).toBeCloseTo(8, 6);
+  });
+
   test('draws the envelope as one series and names the figure', () => {
     const { container } = render(
       <EnvelopePlot data={sampleEnvelope('flauta')} title="Envolvente" ariaLabel="Env flauta" />,

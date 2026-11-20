@@ -169,7 +169,8 @@ function CurvaPlot(): JSX.Element {
         overlay={(scales) => (
           <>
             <Guide {...scales} at={1} label="$\omega_d = \omega_0$" labelAt="bottom" />
-            <PlotPoints points={peaks} scales={scales} />
+            {/* Plated: right of each peak the taller curve comes down across the label. */}
+            <PlotPoints plated points={peaks} scales={scales} />
           </>
         )}
         ariaLabel={mathTextToString(

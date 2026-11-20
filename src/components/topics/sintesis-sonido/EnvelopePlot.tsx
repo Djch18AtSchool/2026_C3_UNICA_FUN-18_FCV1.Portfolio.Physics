@@ -19,7 +19,7 @@ export interface EnvelopePlotProps {
 const BAND_OPACITY = 0.14;
 /** The band labels sit at this level, under the sustain (about 1) and above the bracket. */
 const BAND_LABEL_Y = 0.62;
-const LABEL_GAP = 4;
+const LABEL_GAP = 8;
 const LABEL_RISE = 6;
 const CAP = 5;
 const HALO = 4;
@@ -36,7 +36,8 @@ const labelStyle = {
 /**
  * The attack and the release as shaded bands, each labelled beside it toward the sustain, and the
  * analysis window as a bracket under the sustain. They are drawn as measured, so they may overlap
- * (the clarinet's window opens inside its attack, the flute's closes inside its release).
+ * (the clarinet's window opens inside its attack, the flute's closes inside its release); the
+ * bracket and its label go first, so a band over them tints the label's halo as it tints the rest.
  */
 function Bands({ scales, data }: { scales: OverlayScales; data: EnvelopeData }): JSX.Element {
   const { x, y } = scales;
@@ -57,14 +58,6 @@ function Bands({ scales, data }: { scales: OverlayScales; data: EnvelopeData }):
   const [windowLeft, windowRight] = [x.toPx(data.window.from), x.toPx(data.window.to)];
   return (
     <g className="pointer-events-none">
-      {band('ataque', data.attack)}
-      {band('caida', data.release)}
-      <text x={x.toPx(data.attack.to) + LABEL_GAP} y={labelY} {...labelStyle}>
-        Ataque
-      </text>
-      <text x={x.toPx(data.release.from) - LABEL_GAP} y={labelY} textAnchor="end" {...labelStyle}>
-        Caída
-      </text>
       <g data-bracket="ventana" stroke={TEXT_COLOR} strokeWidth={1}>
         <line x1={windowLeft} x2={windowRight} y1={bracketY} y2={bracketY} />
         <line x1={windowLeft} x2={windowLeft} y1={bracketY - CAP} y2={bracketY + CAP} />
@@ -77,6 +70,14 @@ function Bands({ scales, data }: { scales: OverlayScales; data: EnvelopeData }):
         {...labelStyle}
       >
         Ventana de análisis
+      </text>
+      {band('ataque', data.attack)}
+      {band('caida', data.release)}
+      <text x={x.toPx(data.attack.to) + LABEL_GAP} y={labelY} {...labelStyle}>
+        Ataque
+      </text>
+      <text x={x.toPx(data.release.from) - LABEL_GAP} y={labelY} textAnchor="end" {...labelStyle}>
+        Caída
       </text>
     </g>
   );

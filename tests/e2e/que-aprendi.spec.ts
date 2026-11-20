@@ -120,6 +120,34 @@ test('el mapa dibuja los 13 temas y resalta los 3 pares, también por escrito', 
   }
 });
 
+// The list rule of the topic body gave every item but the first 8 px on top: in a row, the first
+// item's text sat 4 px above the second's.
+test('a 1 280 px, los rótulos de la leyenda del mapa que comparten fila comparten línea', async ({
+  page,
+}) => {
+  await page.setViewportSize(DESKTOP);
+  await page.goto('./');
+  await page.evaluate(() => document.fonts.ready);
+
+  const items = await page
+    .getByTestId('connection-map')
+    .locator('xpath=ancestor::figure[1]')
+    .locator('li')
+    .evaluateAll((lis) =>
+      lis.map((li) => {
+        const box = li.getBoundingClientRect();
+        const text = document.createRange();
+        text.selectNodeContents(li.lastChild as Node);
+        return { left: box.left, top: box.top, textTop: text.getBoundingClientRect().top };
+      }),
+    );
+
+  expect(items.length).toBe(1 + CLOSING_PAIRS.length);
+  const [first, second] = items;
+  expect(second.left, 'los dos primeros en la misma fila').toBeGreaterThan(first.left);
+  expect(Math.abs(second.textTop - first.textTop)).toBeLessThanOrEqual(1);
+});
+
 for (const viewport of VIEWPORTS) {
   for (const theme of THEMES) {
     test(`«Qué aprendí» no tiene violaciones serias ni críticas de axe (${viewport.name}, ${theme === 'light' ? 'claro' : 'oscuro'})`, async ({

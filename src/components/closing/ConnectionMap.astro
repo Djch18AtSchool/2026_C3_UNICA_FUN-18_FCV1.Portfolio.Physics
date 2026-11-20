@@ -168,13 +168,14 @@ const caption = `Los ${map.nodes.length} temas por entrega. En trazo tenue, las 
       );
     })}
   </svg>
+  <!-- m-0: the topic body's list rule would push every item but the first 8 px down in a row. -->
   <ul class="sticky left-0 mt-4 flex w-fit flex-wrap gap-x-6 gap-y-2 text-xs text-fg-muted">
-    <li class="flex items-center gap-2">
+    <li class="m-0 flex items-center gap-2">
       <span class="h-px w-6 shrink-0 bg-fg-muted" aria-hidden="true"></span>
       Conexión que declara cada tema
     </li>
     {pairs.map((edge) => (
-      <li class="flex items-center gap-2">
+      <li class="m-0 flex items-center gap-2">
         <span
           class="h-1 w-6 shrink-0 rounded-full"
           style={`background-color: ${pairColor(edge.principle)}`}
