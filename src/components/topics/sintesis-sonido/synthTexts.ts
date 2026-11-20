@@ -45,7 +45,7 @@ export function nyquistNote(f1: number, sampleRate: number): string {
   const count = audibleCount(f1, sampleRate);
   const fs = hertz(sampleRate);
   if (count === HARMONIC_COUNT) {
-    return `Con $f_s$ = ${fs} caben bajo $f_s/2$ los diez armónicos: $\\lfloor f_s/(2 f_1) \\rfloor$ = ${maxHarmonicBelowNyquist(f1, sampleRate)}, la (11.9).`;
+    return `Con $f_s$ = ${fs} caben bajo $f_s/2$ los diez armónicos: la (11.9) admite hasta $n$ = ${maxHarmonicBelowNyquist(f1, sampleRate)}.`;
   }
   return `Con $f_s$ = ${fs} y $f_1$ = ${hertz(f1, 1)} solo caben ${count} armónicos bajo $f_s/2$ (11.9): de $A_{${count + 1}}$ a $A_{${HARMONIC_COUNT}}$ no suenan y quedan desactivados, como Chromium quita los parciales que se plegarían.`;
 }

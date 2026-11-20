@@ -591,6 +591,9 @@ Todo es nuevo («antes» vacío, —). Los `${…}` salen del estado o de los da
   preajuste (la nota «Valores modificados…» solo sale al tocar una amplitud).
 - **Fases aleatorias** con semilla fija: el primer sorteo es siempre el mismo (servidor, navegador y pruebas), y los
   cuatro primeros cambian a la vista la forma del clarinete (correlación < 0,9).
+- **Sin «♭» ni «⌊ ⌋» en el laboratorio**: ninguna fuente de la página los dibuja, ni dentro de una fórmula («Plex
+  Symbols» llega hasta U+22FF; la guía e2e de glifos vio DejaVu Sans). La nota del clarinete dice «el clarinete de la
+  figura 11.4», sin «en si bemol», y la de la (11.9), «admite hasta $n$ = 71» en vez de la parte entera.
 - **Volumen**: −18 dBFS de pico, con rampas de 30 ms en cada cambio; el navegador normaliza el pico (§1.28.5), así que
   las recetas suenan con el mismo pico y no con la misma sonoridad. Lo dice «Cómo se usa».
 
@@ -638,8 +641,7 @@ Parámetros, escenario y ajustes (`SynthParams.tsx`, `SynthLab.tsx`, `synthTexts
   «Armónico 10, $A_{10}$»; sobre Nyquist añade « (sobre $f_s/2$)»
 - `src/components/topics/sintesis-sonido/SynthParams.tsx:78`, rótulos: — → «Fundamental $f_1$» · «Frecuencia de
   muestreo $f_s$»; opciones: «8 000 Hz» · «16 000 Hz» · «22 050 Hz» · «44 100 Hz» · «48 000 Hz»
-- `src/components/topics/sintesis-sonido/synthTexts.ts:48`, nota de la (11.9) bajo los parámetros: — → «Con $f_s$ =
-  44 100 Hz caben bajo $f_s/2$ los diez armónicos: $\lfloor f_s/(2 f_1) \rfloor$ = 71, la (11.9).» · con 8 000 Hz y
+- `src/components/topics/sintesis-sonido/synthTexts.ts:48`, nota de la (11.9) bajo los parámetros: — → «Con $f_s$ = 44 100 Hz caben bajo $f_s/2$ los diez armónicos: la (11.9) admite hasta $n$ = 71.» · con 8 000 Hz y
   880 Hz: «Con $f_s$ = 8 000 Hz y $f_1$ = 880,0 Hz solo caben 4 armónicos bajo $f_s/2$ (11.9): de $A_{5}$ a $A_{10}$
   no suenan y quedan desactivados, como Chromium quita los parciales que se plegarían.»
 - `src/components/topics/sintesis-sonido/synthPresets.ts:64`, opciones del selector de preajustes (texto plano): — →
@@ -654,8 +656,7 @@ Parámetros, escenario y ajustes (`SynthParams.tsx`, `SynthLab.tsx`, `synthTexts
   - «Solo impares, $A_n = 1/n^2$, con fase $\pi$ en $n$ = 3 y 7: el signo de $\sin(n\pi/2)$ en la tabla 11.1.»
   - (`:87`) «Los diez primeros armónicos de la tabla 11.2, con sus fases, medidos en la flauta de la figura 11.4, a
     310,34 Hz: el más fuerte es el 2.º, pares e impares por igual.»
-  - (`:87`) «Los diez primeros armónicos de la tabla 11.2, con sus fases, medidos en el clarinete en si$\flat$ de la
-    figura 11.4, a 310,10 Hz: el 3.º supera al fundamental y los pares casi no suenan.»
+  - (`:87`) «Los diez primeros armónicos de la tabla 11.2, con sus fases, medidos en el clarinete de la figura 11.4, a 310,10 Hz: el 3.º supera al fundamental y los pares casi no suenan.»
 - `src/components/topics/sintesis-sonido/synthPresets.ts:40`, sus fuentes (tras «Fuente:», enlazadas): — → «W3C, Web
   Audio API, §1.28.6 (tabla 11.1)» · «cálculo propio sobre la grabación del MIS (tabla 11.2)»
 - `src/components/topics/sintesis-sonido/SynthLab.tsx:156`, interruptor: — → «Fases aleatorias»

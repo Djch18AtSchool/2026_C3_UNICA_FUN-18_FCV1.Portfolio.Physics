@@ -119,10 +119,12 @@ describe('the synthesiser scene: presets', () => {
     expect(preset('flauta').values.amplitudes[1]).toBeGreaterThan(1.5);
   });
 
-  test('each note is one sentence and the measured ones name their recording and table', () => {
-    expect(preset('flauta').note).toContain('tabla 11.2');
-    expect(preset('clarinete').note).toContain('si$\\flat$');
-    expect(preset('clarinete').note).not.toContain('♭');
+  test('the measured notes name their recording and table, with no ♭: no font of the page draws it', () => {
+    expect(preset('flauta').note).toContain('la flauta de la figura 11.4');
+    expect(preset('clarinete').note).toContain('el clarinete de la figura 11.4');
+    for (const { id, note, name, optionLabel } of SYNTH_PRESETS) {
+      expect(`${note} ${name} ${optionLabel}`, id).not.toMatch(/♭|\\flat/);
+    }
   });
 
   test('choosing a preset keeps f₁, f_s and the random phases: the preset is the timbre', () => {

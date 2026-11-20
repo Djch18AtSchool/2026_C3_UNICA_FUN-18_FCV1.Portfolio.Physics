@@ -4,11 +4,7 @@
  * calculation, ruling R8). A recipe is ten non-negative amplitudes relative to A₁ = 1 and their
  * phases: a negative coefficient of the specification is the same amplitude with phase π.
  */
-import {
-  INSTRUMENT_SAMPLES,
-  typesetFlat,
-  type InstrumentId,
-} from '../../../lib/data/instrumentSamples';
+import { INSTRUMENT_SAMPLES, type InstrumentId } from '../../../lib/data/instrumentSamples';
 import { formatNumber } from '../../../lib/format';
 import { classicAmplitudes, type ClassicWave } from '../../../lib/physics/harmonics';
 import type { Preset } from '../../../lib/presets';
@@ -69,11 +65,18 @@ const classic = (id: ClassicWave, name: string, note: string): SynthPreset => ({
   note,
 });
 
-/** «el clarinete en si$\flat$ … a 310,10 Hz»: the recording named and pitched from its data. */
+/**
+ * «el clarinete de la figura 11.4, a 310,10 Hz»: the recording pitched from its data. The name
+ * leaves «en si♭» out: no font of the page draws ♭ («Plex Symbols» stops at U+22FF), even in KaTeX.
+ */
+const RECORDING_NAMES: Readonly<Record<InstrumentId, string>> = {
+  flauta: 'la flauta',
+  clarinete: 'el clarinete',
+};
+
 function recordingPhrase(id: InstrumentId): string {
-  const sample = INSTRUMENT_SAMPLES[id];
-  const name = typesetFlat(sample.name.toLowerCase());
-  return `${id === 'flauta' ? 'la' : 'el'} ${name} de la figura 11.4, a ${formatNumber(sample.f1, { precision: 2, unit: 'Hz' })}`;
+  const { f1 } = INSTRUMENT_SAMPLES[id];
+  return `${RECORDING_NAMES[id]} de la figura 11.4, a ${formatNumber(f1, { precision: 2, unit: 'Hz' })}`;
 }
 
 const measured = (id: InstrumentId, name: string, ending: string): SynthPreset => ({

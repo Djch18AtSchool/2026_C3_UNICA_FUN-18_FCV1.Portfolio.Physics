@@ -245,6 +245,8 @@ describe('SynthLab: the recipe and what is drawn', () => {
     renderLab();
     const note = () => mathSourceText(screen.getByTestId('synth-nyquist'));
     expect(note()).toContain('los diez armónicos');
+    // «Plex Symbols» stops at U+22FF: ⌊ ⌋ would fall to a system font even inside a formula.
+    expect(note()).not.toMatch(/⌊|⌋|\\lfloor|\\rfloor/);
     expect(amplitudeSlider(5)).toBeEnabled();
 
     commit(screen.getByRole('textbox', { name: /^Fundamental/ }), '880');
