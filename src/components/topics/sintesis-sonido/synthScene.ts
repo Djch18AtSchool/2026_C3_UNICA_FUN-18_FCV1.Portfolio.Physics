@@ -183,7 +183,7 @@ function recipePeak(recipe: SynthRecipe): number {
  * with −y(t + T/2) at the same instants (11.6). A silent recipe is a flat line.
  */
 export function synthWaveform(recipe: SynthRecipe, f1: number): WaveformData {
-  const periods = (CURSOR_RANGE.max * f1) / MS_PER_S;
+  const periods = (WAVEFORM_AXES.xDomain.max * f1) / MS_PER_S;
   const half = SAMPLES_PER_PERIOD / 2;
   const count = Math.floor(periods * SAMPLES_PER_PERIOD) + half + 2;
   const peak = recipePeak(recipe);
