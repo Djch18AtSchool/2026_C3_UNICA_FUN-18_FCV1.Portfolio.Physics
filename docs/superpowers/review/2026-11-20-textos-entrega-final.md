@@ -2003,3 +2003,17 @@ de cada línea sigue igual. Las líneas de fuente no cuentan para las 650 palabr
 18. `src/content/topics/resonancia-estructural.mdx:570` (figura 12.8, la medición): «Medición del autor (pnpm run
     data:tacoma) sobre el archivo de Wikimedia Commons; …» → «Medición mía (pnpm run data:tacoma) sobre el archivo de
     Wikimedia Commons; …».
+
+### 6. Tema 13: el «÷ 2,3» de la viscosidad es cálculo propio
+
+El 2,3 sale de los polinomios de Melinder (2,541 y 1,102 mPa·s a 20 y 50 °C; `src/lib/physics/propyleneGlycol.test.ts`)
+y la página no decía de dónde. Para que la prosa siga en 650 quité un «un» repetido del paso 4 (prosa: 649 → 650, el
+tope).
+
+19. `src/content/topics/enfriamiento-liquido.mdx:394`, caso de uso, «Qué se gana»: «Cuesta conocer el fluido, cuya
+    viscosidad se divide entre 2,3 de 20 a 50 °C, estimar pérdidas locales y medir conectores.» → «Cuesta conocer el
+    fluido, cuya viscosidad se divide entre 2,3 de 20 a 50 °C (cálculo propio), estimar pérdidas locales y medir
+    conectores.»
+20. `src/content/topics/enfriamiento-liquido.mdx:336`, paso 4, «Por qué», ranura `ecuacion`: «Con placas, el caudal
+    varía un 0,27 % entre servidores; sin ellas, un 1,0 %.» → «Con placas, el caudal varía un 0,27 % entre servidores;
+    sin ellas, 1,0 %.»

@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
+import { formatNumber } from '../format';
 import { propyleneGlycolWater, volumeToMassFraction } from './propyleneGlycol';
 
 /*
@@ -25,6 +28,19 @@ describe('propylene glycol–water (Melinder 2010, as coded in Modelica Building
     expect(cold * 1e3).toBeCloseTo(2.541, 3);
     expect(hot * 1e3).toBeCloseTo(1.102, 3);
     expect(cold / hot).toBeCloseTo(2.3, 1);
+  });
+
+  // One source per number: the use case's ×2,3 is this calculation, and the page says so.
+  test('Tema 13 states the ×2,3 between 20 and 50 °C as my own calculation', () => {
+    const ratio = propyleneGlycolWater(0.25, 20).mu / propyleneGlycolWater(0.25, 50).mu;
+    const mdx = readFileSync(
+      join(process.cwd(), 'src/content/topics/enfriamiento-liquido.mdx'),
+      'utf8',
+    );
+
+    expect(mdx).toContain(
+      `cuya viscosidad se divide entre ${formatNumber(ratio, { precision: 1 })} de 20 a 50 °C (cálculo propio)`,
+    );
   });
 
   test('with no glycol it reproduces water at 30 °C (NIST: 995,74 kg/m³, 0,797 22 mPa·s) within 0,03 %', () => {
