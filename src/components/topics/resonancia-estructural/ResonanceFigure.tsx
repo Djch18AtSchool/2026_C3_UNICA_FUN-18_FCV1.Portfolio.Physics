@@ -325,7 +325,8 @@ function AutoexcitacionPlot(): JSX.Element {
         series={CASES.map((c) => c.series)}
         xDomain={SELF_DOMAIN.x}
         yDomain={SELF_DOMAIN.y}
-        overlay={(scales) => <PlotPoints points={ends} scales={scales} />}
+        // Plated: on a phone the curves' last swing crosses the end labels.
+        overlay={(scales) => <PlotPoints plated points={ends} scales={scales} />}
         ariaLabel={mathTextToString(
           `La torsión a 0,20 Hz durante ${SELF_END_S} s, seis vueltas, sin ninguna fuerza que oscile. Con 17 mph su amplitud baja a ×${comma(CASES[0].growth, 2)}; con 30,6 mph sube a ×${comma(CASES[1].growth, 1)}; con 42 mph, extrapolando la tabla, a ×${comma(CASES[2].growth, 1)}.`,
         )}
