@@ -1027,12 +1027,13 @@ Las celdas «Fuente» de las filas «Dato publicado» y algunas de «Cálculo pr
 
 ### Laboratorio (Task 11: `src/components/topics/resonancia-estructural/ResonanceLab.tsx` y su carpeta)
 
-Laboratorio nuevo: todo su texto es nuevo («antes» vacío) salvo el cambio de número de figura. Va en el paso 3,
-tras la tabla 12.1 (Sétra): dos de sus tres modos son ecuaciones de ese paso, la tropa (12.5) y el filtro ZV (12.6),
-y el barrido reusa la curva (12.3) que el lector acaba de ver en el paso 2. Al entrar antes de la medición, las
-figuras 12.4 a 12.7 pasan a ser 12.5 a 12.8; la única referencia escrita a una de ellas está en la marca 1:01,7
-(abajo). Los `${…}` los pone el componente con los modelos probados; los números entre paréntesis de las notas de
-preajuste son los que imprimen hoy.
+Laboratorio nuevo: todo su texto es nuevo («antes» vacío) salvo el cambio de número de figura y la $\pi$ de la tabla 12.2.
+Va en el paso 3, tras la tabla 12.1 (Sétra): dos de sus tres modos son ecuaciones de ese paso, la tropa (12.5) y el
+filtro ZV (12.6), y el barrido reusa la curva (12.3) que el lector acaba de ver en el paso 2. Al entrar antes de la
+medición, las figuras 12.4 a 12.7 pasan a ser 12.5 a 12.8; la única referencia escrita a una de ellas está en la marca
+1:01,7 (abajo). Los `${…}` los pone el componente con los modelos probados; los números de las notas de preajuste,
+de «Cómo se usa» y de las notas del lienzo salen de las constantes que describen (`labTexts.test.ts` y
+`resonancePresets.test.ts` los fijan; los del MDX, `resonanciaNumbers.test.ts`), y aquí van como se imprimen hoy.
 
 Para leer con atención:
 
@@ -1041,40 +1042,40 @@ Para leer con atención:
   (12.3), un 4 % en el peor caso, justo pasada la resonancia. No es de Klipper; Klipper barre a 1 Hz/s.
 - **La masa modal de la pasarela, 40 toneladas, es ilustrativa** (ninguna fuente da la de Broughton), igual que las
   $f_0$ de 1 Hz, 2,0 Hz y 2,5 Hz de los ejemplos. Con ella el pelotón al paso llega a 332 mm.
-- **El primer sorteo usa la semilla 1832, no 1831** (la de la figura 12.3): con 60 soldados, 1831 da un cociente de
-  21,5, un sorteo raro; 1832 da 9,3, cerca de la mediana. «Nuevo sorteo» enseña cuánto varía uno solo; la lectura
-  «En media cuadrática, $\sqrt{N}$» da el promedio que vale.
-- **La vibración residual del filtro** es la que deja el par de impulsos frente a un solo empujón **en el mismo
-  instante** (lo que la gráfica muestra lado a lado). Klipper la compara con un empujón dado en el segundo impulso, lo
-  que la multiplica por $e^{-\zeta\omega_0 t_2}$ (0,73 con $\zeta$ = 0,1 y el filtro afinado; 0,71 con $f_0$ un 10 % arriba): con $f_0$ un 10 % arriba leo 18,5 %, y
-  con la convención de Klipper serían 13 %. Dentro de ±5 % la mía da 9,0 a 9,2 %, por debajo del 10 % que promete
-  Klipper.
+- **El primer sorteo es uno típico (semilla 1832):** con 60 soldados da $|\Sigma e^{i\varphi}|$ = 6,4, la mediana
+  de un sorteo, y un cociente de 9,3. No coincide con la figura 12.3, que sortea $N$ = 10 a 200 de una sola tirada
+  (su punto de 60 es otro sorteo). «Nuevo sorteo» enseña cuánto varía uno solo; la lectura «En media cuadrática,
+  $\sqrt{N}$» da el promedio que vale.
+- **La vibración residual es la estimación de Klipper** (`shaper_calibrate.py`, `_estimate_shaper`, L186-L198; la
+  investigación la cita en §3.4 y §7): compara lo que dejan los dos impulsos con un solo empujón dado en el segundo,
+  así que nunca pasa del 100 %. Da 6,6–6,7 % a ±5 % (Klipper promete dividirla por 10) y unos 13 % a ±10 %. En la
+  gráfica el empujón solo está en $t = 0$; la nota del lienzo lo dice.
 - En «Tropa» el amortiguamiento va en % (0,4 %, como lo escribe Sétra); en los otros dos modos, como razón (0,1, como
   Klipper).
 
 278. `src/content/topics/resonancia-estructural.mdx:389`, pie del laboratorio (figura 12.4, paso 3): — → «Laboratorio de la resonancia, ecuaciones (12.2), (12.3), (12.5) y (12.6). En «Barrido», la frecuencia de la fuerza recorre de $0{,}5\,f_0$ a $1{,}5\,f_0$ y la envolvente se traza sobre la curva; en «Tropa», $N$ soldados a 2,0 Hz cruzan una pasarela al paso o rompiendo el paso; en «Filtro ZV», un empujón frente a los dos impulsos de Klipper.»
 279. `src/content/topics/resonancia-estructural.mdx:391`, fuente del laboratorio: — → «Simulación del autor sobre src/lib/physics/resonance.ts; la masa de la pasarela y las frecuencias de los ejemplos son ilustrativas»
-280. `src/content/topics/resonancia-estructural.mdx:396`, «Cómo se usa», última nota (del MDX): — → «La «Tropa» y el «Filtro ZV» corren en tiempo real; un barrido que dura más de ${SWEEP_PLAYBACK_S} s se reproduce a cámara rápida, en potencias de dos, con la escala en la esquina del dibujo. (${SWEEP_PLAYBACK_S} = 60)»
-281. `src/content/topics/resonancia-estructural.mdx:397`, «Qué deja fuera el modelo» (del MDX): — → «Un solo modo de cada estructura, el primero, con forma de medio seno; la masa modal de la pasarela y las frecuencias de los ejemplos son ilustrativas; los soldados marchan todos a 2,0 Hz exactos, sin la dispersión de unos 0,2 Hz que Sétra mide en la gente; nadie acompasa su paso al puente, como en el Millennium (12.7); el filtro actúa sobre un empujón, no sobre el recorrido de un cabezal, y Klipper tiene más filtros que el ZV.»
+280. `src/content/topics/resonancia-estructural.mdx:396`, «Cómo se usa», última nota (del MDX; `${SWEEP_PLAYBACK_S}` = 60): — → «La «Tropa» y el «Filtro ZV» corren en tiempo real; un barrido que dura más de ${SWEEP_PLAYBACK_S} s se reproduce a cámara rápida, en potencias de dos, con la escala en la esquina del dibujo.»
+281. `src/content/topics/resonancia-estructural.mdx:397`, «Qué deja fuera el modelo» (del MDX; 2,0 Hz y 0,2 Hz los fija `resonanciaNumbers.test.ts`): — → «Un solo modo de cada estructura, el primero, con forma de medio seno; la masa modal de la pasarela y las frecuencias de los ejemplos son ilustrativas; los soldados marchan todos a 2,0 Hz exactos, sin la dispersión de unos 0,2 Hz que Sétra mide en la gente; nadie acompasa su paso al puente, como en el Millennium (12.7); el filtro actúa sobre un empujón, no sobre el recorrido de un cabezal, y Klipper tiene más filtros que el ZV.»
 282. `src/content/topics/resonancia-estructural.mdx:551`, análisis de la marca 1:01,7 (el laboratorio entra antes y la medición pasa a ser la figura 12.8): «… Cuadro a cuadro mido 3,43 s por ciclo (figura 12.7 y tabla 12.5). …» → «… Cuadro a cuadro mido 3,43 s por ciclo (figura 12.8 y tabla 12.5). …»
-283. `src/components/topics/resonancia-estructural/ResonanceLab.tsx:146`, título del laboratorio: — → «Laboratorio de la resonancia»
-284. `src/components/topics/resonancia-estructural/ResonanceLab.tsx:30`, «Cómo se usa», la perilla: — → «Arrastra la perilla $f_0$ de la regla de frecuencias, bajo el puente, o enfócala y muévela con las flechas (un paso; con Mayús, cinco); Inicio y Fin la llevan a los extremos.»
-285. `src/components/topics/resonancia-estructural/ResonanceLab.tsx:32`, «Cómo se usa», atajos: — → «Atajos, fuera de los campos: Espacio o K reproduce y pausa; R reinicia; «,» y «.» retroceden o avanzan un cuadro.»
-286. `src/components/topics/resonancia-estructural/ResonanceLab.tsx:35`, «Cómo se usa» en «Barrido»: — → «En «Barrido», la frecuencia de la fuerza sube en línea recta de $0{,}5\,f_0$ a $1{,}5\,f_0$ a lo largo de la corrida, como en el barrido de Klipper, y la gráfica traza la envolvente sobre la (12.3). Con $T_b \ge 4/(\zeta^2 f_0)$ (cálculo propio) el barrido es lento y la envolvente queda a menos de un 5 % de la curva; más rápido, se queda corta y llega tarde.»
-287. `src/components/topics/resonancia-estructural/ResonanceLab.tsx:37`, «Cómo se usa» en «Tropa»: — → «En «Tropa», $N$ soldados marchan a 2,0 Hz con 280 N cada uno. «Al paso» suma sus fuerzas en fase; «Rompiendo el paso», con fases al azar, y «Nuevo sorteo» sortea otras. La masa modal de la pasarela, 40 toneladas, es ilustrativa.»
-288. `src/components/topics/resonancia-estructural/ResonanceLab.tsx:39`, «Cómo se usa» en «Filtro ZV»: — → «En «Filtro ZV», arriba la estructura recibe un empujón; abajo, el mismo empujón partido en los dos impulsos de Klipper para $f_\text{ZV}$, con el $\zeta$ = 0,1 que Klipper supone. Saca $f_0$ de la banda de ±5 % o cambia $\zeta$, y la vibración vuelve.»
-289. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:73`, rótulo de parámetro (también en las líneas 112, 120, 135 y 151 cuando se repite): — → «Frecuencia natural $f_0$»
-290. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:81`, rótulo de parámetro (también en las líneas 112, 120, 135 y 151 cuando se repite): — → «Amortiguamiento $\zeta$»
-291. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:89`, rótulo de parámetro: — → «Duración del barrido $T_b$»
-292. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:104`, rótulo de parámetro: — → «Soldados $N$»
-293. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:143`, rótulo de parámetro: — → «Frecuencia del filtro $f_\text{ZV}$»
-294. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:121`, unidad del amortiguamiento en «Tropa»: — → «%» (Sétra lo escribe en %, 0,4 %; en «Barrido» y «Filtro ZV» va sin unidad, 0,1 como Klipper)
-295. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:178`, elección del nivel 2 en «Tropa»: — → «Paso»
-296. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:185`, botón (solo rompiendo el paso): — → «Nuevo sorteo»
-297. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:194`, nota del lienzo en «Barrido»: — → «El vibrador empuja el centro del vano con $F_0\cos\varphi(t)$, y la flecha azul es esa fuerza. El dibujo exagera el desplazamiento; la gráfica lo da en veces la deformación estática $F_0/k$.»
-298. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:196`, nota del lienzo en «Tropa»: — → «Dibujo a escala vertical: el tablero cabe hasta 0,5 m arriba y abajo, y más allá queda en el borde, «fuera de escala». Cada trazo es un soldado, y su cabeza sube y baja con la fase de su paso.»
-299. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:198`, nota del lienzo en «Filtro ZV»: — → «$A_1$ es la amplitud que deja un solo empujón; las flechas marcan cada empujón cuando llega, y la gráfica lleva una línea en el segundo impulso.»
-300. `src/components/topics/resonancia-estructural/ResonanceLab.tsx:60`, elección del nivel 2: — → «Modo»
+283. `src/components/topics/resonancia-estructural/ResonanceLab.tsx:132`, título del laboratorio: — → «Laboratorio de la resonancia»
+284. `src/components/topics/resonancia-estructural/labTexts.ts:28`, «Cómo se usa», la perilla (`${COARSE_STEPS}` = 5): — → «Arrastra la perilla $f_0$ de la regla de frecuencias, bajo el puente, o enfócala y muévela con las flechas (un paso; con Mayús, ${COARSE_STEPS}); Inicio y Fin la llevan a los extremos.»
+285. `src/components/topics/resonancia-estructural/labTexts.ts:30`, «Cómo se usa», atajos: — → «Atajos, fuera de los campos: Espacio o K reproduce y pausa; R reinicia; «,» y «.» retroceden o avanzan un cuadro.»
+286. `src/components/topics/resonancia-estructural/labTexts.ts:34`, «Cómo se usa» en «Barrido» (números de las constantes: el rango del barrido, la regla y su 5 %): — → «En «Barrido», la frecuencia de la fuerza sube en línea recta de $0{,}5\,f_0$ a $1{,}5\,f_0$ a lo largo de la corrida, como en el barrido de Klipper, y la gráfica traza la envolvente sobre la (12.3). Con $T_b \ge 4/(\zeta^2 f_0)$ (cálculo propio) el barrido es lento y la envolvente queda a menos de un 5 % de la curva; más rápido, se queda corta y llega tarde.»
+287. `src/components/topics/resonancia-estructural/labTexts.ts:35`, «Cómo se usa» en «Tropa» (de las constantes: paso militar, 280 N, 40 toneladas): — → «En «Tropa», $N$ soldados marchan a 2,0 Hz con 280 N cada uno. «Al paso» suma sus fuerzas en fase; «Rompiendo el paso», con fases al azar, y «Nuevo sorteo» sortea otras. La masa modal de la pasarela, 40 toneladas, es ilustrativa.»
+288. `src/components/topics/resonancia-estructural/labTexts.ts:36`, «Cómo se usa» en «Filtro ZV» (de las constantes: $\zeta$ de Klipper y ±5 %): — → «En «Filtro ZV», arriba la estructura recibe un empujón; abajo, el mismo empujón partido en los dos impulsos de Klipper para $f_\text{ZV}$, con el $\zeta$ = 0,1 que Klipper supone. La «Vibración residual» es la estimación de Klipper (shaper_calibrate.py). Saca $f_0$ de la banda de ±5 % o cambia $\zeta$, y la vibración vuelve.»
+289. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:74`, rótulo de parámetro (en los tres modos): — → «Frecuencia natural $f_0$»
+290. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:82`, rótulo de parámetro (en los tres modos): — → «Amortiguamiento $\zeta$»
+291. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:90`, rótulo de parámetro: — → «Duración del barrido $T_b$»
+292. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:105`, rótulo de parámetro: — → «Soldados $N$»
+293. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:144`, rótulo de parámetro: — → «Frecuencia del filtro $f_\text{ZV}$»
+294. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:122`, unidad del amortiguamiento en «Tropa»: — → «%» (Sétra lo escribe en %, 0,4 %; en «Barrido» y «Filtro ZV» va sin unidad, 0,1 como Klipper)
+295. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:179`, elección del nivel 2 en «Tropa»: — → «Paso»
+296. `src/components/topics/resonancia-estructural/ResonanceControls.tsx:186`, botón (solo rompiendo el paso): — → «Nuevo sorteo»
+297. `src/components/topics/resonancia-estructural/labTexts.ts:42`, nota del lienzo en «Barrido»: — → «El vibrador empuja el centro del vano con $F_0\cos\varphi(t)$, y la flecha azul es esa fuerza. El dibujo exagera el desplazamiento; la gráfica lo da en veces la deformación estática $F_0/k$.»
+298. `src/components/topics/resonancia-estructural/labTexts.ts:43`, nota del lienzo en «Tropa» (0,5 m de `TROOP_DRAWING_FULL_M`): — → «Dibujo a escala vertical: el tablero cabe hasta 0,5 m arriba y abajo, y más allá queda en el borde, «fuera de escala». Cada trazo es un soldado, y su cabeza sube y baja con la fase de su paso.»
+299. `src/components/topics/resonancia-estructural/labTexts.ts:45`, nota del lienzo en «Filtro ZV»: — → «$A_1$ es la amplitud que deja un solo empujón; las flechas marcan cada empujón cuando llega, y la gráfica lleva una línea en el segundo impulso. La vibración residual es la estimación de Klipper: compara lo que dejan los dos impulsos con un solo empujón dado en el segundo; en la gráfica ese empujón está en $t = 0$, y su vibración lleva medio periodo apagándose.»
+300. `src/components/topics/resonancia-estructural/ResonanceLab.tsx:46`, elección del nivel 2: — → «Modo»
 301. `src/components/topics/resonancia-estructural/resonanceLabSettings.ts:8`, opción de «Modo»: — → «Barrido»
 302. `src/components/topics/resonancia-estructural/resonanceLabSettings.ts:9`, opción de «Modo»: — → «Tropa»
 303. `src/components/topics/resonancia-estructural/resonanceLabSettings.ts:10`, opción de «Modo»: — → «Filtro ZV»
@@ -1082,32 +1083,32 @@ Para leer con atención:
 305. `src/components/topics/resonancia-estructural/resonanceLabSettings.ts:15`, opción de «Paso»: — → «Rompiendo el paso»
 306. `src/components/topics/resonancia-estructural/resonanceLabSettings.ts:49`, interruptor del cajón («Este simulador»): — → «Banda de la envolvente»
 307. `src/components/topics/resonancia-estructural/resonanceLabSettings.ts:50`, interruptor del cajón («Este simulador»): — → «Gráfica de apoyo»
-308. `src/components/topics/resonancia-estructural/resonancePresets.ts:163`, grupo de preajustes (<optgroup>): — → «Barrido»
-309. `src/components/topics/resonancia-estructural/resonancePresets.ts:164`, grupo de preajustes (<optgroup>): — → «Tropa»
-310. `src/components/topics/resonancia-estructural/resonancePresets.ts:165`, grupo de preajustes (<optgroup>): — → «Filtro ZV»
-311. `src/components/topics/resonancia-estructural/resonancePresets.ts:173`, nombre de preajuste: — → «Barrido lento»
-312. `src/components/topics/resonancia-estructural/resonancePresets.ts:182`, nombre de preajuste: — → «Barrido rápido»
-313. `src/components/topics/resonancia-estructural/resonancePresets.ts:190`, nombre de preajuste: — → «Sin amortiguamiento»
-314. `src/components/topics/resonancia-estructural/resonancePresets.ts:198`, nombre de preajuste: — → «60 soldados al paso»
-315. `src/components/topics/resonancia-estructural/resonancePresets.ts:206`, nombre de preajuste: — → «60 soldados rompiendo el paso»
-316. `src/components/topics/resonancia-estructural/resonancePresets.ts:214`, nombre de preajuste: — → «Pasarela fuera del rango de Sétra»
-317. `src/components/topics/resonancia-estructural/resonancePresets.ts:222`, nombre de preajuste: — → «Filtro afinado»
-318. `src/components/topics/resonancia-estructural/resonancePresets.ts:231`, nombre de preajuste: — → «Frecuencia natural un 10 % mayor»
-319. `src/components/topics/resonancia-estructural/resonancePresets.ts:116`, nota de preajuste (valores que calcula el modelo): — → «Un oscilador de $f_0$ = 1 Hz (ilustrativo) con el $\zeta$ = 0,1 que supone Klipper, barrido en $T_b$ = 400 s, lo que pide mi regla $T_b \ge 4/(\zeta^2 f_0)$: la envolvente sigue a la (12.3) a menos de un 5 % y su pico llega a 5,00, frente a $1/(2\zeta)$ = 5,00.»
-320. `src/components/topics/resonancia-estructural/resonancePresets.ts:122`, nota de preajuste (valores que calcula el modelo): — → «El mismo oscilador barrido en 40 s, diez veces más rápido: el transitorio dura del orden de $1/(\zeta\omega_0)$ = 1,6 s, la amplitud no alcanza a seguir a la fuerza y su pico, 4,78 en vez de 5,00, llega tarde, en $\omega_d/\omega_0$ = 1,06.»
-321. `src/components/topics/resonancia-estructural/resonancePresets.ts:127`, nota de preajuste (valores que calcula el modelo): — → «Con $\zeta$ = 0 la (12.3) no tiene estado estacionario en $\omega_d = \omega_0$, crece sin límite; el barrido cruza la resonancia en un tiempo finito y la envolvente llega a 72,5 veces $F_0/k$.»
-322. `src/components/topics/resonancia-estructural/resonancePresets.ts:132`, nota de preajuste (valores que calcula el modelo): — → «Los unos 60 soldados que cruzaban el puente de Broughton en 1831, a 2,0 Hz y 280 N cada uno, sobre una pasarela de acero de $f_0$ = 2,0 Hz con el $\zeta$ = 0,4 % de Sétra y 40 toneladas de masa modal (las dos, ilustrativas): el tablero llega al 90 % de su amplitud estacionaria, 332 mm, a los 46 s.»
-323. `src/components/topics/resonancia-estructural/resonancePresets.ts:140`, nota de preajuste (valores que calcula el modelo): — → «Los mismos 60 rompiendo el paso, con fases al azar de un sorteo con semilla fija: la fuerza total baja de 16,8 kN a 1,8 kN y la amplitud estacionaria, de 332 mm a 36 mm, 9,3 veces menos; en media cuadrática sobre muchos sorteos, $\sqrt{60}$ = 7,7 veces.»
-324. `src/components/topics/resonancia-estructural/resonancePresets.ts:146`, nota de preajuste (valores que calcula el modelo): — → «La misma tropa al paso sobre una pasarela de $f_0$ = 2,5 Hz (ilustrativa), fuera del rango de riesgo máximo de Sétra, de 1,7 a 2,1 Hz: a 2,0 Hz la fuerza ya no va al ritmo del puente y la amplitud estacionaria se queda en 4,7 mm.»
-325. `src/components/topics/resonancia-estructural/resonancePresets.ts:153`, nota de preajuste (valores que calcula el modelo): — → «Klipper reparte el empujón en $a_1$ = 0,578 en $t = 0$ y $a_2$ = 0,422 en $t_2$ = 0,503 s, medio periodo amortiguado, con $f_\text{ZV}$ = 1 Hz y $\zeta$ = 0,1; sobre una estructura con esos mismos valores (ilustrativos), la vibración que queda tras el segundo impulso es menos del 1 % de la de un solo empujón.»
-326. `src/components/topics/resonancia-estructural/resonancePresets.ts:159`, nota de preajuste (valores que calcula el modelo): — → «Si $f_0$ sube un 10 %, a 1,1 Hz, y el filtro sigue en 1 Hz, el segundo impulso ya no llega en contrafase: queda un 18,5 % de la vibración, cuando Klipper promete dividirla por 10 solo dentro de ±5 %.»
-327. `src/components/topics/resonancia-estructural/resonancePresets.ts:176`, fuente de preajuste (tras «Fuente:»): — → «Klipper v0.13.0, shaper_defs.py L9; regla de barrido lento (cálculo propio)»
-328. `src/components/topics/resonancia-estructural/resonancePresets.ts:185`, fuente de preajuste (tras «Fuente:»): — → «Cálculo propio con la (12.2)»
-329. `src/components/topics/resonancia-estructural/resonancePresets.ts:193`, fuente de preajuste (tras «Fuente:»): — → «Cálculo propio con la (12.2) y la (12.3)»
-330. `src/components/topics/resonancia-estructural/resonancePresets.ts:96`, fuente de preajuste (tras «Fuente:»): — → «The Philosophical Magazine (1831); FM 3-21.5 (2003); Sétra (2006), §1.2.1 y tabla 2.6»
-331. `src/components/topics/resonancia-estructural/resonancePresets.ts:217`, fuente de preajuste (tras «Fuente:»): — → «Sétra (2006), tabla 2.3; $f_0$ ilustrativa»
-332. `src/components/topics/resonancia-estructural/resonancePresets.ts:225`, fuente de preajuste (tras «Fuente:»): — → «Klipper v0.13.0, shaper_defs.py L17-L23»
-333. `src/components/topics/resonancia-estructural/resonancePresets.ts:234`, fuente de preajuste (tras «Fuente:»): — → «Klipper v0.13.0, docs/Resonance_Compensation.md L466-L482»
+308. `src/components/topics/resonancia-estructural/resonancePresets.ts:187`, grupo de preajustes (<optgroup>): — → «Barrido»
+309. `src/components/topics/resonancia-estructural/resonancePresets.ts:188`, grupo de preajustes (<optgroup>): — → «Tropa»
+310. `src/components/topics/resonancia-estructural/resonancePresets.ts:189`, grupo de preajustes (<optgroup>): — → «Filtro ZV»
+311. `src/components/topics/resonancia-estructural/resonancePresets.ts:197`, nombre de preajuste: — → «Barrido lento»
+312. `src/components/topics/resonancia-estructural/resonancePresets.ts:206`, nombre de preajuste: — → «Barrido rápido»
+313. `src/components/topics/resonancia-estructural/resonancePresets.ts:214`, nombre de preajuste: — → «Sin amortiguamiento»
+314. `src/components/topics/resonancia-estructural/resonancePresets.ts:222`, nombre de preajuste: — → «60 soldados al paso»
+315. `src/components/topics/resonancia-estructural/resonancePresets.ts:230`, nombre de preajuste: — → «60 soldados rompiendo el paso»
+316. `src/components/topics/resonancia-estructural/resonancePresets.ts:238`, nombre de preajuste: — → «Pasarela fuera del rango de Sétra»
+317. `src/components/topics/resonancia-estructural/resonancePresets.ts:246`, nombre de preajuste: — → «Filtro afinado»
+318. `src/components/topics/resonancia-estructural/resonancePresets.ts:255`, nombre de preajuste: — → «Frecuencia natural un 10 % mayor»
+319. `src/components/topics/resonancia-estructural/resonancePresets.ts:136`, nota de preajuste (los números, de las constantes y los modelos): — → «Un oscilador de $f_0$ = 1 Hz (ilustrativo) con el $\zeta$ = 0,1 que supone Klipper, barrido en $T_b$ = 400 s, lo que pide mi regla $T_b \ge 4/(\zeta^2 f_0)$: la envolvente sigue a la (12.3) a menos de un 5 % y su pico llega a 5,00, frente a $1/(2\zeta)$ = 5,00.»
+320. `src/components/topics/resonancia-estructural/resonancePresets.ts:142`, nota de preajuste (los números, de las constantes y los modelos): — → «El mismo oscilador barrido en 40 s, 10 veces más rápido: el transitorio dura del orden de $1/(\zeta\omega_0)$ = 1,6 s, la amplitud no alcanza a seguir a la fuerza y su pico, 4,78 en vez de 5,00, llega tarde, en $\omega_d/\omega_0$ = 1,06.»
+321. `src/components/topics/resonancia-estructural/resonancePresets.ts:147`, nota de preajuste (los números, de las constantes y los modelos): — → «Con $\zeta$ = 0 la (12.3) no tiene estado estacionario en $\omega_d = \omega_0$, crece sin límite; el barrido cruza la resonancia en un tiempo finito y la envolvente llega a 72,5 veces $F_0/k$.»
+322. `src/components/topics/resonancia-estructural/resonancePresets.ts:153`, nota de preajuste (los números, de las constantes y los modelos): — → «Los unos 60 soldados que cruzaban el puente de Broughton en 1831, a 2,0 Hz y 280 N cada uno, sobre una pasarela de acero de $f_0$ = 2,0 Hz con el $\zeta$ = 0,4 % de Sétra y 40 toneladas de masa modal (las dos, ilustrativas): el tablero llega al 90 % de su amplitud estacionaria, 332 mm, a los 46 s.»
+323. `src/components/topics/resonancia-estructural/resonancePresets.ts:161`, nota de preajuste (los números, de las constantes y los modelos): — → «Los mismos 60 rompiendo el paso, con fases al azar de un sorteo típico (semilla fija): la fuerza total baja de 16,8 kN a 1,8 kN y la amplitud estacionaria, de 332 mm a 36 mm, 9,3 veces menos; en media cuadrática sobre muchos sorteos, $\sqrt{60}$ = 7,7 veces.»
+324. `src/components/topics/resonancia-estructural/resonancePresets.ts:167`, nota de preajuste (los números, de las constantes y los modelos): — → «La misma tropa al paso sobre una pasarela de $f_0$ = 2,5 Hz (ilustrativa), fuera del rango de riesgo máximo de Sétra, de 1,7 a 2,1 Hz: a 2,0 Hz la fuerza ya no va al ritmo del puente y la amplitud estacionaria se queda en 4,7 mm.»
+325. `src/components/topics/resonancia-estructural/resonancePresets.ts:177`, nota de preajuste (los números, de las constantes y los modelos): — → «Klipper reparte el empujón en $a_1$ = 0,578 en $t = 0$ y $a_2$ = 0,422 en $t_2$ = 0,503 s, medio periodo amortiguado, con $f_\text{ZV}$ = 1 Hz y $\zeta$ = 0,1; sobre una estructura con esos mismos valores (ilustrativos), la vibración que queda tras el segundo impulso, según la estima Klipper, es menos del 1 % de la de un solo empujón.»
+326. `src/components/topics/resonancia-estructural/resonancePresets.ts:183`, nota de preajuste (los números, de las constantes y los modelos): — → «Si $f_0$ sube un 10 %, a 1,1 Hz, y el filtro sigue en 1 Hz, el segundo impulso ya no llega en contrafase: según la estimación de Klipper queda un 13,1 % de la vibración, cuando Klipper promete dividirla por 10 solo dentro de ±5 %.»
+327. `src/components/topics/resonancia-estructural/resonancePresets.ts:200`, fuente de preajuste (tras «Fuente:»): — → «Klipper v0.13.0, shaper_defs.py L9; regla de barrido lento (cálculo propio)»
+328. `src/components/topics/resonancia-estructural/resonancePresets.ts:209`, fuente de preajuste (tras «Fuente:»): — → «Cálculo propio con la (12.2)»
+329. `src/components/topics/resonancia-estructural/resonancePresets.ts:217`, fuente de preajuste (tras «Fuente:»): — → «Cálculo propio con la (12.2) y la (12.3)»
+330. `src/components/topics/resonancia-estructural/resonancePresets.ts:107`, fuente de preajuste (tras «Fuente:»): — → «The Philosophical Magazine (1831); FM 3-21.5 (2003); Sétra (2006), §1.2.1 y tabla 2.6»
+331. `src/components/topics/resonancia-estructural/resonancePresets.ts:241`, fuente de preajuste (tras «Fuente:»): — → «Sétra (2006), tabla 2.3; $f_0$ ilustrativa»
+332. `src/components/topics/resonancia-estructural/resonancePresets.ts:249`, fuente de preajuste (tras «Fuente:»): — → «Klipper v0.13.0, shaper_defs.py L17-L23»
+333. `src/components/topics/resonancia-estructural/resonancePresets.ts:258`, fuente de preajuste (tras «Fuente:»): — → «Klipper v0.13.0, docs/Resonance_Compensation.md L466-L482»
 334. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:27`, lectura: — → «Frecuencia de la fuerza $f_d$»
 335. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:33`, lectura: — → «$\omega_d/\omega_0$»
 336. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:40`, lectura: — → «Amplitud medida $A/(F_0/k)$»
@@ -1116,7 +1117,7 @@ Para leer con atención:
 339. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:67`, lectura: — → «Amplitud del tablero»
 340. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:74`, lectura: — → «Al paso / rompiendo el paso, este sorteo»
 341. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:81`, lectura: — → «En media cuadrática, $\sqrt{N}$»
-342. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:94`, lectura: — → «Vibración residual»
+342. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:94`, lectura: — → «Vibración residual (estimación de Klipper)»
 343. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:101`, lectura: — → «Desajuste $f_0/f_\text{ZV} - 1$»
 344. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:108`, lectura: — → «Instante del segundo impulso $t_2$»
 345. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:115`, lectura: — → «Fracción del primero $a_1$»
@@ -1133,45 +1134,45 @@ Para leer con atención:
 356. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:204`, ficha, rótulo de la fila en «Filtro ZV»: — → «Klipper»
 357. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:208`, ficha en «Filtro ZV»: — → «filtro para $f_\text{ZV}$ = ${…} Hz con $\zeta$ = 0,1»
 358. `src/components/topics/resonancia-estructural/resonanceReadouts.ts:199`, ficha en «Filtro ZV»: — → «$f_0$ dentro de ±5 %, donde Klipper promete dividir la vibración por 10» o «$f_0$ fuera de ±5 %»
-359. `src/components/topics/resonancia-estructural/resonanceScene.ts:155`, evento de la reproducción (texto plano: marca, «Siguiente: …» y anuncio): — → «Paso por la resonancia»
-360. `src/components/topics/resonancia-estructural/resonanceScene.ts:156`, evento de la reproducción (texto plano: marca, «Siguiente: …» y anuncio): — → «Pico de la envolvente»
-361. `src/components/topics/resonancia-estructural/resonanceScene.ts:280`, evento de la reproducción (texto plano: marca, «Siguiente: …» y anuncio): — → «90 % de la amplitud estacionaria»
-362. `src/components/topics/resonancia-estructural/resonanceScene.ts:375`, evento de la reproducción (texto plano: marca, «Siguiente: …» y anuncio): — → «Segundo impulso»
+359. `src/components/topics/resonancia-estructural/resonanceScene.ts:157`, evento de la reproducción (texto plano: marca, «Siguiente: …» y anuncio): — → «Paso por la resonancia»
+360. `src/components/topics/resonancia-estructural/resonanceScene.ts:158`, evento de la reproducción (texto plano: marca, «Siguiente: …» y anuncio): — → «Pico de la envolvente»
+361. `src/components/topics/resonancia-estructural/resonanceScene.ts:286`, evento de la reproducción (texto plano: marca, «Siguiente: …» y anuncio): — → «90 % de la amplitud estacionaria»
+362. `src/components/topics/resonancia-estructural/resonanceScene.ts:387`, evento de la reproducción (texto plano: marca, «Siguiente: …» y anuncio): — → «Segundo impulso»
 363. `src/components/topics/resonancia-estructural/BridgeLayers.tsx:51`, título del tablero de arriba en «Filtro ZV»: — → «Un empujón»
 364. `src/components/topics/resonancia-estructural/BridgeLayers.tsx:52`, título del tablero de abajo en «Filtro ZV»: — → «Dos empujones (filtro ZV)»
 365. `src/components/topics/resonancia-estructural/BridgeLayers.tsx:129`, aviso sobre el tablero que pasa del dibujo: — → «fuera de escala»
 366. `src/components/topics/resonancia-estructural/BridgeScene.tsx:50`, rótulo del lienzo en «Tropa»: — → «$N$ = ${n}, al paso» o «$N$ = ${n}, rompiendo el paso»
-367. `src/components/topics/resonancia-estructural/BridgeLayers.tsx:306`, barra de escala en «Tropa»: — → «25 cm»
+367. `src/components/topics/resonancia-estructural/BridgeLayers.tsx:320`, barra de escala en «Tropa»: — → «25 cm»
 368. `src/components/topics/resonancia-estructural/bridgeRuler.ts:21`, banda de la regla en «Barrido»: — → «barrido»
 369. `src/components/topics/resonancia-estructural/bridgeRuler.ts:29`, banda de la regla en «Tropa»: — → «Sétra: riesgo máximo»
 370. `src/components/topics/resonancia-estructural/bridgeRuler.ts:30`, marca de la regla en «Tropa»: — → «paso militar»
 371. `src/components/topics/resonancia-estructural/bridgeRuler.ts:41`, banda de la regla en «Filtro ZV»: — → «±5 %»
 372. `src/components/topics/resonancia-estructural/bridgeRuler.ts:45`, marca de la regla en «Filtro ZV»: — → «$f_\text{ZV}$»
 373. `src/components/topics/resonancia-estructural/BridgeScene.tsx:73`, marca móvil de la regla en «Barrido»: — → «$f_d$»
-374. `src/components/topics/resonancia-estructural/FrequencyRuler.tsx:261`, unidad de la regla: — → «Hz»
-375. `src/components/topics/resonancia-estructural/FrequencyRuler.tsx:151`, rótulo de la perilla: — → «$f_0$ = ${…} Hz»
+374. `src/components/topics/resonancia-estructural/FrequencyRuler.tsx:266`, unidad de la regla: — → «Hz»
+375. `src/components/topics/resonancia-estructural/FrequencyRuler.tsx:156`, rótulo de la perilla: — → «$f_0$ = ${…} Hz»
 376. `src/components/topics/resonancia-estructural/FrequencyRuler.tsx:77`, nombre accesible de la perilla (se oye: «Frecuencia natural f sub 0»): — → «Frecuencia natural $f_0$»
 377. `src/components/topics/resonancia-estructural/sceneText.ts:25`, nombre accesible del lienzo en «Barrido» (se oye, no se ve): — → «Puente de prueba de $f_0$ = ${…} con un vibrador en el centro del vano. La frecuencia de la fuerza sube de ${…} a ${…}; ahora vale ${…} y la amplitud es ${…} veces la deformación estática.»
 378. `src/components/topics/resonancia-estructural/sceneText.ts:31`, nombre accesible del lienzo en «Tropa» (se oye): — → «Pasarela de $f_0$ = ${…} con ${n} soldados ${al paso|rompiendo el paso} a 2,00 Hz; el tablero sube y baja ${…} mm.»
-379. `src/components/topics/resonancia-estructural/sceneText.ts:34`, nombre accesible del lienzo en «Filtro ZV» (se oye): — → «Dos tableros iguales de $f_0$ = ${…}: arriba, un solo empujón; abajo, los dos impulsos del filtro ZV de ${…}. Tras el segundo impulso queda el ${…} % de la vibración.»
-380. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:77`, título de la gráfica en «Barrido»: — → «Curva de resonancia: la (12.3) y lo que traza el barrido»
-381. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:78`, eje: — → «$\omega_d/\omega_0$ (adimensional)»
-382. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:80`, eje: — → «Amplitud relativa $A/(F_0/k)$ (adimensional)»
-383. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:63`, leyenda: — → «Estado estacionario, (12.3)»
-384. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:69`, leyenda: — → «Envolvente del barrido»
-385. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:89`, nombre accesible del cursor (se oye): — → «Frecuencia de la fuerza»
-386. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:91`, rótulo del cursor: — → «$\omega_d/\omega_0$ = ${…}»
-387. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:94`, nombre accesible de la gráfica (se oye): — → «La curva azul es la amplitud estacionaria de la (12.3) entre ω_d/ω_0 = 0,5 y 1,5; su pico vale ${…}» (o «sin amortiguamiento crece sin límite en ω_d = ω_0»)«. La violeta es la envolvente que traza el barrido hasta ahora; su pico llega a ${…}.»
-388. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:116`, título de la gráfica en «Tropa»: — → «Amplitud del tablero, al paso y rompiendo el paso»
-389. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:119`, eje: — → «Amplitud (mm)»
-390. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:122`, leyenda: — → «Al paso»
-391. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:123`, leyenda: — → «Rompiendo el paso»
-392. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:130`, guía horizontal: — → «estacionaria al paso» y «estacionaria rompiendo el paso»
-393. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:133`, nombre accesible de la gráfica (se oye): — → «La amplitud del tablero sube desde cero: al paso hasta ${…} mm» (o «crecer sin límite»)«, rompiendo el paso hasta ${…} mm, en ${…} s.»
-394. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:145`, título de la gráfica en «Filtro ZV»: — → «Un empujón frente a los dos impulsos del filtro ZV»
-395. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:148`, eje: — → «$x/A_1$ (adimensional)»
-396. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:153`, leyenda: — → «Un empujón»
-397. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:159`, leyenda: — → «Dos impulsos (ZV)»
-398. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:178`, nombre accesible de la gráfica (se oye): — → «Tras un empujón la estructura oscila y se apaga despacio; con los dos impulsos del filtro, el segundo a los ${…} s, queda un ${…} % de esa vibración.»
-399. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:35`, rótulo del cursor de tiempo: — → «$t$ = ${…} s»
+379. `src/components/topics/resonancia-estructural/sceneText.ts:34`, nombre accesible del lienzo en «Filtro ZV» (se oye): — → «Dos tableros iguales de $f_0$ = ${…}: arriba, un solo empujón; abajo, los dos impulsos del filtro ZV de ${…}. Tras el segundo impulso queda, según la estimación de Klipper, el ${…} % de la vibración de un solo empujón.»
+380. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:78`, título de la gráfica en «Barrido»: — → «Curva de resonancia: la (12.3) y lo que traza el barrido»
+381. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:79`, eje: — → «$\omega_d/\omega_0$ (adimensional)»
+382. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:81`, eje: — → «Amplitud relativa $A/(F_0/k)$ (adimensional)»
+383. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:64`, leyenda: — → «Estado estacionario, (12.3)»
+384. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:70`, leyenda: — → «Envolvente del barrido»
+385. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:90`, nombre accesible del cursor (se oye): — → «Frecuencia de la fuerza»
+386. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:92`, rótulo del cursor: — → «$\omega_d/\omega_0$ = ${…}»
+387. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:95`, nombre accesible de la gráfica (se oye): — → «La curva azul es la amplitud estacionaria de la (12.3) entre $\omega_d/\omega_0$ = 0,5 y 1,5; su pico vale ${…}» (o «sin amortiguamiento crece sin límite en $\omega_d = \omega_0$»)«. La violeta es la envolvente que traza el barrido hasta ahora; su pico llega a ${…}.»
+388. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:121`, título de la gráfica en «Tropa»: — → «Amplitud del tablero, al paso y rompiendo el paso»
+389. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:124`, eje: — → «Amplitud (mm)»
+390. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:127`, leyenda: — → «Al paso»
+391. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:128`, leyenda: — → «Rompiendo el paso»
+392. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:135`, guía horizontal: — → «estacionaria al paso» y «estacionaria rompiendo el paso»
+393. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:138`, nombre accesible de la gráfica (se oye): — → «La amplitud del tablero sube desde cero: al paso hasta ${…} mm» (o «crecer sin límite»)«, rompiendo el paso hasta ${…} mm» (o «crecer sin límite»)«, en ${…} s.»
+394. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:150`, título de la gráfica en «Filtro ZV»: — → «Un empujón frente a los dos impulsos del filtro ZV»
+395. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:153`, eje: — → «$x/A_1$ (adimensional)»
+396. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:158`, leyenda: — → «Un empujón»
+397. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:164`, leyenda: — → «Dos impulsos (ZV)»
+398. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:183`, nombre accesible de la gráfica (se oye): — → «Tras un empujón la estructura oscila y se apaga despacio; con los dos impulsos del filtro, el segundo a los ${…} s, queda, según la estimación de Klipper, un ${…} % de la vibración de un empujón.»
+399. `src/components/topics/resonancia-estructural/ResonancePlot.tsx:36`, rótulo del cursor de tiempo: — → «$t$ = ${…} s»
 400. `src/lib/tables/topics/resonancia-estructural.ts:206`, tabla 12.2, celda «Fuente» de $N_L$ (cambio de forma, no de texto: la guardia de glifos pedía la $\pi$ en cursiva, como fórmula): «8π × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m» → «$8\pi$ × 0,007 × 0,48 Hz × 130 000 kg ÷ 300 N·s/m»
