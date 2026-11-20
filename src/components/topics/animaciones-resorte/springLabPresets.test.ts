@@ -27,7 +27,7 @@ describe('the lab’s presets', () => {
       'Motion, por omisión (producto)',
       'Motion, posición x e y (producto)',
       'Motion, escala hacia 0 (producto)',
-      'Apple, ejemplo de la documentación (producto)',
+      'Apple, ejemplo (producto)',
       'Sobreamortiguado (ilustrativo)',
     ]);
     // The name, which the note line typesets, writes the magnitudes as formulas.

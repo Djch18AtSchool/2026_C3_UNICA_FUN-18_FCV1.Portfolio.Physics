@@ -84,7 +84,7 @@ describe('SpringLab', () => {
       'Motion, por omisión (producto)',
       'Motion, posición x e y (producto)',
       'Motion, escala hacia 0 (producto)',
-      'Apple, ejemplo de la documentación (producto)',
+      'Apple, ejemplo (producto)',
       'Sobreamortiguado (ilustrativo)',
     ]);
     expect(value(LABELS.zeta)).toBe('0,500');

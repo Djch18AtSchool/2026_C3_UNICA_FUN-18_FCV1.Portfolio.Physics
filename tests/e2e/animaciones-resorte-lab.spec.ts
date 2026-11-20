@@ -36,7 +36,7 @@ test.describe('Tema 10, laboratorio del resorte', () => {
       'Motion, por omisión (producto)',
       'Motion, posición x e y (producto)',
       'Motion, escala hacia 0 (producto)',
-      'Apple, ejemplo de la documentación (producto)',
+      'Apple, ejemplo (producto)',
       'Sobreamortiguado (ilustrativo)',
     ]);
     await expect(lab.getByTestId('spring-regime')).toHaveAttribute('data-regime', 'subamortiguado');

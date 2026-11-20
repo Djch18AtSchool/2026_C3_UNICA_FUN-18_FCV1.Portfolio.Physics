@@ -38,6 +38,15 @@ const SOURCE_URLS: Readonly<Record<string, string>> = {
   'apple-ejemplo': 'https://developer.apple.com/documentation/swiftui/spring',
 };
 
+/**
+ * A shorter plain name for the select than the data module's label: a native <select> is as wide
+ * as its longest option, and with the text at 200 % (WCAG 1.4.4) «Apple, ejemplo de la
+ * documentación (producto)» ran past the card. The full name stays in the note line and the table.
+ */
+const OPTION_LABELS: Readonly<Record<string, string>> = {
+  'apple-ejemplo': 'Apple, ejemplo',
+};
+
 const comma = (value: number, decimals: number) => formatNumber(value, { precision: decimals });
 /** ζ with two decimals, or a whole number as it is (2, not 2,00). */
 const zetaText = (params: SpringParams) => {
@@ -82,7 +91,7 @@ function toLabPreset(preset: SpringPreset): Preset<SpringParams> {
   return {
     id: preset.id,
     name: `${PRESET_NAMES[preset.id] ?? preset.label}${origin}`,
-    optionLabel: `${preset.label}${origin}`,
+    optionLabel: `${OPTION_LABELS[preset.id] ?? preset.label}${origin}`,
     values: labValues(preset.params),
     note: presetNote(preset),
     sourceLabel: preset.source,
