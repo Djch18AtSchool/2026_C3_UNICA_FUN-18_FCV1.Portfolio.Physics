@@ -173,13 +173,60 @@ export interface RackDiagramProps {
   isConverged: boolean;
 }
 
-export default function RackDiagram({ scene, isConverged }: RackDiagramProps): JSX.Element {
+/** The drawing at its measured width: the manifolds, the bars, the minimum, inlet and outlet. */
+function RackDrawing({ scene }: { scene: CoolingScene }): JSX.Element {
   const [ref, width] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const frame = frameOf(width, scene);
   const minimumX = frame.start + (scene.minimum / frame.scale) * frame.span;
   const isDirect = scene.config.layout === 'directo';
-  const supplyX = frame.left - MANIFOLD_WIDTH / 2;
-  const returnX = frame.right + MANIFOLD_WIDTH / 2;
+  return (
+    <div ref={ref} className="w-full min-w-0">
+      <svg
+        data-testid="rack-diagram"
+        role="img"
+        aria-label={mathTextToString(rackSummary(scene))}
+        viewBox={`0 0 ${width} ${RACK_HEIGHT}`}
+        width="100%"
+        height={RACK_HEIGHT}
+        className="block"
+        fontFamily={TICK_FONT_FAMILY}
+        fontSize={FONT}
+      >
+        <Manifold x={frame.left - MANIFOLD_WIDTH} frame={frame} color={SUPPLY_COLOR} />
+        <Manifold x={frame.right} frame={frame} color={RETURN_COLOR} />
+        <Servers scene={scene} frame={frame} />
+        <line
+          data-minimum=""
+          x1={minimumX}
+          x2={minimumX}
+          y1={frame.top}
+          y2={frame.bottom}
+          stroke={TICK_COLOR}
+          strokeWidth={2}
+          strokeDasharray={DASH}
+        />
+        <Port
+          x={frame.left - MANIFOLD_WIDTH / 2}
+          y={frame.bottom}
+          side="below"
+          isInlet
+          text="Entra"
+        />
+        <g data-outlet={isDirect ? 'abajo' : 'arriba'}>
+          <Port
+            x={frame.right + MANIFOLD_WIDTH / 2}
+            y={isDirect ? frame.bottom : frame.top}
+            side={isDirect ? 'below' : 'above'}
+            isInlet={false}
+            text="Sale"
+          />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+export default function RackDiagram({ scene, isConverged }: RackDiagramProps): JSX.Element {
   return (
     <div className="flex flex-col gap-2">
       <StatusChips
@@ -190,43 +237,7 @@ export default function RackDiagram({ scene, isConverged }: RackDiagramProps): J
       <p role="status" className="sr-only">
         {isConverged ? '' : NOT_CONVERGED}
       </p>
-      <div ref={ref} className="w-full min-w-0">
-        <svg
-          data-testid="rack-diagram"
-          role="img"
-          aria-label={mathTextToString(rackSummary(scene))}
-          viewBox={`0 0 ${width} ${RACK_HEIGHT}`}
-          width="100%"
-          height={RACK_HEIGHT}
-          className="block"
-          fontFamily={TICK_FONT_FAMILY}
-          fontSize={FONT}
-        >
-          <Manifold x={frame.left - MANIFOLD_WIDTH} frame={frame} color={SUPPLY_COLOR} />
-          <Manifold x={frame.right} frame={frame} color={RETURN_COLOR} />
-          <Servers scene={scene} frame={frame} />
-          <line
-            data-minimum=""
-            x1={minimumX}
-            x2={minimumX}
-            y1={frame.top}
-            y2={frame.bottom}
-            stroke={TICK_COLOR}
-            strokeWidth={2}
-            strokeDasharray={DASH}
-          />
-          <Port x={supplyX} y={frame.bottom} side="below" isInlet text="Entra" />
-          <g data-outlet={isDirect ? 'abajo' : 'arriba'}>
-            <Port
-              x={returnX}
-              y={isDirect ? frame.bottom : frame.top}
-              side={isDirect ? 'below' : 'above'}
-              isInlet={false}
-              text="Sale"
-            />
-          </g>
-        </svg>
-      </div>
+      <RackDrawing scene={scene} />
     </div>
   );
 }

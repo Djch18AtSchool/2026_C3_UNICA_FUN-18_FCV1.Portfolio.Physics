@@ -111,11 +111,15 @@ export interface CoolingLabProps {
   leftOut?: string;
 }
 
-export default function CoolingLab({ usage, leftOut }: CoolingLabProps): JSX.Element {
-  const { model, setState, update, onCduFlow } = useCoolingLab();
-  const { state, scene, isConverged } = model;
-
-  const params = (
+/** Level 1: the pump's flow and the servers (two to a row), then the hose and the return. */
+function CoolingParams({
+  state,
+  update,
+}: {
+  state: CoolingLabState;
+  update(patch: Partial<CoolingLabState>): void;
+}): JSX.Element {
+  return (
     <>
       <ParamField
         id="cooling-pump-flow"
@@ -153,6 +157,11 @@ export default function CoolingLab({ usage, leftOut }: CoolingLabProps): JSX.Ele
       />
     </>
   );
+}
+
+export default function CoolingLab({ usage, leftOut }: CoolingLabProps): JSX.Element {
+  const { model, setState, update, onCduFlow } = useCoolingLab();
+  const { state, scene, isConverged } = model;
 
   const scenario = (
     <LabPresets
@@ -168,7 +177,11 @@ export default function CoolingLab({ usage, leftOut }: CoolingLabProps): JSX.Ele
       title="Laboratorio del circuito de un rack"
       testId="cooling-lab"
       readouts={readoutsOf(scene)}
-      levels={{ params, scenario, display: NO_LOCAL_SETTINGS }}
+      levels={{
+        params: <CoolingParams state={state} update={update} />,
+        scenario,
+        display: NO_LOCAL_SETTINGS,
+      }}
       charts={<CoolingLabCharts scene={scene} onCduFlow={onCduFlow} />}
       canvasNotes={<CoolingNotes state={model.sceneState} scene={scene} />}
       notes={{ usage: [CURSOR_HINT, ...(usage ? [usage] : [])], leftOut: leftOut ? [leftOut] : [] }}
