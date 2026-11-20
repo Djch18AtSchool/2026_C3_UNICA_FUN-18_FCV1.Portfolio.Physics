@@ -184,6 +184,27 @@ describe('topic files', () => {
     }
   });
 
+  /**
+   * A symbol of the Entrega Final means one thing across its topics: $f_s$ is the sampling
+   * frequency of (11.9) and $T_0$ the period of (10.2) and (12.1). A symbol key may list several
+   * symbols («f_0,\\ T_0»).
+   */
+  test('en la Entrega Final, f_s y T_0 tienen un solo significado entre los temas', () => {
+    const OWNERS: Readonly<Record<string, readonly string[]>> = {
+      f_s: ['sintesis-sonido.mdx'],
+      T_0: ['animaciones-resorte.mdx', 'resonancia-estructural.mdx'],
+    };
+    const symbolKeys = /\bsymbol:\s*'((?:[^'\\]|\\.)*)'/gu;
+    for (const { fileName, file } of files.filter(({ file }) => file.data.phase === 3)) {
+      const symbols = [...file.content.matchAll(symbolKeys)].flatMap(([, key]) =>
+        key.split(/,(?:\\\\ |\s)*/u).map((symbol) => symbol.trim()),
+      );
+      for (const [symbol, owners] of Object.entries(OWNERS)) {
+        if (!owners.includes(fileName)) expect(symbols, `${fileName}: ${symbol}`).not.toContain(symbol);
+      }
+    }
+  });
+
   test('cada <DataTable id="…" /> de un tema existe en el registro de tablas', () => {
     for (const { fileName, file } of files) {
       for (const [, id] of file.content.matchAll(DATA_TABLE_TAG)) {

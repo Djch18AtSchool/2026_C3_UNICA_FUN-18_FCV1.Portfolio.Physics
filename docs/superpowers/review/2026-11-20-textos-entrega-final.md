@@ -2017,3 +2017,22 @@ tope).
 20. `src/content/topics/enfriamiento-liquido.mdx:336`, paso 4, «Por qué», ranura `ecuacion`: «Con placas, el caudal
     varía un 0,27 % entre servidores; sin ellas, un 1,0 %.» → «Con placas, el caudal varía un 0,27 % entre servidores;
     sin ellas, 1,0 %.»
+
+### 7. Un símbolo, un significado: $f_v$ en el Tema 12 y $t_0$ en el Tema 11
+
+$f_s$ ya era la frecuencia de muestreo de la (11.9) y $T_0$ el periodo de la (10.2) y la (12.1). La frecuencia de los
+vórtices pasa a $f_v$ y el comienzo de la rampa, a $t_0$. Cambian la fórmula, su leyenda y las filas de tabla que la
+usan; ninguna frase de prosa nombraba esos símbolos.
+
+21. `src/content/topics/resonancia-estructural.mdx:348`, ecuación (12.9): $f_s = \dfrac{S\,U}{D}$ →
+    $f_v = \dfrac{S\,U}{D}$.
+22. `src/content/topics/resonancia-estructural.mdx:350`, leyenda de la (12.9): «$f_s$: frecuencia de desprendimiento de
+    vórtices» → «$f_v$: frecuencia de desprendimiento de vórtices».
+23. `src/lib/tables/topics/resonancia-estructural.ts:348`, tabla del Tacoma, fila: «Desprendimiento de vórtices, $f_s$
+    con la (12.9)» → «Desprendimiento de vórtices, $f_v$ con la (12.9)».
+24. `src/lib/tables/topics/resonancia-estructural.ts:353`, tabla del Tacoma, fila: «Vórtices frente a torsión,
+    $f_s/f_0$» → «Vórtices frente a torsión, $f_v/f_0$».
+25. `src/content/topics/sintesis-sonido.mdx:298`, ecuación (11.7), la envolvente:
+    $E(t) = V_1 + (V_0 - V_1)\,e^{-(t - T_0)/\tau}$ → $E(t) = V_1 + (V_0 - V_1)\,e^{-(t - t_0)/\tau}$.
+26. `src/content/topics/sintesis-sonido.mdx:302`, leyenda de la (11.7): «$T_0$: instante en que empieza la rampa» →
+    «$t_0$: instante en que empieza la rampa».

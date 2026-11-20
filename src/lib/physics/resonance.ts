@@ -126,7 +126,7 @@ export function criticalPedestrians(zeta: number, f: number, M: number, kp: numb
   return (8 * Math.PI * zeta * f * M) / kp;
 }
 
-/** (12.9) Strouhal vortex-shedding frequency f_s = S U / D, in Hz (U in m/s, D in m). */
+/** (12.9) Strouhal vortex-shedding frequency f_v = S U / D, in Hz (U in m/s, D in m). */
 export function vortexFrequency(strouhal: number, U: number, D: number): number {
   requirePositive('strouhal', strouhal);
   requireNonNegative('U', U);

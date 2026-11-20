@@ -94,7 +94,7 @@ export const TACOMA_SI = {
   } satisfies SourcedRange,
   vortexHz: calculated(
     vortexFrequency(TACOMA.strouhal.value, windMs, deckDepthM),
-    `${OWN}, (12.9) f_s = S U / D con S, U y D de la tabla`,
+    `${OWN}, (12.9) f_v = S U / D con S, U y D de la tabla`,
   ),
 } as const;
 

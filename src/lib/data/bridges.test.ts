@@ -62,13 +62,13 @@ describe('Tacoma Narrows (FWA 1941; Billah and Scanlan 1991)', () => {
   });
 
   test('vortex shedding at 42 mph is ≈ 0,85 Hz, about 4,2 times the torsion', () => {
-    const fs = TACOMA_SI.vortexHz.value;
+    const fv = TACOMA_SI.vortexHz.value;
 
-    expect(fs).toBeCloseTo(0.85, 2);
-    expect(fs).toBe(
+    expect(fv).toBeCloseTo(0.85, 2);
+    expect(fv).toBe(
       vortexFrequency(TACOMA.strouhal.value, TACOMA_SI.windMs.value, TACOMA_SI.deckDepthM.value),
     );
-    expect(fs / TACOMA_SI.torsionHz.value).toBeCloseTo(4.2, 1);
+    expect(fv / TACOMA_SI.torsionHz.value).toBeCloseTo(4.2, 1);
   });
 });
 

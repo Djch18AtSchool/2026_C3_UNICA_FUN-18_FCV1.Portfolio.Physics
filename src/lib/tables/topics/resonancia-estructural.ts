@@ -345,12 +345,12 @@ const TACOMA_TABLE: DataTableSpec = {
     },
     { magnitud: 'Número de Strouhal, $S$', ...value(TACOMA.strouhal, 2), unidad: NONE },
     {
-      magnitud: 'Desprendimiento de vórtices, $f_s$ con la (12.9)',
+      magnitud: 'Desprendimiento de vórtices, $f_v$ con la (12.9)',
       ...own(vortexHz, 2, '0,11 × 18,8 m/s ÷ 2,44 m'),
       unidad: 'Hz',
     },
     {
-      magnitud: 'Vórtices frente a torsión, $f_s/f_0$',
+      magnitud: 'Vórtices frente a torsión, $f_v/f_0$',
       ...own(vortexHz / torsionHz, 1, '0,85 Hz ÷ 0,20 Hz'),
       unidad: NONE,
     },

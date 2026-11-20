@@ -132,8 +132,8 @@ describe('Tacoma Narrows (Paso 4)', () => {
   });
 
   test('vortex shedding at 0,85 Hz, 4,2 times the torsion; resonance would amplify ×100', () => {
-    expect(rowOf(TACOMA_ID, 'Desprendimiento de vórtices, $f_s$ con la (12.9)').valor).toBe('0,85');
-    expect(rowOf(TACOMA_ID, 'Vórtices frente a torsión, $f_s/f_0$').valor).toBe('4,2');
+    expect(rowOf(TACOMA_ID, 'Desprendimiento de vórtices, $f_v$ con la (12.9)').valor).toBe('0,85');
+    expect(rowOf(TACOMA_ID, 'Vórtices frente a torsión, $f_v/f_0$').valor).toBe('4,2');
     expect(
       rowOf(TACOMA_ID, 'Amplificación si fuera resonancia forzada, $1/(2\\zeta_s)$').valor,
     ).toBe('100');

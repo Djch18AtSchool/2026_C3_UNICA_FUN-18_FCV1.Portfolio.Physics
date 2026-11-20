@@ -295,11 +295,11 @@ Comparo una flauta y un clarinete en si$\flat$ de la University of Iowa (mi$\fla
 
 <Equation
   id="ec-sonido-envolvente"
-  latex="y(t) = E(t)\sum_{n=1}^{N} A_n \sin(2\pi n f_1 t + \varphi_n), \qquad E(t) = V_1 + (V_0 - V_1)\,e^{-(t - T_0)/\tau}"
+  latex="y(t) = E(t)\sum_{n=1}^{N} A_n \sin(2\pi n f_1 t + \varphi_n), \qquad E(t) = V_1 + (V_0 - V_1)\,e^{-(t - t_0)/\tau}"
   symbols={[
     { symbol: 'E(t)', meaning: 'envolvente: el nivel de la nota en cada instante' },
     { symbol: 'V_0,\\ V_1', meaning: 'nivel al empezar la rampa y nivel al que tiende' },
-    { symbol: 'T_0', meaning: 'instante en que empieza la rampa', unit: 's' },
+    { symbol: 't_0', meaning: 'instante en que empieza la rampa', unit: 's' },
     { symbol: '\\tau', meaning: 'constante de tiempo de la rampa', unit: 's' },
   ]}
 />
