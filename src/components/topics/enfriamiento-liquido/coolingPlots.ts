@@ -14,7 +14,13 @@ import {
   rackProfile,
   type RackConfig,
 } from '../../../lib/data/liquidCoolingCircuit';
-import type { Fluid, ProfilePoint, Segment } from '../../../lib/physics/hydraulics';
+import {
+  pipeArea,
+  segmentLoss,
+  type Fluid,
+  type ProfilePoint,
+  type Segment,
+} from '../../../lib/physics/hydraulics';
 import type { CoolingParameterId } from '../../../lib/data/liquidCoolingParameters';
 import { TICK_COLOR } from '../../charts/chartTheme';
 import { padDomain, type Domain } from '../../lab/plotScales';
@@ -187,10 +193,20 @@ export function viewNote(
     return i;
   };
   const start = (id: string) => points[2 * index(id)];
-  const end = (id: string) => points[2 * index(id) + 1];
-  const drop = (from: ProfilePoint, to: ProfilePoint) => kpa(from.pReal - to.pReal);
+  // Each loss is drawn where it happens (circuitProfile), some past a segment's last point: the
+  // readings take each segment's loss from the model, at its own flow v·A.
+  const lossAt = (i: number) => {
+    const segment = path[i];
+    const area = segment.area ?? pipeArea(segment.diameter);
+    return kpa(segmentLoss(segment, points[2 * i].v * area, f));
+  };
+  const lossOf = (id: string) => lossAt(index(id));
   if (view === 'circuito') {
-    const server = drop(start('manguera-servidor-ida'), end('manguera-servidor-vuelta'));
+    const branch = Array.from(
+      { length: index('manguera-servidor-vuelta') - index('manguera-servidor-ida') + 1 },
+      (_, k) => index('manguera-servidor-ida') + k,
+    );
+    const server = branch.reduce((sum, i) => sum + lossAt(i), 0);
     return `Del CDU al servidor ${data.path.filter((s) => s.id.startsWith('manifold-ida')).length} y de vuelta, la presión baja de ${number(data.inlet, 1)} a ${number(data.outlet, 1)} kPa: ${number(data.loss, 1)} kPa, o ${number(data.loss / KPA_PER_BAR, 2)} bar. El ${number((server / data.loss) * PERCENT, 0)} % se pierde dentro del servidor. Sin pérdidas, Bernoulli volvería a ${number(data.ideal[data.ideal.length - 1].y, 1)} kPa.`;
   }
   if (view === 'rack') {
@@ -202,7 +218,7 @@ export function viewNote(
   }
   const hose = start('manguera-servidor-ida');
   const uqd = start('uqd-ida');
-  return `En la boca del UQD04 el líquido va a ${number(uqd.v, 2)} m/s: Bernoulli baja la presión ${number(kpa(hose.pIdeal - uqd.pIdeal), 1)} kPa y la devuelve en la manguera, pero cada conector pierde ${number(drop(uqd, end('uqd-ida')), 1)} kPa. ${plateSentence(drop(start('placa-fria'), end('placa-fria')))} Dentro de la placa dibujo la velocidad de la manguera: su interior no es público.`;
+  return `En la boca del UQD04 el líquido va a ${number(uqd.v, 2)} m/s: Bernoulli baja la presión ${number(kpa(hose.pIdeal - uqd.pIdeal), 1)} kPa y la devuelve en la manguera, pero cada conector pierde ${number(lossOf('uqd-ida'), 1)} kPa. ${plateSentence(lossOf('placa-fria'))} Dentro de la placa dibujo la velocidad de la manguera: su interior no es público.`;
 }
 
 const PLATE_DESIGN_KPA = kpa(RD109.plateDrop.value);

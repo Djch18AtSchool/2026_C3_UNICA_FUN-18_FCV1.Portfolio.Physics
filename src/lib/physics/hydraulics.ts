@@ -60,6 +60,11 @@ export interface Segment {
   area?: number;
   /** Times the path's flow Q crosses this segment (continuity at the nodes); 1 by default. */
   flowMultiple?: number;
+  /**
+   * Where the fitting of its K sits, for the profile: at the segment's start (a branch tee feeding
+   * a hose; the default) or at its end (a junction tee where a return hose joins its header).
+   */
+  fittingAt?: 'start' | 'end';
 }
 
 /** A point of the path: position x (m), velocity (m/s), ideal and real pressure (Pa). */
@@ -226,16 +231,17 @@ function segmentArea(s: Segment): number {
   return s.area;
 }
 
-/**
- * Loss in one segment carrying its own flow Q: Darcy friction plus K for a plain stretch of pipe
- * or hose; a component with a Cv or a measured curve takes its loss from that law alone (Cv is
- * defined across the mated coupling, and a cold plate's curve covers its internal piping), so
- * adding friction over its drawn length would count it twice. K adds in both cases.
- */
-export function segmentLoss(s: Segment, Q: number, f: Fluid): number {
+/** A segment's loss in its three kinds: Darcy friction, its fitting's K, and a measured component's. */
+interface LossParts {
+  friction: number;
+  fitting: number;
+  component: number;
+}
+
+function lossParts(s: Segment, Q: number, f: Fluid): LossParts {
   requireNonNegative('Q', Q);
   requireFluid(f);
-  if (Q === 0) return 0;
+  if (Q === 0) return { friction: 0, fitting: 0, component: 0 };
   const v = Q / segmentArea(s);
   const isMeasuredComponent = s.cv !== undefined || s.curve !== undefined;
   const friction =
@@ -248,10 +254,21 @@ export function segmentLoss(s: Segment, Q: number, f: Fluid): number {
           v,
         )
       : 0;
-  const local = s.K === undefined ? 0 : minorLoss(s.K, f, v);
+  const fitting = s.K === undefined ? 0 : minorLoss(s.K, f, v);
   const connector = s.cv === undefined ? 0 : cvLoss(Q, s.cv, f);
   const measured = s.curve === undefined ? 0 : curveLoss(s.curve, Q);
-  return friction + local + connector + measured;
+  return { friction, fitting, component: connector + measured };
+}
+
+/**
+ * Loss in one segment carrying its own flow Q: Darcy friction plus K for a plain stretch of pipe
+ * or hose; a component with a Cv or a measured curve takes its loss from that law alone (Cv is
+ * defined across the mated coupling, and a cold plate's curve covers its internal piping), so
+ * adding friction over its drawn length would count it twice. K adds in both cases.
+ */
+export function segmentLoss(s: Segment, Q: number, f: Fluid): number {
+  const { friction, fitting, component } = lossParts(s, Q, f);
+  return friction + fitting + component;
 }
 
 /** Losses of a path in series at the path flow Q (each segment carries Q × its flowMultiple). */
@@ -262,9 +279,13 @@ export function seriesLoss(segments: readonly Segment[], Q: number, f: Fluid): n
 /**
  * v(x), ideal p(x) and real p(x) along a path that starts at y = 0 with pressure p₀: two points
  * per segment, at its ends, so velocity steps where the section changes. The ideal pressure keeps
- * p + ½ρv² + ρgy constant (13.2); the real one also subtracts the losses, spread linearly over
- * each segment. Q is the path flow: each segment carries Q × its flowMultiple (for a rack, Q is
- * one server's flow, and rackProfile in the liquid-cooling data builds that call).
+ * p + ½ρv² + ρgy constant (13.2); the real one also subtracts the losses, each drawn where it
+ * happens: friction along its segment; a fitting's K at the fitting, before the segment's first
+ * point (fittingAt 'start') or past its last (fittingAt 'end'); a component measured as a whole (a
+ * Cv, a curve) at its exit, past its last point. So inside a fast element p never shows a loss it
+ * has not paid yet. A loss past the last segment's last point is not drawn. Q is the path flow:
+ * each segment carries Q × its flowMultiple (for a rack, Q is one server's flow, and rackProfile
+ * in the liquid-cooling data builds that call).
  */
 export function circuitProfile(
   segments: readonly Segment[],
@@ -285,11 +306,15 @@ export function circuitProfile(
   segments.forEach((s, i) => {
     const v = velocities[i];
     const ideal = (height: number) => head - 0.5 * f.rho * v * v - f.rho * G_EARTH * height;
+    const parts = lossParts(s, Q * (s.flowMultiple ?? 1), f);
+    const isFittingAtEnd = s.fittingAt === 'end';
+    lost += isFittingAtEnd ? 0 : parts.fitting;
     points.push({ x, segmentId: s.id, v, pIdeal: ideal(y), pReal: ideal(y) - lost });
     x += s.length;
     y += s.dy;
-    lost += segmentLoss(s, Q * (s.flowMultiple ?? 1), f);
+    lost += parts.friction;
     points.push({ x, segmentId: s.id, v, pIdeal: ideal(y), pReal: ideal(y) - lost });
+    lost += parts.component + (isFittingAtEnd ? parts.fitting : 0);
   });
   return points;
 }

@@ -352,6 +352,59 @@ describe('circuitProfile', () => {
     expect(circuitProfile([], SERVER_FLOW, PG25, p0)).toEqual([]);
   });
 
+  /*
+   * Where each loss is drawn: friction slopes along its segment; a fitting's K drops where the
+   * fitting is (a branch tee at the start of a supply hose, a junction tee at the end of a return
+   * hose); a component measured as a whole (a Cv, a measured curve) drops at its exit. The total
+   * is the same; inside a fast element, p never shows a loss it has not paid yet.
+   */
+  describe('where each loss is drawn', () => {
+    const lostAt = (point: { pIdeal: number; pReal: number }) => point.pIdeal - point.pReal;
+    const teeIn = segment({ id: 'te-ida', length: 0.5, K: 1.8 });
+    const teeOut = segment({ id: 'te-vuelta', length: 0.5, K: 1.8, fittingAt: 'end' });
+    const coupling = segment({ id: 'uqd', length: 0.06, diameter: UQD_BORE, cv: 1.29 });
+    const plate = segment({ id: 'placa', length: 0.15, curve: { a: 1e9, b: 1.85 } });
+    const path = [teeIn, coupling, plate, teeOut];
+    const points = circuitProfile(path, SERVER_FLOW, PG25, p0);
+    const friction = (s: Segment) => segmentLoss({ ...s, K: undefined }, SERVER_FLOW, PG25);
+
+    test('a tee at the start of its hose drops before the hose’s first point', () => {
+      const tee = minorLoss(1.8, PG25, flowVelocity(SERVER_FLOW, HOSE_D));
+
+      expect(lostAt(points[0])).toBeCloseTo(tee, 6);
+      expect(lostAt(points[1]) - lostAt(points[0])).toBeCloseTo(friction(teeIn), 6);
+    });
+
+    test('a coupling and a plate lose nothing along their drawn length and all at their exit', () => {
+      expect(lostAt(points[3])).toBeCloseTo(lostAt(points[2]), 9);
+      expect(lostAt(points[4]) - lostAt(points[3])).toBeCloseTo(cvLoss(SERVER_FLOW, 1.29, PG25), 6);
+      expect(lostAt(points[5])).toBeCloseTo(lostAt(points[4]), 9);
+      expect(lostAt(points[6]) - lostAt(points[5])).toBeCloseTo(
+        curveLoss(plate.curve!, SERVER_FLOW),
+        6,
+      );
+    });
+
+    test('a tee at the end of its hose drops past the hose’s last point, which is the path’s', () => {
+      expect(lostAt(points[7]) - lostAt(points[6])).toBeCloseTo(friction(teeOut), 6);
+      expect(lostAt(points[7])).toBeCloseTo(
+        seriesLoss(path, SERVER_FLOW, PG25) -
+          minorLoss(1.8, PG25, flowVelocity(SERVER_FLOW, HOSE_D)),
+        6,
+      );
+    });
+
+    test('inside a fast return hose that ends in its junction tee, p stays above the pressure past the tee', () => {
+      const fast = 172.5 * M3S_PER_LPM;
+      const header = segment({ id: 'colector', length: 0.1, diameter: 0.04 });
+      const loop = [coupling, { ...teeOut, K: 1.8 }, header];
+      const drawn = circuitProfile(loop, fast, PG25, p0);
+      const outlet = drawn.at(-1)!.pReal;
+
+      for (const point of drawn.slice(2, -1)) expect(point.pReal).toBeGreaterThan(outlet);
+    });
+  });
+
   test('Review Focus 3: a 2 mm hose gives large but finite numbers', () => {
     const tiny = segment({ id: 'manguera-2mm', length: 0.5, diameter: 2e-3, K: 1.8 });
 

@@ -17,11 +17,12 @@ import {
   TICK_FONT_SIZE,
 } from '../../charts/chartTheme';
 import { useElementWidth } from '../../hooks/useElementWidth';
-import StatusChips from '../../lab/StatusChips';
+import InlineMath from '../../lab/InlineMath';
+import type { StatusChip } from '../../lab/StatusChips';
 import { FALLBACK_WIDTH } from './coolingPlotKit';
 import { RETURN_COLOR, SUPPLY_COLOR } from './coolingPlots';
-import { rackSummary, statusChips } from './coolingLabText';
-import type { CoolingScene } from './coolingScene';
+import { FAILURE_TEXT, rackSummary, statusChips } from './coolingLabReadings';
+import type { CoolingScene, SceneFailure } from './coolingScene';
 
 /** The drawing's height (px): fixed, so the server draws the height it will have. */
 export const RACK_HEIGHT = 240;
@@ -40,8 +41,11 @@ const ARROW = 6;
 const PORT_CLEARANCE = 2;
 const FONT = TICK_FONT_SIZE;
 const DASH = '4 3';
-const NOT_CONVERGED =
-  'El reparto no converge con estos valores: el dibujo y las lecturas son los del último reparto válido.';
+/** Said once a state has no scene of its own: what is drawn is still the last valid one. */
+const KEPT = 'el dibujo y las lecturas son los del último cálculo válido.';
+/** StatusChips' chip, but its text wraps: OCP's target is said in full (ruling R28). */
+const CHIP =
+  'm-0 inline-flex min-h-8 items-center rounded-base border border-border bg-bg px-2 py-1 text-xs tabular-nums';
 
 interface Frame {
   left: number;
@@ -168,9 +172,30 @@ function Servers({ scene, frame }: { scene: CoolingScene; frame: Frame }): JSX.E
 }
 
 export interface RackDiagramProps {
-  /** The last valid scene: it stays drawn while a new split does not converge. */
+  /** The last valid scene: it stays drawn while a state has none of its own. */
   scene: CoolingScene;
-  isConverged: boolean;
+  /** Why the state has no scene of its own; null when the scene is its own. */
+  failure: SceneFailure | null;
+}
+
+/** The status of the circuit, read-only, as StatusChips draws it but letting long chips wrap. */
+function StatusList({ items }: { items: readonly StatusChip[] }): JSX.Element {
+  return (
+    <div data-testid="cooling-status" className="flex flex-wrap items-center gap-2">
+      <span aria-hidden="true" className="text-xs font-medium text-fg-muted">
+        Estado del circuito
+      </span>
+      <ul aria-label="Estado del circuito" className="m-0 flex list-none flex-wrap gap-2 p-0">
+        {items.map((item) => (
+          <li key={item.id} className={CHIP}>
+            <span>
+              <InlineMath text={item.text} />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 /** The drawing at its measured width: the manifolds, the bars, the minimum, inlet and outlet. */
@@ -226,16 +251,12 @@ function RackDrawing({ scene }: { scene: CoolingScene }): JSX.Element {
   );
 }
 
-export default function RackDiagram({ scene, isConverged }: RackDiagramProps): JSX.Element {
+export default function RackDiagram({ scene, failure }: RackDiagramProps): JSX.Element {
   return (
     <div className="flex flex-col gap-2">
-      <StatusChips
-        label="Estado del circuito"
-        items={statusChips(scene, isConverged)}
-        testId="cooling-status"
-      />
+      <StatusList items={statusChips(scene, failure)} />
       <p role="status" className="sr-only">
-        {isConverged ? '' : NOT_CONVERGED}
+        {failure ? `${FAILURE_TEXT[failure]}: ${KEPT}` : ''}
       </p>
       <RackDrawing scene={scene} />
     </div>

@@ -3,7 +3,7 @@ import { DESCHUTES_PUMP } from '../../../lib/data/liquidCooling';
 import { M3S_PER_GPM } from '../../../lib/physics/hydraulics';
 import { coolingScene, INITIAL_COOLING_STATE, type CoolingLabState } from './coolingScene';
 import {
-  MINIMUM_COLOR,
+  TARGET_COLOR,
   PUBLISHED_COLOR,
   pumpPlot,
   SERVER_COLOR,
@@ -28,7 +28,11 @@ describe('splitPlot: each server’s flow against its minimum', () => {
     expect(flows.points[23].x).toBe(24);
     expect(flows.points[23].y).toBeCloseTo(7.1822, 3);
     expect(flows.color).toBe(SERVER_COLOR);
-    expect(minimum).toMatchObject({ dashed: true, color: MINIMUM_COLOR });
+    expect(minimum).toMatchObject({
+      dashed: true,
+      color: TARGET_COLOR,
+      label: 'Objetivo de diseño de OCP, 1,5 L/min por kW',
+    });
     expect(minimum.points.map((point) => point.x)).toEqual([0.5, 24.5]);
     expect(minimum.points[0].y).toBeCloseTo(6.375, 10);
     expect(plot.xDomain).toEqual({ min: 0.5, max: 24.5 });
@@ -88,13 +92,15 @@ describe('pumpPlot: Deschutes’ curves, the circuit’s curve and the two point
     expect(plot.yDomain.max).toBeGreaterThan(820);
   });
 
-  test('with no curve that reaches it, only the family, the circuit and the duty point', () => {
+  test('with no curve that reaches it, only the family and the circuit; the duty point off the scale goes on the top edge', () => {
     const steep = pumpPlot(
       sceneOf({ ...INITIAL_COOLING_STATE, servers: 1, hose: '1/4', pumpFlow: 225 }),
     );
 
     expect(steep.series.map((series) => series.id)).toEqual(['deschutes', 'sistema']);
-    expect(steep.points.map((point) => point.id)).toEqual(['pedido']);
+    expect(steep.points).toEqual([]);
+    expect(steep.edge?.x).toBeCloseTo(30, 9);
+    expect(steep.edge?.label).toMatch(/^pedido: [\d\s\u202f]+,\d\skPa, fuera de escala$/);
   });
 
   test('a duty point far above the pump keeps the pump’s curves readable: the axis stops at twice their top', () => {
@@ -102,8 +108,12 @@ describe('pumpPlot: Deschutes’ curves, the circuit’s curve and the two point
       sceneOf({ ...INITIAL_COOLING_STATE, servers: 1, hose: '1/4', pumpFlow: 225 }),
     );
 
-    expect(steep.points[0].y).toBeGreaterThan(steep.yDomain.max);
     expect(steep.yDomain.max).toBeLessThan(2 * 830 * 1.1);
     expect(steep.yDomain.max).toBeGreaterThan(2 * 820);
+    expect(plot.edge).toBeUndefined();
+  });
+
+  test('the family is labelled with the published range of speeds', () => {
+    expect(byId('deschutes')?.label).toBe('Curvas publicadas de Deschutes, de 33 a 100 % PWM');
   });
 });

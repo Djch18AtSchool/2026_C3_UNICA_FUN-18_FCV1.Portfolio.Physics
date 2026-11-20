@@ -81,6 +81,12 @@ export const WATER_40C_NIST = {
 /** OCP's design rule: «A typical design target is 10°C temperature rise, i.e. 1.5 LPM/kW». */
 export const FLOW_PER_KW_LPM = 1.5;
 export const FLOW_PER_KW = sourced(FLOW_PER_KW_LPM, 'producto', `${OCP_OAI}, §1.3, pág. 7`);
+const OCP_RANGE = `${OCP_OAI}, §1.3, pág. 7: «1.25 LPM/kW~2.0 LPM/kW»`;
+/** The range OCP recommends around that target (7,5 to 12 °C of rise), L/min per kW. */
+export const FLOW_PER_KW_RANGE = {
+  min: sourced(1.25, 'producto', OCP_RANGE),
+  max: sourced(2.0, 'producto', OCP_RANGE),
+} as const;
 
 /** EPANET's tables (roughness, ×10⁻³ ft; K on v²/2g), applied to this circuit as assumptions. */
 export const EPANET_VALUES = {

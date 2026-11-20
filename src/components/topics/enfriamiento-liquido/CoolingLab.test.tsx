@@ -8,7 +8,7 @@ import { installDialogPolyfill } from '../../../test-dialog';
 import { plexViolations } from '../../../test-glyphs';
 import { readout } from '../../../test-readout';
 import CoolingLab from './CoolingLab';
-import { CURSOR_HINT } from './coolingLabText';
+import { CURSOR_HINT, CURVE_NOTE, RETURN_NOTE } from './coolingLabText';
 
 /** Servers for which the mocked split does not converge (Review Focus 3, at the component). */
 const { STUCK_SERVERS } = vi.hoisted(() => ({ STUCK_SERVERS: 30 }));
@@ -32,7 +32,7 @@ const USAGE = 'Uso del MDX: elige los valores y mira el reparto.';
 const LEFT_OUT = 'Deja fuera la temperatura variable a lo largo del lazo.';
 
 const WORST = 'Caudal del servidor 24, el más lejano';
-const MINIMUM = 'Mínimo de cada servidor, 1,5 L/min por kW';
+const TARGET = 'Objetivo de diseño de OCP por servidor (1,5 L/min por kW)';
 const DROP = 'Caída hasta el más lejano $\\Delta p$';
 const POWER = 'Potencia de bombeo del CDU $P = \\Delta p\\,Q$';
 
@@ -73,11 +73,11 @@ describe('CoolingLab', () => {
     renderLab();
 
     expect(readout(WORST)).toBe('7,18 L/min');
-    expect(readout(MINIMUM)).toBe('6,38 L/min');
+    expect(readout(TARGET)).toBe('6,38 L/min');
     expect(readout(DROP)).toBe('179,9 kPa');
     expect(readout(POWER)).toBe('4,14 kW');
     expect(chips()).toEqual([
-      'El servidor más lejano llega a su mínimo',
+      'El servidor más lejano alcanza el objetivo de diseño de OCP (1,5 L/min por kW)',
       'Cada UQD04 pasa de su caudal nominal',
     ]);
   });
@@ -113,7 +113,9 @@ describe('CoolingLab', () => {
     commit(/^Caudal de la bomba por rack/, '150');
 
     expect(readout(WORST)).toBe('6,25 L/min');
-    expect(chips()[0]).toBe('El servidor más lejano no llega a su mínimo');
+    expect(chips()[0]).toBe(
+      'El servidor más lejano está por debajo del objetivo de diseño de OCP (1,5 L/min por kW)',
+    );
     expect(screen.getByTestId('cooling-shortfall')).toHaveTextContent(
       /tiene que subir un 2,1 %, a 153,1 L\/min por rack/,
     );
@@ -217,30 +219,59 @@ describe('CoolingLab', () => {
 
     expect(within(notes).getByRole('list', { name: 'Leyenda del rack' })).toBeInTheDocument();
     expect(notes).toHaveTextContent(/las alturas no están a escala/i);
-    expect(within(origins).getAllByRole('listitem')).toHaveLength(8);
+    expect(within(origins).getAllByRole('listitem')).toHaveLength(9);
+    expect(origins).toHaveTextContent(/Presión de retorno al CDU, 220,1\s?kPa abs/);
     expect(origins).toHaveTextContent(/Cálculo propio/);
     expect(origins).toHaveTextContent(/Producto/);
     expect(origins).toHaveTextContent(/Supuesto/);
     expect(notes).toHaveTextContent(/tablas 13\.1 a 13\.3/);
   });
 
-  test('how to use it: the cursor, then the MDX; what it leaves out comes from the MDX', () => {
+  test('how to use it: the cursor, then the MDX; what it leaves out: the held return pressure, the curves, then the MDX', () => {
     const { container } = renderLab();
     const usage = container.querySelector('details[data-lab-note="usage"]')!;
     const leftOut = container.querySelector('details[data-lab-note="left-out"]')!;
 
     expect(usage.textContent).toContain(CURSOR_HINT);
     expect(usage.textContent).toContain(USAGE);
-    expect(leftOut.textContent).toContain(LEFT_OUT);
+    const paragraphs = [...leftOut.querySelectorAll('p')].map((p) => p.textContent ?? '');
+    expect(paragraphs).toHaveLength(3);
+    expect(paragraphs[0]).toMatch(/^Supongo que el CDU sostiene su presión de retorno/);
+    expect(paragraphs[1]).toBe(CURVE_NOTE);
+    expect(paragraphs[2]).toBe(LEFT_OUT);
+    expect(RETURN_NOTE).toMatch(/tanque de expansión/);
   });
 
-  test('without the MDX’s notes, «Cómo se usa» is the cursor’s line alone and nothing is left out', () => {
+  test('without the MDX’s notes, the lab keeps its own lines only', () => {
     const { container } = render(<CoolingLab />);
     const usage = container.querySelector('details[data-lab-note="usage"]')!;
 
     expect(usage.querySelectorAll('p')).toHaveLength(1);
     expect(usage.textContent).toContain(CURSOR_HINT);
-    expect(container.querySelector('details[data-lab-note="left-out"] p')).toBeNull();
+    expect(container.querySelectorAll('details[data-lab-note="left-out"] p')).toHaveLength(2);
+  });
+
+  test('the plate in use is said under the parameters, and changes with the preset', async () => {
+    const user = userEvent.setup();
+    renderLab();
+    const plate = within(region('Parámetros')).getByTestId('cooling-plate');
+
+    expect(plate).toHaveTextContent(
+      /^Placa fría de «Referencia: 24 servidores \(RD109\)»: 1,2 bar a 7,19/,
+    );
+    await user.click(screen.getByRole('button', { name: /^MGX: 44 puertos/ }));
+    expect(screen.getByTestId('cooling-plate')).toHaveTextContent(
+      /^Placa fría de «MGX: 44 puertos»/,
+    );
+  });
+
+  test('a valid state after a split that did not converge clears the message', () => {
+    renderLab();
+
+    commit(/^Servidores en el rack/, String(STUCK_SERVERS));
+    expect(chips()[0]).toBe('El reparto no converge con estos valores');
+    commit(/^Servidores en el rack/, '24');
+    expect(chips()[0]).not.toMatch(/converge|fuera del modelo/);
   });
 
   test('every glyph is Plex or KaTeX, at the reference and in reverse return', () => {

@@ -1,12 +1,14 @@
 /**
- * What Tema 13's lab says: the choices, the two presets with their computed notes, where every
- * value comes from (model vs product: the professor's rule), the status chips, the readouts'
- * names and the sentences that read the scene. Every number is computed from the model or the
- * data modules, never copied.
+ * What Tema 13's lab says that does not read a scene: the choices, the two presets with their
+ * computed notes, where every value comes from (model vs product: the professor's rule), the
+ * plate in use, and the lab's own lines of «Cómo se usa» and «Qué deja fuera el modelo». The
+ * sentences that read a scene are in coolingLabReadings.ts. Every number is computed from the
+ * model or the data modules, never copied.
  */
 import {
   DESCHUTES_PUMP,
   FLOW_PER_KW_LPM,
+  FLOW_PER_KW_RANGE,
   GF_PUBLISHED,
   MGX_MANIFOLD,
   MGX_RACK,
@@ -21,30 +23,30 @@ import { formatNumber } from '../../../lib/format';
 import {
   flowFactorForPower,
   M3S_PER_GPM,
-  M3S_PER_LPM,
-  PA_PER_BAR,
   type ReturnLayout,
 } from '../../../lib/physics/hydraulics';
 import type { Preset } from '../../../lib/presets';
-import type { StatusChip } from '../../lab/StatusChips';
 import {
   coolingScene,
   presetState,
+  RETURN_PRESSURE,
   type BaseId,
   type CoolingLabState,
   type CoolingScene,
 } from './coolingScene';
+import { kpa, lpm, MM_PER_M, number, PERCENT, toBar, W_PER_KW } from './coolingUnits';
 
-const MM_PER_M = 1e3;
-const L_PER_M3 = 1e3;
-const PA_PER_KPA = 1e3;
-const W_PER_KW = 1e3;
-const PERCENT = 100;
 const BASES: readonly BaseId[] = ['referencia24', 'mgx44'];
 
-const lpm = (flow: number, precision = 2) =>
-  formatNumber(flow / M3S_PER_LPM, { precision, unit: 'L/min' });
-const number = (value: number, precision: number) => formatNumber(value, { precision });
+/** OCP's rule as the lab prints it: «1,5 L/min por kW». */
+export const RULE = `${number(FLOW_PER_KW_LPM, 1)} L/min por kW`;
+/** Ruling R28: a typical design target, not a minimum. */
+export const OCP_TARGET = `objetivo de diseño de OCP (${RULE})`;
+const PWMS = DESCHUTES_PUMP.curves.map((curve) => curve.pwm);
+/** «de 33 a 100 % PWM», from the published curves. */
+export const PWM_RANGE = `de ${Math.min(...PWMS)} a ${Math.max(...PWMS)} % PWM`;
+/** «650 GPM»: where Deschutes' measured curves end. */
+export const CURVE_END = `${number(DESCHUTES_PUMP.curveMaxFlow.value / M3S_PER_GPM, 0)} GPM`;
 
 /** The fewest decimals (up to two) that write a diameter in mm exactly. */
 const mm = (diameter: number) => {
@@ -70,7 +72,7 @@ const presetScene = (id: BaseId) => {
   if (!scene) throw new Error(`coolingLabText: the preset "${id}" has no valid scene`);
   return scene;
 };
-const bar = (pa: number) => number(pa / PA_PER_BAR, 2);
+const bar = (pa: number) => number(toBar(pa), 2);
 const meanFlow = (scene: CoolingScene) => scene.config.rackFlow / scene.config.servers;
 const NOMINAL = lpm(UQD04.nominalFlow.value);
 
@@ -142,12 +144,16 @@ function sharedWithPreset(
 
 const HEAT_KW = (MGX_RACK.power.value * MGX_RACK.liquidCapture.value) / W_PER_KW;
 
-function minimumSource(scene: CoolingScene): string {
+function targetSource(scene: CoolingScene): string {
   const perServer = number(HEAT_KW / scene.config.servers, 2);
-  return `Cálculo propio: ${number(FLOW_PER_KW_LPM, 1)} L/min por kW (OCP) por los ${perServer} kW de cada servidor, su parte de los ${number(HEAT_KW, 0)} kW que el líquido saca de un rack MGX de ${number(MGX_RACK.power.value / W_PER_KW, 0)} kW (${number(MGX_RACK.liquidCapture.value * PERCENT, 0)} %), repartidos por igual`;
+  const range = `${number(FLOW_PER_KW_RANGE.min.value, 2)} a ${number(FLOW_PER_KW_RANGE.max.value, 1)}`;
+  return `Cálculo propio: el objetivo típico de OCP, ${RULE} (recomienda de ${range}), por los ${perServer} kW de cada servidor, su parte de los ${number(HEAT_KW, 0)} kW que el líquido saca de un rack MGX de ${number(MGX_RACK.power.value / W_PER_KW, 0)} kW (${number(MGX_RACK.liquidCapture.value * PERCENT, 0)} %), repartidos por igual`;
 }
 
-const PUMP_SOURCE = `${DESCHUTES_PUMP.curves[0].source}; el eje de caudal acaba en ${number(DESCHUTES_PUMP.curveMaxFlow.value / M3S_PER_GPM, 0)} GPM, lectura aproximada`;
+const REFERENCE_DROP = PRESETS.referencia24.inletPressure - RETURN_PRESSURE;
+const RETURN_SOURCE = `Supuesto: el CDU sostiene su presión de retorno, como lo haría su tanque de expansión; tomo la de la referencia, los ${kpa(RD109.inletPressure.value)} abs de entrada de GF menos su caída de ${kpa(REFERENCE_DROP)} (cálculo propio), y la impulsión es esa más la caída del circuito`;
+
+const PUMP_SOURCE = `${DESCHUTES_PUMP.curves[0].source}; el eje de caudal acaba en ${CURVE_END}, lectura aproximada`;
 
 /** Every value the lab computes with, its origin and its one source, for the state shown. */
 export function valueOrigins(state: CoolingLabState, scene: CoolingScene): ValueOriginRow[] {
@@ -172,94 +178,30 @@ export function valueOrigins(state: CoolingLabState, scene: CoolingScene): Value
     },
     { id: 'retorno', text: `Retorno ${state.layout}`, ...provenanceOf(layout) },
     {
+      id: 'presiones',
+      text: `Presión de retorno al CDU, ${kpa(RETURN_PRESSURE)} abs; la de impulsión, ${kpa(scene.config.inletPressure)} abs`,
+      origin: 'ilustrativo',
+      source: RETURN_SOURCE,
+    },
+    {
       id: 'placa',
-      text: `Placa fría: ${number(RD109.plateDrop.value / PA_PER_BAR, 1)} bar a ${lpm(base.plateDesignFlow)}`,
+      text: `Placa fría: ${number(toBar(RD109.plateDrop.value), 1)} bar a ${lpm(base.plateDesignFlow)}`,
       ...provenanceOf(base.provenance.plateDesignFlow),
     },
     { id: 'racks', text: `${base.racks} racks por CDU`, ...provenanceOf(base.provenance.racks) },
     {
-      id: 'minimo',
-      text: `Mínimo de cada servidor, ${lpm(scene.minimum)}`,
+      id: 'objetivo',
+      text: `Objetivo de diseño por servidor, ${lpm(scene.minimum)}`,
       origin: 'calculo',
-      source: minimumSource(scene),
+      source: targetSource(scene),
     },
     {
       id: 'bomba',
-      text: 'Curvas de la bomba de Deschutes, de 33 a 100 % PWM',
+      text: `Curvas de la bomba de Deschutes, ${PWM_RANGE}`,
       origin: 'producto' as ValueOrigin,
       source: PUMP_SOURCE,
     },
   ];
-}
-
-/* ── What the lab says about the scene ───────────────────────────────────────────────── */
-
-/** «más lejano» when the server that gets least is the top one, else «peor servido». */
-export function worstName(worst: CoolingScene['worst']): string {
-  return worst.isFarthest ? 'más lejano' : 'peor servido';
-}
-
-export function readoutLabels(scene: CoolingScene) {
-  return {
-    worst: `Caudal del servidor ${scene.worst.port}, el ${worstName(scene.worst)}`,
-    minimum: 'Mínimo de cada servidor, 1,5 L/min por kW',
-    drop: 'Caída hasta el más lejano $\\Delta p$',
-    power: 'Potencia de bombeo del CDU $P = \\Delta p\\,Q$',
-  } as const;
-}
-
-/** The chips over the rack: the split when it fails, the worst server and the UQD04. */
-export function statusChips(scene: CoolingScene, isConverged: boolean): StatusChip[] {
-  const name = worstName(scene.worst);
-  return [
-    ...(isConverged ? [] : [{ id: 'reparto', text: 'El reparto no converge con estos valores' }]),
-    {
-      id: 'minimo',
-      text: `El servidor ${name} ${scene.isShort ? 'no llega' : 'llega'} a su mínimo`,
-    },
-    {
-      id: 'uqd',
-      text: `Cada UQD04 ${scene.isUqdOver ? 'pasa de' : 'va dentro de'} su caudal nominal`,
-    },
-  ];
-}
-
-const percent = (factor: number) => number((factor - 1) * PERCENT, 1);
-
-/** The worst server's margin over its minimum, or the flow and power it would take to reach it. */
-export function shortfallNote(scene: CoolingScene): string {
-  const { worst, minimum, needed, neededPower, config } = scene;
-  if (!scene.isShort) {
-    return `El servidor ${worst.port}, el ${worstName(worst)}, recibe ${lpm(worst.flow)}: un ${percent(worst.flow / minimum)} % más que su mínimo de ${lpm(minimum)}.`;
-  }
-  return `Para que el servidor ${worst.port} llegue a su mínimo, el caudal de la bomba tiene que subir un ${percent(needed)} %, a ${lpm(config.rackFlow * needed, 1)} por rack, y la potencia de bombeo se multiplica por ${number(neededPower, 2)}.`;
-}
-
-const litres = (flow: number) => formatNumber(flow * L_PER_M3, { precision: 1, unit: 'L/s' });
-const kpa = (pa: number) => formatNumber(pa / PA_PER_KPA, { precision: 1, unit: 'kPa' });
-const CURVE_END = `${number(DESCHUTES_PUMP.curveMaxFlow.value / M3S_PER_GPM, 0)} GPM`;
-
-/** The pump's chart in words: the duty point, the published curve that gives it, where it runs. */
-export function pumpNote(scene: CoolingScene): string {
-  const { duty, curve, operating } = scene.pump;
-  const asked = `Para mover ${litres(duty.Q)} por los ${scene.config.racks} racks, la bomba tiene que vencer ${kpa(duty.dp)}: el punto pedido.`;
-  if (!curve) {
-    return duty.Q > DESCHUTES_PUMP.curveMaxFlow.value
-      ? `${asked} Ese caudal pasa de los ${CURVE_END} de las curvas publicadas de Deschutes.`
-      : `${asked} Ninguna curva publicada de Deschutes, ni la de 100 % PWM, da esa presión a ese caudal.`;
-  }
-  const lowest = `La curva publicada más baja que lo da es la de ${curve.pwm} % PWM`;
-  if (!operating) {
-    return `${asked} ${lowest}, pero a esa velocidad fija cruzaría la curva del circuito más allá de los ${CURVE_END} medidos.`;
-  }
-  return `${asked} ${lowest}; a esa velocidad fija, la bomba trabajaría en ${litres(operating.Q)} y ${kpa(operating.dp)}. El control por omisión de Deschutes ajusta la velocidad para sostener una $\\Delta p$ fija: con la del punto pedido, la bomba se queda en él.`;
-}
-
-/** The rack drawing in words: its accessible name. */
-export function rackSummary(scene: CoolingScene): string {
-  const { config, worst, minimum } = scene;
-  const outlet = config.layout === 'directo' ? 'abajo' : 'arriba';
-  return `Rack de ${config.servers} ${config.servers === 1 ? 'servidor' : 'servidores'} con retorno ${config.layout}: el líquido entra abajo por el manifold de impulsión y sale ${outlet} por el de retorno. Cada barra es el caudal de un servidor, y la línea discontinua, su mínimo de ${lpm(minimum)}. El servidor ${worst.port}, el ${worstName(worst)}, recibe ${lpm(worst.flow)}.`;
 }
 
 /**
@@ -269,8 +211,20 @@ export function rackSummary(scene: CoolingScene): string {
 export const OVERSUPPLY_TO_TRIPLE = flowFactorForPower(3, RD109.systemExponent.value) - 1;
 
 /** What the canvas notes say is to scale in the rack drawing. */
-export const SCALE_NOTE = `En el dibujo del rack, el largo de cada barra es proporcional al caudal de su servidor, y la línea discontinua marca el mínimo. Las alturas no están a escala: en el manifold MGX, los puertos están a ${formatNumber(MGX_MANIFOLD.portPitch.value * MM_PER_M, { precision: 2, unit: 'mm' })}.`;
+export const SCALE_NOTE = `En el dibujo del rack, el largo de cada barra es proporcional al caudal de su servidor, y la línea discontinua marca el ${OCP_TARGET}. Las alturas no están a escala: en el manifold MGX, los puertos están a ${formatNumber(MGX_MANIFOLD.portPitch.value * MM_PER_M, { precision: 2, unit: 'mm' })}.`;
 
 /** «Cómo se usa», the lab's own line: the pump chart's cursor. */
 export const CURSOR_HINT =
   'Arrastra el cursor de la gráfica de la bomba, o enfócalo y muévelo con las flechas (1 % del eje; con Mayús, 10 %): cambia el caudal de la bomba, como su deslizador.';
+
+/** The cold plate in use, under the parameters: it comes with the base preset. */
+export function plateNote(state: CoolingLabState): string {
+  const [base, other] = [state.base, BASES.find((id) => id !== state.base) ?? state.base].map(
+    (id) => PRESETS[id],
+  );
+  return `Placa fría de «${base.label}»: ${number(toBar(RD109.plateDrop.value), 1)} bar a ${lpm(base.plateDesignFlow)}, un supuesto; «${other.label}» trae la suya, a ${lpm(other.plateDesignFlow)}.`;
+}
+
+/** «Qué deja fuera el modelo», the lab's own lines (ruling R27 and the published curves). */
+export const RETURN_NOTE = `Supongo que el CDU sostiene su presión de retorno, como lo haría su tanque de expansión, en ${kpa(RETURN_PRESSURE)} abs: la de la referencia, los ${kpa(RD109.inletPressure.value)} abs de entrada de GF menos su caída. La impulsión es esa más la caída del circuito, así que el perfil y la gráfica de la bomba dan la misma $\\Delta p$; dentro del rack, la presión baja además $\\rho g y$ al subir.`;
+export const CURVE_NOTE = `De las ${DESCHUTES_PUMP.curves.length} curvas publicadas de Deschutes, uso la más baja que alcanza el caudal; no interpolo entre curvas.`;

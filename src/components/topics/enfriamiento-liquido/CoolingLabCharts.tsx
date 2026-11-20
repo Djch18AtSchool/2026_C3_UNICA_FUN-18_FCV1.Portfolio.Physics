@@ -8,18 +8,50 @@
 import { memo, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
 import { mathTextToString } from '../../../lib/mathNotation';
+import { TEXT_COLOR } from '../../charts/chartTheme';
 import InlineMath from '../../lab/InlineMath';
+import { Label } from '../../lab/OverlayMarks';
 import { PlotPoints } from '../../lab/PlotPoints';
+import type { Scale } from '../../lab/plotScales';
 import SvgPlot, { STAGE_PLOT_ASPECT } from '../../lab/SvgPlot';
 import CircuitProfileFigure from './CircuitProfileFigure';
-import { pumpNote } from './coolingLabText';
-import { pumpPlot, splitPlot } from './coolingLabPlots';
+import { pumpNote } from './coolingLabReadings';
+import { pumpPlot, splitPlot, type PumpPlot } from './coolingLabPlots';
 import type { CoolingScene } from './coolingScene';
+import { L_PER_M3 } from './coolingUnits';
 
-const L_PER_M3 = 1e3;
+/** The values of the split's plot are already in L/min. */
 const lpm = (value: number) => formatNumber(value, { precision: 2, unit: 'L/min' });
+/** The off-scale marker: a triangle on the top edge, pointing up, and its label beside it. */
+const EDGE_SIZE = 6;
+const EDGE_LABEL_DX = 10;
+const EDGE_LABEL_DY = 16;
 
-/** q_i against the port, with the minimum and the server that gets least. */
+/** The duty point above the pressure axis, on the top edge with its value. */
+function EdgeMarker({
+  edge,
+  scales,
+}: {
+  edge: NonNullable<PumpPlot['edge']>;
+  scales: { x: Scale; y: Scale };
+}): JSX.Element {
+  const x = scales.x.toPx(edge.x);
+  const top = scales.y.toPx(scales.y.domain.max);
+  const half = EDGE_SIZE / 2;
+  return (
+    <g data-point="pedido-fuera" className="pointer-events-none">
+      <path
+        d={`M${x - half} ${top + EDGE_SIZE} L${x + half} ${top + EDGE_SIZE} L${x} ${top} Z`}
+        fill={TEXT_COLOR}
+      />
+      <Label at={{ x, y: top }} dx={-EDGE_LABEL_DX} dy={EDGE_LABEL_DY} anchor="end">
+        {edge.label}
+      </Label>
+    </g>
+  );
+}
+
+/** q_i against the port, with OCP's design target and the server that gets least. */
 function SplitChart({ scene }: { scene: CoolingScene }): JSX.Element {
   const plot = splitPlot(scene);
   const flows = plot.series[0].points.map((point) => point.y);
@@ -27,7 +59,7 @@ function SplitChart({ scene }: { scene: CoolingScene }): JSX.Element {
     <div data-testid="cooling-split-plot">
       <SvgPlot
         aspectRatio={STAGE_PLOT_ASPECT}
-        title="Caudal de cada servidor y su mínimo"
+        title="Caudal de cada servidor frente al objetivo de OCP"
         xLabel="Puerto $i$"
         xUnit="1 = abajo"
         yLabel="Caudal $q_i$"
@@ -37,7 +69,7 @@ function SplitChart({ scene }: { scene: CoolingScene }): JSX.Element {
         yDomain={plot.yDomain}
         overlay={(scales) => <PlotPoints scales={scales} points={[plot.worst]} />}
         ariaLabel={mathTextToString(
-          `Caudal de los ${flows.length} servidores, de ${lpm(Math.max(...flows))} a ${lpm(Math.min(...flows))}, frente a su mínimo de ${lpm(plot.series[1].points[0].y)}. Recibe menos el servidor ${plot.worst.label}.`,
+          `Caudal de los ${flows.length} servidores, de ${lpm(Math.max(...flows))} a ${lpm(Math.min(...flows))}, frente al objetivo de diseño de OCP, ${lpm(plot.series[1].points[0].y)} por servidor. Recibe menos el servidor ${plot.worst.label}.`,
         )}
       />
     </div>
@@ -72,7 +104,12 @@ function PumpChart({ scene, onCduFlow }: PumpChartProps): JSX.Element {
           label: (x) => `$Q_\\text{CDU}$ = ${formatNumber(x, { precision: 1, unit: 'L/s' })}`,
           ariaLabel: 'Caudal de la bomba, $Q_\\text{CDU}$',
         }}
-        overlay={(scales) => <PlotPoints scales={scales} points={plot.points} />}
+        overlay={(scales) => (
+          <>
+            <PlotPoints scales={scales} points={plot.points} />
+            {plot.edge ? <EdgeMarker edge={plot.edge} scales={scales} /> : null}
+          </>
+        )}
         ariaLabel={mathTextToString(note)}
       />
       <p data-testid="cooling-pump-note" className="m-0 mt-3 text-sm">
@@ -82,9 +119,7 @@ function PumpChart({ scene, onCduFlow }: PumpChartProps): JSX.Element {
   );
 }
 
-export interface CoolingLabChartsProps extends PumpChartProps {
-  scene: CoolingScene;
-}
+export type CoolingLabChartsProps = PumpChartProps;
 
 /**
  * The three plots, in the shell's column of support plots. Memoized: an edit that leaves the scene

@@ -21,11 +21,14 @@ import CoolingNotes from './CoolingNotes';
 import {
   COOLING_PRESETS,
   CURSOR_HINT,
+  CURVE_NOTE,
   HOSE_OPTIONS,
   LAYOUT_OPTIONS,
+  plateNote,
   presetIdFor,
-  readoutLabels,
+  RETURN_NOTE,
 } from './coolingLabText';
+import { readoutLabels } from './coolingLabReadings';
 import {
   INITIAL_COOLING_STATE,
   initialModel,
@@ -38,42 +41,40 @@ import {
   type CoolingScene,
 } from './coolingScene';
 import RackDiagram from './RackDiagram';
+import { toKpa, toKw, toLpm } from './coolingUnits';
 
-const PA_PER_KPA = 1e3;
-const W_PER_KW = 1e3;
 const FLOW_PRECISION = 2;
 const DROP_PRECISION = 1;
 const POWER_PRECISION = 2;
 
 function readoutsOf(scene: CoolingScene): LabReadout[] {
   const labels = readoutLabels(scene);
-  const lpm = (flow: number) => flow / M3S_PER_LPM;
   return [
     {
       id: 'worst',
       label: labels.worst,
-      value: lpm(scene.worst.flow),
+      value: toLpm(scene.worst.flow),
       unit: 'L/min',
       precision: FLOW_PRECISION,
     },
     {
-      id: 'minimum',
-      label: labels.minimum,
-      value: lpm(scene.minimum),
+      id: 'target',
+      label: labels.target,
+      value: toLpm(scene.minimum),
       unit: 'L/min',
       precision: FLOW_PRECISION,
     },
     {
       id: 'drop',
       label: labels.drop,
-      value: scene.drop / PA_PER_KPA,
+      value: toKpa(scene.drop),
       unit: 'kPa',
       precision: DROP_PRECISION,
     },
     {
       id: 'power',
       label: labels.power,
-      value: scene.power / W_PER_KW,
+      value: toKw(scene.power),
       unit: 'kW',
       precision: POWER_PRECISION,
     },
@@ -111,7 +112,10 @@ export interface CoolingLabProps {
   leftOut?: string;
 }
 
-/** Level 1: the pump's flow and the servers (two to a row), then the hose and the return. */
+/**
+ * Level 1: the pump's flow and the servers (two to a row), then the hose and the return, and the
+ * cold plate in use (it comes with the base preset), in a row of its own.
+ */
 function CoolingParams({
   state,
   update,
@@ -155,13 +159,16 @@ function CoolingParams({
         options={LAYOUT_OPTIONS}
         onChange={(layout) => update({ layout })}
       />
+      <p data-testid="cooling-plate" className="m-0 text-sm text-fg-muted">
+        {plateNote(state)}
+      </p>
     </>
   );
 }
 
 export default function CoolingLab({ usage, leftOut }: CoolingLabProps): JSX.Element {
   const { model, setState, update, onCduFlow } = useCoolingLab();
-  const { state, scene, isConverged } = model;
+  const { state, scene, failure } = model;
 
   const scenario = (
     <LabPresets
@@ -184,10 +191,13 @@ export default function CoolingLab({ usage, leftOut }: CoolingLabProps): JSX.Ele
       }}
       charts={<CoolingLabCharts scene={scene} onCduFlow={onCduFlow} />}
       canvasNotes={<CoolingNotes state={model.sceneState} scene={scene} />}
-      notes={{ usage: [CURSOR_HINT, ...(usage ? [usage] : [])], leftOut: leftOut ? [leftOut] : [] }}
+      notes={{
+        usage: [CURSOR_HINT, ...(usage ? [usage] : [])],
+        leftOut: [RETURN_NOTE, CURVE_NOTE, ...(leftOut ? [leftOut] : [])],
+      }}
       onReset={() => setState(INITIAL_COOLING_STATE)}
     >
-      <RackDiagram scene={scene} isConverged={isConverged} />
+      <RackDiagram scene={scene} failure={failure} />
     </LabShell>
   );
 }

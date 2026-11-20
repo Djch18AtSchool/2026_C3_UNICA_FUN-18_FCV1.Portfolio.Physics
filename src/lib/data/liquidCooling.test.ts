@@ -5,6 +5,7 @@ import {
   EPANET_VALUES,
   FLOW_PER_KW,
   FLOW_PER_KW_LPM,
+  FLOW_PER_KW_RANGE,
   GF_PUBLISHED,
   GF_PUBLISHED_DROP_BAR,
   MGX_MANIFOLD,
@@ -67,6 +68,13 @@ describe('the flow rule and the parts of the circuit', () => {
     expect(FLOW_PER_KW_LPM).toBe(1.5);
     expect(FLOW_PER_KW.value).toBe(1.5);
     expect(FLOW_PER_KW.source).toMatch(/OCP/);
+  });
+
+  test('1,5 L/min per kW is OCP’s typical target inside the 1,25–2,0 it recommends', () => {
+    expect([FLOW_PER_KW_RANGE.min.value, FLOW_PER_KW_RANGE.max.value]).toEqual([1.25, 2]);
+    expect(FLOW_PER_KW_RANGE.min.value).toBeLessThan(FLOW_PER_KW_LPM);
+    expect(FLOW_PER_KW_RANGE.max.value).toBeGreaterThan(FLOW_PER_KW_LPM);
+    expect(FLOW_PER_KW_RANGE.min.source).toMatch(/«1\.25 LPM\/kW~2\.0 LPM\/kW»/);
   });
 
   test('UQD04: Cv 1,29 (Amphenol), 6,44 L/min nominal and a 7,24 mm bore (OCP v2.0.0)', () => {
@@ -194,6 +202,7 @@ describe('model vs product: every value says its origin and its source', () => {
     ...GF_PUBLISHED.breakdown,
     ...Object.values(WATER_40C_NIST),
     ...Object.values(MGX_RACK),
+    ...Object.values(FLOW_PER_KW_RANGE),
     ...SERVER_HOSES.map((hose) => hose.diameter),
     PG25_40C,
   ];

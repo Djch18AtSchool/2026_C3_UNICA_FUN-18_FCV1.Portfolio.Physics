@@ -79,6 +79,13 @@ const manifoldPiece = (id: string, label: string, servers: number, dy: number): 
   flowMultiple: servers,
 });
 
+/**
+ * The tee of a supply hose is where it branches off, at its start; a return hose's is the
+ * junction where it joins its header, at its end (the profile draws each K at its tee).
+ */
+const junction = (direction: Direction): Pick<Segment, 'fittingAt'> =>
+  direction === 'vuelta' ? { fittingAt: 'end' } : {};
+
 function mainPipe(direction: Direction, config: RackConfig): Segment {
   return {
     id: `tuberia-${direction}`,
@@ -100,6 +107,7 @@ function rackHose(direction: Direction, config: RackConfig, dy: number): Segment
     roughness: PLASTIC,
     dy,
     K: TEE_K,
+    ...junction(direction),
     flowMultiple: config.servers,
   };
 }
@@ -114,6 +122,7 @@ export function serverBranch(config: RackConfig): Segment[] {
     roughness: PLASTIC,
     dy: 0,
     K: TEE_K,
+    ...junction(direction),
   });
   const uqd = (direction: Direction): Segment => ({
     id: `uqd-${direction}`,

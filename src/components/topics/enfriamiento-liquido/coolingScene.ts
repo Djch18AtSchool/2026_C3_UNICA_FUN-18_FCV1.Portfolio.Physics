@@ -36,6 +36,7 @@ import {
   type BranchFlowsResult,
   type ReturnLayout,
 } from '../../../lib/physics/hydraulics';
+import { W_PER_KW } from './coolingUnits';
 
 export type BaseId = CoolingPreset['id'];
 
@@ -54,8 +55,7 @@ export const PUMP_FLOW = { min: 10, max: 300, step: 0.5 } as const;
 /** One server up to the 44 ports of the MGX manifold. */
 export const SERVER_COUNT = { min: 1, max: MGX_MANIFOLD.ports.value, step: 1 } as const;
 
-const W_PER_KW = 1e3;
-/** Each server's share of the rack's heat to the liquid (W) needs OCP's 1,5 L/min per kW. */
+/** Each server's share of the rack's heat to the liquid (W), at OCP's design target of 1,5 L/min per kW. */
 const RACK_LIQUID_HEAT = MGX_RACK.power.value * MGX_RACK.liquidCapture.value;
 const MINIMUM_PER_WATT = (FLOW_PER_KW_LPM * M3S_PER_LPM) / W_PER_KW;
 
@@ -84,9 +84,9 @@ export function presetState(id: BaseId): CoolingLabState {
 
 export const INITIAL_COOLING_STATE: Readonly<CoolingLabState> = presetState('referencia24');
 
-/** The rack the state describes: the base preset's plate, racks and inlet, and the four parameters. */
-export function labConfig(state: CoolingLabState): RackConfig {
-  const { racks, plateDesignFlow, inletPressure } = PRESETS[state.base];
+/** The rack the state describes, before the pump sets its supply pressure. */
+function rackOf(state: CoolingLabState, inletPressure: number): RackConfig {
+  const { racks, plateDesignFlow } = PRESETS[state.base];
   return {
     racks,
     plateDesignFlow,
@@ -96,6 +96,26 @@ export function labConfig(state: CoolingLabState): RackConfig {
     serverHoseDiameter: hoseOf(state.hose).diameter.value,
     layout: state.layout,
   };
+}
+
+const cduFlowOf = (config: RackConfig) => config.racks * config.rackFlow;
+
+/**
+ * Ruling R27: the CDU holds its return pressure, the reference that its expansion tank keeps in a
+ * closed loop; I take the reference's, GF's 4 bar abs at the CDU outlet less the reference's drop
+ * (220,1 kPa abs). The supply is then that plus the drop of the rack in use, so p(x) agrees with
+ * the pump chart and never falls below absolute zero.
+ */
+export const RETURN_PRESSURE = (() => {
+  const reference = PRESETS.referencia24;
+  return reference.inletPressure - systemCurve(reference)(cduFlowOf(reference));
+})();
+
+/** The rack the state describes: the base preset's plate and racks, the four parameters, and the
+ * supply pressure the pump gives it, the held return pressure plus its drop. */
+export function labConfig(state: CoolingLabState): RackConfig {
+  const rack = rackOf(state, RETURN_PRESSURE);
+  return { ...rack, inletPressure: RETURN_PRESSURE + systemCurve(rack)(cduFlowOf(rack)) };
 }
 
 /** A flow (m³/s) and the pressure (Pa) at it. */
@@ -119,10 +139,13 @@ export interface CoolingScene {
   flows: readonly number[];
   /** The server that gets least; the farthest (the top one) in direct return. */
   worst: { port: number; flow: number; isFarthest: boolean };
-  /** Each server's minimum (m³/s): OCP's rule on its share of the rack's heat to the liquid. */
+  /**
+   * Each server's flow at OCP's typical design target (m³/s), 1,5 L/min per kW of its share of the
+   * rack's heat to the liquid; a target, not a minimum (ruling R28: OCP recommends 1,25 to 2,0).
+   */
   minimum: number;
   isShort: boolean;
-  /** Factor the rack's flow must rise by for the worst server to reach its minimum; 1 if it does. */
+  /** Factor the rack's flow must rise by for the worst server to reach the target; 1 if it does. */
   needed: number;
   /** The pumping power's factor for that rise, on the circuit's own curve. */
   neededPower: number;
@@ -173,7 +196,7 @@ function worstOf(flows: readonly number[]): CoolingScene['worst'] {
 
 function readings(config: RackConfig, flows: readonly number[]): CoolingScene {
   const system = systemCurve(config);
-  const cduFlow = config.racks * config.rackFlow;
+  const cduFlow = cduFlowOf(config);
   const drop = system(cduFlow);
   const worst = worstOf(flows);
   const minimum = (RACK_LIQUID_HEAT / config.servers) * MINIMUM_PER_WATT;
@@ -208,56 +231,72 @@ const numbersOf = (scene: CoolingScene) => [
   scene.pump.duty.dp,
 ];
 
+/** Why a state has no scene: its split did not converge, or its values are outside the model. */
+export type SceneFailure = 'reparto' | 'valores';
+export type SceneResult = { scene: CoolingScene } | { failure: SceneFailure };
+
+const isValidState = (state: CoolingLabState) =>
+  Number.isFinite(state.pumpFlow) &&
+  state.pumpFlow > 0 &&
+  Number.isInteger(state.servers) &&
+  state.servers >= SERVER_COUNT.min;
+
 /**
- * The scene of a state, or null when the split does not converge, a reading is not finite or the
- * state cannot build a circuit (a flow that is not positive, no server). Never NaN, never a throw.
+ * The scene of a state, or why there is none: «reparto» only when the split does not converge;
+ * «valores» when the state cannot build a circuit (a flow that is not positive, no server), the
+ * circuit throws a RangeError, or a reading is not finite. Never NaN; any other error surfaces.
  */
-export function coolingScene(
-  state: CoolingLabState,
-  split: Split = rackSplit,
-): CoolingScene | null {
-  const isValid =
-    Number.isFinite(state.pumpFlow) && state.pumpFlow > 0 && Number.isInteger(state.servers);
-  if (!isValid || state.servers < SERVER_COUNT.min) return null;
+export function sceneResult(state: CoolingLabState, split: Split = rackSplit): SceneResult {
+  if (!isValidState(state)) return { failure: 'valores' };
   try {
     const config = labConfig(state);
     const { flows, converged } = split(config);
-    if (!converged || !flows.every((q) => Number.isFinite(q) && q > 0)) return null;
+    if (!converged) return { failure: 'reparto' };
+    if (!flows.every((q) => Number.isFinite(q) && q > 0)) return { failure: 'valores' };
     const scene = readings(config, flows);
-    return numbersOf(scene).every(Number.isFinite) ? scene : null;
+    return numbersOf(scene).every(Number.isFinite) ? { scene } : { failure: 'valores' };
   } catch (error) {
-    if (error instanceof RangeError) return null;
+    if (error instanceof RangeError) return { failure: 'valores' };
     throw error;
   }
 }
 
-/** What the lab shows: the state as set, and the last scene that converged with its own state. */
+/** The scene of a state, or null when it has none (sceneResult says why). */
+export function coolingScene(
+  state: CoolingLabState,
+  split: Split = rackSplit,
+): CoolingScene | null {
+  const result = sceneResult(state, split);
+  return 'scene' in result ? result.scene : null;
+}
+
+/** What the lab shows: the state as set, and the last valid scene with its own state. */
 export interface CoolingLabModel {
   state: CoolingLabState;
   scene: CoolingScene;
-  /** The state `scene` was computed from: `state` itself unless its split did not converge. */
+  /** The state `scene` was computed from: `state` itself unless it has no scene. */
   sceneState: CoolingLabState;
-  /** False while the state's own split does not converge (the scene is then the last valid one). */
-  isConverged: boolean;
+  /** Why `state` has no scene of its own (the scene is then the last valid one); null if it has. */
+  failure: SceneFailure | null;
 }
 
 /** The lab as it opens: a valid scene by construction (the page validates it against GF). */
 export function initialModel(state: CoolingLabState = INITIAL_COOLING_STATE): CoolingLabModel {
   const scene = coolingScene(state);
   if (!scene) throw new Error('coolingScene: the opening state has no valid scene');
-  return { state, scene, sceneState: state, isConverged: true };
+  return { state, scene, sceneState: state, failure: null };
 }
 
-/** The model after a new state: its scene if it has one, else the last valid scene, flagged. */
+/** The model after a new state: its scene if it has one, else the last valid scene and why. */
 export function withState(
   model: CoolingLabModel,
   state: CoolingLabState,
-  compute: (state: CoolingLabState) => CoolingScene | null = coolingScene,
+  compute: (state: CoolingLabState) => SceneResult = sceneResult,
 ): CoolingLabModel {
-  const scene = compute(state);
-  return scene
-    ? { state, scene, sceneState: state, isConverged: true }
-    : { ...model, state, isConverged: false };
+  const result = compute(state);
+  return 'scene' in result
+    ? { state, scene: result.scene, sceneState: state, failure: null }
+    : { ...model, state, failure: result.failure };
 }
 
 /** A pump flow (L/min per rack) from the pump chart's cursor, on the slider's grid and range. */

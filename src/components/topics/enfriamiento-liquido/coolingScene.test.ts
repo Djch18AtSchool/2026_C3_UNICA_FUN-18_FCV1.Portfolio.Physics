@@ -1,12 +1,15 @@
 import { describe, expect, test } from 'vitest';
 import {
   DESCHUTES_PUMP,
+  MGX_MANIFOLD,
+  PG25_40C,
   pumpPressure,
   RD109,
   SERVER_HOSES,
   UQD04,
 } from '../../../lib/data/liquidCooling';
-import { PRESETS } from '../../../lib/data/liquidCoolingCircuit';
+import { PRESETS, rackProfile } from '../../../lib/data/liquidCoolingCircuit';
+import { G_EARTH } from '../../../lib/physics/constants';
 import { M3S_PER_LPM, PA_PER_BAR, type ReturnLayout } from '../../../lib/physics/hydraulics';
 import {
   coolingScene,
@@ -15,6 +18,8 @@ import {
   labConfig,
   presetState,
   PUMP_FLOW,
+  RETURN_PRESSURE,
+  sceneResult,
   snapPumpFlow,
   pumpReading,
   SERVER_COUNT,
@@ -74,8 +79,66 @@ describe('the lab state and the rack it builds', () => {
     expect(config.layout).toBe('directo');
     expect(config.plateDesignFlow).toBe(reference.plateDesignFlow);
     expect(config.racks).toBe(reference.racks);
-    expect(config.inletPressure).toBe(reference.inletPressure);
+    expect(config.inletPressure).toBeGreaterThan(reference.inletPressure);
+    expect(labConfig(INITIAL_COOLING_STATE).inletPressure).toBeCloseTo(reference.inletPressure, 6);
     expect(labConfig(presetState('mgx44')).plateDesignFlow).toBe(PRESETS.mgx44.plateDesignFlow);
+  });
+});
+
+/*
+ * Ruling R27: the CDU holds its return pressure (its expansion tank's reference), the reference's
+ * 4 bar abs inlet minus the reference drop; the supply is that plus the drop of the rack in use,
+ * so the profile and the pump chart give the same Δp and p never falls below absolute zero.
+ */
+describe('the pump holds the return pressure: supply = return + drop (R27)', () => {
+  const profileOf = (state: CoolingLabState) => rackProfile(labConfig(state));
+  const lowest = (state: CoolingLabState) => Math.min(...profileOf(state).map((p) => p.pReal));
+
+  test('the held return pressure is GF’s 4 bar abs less the reference drop: 220,1 kPa abs', () => {
+    expect(RETURN_PRESSURE).toBeCloseTo(
+      PRESETS.referencia24.inletPressure - sceneOf(INITIAL_COOLING_STATE).drop,
+      6,
+    );
+    expect(RETURN_PRESSURE / KPA).toBeCloseTo(220.1, 1);
+  });
+
+  for (const [name, state] of [
+    ['12 servers at the reference flow', { ...INITIAL_COOLING_STATE, servers: 12 }],
+    ['the reference hardware at 300 L/min', { ...INITIAL_COOLING_STATE, pumpFlow: 300 }],
+    ['a single server', { ...INITIAL_COOLING_STATE, servers: 1 }],
+  ] as const) {
+    test(`${name}: the loop leaves at return + drop, comes back at the return pressure, never below it`, () => {
+      const points = profileOf(state);
+      const { drop } = sceneOf(state);
+
+      expect(points[0].pReal).toBeCloseTo(RETURN_PRESSURE + drop, 3);
+      expect(points[points.length - 1].pReal).toBeCloseTo(RETURN_PRESSURE, 3);
+      expect(lowest(state)).toBeGreaterThanOrEqual(RETURN_PRESSURE - 1e-6);
+    });
+  }
+
+  test('the profile’s drop is the pump chart’s duty pressure', () => {
+    const state = { ...INITIAL_COOLING_STATE, servers: 12 };
+    const points = profileOf(state);
+
+    expect(points[0].pReal - points[points.length - 1].pReal).toBeCloseTo(
+      sceneOf(state).pump.duty.dp,
+      3,
+    );
+  });
+
+  test('at any flow, hose or rack, p stays above the return pressure less the rack’s height: never negative', () => {
+    for (const servers of [1, 24, 44]) {
+      for (const hose of SERVER_HOSES.map((candidate) => candidate.id)) {
+        for (const pumpFlow of [PUMP_FLOW.min, 172.5, PUMP_FLOW.max]) {
+          const state = { ...INITIAL_COOLING_STATE, servers, hose, pumpFlow };
+          const rise = (servers + 1) * MGX_MANIFOLD.portPitch.value;
+          const floor = RETURN_PRESSURE - PG25_40C.rho * G_EARTH * rise;
+          expect(lowest(state), `${servers} · ${hose} · ${pumpFlow}`).toBeGreaterThan(floor - 1);
+          expect(lowest(state)).toBeGreaterThan(0);
+        }
+      }
+    }
   });
 });
 
@@ -218,10 +281,26 @@ describe('extreme inputs keep every reading finite (Review Focus 3)', () => {
     expect(coolingScene({ ...INITIAL_COOLING_STATE, servers: 0 })).toBeNull();
   });
 
-  test('a split that does not converge gives no scene', () => {
+  test('a split that does not converge gives no scene, and says it is the split', () => {
     const stuck = () => ({ flows: Array(24).fill(1e-4), converged: false, iterations: 500 });
 
     expect(coolingScene(INITIAL_COOLING_STATE, stuck)).toBeNull();
+    expect(sceneResult(INITIAL_COOLING_STATE, stuck)).toEqual({ failure: 'reparto' });
+  });
+
+  test('values outside the model are not a split that fails to converge', () => {
+    expect(sceneResult({ ...INITIAL_COOLING_STATE, pumpFlow: 0 })).toEqual({ failure: 'valores' });
+    const broken = () => ({
+      flows: [Number.NaN, ...Array(23).fill(1e-4)],
+      converged: true,
+      iterations: 3,
+    });
+    expect(sceneResult(INITIAL_COOLING_STATE, broken)).toEqual({ failure: 'valores' });
+    const range = () => {
+      throw new RangeError('no circuit');
+    };
+    expect(sceneResult(INITIAL_COOLING_STATE, range)).toEqual({ failure: 'valores' });
+    expect('scene' in sceneResult(INITIAL_COOLING_STATE)).toBe(true);
   });
 
   test('a RangeError from the circuit gives no scene; any other error is a bug and surfaces', () => {
@@ -252,15 +331,16 @@ describe('the lab keeps the last valid scene', () => {
     const model = initialModel();
     const next = { ...INITIAL_COOLING_STATE, servers: 30 };
 
-    const stuck = withState(model, next, () => null);
+    const stuck = withState(model, next, () => ({ failure: 'reparto' }));
 
     expect(stuck.state).toBe(next);
     expect(stuck.scene).toBe(model.scene);
     expect(stuck.sceneState).toBe(model.sceneState);
-    expect(stuck.isConverged).toBe(false);
+    expect(stuck.failure).toBe('reparto');
+    expect(withState(model, next, () => ({ failure: 'valores' })).failure).toBe('valores');
 
     const back = withState(stuck, INITIAL_COOLING_STATE);
-    expect(back.isConverged).toBe(true);
+    expect(back.failure).toBeNull();
     expect(back.scene.config.servers).toBe(24);
     expect(back.sceneState).toBe(INITIAL_COOLING_STATE);
   });
@@ -268,7 +348,7 @@ describe('the lab keeps the last valid scene', () => {
   test('the first model is the reference’s scene, converged', () => {
     const model = initialModel();
 
-    expect(model.isConverged).toBe(true);
+    expect(model.failure).toBeNull();
     expect(model.state).toBe(INITIAL_COOLING_STATE);
     expect(model.scene.drop).toBeCloseTo(sceneOf(INITIAL_COOLING_STATE).drop, 9);
   });

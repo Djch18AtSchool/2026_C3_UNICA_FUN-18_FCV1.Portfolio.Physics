@@ -12,17 +12,25 @@ import {
 } from './coolingScene';
 import {
   COOLING_PRESETS,
+  CURVE_NOTE,
   HOSE_OPTIONS,
   LAYOUT_OPTIONS,
+  OCP_TARGET,
   OVERSUPPLY_TO_TRIPLE,
+  plateNote,
   presetIdFor,
+  PWM_RANGE,
+  RETURN_NOTE,
+  RULE,
+  valueOrigins,
+} from './coolingLabText';
+import {
   pumpNote,
   rackSummary,
   readoutLabels,
   shortfallNote,
   statusChips,
-  valueOrigins,
-} from './coolingLabText';
+} from './coolingLabReadings';
 
 const sceneOf = (state: CoolingLabState) => {
   const scene = coolingScene(state);
@@ -91,9 +99,10 @@ describe('model vs product: every value of the lab says where it comes from', ()
       'servidores',
       'manguera',
       'retorno',
+      'presiones',
       'placa',
       'racks',
-      'minimo',
+      'objetivo',
       'bomba',
     ]);
     expect(rows.caudal.origin).toBe('calculo');
@@ -104,9 +113,17 @@ describe('model vs product: every value of the lab says where it comes from', ()
     expect(rows.retorno.origin).toBe('ilustrativo');
     expect(rows.placa.origin).toBe('ilustrativo');
     expect(rows.racks.origin).toBe('producto');
-    expect(rows.minimo.origin).toBe('calculo');
-    expect(plain(rows.minimo.source)).toMatch(
-      /^Cálculo propio: 1,5 L\/min por kW \(OCP\) por los 4,25 kW de cada servidor, su parte de los 102 kW que el líquido saca de un rack MGX de 120 kW \(85 %\)/,
+    expect(rows.objetivo.origin).toBe('calculo');
+    expect(plain(rows.objetivo.text)).toBe('Objetivo de diseño por servidor, 6,38 L/min');
+    expect(plain(rows.objetivo.source)).toMatch(
+      /^Cálculo propio: el objetivo típico de OCP, 1,5 L\/min por kW \(recomienda de 1,25 a 2,0\), por los 4,25 kW de cada servidor, su parte de los 102 kW que el líquido saca de un rack MGX de 120 kW \(85 %\)/,
+    );
+    expect(rows.presiones.origin).toBe('ilustrativo');
+    expect(plain(rows.presiones.text)).toBe(
+      'Presión de retorno al CDU, 220,1 kPa abs; la de impulsión, 400,0 kPa abs',
+    );
+    expect(plain(rows.presiones.source)).toMatch(
+      /^Supuesto: el CDU sostiene su presión de retorno, como lo haría su tanque de expansión; tomo la de la referencia, los 400,0 kPa abs de entrada de GF menos su caída de 179,9 kPa \(cálculo propio\)/,
     );
     expect(rows.bomba.origin).toBe('producto');
     expect(rows.bomba.source).toMatch(/Deschutes.*650 GPM, lectura aproximada/);
@@ -131,41 +148,54 @@ describe('model vs product: every value of the lab says where it comes from', ()
 });
 
 describe('what the lab says', () => {
-  test('the readouts name the server that gets least: the farthest in direct return', () => {
+  test('the readouts name the server that gets least, and OCP’s target as a target (R28)', () => {
     expect(readoutLabels(REFERENCE).worst).toBe('Caudal del servidor 24, el más lejano');
+    expect(readoutLabels(REFERENCE).target).toBe(
+      'Objetivo de diseño de OCP por servidor (1,5 L/min por kW)',
+    );
     const reverse = sceneOf({ ...INITIAL_COOLING_STATE, layout: 'invertido' });
     expect(readoutLabels(reverse).worst).toBe('Caudal del servidor 12, el peor servido');
   });
 
-  test('the chips: it reaches its minimum at the reference, not at 150 L/min; the UQD04 is over its nominal', () => {
-    expect(statusChips(REFERENCE, true).map((chip) => chip.text)).toEqual([
-      'El servidor más lejano llega a su mínimo',
+  test('the chips: the farthest reaches OCP’s design target at the reference, not at 150 L/min (R28)', () => {
+    expect(statusChips(REFERENCE, null).map((chip) => chip.text)).toEqual([
+      'El servidor más lejano alcanza el objetivo de diseño de OCP (1,5 L/min por kW)',
       'Cada UQD04 pasa de su caudal nominal',
     ]);
     const short = sceneOf({ ...INITIAL_COOLING_STATE, pumpFlow: 150 });
-    expect(statusChips(short, true)[0].text).toBe('El servidor más lejano no llega a su mínimo');
-    const mgx = sceneOf(presetState('mgx44'));
-    expect(statusChips(mgx, true)[1].text).toBe('Cada UQD04 va dentro de su caudal nominal');
-    const reverse = sceneOf({ ...INITIAL_COOLING_STATE, layout: 'invertido', pumpFlow: 150 });
-    expect(statusChips(reverse, true)[0].text).toBe(
-      'El servidor peor servido no llega a su mínimo',
+    expect(statusChips(short, null)[0].text).toBe(
+      'El servidor más lejano está por debajo del objetivo de diseño de OCP (1,5 L/min por kW)',
     );
+    const mgx = sceneOf(presetState('mgx44'));
+    expect(statusChips(mgx, null)[1].text).toBe('Cada UQD04 va dentro de su caudal nominal');
+    const reverse = sceneOf({ ...INITIAL_COOLING_STATE, layout: 'invertido', pumpFlow: 150 });
+    expect(statusChips(reverse, null)[0].text).toMatch(/^El servidor peor servido está por debajo/);
+    const said = [REFERENCE, short, mgx, reverse].flatMap((scene) => [
+      ...statusChips(scene, null).map((chip) => chip.text),
+      shortfallNote(scene),
+      rackSummary(scene),
+    ]);
+    expect(said.join(' ')).not.toMatch(/mínimo/);
   });
 
-  test('a split that does not converge says so first', () => {
-    expect(statusChips(REFERENCE, false)[0]).toEqual({
-      id: 'reparto',
+  test('only a split that does not converge says so; values outside the model say that instead', () => {
+    expect(statusChips(REFERENCE, 'reparto')[0]).toEqual({
+      id: 'fallo',
       text: 'El reparto no converge con estos valores',
+    });
+    expect(statusChips(REFERENCE, 'valores')[0]).toEqual({
+      id: 'fallo',
+      text: 'Estos valores quedan fuera del modelo',
     });
   });
 
-  test('the shortfall: the margin over the minimum, or how much more flow and power it takes', () => {
+  test('the shortfall: the margin over OCP’s target, or how much more flow and power it takes', () => {
     expect(plain(shortfallNote(REFERENCE))).toBe(
-      'El servidor 24, el más lejano, recibe 7,18 L/min: un 12,7 % más que su mínimo de 6,38 L/min.',
+      'El servidor 24, el más lejano, recibe 7,18 L/min: un 12,7 % más que el objetivo de diseño de OCP (1,5 L/min por kW), 6,38 L/min por servidor.',
     );
     const short = sceneOf({ ...INITIAL_COOLING_STATE, pumpFlow: 150 });
     expect(plain(shortfallNote(short))).toBe(
-      'Para que el servidor 24 llegue a su mínimo, el caudal de la bomba tiene que subir un 2,1 %, a 153,1 L/min por rack, y la potencia de bombeo se multiplica por 1,06.',
+      'El servidor 24 está por debajo del objetivo de diseño de OCP (1,5 L/min por kW): para alcanzarlo, el caudal de la bomba tiene que subir un 2,1 %, a 153,1 L/min por rack, y la potencia de bombeo se multiplica por 1,06.',
     );
   });
 
@@ -206,10 +236,36 @@ describe('what the lab says', () => {
 
   test('the rack in words, for the drawing’s accessible name', () => {
     expect(plain(rackSummary(REFERENCE))).toBe(
-      'Rack de 24 servidores con retorno directo: el líquido entra abajo por el manifold de impulsión y sale abajo por el de retorno. Cada barra es el caudal de un servidor, y la línea discontinua, su mínimo de 6,38 L/min. El servidor 24, el más lejano, recibe 7,18 L/min.',
+      'Rack de 24 servidores con retorno directo: el líquido entra abajo por el manifold de impulsión y sale abajo por el de retorno. Cada barra es el caudal de un servidor, y la línea discontinua, el objetivo de diseño de OCP (1,5 L/min por kW): 6,38 L/min por servidor. El servidor 24, el más lejano, recibe 7,18 L/min.',
     );
     const reverse = sceneOf({ ...INITIAL_COOLING_STATE, layout: 'invertido' });
     expect(rackSummary(reverse)).toMatch(/sale arriba por el de retorno/);
+  });
+});
+
+describe('the lab’s fixed lines, computed from the data', () => {
+  test('OCP’s rule and the published curves’ range are formatted from the data, not copied', () => {
+    expect(RULE).toBe('1,5 L/min por kW');
+    expect(OCP_TARGET).toBe('objetivo de diseño de OCP (1,5 L/min por kW)');
+    expect(PWM_RANGE).toBe('de 33 a 100 % PWM');
+  });
+
+  test('the plate in use comes with the base preset, and the note names both', () => {
+    expect(plain(plateNote(INITIAL_COOLING_STATE))).toBe(
+      'Placa fría de «Referencia: 24 servidores (RD109)»: 1,2 bar a 7,19 L/min, un supuesto; «MGX: 44 puertos» trae la suya, a 3,86 L/min.',
+    );
+    expect(plain(plateNote(presetState('mgx44')))).toMatch(
+      /^Placa fría de «MGX: 44 puertos»: 1,2 bar a 3,86 L\/min/,
+    );
+  });
+
+  test('what the model leaves out: the held return pressure (R27) and the lowest published curve', () => {
+    expect(plain(RETURN_NOTE)).toBe(
+      'Supongo que el CDU sostiene su presión de retorno, como lo haría su tanque de expansión, en 220,1 kPa abs: la de la referencia, los 400,0 kPa abs de entrada de GF menos su caída. La impulsión es esa más la caída del circuito, así que el perfil y la gráfica de la bomba dan la misma $\\Delta p$; dentro del rack, la presión baja además $\\rho g y$ al subir.',
+    );
+    expect(CURVE_NOTE).toBe(
+      'De las 9 curvas publicadas de Deschutes, uso la más baja que alcanza el caudal; no interpolo entre curvas.',
+    );
   });
 });
 
