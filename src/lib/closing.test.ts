@@ -39,7 +39,10 @@ const TOPICS_13: TopicSummary[] = SHORT_TITLES.map((shortTitle, index) => ({
   shortTitle,
   resourceType: 'diagrama',
 }));
-/** The `related` of every topic once the final delivery is in (spec §6, reciprocity included). */
+/**
+ * The `related` of every topic once the final delivery is in (spec §6, reciprocity included), as
+ * the frontmatter declares it: Tema 12 keeps its Tema 7 link (a decision for Dylan).
+ */
 const RELATED_13: ReadonlyMap<number, readonly number[]> = new Map([
   [1, [2, 3, 6]],
   [2, [1, 3, 7]],
@@ -52,7 +55,7 @@ const RELATED_13: ReadonlyMap<number, readonly number[]> = new Map([
   [9, [7, 8, 3]],
   [10, [5, 7, 12]],
   [11, [5, 10, 12]],
-  [12, [10, 11, 5]],
+  [12, [5, 7, 10, 11]],
   [13, [6, 4]],
 ]);
 const WIDTH = MAP_WIDTH;

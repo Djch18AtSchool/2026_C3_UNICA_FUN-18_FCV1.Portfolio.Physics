@@ -1852,3 +1852,41 @@ Módulo 2); no uso el $\Delta t = 0{,}2$ s del borrador de la investigación, qu
   de caídas, tabla «Por qué un umbral fijo falla»).
 - `que-aprendi.mdx:140` (`Sources.astro`, prop nueva `level`): «Fuentes» pasa de `<h2>` a `<h3>`; el texto no cambia.
 - Palabras: pares 149 → 149, 146 → 150 y 150 → 150; aplicación 349 → 348.
+
+## Integración (Task 17a)
+
+Lo que cambió al juntar las ramas de los Temas 11 a 13 y del cierre: los enlaces recíprocos del spec §6, la redacción
+del objetivo de OCP en el Tema 13 (decisión R28) y los textos de tabla que corrigió la guardia de símbolos sueltos.
+Las líneas son las de la rama integrada.
+
+### Enlaces recíprocos (`related`, spec §6)
+
+En la sección «Conexiones», la lista «Con otros temas» muestra el número y el título de cada tema de `related`, en ese
+orden. Cambia en estos seis temas, y su fecha de actualización pasa al 20 de noviembre de 2026. El mapa de «Qué
+aprendí» dibuja cada conexión una vez, la declare el tema que la declare: suma en trazo tenue la 10–11 y la 10–12,
+deja de dibujar la 3–11 y la 11–12 sigue siendo un par resaltado; las demás ya estaban porque el otro tema las
+declaraba.
+
+1. `src/content/topics/control-haptico.mdx:65-72` (Tema 5): «Tema 4, Tema 3, Tema 7» → «Tema 4, Tema 3, Tema 7,
+   Tema 11, Tema 12».
+2. `src/content/topics/frenado-regenerativo.mdx:68` (Tema 6): «Tema 4, Tema 1, Tema 7» → «Tema 4, Tema 1, Tema 7,
+   Tema 13».
+3. `src/content/topics/coeficiente-restitucion.mdx:147` (Tema 7): «Tema 2, Tema 5, Tema 9» → «Tema 2, Tema 5, Tema 9,
+   Tema 10».
+4. `src/content/topics/animaciones-resorte.mdx:84` (Tema 10): «Tema 5, Tema 7» → «Tema 5, Tema 7, Tema 12» (su prosa
+   ya nombraba el Tema 12).
+5. `src/content/topics/sintesis-sonido.mdx:90` (Tema 11): «Tema 5, Tema 3» → «Tema 5, Tema 10, Tema 12».
+6. `src/content/topics/resonancia-estructural.mdx:123` (Tema 12): «Tema 5, Tema 7» → «Tema 5, Tema 7, Tema 10,
+   Tema 11». **Decisión de Dylan:** el spec (§6.3) pide los Temas 10, 11 y 5; el Tema 12 conserva el Tema 7 porque su
+   prosa lo usa (un rebote conserva la fracción $e^2$ de la energía y un ciclo amortiguado, una fracción fija). Si
+   prefiere el spec, se quita `'coeficiente-restitucion'` de `related` y esa frase de sus «Conexiones».
+
+Prosa (cuenta para las 650 palabras):
+
+7. `src/content/topics/sintesis-sonido.mdx:430`, «Conexiones» del Tema 11 (nombraba el Tema 3 solo porque los Temas 10
+   y 12 no existían en su rama): «Con el Tema 5: el actuador del DualSense vibra «like a small speaker» con
+   $F_0\sin(\omega t)$, un tono puro; con armónicos haría la (11.4). Con el Tema 3: la (11.1) proyecta el MCU del
+   hábitat.» → «Con el Tema 5: el actuador vibra «like a small speaker», un tono puro $F_0\sin(\omega t)$; con
+   armónicos, la (11.4). Con el Tema 10: $E(t)$ es la envolvente del resorte, $\tau = 2m/b$. Con el Tema 12: el tubo
+   resuena en sus modos.» Para que quepan las dos frases nuevas quité «del DualSense» y «haría»; $\tau = 2m/b$ es la
+   constante de tiempo de la envolvente $A_0 e^{-(b/2m)t}$ del Tema 10. Prosa del tema: 646 → 650 (el tope).

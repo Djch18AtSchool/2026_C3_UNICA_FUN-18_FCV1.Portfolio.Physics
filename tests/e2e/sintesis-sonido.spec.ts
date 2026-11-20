@@ -198,7 +198,7 @@ test.describe('Tema 11, página', () => {
     await expect(page.locator('[data-testid="callout"][data-variant="clase"]')).toHaveCount(1);
     await expect(page.locator('[data-testid="callout"][data-variant="nota"]')).toHaveCount(2);
     expect(await page.locator('[data-testid="sources"] li').count()).toBeGreaterThanOrEqual(10);
-    for (const slug of ['control-haptico', 'gravedad-artificial']) {
+    for (const slug of ['control-haptico', 'animaciones-resorte', 'resonancia-estructural']) {
       await expect(page.getByTestId('connections')).toContainText(topicBySlug(slug)?.title ?? '-');
     }
     await expect(page.locator('.equation')).toHaveCount(DISPLAY_EQUATIONS);
