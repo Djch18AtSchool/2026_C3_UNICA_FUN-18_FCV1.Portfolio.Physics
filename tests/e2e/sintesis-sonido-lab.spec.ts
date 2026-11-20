@@ -260,7 +260,7 @@ test.describe('Tema 11, laboratorio de síntesis', () => {
     const events = context.gains[0];
     const last = events.at(-1) ?? [];
     expect(last.slice(0, 2)).toEqual(['linear', 0]);
-    expect(context.oscillators[0].stopped).toBeCloseTo(last[2], 9);
+    expect(context.oscillators[0].stopped).toBeCloseTo(last[2] ?? Number.NaN, 9);
     expectNoStep(events);
     await expect.poll(async () => (await audioLog(page))[0].calls).toContain('suspend');
   });

@@ -5,7 +5,7 @@
  * new state. What sounds drops the harmonics above Nyquist (11.9) and, with «Fases aleatorias»,
  * swaps the recipe's phases for a seeded draw.
  */
-import { INSTRUMENT_SAMPLES, MS_PER_S } from '../../../lib/data/instrumentSamples';
+import { MS_PER_S } from '../../../lib/data/instrumentSamples';
 import {
   maxHarmonicBelowNyquist,
   oddEvenPowerDb,
