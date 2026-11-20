@@ -303,8 +303,11 @@ test.describe('Tema 11, laboratorio de síntesis', () => {
     await expect.poll(async () => (await audioLog(page))[0]?.options.sampleRate).toBe(8000);
     const [context] = await audioLog(page);
     // Harmonics 5 to 10 go to the oscillator silent: their coefficients are 0.
-    expect(context.waves[0].imag.slice(5)).toEqual([0, 0, 0, 0, 0, 0]);
-    expect(context.waves[0].real.slice(5)).toEqual([0, 0, 0, 0, 0, 0]);
+    // (0 · sin φ may be −0, which is 0 all the same.)
+    const silent = (values: number[]) => values.slice(5).map((value) => value === 0);
+    expect(silent(context.waves[0].imag)).toEqual([true, true, true, true, true, true]);
+    expect(silent(context.waves[0].real)).toEqual([true, true, true, true, true, true]);
+    expect(context.waves[0].imag[4]).not.toBe(0);
   });
 
   test('«Fases aleatorias» cambia la forma de onda y deja el espectro', async ({ page }) => {
