@@ -28,8 +28,8 @@ function SplitChart({ scene }: { scene: CoolingScene }): JSX.Element {
       <SvgPlot
         aspectRatio={STAGE_PLOT_ASPECT}
         title="Caudal de cada servidor y su mínimo"
-        xLabel="Puerto $i$, 1 abajo"
-        xUnit="del manifold"
+        xLabel="Puerto $i$"
+        xUnit="1 = abajo"
         yLabel="Caudal $q_i$"
         yUnit="L/min"
         series={plot.series}
