@@ -5,13 +5,18 @@
  */
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { TOPICS, topicByNumber } from '../../src/consigna';
+import { PHASE_LABELS, PHASES, TOPICS, topicByNumber } from '../../src/consigna';
 import { CLOSING_ANCHOR, CLOSING_PAIRS, CLOSING_TITLE } from '../../src/lib/closing';
 
 /** The consigna's thirteen topics, all on the map once the final delivery is in. */
 const COURSE_TOPICS = 13;
 const SECTION = `main > section#${CLOSING_ANCHOR}`;
-const PARTS = ['El mapa de conexiones', 'La aplicación propia: detección de caídas'];
+/** The section's h3s: its two parts and its sources. */
+const SUBHEADINGS = [
+  'El mapa de conexiones',
+  'La aplicación propia: detección de caídas',
+  'Fuentes',
+];
 const LAST_TOPIC = TOPICS.at(-1)!;
 const DESKTOP = { width: 1280, height: 800 };
 const VIEWPORTS = [
@@ -28,10 +33,34 @@ test('«Qué aprendí» es la última sección de la portada, con su título y s
   const section = page.locator(SECTION);
 
   await expect(section).toHaveCount(1);
-  await expect(section.getByRole('heading', { level: 2 }).first()).toHaveText(CLOSING_TITLE);
-  await expect(section.getByRole('heading', { level: 3 })).toHaveText(PARTS);
+  // One h2, its title, and the last of the page: «Fuentes» and the parts sit under it.
+  await expect(section.getByRole('heading', { level: 2 })).toHaveCount(1);
+  await expect(section.getByRole('heading', { level: 2 })).toHaveText(CLOSING_TITLE);
+  await expect(page.locator('main').getByRole('heading', { level: 2 }).last()).toHaveText(
+    CLOSING_TITLE,
+  );
+  await expect(section.getByRole('heading', { level: 3 })).toHaveText(SUBHEADINGS);
   const lastId = await page.evaluate(() => document.querySelector('main')?.lastElementChild?.id);
   expect(lastId).toBe(CLOSING_ANCHOR);
+});
+
+test('el índice de la portada enlaza las tres entregas y «Qué aprendí»', async ({ page }) => {
+  await page.goto('./');
+  const index = page.getByRole('navigation', { name: 'En esta página' });
+
+  await expect(index.getByRole('link')).toHaveText([
+    ...PHASES.map((phase) => PHASE_LABELS[phase]),
+    CLOSING_TITLE,
+  ]);
+  for (const phase of PHASES) {
+    const href = await index.getByRole('link', { name: PHASE_LABELS[phase] }).getAttribute('href');
+    await expect(page.locator(href!)).toHaveCount(1);
+  }
+
+  await index.getByRole('link', { name: CLOSING_TITLE }).click();
+
+  await expect(page).toHaveURL(new RegExp(`/#${CLOSING_ANCHOR}$`));
+  await expect(page.locator(SECTION).getByRole('heading', { level: 2 })).toBeInViewport();
 });
 
 test('el enlace de la barra lateral lleva a «Qué aprendí»', async ({ page }) => {
@@ -41,7 +70,7 @@ test('el enlace de la barra lateral lleva a «Qué aprendí»', async ({ page })
   await page.locator('nav[aria-label="Temas"]').getByRole('link', { name: CLOSING_TITLE }).click();
 
   await expect(page).toHaveURL(new RegExp(`/#${CLOSING_ANCHOR}$`));
-  await expect(page.locator(SECTION).getByRole('heading', { level: 2 }).first()).toBeInViewport();
+  await expect(page.locator(SECTION).getByRole('heading', { level: 2 })).toBeInViewport();
 });
 
 test('el «siguiente» del último tema lleva a «Qué aprendí»', async ({ page }) => {
@@ -54,7 +83,7 @@ test('el «siguiente» del último tema lleva a «Qué aprendí»', async ({ pag
     .click();
 
   await expect(page).toHaveURL(new RegExp(`/#${CLOSING_ANCHOR}$`));
-  await expect(page.locator(SECTION).getByRole('heading', { level: 2 }).first()).toBeInViewport();
+  await expect(page.locator(SECTION).getByRole('heading', { level: 2 })).toBeInViewport();
 });
 
 test('los seis temas de los pares están enlazados y responden', async ({ page, request }) => {

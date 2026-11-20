@@ -4,9 +4,13 @@ import {
   CLOSING_ANCHOR,
   CLOSING_PAIRS,
   CLOSING_TITLE,
+  closingUrl,
   connectionMap,
+  MAP_WIDTH,
   relatedNumbers,
+  type ConnectionMap,
   type MapLabel,
+  type PairEdge,
 } from './closing';
 import type { TopicSummary } from './topics';
 
@@ -51,7 +55,14 @@ const RELATED_13: ReadonlyMap<number, readonly number[]> = new Map([
   [12, [10, 11, 5]],
   [13, [6, 4]],
 ]);
-const WIDTH = 960;
+const WIDTH = MAP_WIDTH;
+/**
+ * The figure frame's inner width on a 1 024 px screen with a classic 17 px scrollbar: the page's
+ * 24 px side padding and the frame's 16 px padding and 1 px border on each side.
+ */
+const FRAME_AT_1024 = 1024 - 17 - 2 * 24 - 2 * (16 + 1);
+/** Samples per path segment when checking where a path goes. */
+const STEPS = 32;
 
 const edgeKey = (a: number, b: number) => `${Math.min(a, b)}-${Math.max(a, b)}`;
 
@@ -70,10 +81,64 @@ const labelBox = ({ x, y, width, height }: MapLabel): Box => ({
   bottom: y + height / 2,
 });
 
+interface Point {
+  x: number;
+  y: number;
+}
+const lerp = (p: Point, q: Point, t: number): Point => ({
+  x: p.x + (q.x - p.x) * t,
+  y: p.y + (q.y - p.y) * t,
+});
+/** A Bézier curve of any degree at t (de Casteljau). */
+function bezier(points: readonly Point[], t: number): Point {
+  if (points.length === 1) return points[0];
+  return bezier(
+    points.slice(1).map((point, index) => lerp(points[index], point, t)),
+    t,
+  );
+}
+/** Points along a path of absolute M, L, Q and C commands, STEPS per segment. */
+function pathPoints(d: string): Point[] {
+  const tokens = d.match(/[MLQC]|-?[\d.]+/g) ?? [];
+  const arity: Record<string, number> = { M: 1, L: 1, Q: 2, C: 3 };
+  const points: Point[] = [];
+  let cursor: Point = { x: 0, y: 0 };
+  let index = 0;
+  while (index < tokens.length) {
+    const command = tokens[index++];
+    const values = tokens.slice(index, index + 2 * arity[command]).map(Number);
+    index += values.length;
+    const controls = values.flatMap((value, k) =>
+      k % 2 === 0 ? [{ x: value, y: values[k + 1] }] : [],
+    );
+    if (command === 'M') {
+      cursor = controls[0];
+      points.push(cursor);
+      continue;
+    }
+    const segment = [cursor, ...controls];
+    for (let step = 1; step <= STEPS; step++) points.push(bezier(segment, step / STEPS));
+    cursor = controls[controls.length - 1];
+  }
+  return points;
+}
+/** Every edge's drawn points that fall outside the map. */
+const outside = (map: ConnectionMap) =>
+  map.edges.flatMap((edge) =>
+    pathPoints(edge.d)
+      .filter(({ x, y }) => x < 0 || x > WIDTH || y < 0 || y > map.height)
+      .map(({ x, y }) => `${edgeKey(edge.a, edge.b)} en (${x.toFixed(1)}, ${y.toFixed(1)})`),
+  );
+
 describe('the closing section', () => {
   test('anchors at #que-aprendi under its exact title', () => {
     expect(CLOSING_ANCHOR).toBe('que-aprendi');
     expect(CLOSING_TITLE).toBe('Qué aprendí');
+  });
+
+  test('is reached at the cover, under the deploy base', () => {
+    expect(closingUrl('/repo/')).toBe('/repo/#que-aprendi');
+    expect(closingUrl('/')).toBe('/#que-aprendi');
   });
 
   test('pairs the three connections Dylan chose, each with its principle', () => {
@@ -87,6 +152,13 @@ describe('the closing section', () => {
 
 describe('connectionMap', () => {
   const map = connectionMap(TOPICS_13, RELATED_13, CLOSING_PAIRS, WIDTH);
+  const pairEdge = (principle: string): PairEdge => {
+    const edge = map.edges.find(
+      (candidate) => candidate.isPair && candidate.principle === principle,
+    );
+    if (!edge?.isPair) throw new Error(`sin el par «${principle}»`);
+    return edge;
+  };
   const nodeBox = (number: number): Box => {
     const node = map.nodes.find((candidate) => candidate.number === number)!;
     return {
@@ -151,13 +223,13 @@ describe('connectionMap', () => {
   });
 
   test('highlights exactly the three pairs, each with its principle and a label', () => {
-    const pairs = map.edges.filter((edge) => edge.isPair);
+    const pairs = map.edges.filter((edge): edge is PairEdge => edge.isPair);
 
     expect(pairs.map(({ a, b, principle }) => ({ a, b, principle }))).toEqual(CLOSING_PAIRS);
-    for (const pair of pairs) expect(pair.label?.text).toBe(pair.principle);
+    for (const pair of pairs) expect(pair.label.text).toBe(pair.principle);
     for (const edge of map.edges.filter((candidate) => !candidate.isPair)) {
-      expect(edge.principle).toBeUndefined();
-      expect(edge.label).toBeUndefined();
+      expect(edge).not.toHaveProperty('principle');
+      expect(edge).not.toHaveProperty('label');
     }
   });
 
@@ -218,7 +290,7 @@ describe('connectionMap', () => {
   });
 
   test('puts every pair label clear of the nodes and of the other labels', () => {
-    const labels = map.edges.flatMap((edge) => (edge.label ? [labelBox(edge.label)] : []));
+    const labels = map.edges.flatMap((edge) => (edge.isPair ? [labelBox(edge.label)] : []));
 
     expect(labels).toHaveLength(3);
     labels.forEach((label, index) => {
@@ -236,27 +308,27 @@ describe('connectionMap', () => {
   });
 
   test('bends a connection inside one column around the nodes between its ends', () => {
-    const momentum = map.edges.find((edge) => edge.principle === 'Momento lineal')!;
+    const momentum = pairEdge('Momento lineal');
     const between = nodeBox(8);
 
     // The label rides the bend: outside the column, level with the node it goes around.
-    expect(labelBox(momentum.label!).right).toBeLessThan(between.left);
-    expect(momentum.label!.y).toBeCloseTo((between.top + between.bottom) / 2);
+    expect(labelBox(momentum.label).right).toBeLessThan(between.left);
+    expect(momentum.label.y).toBeCloseTo((between.top + between.bottom) / 2);
     expect(momentum.d).toMatch(/^M [\d.]+ [\d.]+ Q /);
   });
 
   test('joins neighbours in one column with a straight segment between their boxes', () => {
-    const frequency = map.edges.find((edge) => edge.principle === 'Frecuencia natural')!;
+    const frequency = pairEdge('Frecuencia natural');
     const top = nodeBox(11);
     const bottom = nodeBox(12);
     const x = (top.left + top.right) / 2;
 
     expect(frequency.d).toBe(`M ${x} ${top.bottom} L ${x} ${bottom.top}`);
-    expect(frequency.label!.y).toBeCloseTo((top.bottom + bottom.top) / 2);
+    expect(frequency.label.y).toBeCloseTo((top.bottom + bottom.top) / 2);
   });
 
   test('joins two columns with a curve from one box side to the other', () => {
-    const energy = map.edges.find((edge) => edge.principle === 'Energía con disipación')!;
+    const energy = pairEdge('Energía con disipación');
     const from = nodeBox(6);
     const to = nodeBox(13);
 
@@ -301,7 +373,7 @@ describe('connectionMap', () => {
     });
 
     test('does not start or end its run inside a pair’s label', () => {
-      const labels = map.edges.flatMap((edge) => (edge.label ? [labelBox(edge.label)] : []));
+      const labels = map.edges.flatMap((edge) => (edge.isPair ? [labelBox(edge.label)] : []));
       for (const edge of skipping) {
         const straight = run(edge.d)!;
         for (const label of labels) {
@@ -316,6 +388,29 @@ describe('connectionMap', () => {
         }
       }
     });
+  });
+
+  test('draws every edge inside the map', () => {
+    expect(outside(map)).toEqual([]);
+  });
+
+  test('keeps a faint bend around a whole outer column inside the map', () => {
+    const spanning = connectionMap(
+      TOPICS_13,
+      new Map([
+        [1, [5]],
+        [10, [13]],
+      ]),
+      [],
+      WIDTH,
+    );
+
+    expect(spanning.edges).toHaveLength(2);
+    expect(outside(spanning)).toEqual([]);
+  });
+
+  test('fits a 1 024 px screen without scrolling its frame', () => {
+    expect(WIDTH).toBeLessThanOrEqual(FRAME_AT_1024);
   });
 
   test('refuses a width too narrow for three columns of nodes', () => {

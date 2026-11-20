@@ -17,6 +17,7 @@ const entries = sortByNumber(
 // Future phases (no topics yet) show only their heading and a dashed badge: no rows or counts.
 const groups = groupByPhase(entries);
 const CLOSING_HEADING_ID = `${CLOSING_ANCHOR}-titulo`;
+const COVER_INDEX_ID = 'indice-portada';
 /** «Se publica con su consigna»: a dashed frame (navigation.spec.ts checks it). */
 const UPCOMING_BADGE =
   // scale-exempt: a dashed frame marks a state (published with its brief), not a separator
@@ -33,6 +34,27 @@ const UPCOMING_BADGE =
       tema parte de un producto real, plantea la ecuación que lo gobierna y la acompaña con un
       recurso para explorarla.
     </p>
+
+    <!-- The cover's index (spec §5): the three deliveries and «Qué aprendí», on this page. -->
+    <nav
+      aria-labelledby={COVER_INDEX_ID}
+      class="mt-8 flex flex-col gap-2"
+      data-testid="cover-index"
+    >
+      <p id={COVER_INDEX_ID} class="text-xs text-fg-muted">
+        En esta página
+      </p>
+      <ul class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        {groups.map((group) => (
+          <li>
+            <a href={`#fase-${group.phase}`}>{group.label}</a>
+          </li>
+        ))}
+        <li>
+          <a href={`#${CLOSING_ANCHOR}`}>{CLOSING_TITLE}</a>
+        </li>
+      </ul>
+    </nav>
 
     <dl class="mt-8 flex flex-col gap-3 text-sm sm:max-w-md" data-testid="cover-meta">
       <div class="flex flex-col gap-1">

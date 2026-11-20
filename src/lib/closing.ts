@@ -12,9 +12,21 @@ import { PHASE_LABELS, PHASES, topicBySlug, topicsByPhase, type Phase } from '..
 import { PLEX_MONO_ADVANCE } from './glyphAdvances';
 import { mathTextWidth } from './mathNotation';
 import type { TopicSummary } from './topics';
+import { withBase } from './url';
 
 export const CLOSING_ANCHOR = 'que-aprendi';
 export const CLOSING_TITLE = 'Qué aprendí';
+
+/** «Qué aprendí» from any page: the cover's last section, under the deploy base. */
+export function closingUrl(base: string = import.meta.env.BASE_URL): string {
+  return `${withBase('', base)}#${CLOSING_ANCHOR}`;
+}
+
+/**
+ * The map's width (px), drawn 1:1 so its text keeps the site's 14 and 12 px: it fits the figure
+ * frame from a 1 024 px screen with a classic scrollbar (925 px inside) and scrolls below.
+ */
+export const MAP_WIDTH = 920;
 
 export interface ConnectionPair {
   a: number;
@@ -47,16 +59,27 @@ export interface MapLabel {
   height: number;
 }
 
-export interface MapEdge {
+interface EdgeBase {
   /** The lower topic number; `b` the higher. */
   a: number;
   b: number;
-  isPair: boolean;
-  principle?: string;
   /** SVG path data, from box edge to box edge. */
   d: string;
-  label?: MapLabel;
 }
+
+/** A `related` connection, drawn faint. */
+export interface FaintEdge extends EdgeBase {
+  isPair: false;
+}
+
+/** One of the closing's pairs, drawn in colour with its principle on a pill. */
+export interface PairEdge extends EdgeBase {
+  isPair: true;
+  principle: string;
+  label: MapLabel;
+}
+
+export type MapEdge = FaintEdge | PairEdge;
 
 export interface ConnectionMap {
   nodes: MapNode[];
@@ -100,8 +123,9 @@ const LABEL_WEIGHT_ALLOWANCE = 1.08;
 const LABEL_CLEARANCE = 8;
 /** Where an edge that skips a column starts and ends its level run, off the boxes' sides. */
 const CHANNEL_INSET = 8;
-/** How far a faint edge bends out of its column, per row it spans. */
+/** How far a faint edge bends out of its column, per row it spans, and at most (inside the margin). */
 const FAINT_BULGE_PER_ROW = 12;
+const MAX_FAINT_BULGE = SIDE_MARGIN - LABEL_CLEARANCE;
 
 interface Placed extends MapNode {
   column: number;
@@ -238,7 +262,7 @@ function aroundColumn(from: Placed, to: Placed, nodeWidth: number, pillWidth?: n
   const x = from.x + (side * nodeWidth) / 2;
   const bulge =
     pillWidth === undefined
-      ? FAINT_BULGE_PER_ROW * Math.abs(to.row - from.row)
+      ? Math.min(FAINT_BULGE_PER_ROW * Math.abs(to.row - from.row), MAX_FAINT_BULGE)
       : pillWidth / 2 + LABEL_CLEARANCE;
   const middleY = (from.y + to.y) / 2;
   // A quadratic curve reaches half way to its control point: the apex sits `bulge` out.
@@ -246,22 +270,25 @@ function aroundColumn(from: Placed, to: Placed, nodeWidth: number, pillWidth?: n
   return { d, middle: { x: x + side * bulge, y: middleY } };
 }
 
-function edgeFor(a: Placed, b: Placed, context: EdgeContext, principle?: string): MapEdge {
-  const pill = principle === undefined ? undefined : labelFor(principle);
-  const geometry =
-    a.column !== b.column
-      ? acrossColumns(a, b, context)
-      : Math.abs(a.row - b.row) === 1
-        ? betweenNeighbours(a, b)
-        : aroundColumn(a, b, context.nodeWidth, pill?.width);
-  return {
-    a: Math.min(a.number, b.number),
-    b: Math.max(a.number, b.number),
-    isPair: principle !== undefined,
-    ...(principle !== undefined && { principle }),
-    d: geometry.d,
-    ...(pill && { label: { ...pill, ...geometry.middle } }),
-  };
+function geometryFor(a: Placed, b: Placed, context: EdgeContext, pillWidth?: number) {
+  if (a.column !== b.column) return acrossColumns(a, b, context);
+  if (Math.abs(a.row - b.row) === 1) return betweenNeighbours(a, b);
+  return aroundColumn(a, b, context.nodeWidth, pillWidth);
+}
+
+const ends = (a: Placed, b: Placed) => ({
+  a: Math.min(a.number, b.number),
+  b: Math.max(a.number, b.number),
+});
+
+function faintEdge(a: Placed, b: Placed, context: EdgeContext): FaintEdge {
+  return { ...ends(a, b), isPair: false, d: geometryFor(a, b, context).d };
+}
+
+function pairEdge(a: Placed, b: Placed, context: EdgeContext, principle: string): PairEdge {
+  const pill = labelFor(principle);
+  const { d, middle } = geometryFor(a, b, context, pill.width);
+  return { ...ends(a, b), isPair: true, principle, d, label: { ...pill, ...middle } };
 }
 
 /** The pairs first (their pills are what the faint edges avoid), then the faint edges. */
@@ -275,20 +302,20 @@ function mapEdges(
   const pairContext: EdgeContext = { nodeWidth, placed, pills: [] };
   const highlighted = pairs.flatMap((pair) => {
     const [a, b] = [nodes.get(pair.a), nodes.get(pair.b)];
-    return a && b ? [edgeFor(a, b, pairContext, pair.principle)] : [];
+    return a && b ? [pairEdge(a, b, pairContext, pair.principle)] : [];
   });
   const pairKeys = new Set(highlighted.map((edge) => edgeKey(edge.a, edge.b)));
   const context: EdgeContext = {
     ...pairContext,
-    pills: highlighted.flatMap((edge) => (edge.label ? [pillBox(edge.label)] : [])),
+    pills: highlighted.map((edge) => pillBox(edge.label)),
   };
-  const faint = new Map<string, MapEdge>();
+  const faint = new Map<string, FaintEdge>();
   for (const [number, list] of related) {
     for (const other of list) {
       const [a, b] = [nodes.get(number), nodes.get(other)];
       if (!a || !b || a === b) continue;
       const key = edgeKey(a.number, b.number);
-      if (!faint.has(key) && !pairKeys.has(key)) faint.set(key, edgeFor(a, b, context));
+      if (!faint.has(key) && !pairKeys.has(key)) faint.set(key, faintEdge(a, b, context));
     }
   }
   const sorted = [...faint.values()].sort((p, q) => p.a - q.a || p.b - q.b);

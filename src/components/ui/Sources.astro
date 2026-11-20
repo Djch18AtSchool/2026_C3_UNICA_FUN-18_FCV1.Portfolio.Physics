@@ -2,6 +2,8 @@
 /*
  * The topic's numbered source list; <Cite> links to its items. In MDX:
  * <Sources sources={frontmatter.sources} />
+ * Inside a section of its own (the cover's «Qué aprendí», an h2), pass `level={3}` so the outline
+ * keeps «Fuentes» under it.
  */
 import type { Source } from '../../content/topicSchema';
 import { formatSource } from '../../lib/sources';
@@ -9,8 +11,11 @@ import { SECTION_HEADINGS } from '../../lib/sectionHeadings';
 
 interface Props {
   sources: Source[];
+  /** Heading level of «Fuentes»: 2 in a topic, where it is a section of the page. */
+  level?: 2 | 3 | 4;
 }
-const { sources } = Astro.props;
+const { sources, level = 2 } = Astro.props;
+const Heading = `h${level}` as const;
 
 // Access dates are calendar days ("2026-10-08"); format them in UTC so the day never shifts.
 const ACCESSED_FORMAT = new Intl.DateTimeFormat('es-CR', { dateStyle: 'long', timeZone: 'UTC' });
@@ -24,7 +29,7 @@ const heading = SECTION_HEADINGS.Sources;
 ---
 
 <section data-testid="sources" class="sources" aria-labelledby={heading.slug}>
-  <h2 id={heading.slug}>{heading.text}</h2>
+  <Heading id={heading.slug}>{heading.text}</Heading>
   <ol class="sources-list">
     {sources.map((source) => (
       <li id={`fuente-${source.id}`}>

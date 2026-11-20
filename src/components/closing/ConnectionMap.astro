@@ -9,16 +9,17 @@ import Figure from '../ui/Figure.astro';
 import {
   CLOSING_PAIRS,
   MAP_TYPE,
+  MAP_WIDTH,
   NODE_NUMBER_GAP,
   NODE_NUMBER_WIDTH,
   NODE_PAD_X,
   connectionMap,
+  type FaintEdge,
+  type PairEdge,
 } from '../../lib/closing';
 import { topicNumberLabel } from '../../lib/phases';
 import { loadClosingTopics, pairColor } from './closingData';
 
-/** The map's width (px): three columns of the longest short title, with room for the pairs. */
-const MAP_WIDTH = 960;
 const FAINT_STROKE = 1;
 const PAIR_STROKE = 3;
 const NODE_STROKE = 1;
@@ -33,13 +34,13 @@ const DESC_ID = 'mapa-conexiones-descripcion';
 
 const { topics, related } = await loadClosingTopics();
 const map = connectionMap(topics, related, CLOSING_PAIRS, MAP_WIDTH);
-const pairs = map.edges.filter((edge) => edge.isPair);
-const faint = map.edges.filter((edge) => !edge.isPair);
+const pairs = map.edges.filter((edge): edge is PairEdge => edge.isPair);
+const faint = map.edges.filter((edge): edge is FaintEdge => !edge.isPair);
 /** The colour of the pair a topic belongs to, if any. */
 const nodeColor = new Map(
   pairs.flatMap((edge) => [
-    [edge.a, pairColor(edge.principle!)],
-    [edge.b, pairColor(edge.principle!)],
+    [edge.a, pairColor(edge.principle)],
+    [edge.b, pairColor(edge.principle)],
   ]),
 );
 const topicName = (number: number) => {
@@ -132,8 +133,8 @@ const caption = `Los ${map.nodes.length} temas por entrega. En trazo tenue, las 
       );
     })}
     {pairs.map((edge) => {
-      const color = pairColor(edge.principle!);
-      const label = edge.label!;
+      const color = pairColor(edge.principle);
+      const { label } = edge;
       return (
         <g data-pair-edge={`${edge.a}-${edge.b}`}>
           <path
@@ -176,7 +177,7 @@ const caption = `Los ${map.nodes.length} temas por entrega. En trazo tenue, las 
       <li class="flex items-center gap-2">
         <span
           class="h-1 w-6 shrink-0 rounded-full"
-          style={`background-color: ${pairColor(edge.principle!)}`}
+          style={`background-color: ${pairColor(edge.principle)}`}
           aria-hidden="true"
         />
         <span>

@@ -64,7 +64,7 @@ Una pelota que rebota en un videojuego y una sonda que pasa junto a Júpiter obe
 
 <Equation
   id="ec-cierre-momento"
-  latex="|\vec v_{\infty,\text{out}}| = e\,|\vec v_{\infty,\text{in}}|,\quad e = 1, \qquad m\,\Delta\vec v = -M\,\Delta\vec V_p"
+  latex="|\vec v_{\infty,\text{out}}| = |\vec v_{\infty,\text{in}}|\quad (e = 1), \qquad m\,\Delta\vec v = -M\,\Delta\vec V_p"
   symbols={[
     {
       symbol: '\\vec v_\\infty',
@@ -84,7 +84,7 @@ Una pelota que rebota en un videojuego y una sonda que pasa junto a Júpiter obe
 
 <ClosingPair index={1}>
 
-Frenar un auto eléctrico y bombear refrigerante por un rack son el mismo balance de energía. En el Tema 6 uso el teorema trabajo–energía del Módulo 2: frenar quita energía cinética, y lo que no vuelve a la batería se disipa al convertir y como calor en las pastillas (Tema 04, «Trabajo no conservativo y balance de energía»). En el Tema 13, Bernoulli es ese mismo teorema por unidad de volumen, como lo presenta el Módulo 6 (Tema 2, «Teorema de Bernoulli y Ecuación de Continuidad»). Su forma generalizada suma la bomba, $h_b$, y las pérdidas, $h_L$, que hacen el papel del calor de fricción: la viscosidad convierte energía mecánica en energía interna que no vuelve, y la bomba la repone en cada vuelta.
+Frenar un auto eléctrico y bombear refrigerante por un rack son el mismo balance de energía. En el Tema 6 uso el teorema trabajo–energía del Módulo 2: frenar quita energía cinética, y lo que no vuelve a la batería se pierde en la conversión y como calor en las pastillas (Tema 04, concepto «Trabajo no conservativo y balance de energía»). En el Tema 13, Bernoulli es ese teorema por unidad de volumen, como lo presenta el Módulo 6 (Tema 2, «Teorema de Bernoulli y Ecuación de Continuidad»). En su Tema 3, la ecuación generalizada suma la bomba, $h_b$, y las pérdidas, $h_L$, que hacen el papel del calor de fricción: la viscosidad convierte energía mecánica en interna, que no vuelve, y la bomba la repone en cada vuelta.
 
 <Equation
   id="ec-cierre-energia"
@@ -108,7 +108,7 @@ Frenar un auto eléctrico y bombear refrigerante por un rack son el mismo balanc
 
 <ClosingPair index={2}>
 
-Un clarinete y un puente colgante comparten algo: frecuencias naturales, una por cada modo en que pueden vibrar. En el Tema 11, los armónicos son los modos normales de la columna de aire: un tubo abierto admite todos los múltiplos de $f_1$; uno cerrado por un extremo, como el clarinete, solo los impares. En el Tema 12, resonar es meter energía a la frecuencia de un modo: con una fuerza periódica cerca de $\omega_0$, la amplitud crece hasta que el amortiguamiento disipa lo que entra en cada ciclo. El puente del video del Tema 12 cayó sin fuerza periódica: el viento era casi constante, y el propio movimiento del tablero decidía cuándo lo empujaba el viento, a su frecuencia natural. Es el Módulo 5 (Tema 4, «Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras»).
+Un clarinete y un puente colgante comparten algo: frecuencias naturales, una por cada modo de vibración. En el Tema 11, los armónicos son los modos normales de la columna de aire: un tubo abierto admite todos los múltiplos de $f_1$; uno cerrado por un extremo, como el clarinete, solo los impares. En el Tema 12, resonar es meter energía a la frecuencia de un modo: con una fuerza periódica cerca de $\omega_0$, la amplitud crece hasta que el amortiguamiento disipa lo que entra por ciclo. El puente del video del Tema 12 cayó sin fuerza periódica: el viento era casi constante, y el propio movimiento del tablero decidía cuándo lo empujaba el viento, a su frecuencia natural. Lo explica el Módulo 5 (Tema 4, «Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras»).
 
 <Equation
   id="ec-cierre-frecuencia"
@@ -121,7 +121,7 @@ Un clarinete y un puente colgante comparten algo: frecuencias naturales, una por
       meaning: 'frecuencia angular de la fuerza y natural',
       unit: 'rad/s',
     },
-    { symbol: 'b', meaning: 'amortiguamiento', unit: 'N·s/m' },
+    { symbol: 'b', meaning: 'coeficiente de amortiguamiento', unit: 'N·s/m' },
   ]}
 />
 
@@ -129,12 +129,12 @@ Un clarinete y un puente colgante comparten algo: frecuencias naturales, una por
 
 ### La aplicación propia: detección de caídas
 
-Me interesa un problema que no está entre los trece temas: cómo decide un reloj inteligente que quien lo lleva se cayó. Apple detecta caídas desde el Series 4, con un acelerómetro de hasta 32 g: si tras la alerta la persona sigue inmóvil 60 s, llama a emergencias <Cite id="apple-newsroom-2018" sources={frontmatter.sources} />. Google y Samsung también lo hacen, y advierten que no detectan todas <Cite id="google-pixel-watch-2023" sources={frontmatter.sources} /> <Cite id="samsung-caidas" sources={frontmatter.sources} />. El software solo tiene el acelerómetro, 800 lecturas por segundo en la patente de Apple <Cite id="apple-patente-caidas" sources={frontmatter.sources} />, y el giroscopio; puede fallar hacia los dos lados: llamar por un aplauso o callar ante una caída real.
+Me interesa un problema fuera de los trece temas: cómo decide un reloj inteligente que quien lo lleva se cayó. Apple detecta caídas desde el Series 4, con un acelerómetro de hasta 32 g: si tras la alerta la persona sigue inmóvil 60 s, llama a emergencias <Cite id="apple-newsroom-2018" sources={frontmatter.sources} />. Google y Samsung también lo hacen, y advierten que no detectan todas <Cite id="google-pixel-watch-2023" sources={frontmatter.sources} /> <Cite id="samsung-caidas" sources={frontmatter.sources} />. El software solo tiene el acelerómetro, 800 lecturas por segundo en la patente de Apple <Cite id="apple-patente-caidas" sources={frontmatter.sources} />, y el giroscopio; puede fallar en ambos sentidos: llamar por un aplauso o callar ante una caída real.
 
 Lo resolvería con tres conceptos del curso. Primero, un acelerómetro es una báscula diminuta: una masa sobre resortes que mide la fuerza de contacto por unidad de masa, $n/m = g + a_y$ (Módulo 2, «Fuerza normal y tensión»). En reposo marca 1 g; en caída libre, $a_y = -g$ y marca casi 0. Segundo, la caída libre del Módulo 1 dimensiona ese valle: desde la muñeca, que supongo a $h = 0{,}8$ m, dura $t = \sqrt{2h/g} = 0{,}40$ s y termina a $v = \sqrt{2gh} = 3{,}96$ m/s (cálculo propio). El acelerómetro ADXL345 trae ese detector: los tres ejes bajo un umbral de 0,3 a 0,6 g durante 100 a 350 ms <Cite id="adxl345" sources={frontmatter.sources} />. Tercero, el suelo anula el momento lineal $mv$ en un instante: por el teorema impulso–momento del Módulo 3, $J = \Delta p = \bar F\,\Delta t$, cuanto más breve el frenado, mayor la fuerza media. Los umbrales medidos del pico van de 2,5 a 3,5 g <Cite id="bagala-2012" sources={frontmatter.sources} /> <Cite id="khojasteh-2018" sources={frontmatter.sources} />.
 
-Por eso no programaría un umbral fijo como «más de 3 g es una caída». Un golpe en la mesa da el pico sin el valle, y un salto de 30 cm pasa 0,49 s a 0 g, más que la caída (cálculo propio), pero termina de pie. Los separa la secuencia: valle, pico y quietud, que la patente de Apple mide como un módulo a menos de 0,025 g de 1 g <Cite id="apple-patente-caidas" sources={frontmatter.sources} />.
+Por eso no programaría un umbral fijo como «más de 3 g es una caída». Un golpe en la mesa da el pico sin el valle, y un salto de 30 cm pasa 0,49 s a 0 g, más que la caída (cálculo propio), pero termina de pie y en movimiento. Los separa la secuencia: valle, pico y quietud, que la patente de Apple mide como un módulo a menos de 0,025 g de 1 g <Cite id="apple-patente-caidas" sources={frontmatter.sources} />.
 
 También sé lo que cuesta. Una caída lenta casi no tiene valle, y la muñeca no cae como el cuerpo. Con el sensor en el tronco, trece algoritmos publicados detectaron en promedio el 57 % ± 27 % de 29 caídas reales <Cite id="bagala-2012" sources={frontmatter.sources} />. La física dice qué rasgos mirar; los datos, con qué umbrales.
 
-<Sources sources={frontmatter.sources} />
+<Sources sources={frontmatter.sources} level={3} />

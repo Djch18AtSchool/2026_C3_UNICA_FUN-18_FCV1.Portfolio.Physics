@@ -1,7 +1,7 @@
 ---
-import { CLOSING_ANCHOR, CLOSING_TITLE } from '../../lib/closing';
+import { CLOSING_TITLE, closingUrl } from '../../lib/closing';
 import { neighbors, type TopicSummary } from '../../lib/topics';
-import { topicUrl, withBase } from '../../lib/url';
+import { topicUrl } from '../../lib/url';
 
 interface Props {
   /** All topics. */
@@ -11,7 +11,6 @@ interface Props {
 const { all, number } = Astro.props;
 const { prev, next } = neighbors(all, number);
 // After the last topic, the reading goes on to «Qué aprendí», at the end of the cover.
-const closingUrl = `${withBase('')}#${CLOSING_ANCHOR}`;
 
 const LINK_CLASSES =
   'flex flex-col gap-1 rounded-base border border-border bg-bg-elevated px-4 py-3 no-underline hover:border-fg-muted';
@@ -36,7 +35,7 @@ const LINK_CLASSES =
       </span>
     </a>
   ) : (
-    <a href={closingUrl} rel="next" class:list={[LINK_CLASSES, 'sm:text-right']}>
+    <a href={closingUrl()} rel="next" class:list={[LINK_CLASSES, 'sm:text-right']}>
       <span class="text-xs text-fg-muted">Para cerrar</span>
       <span class="text-fg">{CLOSING_TITLE}</span>
     </a>
