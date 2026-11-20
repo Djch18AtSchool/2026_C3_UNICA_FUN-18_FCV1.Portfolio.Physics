@@ -38,7 +38,12 @@ export interface SpectrumBarsProps {
 const FALLBACK_WIDTH = 720;
 /** SvgPlot's margins, so the spectrum lines up with the plots beside it. */
 const WIDE_MARGIN = { top: 22, right: 28, bottom: 58, left: 84 } as const;
-const COMPACT_MARGIN = { top: 30, right: 14, bottom: 50, left: 44 } as const;
+/**
+ * On a phone the y title goes above the axis; the top tick («10») sits on the plot's top edge, so
+ * the title rises this much more, and the top margin with it, to clear the label.
+ */
+const COMPACT_TITLE_LIFT = 8;
+const COMPACT_MARGIN = { top: 30 + COMPACT_TITLE_LIFT, right: 14, bottom: 50, left: 44 } as const;
 /** A bar takes this share of the room of one harmonic. */
 const BAR_SHARE = 0.6;
 const RANGE_CAP = 4;
@@ -273,6 +278,7 @@ export default function SpectrumBars({
             tickFontSize={TICK_SIZE}
             titleFontSize={TITLE_SIZE}
             compact={layout.compact}
+            compactTitleLift={COMPACT_TITLE_LIFT}
             viewWidth={layout.width}
           />
           <Bars bars={bars} x={layout.x} y={layout.y} patternId={patternId} />

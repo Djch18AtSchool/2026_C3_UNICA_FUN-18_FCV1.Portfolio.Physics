@@ -166,6 +166,21 @@ describe('SpectrumBars', () => {
     expect(notation(lab.container)).not.toContain('$A_n/A_1$ (dB)');
   });
 
+  // The compact title «A_n/A_1 (dB)» sat on the top tick «10»: its subscripts touched the label.
+  test('on a phone the y title rises clear of the top tick «10» and stays inside the drawing', () => {
+    stubWidth(360);
+    const { container } = clarinet();
+    const title = container.querySelector('text[data-notation="$A_n/A_1$ (dB)"]');
+    const top = [...container.querySelectorAll('text[text-anchor="end"]')].find(
+      (text) => text.textContent === '10',
+    );
+
+    const titleY = Number(title?.getAttribute('y'));
+    const tickY = Number(top?.getAttribute('y'));
+    expect(tickY - titleY).toBeGreaterThanOrEqual(16);
+    expect(titleY).toBeGreaterThanOrEqual(16);
+  });
+
   test('without an odd/even value, no line is printed', () => {
     render(<SpectrumBars bars={recipeSpectrum([1])} title="T" ariaLabel="A" />);
 
