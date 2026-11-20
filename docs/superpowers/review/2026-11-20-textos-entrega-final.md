@@ -1981,3 +1981,25 @@ se quedan como están: son múltiplos de $g$, escritos como la página escribe �
 11. `src/components/topics/coeficiente-restitucion/bouncePresets.ts:200`, Tema 7, fuente del preajuste «$e = 1{,}1$»:
     «Unity, PhysicsMaterial2D.bounciness (permite e > 1 con advertencia)» → «Unity, PhysicsMaterial2D.bounciness
     (permite $e > 1$ con advertencia)»; también se oye en el nombre del botón del preajuste.
+
+### 5. Tema 12: las líneas de fuente de las figuras, en primera persona
+
+Como en los Temas 10, 11 y 13 («Gráfica que calculé…», «Simulación que programé…»). Solo cambia el comienzo; el resto
+de cada línea sigue igual. Las líneas de fuente no cuentan para las 650 palabras (prosa: 646).
+
+12. `src/content/topics/resonancia-estructural.mdx:201` (figura 12.1): «Gráfica del autor con la ecuación (12.1); …» →
+    «Gráfica que calculé con la ecuación (12.1); …».
+13. `src/content/topics/resonancia-estructural.mdx:269` (figura 12.2): «Gráfica del autor con la ecuación (12.3); …» →
+    «Gráfica que calculé con la ecuación (12.3); …».
+14. `src/content/topics/resonancia-estructural.mdx:378` (figura 12.3): «Gráfica del autor con la ecuación (12.5); …» →
+    «Gráfica que calculé con la ecuación (12.5); …».
+15. `src/content/topics/resonancia-estructural.mdx:391` (figura 12.4, el laboratorio): «Simulación del autor sobre
+    src/lib/physics/resonance.ts; …» → «Simulación que programé sobre src/lib/physics/resonance.ts; …».
+16. `src/content/topics/resonancia-estructural.mdx:406` (figura 12.5, el Millennium): «Análisis del autor sobre el video
+    de Frontline by ITN (2022, archivo de 2000); …» → «Análisis mío sobre el video de Frontline by ITN (2022, archivo
+    de 2000); …» (como la línea del video del Tacoma, «Análisis mío»).
+17. `src/content/topics/resonancia-estructural.mdx:507` (figura 12.6): «Gráfica del autor con las ecuaciones (12.11) y
+    (12.12); …» → «Gráfica que calculé con las ecuaciones (12.11) y (12.12); …».
+18. `src/content/topics/resonancia-estructural.mdx:570` (figura 12.8, la medición): «Medición del autor (pnpm run
+    data:tacoma) sobre el archivo de Wikimedia Commons; …» → «Medición mía (pnpm run data:tacoma) sobre el archivo de
+    Wikimedia Commons; …».

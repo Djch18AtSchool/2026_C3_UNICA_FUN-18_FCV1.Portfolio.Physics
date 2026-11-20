@@ -198,7 +198,7 @@ Más masa, menos frecuencia: $f_0$ va como <Equation inline latex="1/\sqrt{m}" /
   showBadge={false}
   caption="Los dos modos del puente de Tacoma Narrows el 7 de noviembre de 1940, como oscilaciones libres de la ecuación (12.1) con la misma amplitud, que es ilustrativa: el vertical de 8 o 9 nodos a 37 ciclos por minuto y la torsión de un nodo a 12. Hacia las 10:00 el puente pasó de uno al otro, «from 37 to 14», y la torsión terminó en 12: cada modo tiene su propia frecuencia natural, y contar ciclos la mide."
   source={{
-    text: 'Gráfica del autor con la ecuación (12.1); frecuencias del informe a la Federal Works Agency (1941), págs. 30-31 y V-12; amplitudes ilustrativas',
+    text: 'Gráfica que calculé con la ecuación (12.1); frecuencias del informe a la Federal Works Agency (1941), págs. 30-31 y V-12; amplitudes ilustrativas',
   }}
 >
   <ResonanceFigure variant="libre" client:visible />
@@ -266,7 +266,7 @@ En <Equation inline latex="\omega_d = \omega_0" /> solo $b$ limita: la deformaci
   showBadge={false}
   caption="Amplitud estacionaria de la ecuación (12.3), relativa a la deformación estática $F_0/k$, frente a la frecuencia de la fuerza, con las tres razones de amortiguamiento con que Klipper evalúa sus filtros. En $\omega_d = \omega_0$ cada curva vale $1/(2\zeta)$. La torsión del Tacoma, con $\zeta$ = 0,005, llegaría a 100 (tabla 12.4): veinte veces la impresora con $\zeta$ = 0,1. El barrido de Klipper, de 5 a 135 Hz, traza esta curva en cada eje."
   source={{
-    text: 'Gráfica del autor con la ecuación (12.3); razones de amortiguamiento de Klipper v0.13.0, klippy/extras/shaper_calibrate.py L14; barrido de resonance_tester.py L49-L78',
+    text: 'Gráfica que calculé con la ecuación (12.3); razones de amortiguamiento de Klipper v0.13.0, klippy/extras/shaper_calibrate.py L14; barrido de resonance_tester.py L49-L78',
   }}
 >
   <ResonanceFigure variant="curva" client:visible />
@@ -375,7 +375,7 @@ Con fases al azar, $|F|$ crece como <Equation inline latex="\sqrt{N}" /> y la po
   showBadge={false}
   caption="Amplitud de la fuerza vertical de $N$ personas con la ecuación (12.5), $F_1$ = 280 N cada una (tabla 12.1). Al paso, todas en fase, crece en recta; rompiendo el paso, con fases al azar, como $\sqrt{N}$, y los puntos son un sorteo de esas fases para cada $N$. Con los unos 60 soldados que cruzaban el puente de Broughton en 1831, 16,8 kN contra 2,2 kN: en resonancia la energía que entra va con el cuadrado, 60 veces menos."
   source={{
-    text: 'Gráfica del autor con la ecuación (12.5); fuerza por persona de Sétra (2006), §1.2.1; unos 60 soldados según The Philosophical Magazine (1831); fases sorteadas con una semilla fija',
+    text: 'Gráfica que calculé con la ecuación (12.5); fuerza por persona de Sétra (2006), §1.2.1; unos 60 soldados según The Philosophical Magazine (1831); fases sorteadas con una semilla fija',
   }}
 >
   <ResonanceFigure variant="tropa" client:visible />
@@ -388,7 +388,7 @@ Con fases al azar, $|F|$ crece como <Equation inline latex="\sqrt{N}" /> y la po
   showBadge={false}
   caption="Laboratorio de la resonancia, ecuaciones (12.2), (12.3), (12.5) y (12.6). En «Barrido», la frecuencia de la fuerza recorre de $0{,}5\,f_0$ a $1{,}5\,f_0$ y la envolvente se traza sobre la curva; en «Tropa», $N$ soldados a 2,0 Hz cruzan una pasarela al paso o rompiendo el paso; en «Filtro ZV», un empujón frente a los dos impulsos de Klipper."
   source={{
-    text: 'Simulación del autor sobre src/lib/physics/resonance.ts; la masa de la pasarela y las frecuencias de los ejemplos son ilustrativas',
+    text: 'Simulación que programé sobre src/lib/physics/resonance.ts; la masa de la pasarela y las frecuencias de los ejemplos son ilustrativas',
   }}
 >
   <ResonanceLab
@@ -403,7 +403,7 @@ Con fases al azar, $|F|$ crece como <Equation inline latex="\sqrt{N}" /> y la po
   showBadge={false}
   caption="Reportaje de ITN sobre el Millennium Bridge, que cerró en junio de 2000, dos días después de abrir, porque se bamboleaba. Lo analizo entero, desde el inicio, con los datos de Arup; los números de la ecuación (12.8) están en la tabla 12.2."
   source={{
-    text: 'Análisis del autor sobre el video de Frontline by ITN (2022, archivo de 2000); datos de Dallard et al. (2001) y Newland (2002)',
+    text: 'Análisis mío sobre el video de Frontline by ITN (2022, archivo de 2000); datos de Dallard et al. (2001) y Newland (2002)',
     url: 'https://www.youtube.com/watch?v=Hz72lzDxMfc',
   }}
 >
@@ -504,7 +504,7 @@ Sobre 18,6 mph, <Equation inline latex="\zeta_\text{neto} < 0" /> (tabla 12.3) y
   showBadge={false}
   caption="Torsión del Tacoma con la ecuación (12.11) a 0,20 Hz, sin ninguna fuerza que oscile, con tres vientos de la tabla 12.3: a 17 mph el amortiguamiento neto es positivo y la amplitud baja; a 30,6 mph es negativo y sube; a 42 mph, el viento de esa mañana, la tabla se prolonga en recta y sube más rápido. Las etiquetas dan la amplitud al cabo de 30 s, seis vueltas."
   source={{
-    text: 'Gráfica del autor con las ecuaciones (12.11) y (12.12); $A_2^*$ de la Tabla I de Billah y Scanlan (1991); la curva de 42 mph es una extrapolación',
+    text: 'Gráfica que calculé con las ecuaciones (12.11) y (12.12); $A_2^*$ de la Tabla I de Billah y Scanlan (1991); la curva de 42 mph es una extrapolación',
   }}
 >
   <ResonanceFigure variant="autoexcitacion" client:visible />
@@ -567,7 +567,7 @@ Sobre 18,6 mph, <Equation inline latex="\zeta_\text{neto} < 0" /> (tabla 12.3) y
   showBadge={false}
   caption="Mi medición cuadro a cuadro de la toma de 1:01,7: la altura del borde del tablero, en píxeles. Tal como corre el video, el ciclo dura 3,43 s; estirada al tiempo real, 5,15 s, y una cosenoide de 5,0 s, el periodo que cronometró Farquharson, ajustada en amplitud, fase y nivel medio sin tocar su periodo, la sigue de cerca. Las tres tomas están en la tabla 12.5."
   source={{
-    text: 'Medición del autor (pnpm run data:tacoma) sobre el archivo de Wikimedia Commons; 16 y 24 cuadros por segundo según Olson et al. (2015); 12 ciclos por minuto de Farquharson en el informe de 1941, pág. V-12',
+    text: 'Medición mía (pnpm run data:tacoma) sobre el archivo de Wikimedia Commons; 16 y 24 cuadros por segundo según Olson et al. (2015); 12 ciclos por minuto de Farquharson en el informe de 1941, pág. V-12',
   }}
 >
   <TacomaMeasurement client:visible />

@@ -172,6 +172,18 @@ describe('topic files', () => {
     }
   });
 
+  // House rule of the Entrega Final: a figure's source line says what I did («Gráfica que
+  // calculé…», «Simulación que programé…»), never «del autor» (Temas 10 to 13).
+  test('las líneas de fuente de las figuras de la Entrega Final están en primera persona', () => {
+    for (const { fileName, file } of files.filter(({ file }) => file.data.phase === 3)) {
+      const thirdPerson = [...file.content.matchAll(/text: '([^']*\bdel autor\b[^']*)'/gu)];
+      expect(
+        thirdPerson.map(([, text]) => text),
+        fileName,
+      ).toEqual([]);
+    }
+  });
+
   test('cada <DataTable id="…" /> de un tema existe en el registro de tablas', () => {
     for (const { fileName, file } of files) {
       for (const [, id] of file.content.matchAll(DATA_TABLE_TAG)) {
