@@ -5,6 +5,7 @@ import { TRIGGER_PRESETS } from '../../lib/data/triggerPresets';
 import type { Preset } from '../../lib/presets';
 import { FLYBY_PRESETS } from './asistencia-gravitatoria/flybyPresets';
 import { BOUNCE_PRESETS } from './coeficiente-restitucion/bouncePresets';
+import { COOLING_PRESETS } from './enfriamiento-liquido/coolingLabText';
 import { REGEN_PRESETS } from './frenado-regenerativo/regenPresets';
 import { RESONANCE_PRESETS } from './resonancia-estructural/resonancePresets';
 import { TYRE_PRESETS } from './llantas-f1/tyreLabModel';
@@ -25,6 +26,7 @@ const PRESETS: Record<string, readonly Preset<unknown>[]> = {
   'Tema 10': SPRING_LAB_PRESETS,
   'Tema 11': SYNTH_PRESETS,
   'Tema 12': RESONANCE_PRESETS,
+  'Tema 13': COOLING_PRESETS,
 };
 
 /** A sentence ends at . ! or ? before a space or the end; a decimal comma or «1/60» does not. */

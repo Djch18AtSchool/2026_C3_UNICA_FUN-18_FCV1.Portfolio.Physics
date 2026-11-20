@@ -190,4 +190,13 @@ describe('viewNote: what each view shows, in numbers the code computes', () => {
       'En la boca del UQD04 el líquido va a 2,91 m/s: Bernoulli baja la presión 2,8 kPa y la devuelve en la manguera, pero cada conector pierde 15,1 kPa. La placa fría pierde 120,0 kPa, el valor de diseño de GF. Dentro de la placa dibujo la velocidad de la manguera: su interior no es público.',
     );
   });
+
+  test('away from its design flow (the lab), the plate’s drop is GF’s 120 kPa carried along its law', () => {
+    const slower = circuitProfileData({ ...REFERENCE, rackFlow: REFERENCE.rackFlow * 0.8 });
+
+    expect(plain(viewNote(slower, 'servidor'))).toContain(
+      'La placa fría pierde 79,4 kPa: los 120,0 kPa de diseño de GF, llevados a este caudal con $\\Delta p = R\\,Q^{\\,n}$.',
+    );
+    expect(plain(viewNote(slower, 'circuito'))).toMatch(/^Del CDU al servidor 24 y de vuelta/);
+  });
 });

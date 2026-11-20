@@ -8,6 +8,7 @@
  */
 import { useId, useMemo, useState, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
+import type { RackConfig } from '../../../lib/data/liquidCoolingCircuit';
 import { mathTextToString } from '../../../lib/mathNotation';
 import ChartFrame from '../../charts/ChartFrame';
 import {
@@ -25,6 +26,7 @@ import {
   KPA_PER_BAR,
   PROFILE_VIEWS,
   profileParameterIds,
+  REFERENCE,
   SIDE_COLORS,
   SIDES,
   viewNote,
@@ -47,7 +49,8 @@ import {
 import SectionStrip, { labelWidth, stripTotalHeight, StripKey } from './SectionStrip';
 import { stripPlacement, stripSections } from './stripLayout';
 
-const TITLE = 'Velocidad y presión a lo largo del recorrido, del CDU al servidor 24 y de vuelta';
+const titleFor = (servers: number) =>
+  `Velocidad y presión a lo largo del recorrido, del CDU al servidor ${servers} y de vuelta`;
 const FOOTNOTE =
   'En la franja, el largo de cada tramo está a escala, y su alto es proporcional a su diámetro interior con la escala de cada vista; la placa fría va sin escala.';
 const X_TITLE = 'Posición en el recorrido $x$ (m)';
@@ -124,11 +127,24 @@ function spokenSummary(data: CircuitProfileData, view: ProfileViewId): string {
   );
 }
 
-export default function CircuitProfileFigure(): JSX.Element {
+export interface CircuitProfileFigureProps {
+  /** The rack whose path to its farthest server is drawn; the RD109 reference by default. */
+  config?: RackConfig;
+  testId?: string;
+}
+
+/**
+ * The figure of step 2, and the lab's profile (Tema 13's lab passes its rack): the path to the
+ * farthest server of `config`, recomputed when it changes.
+ */
+export default function CircuitProfileFigure({
+  config = REFERENCE,
+  testId = 'circuit-profile-figure',
+}: CircuitProfileFigureProps): JSX.Element {
   const [viewId, setViewId] = useState<ProfileViewId>('circuito');
   const [ref, width, isMeasured] = useElementWidth<HTMLDivElement>(FALLBACK_WIDTH);
   const clipBase = `perfil-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
-  const data = useMemo(() => circuitProfileData(), []);
+  const data = useMemo(() => circuitProfileData(config), [config]);
   const sections = useMemo(() => stripSections(data.path), [data]);
   const highlight = useSeriesHighlight(LEGEND.map(({ id }) => id));
   const view = PROFILE_VIEWS.find((candidate) => candidate.id === viewId) ?? PROFILE_VIEWS[0];
@@ -143,7 +159,7 @@ export default function CircuitProfileFigure(): JSX.Element {
   );
   const reserve = heightReserve(HEIGHTS, isMeasured);
   return (
-    <ChartFrame title={TITLE} footnote={FOOTNOTE} testId="circuit-profile-figure">
+    <ChartFrame title={titleFor(config.servers)} footnote={FOOTNOTE} testId={testId}>
       <div data-parameters={profileParameterIds(data.path).join(' ')}>
         <ViewButtons
           label="Vista del recorrido"

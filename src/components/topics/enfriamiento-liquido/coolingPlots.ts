@@ -5,7 +5,7 @@
  * (Task 14) draw what these return. Research docs/superpowers/research/2026-11-17-enfriamiento-
  * liquido.md, §7.1 (the path) and §8 (the figure).
  */
-import { PG25_40C } from '../../../lib/data/liquidCooling';
+import { PG25_40C, RD109 } from '../../../lib/data/liquidCooling';
 import { formatNumber } from '../../../lib/format';
 import { G_EARTH } from '../../../lib/physics/constants';
 import {
@@ -202,7 +202,20 @@ export function viewNote(
   }
   const hose = start('manguera-servidor-ida');
   const uqd = start('uqd-ida');
-  return `En la boca del UQD04 el líquido va a ${number(uqd.v, 2)} m/s: Bernoulli baja la presión ${number(kpa(hose.pIdeal - uqd.pIdeal), 1)} kPa y la devuelve en la manguera, pero cada conector pierde ${number(drop(uqd, end('uqd-ida')), 1)} kPa. La placa fría pierde ${number(drop(start('placa-fria'), end('placa-fria')), 1)} kPa, el valor de diseño de GF. Dentro de la placa dibujo la velocidad de la manguera: su interior no es público.`;
+  return `En la boca del UQD04 el líquido va a ${number(uqd.v, 2)} m/s: Bernoulli baja la presión ${number(kpa(hose.pIdeal - uqd.pIdeal), 1)} kPa y la devuelve en la manguera, pero cada conector pierde ${number(drop(uqd, end('uqd-ida')), 1)} kPa. ${plateSentence(drop(start('placa-fria'), end('placa-fria')))} Dentro de la placa dibujo la velocidad de la manguera: su interior no es público.`;
+}
+
+const PLATE_DESIGN_KPA = kpa(RD109.plateDrop.value);
+/** Below this (kPa) the plate's drop is GF's design value, as printed with one decimal. */
+const PLATE_DESIGN_SLACK = 0.05;
+
+/** The plate's drop: GF's design value at its design flow, else that value along its law (the lab). */
+function plateSentence(plateDrop: number): string {
+  const lost = `La placa fría pierde ${number(plateDrop, 1)} kPa`;
+  if (Math.abs(plateDrop - PLATE_DESIGN_KPA) < PLATE_DESIGN_SLACK) {
+    return `${lost}, el valor de diseño de GF.`;
+  }
+  return `${lost}: los ${number(PLATE_DESIGN_KPA, 1)} kPa de diseño de GF, llevados a este caudal con $\\Delta p = R\\,Q^{\\,n}$.`;
 }
 
 /* ── The declared parameters the figure uses ─────────────────────────────────────────── */

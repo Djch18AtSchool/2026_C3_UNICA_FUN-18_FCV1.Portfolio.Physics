@@ -231,10 +231,12 @@ export function coolingScene(
   }
 }
 
-/** What the lab shows: the state as set, and the last scene that converged. */
+/** What the lab shows: the state as set, and the last scene that converged with its own state. */
 export interface CoolingLabModel {
   state: CoolingLabState;
   scene: CoolingScene;
+  /** The state `scene` was computed from: `state` itself unless its split did not converge. */
+  sceneState: CoolingLabState;
   /** False while the state's own split does not converge (the scene is then the last valid one). */
   isConverged: boolean;
 }
@@ -243,7 +245,7 @@ export interface CoolingLabModel {
 export function initialModel(state: CoolingLabState = INITIAL_COOLING_STATE): CoolingLabModel {
   const scene = coolingScene(state);
   if (!scene) throw new Error('coolingScene: the opening state has no valid scene');
-  return { state, scene, isConverged: true };
+  return { state, scene, sceneState: state, isConverged: true };
 }
 
 /** The model after a new state: its scene if it has one, else the last valid scene, flagged. */
@@ -254,6 +256,13 @@ export function withState(
 ): CoolingLabModel {
   const scene = compute(state);
   return scene
-    ? { state, scene, isConverged: true }
-    : { state, scene: model.scene, isConverged: false };
+    ? { state, scene, sceneState: state, isConverged: true }
+    : { ...model, state, isConverged: false };
+}
+
+/** A pump flow (L/min per rack) from the pump chart's cursor, on the slider's grid and range. */
+export function snapPumpFlow(value: number): number {
+  if (!Number.isFinite(value)) return PUMP_FLOW.min;
+  const snapped = Math.round(value / PUMP_FLOW.step) * PUMP_FLOW.step;
+  return Math.min(PUMP_FLOW.max, Math.max(PUMP_FLOW.min, snapped));
 }

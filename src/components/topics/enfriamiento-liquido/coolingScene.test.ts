@@ -15,6 +15,7 @@ import {
   labConfig,
   presetState,
   PUMP_FLOW,
+  snapPumpFlow,
   pumpReading,
   SERVER_COUNT,
   systemCurve,
@@ -243,11 +244,13 @@ describe('the lab keeps the last valid scene', () => {
 
     expect(stuck.state).toBe(next);
     expect(stuck.scene).toBe(model.scene);
+    expect(stuck.sceneState).toBe(model.sceneState);
     expect(stuck.isConverged).toBe(false);
 
     const back = withState(stuck, INITIAL_COOLING_STATE);
     expect(back.isConverged).toBe(true);
     expect(back.scene.config.servers).toBe(24);
+    expect(back.sceneState).toBe(INITIAL_COOLING_STATE);
   });
 
   test('the first model is the reference’s scene, converged', () => {
@@ -297,5 +300,15 @@ describe('pumpReading: the lowest published curve that reaches the duty point', 
     expect(reading.curve?.pwm).toBe(95);
     expect(reading.operating).toBeNull();
     expect(pumpReading(config, 0.035).operating?.Q).toBeGreaterThan(0.035);
+  });
+});
+
+describe('snapPumpFlow: a value from the pump chart’s cursor onto the slider', () => {
+  test('rounds to the 0,5 L/min grid and stays inside 10–300 L/min', () => {
+    expect(snapPumpFlow(172.6)).toBe(172.5);
+    expect(snapPumpFlow(172.8)).toBe(173);
+    expect(snapPumpFlow(2)).toBe(PUMP_FLOW.min);
+    expect(snapPumpFlow(1000)).toBe(PUMP_FLOW.max);
+    expect(snapPumpFlow(Number.NaN)).toBe(PUMP_FLOW.min);
   });
 });
