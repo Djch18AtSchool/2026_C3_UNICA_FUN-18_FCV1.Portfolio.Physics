@@ -87,7 +87,7 @@ export function sampleAt(y: ArrayLike<number>, position: number): number {
 }
 
 /** Pearson correlation of two equally long series. Throws if either does not vary. */
-function pearson(u: readonly number[], v: readonly number[]): number {
+export function pearson(u: readonly number[], v: readonly number[]): number {
   const mean = (s: readonly number[]) => s.reduce((sum, x) => sum + x, 0) / s.length;
   const mu = mean(u);
   const mv = mean(v);

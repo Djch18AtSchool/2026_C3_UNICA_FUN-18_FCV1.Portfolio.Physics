@@ -16,6 +16,9 @@ import { classicAmplitudes, type ClassicWave } from '../../physics/harmonics';
 import type { DataTableSpec, TableColumn } from '../types';
 
 const HARMONICS = 12;
+/** §1.28.6 of the W3C Recommendation: the four waveforms' coefficients (table 11.1, the lab's presets). */
+export const OSCILLATOR_COEFFICIENTS_URL =
+  'https://www.w3.org/TR/2021/REC-webaudio-20210617/#oscillator-coefficients';
 const IDS: readonly InstrumentId[] = ['flauta', 'clarinete'];
 const { flauta, clarinete } = INSTRUMENT_SAMPLES;
 
@@ -50,7 +53,7 @@ const RECETAS: DataTableSpec = {
   })),
   source: {
     text: 'W3C, Web Audio API, Recomendación del 17 de junio de 2021, §1.28.6; las mismas recetas en Chromium, periodic_wave_handler.cc L408-L428 (tag 160.0.8168.1)',
-    url: 'https://www.w3.org/TR/2021/REC-webaudio-20210617/#oscillator-coefficients',
+    url: OSCILLATOR_COEFFICIENTS_URL,
   },
 };
 
