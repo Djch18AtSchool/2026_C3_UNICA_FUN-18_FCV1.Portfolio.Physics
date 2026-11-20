@@ -9,7 +9,9 @@ import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import {
   BROUGHTON,
+  MARCH_PACE_HZ,
   MILLENNIUM,
+  PEDESTRIAN,
   PEDESTRIAN_FORCES,
   TACOMA,
   TACOMA_SI,
@@ -108,5 +110,14 @@ describe('Tema 12: the numbers the text writes come from the data and the core',
 
     expect(MDX).toContain(`se desestabilizaba con unas ${comma(nL, 0)} personas`);
     expect(MDX).toContain(`con ${MILLENNIUM.viscousDampers.value} amortiguadores viscosos`);
+  });
+
+  test('the lab’s caption and notes: the march at 2,0 Hz and the walkers’ spread of 0,2 Hz', () => {
+    const pace = comma(MARCH_PACE_HZ, 1);
+
+    expect(MDX).toContain(`$N$ soldados a ${pace} Hz cruzan una pasarela`);
+    expect(MDX).toContain(
+      `marchan todos a ${pace} Hz exactos, sin la dispersión de unos ${comma(PEDESTRIAN.walkingSigmaHz.value, 1)} Hz que Sétra mide`,
+    );
   });
 });

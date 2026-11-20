@@ -65,7 +65,7 @@ const MARK_HEIGHT = 14;
 const KNOB_LABEL_RISE = 16;
 const HALO = { color: 'var(--bg-elevated)', width: 4 } as const;
 /** Arrows move f0 one step; with Shift, or PageUp/PageDown, five. */
-const COARSE_STEPS = 5;
+export const COARSE_STEPS = 5;
 const KEY_STEPS: Readonly<Record<string, number>> = {
   ArrowRight: 1,
   ArrowUp: 1,
@@ -116,7 +116,6 @@ function LiveMark({
   return (
     <g
       data-testid="ruler-drive"
-      data-x={x.toFixed(2)}
       transform={`translate(${x.toFixed(2)} 0)`}
       className="pointer-events-none"
     >

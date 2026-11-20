@@ -91,7 +91,7 @@ function zvReadouts({ zv }: ModeModel<'filtro-zv'>): LabReadout[] {
   return [
     {
       id: 'residual',
-      label: 'Vibración residual',
+      label: 'Vibración residual (estimación de Klipper)',
       value: zv.residual * PERCENT,
       unit: '%',
       precision: PRECISION.percent,

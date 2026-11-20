@@ -9,6 +9,7 @@ import InlineMath from '../../lab/InlineMath';
 import ParamField from '../../lab/ParamField';
 import StatusChips from '../../lab/StatusChips';
 import type { ActiveModel } from './bridgeFrames';
+import { SCENE_NOTE } from './labTexts';
 import { STEP_OPTIONS } from './resonanceLabSettings';
 import { RESONANCE_LIMITS, type Limit, type ResonanceSettings } from './resonancePresets';
 import { resonanceChips } from './resonanceReadouts';
@@ -188,16 +189,6 @@ export function StepChoiceRow({
     </div>
   );
 }
-
-/** What the canvas shows and at which scale, by mode. */
-const SCENE_NOTE: Readonly<Record<ActiveModel['mode'], string>> = {
-  barrido:
-    'El vibrador empuja el centro del vano con $F_0\\cos\\varphi(t)$, y la flecha azul es esa fuerza. El dibujo exagera el desplazamiento; la gráfica lo da en veces la deformación estática $F_0/k$.',
-  tropa:
-    'Dibujo a escala vertical: el tablero cabe hasta 0,5 m arriba y abajo, y más allá queda en el borde, «fuera de escala». Cada trazo es un soldado, y su cabeza sube y baja con la fase de su paso.',
-  'filtro-zv':
-    '$A_1$ es la amplitud que deja un solo empujón; las flechas marcan cada empujón cuando llega, y la gráfica lleva una línea en el segundo impulso.',
-};
 
 /** The canvas notes: the model's verdicts as chips, then what the drawing shows. */
 export function ResonanceNotes({ active }: { active: ActiveModel }): JSX.Element {

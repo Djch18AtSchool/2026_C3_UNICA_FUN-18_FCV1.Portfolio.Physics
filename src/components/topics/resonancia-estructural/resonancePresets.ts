@@ -14,11 +14,15 @@ import { KLIPPER } from '../../../lib/data/klipper';
 import { formatNumber } from '../../../lib/format';
 import type { Preset, PresetGroup } from '../../../lib/presets';
 import {
+  REACH_SHARE,
+  SLOW_SWEEP_ERROR,
+  SLOW_SWEEP_FACTOR,
   sweepModel,
   troopModel,
   zvModel,
   TROOP_MODAL_MASS_KG,
   SOLDIER_FORCE_N,
+  ZV_DESIGN_ZETA,
   type ResonanceMode,
   type SweepSettings,
   type TroopSettings,
@@ -59,13 +63,18 @@ export const RESONANCE_LIMITS = {
 
 const KLIPPER_ZETA = KLIPPER.defaultDampingRatio.value;
 /**
- * The seed of the first breaking-step draw. With 60 soldiers it gives |Σ e^{iφ}| = 6,4, near the
- * median of a draw, √(N ln 2) = 6,4, so the first ratio the reader sees (9,3) is a typical one;
- * «Nuevo sorteo» shows how far a single draw strays (seed 1831, the Paso 3 figure's, gives 21,5).
+ * The seed of the first breaking-step draw, chosen because it is a typical draw: with 60 soldiers
+ * it gives |Σ e^{iφ}| = 6,4, the median of a draw, √(N ln 2) = 6,4, so the first ratio the reader
+ * sees (9,3) is neither lucky nor unlucky; «Nuevo sorteo» shows how far a single draw strays.
  */
 const TROOP_SEED = 1832;
 /** An illustrative oscillator for the sweep and the filter: 1 Hz, one swing a second. */
-const ILLUSTRATIVE_F0 = 1;
+export const ILLUSTRATIVE_F0 = 1;
+/**
+ * The footbridge of «Tropa» (ilustrativo): a steel span whose first vertical mode sits at 2,0 Hz,
+ * inside Sétra's range 1 and right on the march pace. A natural frequency, not the pace.
+ */
+export const FOOTBRIDGE_F0 = 2;
 const SLOW_SWEEP_S = 400;
 const FAST_SWEEP_S = 40;
 const OFF_SETRA_F0 = 2.5;
@@ -76,7 +85,7 @@ export const DEFAULT_SETTINGS: ResonanceSettings = {
   sweep: { f0: ILLUSTRATIVE_F0, zeta: KLIPPER_ZETA, sweepS: SLOW_SWEEP_S },
   troop: {
     n: BROUGHTON.soldiersOnBridge.value,
-    f0: MARCH_PACE_HZ,
+    f0: FOOTBRIDGE_F0,
     zeta: STEEL_FOOTBRIDGE_DAMPING.value,
     step: 'al-paso',
     seed: TROOP_SEED,
@@ -86,6 +95,8 @@ export const DEFAULT_SETTINGS: ResonanceSettings = {
 
 const n = (value: number, precision: number) => formatNumber(value, { precision });
 const PERCENT = 100;
+const ZETA_DECIMALS = 1;
+const percentText = (share: number) => n(share * PERCENT, 0);
 const MM_PER_M = 1000;
 const N_PER_KN = 1000;
 const KG_PER_T = 1000;
@@ -111,15 +122,24 @@ const zvAt = (patch: Partial<ZvSettings>): ResonanceSettings => ({
   zv: { ...DEFAULT_SETTINGS.zv, ...patch },
 });
 
+/** The value a model must give for a note; a missing one fails the build, never prints «—». */
+function required(value: number | undefined, what: string): number {
+  if (value === undefined) throw new Error(`resonancePresets: ${what} no existe con estos valores`);
+  return value;
+}
+
+const f0Text = (f0: number, precision: number) => `$f_0$ = ${n(f0, precision)} Hz`;
+const klipperZeta = `$\\zeta$ = ${n(KLIPPER_ZETA, ZETA_DECIMALS)}`;
+
 function slowNote(): string {
   const model = sweepModel(DEFAULT_SETTINGS.sweep);
-  return `Un oscilador de $f_0$ = 1 Hz (ilustrativo) con el $\\zeta$ = 0,1 que supone Klipper, barrido en $T_b$ = ${SLOW_SWEEP_S} s, lo que pide mi regla $T_b \\ge 4/(\\zeta^2 f_0)$: la envolvente sigue a la (12.3) a menos de un 5 % y su pico llega a ${n(model.run.maxPeak, 2)}, frente a $1/(2\\zeta)$ = ${n(model.peakGain, 2)}.`;
+  return `Un oscilador de ${f0Text(ILLUSTRATIVE_F0, 0)} (ilustrativo) con el ${klipperZeta} que supone Klipper, barrido en $T_b$ = ${SLOW_SWEEP_S} s, lo que pide mi regla $T_b \\ge ${SLOW_SWEEP_FACTOR}/(\\zeta^2 f_0)$: la envolvente sigue a la (12.3) a menos de un ${percentText(SLOW_SWEEP_ERROR)} % y su pico llega a ${n(model.run.maxPeak, 2)}, frente a $1/(2\\zeta)$ = ${n(model.peakGain, 2)}.`;
 }
 
 function fastNote(): string {
   const model = sweepModel({ ...DEFAULT_SETTINGS.sweep, sweepS: FAST_SWEEP_S });
   const tau = 1 / (KLIPPER_ZETA * TWO_PI * ILLUSTRATIVE_F0);
-  return `El mismo oscilador barrido en ${FAST_SWEEP_S} s, diez veces más rápido: el transitorio dura del orden de $1/(\\zeta\\omega_0)$ = ${n(tau, 1)} s, la amplitud no alcanza a seguir a la fuerza y su pico, ${n(model.run.maxPeak, 2)} en vez de ${n(model.peakGain, 2)}, llega tarde, en $\\omega_d/\\omega_0$ = ${n(model.ratioAt(model.peakTime), 2)}.`;
+  return `El mismo oscilador barrido en ${FAST_SWEEP_S} s, ${n(SLOW_SWEEP_S / FAST_SWEEP_S, 0)} veces más rápido: el transitorio dura del orden de $1/(\\zeta\\omega_0)$ = ${n(tau, 1)} s, la amplitud no alcanza a seguir a la fuerza y su pico, ${n(model.run.maxPeak, 2)} en vez de ${n(model.peakGain, 2)}, llega tarde, en $\\omega_d/\\omega_0$ = ${n(model.ratioAt(model.peakTime), 2)}.`;
 }
 
 function undampedNote(): string {
@@ -129,7 +149,8 @@ function undampedNote(): string {
 
 function inStepNote(): string {
   const model = troopModel(DEFAULT_SETTINGS.troop);
-  return `Los unos ${BROUGHTON.soldiersOnBridge.value} soldados que cruzaban el puente de Broughton en 1831, a ${n(MARCH_PACE_HZ, 1)} Hz y ${n(SOLDIER_FORCE_N, 0)} N cada uno, sobre una pasarela de acero de $f_0$ = ${n(MARCH_PACE_HZ, 1)} Hz con el $\\zeta$ = ${n(STEEL_FOOTBRIDGE_DAMPING.value * PERCENT, 1)} % de Sétra y ${n(TROOP_MODAL_MASS_KG / KG_PER_T, 0)} toneladas de masa modal (las dos, ilustrativas): el tablero llega al 90 % de su amplitud estacionaria, ${n(model.steady.inStep * MM_PER_M, 0)} mm, a los ${n(model.reach90.inStep ?? Number.NaN, 0)} s.`;
+  const reach = required(model.reach90.inStep, 'el instante del 90 %');
+  return `Los unos ${BROUGHTON.soldiersOnBridge.value} soldados que cruzaban el puente de Broughton en 1831, a ${n(MARCH_PACE_HZ, 1)} Hz y ${n(SOLDIER_FORCE_N, 0)} N cada uno, sobre una pasarela de acero de ${f0Text(FOOTBRIDGE_F0, 1)} con el $\\zeta$ = ${n(STEEL_FOOTBRIDGE_DAMPING.value * PERCENT, 1)} % de Sétra y ${n(TROOP_MODAL_MASS_KG / KG_PER_T, 0)} toneladas de masa modal (las dos, ilustrativas): el tablero llega al ${percentText(REACH_SHARE)} % de su amplitud estacionaria, ${n(model.steady.inStep * MM_PER_M, 0)} mm, a los ${n(reach, 0)} s.`;
 }
 
 function breakingNote(): string {
@@ -137,26 +158,29 @@ function breakingNote(): string {
   const soldiers = DEFAULT_SETTINGS.troop.n;
   const kN = (force: number) => n(force / N_PER_KN, 1);
   const mm = (amplitude: number) => n(amplitude * MM_PER_M, 0);
-  return `Los mismos ${soldiers} rompiendo el paso, con fases al azar de un sorteo con semilla fija: la fuerza total baja de ${kN(model.forces.inStep)} kN a ${kN(model.forces.breaking)} kN y la amplitud estacionaria, de ${mm(model.steady.inStep)} mm a ${mm(model.steady.breaking)} mm, ${n(model.ratio, 1)} veces menos; en media cuadrática sobre muchos sorteos, $\\sqrt{${soldiers}}$ = ${n(model.rmsRatio, 1)} veces.`;
+  return `Los mismos ${soldiers} rompiendo el paso, con fases al azar de un sorteo típico (semilla fija): la fuerza total baja de ${kN(model.forces.inStep)} kN a ${kN(model.forces.breaking)} kN y la amplitud estacionaria, de ${mm(model.steady.inStep)} mm a ${mm(model.steady.breaking)} mm, ${n(model.ratio, 1)} veces menos; en media cuadrática sobre muchos sorteos, $\\sqrt{${soldiers}}$ = ${n(model.rmsRatio, 1)} veces.`;
 }
 
 function offRangeNote(): string {
   const model = troopModel({ ...DEFAULT_SETTINGS.troop, f0: OFF_SETRA_F0 });
   const { min, max } = SETRA_RANGES.vertical;
-  return `La misma tropa al paso sobre una pasarela de $f_0$ = ${n(OFF_SETRA_F0, 1)} Hz (ilustrativa), fuera del rango de riesgo máximo de Sétra, de ${n(min, 1)} a ${n(max, 1)} Hz: a ${n(MARCH_PACE_HZ, 1)} Hz la fuerza ya no va al ritmo del puente y la amplitud estacionaria se queda en ${n(model.steady.inStep * MM_PER_M, 1)} mm.`;
+  return `La misma tropa al paso sobre una pasarela de ${f0Text(OFF_SETRA_F0, 1)} (ilustrativa), fuera del rango de riesgo máximo de Sétra, de ${n(min, 1)} a ${n(max, 1)} Hz: a ${n(MARCH_PACE_HZ, 1)} Hz la fuerza ya no va al ritmo del puente y la amplitud estacionaria se queda en ${n(model.steady.inStep * MM_PER_M, 1)} mm.`;
 }
+
+const ONE_PERCENT = 1 / PERCENT;
 
 function tunedNote(): string {
   const model = zvModel(DEFAULT_SETTINGS.zv);
   const [a1, a2] = model.shaper.amplitudes;
-  const residual = model.simulatedResidual < 1 / PERCENT ? 'menos del 1 %' : 'más del 1 %';
-  return `Klipper reparte el empujón en $a_1$ = ${n(a1, 3)} en $t = 0$ y $a_2$ = ${n(a2, 3)} en $t_2$ = ${n(model.secondImpulse, 3)} s, medio periodo amortiguado, con $f_\\text{ZV}$ = 1 Hz y $\\zeta$ = 0,1; sobre una estructura con esos mismos valores (ilustrativos), la vibración que queda tras el segundo impulso es ${residual} de la de un solo empujón.`;
+  const bound = `${percentText(ONE_PERCENT)} %`;
+  const residual = model.residual < ONE_PERCENT ? `menos del ${bound}` : `más del ${bound}`;
+  return `Klipper reparte el empujón en $a_1$ = ${n(a1, 3)} en $t = 0$ y $a_2$ = ${n(a2, 3)} en $t_2$ = ${n(model.secondImpulse, 3)} s, medio periodo amortiguado, con $f_\\text{ZV}$ = ${n(ILLUSTRATIVE_F0, 0)} Hz y $\\zeta$ = ${n(ZV_DESIGN_ZETA, ZETA_DECIMALS)}; sobre una estructura con esos mismos valores (ilustrativos), la vibración que queda tras el segundo impulso, según la estima Klipper, es ${residual} de la de un solo empujón.`;
 }
 
 function detunedNote(): string {
   const model = zvModel({ ...DEFAULT_SETTINGS.zv, f0: DETUNED_F0 });
-  const tolerance = n(KLIPPER.zvTolerance.value * PERCENT, 0);
-  return `Si $f_0$ sube un 10 %, a ${n(DETUNED_F0, 1)} Hz, y el filtro sigue en 1 Hz, el segundo impulso ya no llega en contrafase: queda un ${n(model.residual * PERCENT, 1)} % de la vibración, cuando Klipper promete dividirla por ${KLIPPER.zvReduction.value} solo dentro de ±${tolerance} %.`;
+  const tolerance = percentText(KLIPPER.zvTolerance.value);
+  return `Si $f_0$ sube un ${percentText(DETUNED_F0 / ILLUSTRATIVE_F0 - 1)} %, a ${n(DETUNED_F0, 1)} Hz, y el filtro sigue en ${n(ILLUSTRATIVE_F0, 0)} Hz, el segundo impulso ya no llega en contrafase: según la estimación de Klipper queda un ${n(model.residual * PERCENT, 1)} % de la vibración, cuando Klipper promete dividirla por ${KLIPPER.zvReduction.value} solo dentro de ±${tolerance} %.`;
 }
 
 export const PRESET_GROUPS: readonly PresetGroup[] = [

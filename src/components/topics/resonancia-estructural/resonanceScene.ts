@@ -62,6 +62,8 @@ const SWEEP_SPAN = SWEEP_RANGE.end - SWEEP_RANGE.start;
  * worst, just after resonance. In rate, f0/T_b ≤ ζ² f0²/4.
  */
 export const SLOW_SWEEP_FACTOR = 4;
+/** What the rule guarantees: every traced peak past the start within 5 % of (12.3). */
+export const SLOW_SWEEP_ERROR = 0.05;
 /** The longest playback a sweep takes at 1×, in s: the time scale grows by powers of two. */
 export const SWEEP_PLAYBACK_S = 60;
 /** Steps per natural period: the integrator's error stays near 1 % (it is first order). */
@@ -181,7 +183,8 @@ const TROOP_DURATION_STEP = 10;
 const TROOP_STEPS_PER_PERIOD = 100;
 const TROOP_SAMPLE_EVERY = 4;
 /** 90 % of the steady amplitude: the event the transport marks. */
-const REACH_SHARE = 0.9;
+export const REACH_SHARE = 0.9;
+const PERCENT = 100;
 
 /** N phases (rad) uniform in [0, 2π) from `seed`: the same draw on the server and the browser. */
 export function troopPhases(n: number, seed: number): number[] {
@@ -277,7 +280,10 @@ export function troopModel(settings: TroopSettings): TroopModel {
     duration,
     runs,
     reach90,
-    markers: reach === undefined ? [] : [{ t: reach, label: '90 % de la amplitud estacionaria' }],
+    markers:
+      reach === undefined
+        ? []
+        : [{ t: reach, label: `${REACH_SHARE * PERCENT} % de la amplitud estacionaria` }],
   };
 }
 
@@ -303,24 +309,25 @@ const ZV_MEASURE_PERIODS = 2;
 type Shaper = ReturnType<typeof zvShaper>;
 
 /**
- * Residual vibration of a shaper on an oscillator of f0 (Hz) and ζ, as a share of one whole push
- * at t = 0, read at the same instant after the last impulse (cálculo propio, by superposition):
- * each impulse a_i at t_i leaves a_i e^{−ζω0 (t − t_i)} sin(ω′(t − t_i)), so the ratio is
- * |Σ a_i e^{ζω0 t_i} e^{−iω′t_i}| at any t past the last one, with ω′ = ω0 √(1 − ζ²). It is what
- * the lab draws: the two runs side by side. (Comparing with a push at the last impulse instead, as
- * the input-shaping literature does, multiplies it by e^{−ζω0 t_n}.)
+ * Residual vibration of a shaper on an oscillator of f0 (Hz) and ζ, as Klipper estimates it
+ * (klippy/extras/shaper_calibrate.py `_estimate_shaper`, L186-L198, research §3.4): with
+ * W_i = a_i e^{−ζω0 (t_n − t_i)}, V = √((Σ W_i sin ω′t_i)² + (Σ W_i cos ω′t_i)²) / Σ a_i and
+ * ω′ = ω0 √(1 − ζ²). It compares the vibration the impulses leave with that of one whole push
+ * given at the last impulse, t_n, so it never passes 1; against a push at t = 0, as the plot draws
+ * them side by side, the ratio is V e^{ζω0 t_n} (cálculo propio, by superposition).
  */
 export function zvResidual(f0: number, zeta: number, { amplitudes, times }: Shaper): number {
   const omega0 = TWO_PI * f0;
   const omegaPrime = omega0 * Math.sqrt(1 - zeta * zeta);
-  let re = 0;
-  let im = 0;
+  const last = times[times.length - 1];
+  let sine = 0;
+  let cosine = 0;
   amplitudes.forEach((a, i) => {
-    const grow = Math.exp(zeta * omega0 * times[i]);
-    re += a * grow * Math.cos(omegaPrime * times[i]);
-    im -= a * grow * Math.sin(omegaPrime * times[i]);
+    const weight = a * Math.exp(-zeta * omega0 * (last - times[i]));
+    sine += weight * Math.sin(omegaPrime * times[i]);
+    cosine += weight * Math.cos(omegaPrime * times[i]);
   });
-  return Math.hypot(re, im);
+  return Math.hypot(sine, cosine) / amplitudes.reduce((sum, a) => sum + a, 0);
 }
 
 export interface ZvModel {
@@ -330,8 +337,12 @@ export interface ZvModel {
   duration: number;
   /** x in units of one push's amplitude, J/(m ω′). */
   runs: { single: Run; shaped: Run };
+  /** Klipper's estimate of the residual vibration, a share of one push (zvResidual). */
   residual: number;
-  /** The same residual, read on the two runs two periods after the second impulse. */
+  /**
+   * The same residual, read on the two runs: the shaped one two periods after the second impulse
+   * against the single push as long after its own push, the push Klipper compares with.
+   */
   simulatedResidual: number;
   /** f0/f_ZV − 1. */
   detuning: number;
@@ -369,7 +380,8 @@ export function zvModel(settings: ZvSettings): ZvModel {
     runs,
     residual: zvResidual(f0, zeta, shaper),
     simulatedResidual:
-      decayingEnvelopeAt(runs.shaped, measureAt) / decayingEnvelopeAt(runs.single, measureAt),
+      decayingEnvelopeAt(runs.shaped, measureAt) /
+      decayingEnvelopeAt(runs.single, measureAt - secondImpulse),
     detuning,
     isWithinTolerance: Math.abs(detuning) <= KLIPPER.zvTolerance.value + EPSILON,
     markers: [{ t: secondImpulse, label: 'Segundo impulso' }],

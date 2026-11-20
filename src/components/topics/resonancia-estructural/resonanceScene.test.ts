@@ -4,6 +4,7 @@ import { KLIPPER } from '../../../lib/data/klipper';
 import { resonanceGain, steadyAmplitude, zvShaper } from '../../../lib/physics/resonance';
 import { envelopeAt, firstReach } from './resonanceRun';
 import {
+  SLOW_SWEEP_ERROR,
   slowSweepSeconds,
   sweepModel,
   sweepTimeScale,
@@ -83,7 +84,7 @@ describe('«Barrido»: the drive frequency sweeps across [0,5 f0; 1,5 f0] over t
 
       // Assert
       expect(sweepModel(settings).isSlow).toBe(true);
-      expect(worst).toBeLessThan(0.05);
+      expect(worst).toBeLessThan(SLOW_SWEEP_ERROR);
     },
   );
 
@@ -283,6 +284,55 @@ describe('«Filtro ZV»: one push against Klipper’s two impulses', () => {
       expect(residualAt(ratio).isWithinTolerance).toBe(true);
     }
     expect(residualAt(1.1).residual).toBeGreaterThan(residualAt(1.05).residual);
+  });
+
+  test('the residual is Klipper’s estimate: ≈ 6,6–6,7 % at ±5 %, ≈ 13 % at ±10 % (research §7)', () => {
+    const residualAt = (ratio: number) =>
+      zvModel({ f0: ratio, zeta: KLIPPER_ZETA, fZv: 1 }).residual;
+
+    expect(residualAt(0.95)).toBeCloseTo(0.067, 3);
+    expect(residualAt(1.05)).toBeCloseTo(0.066, 3);
+    expect(residualAt(0.9)).toBeCloseTo(0.135, 3);
+    expect(residualAt(1.1)).toBeCloseTo(0.1305, 3);
+  });
+
+  test('it is shaper_calibrate.py’s _estimate_shaper (L186-L198), term by term', () => {
+    // W = A·e^{−ζω(T_n − T)}, S = W·sin(ω′T), C = W·cos(ω′T), √(ΣS² + ΣC²)·(1/ΣA)
+    const klipper = (f0: number, zeta: number, fZv: number) => {
+      const { amplitudes, times } = zvShaper(fZv, KLIPPER_ZETA);
+      const omega = TWO_PI * f0;
+      const omegaD = omega * Math.sqrt(1 - zeta * zeta);
+      const last = times[times.length - 1];
+      const W = amplitudes.map((a, i) => a * Math.exp(-zeta * omega * (last - times[i])));
+      const S = W.reduce((sum, w, i) => sum + w * Math.sin(omegaD * times[i]), 0);
+      const C = W.reduce((sum, w, i) => sum + w * Math.cos(omegaD * times[i]), 0);
+      return Math.hypot(S, C) / amplitudes.reduce((sum, a) => sum + a, 0);
+    };
+    for (const [f0, zeta, fZv] of [
+      [1.1, 0.1, 1],
+      [0.9, 0.05, 1],
+      [2, 0.3, 0.5],
+      [0.5, 0, 2],
+    ]) {
+      expect(zvResidual(f0, zeta, zvShaper(fZv, KLIPPER_ZETA))).toBeCloseTo(
+        klipper(f0, zeta, fZv),
+        12,
+      );
+    }
+  });
+
+  test('never above 100 % of one push, anywhere on the sliders', () => {
+    for (const f0 of [0.5, 1, 1.5, 2]) {
+      for (const fZv of [0.5, 1, 1.5, 2]) {
+        for (const zeta of [0, 0.1, 0.3]) {
+          expect(zvModel({ f0, zeta, fZv }).residual, `${f0} ${fZv} ${zeta}`).toBeLessThanOrEqual(
+            1,
+          );
+        }
+      }
+    }
+    const worst = zvModel({ f0: 2, zeta: 0.3, fZv: 0.5 });
+    expect(Math.abs(worst.simulatedResidual - worst.residual)).toBeLessThan(0.01);
   });
 
   test('a filter that assumes ζ = 0,1 leaves vibration on an undamped structure', () => {

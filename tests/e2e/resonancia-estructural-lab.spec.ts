@@ -134,6 +134,10 @@ test.describe('el laboratorio de la resonancia', () => {
     await seekTimeline(timeline(lab), '1000');
 
     await expect(notes(lab)).toContainText('al paso: crece sin límite');
+    await expect(lab.locator('[data-testid="troop-plot"] svg[aria-label]').first()).toHaveAttribute(
+      'aria-label',
+      /rompiendo el paso hasta crecer sin límite/,
+    );
     await expect(lab.getByTestId('deck-puente')).toHaveAttribute('data-clamped', 'true');
     await expect(lab.getByTestId('deck-puente').getByText('fuera de escala')).toBeVisible();
     await expectFinite(lab);
@@ -145,7 +149,7 @@ test.describe('el laboratorio de la resonancia', () => {
     const lab = await openLab(page);
     await presets(lab).selectOption('zv-afinado');
 
-    expect(await readout(page, 'Vibración residual')).toBe('0,0 %');
+    expect(await readout(page, 'Vibración residual (estimación de Klipper)')).toBe('0,0 %');
     await expect(notes(lab)).toContainText('dentro de ±5 %');
     // One event, «Segundo impulso»: its mark and line, without the pair of buttons.
     await expect(lab.locator('[data-transport-events]')).toHaveCount(1);
@@ -153,7 +157,9 @@ test.describe('el laboratorio de la resonancia', () => {
 
     await presets(lab).selectOption('zv-desafinado');
 
-    await expect.poll(() => readout(page, 'Vibración residual')).toMatch(/^1\d,\d %$/);
+    await expect
+      .poll(() => readout(page, 'Vibración residual (estimación de Klipper)'))
+      .toMatch(/^1\d,\d %$/);
     await expect(notes(lab)).toContainText('fuera de ±5 %');
   });
 });

@@ -7,6 +7,7 @@ import { useGlobalSettings } from '../../lab/useGlobalSettings';
 import type { SimClock } from '../../lab/useSimClock';
 import type { ActiveModel } from './bridgeFrames';
 import BridgeScene from './BridgeScene';
+import { KNOB_HINT, MODE_HINT, SHORTCUTS_HINT } from './labTexts';
 import { ResonanceNotes, ResonanceParams, StepChoiceRow } from './ResonanceControls';
 import {
   DEFAULT_DISPLAY,
@@ -18,27 +19,12 @@ import {
 import ResonancePlot from './ResonancePlot';
 import { PRESET_GROUPS, presetIdFor, RESONANCE_PRESETS } from './resonancePresets';
 import { resonanceReadouts } from './resonanceReadouts';
-import type { ResonanceMode } from './resonanceScene';
 import { useResonanceRun } from './useResonanceRun';
 import {
   shortcutHandler,
   useResonanceSettings,
   type ResonanceSettingsState,
 } from './useResonanceSettings';
-
-/** «Cómo se usa»: the knob, the keys, then what the mode in view does. */
-const KNOB_HINT =
-  'Arrastra la perilla $f_0$ de la regla de frecuencias, bajo el puente, o enfócala y muévela con las flechas (un paso; con Mayús, cinco); Inicio y Fin la llevan a los extremos.';
-const SHORTCUTS_HINT =
-  'Atajos, fuera de los campos: Espacio o K reproduce y pausa; R reinicia; «,» y «.» retroceden o avanzan un cuadro.';
-const MODE_HINT: Readonly<Record<ResonanceMode, string>> = {
-  barrido:
-    'En «Barrido», la frecuencia de la fuerza sube en línea recta de $0{,}5\\,f_0$ a $1{,}5\\,f_0$ a lo largo de la corrida, como en el barrido de Klipper, y la gráfica traza la envolvente sobre la (12.3). Con $T_b \\ge 4/(\\zeta^2 f_0)$ (cálculo propio) el barrido es lento y la envolvente queda a menos de un 5 % de la curva; más rápido, se queda corta y llega tarde.',
-  tropa:
-    'En «Tropa», $N$ soldados marchan a 2,0 Hz con 280 N cada uno. «Al paso» suma sus fuerzas en fase; «Rompiendo el paso», con fases al azar, y «Nuevo sorteo» sortea otras. La masa modal de la pasarela, 40 toneladas, es ilustrativa.',
-  'filtro-zv':
-    'En «Filtro ZV», arriba la estructura recibe un empujón; abajo, el mismo empujón partido en los dos impulsos de Klipper para $f_\\text{ZV}$, con el $\\zeta$ = 0,1 que Klipper supone. Saca $f_0$ de la banda de ±5 % o cambia $\\zeta$, y la vibración vuelve.',
-};
 
 export interface ResonanceLabProps {
   /** «Cómo se usa», after the lab's own hints: from the topic's MDX. */

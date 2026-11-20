@@ -26,6 +26,7 @@ export interface ResonancePlotProps {
 }
 
 const MM_PER_M = 1000;
+const PERCENT = 100;
 const ENVELOPE_POINTS = 300;
 const HEADROOM = 1.15;
 const GUIDE_DASH = '4 4';
@@ -91,7 +92,7 @@ function SweepPlot({ active, t, frame, onSeek }: ResonancePlotProps) {
           `$\\omega_d/\\omega_0$ = ${formatNumber(ratio, { precision: TIME_PRECISION })}`,
       }}
       ariaLabel={mathTextToString(
-        `La curva azul es la amplitud estacionaria de la (12.3) entre ω_d/ω_0 = 0,5 y 1,5; ${Number.isFinite(sweep.peakGain) ? `su pico vale ${formatNumber(sweep.peakGain, { precision: 2 })}` : 'sin amortiguamiento crece sin límite en ω_d = ω_0'}. La violeta es la envolvente que traza el barrido hasta ahora; su pico llega a ${formatNumber(sweep.run.maxPeak, { precision: 2 })}.`,
+        `La curva azul es la amplitud estacionaria de la (12.3) entre $\\omega_d/\\omega_0$ = ${formatNumber(SWEEP_RANGE.start, { precision: 1 })} y ${formatNumber(SWEEP_RANGE.end, { precision: 1 })}; ${Number.isFinite(sweep.peakGain) ? `su pico vale ${formatNumber(sweep.peakGain, { precision: 2 })}` : 'sin amortiguamiento crece sin límite en $\\omega_d = \\omega_0$'}. La violeta es la envolvente que traza el barrido hasta ahora; su pico llega a ${formatNumber(sweep.run.maxPeak, { precision: 2 })}.`,
       )}
     />
   );
@@ -109,7 +110,11 @@ function TroopPlot({ active, t, frame, onSeek }: ResonancePlotProps) {
   const top =
     HEADROOM *
     Math.max(...inStep.map((p) => p.y), ...levels.map(({ value }) => value), Number.EPSILON);
-  const mm = (value: number) => formatNumber(value, { precision: 1, unit: 'mm' });
+  /** Where an envelope settles, in words: its steady amplitude, or no limit without damping. */
+  const upTo = (steady: number) =>
+    Number.isFinite(steady)
+      ? formatNumber(steady * MM_PER_M, { precision: 1, unit: 'mm' })
+      : 'crecer sin límite';
   return (
     <SvgPlot
       testId="troop-plot"
@@ -130,7 +135,7 @@ function TroopPlot({ active, t, frame, onSeek }: ResonancePlotProps) {
           <Level key={id} {...scales} at={value} label={`estacionaria ${name}`} />
         ))
       }
-      ariaLabel={`La amplitud del tablero sube desde cero: al paso hasta ${levels[0] ? mm(levels[0].value) : 'crecer sin límite'}, rompiendo el paso hasta ${mm(troop.steady.breaking * MM_PER_M)}, en ${formatNumber(troop.duration, { precision: 0, unit: 's' })}.`}
+      ariaLabel={`La amplitud del tablero sube desde cero: al paso hasta ${upTo(troop.steady.inStep)}, rompiendo el paso hasta ${upTo(troop.steady.breaking)}, en ${formatNumber(troop.duration, { precision: 0, unit: 's' })}.`}
     />
   );
 }
@@ -175,7 +180,7 @@ function ZvPlot({ active, t, frame, onSeek }: ResonancePlotProps) {
           className="pointer-events-none"
         />
       )}
-      ariaLabel={`Tras un empujón la estructura oscila y se apaga despacio; con los dos impulsos del filtro, el segundo a los ${formatNumber(zv.secondImpulse, { precision: 3, unit: 's' })}, queda un ${formatNumber(zv.residual * 100, { precision: 1 })} % de esa vibración.`}
+      ariaLabel={`Tras un empujón la estructura oscila y se apaga despacio; con los dos impulsos del filtro, el segundo a los ${formatNumber(zv.secondImpulse, { precision: 3, unit: 's' })}, queda, según la estimación de Klipper, un ${formatNumber(zv.residual * PERCENT, { precision: 1 })} % de la vibración de un empujón.`}
     />
   );
 }

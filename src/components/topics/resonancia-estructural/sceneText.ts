@@ -31,5 +31,5 @@ export function describeScene({ active, t, decimals }: SceneTextInput): string {
     return `Pasarela de $f_0$ = ${hz(troop.settings.f0)} con ${troop.settings.n} soldados ${how} a ${hz(MARCH_PACE_HZ)}; el tablero sube y baja ${formatNumber(envelopeAt(run, t) * MM_PER_M, { precision: 0, unit: 'mm' })}.`;
   }
   const { zv } = active;
-  return `Dos tableros iguales de $f_0$ = ${hz(zv.settings.f0)}: arriba, un solo empujón; abajo, los dos impulsos del filtro ZV de ${hz(zv.settings.fZv)}. Tras el segundo impulso queda el ${formatNumber(zv.residual * PERCENT, { precision: 1 })} % de la vibración.`;
+  return `Dos tableros iguales de $f_0$ = ${hz(zv.settings.f0)}: arriba, un solo empujón; abajo, los dos impulsos del filtro ZV de ${hz(zv.settings.fZv)}. Tras el segundo impulso queda, según la estimación de Klipper, el ${formatNumber(zv.residual * PERCENT, { precision: 1 })} % de la vibración de un solo empujón.`;
 }

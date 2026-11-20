@@ -127,6 +127,14 @@ describe('ResonanceLab', () => {
 
     expect(chips()).toContain('al paso: crece sin límite');
     expectFiniteReadouts();
+    const spoken = screen
+      .getByTestId('troop-plot')
+      .querySelector('svg[aria-label]')
+      ?.getAttribute('aria-label');
+    expect(spoken).toContain(
+      'al paso hasta crecer sin límite, rompiendo el paso hasta crecer sin límite',
+    );
+    expect(spoken).not.toMatch(/—|NaN|Infinity/);
     expect(document.querySelector('[data-transport-events]')).toBeNull();
     expect(screen.getByTestId('deck-puente')).toHaveAttribute('data-clamped', 'true');
   });
@@ -135,14 +143,14 @@ describe('ResonanceLab', () => {
     render(<ResonanceLab />);
     fireEvent.click(mode('Filtro ZV'));
 
-    expect(readout('Vibración residual')).toBe('0,0 %');
+    expect(readout('Vibración residual (estimación de Klipper)')).toBe('0,0 %');
     expect(chips()).toContain('dentro de ±5 %');
 
     typeInto(field(/^Frecuencia natural f sub 0/), '1,1');
 
     expect(
       Number(
-        readout('Vibración residual')
+        readout('Vibración residual (estimación de Klipper)')
           .replace(/[^\d,]/g, '')
           .replace(',', '.'),
       ),

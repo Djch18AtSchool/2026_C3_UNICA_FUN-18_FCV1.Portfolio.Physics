@@ -61,7 +61,12 @@ describe('BridgeScene', () => {
     expect(spaced(screen.getByRole('img').getAttribute('aria-label'))).toMatch(
       /^Puente de prueba de f sub 0 = 1,00 Hz con un vibrador/,
     );
-    const driveAt = () => Number(screen.getByTestId('ruler-drive').getAttribute('data-x'));
+    const driveAt = () =>
+      Number(
+        /translate\(([\d.]+)/.exec(
+          screen.getByTestId('ruler-drive').getAttribute('transform') ?? '',
+        )?.[1],
+      );
     const before = driveAt();
     act(() => frame.set(SWEEP.duration));
     expect(driveAt()).toBeGreaterThan(before);

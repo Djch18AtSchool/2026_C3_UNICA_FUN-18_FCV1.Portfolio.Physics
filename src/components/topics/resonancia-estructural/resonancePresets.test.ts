@@ -3,6 +3,7 @@ import { BROUGHTON, MARCH_PACE_HZ, STEEL_FOOTBRIDGE_DAMPING } from '../../../lib
 import { KLIPPER } from '../../../lib/data/klipper';
 import {
   DEFAULT_SETTINGS,
+  FOOTBRIDGE_F0,
   PRESET_GROUPS,
   presetIdFor,
   RESONANCE_LIMITS,
@@ -35,11 +36,13 @@ describe('the resonance lab’s defaults', () => {
     });
     expect(DEFAULT_SETTINGS.troop).toMatchObject({
       n: BROUGHTON.soldiersOnBridge.value,
-      f0: MARCH_PACE_HZ,
+      f0: FOOTBRIDGE_F0,
       zeta: STEEL_FOOTBRIDGE_DAMPING.value,
       step: 'al-paso',
     });
     expect(DEFAULT_SETTINGS.zv.fZv).toBe(DEFAULT_SETTINGS.zv.f0);
+    // The default footbridge is tuned to the march: its own constant, equal to the pace.
+    expect(FOOTBRIDGE_F0).toBe(MARCH_PACE_HZ);
     expect(presetIdFor(DEFAULT_SETTINGS)).toBe(RESONANCE_PRESETS[0].id);
   });
 });
@@ -98,6 +101,8 @@ describe('the resonance lab’s presets', () => {
     expect(note('sin-amortiguamiento')).toContain('crece sin límite');
     expect(note('tropa-rompiendo')).toContain('$\\sqrt{60}$');
     expect(note('zv-afinado')).toContain('menos del 1 %');
-    expect(note('zv-desafinado')).toMatch(/queda un 1\d,\d %/);
+    expect(note('zv-desafinado')).toContain('según la estimación de Klipper queda un 13,1 %');
+    expect(note('tropa-rompiendo')).toContain('un sorteo típico');
+    expect(note('tropa-al-paso')).not.toContain('—');
   });
 });
