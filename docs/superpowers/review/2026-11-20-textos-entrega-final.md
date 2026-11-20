@@ -615,7 +615,7 @@ Página (`src/content/topics/sintesis-sonido.mdx`):
 
 Lienzo (`SynthStage.tsx`) y estado del sonido (`synthTexts.ts`, `additiveVoiceEngine.ts`):
 
-- `src/components/topics/sintesis-sonido/SynthLab.tsx:233`, título del laboratorio: — → «Laboratorio de síntesis
+- `src/components/topics/sintesis-sonido/SynthLab.tsx:168`, título del laboratorio: — → «Laboratorio de síntesis
   aditiva»
 - `src/components/topics/sintesis-sonido/SynthStage.tsx:67`, botón (cambia al pulsarlo): — → «Reproducir» · «Detener»
 - `src/components/topics/sintesis-sonido/synthTexts.ts:20`, línea de estado junto al botón: — → «Nada suena hasta que
@@ -632,11 +632,11 @@ Lienzo (`SynthStage.tsx`) y estado del sonido (`synthTexts.ts`, `additiveVoiceEn
   la original.» (con fases sorteadas añade «, con fases sorteadas»; con el diente de sierra, «La curva medio periodo
   después e invertida es otra: correlación 0,53.»; en silencio, «No suena ningún armónico: es una recta.»)
 
-Parámetros, escenario y ajustes (`SynthLab.tsx`, `synthTexts.ts`, `synthPresets.ts`):
+Parámetros, escenario y ajustes (`SynthParams.tsx`, `SynthLab.tsx`, `synthTexts.ts`, `synthPresets.ts`):
 
 - `src/components/topics/sintesis-sonido/synthTexts.ts:40`, rótulo de cada amplitud: — → «Armónico 1, $A_{1}$» …
   «Armónico 10, $A_{10}$»; sobre Nyquist añade « (sobre $f_s/2$)»
-- `src/components/topics/sintesis-sonido/SynthLab.tsx:179`, rótulos: — → «Fundamental $f_1$» · «Frecuencia de
+- `src/components/topics/sintesis-sonido/SynthParams.tsx:78`, rótulos: — → «Fundamental $f_1$» · «Frecuencia de
   muestreo $f_s$»; opciones: «8 000 Hz» · «16 000 Hz» · «22 050 Hz» · «44 100 Hz» · «48 000 Hz»
 - `src/components/topics/sintesis-sonido/synthTexts.ts:48`, nota de la (11.9) bajo los parámetros: — → «Con $f_s$ =
   44 100 Hz caben bajo $f_s/2$ los diez armónicos: $\lfloor f_s/(2 f_1) \rfloor$ = 71, la (11.9).» · con 8 000 Hz y
@@ -658,20 +658,20 @@ Parámetros, escenario y ajustes (`SynthLab.tsx`, `synthTexts.ts`, `synthPresets
     figura 11.4, a 310,10 Hz: el 3.º supera al fundamental y los pares casi no suenan.»
 - `src/components/topics/sintesis-sonido/synthPresets.ts:40`, sus fuentes (tras «Fuente:», enlazadas): — → «W3C, Web
   Audio API, §1.28.6 (tabla 11.1)» · «cálculo propio sobre la grabación del MIS (tabla 11.2)»
-- `src/components/topics/sintesis-sonido/SynthLab.tsx:211`, interruptor: — → «Fases aleatorias»
+- `src/components/topics/sintesis-sonido/SynthLab.tsx:156`, interruptor: — → «Fases aleatorias»
 - `src/components/topics/sintesis-sonido/synthTexts.ts:34`, nota bajo el interruptor: — → apagado: «Apagado, cada
   armónico suena con la fase de su receta: la medida, o 0 y $\pi$ en las clásicas.» · encendido: «Fases sorteadas: la
   forma de onda cambia y el espectro no. Para Helmholtz el timbre no depende de las fases, con la ligera salvedad de
   Ellis (pie de la figura 11.4).»
-- `src/components/topics/sintesis-sonido/SynthLab.tsx:225`, ajuste del engranaje: — → «Curva $-y(t + T/2)$ sobre la
+- `src/components/topics/sintesis-sonido/SynthLab.tsx:76`, ajuste del engranaje: — → «Curva $-y(t + T/2)$ sobre la
   forma de onda»
 
 Lecturas y gráfica de apoyo (`SynthLab.tsx`, `synthTexts.ts`):
 
-- `src/components/topics/sintesis-sonido/SynthLab.tsx:55`, lecturas: — → «Fundamental $f_1$» 310,1 Hz · «Periodo
+- `src/components/topics/sintesis-sonido/SynthLab.tsx:42`, lecturas: — → «Fundamental $f_1$» 310,1 Hz · «Periodo
   $T = 1/f_1$» 3,22 ms · «Impares sobre pares, $n \le 10$» 25,7 dB (— cuando falta una paridad o no suena nada) ·
   «Armónico más fuerte, $n$» 3
-- `src/components/topics/sintesis-sonido/SynthLab.tsx:243`, título y eje del espectro: — → «Contenido armónico de la
+- `src/components/topics/sintesis-sonido/SynthLab.tsx:178`, título y eje del espectro: — → «Contenido armónico de la
   receta» · «Nivel de $A_n$ (dB)» (el eje $x$, la leyenda y la línea «Impares sobre pares…», los de las figuras)
 - `src/components/topics/sintesis-sonido/synthTexts.ts:75`, nombre accesible del espectro (se oye): — → «Espectro de la
   receta, armónicos 1 a 10 en dB: el más fuerte es el 3.º.» (con armónicos sobre Nyquist añade «Del 5.º en adelante

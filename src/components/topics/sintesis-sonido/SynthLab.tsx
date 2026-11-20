@@ -2,19 +2,14 @@ import { useEffect, useMemo, useState, type JSX } from 'react';
 import InlineMath from '../../lab/InlineMath';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
-import ParamField from '../../lab/ParamField';
 import type { SettingOption } from '../../lab/SettingsDrawer';
-import { SelectField, SwitchField } from '../../lab/SettingsFields';
-import { formatNumber } from '../../../lib/format';
+import { SwitchField } from '../../lab/SettingsFields';
 import SpectrumBars from './SpectrumBars';
 import {
-  AMPLITUDE_RANGE,
   audibleCount,
-  F1_RANGE,
   HARMONIC_COUNT,
   INITIAL_SYNTH_STATE,
   presetIdFor,
-  SAMPLE_RATES,
   setAmplitude,
   setCursor,
   setF1,
@@ -31,10 +26,9 @@ import {
   type SynthRecipe,
   type SynthState,
 } from './synthScene';
+import SynthParams from './SynthParams';
 import SynthStage from './SynthStage';
 import {
-  amplitudeLabel,
-  nyquistNote,
   randomPhasesNote,
   spectrumDescription,
   statusText,
@@ -42,13 +36,6 @@ import {
   waveformDescription,
 } from './synthTexts';
 import { useAdditiveVoice, type AdditiveVoice } from './useAdditiveVoice';
-
-const NOTE = 'm-0 text-sm text-fg-muted';
-
-const SAMPLE_RATE_OPTIONS = SAMPLE_RATES.map((rate) => ({
-  value: String(rate),
-  label: formatNumber(rate, { precision: 0, unit: 'Hz' }),
-}));
 
 function labReadouts(readings: SynthReadings): LabReadout[] {
   return [
@@ -73,6 +60,22 @@ function labReadouts(readings: SynthReadings): LabReadout[] {
       value: readings.strongest,
       unit: '',
       precision: 0,
+    },
+  ];
+}
+
+/** Level 3: the drawer can take the dashed −y(t + T/2) (and its point) off the waveform. */
+function displayOptions(
+  showShifted: boolean,
+  onChange: (isShown: boolean) => void,
+): SettingOption[] {
+  return [
+    {
+      key: 'shifted',
+      kind: 'toggle',
+      label: 'Curva $-y(t + T/2)$ sobre la forma de onda',
+      value: showShifted,
+      onChange,
     },
   ];
 }
@@ -103,35 +106,6 @@ function useVoiceSync(voice: AdditiveVoice, sounding: SynthRecipe, state: SynthS
   useEffect(() => setRate(state.sampleRate), [setRate, state.sampleRate]);
 }
 
-interface AmplitudeFieldProps {
-  n: number;
-  value: number;
-  isAudible: boolean;
-  onChange(n: number, value: number): void;
-}
-
-/** A_n; above f_s/2 the fieldset disables its slider and number, and the label says why. */
-function AmplitudeField({ n, value, isAudible, onChange }: AmplitudeFieldProps): JSX.Element {
-  return (
-    <fieldset
-      disabled={!isAudible}
-      data-harmonic-field={n}
-      className="m-0 min-w-0 border-0 p-0 disabled:opacity-60"
-    >
-      <ParamField
-        id={`synth-a${n}`}
-        label={amplitudeLabel(n, isAudible)}
-        unit=""
-        min={AMPLITUDE_RANGE.min}
-        max={AMPLITUDE_RANGE.max}
-        step={AMPLITUDE_RANGE.step}
-        value={value}
-        onChange={(next) => onChange(n, next)}
-      />
-    </fieldset>
-  );
-}
-
 export interface SynthLabProps {
   /** «Qué deja fuera el modelo», written in the topic's MDX so it travels with its text. */
   leftOut?: string;
@@ -153,51 +127,22 @@ export default function SynthLab({ leftOut }: SynthLabProps): JSX.Element {
   const readings = synthReadings(state);
   const audible = audibleCount(state.f1, state.sampleRate);
   const waveform = useMemo(() => synthWaveform(sounding, state.f1), [sounding, state.f1]);
-  const isSilent = sounding.amplitudes.every((a) => a === 0);
-
-  const onAmplitude = (n: number, value: number) =>
-    setState((previous) => setAmplitude(previous, n, value));
-  const onSampleRate = (value: string) => {
-    // Inside the change event: a playing voice reopens its context within the gesture.
-    voice.setSampleRate(Number(value));
-    setState((previous) => setSampleRate(previous, Number(value)));
-  };
 
   const params = (
-    <>
-      {state.amplitudes.map((value, i) => (
-        <AmplitudeField
-          key={i}
-          n={i + 1}
-          value={value}
-          isAudible={i < audible}
-          onChange={onAmplitude}
-        />
-      ))}
-      <ParamField
-        id="synth-f1"
-        label="Fundamental $f_1$"
-        unit="Hz"
-        min={F1_RANGE.min}
-        max={F1_RANGE.max}
-        step={F1_RANGE.step}
-        value={state.f1}
-        onChange={(f1) => setState((previous) => setF1(previous, f1))}
-      />
-      <SelectField
-        id="synth-fs"
-        stacked
-        label="Frecuencia de muestreo $f_s$"
-        value={String(state.sampleRate)}
-        options={SAMPLE_RATE_OPTIONS}
-        onChange={onSampleRate}
-      />
-      <p data-testid="synth-nyquist" className={NOTE}>
-        <InlineMath text={nyquistNote(state.f1, state.sampleRate)} />
-      </p>
-    </>
+    <SynthParams
+      state={state}
+      audible={audible}
+      onAmplitude={(n, value) => setState((previous) => setAmplitude(previous, n, value))}
+      onF1={(f1) => setState((previous) => setF1(previous, f1))}
+      onSampleRate={(value) => {
+        // Inside the change event: a playing voice reopens its context within the gesture.
+        voice.setSampleRate(Number(value));
+        setState((previous) => setSampleRate(previous, Number(value)));
+      }}
+    />
   );
 
+  // Inline, so the shell sees LabPresets on top and closes its row with «Restablecer».
   const scenario = (
     <>
       <LabPresets
@@ -212,28 +157,18 @@ export default function SynthLab({ leftOut }: SynthLabProps): JSX.Element {
         checked={state.randomPhases}
         onChange={(isOn) => setState((previous) => setRandomPhases(previous, isOn))}
       />
-      <p data-testid="synth-random-note" className={NOTE}>
+      <p data-testid="synth-random-note" className="m-0 text-sm text-fg-muted">
         <InlineMath text={randomPhasesNote(state.randomPhases)} />
       </p>
     </>
   );
-
-  const display: SettingOption[] = [
-    {
-      key: 'shifted',
-      kind: 'toggle',
-      label: 'Curva $-y(t + T/2)$ sobre la forma de onda',
-      value: showShifted,
-      onChange: setShowShifted,
-    },
-  ];
 
   return (
     <LabShell
       title="Laboratorio de síntesis aditiva"
       testId="synth-lab"
       readouts={labReadouts(readings)}
-      levels={{ params, scenario, display }}
+      levels={{ params, scenario, display: displayOptions(showShifted, setShowShifted) }}
       notes={{ usage: [...USAGE], leftOut: leftOut ? [leftOut] : [] }}
       onReset={() => setState(INITIAL_SYNTH_STATE)}
       charts={
@@ -250,7 +185,11 @@ export default function SynthLab({ leftOut }: SynthLabProps): JSX.Element {
     >
       <SynthStage
         isPlaying={voice.isPlaying}
-        status={statusText(voice.isPlaying, isSilent, voice.error)}
+        status={statusText(
+          voice.isPlaying,
+          sounding.amplitudes.every((a) => a === 0),
+          voice.error,
+        )}
         onToggle={() => (voice.isPlaying ? voice.stop() : void voice.start())}
         waveform={waveform}
         waveformLabel={waveformDescription(readings, state.randomPhases)}
