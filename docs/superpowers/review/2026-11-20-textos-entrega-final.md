@@ -100,63 +100,63 @@ las tablas y los datos cuyos textos se ven por primera vez en las tablas de esta
 - `src/content/topics/animaciones-resorte.mdx:97`, «Con lo visto en clase», nota (nuevo): «$U_\text{el} = kx^2/2$: el segundo término de la $E$ de la (10.5).»
 - `src/content/topics/animaciones-resorte.mdx:99`, «Con lo visto en clase», tema (nuevo): «Tema 04 · Energía mecánica · Concepto 05 · Trabajo no conservativo y balance de energía»
 - `src/content/topics/animaciones-resorte.mdx:100`, «Con lo visto en clase», nota (nuevo): «$\Delta(K+U) = W_\text{otras}$: con la fuerza viscosa, la (10.5).»
-- `src/content/topics/animaciones-resorte.mdx:116`, introducción (nuevo): «Lo que se desliza o se abre en iOS y en Motion no sigue una curva dibujada a mano: sigue un resorte amortiguado, calculado en cada cuadro.»
-- `src/content/topics/animaciones-resorte.mdx:118`, Paso 1, título (nuevo): «Un resorte sin amortiguar»
-- `src/content/topics/animaciones-resorte.mdx:120`, Paso 1 (nuevo): «Llamo $u$ al desplazamiento del elemento respecto de su destino; con solo Hooke, su aceleración cambia con $u$.»
-- `src/content/topics/animaciones-resorte.mdx:126`, Paso 1, leyenda de ecuación (nuevo): «posición del elemento en su eje»
-- `src/content/topics/animaciones-resorte.mdx:127`, Paso 1, leyenda de ecuación (nuevo): «destino de la animación»
-- `src/content/topics/animaciones-resorte.mdx:128`, Paso 1, leyenda de ecuación (nuevo): «masa; las bibliotecas usan 1 kg»
-- `src/content/topics/animaciones-resorte.mdx:129`, Paso 1, leyenda de ecuación (nuevo): «rigidez del resorte»
-- `src/content/topics/animaciones-resorte.mdx:137`, Paso 1, leyenda de ecuación (nuevo): «desplazamiento inicial, soltado desde el reposo»
-- `src/content/topics/animaciones-resorte.mdx:138`, Paso 1, leyenda de ecuación (nuevo): «frecuencia angular natural»
-- `src/content/topics/animaciones-resorte.mdx:139`, Paso 1, leyenda de ecuación (nuevo): «periodo»
-- `src/content/topics/animaciones-resorte.mdx:147`, Paso 1, «En el fenómeno» (nuevo): «El elemento cruza el destino a su rapidez máxima y sigue de largo, porque nada le quita energía: «Springs with ˋdamping: 0ˋ will run forever» <Cite id="motion-docs-spring" sources={frontmatter.sources} />.»
-- `src/content/topics/animaciones-resorte.mdx:153`, Paso 1, «En la ecuación» (nuevo): «Derivo dos veces la (10.2): <Equation inline latex="\ddot u = -\omega_0^2\,u" />, la (10.1). Con los valores por omisión de Motion, 100 N/m y 1 kg, <Equation inline latex="T_0" /> = 0,63 s.»
-- `src/content/topics/animaciones-resorte.mdx:162`, Paso 1, pie de figura (nuevo): «Valor animado de 100 a 1 000 con $k$ = 100 N/m, $m$ = 1 kg y $b$ = 0. Es un coseno de periodo $T_0$ = 0,63 s: vuelve a 100 en cada periodo y nunca se queda en la banda de ±2 % del destino.»
-- `src/content/topics/animaciones-resorte.mdx:164`, Paso 1, fuente de la figura (nuevo): «Gráfica que calculé con la (10.2); $k$ y $m$ por omisión de Motion v14.14.0 (spring.ts L22 y L24), con $b$ = 0»
-- `src/content/topics/animaciones-resorte.mdx:172`, Paso 2, título (nuevo): «El amortiguamiento viscoso»
-- `src/content/topics/animaciones-resorte.mdx:174`, Paso 2 (nuevo): «Le añado una fuerza opuesta a la velocidad, <Equation inline latex="-b\,\dot u" /> <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. La razón $\zeta$ compara $b$ con el amortiguamiento crítico <Equation inline latex="b_c" />.»
-- `src/content/topics/animaciones-resorte.mdx:179`, Paso 2, leyenda de ecuación (nuevo): «coeficiente de amortiguamiento viscoso»
-- `src/content/topics/animaciones-resorte.mdx:186`, Paso 2, leyenda de ecuación (nuevo): «razón de amortiguamiento, adimensional»
-- `src/content/topics/animaciones-resorte.mdx:187`, Paso 2, leyenda de ecuación (nuevo): «amortiguamiento crítico, el de $\zeta = 1$»
-- `src/content/topics/animaciones-resorte.mdx:195`, Paso 2, leyenda de ecuación (nuevo): «energía mecánica del resorte»
-- `src/content/topics/animaciones-resorte.mdx:196`, Paso 2, leyenda de ecuación (nuevo): «velocidad, $\dot u$»
-- `src/content/topics/animaciones-resorte.mdx:204`, Paso 2, «En el fenómeno» (nuevo): «Cada vaivén es menor: la fuerza viscosa siempre frena, y el elemento acaba en una banda alrededor del destino.»
-- `src/content/topics/animaciones-resorte.mdx:210`, Paso 2, «En la ecuación» (nuevo): «Con la (10.3), <Equation inline latex="\dot E = v\,(m\dot v + k u) = -b v^2" />. Si <Equation inline latex="\zeta < 1" />, <Equation inline latex="u = A_0 e^{-\zeta\omega_0 t}\cos(\omega' t + \phi)" /> con <Equation inline latex="\omega' = \omega_0\sqrt{1-\zeta^2}" />: un coseno por una exponencial, el «damped cosine» de Apple <Cite id="wwdc23-springs" sources={frontmatter.sources} />.»
-- `src/content/topics/animaciones-resorte.mdx:219`, Paso 2, pie de figura (nuevo): «Los valores por omisión de Motion, $k$ = 100 N/m, $b$ = 10 N·s/m y $m$ = 1 kg ($\zeta$ = 0,5), de 100 a 1 000. La curva queda entre las envolventes $x_\text{obj} \pm A_0 e^{-\zeta\omega_0 t}$, con $A_0 = |u_0|/\sqrt{1-\zeta^2}$, y entra para siempre en la banda de ±2 % a los 0,81 s.»
-- `src/content/topics/animaciones-resorte.mdx:221`, Paso 2, fuente de la figura (nuevo): «Gráfica que calculé con la (10.6); valores por omisión de Motion v14.14.0 (spring.ts L22-L24)»
-- `src/content/topics/animaciones-resorte.mdx:229`, Paso 3, título (nuevo): «Tres regímenes y ninguna duración»
-- `src/content/topics/animaciones-resorte.mdx:231`, Paso 3 (nuevo): «Con cualquier <Equation inline latex="u_0" /> y <Equation inline latex="v_0" />, la (10.3) tiene tres soluciones según $\zeta$: las tres ramas del generador de Motion <Cite id="motion-v14140" sources={frontmatter.sources} />. Con ellas reproduzco, valor por valor, sus tres pruebas (cálculo propio).»
-- `src/content/topics/animaciones-resorte.mdx:237`, Paso 3, leyenda de ecuación (nuevo): «velocidad inicial, por ejemplo la de un gesto»
-- `src/content/topics/animaciones-resorte.mdx:238`, Paso 3, leyenda de ecuación (nuevo): «frecuencia angular amortiguada»
-- `src/content/topics/animaciones-resorte.mdx:241`, Paso 3, leyenda de ecuación (nuevo): «tasas de las dos exponenciales, una lenta y una rápida»
-- `src/content/topics/animaciones-resorte.mdx:251`, Paso 3, leyenda de ecuación (nuevo): «instante del primer sobrepaso»
-- `src/content/topics/animaciones-resorte.mdx:252`, Paso 3, leyenda de ecuación (nuevo): «sobrepaso, como fracción del recorrido»
-- `src/content/topics/animaciones-resorte.mdx:262`, Paso 3, leyenda de ecuación (nuevo): «tiempo de asentamiento: desde ahí, $|u| \le \varepsilon\,|u_0|$»
-- `src/content/topics/animaciones-resorte.mdx:265`, Paso 3, leyenda de ecuación (nuevo): «ancho de la banda de reposo, como fracción del recorrido»
-- `src/content/topics/animaciones-resorte.mdx:273`, Paso 3, «En el fenómeno» (nuevo): «Con <Equation inline latex="\zeta < 1" /> el elemento se pasa y oscila; con <Equation inline latex="\zeta = 1" /> llega sin pasarse; con <Equation inline latex="\zeta > 1" />, sin pasarse pero más tarde. Ninguno termina en un instante preciso.»
-- `src/content/topics/animaciones-resorte.mdx:279`, Paso 3, «En la ecuación» (nuevo): «La (10.7) es la (10.6) en el primer <Equation inline latex="v = 0" />; la (10.8), cuándo la envolvente cae a $\varepsilon$. El asentamiento depende de $\zeta$, <Equation inline latex="\omega_0" />, $\varepsilon$ y del estado inicial: no hay una duración. Con una banda del 2 %, <Equation inline latex="\zeta = 0{,}8" /> entra antes que el crítico (cálculo propio).»
-- `src/content/topics/animaciones-resorte.mdx:288`, Paso 3, pie de figura (nuevo): «Las tres pruebas del resorte de Motion, de 100 a 1 000 con $m$ = 1 kg: subamortiguada ($k$ = 300 N/m, $b$ = 10 N·s/m), crítica (100 y 20) y sobreamortiguada (300 y 100). Las curvas son la (10.6); los puntos, los valores que cada prueba espera cada 0,2 s, y coinciden al redondear.»
-- `src/content/topics/animaciones-resorte.mdx:290`, Paso 3, fuente de la figura (nuevo): «Gráfica que calculé con la (10.6); valores esperados de la prueba spring.test.ts de Motion v14.14.0, L41-L121»
-- `src/content/topics/animaciones-resorte.mdx:301`, Paso 4, título (nuevo): «Lo que hace una biblioteca real»
-- `src/content/topics/animaciones-resorte.mdx:303`, Paso 4 (nuevo): «Si el destino cambia a mitad de camino, la biblioteca reinicia la (10.6) desde el estado actual; Motion pasa ˋvalue.getVelocity()ˋ a la animación nueva <Cite id="motion-v14140" sources={frontmatter.sources} />. Apple cambió $m$, $k$ y $b$ («they're not very intuitive» <Cite id="wwdc23-springs" sources={frontmatter.sources} />) por una duración $d$ y un rebote $\beta$ <Cite id="apple-spring" sources={frontmatter.sources} />. Un umbral de reposo corta la cola.»
-- `src/content/topics/animaciones-resorte.mdx:309`, Paso 4, leyenda de ecuación (nuevo): «instante en que cambia el destino»
-- `src/content/topics/animaciones-resorte.mdx:310`, Paso 4, leyenda de ecuación (nuevo): «el destino nuevo»
-- `src/content/topics/animaciones-resorte.mdx:318`, Paso 4, leyenda de ecuación (nuevo): «duración perceptual: $\omega_0 = 2\pi/d$»
-- `src/content/topics/animaciones-resorte.mdx:321`, Paso 4, leyenda de ecuación (nuevo): «rebote: $\zeta = 1 - \beta$; 0 es crítico y 1, sin amortiguar»
-- `src/content/topics/animaciones-resorte.mdx:330`, Paso 4, leyenda de ecuación (nuevo): «umbral de rapidez; Motion usa 2 px/s»
-- `src/content/topics/animaciones-resorte.mdx:333`, Paso 4, leyenda de ecuación (nuevo): «umbral de distancia; Motion usa 0,5 px, «selected empirically»»
-- `src/content/topics/animaciones-resorte.mdx:343`, Paso 4, «En el fenómeno» (nuevo): «Interrumpido, el resorte sigue con su velocidad y vuelve sin sacudida; una curva con duración arranca otra vez desde el reposo, y su velocidad cae a cero de golpe.»
-- `src/content/topics/animaciones-resorte.mdx:349`, Paso 4, «En la ecuación» (nuevo): «Con la (10.9), $x$ y $v$ son continuas en <Equation inline latex="t^*" />; solo salta la aceleración, una cantidad finita por la (10.3). La (10.10) da <Equation inline latex="\omega_0 = 2\pi/d" /> y <Equation inline latex="\zeta = 1 - \beta" />: con 0,5 s y 0,3, los 157,9 N/m y 17,6 N·s/m de Apple (tabla 10.2).»
-- `src/content/topics/animaciones-resorte.mdx:358`, Paso 4, pie de figura (nuevo): «La transición por omisión de Motion para una traslación ($k$ = 500 N/m, $b$ = 25 N·s/m) frente a una curva ease-in-out que dura 0,26 s, lo que tarda el resorte en asentarse al 2 %. A $t^*$ = 0,10 s el destino vuelve a 100. Arriba, la posición; abajo, la velocidad: la del resorte sigue en unos 6 680 px/s y la de la curva cae de 5 330 px/s a 0.»
-- `src/content/topics/animaciones-resorte.mdx:360`, Paso 4, fuente de la figura (nuevo): «Gráfica que calculé con las (10.6) y (10.9); $k$ y $b$ de Motion v14.14.0 (default-transitions.ts L4-L9); curva ease-in-out, cubic-bezier(0.42, 0, 0.58, 1), de CSS Easing Functions Level 1 (W3C)»
-- `src/content/topics/animaciones-resorte.mdx:374`, caso de uso, «El caso concreto» (nuevo): «Motion (antes Framer Motion, licencia MIT) anima interfaces web <Cite id="motion-blog-2024" sources={frontmatter.sources} />. Su generador ˋspringˋ (tag v14.14.0, commit ˋf95ab94ˋ) escribe las tres ramas de la (10.6) <Cite id="motion-v14140" sources={frontmatter.sources} />. Apple explica el porqué en la WWDC23 <Cite id="wwdc23-springs" sources={frontmatter.sources} />; desde iOS 17, los resortes animan SwiftUI por omisión <Cite id="apple-animation-default" sources={frontmatter.sources} />. En Android, Material 3 pasó de duraciones con curvas de Bézier a tokens con $k$ y $\zeta$ <Cite id="androidx" sources={frontmatter.sources} />.»
-- `src/content/topics/animaciones-resorte.mdx:380`, caso de uso, «La ecuación» (nuevo): «ˋreturn s.target - c.env * (c.A * c.sin + s.delta * c.cos)ˋ (L392) es la (10.6) si ˋs.deltaˋ vale <Equation inline latex="-u_0" /> y ˋs.velocityˋ, <Equation inline latex="-v_0" />. ˋdamping / (2 * Math.sqrt(stiffness * mass))ˋ (L314) es la (10.4), y la escala hacia 0 usa ˋ2 * Math.sqrt(550)ˋ: el crítico exacto, para que la escala no se vuelva negativa.»
-- `src/content/topics/animaciones-resorte.mdx:386`, caso de uso, «Por qué modelar la física» (nuevo): «Una curva con duración «is just a prespecified curve, so there's no way to represent an initial velocity» <Cite id="wwdc23-springs" sources={frontmatter.sources} />. El resorte acepta cualquier distancia y cualquier <Equation inline latex="v_0" />: un gesto o una animación interrumpida entregan su velocidad sin salto (figura 10.4). Con curvas haría falta una por caso.»
-- `src/content/topics/animaciones-resorte.mdx:392`, caso de uso, «Qué se gana y qué cuesta» (nuevo): «Gano continuidad de velocidad con solo tres números, $m$, $k$ y $b$. Cuesta no tener duración («a bit unpredictable», dice Apple <Cite id="wwdc23-springs" sources={frontmatter.sources} />), umbrales empíricos, parámetros sin objeto real y trampas numéricas: la 14.7.0 corrigió sobreamortiguados que saltaban al destino <Cite id="motion-v14140" sources={frontmatter.sources} />. Los resortes por duración de Motion terminan a tiempo, pero ignoran la velocidad heredada <Cite id="motion-docs-transitions" sources={frontmatter.sources} />.»
-- `src/content/topics/animaciones-resorte.mdx:398`, recuadro de clase, título (nuevo): «Módulo 5 · Temas 1 y 3; Módulo 2 · Temas 02 y 04, y SPAA 02»
-- `src/content/topics/animaciones-resorte.mdx:400`, recuadro «Visto en clase» (nuevo): «El Módulo 5 escribe la (10.2), la (10.3), <Equation inline latex="b_c = 2\sqrt{km}" /> y la (10.5); su envolvente <Equation inline latex="e^{-(b/2m)t}" /> es la de la (10.6), porque <Equation inline latex="\zeta\omega_0 = b/2m" />. El Módulo 2 da Hooke («No corresponde usar MRUA») y la energía elástica <Equation inline latex="\tfrac12 k x^2" />. La regla B de su SPAA 02, «su velocidad se vuelve cero», es el error de la curva con duración. $\zeta$, la (10.6) completa y las (10.7) a (10.11) son extensiones.»
-- `src/content/topics/animaciones-resorte.mdx:406`, «Conexiones» (nuevo): «Con el Tema 5: el mismo oscilador devuelve el gatillo al reposo, crítico o a 0,3 del crítico, con $c$ en lugar de $b$. Con el Tema 7: ˋbounceˋ de react-spring invierte la velocidad en el destino y la escala, como una restitución <Cite id="react-spring-v1012" sources={frontmatter.sources} />. Con el Tema 12: el mismo oscilador, forzado a su frecuencia natural.»
+- `src/content/topics/animaciones-resorte.mdx:121`, introducción (nuevo): «Lo que se desliza o se abre en iOS y en Motion no sigue una curva dibujada a mano: sigue un resorte amortiguado, calculado en cada cuadro.»
+- `src/content/topics/animaciones-resorte.mdx:123`, Paso 1, título (nuevo): «Un resorte sin amortiguar»
+- `src/content/topics/animaciones-resorte.mdx:125`, Paso 1 (nuevo): «Llamo $u$ al desplazamiento del elemento respecto de su destino; con solo Hooke, su aceleración cambia con $u$.»
+- `src/content/topics/animaciones-resorte.mdx:131`, Paso 1, leyenda de ecuación (nuevo): «posición del elemento en su eje»
+- `src/content/topics/animaciones-resorte.mdx:132`, Paso 1, leyenda de ecuación (nuevo): «destino de la animación»
+- `src/content/topics/animaciones-resorte.mdx:133`, Paso 1, leyenda de ecuación (nuevo): «masa; las bibliotecas usan 1 kg»
+- `src/content/topics/animaciones-resorte.mdx:134`, Paso 1, leyenda de ecuación (nuevo): «rigidez del resorte»
+- `src/content/topics/animaciones-resorte.mdx:142`, Paso 1, leyenda de ecuación (nuevo): «desplazamiento inicial, soltado desde el reposo»
+- `src/content/topics/animaciones-resorte.mdx:143`, Paso 1, leyenda de ecuación (nuevo): «frecuencia angular natural»
+- `src/content/topics/animaciones-resorte.mdx:144`, Paso 1, leyenda de ecuación (nuevo): «periodo»
+- `src/content/topics/animaciones-resorte.mdx:152`, Paso 1, «En el fenómeno» (nuevo): «El elemento cruza el destino a su rapidez máxima y sigue de largo, porque nada le quita energía: «Springs with ˋdamping: 0ˋ will run forever» <Cite id="motion-docs-spring" sources={frontmatter.sources} />.»
+- `src/content/topics/animaciones-resorte.mdx:158`, Paso 1, «En la ecuación» (nuevo): «Derivo dos veces la (10.2): <Equation inline latex="\ddot u = -\omega_0^2\,u" />, la (10.1). Con los valores por omisión de Motion, 100 N/m y 1 kg, <Equation inline latex="T_0" /> = 0,63 s.»
+- `src/content/topics/animaciones-resorte.mdx:167`, Paso 1, pie de figura (nuevo): «Valor animado de 100 a 1 000 con $k$ = 100 N/m, $m$ = 1 kg y $b$ = 0. Es un coseno de periodo $T_0$ = 0,63 s: vuelve a 100 en cada periodo y nunca se queda en la banda de ±2 % del destino.»
+- `src/content/topics/animaciones-resorte.mdx:169`, Paso 1, fuente de la figura (nuevo): «Gráfica que calculé con la (10.2); $k$ y $m$ por omisión de Motion v14.14.0 (spring.ts L22 y L24), con $b$ = 0»
+- `src/content/topics/animaciones-resorte.mdx:177`, Paso 2, título (nuevo): «El amortiguamiento viscoso»
+- `src/content/topics/animaciones-resorte.mdx:179`, Paso 2 (nuevo): «Le añado una fuerza opuesta a la velocidad, <Equation inline latex="-b\,\dot u" /> <Cite id="serway-jewett-2018" sources={frontmatter.sources} />. La razón $\zeta$ compara $b$ con el amortiguamiento crítico <Equation inline latex="b_c" />.»
+- `src/content/topics/animaciones-resorte.mdx:184`, Paso 2, leyenda de ecuación (nuevo): «coeficiente de amortiguamiento viscoso»
+- `src/content/topics/animaciones-resorte.mdx:191`, Paso 2, leyenda de ecuación (nuevo): «razón de amortiguamiento, adimensional»
+- `src/content/topics/animaciones-resorte.mdx:192`, Paso 2, leyenda de ecuación (nuevo): «amortiguamiento crítico, el de $\zeta = 1$»
+- `src/content/topics/animaciones-resorte.mdx:200`, Paso 2, leyenda de ecuación (nuevo): «energía mecánica del resorte»
+- `src/content/topics/animaciones-resorte.mdx:201`, Paso 2, leyenda de ecuación (nuevo): «velocidad, $\dot u$»
+- `src/content/topics/animaciones-resorte.mdx:209`, Paso 2, «En el fenómeno» (nuevo): «Cada vaivén es menor: la fuerza viscosa siempre frena, y el elemento acaba en una banda alrededor del destino.»
+- `src/content/topics/animaciones-resorte.mdx:215`, Paso 2, «En la ecuación» (nuevo): «Con la (10.3), <Equation inline latex="\dot E = v\,(m\dot v + k u) = -b v^2" />. Si <Equation inline latex="\zeta < 1" />, <Equation inline latex="u = A_0 e^{-\zeta\omega_0 t}\cos(\omega' t + \phi)" /> con <Equation inline latex="\omega' = \omega_0\sqrt{1-\zeta^2}" />: un coseno por una exponencial, el «damped cosine» de Apple <Cite id="wwdc23-springs" sources={frontmatter.sources} />.»
+- `src/content/topics/animaciones-resorte.mdx:224`, Paso 2, pie de figura (nuevo): «Los valores por omisión de Motion, $k$ = 100 N/m, $b$ = 10 N·s/m y $m$ = 1 kg ($\zeta$ = 0,5), de 100 a 1 000. La curva queda entre las envolventes $x_\text{obj} \pm A_0 e^{-\zeta\omega_0 t}$, con $A_0 = |u_0|/\sqrt{1-\zeta^2}$, y entra para siempre en la banda de ±2 % a los 0,81 s.»
+- `src/content/topics/animaciones-resorte.mdx:226`, Paso 2, fuente de la figura (nuevo): «Gráfica que calculé con la (10.6); valores por omisión de Motion v14.14.0 (spring.ts L22-L24)»
+- `src/content/topics/animaciones-resorte.mdx:234`, Paso 3, título (nuevo): «Tres regímenes y ninguna duración»
+- `src/content/topics/animaciones-resorte.mdx:236`, Paso 3 (nuevo): «Con cualquier <Equation inline latex="u_0" /> y <Equation inline latex="v_0" />, la (10.3) tiene tres soluciones según $\zeta$: las tres ramas del generador de Motion <Cite id="motion-v14140" sources={frontmatter.sources} />. Con ellas reproduzco, valor por valor, sus tres pruebas (cálculo propio).»
+- `src/content/topics/animaciones-resorte.mdx:242`, Paso 3, leyenda de ecuación (nuevo): «velocidad inicial, por ejemplo la de un gesto»
+- `src/content/topics/animaciones-resorte.mdx:243`, Paso 3, leyenda de ecuación (nuevo): «frecuencia angular amortiguada»
+- `src/content/topics/animaciones-resorte.mdx:246`, Paso 3, leyenda de ecuación (nuevo): «tasas de las dos exponenciales, una lenta y una rápida»
+- `src/content/topics/animaciones-resorte.mdx:256`, Paso 3, leyenda de ecuación (nuevo): «instante del primer sobrepaso»
+- `src/content/topics/animaciones-resorte.mdx:257`, Paso 3, leyenda de ecuación (nuevo): «sobrepaso, como fracción del recorrido»
+- `src/content/topics/animaciones-resorte.mdx:267`, Paso 3, leyenda de ecuación (nuevo): «tiempo de asentamiento: desde ahí, $|u| \le \varepsilon\,|u_0|$»
+- `src/content/topics/animaciones-resorte.mdx:270`, Paso 3, leyenda de ecuación (nuevo): «ancho de la banda de reposo, como fracción del recorrido»
+- `src/content/topics/animaciones-resorte.mdx:278`, Paso 3, «En el fenómeno» (nuevo): «Con <Equation inline latex="\zeta < 1" /> el elemento se pasa y oscila; con <Equation inline latex="\zeta = 1" /> llega sin pasarse; con <Equation inline latex="\zeta > 1" />, sin pasarse pero más tarde. Ninguno termina en un instante preciso.»
+- `src/content/topics/animaciones-resorte.mdx:284`, Paso 3, «En la ecuación» (nuevo): «La (10.7) es la (10.6) en el primer <Equation inline latex="v = 0" />; la (10.8), cuándo la envolvente cae a $\varepsilon$. El asentamiento depende de $\zeta$, <Equation inline latex="\omega_0" />, $\varepsilon$ y del estado inicial: no hay una duración. Con una banda del 2 %, <Equation inline latex="\zeta = 0{,}8" /> entra antes que el crítico (cálculo propio).»
+- `src/content/topics/animaciones-resorte.mdx:293`, Paso 3, pie de figura (nuevo): «Las tres pruebas del resorte de Motion, de 100 a 1 000 con $m$ = 1 kg: subamortiguada ($k$ = 300 N/m, $b$ = 10 N·s/m), crítica (100 y 20) y sobreamortiguada (300 y 100). Las curvas son la (10.6); los puntos, los valores que cada prueba espera cada 0,2 s, y coinciden al redondear.»
+- `src/content/topics/animaciones-resorte.mdx:295`, Paso 3, fuente de la figura (nuevo): «Gráfica que calculé con la (10.6); valores esperados de la prueba spring.test.ts de Motion v14.14.0, L41-L121»
+- `src/content/topics/animaciones-resorte.mdx:306`, Paso 4, título (nuevo): «Lo que hace una biblioteca real»
+- `src/content/topics/animaciones-resorte.mdx:308`, Paso 4 (nuevo): «Si el destino cambia a mitad de camino, la biblioteca reinicia la (10.6) desde el estado actual; Motion pasa ˋvalue.getVelocity()ˋ a la animación nueva <Cite id="motion-v14140" sources={frontmatter.sources} />. Apple cambió $m$, $k$ y $b$ («they're not very intuitive» <Cite id="wwdc23-springs" sources={frontmatter.sources} />) por una duración $d$ y un rebote $\beta$ <Cite id="apple-spring" sources={frontmatter.sources} />. Un umbral de reposo corta la cola.»
+- `src/content/topics/animaciones-resorte.mdx:314`, Paso 4, leyenda de ecuación (nuevo): «instante en que cambia el destino»
+- `src/content/topics/animaciones-resorte.mdx:315`, Paso 4, leyenda de ecuación (nuevo): «el destino nuevo»
+- `src/content/topics/animaciones-resorte.mdx:323`, Paso 4, leyenda de ecuación (nuevo): «duración perceptual: $\omega_0 = 2\pi/d$»
+- `src/content/topics/animaciones-resorte.mdx:326`, Paso 4, leyenda de ecuación (nuevo): «rebote: $\zeta = 1 - \beta$; 0 es crítico y 1, sin amortiguar»
+- `src/content/topics/animaciones-resorte.mdx:335`, Paso 4, leyenda de ecuación (nuevo): «umbral de rapidez; Motion usa 2 px/s»
+- `src/content/topics/animaciones-resorte.mdx:338`, Paso 4, leyenda de ecuación (nuevo): «umbral de distancia; Motion usa 0,5 px, «selected empirically»»
+- `src/content/topics/animaciones-resorte.mdx:348`, Paso 4, «En el fenómeno» (nuevo): «Interrumpido, el resorte sigue con su velocidad y vuelve sin sacudida; una curva con duración arranca otra vez desde el reposo, y su velocidad cae a cero de golpe.»
+- `src/content/topics/animaciones-resorte.mdx:354`, Paso 4, «En la ecuación» (nuevo): «Con la (10.9), $x$ y $v$ son continuas en <Equation inline latex="t^*" />; solo salta la aceleración, una cantidad finita por la (10.3). La (10.10) da <Equation inline latex="\omega_0 = 2\pi/d" /> y <Equation inline latex="\zeta = 1 - \beta" />: con 0,5 s y 0,3, los 157,9 N/m y 17,6 N·s/m de Apple (tabla 10.2).»
+- `src/content/topics/animaciones-resorte.mdx:363`, Paso 4, pie de figura (nuevo): «La transición por omisión de Motion para una traslación ($k$ = 500 N/m, $b$ = 25 N·s/m) frente a una curva ease-in-out que dura 0,26 s, lo que tarda el resorte en asentarse al 2 %. A $t^*$ = 0,10 s el destino vuelve a 100. Arriba, la posición; abajo, la velocidad: la del resorte sigue en unos 6 680 px/s y la de la curva cae de 5 330 px/s a 0.»
+- `src/content/topics/animaciones-resorte.mdx:365`, Paso 4, fuente de la figura (nuevo): «Gráfica que calculé con las (10.6) y (10.9); $k$ y $b$ de Motion v14.14.0 (default-transitions.ts L4-L9); curva ease-in-out, cubic-bezier(0.42, 0, 0.58, 1), de CSS Easing Functions Level 1 (W3C)»
+- `src/content/topics/animaciones-resorte.mdx:393`, caso de uso, «El caso concreto» (nuevo): «Motion (antes Framer Motion, licencia MIT) anima interfaces web <Cite id="motion-blog-2024" sources={frontmatter.sources} />. Su generador ˋspringˋ (tag v14.14.0, commit ˋf95ab94ˋ) escribe las tres ramas de la (10.6) <Cite id="motion-v14140" sources={frontmatter.sources} />. Apple explica el porqué en la WWDC23 <Cite id="wwdc23-springs" sources={frontmatter.sources} />; desde iOS 17, los resortes animan SwiftUI por omisión <Cite id="apple-animation-default" sources={frontmatter.sources} />. En Android, Material 3 pasó de duraciones con curvas de Bézier a tokens con $k$ y $\zeta$ <Cite id="androidx" sources={frontmatter.sources} />.»
+- `src/content/topics/animaciones-resorte.mdx:399`, caso de uso, «La ecuación» (nuevo): «ˋreturn s.target - c.env * (c.A * c.sin + s.delta * c.cos)ˋ (L392) es la (10.6) si ˋs.deltaˋ vale <Equation inline latex="-u_0" /> y ˋs.velocityˋ, <Equation inline latex="-v_0" />. ˋdamping / (2 * Math.sqrt(stiffness * mass))ˋ (L314) es la (10.4), y la escala hacia 0 usa ˋ2 * Math.sqrt(550)ˋ: el crítico exacto, para que la escala no se vuelva negativa.»
+- `src/content/topics/animaciones-resorte.mdx:405`, caso de uso, «Por qué modelar la física» (nuevo): «Una curva con duración «is just a prespecified curve, so there's no way to represent an initial velocity» <Cite id="wwdc23-springs" sources={frontmatter.sources} />. El resorte acepta cualquier distancia y cualquier <Equation inline latex="v_0" />: un gesto o una animación interrumpida entregan su velocidad sin salto (figura 10.4). Con curvas haría falta una por caso.»
+- `src/content/topics/animaciones-resorte.mdx:411`, caso de uso, «Qué se gana y qué cuesta» (nuevo): «Gano continuidad de velocidad con solo tres números, $m$, $k$ y $b$. Cuesta no tener duración («a bit unpredictable», dice Apple <Cite id="wwdc23-springs" sources={frontmatter.sources} />), umbrales empíricos, parámetros sin objeto real y trampas numéricas: la 14.7.0 corrigió sobreamortiguados que saltaban al destino <Cite id="motion-v14140" sources={frontmatter.sources} />. Los resortes por duración de Motion terminan a tiempo, pero ignoran la velocidad heredada <Cite id="motion-docs-transitions" sources={frontmatter.sources} />.»
+- `src/content/topics/animaciones-resorte.mdx:417`, recuadro de clase, título (nuevo): «Módulo 5 · Temas 1 y 3; Módulo 2 · Temas 02 y 04, y SPAA 02»
+- `src/content/topics/animaciones-resorte.mdx:419`, recuadro «Visto en clase» (nuevo): «El Módulo 5 escribe la (10.2), la (10.3), <Equation inline latex="b_c = 2\sqrt{km}" /> y la (10.5); su envolvente <Equation inline latex="e^{-(b/2m)t}" /> es la de la (10.6), porque <Equation inline latex="\zeta\omega_0 = b/2m" />. El Módulo 2 da Hooke («No corresponde usar MRUA») y la energía elástica <Equation inline latex="\tfrac12 k x^2" />. La regla B de su SPAA 02, «su velocidad se vuelve cero», es el error de la curva con duración. $\zeta$, la (10.6) completa y las (10.7) a (10.11) son extensiones.»
+- `src/content/topics/animaciones-resorte.mdx:425`, «Conexiones» (nuevo): «Con el Tema 5: el mismo oscilador devuelve el gatillo al reposo, crítico o a 0,3 del crítico, con $c$ en lugar de $b$. Con el Tema 7: ˋbounceˋ de react-spring invierte la velocidad en el destino y la escala, como una restitución <Cite id="react-spring-v1012" sources={frontmatter.sources} />. Con el Tema 12: el mismo oscilador, forzado a su frecuencia natural.»
 
 ### Figuras 10.1 a 10.4 (`src/components/topics/animaciones-resorte/SpringFigure.tsx`)
 
@@ -256,17 +256,17 @@ Todo es nuevo («antes» vacío). Elecciones de Claude que se ven en el texto:
 
 En la página:
 
-- `src/content/topics/animaciones-resorte.mdx:370`, pie de la figura 10.5: — → «Laboratorio del resorte: una tarjeta
+- `src/content/topics/animaciones-resorte.mdx:373`, pie de la figura 10.5: — → «Laboratorio del resorte: una tarjeta
   que mueve la (10.6) y, debajo, otra con una curva ease-in-out que dura el $t_s$ del resorte. Mueve $k$, $b$ y $m$
   para pasar por los tres regímenes; «Interrumpir» aplica la (10.9): el resorte conserva $x$ y $v$, y la curva arranca
   otra vez desde el reposo.»
-- `src/content/topics/animaciones-resorte.mdx:372`, fuente de la figura 10.5: — → «Simulación que programé sobre
+- `src/content/topics/animaciones-resorte.mdx:375`, fuente de la figura 10.5: — → «Simulación que programé sobre
   src/lib/physics/dampedSpring.ts; preajustes de Motion v14.14.0 y de Apple (tabla 10.1); curva ease-in-out,
   cubic-bezier(0.42, 0, 0.58, 1), de CSS Easing Functions Level 1 (W3C)»
-- `src/content/topics/animaciones-resorte.mdx:377`, «Cómo se usa», última línea (las velocidades salen de
+- `src/content/topics/animaciones-resorte.mdx:380`, «Cómo se usa», última línea (las velocidades salen de
   `SPRING_SPEEDS`): — → «A 1× la reproducción va en tiempo real, como en una interfaz, donde la animación dura menos de
   un segundo; con 0,1× o 0,25× se ven el sobrepaso y la interrupción de un resorte rígido.»
-- `src/content/topics/animaciones-resorte.mdx:378`, «Qué deja fuera el modelo»: — → «Calculo cada cuadro con la
+- `src/content/topics/animaciones-resorte.mdx:381`, «Qué deja fuera el modelo»: — → «Calculo cada cuadro con la
   solución analítica (10.6), exacta en cualquier $t$, como el generador de Motion: no integro paso a paso.
   react-spring avanza con Euler semiimplícito en pasos de 1 ms, y el gatillo del Tema 5 en pasos de 1/4 800 s; su
   error crece con $\omega_0\,\Delta t$, y aquí no aparece. La unidad de longitud se cancela en $k/m$ y en $b/m$, así que
@@ -278,33 +278,37 @@ En la página:
 En el laboratorio (`SpringLab.tsx`, `springLabText.ts`, `SpringNotes.tsx`, `SpringPlot.tsx`, `SpringCard.tsx`,
 `springScene.ts`, `springLabPresets.ts`; los `${…}` son valores que calcula el núcleo):
 
-- `SpringLab.tsx:224`, título: — → «Laboratorio del resorte»
-- `SpringLab.tsx:132-134`, parámetros: — → «Rigidez $k$» (N/m, de 10 a 1 000), «Amortiguamiento $b$» (N·s/m, de 0 a 100),
+- `SpringLab.tsx:234`, título: — → «Laboratorio del resorte»
+- `SpringLab.tsx:142-144`, parámetros: — → «Rigidez $k$» (N/m, de 10 a 1 000), «Amortiguamiento $b$» (N·s/m, de 0 a 100),
   «Masa $m$» (kg, de 0,1 a 5); los tres con paso 0,1
-- `SpringLab.tsx:115`, botón del escenario: — → «Interrumpir»
-- `springLabText.ts:49`, línea bajo «Interrumpir» cuando puede pulsarse: — → «Cambia el destino al instante: el resorte
+- `SpringLab.tsx:125`, botón del escenario: — → «Interrumpir»
+- `springLabText.ts:55`, línea bajo «Interrumpir» cuando puede pulsarse: — → «Cambia el destino al instante: el resorte
   sigue con su velocidad y la curva arranca otra vez desde el reposo.»
-- `springLabText.ts:51`, la misma línea en el inicio, en pausa (botón desactivado): — → «En el inicio no hay
+- `springLabText.ts:57`, la misma línea en el inicio, en pausa (botón desactivado): — → «En el inicio no hay
   movimiento que interrumpir: reproduce o mueve la línea de tiempo.»
-- `SpringLab.tsx:52-87`, lecturas (decimales fijos): — → «Razón de amortiguamiento $\zeta$» (tres), «Frecuencia
+- `SpringLab.tsx:62-97`, lecturas (decimales fijos): — → «Razón de amortiguamiento $\zeta$» (tres), «Frecuencia
   natural $\omega_0$» (rad/s, dos), «Sobrepaso previsto $M_p$» (%, dos; la (10.7), desde el reposo), «Destino
   $x_\text{obj}$» (px, ninguno), «Posición del resorte $x$» (px, uno), «Velocidad del resorte $v$» (px/s, ninguno),
   «Posición de la curva $x$» y «Velocidad de la curva $v$» (estas dos, solo con la tarjeta de la curva)
-- `SpringLab.tsx:161` y `:168`, interruptores del cajón, «Este simulador»: — → «Tarjeta con la curva de duración
+- `SpringLab.tsx:171` y `:178`, interruptores del cajón, «Este simulador»: — → «Tarjeta con la curva de duración
   fija», «Banda de ±2 % alrededor del destino»
-- `springLabText.ts:24-27`, ficha del régimen en el lienzo: — → «Sin amortiguar, $b = 0$», «Subamortiguado,
+- `springLabText.ts:22-25`, ficha del régimen en el lienzo: — → «Sin amortiguar, $b = 0$», «Subamortiguado,
   $\zeta < 1$», «Crítico, $\zeta = 1$», «Sobreamortiguado, $\zeta > 1$»
-- `springLabText.ts:38-39`, títulos de los carriles del lienzo y de las series de la gráfica: — → «Resorte», «Curva de
+- `springLabText.ts:36-37`, títulos de los carriles del lienzo y de las series de la gráfica: — → «Resorte», «Curva de
   duración fija»
-- `springLabText.ts:109`, ficha del carril de la curva: — → «ease-in-out, $T$ = `${duración}`»
-- `SpringCard.tsx:222`, rótulo bajo la marca del destino actual: — → «destino» (las marcas dicen «100 px» y
+- `springLabText.ts:114`, ficha del carril de la curva: — → «ease-in-out, $T$ = `${duración}`»
+- `SpringCard.tsx:228`, rótulo bajo la marca del destino actual: — → «destino» (las marcas dicen «100 px» y
   «1 000 px»)
-- `springLabText.ts:43`, «Cómo se usa», primera línea: — → «Reproduce y pulsa «Interrumpir» con las tarjetas a mitad
+- `springLabText.ts:49`, «Cómo se usa», primera línea: — → «Reproduce y pulsa «Interrumpir» con las tarjetas a mitad
   de camino: el destino pasa a la otra marca. También puedes pausar, llevar la línea de tiempo o el cursor de la gráfica
   a un instante e interrumpir ahí. Cada interrupción queda en la línea de tiempo; una nueva antes de otra la reemplaza a
   ella y a las siguientes.»
-- `springLabText.ts:44`, «Cómo se usa», segunda línea: — → «Atajos, fuera de los campos: Espacio o K reproduce y
-  pausa; I interrumpe; R vuelve al inicio; «,» y «.» retroceden o avanzan 1/60 s.»
+- `springLabText.ts:50` (con la lista de `:40-41`), «Cómo se usa», segunda línea: — → «Atajos, con el foco en el
+  lienzo (un clic en él, o Tab) o en el cursor de la gráfica: Espacio o K reproduce y pausa; I interrumpe; R vuelve al
+  inicio; «,» y «.» retroceden o avanzan 1/60 s.» (antes de la revisión decía «Atajos, fuera de los campos: …»)
+- `springLabText.ts:45`, nombre del lienzo para el lector de pantalla (el lienzo toma el foco para que los atajos
+  funcionen): — → «Tarjetas del laboratorio. Atajos: Espacio o K reproduce y pausa; I interrumpe; R vuelve al inicio;
+  «,» y «.» retroceden o avanzan 1/60 s.»
 - `SpringNotes.tsx:7-11`, notas del lienzo (la segunda frase solo con la tarjeta de la curva; la última, solo con la
   banda): — → «Las dos tarjetas recorren lo mismo, de 100 px a 1 000 px. Arriba, el resorte de la (10.6), con el color
   de su régimen, como en las figuras 10.1 a 10.4. Abajo, la curva ease-in-out de duración fija, que arranca otra vez
@@ -312,24 +316,24 @@ En el laboratorio (`SpringLab.tsx`, `springLabText.ts`, `SpringNotes.tsx`, `Spri
   recorrido en la que se mide $t_s$.»
 - `SpringNotes.tsx:54`, `:58`, `:62`, filas del resumen: — → «Asentamiento al 2 %, $t_s$», «Curva de duración fija»,
   «Última interrupción»
-- `springLabText.ts:74-80`, valor de «Asentamiento al 2 %»: — → «`${t_s}`» (sin interrupciones, p. ej. «0,81 s»);
+- `springLabText.ts:79-85`, valor de «Asentamiento al 2 %»: — → «`${t_s}`» (sin interrupciones, p. ej. «0,81 s»);
   «nunca: con $b = 0$ el resorte no pierde energía, $dE/dt = -b v^2 = 0$»; «a los `${t}`: `${t_s}` después de la
   última interrupción»; «`${t*}`: tras la última interrupción ya no sale de la banda»
-- `springLabText.ts:89-92`, valor de «Curva de duración fija»: — → «ease-in-out de `${T}`, el $t_s$ del resorte: salen
+- `springLabText.ts:94-97`, valor de «Curva de duración fija»: — → «ease-in-out de `${T}`, el $t_s$ del resorte: salen
   y llegan a la vez»; o «ease-in-out de `${T}`, la $d = 2\pi/\omega_0$ de la (10.10), porque el resorte nunca se
   asienta» (o «… porque el resorte no sale de la banda»)
-- `springLabText.ts:98-104`, valor de «Última interrupción»: — → «ninguna todavía: pulsa «Interrumpir» con las
+- `springLabText.ts:103-109`, valor de «Última interrupción»: — → «ninguna todavía: pulsa «Interrumpir» con las
   tarjetas a mitad de camino»; «a $t^*$ = `${t*}` las dos estaban en reposo: solo cambia el destino»; «a $t^*$ =
   `${t*}` el resorte sigue a `${v}`; la curva pasa de `${v_curva}` a 0»
-- `springScene.ts:235-237`, eventos de la reproducción: — → «Interrupción», «Pico» (solo con $\zeta < 1$),
+- `springScene.ts:247-249`, eventos de la reproducción: — → «Interrupción», «Pico» (solo con $\zeta < 1$),
   «Asentamiento»
-- `SpringPlot.tsx:160`, título de la gráfica: — → «Posición de las dos tarjetas, $x(t)$»
-- `SpringPlot.tsx:104`, rótulo del primer sobrepaso en la gráfica: — → «$t_p$ = `${t_p}`»
-- `SpringPlot.tsx:172`, nombre hablado del cursor de la gráfica: — → «Instante en la gráfica de posición»
-- `SpringPlot.tsx:118`, descripción hablada de la gráfica: — → «Posición x frente al tiempo durante `${duración}`. El
+- `SpringPlot.tsx:156`, título de la gráfica: — → «Posición de las dos tarjetas, $x(t)$»
+- `SpringPlot.tsx:100`, rótulo del primer sobrepaso en la gráfica: — → «$t_p$ = `${t_p}`»
+- `SpringPlot.tsx:168`, nombre hablado del cursor de la gráfica: — → «Instante en la gráfica de posición»
+- `SpringPlot.tsx:114`, descripción hablada de la gráfica (escrita con $x$): — → «Posición x frente al tiempo durante `${duración}`. El
   resorte, `${régimen}`, sale de 100 px hacia 1 000 px. La curva de duración fija va de 100 px a 1 000 px en `${T}`.
   Interrupciones: `${n}`, cada una cambia el destino.» (las dos últimas frases, según el caso)
-- `SpringCard.tsx:336`, descripción hablada del lienzo: — → «Dos tarjetas van de 100 px a 1 000 px. El resorte,
+- `SpringCard.tsx:342`, descripción hablada del lienzo: — → «Dos tarjetas van de 100 px a 1 000 px. El resorte,
   `${régimen}`, está en `${x}`, con destino `${x_obj}`; la curva de duración fija, en `${x}`.»
 - `springLabPresets.ts:94` y `:47`, opciones del selector (texto plano): — → el nombre de `springPresets.ts` seguido de
   « (producto)» o « (ilustrativo)»; el de Apple, «Apple, ejemplo (producto)»
@@ -352,6 +356,6 @@ laboratorio:
   envolvente, en la forma del Módulo 5 que ya cita el recuadro de clase ($\zeta\omega_0 = b/2m$). Con el subíndice
   dentro del exponente, el nombre hablado del botón de la leyenda decía «omega _0» con el guion bajo crudo. El pie de
   la figura conserva $e^{-\zeta\omega_0 t}$.
-- `src/content/topics/animaciones-resorte.mdx:212`, Paso 2, «En la ecuación»: «… $\cos(\omega' t + \phi)$» →
+- `src/content/topics/animaciones-resorte.mdx:215`, Paso 2, «En la ecuación»: «… $\cos(\omega' t + \phi)$» →
   «… $\cos(\omega' t + \varphi)$». La ϕ de `\phi` no está en IBM Plex y se dibujaba con DejaVu Sans; la φ de
   `\varphi` sí está (el Tema 4 la usa), y es la del libro para la fase.
