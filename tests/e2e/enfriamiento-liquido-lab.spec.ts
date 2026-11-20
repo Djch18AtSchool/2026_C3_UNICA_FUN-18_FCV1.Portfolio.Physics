@@ -60,13 +60,13 @@ test.describe('Tema 13, laboratorio del circuito', () => {
     expect(await readout(page, DROP)).toBe('179,9 kPa');
     expect(await readout(page, POWER)).toBe('4,14 kW');
     await expect(lab.getByTestId('cooling-status')).toContainText(
-      'El servidor más lejano llega a su mínimo',
+      'El servidor más lejano alcanza el objetivo de diseño de OCP (1,5 L/min por kW)',
     );
     await expect(lab.getByTestId('rack-diagram').locator('[data-server]')).toHaveCount(24);
     await expect(lab.getByTestId('preset-note')).toContainText('frente a sus 1,98');
   });
 
-  test('con menos caudal el más lejano no llega a su mínimo, y la nota dice cuánto subirlo', async ({
+  test('con menos caudal el más lejano queda por debajo del objetivo de OCP, y la nota dice cuánto subirlo', async ({
     page,
   }) => {
     const lab = await openLab(page);
@@ -74,7 +74,7 @@ test.describe('Tema 13, laboratorio del circuito', () => {
     await commit(pumpFlow(lab), '150');
 
     await expect(lab.getByTestId('cooling-status')).toContainText(
-      'El servidor más lejano no llega a su mínimo',
+      'El servidor más lejano está por debajo del objetivo de diseño de OCP (1,5 L/min por kW)',
     );
     await expect(lab.getByTestId('cooling-shortfall')).toContainText('tiene que subir un 2,1 %');
     const worst = lab.locator('[data-worst]');
@@ -120,6 +120,7 @@ test.describe('Tema 13, laboratorio del circuito', () => {
       'Cada UQD04 va dentro de su caudal nominal',
     );
     await expect(lab.getByTestId('cooling-lab-profile')).toContainText('al servidor 44');
+    await expect(lab.getByTestId('cooling-plate')).toContainText('Placa fría de «MGX: 44 puertos»');
   });
 
   test('un servidor con manguera de 1/4″ a 300 L/min: lecturas finitas, sin NaN (Review Focus 3)', async ({
@@ -133,6 +134,9 @@ test.describe('Tema 13, laboratorio del circuito', () => {
 
     await expect(lab.getByTestId('rack-diagram').locator('[data-server]')).toHaveCount(1);
     await expect(lab.getByTestId('cooling-pump-note')).toContainText('Ninguna curva publicada');
+    // The duty point is far above the pump's axis: drawn on its top edge, with its value.
+    await expect(lab.locator('[data-point="pedido-fuera"]')).toHaveCount(1);
+    await expect(lab.locator('[data-point="pedido-fuera"]')).toContainText('fuera de escala');
     expect(await readout(page, 'Caudal del servidor 1, el más lejano')).toBe('300,00 L/min');
     for (const label of [DROP, POWER]) {
       expect(await readout(page, label)).toMatch(/^\d[\d\s,]*\s\S+$/);

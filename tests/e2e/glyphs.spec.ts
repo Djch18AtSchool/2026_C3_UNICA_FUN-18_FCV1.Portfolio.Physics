@@ -216,17 +216,19 @@ const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
       },
     ],
   ],
-  // The worst server short of its minimum (its chip and the shortfall), reverse return (the
+  // The worst server below OCP's design target (its chip and the shortfall), reverse return (the
   // «peor servido» readout, the outlet on top) and a single server on a 1/4″ hose at full flow
   // (no published pump curve reaches the duty point).
   'enfriamiento-liquido': [
     [
-      'el servidor más lejano no llega a su mínimo',
+      'el servidor más lejano por debajo del objetivo de OCP',
       async (_page, lab) => {
         const field = lab.getByRole('textbox', { name: /^Caudal de la bomba por rack/ });
         await field.fill('150');
         await field.press('Enter');
-        await expect(lab.getByTestId('cooling-status')).toContainText('no llega a su mínimo');
+        await expect(lab.getByTestId('cooling-status')).toContainText(
+          'está por debajo del objetivo',
+        );
       },
     ],
     [

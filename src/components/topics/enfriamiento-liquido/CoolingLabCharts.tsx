@@ -22,10 +22,13 @@ import { L_PER_M3 } from './coolingUnits';
 
 /** The values of the split's plot are already in L/min. */
 const lpm = (value: number) => formatNumber(value, { precision: 2, unit: 'L/min' });
-/** The off-scale marker: a triangle on the top edge, pointing up, and its label beside it. */
+/**
+ * The off-scale marker: a triangle on the top edge, pointing up, and its label below it, clear of
+ * the cursor's label, which rides the same top edge.
+ */
 const EDGE_SIZE = 6;
 const EDGE_LABEL_DX = 10;
-const EDGE_LABEL_DY = 16;
+const EDGE_LABEL_DY = 36;
 
 /** The duty point above the pressure axis, on the top edge with its value. */
 function EdgeMarker({
