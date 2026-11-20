@@ -57,8 +57,11 @@ function contrast(a: string, b: string): number {
 const KNOB_LABS = TOPIC_PAGES.filter(({ number }) => ![4, 6, 10].includes(number));
 const AXIS_CURSORS = ['ew-resize', 'ns-resize'];
 
-/** The labs with a handle on one axis (the jump's marker, the habitat's radius, the drop height). */
-const AXIS_LABS = TOPIC_PAGES.filter(({ number }) => [2, 3, 7].includes(number));
+/**
+ * The labs with a handle on one axis (the jump's marker, the habitat's radius, the drop height,
+ * the resonance lab's f0 on its frequency ruler).
+ */
+const AXIS_LABS = TOPIC_PAGES.filter(({ number }) => [2, 3, 7, 12].includes(number));
 
 for (const topic of AXIS_LABS) {
   test(`Tema ${topic.number}: un asidero de un eje conserva su cursor de eje mientras se arrastra (M7)`, async ({
@@ -159,6 +162,11 @@ const LEGENDS: readonly LegendCase[] = [
   { name: 'la gráfica de las Voyager', topic: 9, title: 'Rapidez de las Voyager respecto' },
   { name: 'la gráfica de los umbrales', topic: 7, title: 'Altura de cada rebote' },
   { name: 'la gráfica x(t) del laboratorio', topic: 10, title: 'Posición de las dos tarjetas' },
+  {
+    name: 'la curva de resonancia del laboratorio',
+    topic: 12,
+    title: 'Curva de resonancia: la (12.3) y lo que traza',
+  },
 ];
 
 /** How many of the figure's series are drawn highlighted and faded. */

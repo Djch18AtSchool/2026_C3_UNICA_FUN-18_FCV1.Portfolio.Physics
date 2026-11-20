@@ -179,6 +179,42 @@ const EXTRA_STATES: Readonly<Record<string, readonly [string, StateStep][]>> = {
       },
     ],
   ],
+  // Each mode, then the states only an action shows: another draw breaking step, and the troop
+  // without damping at the march pace («crece sin límite», the deck «fuera de escala»).
+  'resonancia-estructural': [
+    [
+      'barrido',
+      async (_page, lab) => {
+        await lab.getByRole('radio', { name: 'Barrido' }).check({ force: true });
+      },
+    ],
+    [
+      'filtro ZV',
+      async (_page, lab) => {
+        await lab.getByRole('radio', { name: 'Filtro ZV' }).check({ force: true });
+      },
+    ],
+    [
+      'tropa rompiendo el paso, otro sorteo',
+      async (_page, lab) => {
+        await lab.getByRole('radio', { name: 'Tropa' }).check({ force: true });
+        await lab.getByRole('radio', { name: 'Rompiendo el paso' }).check({ force: true });
+        await lab.getByRole('button', { name: 'Nuevo sorteo' }).click();
+      },
+    ],
+    [
+      'tropa sin amortiguamiento al paso, fuera de escala',
+      async (_page, lab) => {
+        await lab.getByRole('radio', { name: 'Al paso' }).check({ force: true });
+        const zeta = lab.getByRole('textbox', { name: /^Amortiguamiento zeta/ });
+        await zeta.fill('0');
+        await zeta.press('Enter');
+        await expect(lab.locator('[data-lab-canvas-notes]')).toContainText('crece sin límite');
+        await seekTimeline(lab.getByRole('slider', { name: 'Línea de tiempo' }), '1000');
+        await expect(lab.getByTestId('deck-puente')).toHaveAttribute('data-clamped', 'true');
+      },
+    ],
+  ],
 };
 
 /** Steps that choose each option of a select, by value. */

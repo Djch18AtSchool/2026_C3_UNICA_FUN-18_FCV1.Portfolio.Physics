@@ -129,7 +129,7 @@ function undampedNote(): string {
 
 function inStepNote(): string {
   const model = troopModel(DEFAULT_SETTINGS.troop);
-  return `Los unos ${BROUGHTON.soldiersOnBridge.value} soldados que cruzaban el puente de Broughton en 1831, a ${n(MARCH_PACE_HZ, 1)} Hz y ${n(SOLDIER_FORCE_N, 0)} N cada uno, sobre una pasarela de acero de $f_0$ = ${n(MARCH_PACE_HZ, 1)} Hz con el $\\zeta$ = ${n(STEEL_FOOTBRIDGE_DAMPING.value * PERCENT, 1)} % de Sétra y ${n(TROOP_MODAL_MASS_KG / KG_PER_T, 0)} t de masa modal (las dos, ilustrativas): el tablero llega al 90 % de su amplitud estacionaria, ${n(model.steady.inStep * MM_PER_M, 0)} mm, a los ${n(model.reach90.inStep ?? Number.NaN, 0)} s.`;
+  return `Los unos ${BROUGHTON.soldiersOnBridge.value} soldados que cruzaban el puente de Broughton en 1831, a ${n(MARCH_PACE_HZ, 1)} Hz y ${n(SOLDIER_FORCE_N, 0)} N cada uno, sobre una pasarela de acero de $f_0$ = ${n(MARCH_PACE_HZ, 1)} Hz con el $\\zeta$ = ${n(STEEL_FOOTBRIDGE_DAMPING.value * PERCENT, 1)} % de Sétra y ${n(TROOP_MODAL_MASS_KG / KG_PER_T, 0)} toneladas de masa modal (las dos, ilustrativas): el tablero llega al 90 % de su amplitud estacionaria, ${n(model.steady.inStep * MM_PER_M, 0)} mm, a los ${n(model.reach90.inStep ?? Number.NaN, 0)} s.`;
 }
 
 function breakingNote(): string {
@@ -206,7 +206,7 @@ export const RESONANCE_PRESETS: readonly ResonancePreset[] = [
     name: '60 soldados rompiendo el paso',
     group: 'tropa',
     values: troopAt({ step: 'rompiendo' }),
-    sourceLabel: `${TROOP_SOURCES}; fases sorteadas con una semilla fija`,
+    sourceLabel: TROOP_SOURCES,
     note: breakingNote(),
   },
   {

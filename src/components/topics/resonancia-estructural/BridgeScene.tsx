@@ -359,7 +359,7 @@ function rulerOf(active: ActiveModel): {
   const { fZv } = active.zv.settings;
   const tolerance = KLIPPER.zvTolerance.value;
   return {
-    domain: { min: 0, max: 3 },
+    domain: { min: 0, max: 2.5 },
     bands: [
       {
         from: fZv * (1 - tolerance),

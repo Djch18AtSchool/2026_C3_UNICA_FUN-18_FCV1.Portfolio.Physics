@@ -35,7 +35,7 @@ const towerVideo = comma(tower.periodVideoS, 2);
 const towerReal = comma(tower.periodVideoS * stretch, 2);
 
 describe('Tema 12: the numbers the text writes come from the data and the core', () => {
-  test('the counting shot: 3,43 s in the video, 5,15 s real, in its marker and in Fig. 12.7', () => {
+  test('the counting shot: 3,43 s in the video, 5,15 s real, in its marker and in Fig. 12.8', () => {
     expect(MDX).toContain(`Contar ciclos: ${towerVideo} s en el video son ${towerReal} s reales`);
     expect(MDX).toContain(`Cuadro a cuadro mido ${towerVideo} s por ciclo`);
     expect(MDX).toContain(`son ${comma(stretch, 1)} reales: ${towerReal} s.`);

@@ -149,6 +149,8 @@ import Connections from '../../components/ui/Connections.astro';
 import Sources from '../../components/ui/Sources.astro';
 import AnalyzedMedia from '../../components/media/AnalyzedMedia';
 import ResonanceFigure from '../../components/topics/resonancia-estructural/ResonanceFigure';
+import ResonanceLab from '../../components/topics/resonancia-estructural/ResonanceLab';
+import { SWEEP_PLAYBACK_S } from '../../components/topics/resonancia-estructural/resonanceScene';
 import TacomaMeasurement from '../../components/topics/resonancia-estructural/TacomaMeasurement';
 import {
   TACOMA_FILM,
@@ -382,6 +384,21 @@ Con fases al azar, $|F|$ crece como <Equation inline latex="\sqrt{N}" /> y la po
 <DataTable id="resonancia-estructural-setra" />
 
 <Figure
+  type="simulacion"
+  showBadge={false}
+  caption="Laboratorio de la resonancia, ecuaciones (12.2), (12.3), (12.5) y (12.6). En «Barrido», la frecuencia de la fuerza recorre de $0{,}5\,f_0$ a $1{,}5\,f_0$ y la envolvente se traza sobre la curva; en «Tropa», $N$ soldados a 2,0 Hz cruzan una pasarela al paso o rompiendo el paso; en «Filtro ZV», un empujón frente a los dos impulsos de Klipper."
+  source={{
+    text: 'Simulación del autor sobre src/lib/physics/resonance.ts; la masa de la pasarela y las frecuencias de los ejemplos son ilustrativas',
+  }}
+>
+  <ResonanceLab
+    client:visible
+    usage={`La «Tropa» y el «Filtro ZV» corren en tiempo real; un barrido que dura más de ${SWEEP_PLAYBACK_S} s se reproduce a cámara rápida, en potencias de dos, con la escala en la esquina del dibujo.`}
+    leftOut="Un solo modo de cada estructura, el primero, con forma de medio seno; la masa modal de la pasarela y las frecuencias de los ejemplos son ilustrativas; los soldados marchan todos a 2,0 Hz exactos, sin la dispersión de unos 0,2 Hz que Sétra mide en la gente; nadie acompasa su paso al puente, como en el Millennium (12.7); el filtro actúa sobre un empujón, no sobre el recorrido de un cabezal, y Klipper tiene más filtros que el ZV."
+  />
+</Figure>
+
+<Figure
   type="multimedia"
   showBadge={false}
   caption="Reportaje de ITN sobre el Millennium Bridge, que cerró en junio de 2000, dos días después de abrir, porque se bamboleaba. Lo analizo entero, desde el inicio, con los datos de Arup; los números de la ecuación (12.8) están en la tabla 12.2."
@@ -531,7 +548,7 @@ Sobre 18,6 mph, <Equation inline latex="\zeta_\text{neto} < 0" /> (tabla 12.3) y
         time: TACOMA_MARKS.ciclos,
         title: 'Contar ciclos: 3,43 s en el video son 5,15 s reales',
         analysis:
-          'Desde debajo de la torre, el borde del tablero baja y sube dos veces. Cuadro a cuadro mido 3,43 s por ciclo (figura 12.7 y tabla 12.5). Elliott filmó a 16 cuadros por segundo y el video los pasa como 24, así que cada segundo del video son 1,5 reales: 5,15 s. Con la media de tres tomas, 3,49 s, el periodo real es 5,23 s y la frecuencia 0,191 Hz, unos 11,5 ciclos por minuto, un 4 % por debajo de los 12 que cronometró Farquharson: es la frecuencia natural de la torsión, la $f_0$ de la (12.1) para ese modo. Con «Velocidad real» la toma se ve a su ritmo.',
+          'Desde debajo de la torre, el borde del tablero baja y sube dos veces. Cuadro a cuadro mido 3,43 s por ciclo (figura 12.8 y tabla 12.5). Elliott filmó a 16 cuadros por segundo y el video los pasa como 24, así que cada segundo del video son 1,5 reales: 5,15 s. Con la media de tres tomas, 3,49 s, el periodo real es 5,23 s y la frecuencia 0,191 Hz, unos 11,5 ciclos por minuto, un 4 % por debajo de los 12 que cronometró Farquharson: es la frecuencia natural de la torsión, la $f_0$ de la (12.1) para ese modo. Con «Velocidad real» la toma se ve a su ritmo.',
       },
       {
         time: TACOMA_MARKS.colapso,
