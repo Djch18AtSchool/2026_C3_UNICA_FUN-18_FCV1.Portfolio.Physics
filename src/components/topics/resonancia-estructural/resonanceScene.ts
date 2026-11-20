@@ -92,6 +92,8 @@ export interface SweepModel {
   /** ω_d/ω0 at time t of the run. */
   ratioAt(t: number): number;
   driveHzAt(t: number): number;
+  /** The force's share of F0 at time t, cos φ(t). */
+  forceShareAt(t: number): number;
   /** (12.3) over the sweep, relative to F0/k, clamped above the plot (finite everywhere). */
   curve: XY[];
   yMax: number;
@@ -139,6 +141,7 @@ export function sweepModel(settings: SweepSettings): SweepModel {
     run,
     ratioAt,
     driveHzAt: (t) => f0 * ratioAt(t),
+    forceShareAt: (t) => Math.cos(phase(t)),
     curve: raw.map(({ x, y }) => ({ x, y: Math.min(y, CURVE_CLAMP * yMax) })),
     yMax,
     peakGain,
