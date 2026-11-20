@@ -30,26 +30,62 @@ async function stubAudio(page: Page): Promise<void> {
   await page.addInitScript((closedKey) => {
     const contexts: unknown[] = [];
     (window as unknown as { audioLog: unknown[] }).audioLog = contexts;
+    type Point = { kind: 'set' | 'linear' | 'target'; value: number; time: number; tau?: number };
+    /** An AudioParam whose value follows its timeline; every call goes to `events`. */
     class Param {
       events: unknown[][] = [];
-      constructor(public value: number) {}
+      private timeline: Point[] = [];
+      constructor(
+        private readonly initial: number,
+        private readonly clock: () => number,
+      ) {}
+      get value() {
+        return this.levelAt(this.clock());
+      }
+      levelAt(t: number) {
+        let level = this.initial;
+        let since = 0;
+        for (const [i, point] of this.timeline.entries()) {
+          if (point.kind === 'linear' && t < point.time) {
+            const share = point.time > since ? (t - since) / (point.time - since) : 1;
+            return level + (point.value - level) * Math.max(0, share);
+          }
+          if (point.kind !== 'linear' && point.time > t) return level;
+          if (point.kind === 'target') {
+            const until = Math.min(t, this.timeline[i + 1]?.time ?? t);
+            level =
+              point.value +
+              (level - point.value) * Math.exp(-(until - point.time) / (point.tau ?? 1));
+            since = until;
+            continue;
+          }
+          level = point.value;
+          since = point.time;
+        }
+        return level;
+      }
+      private add(point: Point) {
+        this.timeline = [...this.timeline, point].sort((a, b) => a.time - b.time);
+      }
       setValueAtTime(value: number, time: number) {
         this.events.push(['set', value, time]);
-        this.value = value;
+        this.add({ kind: 'set', value, time });
         return this;
       }
       linearRampToValueAtTime(value: number, time: number) {
         this.events.push(['linear', value, time]);
-        this.value = value;
+        this.add({ kind: 'linear', value, time });
         return this;
       }
       setTargetAtTime(value: number, time: number, tau: number) {
         this.events.push(['target', value, time, tau]);
-        this.value = value;
+        this.add({ kind: 'target', value, time, tau });
         return this;
       }
+      /** Logs the level the timeline had at `time`, then drops what starts from it on. */
       cancelScheduledValues(time: number) {
-        this.events.push(['cancel', time]);
+        this.events.push(['cancel', time, this.levelAt(time)]);
+        this.timeline = this.timeline.filter((point) => point.time < time);
         return this;
       }
     }
@@ -60,11 +96,15 @@ async function stubAudio(page: Page): Promise<void> {
       disconnect() {}
     }
     class Oscillator extends Node {
-      frequency = new Param(440);
+      frequency: Param;
       waves = 0;
       started?: number;
       stopped?: number;
       onended: (() => void) | null = null;
+      constructor(clock: () => number) {
+        super();
+        this.frequency = new Param(440, clock);
+      }
       setPeriodicWave() {
         this.waves += 1;
       }
@@ -76,7 +116,11 @@ async function stubAudio(page: Page): Promise<void> {
       }
     }
     class Gain extends Node {
-      gain = new Param(1);
+      gain: Param;
+      constructor(clock: () => number) {
+        super();
+        this.gain = new Param(1, clock);
+      }
     }
     class StubAudioContext {
       state = 'suspended';
@@ -95,12 +139,12 @@ async function stubAudio(page: Page): Promise<void> {
         return (performance.now() - this.origin) / 1000;
       }
       createOscillator() {
-        const node = new Oscillator();
+        const node = new Oscillator(() => this.currentTime);
         this.oscillators.push(node);
         return node;
       }
       createGain() {
-        const node = new Gain();
+        const node = new Gain(() => this.currentTime);
         this.gainNodes.push(node);
         return node;
       }
@@ -180,17 +224,25 @@ async function openLab(page: Page): Promise<Locator> {
 
 const playButton = (lab: Locator) => lab.getByTestId('synth-play');
 
-/** Every value the gain is set or ramped to: never above −18 dBFS, never set straight to it. */
+/**
+ * The gain never steps: no value above −18 dBFS; a «set» right after a «cancel» holds exactly the
+ * level the timeline had there (the stub logs it with the cancel); any other «set» is the 0 a new
+ * voice starts from.
+ */
 function expectNoStep(events: ParamEvent[]): void {
   for (const [kind, value] of events) {
     if (kind === 'set' || kind === 'linear') expect(value).toBeLessThanOrEqual(VOICE_GAIN + 1e-9);
   }
-  const jumps = events.filter(([kind, value]) => kind === 'set' && value > 0);
-  // A hold (setValueAtTime of the value it already has) only ever follows a cancel.
-  for (const jump of jumps) {
-    const index = events.indexOf(jump);
-    expect(events[index - 1]?.[0], `«set» ${jump[1]} sin «cancel» antes`).toBe('cancel');
-  }
+  events.forEach(([kind, value, time], index) => {
+    if (kind !== 'set') return;
+    const [previous, cancelTime, level] = events[index - 1] ?? [];
+    if (previous !== 'cancel') {
+      expect(value, `«set» ${value} sin «cancel» antes`).toBe(0);
+      return;
+    }
+    expect(cancelTime).toBe(time);
+    expect(value, `«set» ${value} en ${time} s: el nivel era ${level}`).toBeCloseTo(level, 9);
+  });
 }
 
 test.describe('Tema 11, laboratorio de síntesis', () => {
@@ -263,6 +315,44 @@ test.describe('Tema 11, laboratorio de síntesis', () => {
     expect(context.oscillators[0].stopped).toBeCloseTo(last[2] ?? Number.NaN, 9);
     expectNoStep(events);
     await expect.poll(async () => (await audioLog(page))[0].calls).toContain('suspend');
+  });
+
+  test('una f₁ nueva mientras suena desliza la frecuencia: ni baja la ganancia ni cambia la onda', async ({
+    page,
+  }) => {
+    const lab = await openLab(page);
+    await playButton(lab).click();
+    await expect.poll(async () => (await audioLog(page))[0]?.oscillators.length).toBe(1);
+    const before = (await audioLog(page))[0].gains[0].length;
+
+    const f1 = lab.getByRole('textbox', { name: /^Fundamental/ });
+    await f1.fill('440');
+    await f1.press('Enter');
+
+    await expect
+      .poll(async () => (await audioLog(page))[0].oscillators[0].frequency.at(-1)?.slice(0, 2))
+      .toEqual(['target', 440]);
+    await page.waitForTimeout(100);
+    const [context] = await audioLog(page);
+    expect(context.oscillators[0].waves).toBe(1);
+    expect(context.gains[0]).toHaveLength(before);
+  });
+
+  test('la tecla K, con el foco en el laboratorio, la detiene; en el campo de f₁ se escribe', async ({
+    page,
+  }) => {
+    const lab = await openLab(page);
+    await playButton(lab).click();
+    await expect(playButton(lab)).toHaveText('Detener');
+
+    await lab.getByRole('textbox', { name: /^Fundamental/ }).press('k');
+    await expect(playButton(lab)).toHaveText('Detener');
+    await lab.getByRole('slider', { name: /^Armónico 3,/ }).press('k');
+
+    await expect(playButton(lab)).toHaveText('Reproducir');
+    const events = (await audioLog(page))[0].gains[0];
+    expect(events.at(-1)?.slice(0, 2)).toEqual(['linear', 0]);
+    expectNoStep(events);
   });
 
   test('salir de la página (pagehide) cierra el AudioContext, también al navegar de verdad', async ({
