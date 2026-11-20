@@ -198,6 +198,8 @@ describe('SynthLab: sound only after a press, and one stop', () => {
 
   test('the K key stops it with the focus anywhere in the lab but a text field (fix round 1)', async () => {
     renderLab();
+    fireEvent.keyDown(amplitudeSlider(3), { key: 'k' });
+    expect(audio.contexts).toHaveLength(0);
     await press(playButton());
 
     fireEvent.keyDown(screen.getByRole('textbox', { name: /^Fundamental/ }), { key: 'k' });
