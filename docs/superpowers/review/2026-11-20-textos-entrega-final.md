@@ -237,3 +237,109 @@ las tablas y los datos cuyos textos se ven por primera vez en las tablas de esta
 
 - `src/lib/data/springReferences.ts:65`, celda «Fuente» de las tablas 10.1 (preajuste de Apple) y 10.2 (nuevo): «Apple Developer Documentation, SwiftUI, Spring (https://developer.apple.com/documentation/swiftui/spring)»
 - `src/lib/data/springReferences.ts:114`, celda «Fuente» de la tabla 10.2 (MOTION es «Motion v14.14.0 (commit f95ab94), packages/motion-dom/src/animation/generators») (nuevo): «${MOTION}/spring.ts L28-L29, L40, L42-L50 y L240-L248, y su prueba spring.test.ts L473-L475»
+
+### Laboratorio (figura 10.5, `src/components/topics/animaciones-resorte/`, tarea 5)
+
+Todo es nuevo («antes» vacío). Elecciones de Claude que se ven en el texto:
+
+- El recurso es la figura 10.5, con la insignia «Simulación interactiva»; las figuras 10.1 a 10.4 siguen sin ella.
+- La tarjeta de comparación es la `ease-in-out` de la figura 10.4 (fallo R14), no la `cubic-bezier(0.25, 0.1, 0.25, 1)`
+  del plan, y se llama «Curva de duración fija». Dura el $t_s$ al 2 % del resorte en cada tramo; si el resorte no tiene
+  $t_s$ ($b = 0$, o un tramo que empieza dentro de la banda) dura la $d = 2\pi/\omega_0$ de la (10.10), y el resumen lo
+  dice.
+- «Interrumpir» en reposo aplica la (10.11) con los umbrales de Motion (0,5 px y 2 px/s): el resorte arranca desde su
+  destino con $v = 0$ y solo cambia el destino. En el inicio, en pausa, el botón espera.
+- El asentamiento sin amortiguamiento se escribe «nunca» en el resumen bajo el lienzo, no en las lecturas: una lectura
+  del laboratorio solo muestra números.
+- En el selector, el ejemplo de Apple se llama «Apple, ejemplo (producto)»: con el texto al 200 % el nombre completo
+  hacía el selector más ancho que la tarjeta. El nombre completo sigue en la nota del preajuste y en la tabla 10.1.
+
+En la página:
+
+- `src/content/topics/animaciones-resorte.mdx:370`, pie de la figura 10.5: — → «Laboratorio del resorte: una tarjeta
+  que mueve la (10.6) y, debajo, otra con una curva ease-in-out que dura el $t_s$ del resorte. Mueve $k$, $b$ y $m$
+  para pasar por los tres regímenes; «Interrumpir» aplica la (10.9): el resorte conserva $x$ y $v$, y la curva arranca
+  otra vez desde el reposo.»
+- `src/content/topics/animaciones-resorte.mdx:372`, fuente de la figura 10.5: — → «Simulación que programé sobre
+  src/lib/physics/dampedSpring.ts; preajustes de Motion v14.14.0 y de Apple (tabla 10.1); curva ease-in-out,
+  cubic-bezier(0.42, 0, 0.58, 1), de CSS Easing Functions Level 1 (W3C)»
+- `src/content/topics/animaciones-resorte.mdx:377`, «Cómo se usa», última línea (las velocidades salen de
+  `SPRING_SPEEDS`): — → «A 1× la reproducción va en tiempo real, como en una interfaz, donde la animación dura menos de
+  un segundo; con 0,1× o 0,25× se ven el sobrepaso y la interrupción de un resorte rígido.»
+- `src/content/topics/animaciones-resorte.mdx:378`, «Qué deja fuera el modelo»: — → «Calculo cada cuadro con la
+  solución analítica (10.6), exacta en cualquier $t$, como el generador de Motion: no integro paso a paso.
+  react-spring avanza con Euler semiimplícito en pasos de 1 ms, y el gatillo del Tema 5 en pasos de 1/4 800 s; su
+  error crece con $\omega_0\,\Delta t$, y aquí no aparece. La unidad de longitud se cancela en $k/m$ y en $b/m$, así que
+  $k$ en N/m vale igual con $x$ en píxeles; $m$ = 1 kg es la convención de las bibliotecas, no una masa real. Tampoco
+  entran el gesto que entrega una $v_0$ al soltar ni la duración y el rebote de Apple, que con la (10.10) dan otros $k$
+  y $b$, no otra física. De los umbrales con que Motion da la animación por terminada solo uso el reposo al
+  interrumpir.»
+
+En el laboratorio (`SpringLab.tsx`, `springLabText.ts`, `SpringNotes.tsx`, `SpringPlot.tsx`, `SpringCard.tsx`,
+`springScene.ts`, `springLabPresets.ts`; los `${…}` son valores que calcula el núcleo):
+
+- `SpringLab.tsx:224`, título: — → «Laboratorio del resorte»
+- `SpringLab.tsx:132-134`, parámetros: — → «Rigidez $k$» (N/m, de 10 a 1 000), «Amortiguamiento $b$» (N·s/m, de 0 a 100),
+  «Masa $m$» (kg, de 0,1 a 5); los tres con paso 0,1
+- `SpringLab.tsx:115`, botón del escenario: — → «Interrumpir»
+- `springLabText.ts:49`, línea bajo «Interrumpir» cuando puede pulsarse: — → «Cambia el destino al instante: el resorte
+  sigue con su velocidad y la curva arranca otra vez desde el reposo.»
+- `springLabText.ts:51`, la misma línea en el inicio, en pausa (botón desactivado): — → «En el inicio no hay
+  movimiento que interrumpir: reproduce o mueve la línea de tiempo.»
+- `SpringLab.tsx:52-87`, lecturas (decimales fijos): — → «Razón de amortiguamiento $\zeta$» (tres), «Frecuencia
+  natural $\omega_0$» (rad/s, dos), «Sobrepaso previsto $M_p$» (%, dos; la (10.7), desde el reposo), «Destino
+  $x_\text{obj}$» (px, ninguno), «Posición del resorte $x$» (px, uno), «Velocidad del resorte $v$» (px/s, ninguno),
+  «Posición de la curva $x$» y «Velocidad de la curva $v$» (estas dos, solo con la tarjeta de la curva)
+- `SpringLab.tsx:161` y `:168`, interruptores del cajón, «Este simulador»: — → «Tarjeta con la curva de duración
+  fija», «Banda de ±2 % alrededor del destino»
+- `springLabText.ts:24-27`, ficha del régimen en el lienzo: — → «Sin amortiguar, $b = 0$», «Subamortiguado,
+  $\zeta < 1$», «Crítico, $\zeta = 1$», «Sobreamortiguado, $\zeta > 1$»
+- `springLabText.ts:38-39`, títulos de los carriles del lienzo y de las series de la gráfica: — → «Resorte», «Curva de
+  duración fija»
+- `springLabText.ts:109`, ficha del carril de la curva: — → «ease-in-out, $T$ = `${duración}`»
+- `SpringCard.tsx:222`, rótulo bajo la marca del destino actual: — → «destino» (las marcas dicen «100 px» y
+  «1 000 px»)
+- `springLabText.ts:43`, «Cómo se usa», primera línea: — → «Reproduce y pulsa «Interrumpir» con las tarjetas a mitad
+  de camino: el destino pasa a la otra marca. También puedes pausar, llevar la línea de tiempo o el cursor de la gráfica
+  a un instante e interrumpir ahí. Cada interrupción queda en la línea de tiempo; una nueva antes de otra la reemplaza a
+  ella y a las siguientes.»
+- `springLabText.ts:44`, «Cómo se usa», segunda línea: — → «Atajos, fuera de los campos: Espacio o K reproduce y
+  pausa; I interrumpe; R vuelve al inicio; «,» y «.» retroceden o avanzan 1/60 s.»
+- `SpringNotes.tsx:7-11`, notas del lienzo (la segunda frase solo con la tarjeta de la curva; la última, solo con la
+  banda): — → «Las dos tarjetas recorren lo mismo, de 100 px a 1 000 px. Arriba, el resorte de la (10.6), con el color
+  de su régimen, como en las figuras 10.1 a 10.4. Abajo, la curva ease-in-out de duración fija, que arranca otra vez
+  desde el reposo en cada interrupción. El contorno tenue marca el destino de ahora. La franja es la banda de ±2 % del
+  recorrido en la que se mide $t_s$.»
+- `SpringNotes.tsx:54`, `:58`, `:62`, filas del resumen: — → «Asentamiento al 2 %, $t_s$», «Curva de duración fija»,
+  «Última interrupción»
+- `springLabText.ts:74-80`, valor de «Asentamiento al 2 %»: — → «`${t_s}`» (sin interrupciones, p. ej. «0,81 s»);
+  «nunca: con $b = 0$ el resorte no pierde energía, $dE/dt = -b v^2 = 0$»; «a los `${t}`: `${t_s}` después de la
+  última interrupción»; «`${t*}`: tras la última interrupción ya no sale de la banda»
+- `springLabText.ts:89-92`, valor de «Curva de duración fija»: — → «ease-in-out de `${T}`, el $t_s$ del resorte: salen
+  y llegan a la vez»; o «ease-in-out de `${T}`, la $d = 2\pi/\omega_0$ de la (10.10), porque el resorte nunca se
+  asienta» (o «… porque el resorte no sale de la banda»)
+- `springLabText.ts:98-104`, valor de «Última interrupción»: — → «ninguna todavía: pulsa «Interrumpir» con las
+  tarjetas a mitad de camino»; «a $t^*$ = `${t*}` las dos estaban en reposo: solo cambia el destino»; «a $t^*$ =
+  `${t*}` el resorte sigue a `${v}`; la curva pasa de `${v_curva}` a 0»
+- `springScene.ts:235-237`, eventos de la reproducción: — → «Interrupción», «Pico» (solo con $\zeta < 1$),
+  «Asentamiento»
+- `SpringPlot.tsx:160`, título de la gráfica: — → «Posición de las dos tarjetas, $x(t)$»
+- `SpringPlot.tsx:104`, rótulo del primer sobrepaso en la gráfica: — → «$t_p$ = `${t_p}`»
+- `SpringPlot.tsx:172`, nombre hablado del cursor de la gráfica: — → «Instante en la gráfica de posición»
+- `SpringPlot.tsx:118`, descripción hablada de la gráfica: — → «Posición x frente al tiempo durante `${duración}`. El
+  resorte, `${régimen}`, sale de 100 px hacia 1 000 px. La curva de duración fija va de 100 px a 1 000 px en `${T}`.
+  Interrupciones: `${n}`, cada una cambia el destino.» (las dos últimas frases, según el caso)
+- `SpringCard.tsx:336`, descripción hablada del lienzo: — → «Dos tarjetas van de 100 px a 1 000 px. El resorte,
+  `${régimen}`, está en `${x}`, con destino `${x_obj}`; la curva de duración fija, en `${x}`.»
+- `springLabPresets.ts:94` y `:47`, opciones del selector (texto plano): — → el nombre de `springPresets.ts` seguido de
+  « (producto)» o « (ilustrativo)»; el de Apple, «Apple, ejemplo (producto)»
+- `springLabPresets.ts:79`, nota de «Motion, por omisión»: — → «El generador de Motion sin opciones: $\zeta$ = 0,50, y
+  la tarjeta se pasa un 16,30 % del recorrido antes de volver.»
+- `springLabPresets.ts:80`, nota de «Motion, posición $x$ e $y$»: — → «La transición que Motion da a una traslación sin
+  opciones propias: $\zeta$ = 0,56, con un sobrepaso del 12,03 %.»
+- `springLabPresets.ts:82`, nota de «Motion, escala hacia 0»: — → «El crítico exacto, $b = 2\sqrt{k m}$, que Motion usa
+  cuando la escala va a 0 para que no se vuelva negativa.»
+- `springLabPresets.ts:83`, nota de «Apple, ejemplo de la documentación»: — → «La (10.10) con $d$ = 0,5 s y $\beta$ =
+  0,3 da los 157,9 N/m y 17,6 N·s/m que imprime Apple: $\zeta$ = 0,70.»
+- `springLabPresets.ts:84`, nota de «Sobreamortiguado»: — → «El doble del amortiguamiento crítico, $\zeta$ = 2: llega
+  sin pasarse, pero tarda 1,49 s en asentarse al 2 %.»
