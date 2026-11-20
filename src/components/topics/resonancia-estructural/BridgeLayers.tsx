@@ -177,6 +177,8 @@ function Drivers({
     const groundY = y + room + SHAKER.gap;
     return (
       <g data-testid="shaker" className="pointer-events-none">
+        {/* The shaker's rod to the deck: one attribute per frame. */}
+        <line x1={mid} x2={mid} y1={groundY} y2={deckY} stroke={TICK_COLOR} strokeWidth={2} />
         <rect
           x={mid - SHAKER.width / 2}
           y={groundY}
