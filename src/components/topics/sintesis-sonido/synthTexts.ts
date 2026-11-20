@@ -18,7 +18,7 @@ const rampMs = formatNumber(GAIN_RAMP_S * 1000, { precision: 0, unit: 'ms' });
 const hertz = (value: number, precision = 0) => formatNumber(value, { precision, unit: 'Hz' });
 
 export const IDLE_STATUS = 'Nada suena hasta que pulses «Reproducir».';
-export const PLAYING_STATUS = `Suena a ${levelDbfs} dBFS de pico; «Detener» lo apaga.`;
+export const PLAYING_STATUS = `Suena a ${levelDbfs} dBFS de pico; «Detener» o la tecla K lo apagan.`;
 export const SILENT_STATUS = 'Todas las amplitudes que suenan valen 0: no se oye nada.';
 
 /** The line beside «Reproducir»: an error first, then what the voice is doing. */
@@ -52,7 +52,7 @@ export function nyquistNote(f1: number, sampleRate: number): string {
 
 /** «Cómo se usa». */
 export const USAGE: readonly string[] = [
-  `Pulsa «Reproducir» para oír la receta: nada suena antes. Empieza a ${levelDbfs} dBFS de pico con una rampa de ${rampMs}, y «Detener» lo apaga; cada cambio de receta baja el volumen, cambia la onda y lo vuelve a subir en ${rampMs}.`,
+  `Pulsa «Reproducir» para oír la receta: nada suena antes. Empieza a ${levelDbfs} dBFS de pico con una rampa de ${rampMs}, y «Detener» lo apaga, como la tecla K con el foco en el laboratorio fuera de un campo numérico; cada cambio de receta baja el volumen, cambia la onda y lo vuelve a subir en ${rampMs}.`,
   'Las amplitudes $A_1$ a $A_{10}$ son relativas al $A_1$ = 1 de los preajustes; las barras dan su nivel, $20\\log_{10} A_n$, que con $A_1$ = 1 es el $A_n/A_1$ de la figura 11.4. $f_1$ cambia la nota y deja la receta: el timbre se conserva.',
   'El navegador normaliza el pico de cada receta (§1.28.5 de la Web Audio API): todas llegan al mismo pico, no a la misma sonoridad. La $f_s$ y el nivel de pico son elecciones mías, no valores de un producto.',
   'Arrastra el cursor de la forma de onda, o enfócalo y muévelo con las flechas (1 % del eje; con Mayús, 10 %): marca $y(t)$ y $-y(t + T/2)$ en el mismo instante. La curva discontinua se quita en los ajustes del engranaje.',

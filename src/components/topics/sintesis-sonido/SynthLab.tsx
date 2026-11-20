@@ -186,6 +186,7 @@ export default function SynthLab({ leftOut }: SynthLabProps): JSX.Element {
           voice.error,
         )}
         onToggle={() => (voice.isPlaying ? voice.stop() : void voice.start())}
+        onStop={voice.stop}
         waveform={waveform}
         waveformLabel={waveformDescription(readings, state.randomPhases)}
         showShifted={showShifted}

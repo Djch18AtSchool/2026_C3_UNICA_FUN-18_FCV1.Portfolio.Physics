@@ -196,6 +196,30 @@ describe('SynthLab: sound only after a press, and one stop', () => {
     expect(audio.contexts[0].oscillators[0].frequency.value).toBeCloseTo(440, 1);
   });
 
+  test('the K key stops it with the focus anywhere in the lab but a text field (fix round 1)', async () => {
+    renderLab();
+    await press(playButton());
+
+    fireEvent.keyDown(screen.getByRole('textbox', { name: /^Fundamental/ }), { key: 'k' });
+    expect(playButton()).toHaveTextContent('Detener');
+    fireEvent.keyDown(document.body, { key: 'k' });
+    expect(playButton()).toHaveTextContent('Detener');
+    fireEvent.keyDown(amplitudeSlider(3), { key: 'k', ctrlKey: true });
+    expect(playButton()).toHaveTextContent('Detener');
+
+    fireEvent.keyDown(amplitudeSlider(3), { key: 'K' });
+    expect(playButton()).toHaveTextContent('Reproducir');
+    expect(audio.contexts[0].oscillators[0].stoppedAt).toBeDefined();
+    expect(screen.getByTestId('synth-status')).toHaveTextContent('Nada suena');
+  });
+
+  test('the status line and «Cómo se usa» say that K stops it', async () => {
+    renderLab();
+    expect(mathSourceText(screen.getByText(/^Pulsa «Reproducir»/))).toContain('tecla K');
+    await press(playButton());
+    expect(screen.getByTestId('synth-status')).toHaveTextContent('la tecla K');
+  });
+
   test('leaving the page closes the AudioContext and the button reads «Reproducir»', async () => {
     renderLab();
     await press(playButton());

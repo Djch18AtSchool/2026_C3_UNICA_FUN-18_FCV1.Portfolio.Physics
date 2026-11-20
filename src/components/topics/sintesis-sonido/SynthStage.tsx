@@ -1,14 +1,16 @@
 /**
  * The synthesiser's canvas: «Reproducir»/«Detener» with its status line, and the waveform that
- * sounds, with a cursor that marks y(t) and −y(t + T/2) at the same instant (11.6).
+ * sounds, with a cursor that marks y(t) and −y(t + T/2) at the same instant (11.6). K, with the
+ * focus in the lab, stops it too (useStopKey).
  */
-import type { JSX } from 'react';
+import { useRef, type JSX } from 'react';
 import { CANVAS_INSET } from '../../lab/canvasInset';
 import InlineMath from '../../lab/InlineMath';
 import { PlotPoints, type PlotPoint } from '../../lab/PlotPoints';
 import { STAGE_PLOT_ASPECT } from '../../lab/SvgPlot';
 import { formatNumber } from '../../../lib/format';
 import { SHIFTED_COLOR, SIGNAL_COLOR, type WaveformData } from './soundPlots';
+import { useStopKey } from './useStopKey';
 import WaveformPlot from './WaveformPlot';
 
 /** A text button of the lab (40 px), wide enough for «Reproducir» so the line beside it stays. */
@@ -28,6 +30,8 @@ export interface SynthStageProps {
   /** The status line's text (statusText), with KaTeX between `$…$`. */
   status: string;
   onToggle(): void;
+  /** The one stop, also bound to K inside the lab. */
+  onStop(): void;
   waveform: WaveformData;
   waveformLabel: string;
   showShifted: boolean;
@@ -41,6 +45,7 @@ export default function SynthStage({
   isPlaying,
   status,
   onToggle,
+  onStop,
   waveform,
   waveformLabel,
   showShifted,
@@ -48,6 +53,8 @@ export default function SynthStage({
   at,
   onCursor,
 }: SynthStageProps): JSX.Element {
+  const stageRef = useRef<HTMLDivElement>(null);
+  useStopKey(stageRef, isPlaying, onStop);
   const points: PlotPoint[] = [
     { id: 'senal', x: cursorMs, y: at.y, color: SIGNAL_COLOR },
     ...(showShifted
@@ -55,7 +62,7 @@ export default function SynthStage({
       : []),
   ];
   return (
-    <div className="flex flex-col gap-4">
+    <div ref={stageRef} className="flex flex-col gap-4">
       <div className={`flex flex-wrap items-center gap-x-4 gap-y-2 ${CANVAS_INSET}`}>
         <button
           type="button"
