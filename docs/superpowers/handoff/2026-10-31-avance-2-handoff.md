@@ -37,6 +37,7 @@ forma de trabajo acordada. Reemplaza como punto de partida al traspaso del Avanc
   (FD-R1 a FD-R38), contratos, textos nuevos para Dylan, decisiones abiertas (40 a 69) y deudas en la sección
   «Fase D cerrada». Puerta del controlador, revisiones finales, CI y despliegue hechos (`5ff337e`).
 - **Fase E sin publicar en `fase-e-laboratorio`** (desde `5ff337e`): ver «Fase E».
+- **Entrega Final sin publicar en `entrega-final`** (`2c639c6`, sobre la fase E): ver «Entrega Final».
 - **Contenido del Avance 2** (rama `avance-2`, ya en `main`). Reúne:
   - **Temas 6 a 9**, con el formato del Avance 1 (cuatro `Step` con ecuación numerada y `Why`,
     `UseCase`, `Callout` de clase, `Connections`, `Sources`), su recurso prescrito con insignia
@@ -2072,6 +2073,112 @@ Comprobado contra el código el 17 de noviembre de 2026. En orden:
   permiso explícito de Dylan (13 de noviembre).
 - **«Después del Avance 2»:** las viñetas de E1 y E5 pasaron a esta sección; el estado de la fase D y la lista de la
   Entrega Final remiten aquí.
+
+## Entrega Final (17 a 20 de noviembre de 2026): Temas 10 a 13 y «Qué aprendí», sin publicar
+
+**Léelo antes de tocar nada.** Esta sección manda sobre las anteriores donde se contradigan. Spec:
+`docs/superpowers/specs/2026-11-17-entrega-final-design.md`; plan: `docs/superpowers/plans/2026-11-17-entrega-final.md`;
+investigación verificada: `docs/superpowers/research/2026-11-17-*.md` (con fe de erratas en enfriamiento §7.1 y resonancia
+§6.2); libro de decisiones (fuera de git): `.superpowers/sdd/2026-11-17-entrega-final/progress.md`.
+
+### 1. Estado exacto (20 de noviembre de 2026)
+
+- **Rama `entrega-final`** = `2c639c6`, sobre `fase-e-laboratorio` (`8262b67`): 100 commits; lleva la fase E más la Entrega
+  Final. **Sin empujar ni integrar en `main`.** Lo publicado sigue siendo `5ff337e` (fase D).
+- **Puerta sobre `2c639c6`:** `pnpm run check` 0 errores; 4 577 pruebas unitarias, 99,15 % de sentencias; `build` de 15
+  páginas (portada, 404 y 13 temas); `scale:report` 0; e2e completa por tandas en el 4322 con `--workers=1` (las 56 suites,
+  verdes; la integración las corrió todas sobre `e8e156b` y la ronda final volvió a correr las afectadas).
+- **Entrega:** sábado 21 de noviembre, 23:59, en Moodle: URL del sitio y del repositorio.
+
+### 2. Qué entregó
+
+- **Tema 10, Spring animations** (simulación): caso Motion v14.14.0 con Apple (WWDC23) y Material 3 de contraste; núcleo
+  analítico que reproduce las tres pruebas de Motion; laboratorio con $k$, $b$, $m$, los tres regímenes, «Interrumpir» y
+  una tarjeta de duración fija (ease-in-out) que salta donde el resorte no.
+- **Tema 11, Síntesis de sonido** (multimedia): Web Audio `PeriodicWave` (W3C, Chromium); flauta y clarinete reales de Iowa
+  (mi♭4, −20 LUFS, FFT propio: impares 25,7 dB sobre pares en el clarinete); forma de onda, espectro, envolvente y análisis
+  por instante; Helmholtz y la fase; sintetizador aditivo con fases aleatorias y tecla K para detener.
+- **Tema 12, Resonancia estructural** (multimedia): caso Klipper (barrido y filtro ZV, residuo con la métrica de Klipper);
+  video de Tacoma alojado con «Velocidad real (×2/3)» y medición propia cuadro a cuadro (5,23 s, 0,191 Hz, ≈ 11,5 ciclos/min
+  frente a los 12 de Farquharson); Tacoma como autoexcitación; video del Millennium Bridge con una sola marca en 0:00;
+  laboratorio con barrido, tropa (al paso / rompiendo el paso) y filtro ZV.
+- **Tema 13, Enfriamiento líquido** (visualización): rack de clase GB200 NVL72 con el CDU Deschutes (OCP), Modelica
+  Buildings; $v(x)$ y $p(x)$ con la franja de secciones, validación propia 1,80 bar frente a 1,98 de GF (9,2 %);
+  pérdidas por componente; reparto por servidor (retorno directo/invertido) contra lo medido por NVIDIA; laboratorio que
+  dimensiona el circuito con la curva de la bomba.
+- **«Qué aprendí»** al final de la portada (índice «En esta página» arriba): mapa propio de los 13 temas con los pares 7+9,
+  6+13 y 11+12, un párrafo por par, y la aplicación propia (detección de caídas, $n/m$ en caída libre, impulso al impacto).
+- **Compartido:** `AnalyzedMedia` (YouTube, video o audio alojados, marcas con análisis; el Tema 5 lo usa); pruebas de
+  registro que derivan de `TOPICS`; guardia de letras sueltas sobre todas las tablas impresas; ♭ y ⌊⌋ en «Plex Symbols».
+- **Corrección del profesor (Tema 7):** (7.3) con techo, su dominio declarado y el ejemplo 4, 2 y 1 m/s.
+
+### 3. Textos para Dylan
+
+Todo en `docs/superpowers/review/2026-11-20-textos-entrega-final.md` (archivo:línea, antes → después; lo nuevo como
+«nuevo»), por secciones: Medios, Tarea F, Temas 10 a 13, Qué aprendí y la ronda final. **Son borradores de Claude y no cuentan
+como publicados hasta que Dylan los lea.** La parte (b) de «Qué aprendí» es su aplicación propia: el borrador es de Claude y
+Dylan debe hacerlo suyo. Prosa: Temas 7, 11 y 13 en 650 (tope); Tema 12 en 646; Tema 10 en 642.
+
+### 4. Decisiones abiertas de Dylan
+
+1. **Las dos marcas del Millennium Bridge** (https://www.youtube.com/watch?v=Hz72lzDxMfc, 93 s): en qué segundo se ve el
+   balanceo lateral y en cuál la gente acompasa el paso. Hoy hay una sola marca en 0:00 que solo afirma lo del título (R17).
+2. **La conexión del Tema 12 con el Tema 7** (no estaba en el spec; la física es correcta).
+3. **Leer los textos** (apartado 3) y la lectura pendiente de la fase E (apartado 4 de «Fase E» y sus decisiones 70 a 78).
+4. **Tema 13:** la tensión entre la regla de OCP (1,5 L/min por kW, «objetivo de diseño», 1,25 a 2,0) y el «hasta 130 L/min»
+   de MGX; la figura 13.2 muestra ahora las pérdidas locales como escalones en su salida.
+5. **Push a `main` y entrega:** solo con el permiso explícito de Dylan para ese push (apartado 6).
+
+### 5. Decisiones que tomó Claude sin consultar (R1 a R29)
+
+Formato: qué; por qué; costo si fue un error. Detalle en el libro de decisiones.
+
+- R1–R5, R25: organización (tablas que se añaden al registro, trabajo en paralelo por worktree, tope de 3 implementadores,
+  sin línea de coautor, la tarea 2 en su worktree, la tarea 17 partida en dos); costo: conflictos de rebase.
+- R6: `settlingTime` con una distancia de referencia explícita (tras «Interrumpir» se mide respecto de la distancia entre
+  destinos); costo: un parámetro.
+- R7: el doble conteo del Tema 13 corregido: 1,80 bar (9,2 %), no 1,83 (7,5 %); costo: la cifra de validación.
+- R8, R12: las recetas medidas son «cálculo propio» («medida: grabación MIS»); la línea de fuente de las grabaciones en
+  primera persona; costo: dos etiquetas.
+- R9, R13, R24: los números de la página siguen a los datos y al código donde la investigación redondeó mal (1,4 cents;
+  21–37 dB bajo el fundamental; la toma 1 de Tacoma mide 3,58 s; 46 % y no 51 %); costo: ninguno (los datos mandan).
+- R10, R16, R20: la insignia del Tema 10 en su laboratorio; una figura propia en el paso 3 del Tema 13; el video del
+  Millennium en el paso 3 del Tema 12; costo: mover una figura.
+- R11: pulsar una marca reproduce y anuncia «Reproduciendo desde m:ss»; costo: una cadena.
+- R14: la tarjeta de duración fija usa ease-in-out (la única confirmada y que arranca con velocidad cero); costo: una
+  constante.
+- R15: una sola lista de textos con el encabezado de la tarea 2; costo: fusión manual de un documento.
+- R17: ninguna marca de tiempo sin verificar; costo: el video del Millennium queda más delgado hasta que Dylan lo mire.
+- R18: Helmholtz en una leyenda del paso 4 del Tema 11; costo: una frase.
+- R19: primero todo lo que pide la consigna, después los laboratorios extra (llegaron todos); costo: ninguno.
+- R21–R23: `Sources` acepta `level`; dos pruebas de navegación cambiadas; índice breve en la portada; costo: pequeño.
+- R26: residuo del filtro ZV con la métrica de Klipper; costo: un factor.
+- R27: el CDU sostiene la presión de retorno (supuesto declarado) e impulsión = retorno + pérdidas; costo: el nivel absoluto
+  del perfil del laboratorio.
+- R28: 1,5 L/min por kW como «objetivo de diseño de OCP»; costo: redacción.
+- R29: los menores diferidos que no entraron en la ronda final se quedan según el triaje del revisor final (código o casos
+  límite que no se ven); costo: pulido posterior.
+- Aparcados al cierre: filas de las tablas 12.2, 12.4 y 13.3 de hasta 5 líneas a 360 px (compromiso con el desplazamiento
+  en escritorio); el $t_0$ del Tema 11 coincide con el del Tema 7 (temas distintos, cada uno lo define).
+
+### 6. Publicar y entregar (con permiso de Dylan)
+
+1. Dylan lee los textos y resuelve lo que quiera del apartado 4.
+2. Con su permiso explícito para ese push: `git push origin entrega-final:main` (avance rápido sobre `5ff337e`; la
+   autenticación es la de la cuenta universitaria, como en la fase B: `GH_TOKEN` solo en ese comando). Son unos 24 MB de
+   video de Tacoma (WebM y MP4) más dos MP3 de menos de 60 kB.
+3. CI y el despliegue de Pages en verde; la portada, los 13 temas, el video de Tacoma y los audios responden 200 en el sitio
+   vivo (https://djch18atschool.github.io/2026_C3_UNICA_FUN-18_FCV1.Portfolio.Physics/).
+4. Moodle: URL del sitio y del repositorio antes del sábado 21 a las 23:59.
+5. Después, si Dylan quiere: etiquetas `avance-1`, `avance-2`, `entrega-final`; limpiar worktrees y ramas
+   `entrega-final-*` ya integradas.
+
+### 7. Deudas y notas
+
+- Menores diferidos con su triaje: libro de decisiones, líneas «minor (deferred)» y el triaje de la revisión final.
+- `pnpm run data:harmonics` y `pnpm run data:tacoma` usan `ffmpeg` y no corren en CI; la descarga de Tacoma con curl no se
+  probó de punta a punta (Wikimedia limitó la IP; las copias se verificaron por SHA-256 y SHA-1).
+- Temas 3 y 6 a 9 conservan «del autor» en sus líneas de fuente (la regla de primera persona se aplicó a los temas nuevos).
 
 ## Después del Avance 2
 
