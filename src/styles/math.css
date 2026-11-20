@@ -7,9 +7,10 @@
  * - an inline formula (KaTeX outside a display) is set at the size and weight of its text, in
  *   Plex Sans: variables (Latin and lowercase Greek) in its italic; digits, units, operators and
  *   uppercase Greek upright;
- * - the symbols Plex lacks (→ ∞ ≈ ≤ ≥ ⋅ ∫ ⊥ ⊙, KaTeX's accents and the stroke of its ≠, U+E020)
- *   come from KaTeX's own Main face under the name «Plex Symbols», scaled so its x-height meets Plex's (KATEX_SCALE,
- *   src/lib/mathFonts.ts): the same glyph and size in the prose, the controls and the figures;
+ * - the symbols Plex lacks (→ ∞ ≈ ≤ ≥ ⋅ ∫ ⊥ ⊙ ⌊ ⌋ ♭, KaTeX's accents and the stroke of its ≠,
+ *   U+E020) come from KaTeX's own Main face under the name «Plex Symbols», scaled so its x-height
+ *   meets Plex's (KATEX_SCALE, src/lib/mathFonts.ts): the same glyph and size in the prose, the
+ *   controls and the figures;
  * - display equations ($$…$$, <Equation>) stay in KaTeX, the textbook's setting;
  * - Plex Mono only numbers the notebook (figures, equations, tables, sources, parts, topics).
  *
@@ -24,7 +25,7 @@
   font-weight: 100 500;
   font-display: swap;
   src: url('../../node_modules/katex/dist/fonts/KaTeX_Main-Regular.woff2') format('woff2');
-  unicode-range: U+02C6-02DD, U+2190-22FF, U+E020;
+  unicode-range: U+02C6-02DD, U+2190-22FF, U+230A-230B, U+266D, U+E020;
   /* KATEX_SCALE as a percentage: fontData.test.ts compares the two. */
   size-adjust: 116.74%;
 }
@@ -35,7 +36,7 @@
   font-weight: 600 900;
   font-display: swap;
   src: url('../../node_modules/katex/dist/fonts/KaTeX_Main-Bold.woff2') format('woff2');
-  unicode-range: U+02C6-02DD, U+2190-22FF, U+E020;
+  unicode-range: U+02C6-02DD, U+2190-22FF, U+230A-230B, U+266D, U+E020;
   size-adjust: 116.74%;
 }
 
