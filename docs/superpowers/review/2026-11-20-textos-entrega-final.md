@@ -567,3 +567,124 @@ se ven en el texto:
   - «Permiso de uso» · ««may be downloaded and used for any projects, without restrictions», según la página del MIS» · ««may be downloaded and used for any projects, without restrictions», según la página del MIS»
 - `src/lib/tables/topics/sintesis-sonido.ts:59`, tabla 11.2, rango del fundamental: «referencia»
 - `src/lib/tables/topics/sintesis-sonido.ts:110`, tabla 11.3, palabras del formato: «un canal» · «dos canales» · «idénticos»
+
+### Laboratorio (figura 11.5, tarea 8: `src/components/topics/sintesis-sonido/`)
+
+Todo es nuevo («antes» vacío, —). Los `${…}` salen del estado o de los datos; abajo los escribo como se ven al abrir
+(clarinete medido, $f_1$ = 310,1 Hz, $f_s$ = 44 100 Hz). Elecciones de Claude que se ven en el texto:
+
+- **Dónde va.** Cierra el paso 4, tras las tablas 11.2 y 11.3: usa las recetas medidas de ese paso y su interruptor
+  «Fases aleatorias» apunta al pie de la figura 11.4 (Helmholtz, decisión R18). Es la figura 11.5, sin insignia.
+- **Rótulos de los preajustes** (decisión R8): «(receta clásica)» en las cuatro de la Web Audio API y «(medida:
+  grabación MIS)» en las dos medidas, no «producto».
+- **Amplitudes de 0 a 1,6**, no de 0 a 1,5 como decía la tarea: el 2.º armónico medido de la flauta vale 1,54 y no
+  cabría.
+- **Frecuencia de muestreo $f_s$** (8 000, 16 000, 22 050, 44 100 y 48 000 Hz, por omisión 44 100, la de las
+  grabaciones): sin ella, con $f_1$ ≤ 880 Hz y diez armónicos, ningún armónico pasaría nunca de $f_s/2$ en un equipo
+  normal y la (11.9) no se vería. Con 8 000 Hz y 880 Hz solo suenan 4.
+- **Un cursor sobre la forma de onda** marca $y(t)$ y $-y(t + T/2)$ en el mismo instante: es la (11.6) leída en un
+  punto, y es el asidero que toda prueba de laboratorio exige.
+- **El espectro del laboratorio** dice «Nivel de $A_n$ (dB)», $20\log_{10} A_n$, y no $A_n/A_1$: $A_1$ también se
+  mueve y puede valer 0 (con solo pares, el periodo es $T/2$). Con $A_1$ = 1, como en todos los preajustes, es lo
+  mismo que en la figura 11.4.
+- **Un preajuste es el timbre**: elegirlo no cambia $f_1$, $f_s$ ni las fases aleatorias, y mover $f_1$ no deja el
+  preajuste (la nota «Valores modificados…» solo sale al tocar una amplitud).
+- **Fases aleatorias** con semilla fija: el primer sorteo es siempre el mismo (servidor, navegador y pruebas), y los
+  cuatro primeros cambian a la vista la forma del clarinete (correlación < 0,9).
+- **Volumen**: −18 dBFS de pico, con rampas de 30 ms en cada cambio; el navegador normaliza el pico (§1.28.5), así que
+  las recetas suenan con el mismo pico y no con la misma sonoridad. Lo dice «Cómo se usa».
+
+Página (`src/content/topics/sintesis-sonido.mdx`):
+
+- `src/content/topics/sintesis-sonido.mdx:369`, pie de la figura 11.5: — → «Laboratorio de síntesis aditiva con la Web
+  Audio API: diez amplitudes $A_n$ y la fundamental $f_1$ forman la receta (11.4), que suena como una PeriodicWave
+  (11.5) solo después de pulsar «Reproducir»; la forma de onda y el espectro se recalculan con cada control. Los
+  preajustes son las recetas clásicas de la tabla 11.1 y las medidas de la tabla 11.2, con sus fases. «Fases
+  aleatorias» cambia la forma y deja el espectro; con $f_s$ baja y $f_1$ alta se apagan los armónicos sobre $f_s/2$,
+  como pide la (11.9).»
+- `src/content/topics/sintesis-sonido.mdx:371`, línea de fuente: — → «Simulación que programé con la Web Audio API
+  (W3C, 2021), fuente 1: un OscillatorNode toca la receta como PeriodicWave; recetas clásicas de su §1.28.6 y medidas
+  propias de las grabaciones del MIS (tabla 11.2). El pico de −18 dBFS y las frecuencias de muestreo son elecciones
+  mías»
+- `src/content/topics/sintesis-sonido.mdx:376`, «Qué deja fuera el modelo»: — → «Lo que deja fuera: (1) el ataque y la
+  caída, pues la nota suena entera desde el primer instante, sin la envolvente $E(t)$ de la (11.7), y solo entra y
+  sale con una rampa de 30 ms para no hacer clic; (2) el ruido del soplido y las fluctuaciones de la flauta, pues la
+  receta es periódica y fija, el promedio de la tabla 11.2 y no sus rangos; (3) el vibrato: $f_1$ no oscila; (4) el
+  aliasing, pues los armónicos por encima de $f_s/2$ se apagan, como hace Chromium al recortar sus tablas, en lugar de
+  plegarse a $|n f_1 - m f_s|$; (5) los armónicos 11 y 12 de las grabaciones y la inarmonicidad de la (11.8).»
+
+Lienzo (`SynthStage.tsx`) y estado del sonido (`synthTexts.ts`, `additiveVoiceEngine.ts`):
+
+- `src/components/topics/sintesis-sonido/SynthLab.tsx:233`, título del laboratorio: — → «Laboratorio de síntesis
+  aditiva»
+- `src/components/topics/sintesis-sonido/SynthStage.tsx:67`, botón (cambia al pulsarlo): — → «Reproducir» · «Detener»
+- `src/components/topics/sintesis-sonido/synthTexts.ts:20`, línea de estado junto al botón: — → «Nada suena hasta que
+  pulses «Reproducir».» · «Suena a −18 dBFS de pico; «Detener» lo apaga.» · «Todas las amplitudes que suenan valen 0:
+  no se oye nada.»
+- `src/components/topics/sintesis-sonido/additiveVoiceEngine.ts:22`, la misma línea si no puede sonar: — → «Este
+  navegador no tiene Web Audio: la receta se dibuja, pero no puede sonar.» · «El navegador no dejó empezar el sonido:
+  vuelve a pulsar «Reproducir».» · «Este navegador no admite $f_s$ = 8 000 Hz: elige otra frecuencia de muestreo.»
+- `src/components/topics/sintesis-sonido/SynthStage.tsx:79`, título de la gráfica del lienzo: — → «Forma de onda que
+  suena» (ejes y leyenda, los de las figuras 11.1, 11.3 y 11.4)
+- `src/components/topics/sintesis-sonido/SynthStage.tsx:86`, rótulo del cursor: — → «$t$ = 1,00 ms»
+- `src/components/topics/sintesis-sonido/synthTexts.ts:65`, nombre accesible de la forma de onda (se oye): — → «Forma de
+  onda que suena a 310,1 Hz, cada periodo de T = 3,22 ms. La misma curva medio periodo después e invertida cae sobre
+  la original.» (con fases sorteadas añade «, con fases sorteadas»; con el diente de sierra, «La curva medio periodo
+  después e invertida es otra: correlación 0,53.»; en silencio, «No suena ningún armónico: es una recta.»)
+
+Parámetros, escenario y ajustes (`SynthLab.tsx`, `synthTexts.ts`, `synthPresets.ts`):
+
+- `src/components/topics/sintesis-sonido/synthTexts.ts:40`, rótulo de cada amplitud: — → «Armónico 1, $A_{1}$» …
+  «Armónico 10, $A_{10}$»; sobre Nyquist añade « (sobre $f_s/2$)»
+- `src/components/topics/sintesis-sonido/SynthLab.tsx:179`, rótulos: — → «Fundamental $f_1$» · «Frecuencia de
+  muestreo $f_s$»; opciones: «8 000 Hz» · «16 000 Hz» · «22 050 Hz» · «44 100 Hz» · «48 000 Hz»
+- `src/components/topics/sintesis-sonido/synthTexts.ts:48`, nota de la (11.9) bajo los parámetros: — → «Con $f_s$ =
+  44 100 Hz caben bajo $f_s/2$ los diez armónicos: $\lfloor f_s/(2 f_1) \rfloor$ = 71, la (11.9).» · con 8 000 Hz y
+  880 Hz: «Con $f_s$ = 8 000 Hz y $f_1$ = 880,0 Hz solo caben 4 armónicos bajo $f_s/2$ (11.9): de $A_{5}$ a $A_{10}$
+  no suenan y quedan desactivados, como Chromium quita los parciales que se plegarían.»
+- `src/components/topics/sintesis-sonido/synthPresets.ts:64`, opciones del selector de preajustes (texto plano): — →
+  «Seno (receta clásica)» · «Cuadrada (receta clásica)» · «Diente de sierra (receta clásica)» · «Triangular (receta
+  clásica)» · «Flauta (medida: grabación MIS)» · «Clarinete (medida: grabación MIS)»; sus nombres en «Valores
+  modificados a partir de «…»»: «Seno» · «Cuadrada» · «Diente de sierra» · «Triangular» · «Flauta (medida)» ·
+  «Clarinete (medido)»
+- `src/components/topics/sintesis-sonido/synthPresets.ts:91`, notas de los preajustes: — →
+  - «Un solo armónico, $A_1$ = 1: el tono puro de la (11.1).»
+  - «Solo impares, $A_n = 1/n$: la segunda mitad de cada periodo es la primera invertida, la (11.6).»
+  - «Todos los armónicos, $A_n = 1/n$, con fase $\pi$ en los pares: el signo alterno de la tabla 11.1.»
+  - «Solo impares, $A_n = 1/n^2$, con fase $\pi$ en $n$ = 3 y 7: el signo de $\sin(n\pi/2)$ en la tabla 11.1.»
+  - (`:87`) «Los diez primeros armónicos de la tabla 11.2, con sus fases, medidos en la flauta de la figura 11.4, a
+    310,34 Hz: el más fuerte es el 2.º, pares e impares por igual.»
+  - (`:87`) «Los diez primeros armónicos de la tabla 11.2, con sus fases, medidos en el clarinete en si$\flat$ de la
+    figura 11.4, a 310,10 Hz: el 3.º supera al fundamental y los pares casi no suenan.»
+- `src/components/topics/sintesis-sonido/synthPresets.ts:40`, sus fuentes (tras «Fuente:», enlazadas): — → «W3C, Web
+  Audio API, §1.28.6 (tabla 11.1)» · «cálculo propio sobre la grabación del MIS (tabla 11.2)»
+- `src/components/topics/sintesis-sonido/SynthLab.tsx:211`, interruptor: — → «Fases aleatorias»
+- `src/components/topics/sintesis-sonido/synthTexts.ts:34`, nota bajo el interruptor: — → apagado: «Apagado, cada
+  armónico suena con la fase de su receta: la medida, o 0 y $\pi$ en las clásicas.» · encendido: «Fases sorteadas: la
+  forma de onda cambia y el espectro no. Para Helmholtz el timbre no depende de las fases, con la ligera salvedad de
+  Ellis (pie de la figura 11.4).»
+- `src/components/topics/sintesis-sonido/SynthLab.tsx:225`, ajuste del engranaje: — → «Curva $-y(t + T/2)$ sobre la
+  forma de onda»
+
+Lecturas y gráfica de apoyo (`SynthLab.tsx`, `synthTexts.ts`):
+
+- `src/components/topics/sintesis-sonido/SynthLab.tsx:55`, lecturas: — → «Fundamental $f_1$» 310,1 Hz · «Periodo
+  $T = 1/f_1$» 3,22 ms · «Impares sobre pares, $n \le 10$» 25,7 dB (— cuando falta una paridad o no suena nada) ·
+  «Armónico más fuerte, $n$» 3
+- `src/components/topics/sintesis-sonido/SynthLab.tsx:243`, título y eje del espectro: — → «Contenido armónico de la
+  receta» · «Nivel de $A_n$ (dB)» (el eje $x$, la leyenda y la línea «Impares sobre pares…», los de las figuras)
+- `src/components/topics/sintesis-sonido/synthTexts.ts:75`, nombre accesible del espectro (se oye): — → «Espectro de la
+  receta, armónicos 1 a 10 en dB: el más fuerte es el 3.º.» (con armónicos sobre Nyquist añade «Del 5.º en adelante
+  no suenan: pasan de la mitad de la frecuencia de muestreo.»; en silencio, «ninguno suena.»)
+
+«Cómo se usa» (`src/components/topics/sintesis-sonido/synthTexts.ts:54`): — →
+
+1. «Pulsa «Reproducir» para oír la receta: nada suena antes. Empieza a −18 dBFS de pico con una rampa de 30 ms, y
+   «Detener» lo apaga; cada cambio de receta baja el volumen, cambia la onda y lo vuelve a subir en 30 ms.»
+2. «Las amplitudes $A_1$ a $A_{10}$ son relativas al $A_1$ = 1 de los preajustes; las barras dan su nivel,
+   $20\log_{10} A_n$, que con $A_1$ = 1 es el $A_n/A_1$ de la figura 11.4. $f_1$ cambia la nota y deja la receta: el
+   timbre se conserva.»
+3. «El navegador normaliza el pico de cada receta (§1.28.5 de la Web Audio API): todas llegan al mismo pico, no a la
+   misma sonoridad. La $f_s$ y el nivel de pico son elecciones mías, no valores de un producto.»
+4. «Arrastra el cursor de la forma de onda, o enfócalo y muévelo con las flechas (1 % del eje; con Mayús, 10 %): marca
+   $y(t)$ y $-y(t + T/2)$ en el mismo instante. La curva discontinua se quita en los ajustes del engranaje.»
