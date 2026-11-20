@@ -6,6 +6,7 @@ import {
   type SpringParams,
 } from '../../../lib/physics/dampedSpring';
 import { CANVAS_INSET } from '../../lab/canvasInset';
+import { clockSettings } from '../../lab/clockSettings';
 import LabPresets from '../../lab/LabPresets';
 import LabShell, { type LabReadout } from '../../lab/LabShell';
 import ParamField from '../../lab/ParamField';
@@ -162,7 +163,7 @@ function SpringParamsFields({ lab }: { lab: SpringRunControls }): JSX.Element {
   );
 }
 
-/** The drawer's options: the comparison card and the band, on by default. */
+/** The lab's drawer options: the comparison card and the band, on by default; «Repetir» follows. */
 function displayOptions(display: Display, onChange: (patch: Partial<Display>) => void) {
   const options: SettingOption[] = [
     {
@@ -241,7 +242,10 @@ export default function SpringLab({ usage, leftOut }: SpringLabProps): JSX.Eleme
         levels={{
           params: <SpringParamsFields lab={lab} />,
           scenario,
-          display: displayOptions(display, (patch) => setDisplay((old) => ({ ...old, ...patch }))),
+          display: [
+            ...displayOptions(display, (patch) => setDisplay((old) => ({ ...old, ...patch }))),
+            ...clockSettings(clock),
+          ],
         }}
         charts={<SpringPlot run={run} t={t} frame={clock.frame} {...display} onSeek={clock.seek} />}
         canvasNotes={<SpringNotes run={run} {...display} />}

@@ -275,6 +275,19 @@ describe('SpringLab', () => {
     expect(screen.queryByTestId('summary-curve')).toBeNull();
   });
 
+  test('the drawer ends with the house’s «Repetir», which loops the clock', async () => {
+    const user = userEvent.setup();
+    renderLab();
+
+    await user.click(screen.getByRole('button', { name: 'Ajustes del simulador' }));
+    const repeat = screen.getByRole('switch', { name: 'Repetir' });
+    expect(repeat).not.toBeChecked();
+    await user.click(repeat);
+
+    expect(repeat).toBeChecked();
+    expect(screen.getAllByRole('switch').at(-1)).toBe(repeat);
+  });
+
   test('every preset and the drawer draw Plex glyphs only', async () => {
     const user = userEvent.setup();
     renderLab();

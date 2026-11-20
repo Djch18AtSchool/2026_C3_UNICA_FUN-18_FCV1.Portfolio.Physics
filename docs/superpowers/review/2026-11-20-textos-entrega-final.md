@@ -1911,3 +1911,9 @@ diseño de OCP»; la prosa todavía decía «mínimo». Mismo número de palabra
 10. `src/content/topics/enfriamiento-liquido.mdx:394`, caso de uso, «Qué se gana»: «Se gana dar al servidor más lejano
     su caudal mínimo sin sobredimensionar la bomba…» → «Se gana dar al servidor más lejano su caudal objetivo sin
     sobredimensionar la bomba…».
+
+### Tema 10: «Repetir» en el cajón del laboratorio
+
+11. `src/components/topics/animaciones-resorte/SpringLab.tsx:247` (el texto viene de `src/components/lab/clockSettings.ts`),
+    cajón de ajustes del laboratorio del resorte: — → «Repetir», el interruptor de reproducción en bucle que llevan
+    todos los laboratorios con reloj. Faltaba en este; la prueba de rendimiento de los laboratorios lo enciende y fallaba.
