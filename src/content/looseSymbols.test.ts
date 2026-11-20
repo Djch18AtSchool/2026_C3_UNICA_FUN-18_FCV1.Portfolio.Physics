@@ -7,6 +7,9 @@
  * Accessible names (aria-label, an SVG's <title>/<desc>) are spoken, not drawn: not read here.
  * In the code it also reads the text a JSX element holds as written (`<p>…</p>`, an SVG
  * `<text>…</text>`, a `{`…`}` child), not only keyed strings.
+ * It also reads what each table of the page prints, from the table registry (caption, column
+ * headers, every cell written as text, source line): a table cell may come from a data module (a
+ * value's «Fuente», a shot's name), which the code walk does not read.
  * A new topic is walked as soon as its MDX exists; it needs its lab folder
  * `src/components/topics/<slug>/` and its table `src/lib/tables/topics/<slug>.ts` (the site's
  * convention), and says which one is missing.
@@ -17,6 +20,8 @@ import matter from 'gray-matter';
 import { describe, expect, test } from 'vitest';
 import { splitInlineMath } from '../lib/inlineSegments';
 import { looseSymbols, texVariables, withoutInterpolations } from '../lib/looseSymbols';
+import { tableById } from '../lib/tables';
+import { columnHeader, DATA_TABLE_TAG, formatCell } from '../lib/tables/markdown';
 
 const ROOT = process.cwd();
 const TOPICS_DIR = join(ROOT, 'src/content/topics');
@@ -163,13 +168,49 @@ function codePaths(slug: string): string[] {
   return [...own, table];
 }
 
+/** A column of units (Temas 12 and 13): a lone «m» or «t» there is metres or tonnes. */
+const UNIT_COLUMN_LABEL = 'Unidad';
+
+/**
+ * What the page's tables print (each `<DataTable id="…" />` of its MDX, from the registry): the
+ * caption, each column header with its unit, every cell written as text (numbers are formatted
+ * digits) except a column of units, and the source line.
+ */
+function tableSources(slug: string): Omit<TopicSources, 'slug'> {
+  const body = readFileSync(join(TOPICS_DIR, `${slug}.mdx`), 'utf8');
+  const texts = [...body.matchAll(DATA_TABLE_TAG)].flatMap(([, id]) => {
+    const { caption, columns, rows, source } = tableById(id);
+    const [first] = columns;
+    const cells = columns
+      .filter(({ label }) => label !== UNIT_COLUMN_LABEL)
+      .flatMap((column) =>
+        rows.flatMap((row) =>
+          typeof row[column.key] === 'string'
+            ? [
+                {
+                  where: `${id}: ${column.key} de «${formatCell(first, row[first.key])}»`,
+                  text: String(row[column.key]),
+                },
+              ]
+            : [],
+        ),
+      );
+    return [
+      { where: `${id}: pie`, text: caption },
+      ...columns.map((column) => ({ where: `${id}: columna`, text: columnHeader(column) })),
+      ...cells,
+      { where: `${id}: fuente`, text: source.text },
+    ];
+  });
+  return { texts, formulas: texts.flatMap(({ text }) => inlineFormulas(text)) };
+}
+
 function topicSources(slug: string): TopicSources {
-  const mdx = mdxSources(slug);
-  const code = codeSources(codePaths(slug));
+  const parts = [mdxSources(slug), codeSources(codePaths(slug)), tableSources(slug)];
   return {
     slug,
-    texts: [...mdx.texts, ...code.texts],
-    formulas: [...mdx.formulas, ...code.formulas],
+    texts: parts.flatMap(({ texts }) => texts),
+    formulas: parts.flatMap(({ formulas }) => formulas),
   };
 }
 
@@ -190,5 +231,16 @@ describe('ninguna letra de magnitud suelta fuera de una fórmula', () => {
     );
 
     expect(loose).toEqual([]);
+  });
+});
+
+describe('lo que imprimen las tablas', () => {
+  test('entra en la guardia, también lo que viene de un módulo de datos, y no la columna de unidades', () => {
+    const { texts } = topicSources('resonancia-estructural');
+    const setra = texts.filter(({ where }) => where.startsWith('resonancia-estructural-setra:'));
+
+    expect(setra.some(({ text }) => text.startsWith('Sétra/AFGC'))).toBe(true);
+    expect(setra.some(({ where }) => where.includes(': unidad de'))).toBe(false);
+    expect(setra.some(({ where }) => where.endsWith(': pie'))).toBe(true);
   });
 });

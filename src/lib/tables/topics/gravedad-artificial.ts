@@ -124,7 +124,7 @@ const TORO_TABLE: DataTableSpec = {
       dato: 'Forma',
       valor: `tubo de ${2 * STANFORD_TORUS.tubeRadius} m de diámetro doblado en una rueda de unos 1 800 m, con seis rayos`,
     },
-    { dato: 'Radio mayor R', valor: `${STANFORD_TORUS.R} m` },
+    { dato: 'Radio mayor $R$', valor: `${STANFORD_TORUS.R} m` },
     { dato: 'Radio del tubo', valor: `${STANFORD_TORUS.tubeRadius} m` },
     { dato: 'Gravedad para vivir', valor: 'entre 0,9 y 1 g' },
     { dato: 'Giro en las zonas de vivienda', valor: `no más de ${STANFORD_TORUS.rpm} RPM` },

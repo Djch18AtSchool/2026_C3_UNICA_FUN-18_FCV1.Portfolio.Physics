@@ -1,8 +1,4 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
-import { splitInlineMath } from '../../inlineSegments';
-import { looseSymbols, texVariables, withoutInterpolations } from '../../looseSymbols';
 import { RD109, UQD04 } from '../../data/liquidCooling';
 import { PRESETS, rackPath } from '../../data/liquidCoolingCircuit';
 import { tableById } from '../index';
@@ -179,67 +175,13 @@ describe('PARAMETER_ROWS: every declared parameter, by id, as its table prints i
     expect(segment('tuberia-ida')?.length).toBe(35);
     expect(mm('tuberia-longitud')).toBe('35');
   });
-});
 
-/*
- * The loose-letter guard (src/content/looseSymbols.test.ts) reads this module's own literals,
- * but the tables also print strings written in the data modules (every «Fuente» cell, the
- * breakdown's group names). Here every caption, source line and text cell the page prints goes
- * through the same check, with the page's magnitudes collected as the guard collects them.
- */
-describe('no loose magnitude letter in what the tables print', () => {
-  const LATEX_ATTRIBUTE = /\blatex=(?:"([^"]*)"|\{`([^`]*)`\})/gu;
-  const SYMBOL_KEY = /\bsymbol:\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/gu;
-  // Not the unit column: a lone «m» there is metres, as the guard's own exception for a scale bar.
-  const TEXT_CELLS = ['parametro', 'simbolo', 'origen', 'fuente', 'grupo', 'como'];
-  const mdx = readFileSync(
-    join(process.cwd(), 'src/content/topics/enfriamiento-liquido.mdx'),
-    'utf8',
-  );
-  const groups = (text: string, pattern: RegExp) =>
-    [...text.matchAll(pattern)].map((match) =>
-      (match.slice(1).find((group) => group !== undefined) ?? '').replace(/\\\\/gu, '\\'),
-    );
-  const formulas = (text: string) =>
-    splitInlineMath(withoutInterpolations(text)).flatMap((segment) =>
-      segment.kind === 'math' ? [segment.tex] : [],
-    );
-  const printed = TABLES.flatMap((table) => [
-    { where: `${table.id}: pie`, text: table.caption },
-    { where: `${table.id}: fuente`, text: table.source.text },
-    ...table.rows.flatMap((row) =>
-      TEXT_CELLS.filter((key) => key in row).map((key) => ({
-        where: `${table.id}: ${key} de «${String(row.parametro ?? row.grupo)}»`,
-        text: String(row[key]),
-      })),
-    ),
-  ]);
-  const symbols = new Set(
-    [
-      ...groups(mdx, LATEX_ATTRIBUTE),
-      ...groups(mdx, SYMBOL_KEY),
-      ...formulas(mdx),
-      ...printed.flatMap(({ text }) => formulas(text)),
-    ].flatMap(texVariables),
-  );
-
-  test('the page writes its magnitudes: n, P, Q, D and the rest are symbols here', () => {
-    for (const letter of ['n', 'P', 'Q', 'D', 'L', 'K', 'y'])
-      expect(symbols.has(letter)).toBe(true);
-  });
-
-  test('every caption, source line and text cell keeps its letters inside $…$', () => {
-    const loose = printed.flatMap(({ where, text }) =>
-      looseSymbols(text, symbols).map(({ letter, context }) => `${where} [${letter}] …${context}…`),
-    );
-
-    expect(loose).toEqual([]);
-  });
-
+  // The table guard (src/content/looseSymbols.test.ts) reads these cells; here, the letter itself.
   test('the perimeter of D_h is P_m: P stays the pump’s power on this page', () => {
-    const dh = printed.find(({ text }) => text.includes('D_h = 4A'));
+    const cells = TABLES.flatMap((table) => table.rows.flatMap((row) => Object.values(row)));
+    const dh = cells.map(String).find((text) => text.includes('D_h = 4A'));
 
-    expect(dh?.text).toContain('$D_h = 4A/P_m$');
-    expect(dh?.text).toContain('perímetro mojado');
+    expect(dh).toContain('$D_h = 4A/P_m$');
+    expect(dh).toContain('perímetro mojado');
   });
 });

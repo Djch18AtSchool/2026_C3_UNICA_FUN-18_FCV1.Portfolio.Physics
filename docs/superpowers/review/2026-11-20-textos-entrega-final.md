@@ -1890,3 +1890,12 @@ Prosa (cuenta para las 650 palabras):
    armónicos, la (11.4). Con el Tema 10: $E(t)$ es la envolvente del resorte, $\tau = 2m/b$. Con el Tema 12: el tubo
    resuena en sus modos.» Para que quepan las dos frases nuevas quité «del DualSense» y «haría»; $\tau = 2m/b$ es la
    constante de tiempo de la envolvente $A_0 e^{-(b/2m)t}$ del Tema 10. Prosa del tema: 646 → 650 (el tope).
+
+### Guardia de símbolos sueltos sobre lo que imprimen las tablas
+
+La guardia (`src/content/looseSymbols.test.ts`) ahora lee, para los trece temas, lo que imprime cada tabla de la página
+(pie, encabezados, celdas de texto y línea de fuente), también lo que viene de un módulo de datos. En los Temas 1 a 11
+encontró una letra suelta:
+
+8. `src/lib/tables/topics/gravedad-artificial.ts:127`, tabla 3.2 (el Toro de Stanford), celda «Dato»: «Radio mayor R»
+   → «Radio mayor $R$» (la $R$ de $a_c = \omega^2 R$ en la página).
