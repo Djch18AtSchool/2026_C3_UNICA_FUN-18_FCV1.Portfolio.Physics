@@ -109,7 +109,8 @@ function PumpChart({ scene, onCduFlow }: PumpChartProps): JSX.Element {
         }}
         overlay={(scales) => (
           <>
-            <PlotPoints scales={scales} points={plot.points} />
+            {/* Plated: the published curves crowd the two points on a phone. */}
+            <PlotPoints plated scales={scales} points={plot.points} />
             {plot.edge ? <EdgeMarker edge={plot.edge} scales={scales} /> : null}
           </>
         )}
