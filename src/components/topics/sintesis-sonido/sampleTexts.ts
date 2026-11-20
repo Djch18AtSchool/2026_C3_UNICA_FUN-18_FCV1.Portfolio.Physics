@@ -74,7 +74,7 @@ const CLARINET_MARKERS: readonly MediaMarker[] = [
   {
     time: SUSTAIN_MARKER_S,
     title: 'El sostenido',
-    analysis: `En el espectro, los armónicos pares (2, 4, 6 y 8) quedan entre ${fixed(evenGapDb().least, 0)} y ${fixed(evenGapDb().most, 0, 'dB')} por debajo del fundamental, y el ${strongestHarmonic('clarinete')}.º es más fuerte que el propio fundamental: ${signedDb(levelOf('clarinete', strongestHarmonic('clarinete')))}. Es la (11.3) de un tubo cerrado en un extremo: solo los impares forman ondas estacionarias, y esas refuerzan los impares de la caña, según Wolfe (UNSW). Con los impares ${fixed(clarinete.oddEvenDb, 1, 'dB')} por encima de los pares, la (11.6) se ve a simple vista: la discontinua $-y(t + T/2)$ cae sobre la continua, con correlación ${fixed(clarinete.halfWaveCorrelation, 3)}.`,
+    analysis: `En el espectro, los armónicos pares (2, 4, 6 y 8) quedan entre ${fixed(evenGapDb().least, 0)} y ${fixed(evenGapDb().most, 0, 'dB')} por debajo del fundamental, y el ${strongestHarmonic('clarinete')}.º es más fuerte que el propio fundamental: ${signedDb(levelOf('clarinete', strongestHarmonic('clarinete')))}. Es la (11.3) de un tubo cerrado en un extremo: solo los impares forman ondas estacionarias, y esas refuerzan los impares de la caña, según Wolfe (fuente 6). Con los impares ${fixed(clarinete.oddEvenDb, 1, 'dB')} por encima de los pares, la (11.6) se ve a simple vista: la discontinua $-y(t + T/2)$ cae sobre la continua, con correlación ${fixed(clarinete.halfWaveCorrelation, 3)}.`,
   },
 ];
 
@@ -116,7 +116,7 @@ export const SAMPLE_CONTRAST: readonly ContrastItem[] = [
   },
   {
     lead: 'Lo que el espectro no cuenta.',
-    text: `El ataque, de ${fixed(clarinete.attackS, 2, 's')} frente a ${fixed(flauta.attackS, 2, 's')} (11.7), y el ruido del soplido. Wolfe advierte que los libros de introducción dan a entender que el espectro decide el timbre de un instrumento y que, «with the exception of the closed pipes mentioned above, this is very misleading» («salvo en los tubos cerrados, eso es muy engañoso»): esta pareja funciona porque el clarinete es uno.`,
+    text: `El ataque, de ${fixed(clarinete.attackS, 2, 's')} frente a ${fixed(flauta.attackS, 2, 's')} (11.7), y el ruido del soplido. Wolfe (fuente 4) advierte que los libros de introducción a veces dan a entender que el espectro es la contribución dominante al timbre de un instrumento y que, «with the exception of the closed pipes mentioned above, this is very misleading» («salvo en los tubos cerrados, eso es muy engañoso»): esta pareja funciona porque el clarinete es uno.`,
   },
 ];
 

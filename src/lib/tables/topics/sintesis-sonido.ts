@@ -34,7 +34,7 @@ const RECIPES = Object.fromEntries(
 const RECETAS: DataTableSpec = {
   id: 'sintesis-sonido-recetas',
   caption:
-    'Las cuatro ondas de un OscillatorNode como recetas de armónicos: el coeficiente $b_n$ de cada armónico en la (11.5), con todos los $a_n$ = 0, son valores del producto, la Web Audio API. La cuadrada y la triangular solo tienen impares; el diente de sierra tiene todos, con signo alterno.',
+    'Las cuatro ondas de un OscillatorNode como recetas de armónicos: los coeficientes $b_n$ de cada armónico en la (11.5), con todos los $a_n$ = 0, son valores del producto, la Web Audio API. La cuadrada y la triangular solo tienen impares; el diente de sierra tiene todos, con signo alterno.',
   columns: [
     { key: 'n', label: 'Armónico $n$', align: 'num', precision: 0 },
     ...WAVES.map(({ wave, label: text }): TableColumn => ({

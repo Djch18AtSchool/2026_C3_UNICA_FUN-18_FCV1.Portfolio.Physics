@@ -3,6 +3,7 @@
  * produces them: one source per number (an open source, or our own calculation with a test).
  */
 import { readFileSync } from 'node:fs';
+import matter from 'gray-matter';
 import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { INSTRUMENT_SAMPLES } from '../../../lib/data/instrumentSamples';
@@ -10,6 +11,7 @@ import { formatNumber } from '../../../lib/format';
 import { chromiumPeriodicWaveMemory } from '../../../lib/audio/periodicWaveMemory';
 import { cents, classicAmplitudes, maxHarmonicBelowNyquist } from '../../../lib/physics/harmonics';
 import { pipeLength } from '../../../lib/physics/pipes';
+import { SAMPLE_CONTRAST, sampleMarkers } from './sampleTexts';
 import { RECIPE_F1, recipeHalfWave, SOUND_SPEED } from './soundPlots';
 
 const MDX = readFileSync(join(process.cwd(), 'src/content/topics/sintesis-sonido.mdx'), 'utf8');
@@ -58,5 +60,39 @@ describe('Tema 11: every number the page states has its source in code', () => {
     expect(INSTRUMENT_SAMPLES.flauta.clip.loudnessLufs).toBe(-20);
     expect(clarinete.clip.loudnessLufs).toBe(-20);
     expect(MDX).toContain('Los recorté, los pasé a mono e igualé su sonoridad a −20 LUFS');
+  });
+});
+
+describe('Tema 11: «fuente N» in figures and analyses names the right entry of the source list', () => {
+  const sources = (matter(MDX).data.sources as { id: string }[]).map(({ id }) => id);
+  const sourceOf = (n: number) => sources[n - 1];
+  const contrast = SAMPLE_CONTRAST.map(({ text }) => text).join(' ');
+  const clarinetSustain = sampleMarkers('clarinete')[1].analysis;
+
+  test('the figures’ source lines: 1 is the W3C, 3 the MIS, 5 Wolfe on pipes, 12 Helmholtz', () => {
+    expect(sourceOf(1)).toBe('webaudio-2021');
+    expect(MDX).toContain('Web Audio API (W3C, 2021), fuente 1');
+    expect(sourceOf(3)).toBe('iowa-mis');
+    expect(MDX).toContain('Musical Instrument Samples (dir. Lawrence Fritts), fuente 3');
+    expect(sourceOf(5)).toBe('wolfe-pipes');
+    expect(MDX).toContain('de Wolfe (UNSW), fuente 5');
+    expect(sourceOf(12)).toBe('helmholtz-1885');
+    expect(MDX).toContain('«a slight modification» («una ligera modificación»), fuente 12.');
+  });
+
+  test('the analyses: Wolfe’s caveat is fuente 4 and the reed’s odd harmonics fuente 6', () => {
+    expect(sourceOf(4)).toBe('wolfe-spectrum');
+    expect(contrast).toContain('Wolfe (fuente 4) advierte que los libros de introducción a veces');
+    expect(contrast).toContain('es la contribución dominante al timbre');
+    expect(sourceOf(6)).toBe('wolfe-clarinet');
+    expect(clarinetSustain).toContain('según Wolfe (fuente 6)');
+    expect(MDX).toContain('<Cite id="wolfe-clarinet" sources={frontmatter.sources} />');
+  });
+
+  test('Helmholtz is quoted verbatim in the caption of figure 11.4 and cited in Paso 4', () => {
+    expect(MDX).toContain(
+      '«solely on the number and relative strength of its partial simple tones, and in no respect on their differences of phase»',
+    );
+    expect(MDX).toContain('no las fases, que casi no se oyen <Cite id="helmholtz-1885"');
   });
 });

@@ -362,32 +362,55 @@ laboratorio:
 
 ## Tema 11
 
-Página nueva, «Síntesis de sonido: armónicos, timbre y el sintetizador» (rama `entrega-final-tema-11`, tarea 7). Todo es
-nuevo («antes» vacío). Los `${…}` de los componentes son números que salen de las medidas
-(`src/data/instrument-harmonics.json`); abajo los escribo como se ven hoy. Elecciones de Claude que se ven en el texto:
+Página nueva, «Síntesis de sonido: armónicos, timbre y el sintetizador» (rama `entrega-final-tema-11`, tarea 7, con la
+ronda de corrección 1 del 20 de noviembre). Todo es nuevo («antes» vacío). Los `${…}` de los componentes son números que
+salen de las medidas (`src/data/instrument-harmonics.json`); abajo los escribo como se ven hoy. Elecciones de Claude que
+se ven en el texto:
 
 - **Dónde va el recurso.** Las dos grabaciones analizadas (figura 11.4, la única con insignia) van en el paso 4, «Dos
   instrumentos reales»: así sus análisis citan (11.3), (11.4), (11.6) y (11.7) hacia atrás. Los pasos 1 a 3 llevan figuras
-  propias con los mismos ejes: un tono puro (11.1), un diagrama de los modos de los dos tubos (11.2, nueva figura) y la onda
-  cuadrada frente al diente de sierra (11.3).
+  propias con los mismos ejes: un tono puro (11.1), un diagrama de los modos de los dos tubos (11.2, figura nueva) y la
+  onda cuadrada frente al diente de sierra (11.3).
 - **Temas relacionados:** `control-haptico` y `gravedad-artificial` (la (11.1) es la proyección del MCU del hábitat). El
   Tema 10 no existe aún en esta rama; la tarea 17 añade `animaciones-resorte` y `resonancia-estructural`.
 - **El bemol.** IBM Plex no tiene «♭»: en lo que se ve lo compone KaTeX («si$\flat$», «mi$\flat$4»); en lo que se oye
-  dice «si bemol», «mi bemol 4». En la línea de fuente (sin fórmulas) escribo «si bemol».
+  dice «si bemol», «mi bemol 4». En las líneas de fuente y en la lista de fuentes lo escribo en palabras, «si bemol»: una
+  línea de fuente admite fórmulas (la de la figura 11.2 lleva $v$), pero ahí elegí la palabra.
 - **Números corregidos frente a la investigación** (decisión R9): $f_1$ = 310,10 y 310,34 Hz, a 1,4 cents; los pares
   del clarinete, «entre 21 y 37 dB por debajo del fundamental». No publico las correlaciones de resíntesis.
 - **La (11.6) lleva una segunda relación**, $\rho = (P_\text{imp} - P_\text{par})/(P_\text{imp} + P_\text{par})$ (cálculo
   propio, con prueba): predice 0,995 y −0,083 y mido 0,992 y −0,084. Es lo que conecta los dB de los armónicos con lo que
   se ve en la forma de onda.
-- **La (11.5)** se escribe con $t/T$ en lugar del $t$ «en periodos» de la especificación, para no cambiar de unidad en
-  la página; el caso de uso lo dice.
+- **La (11.5)** se escribe con $t/T$: la §1.28.4 de la especificación escribe $t$ medido en periodos, de 0 a 1 en cada
+  ciclo, y así la página no cambia de unidad. Lo dice la leyenda de la (11.5), en la entrada $t/T$.
+- **El oído y la fase (Helmholtz, decisión R18).** El pie de la figura 11.4 explica por qué muestro amplitudes y no fases,
+  con la cita de Helmholtz y la salvedad de Ellis sobre Koenig («a slight modification»); el paso 4 lo cita en la prosa.
+  Es la fuente 12, a la que apuntará el interruptor «Fases aleatorias» del laboratorio (tarea 8).
 - **Formas de onda y espectros de los pasos 1 y 3** usan el $f_1$ del clarinete, 310,10 Hz, para que el corchete de $T$
   sea el mismo que en las grabaciones. La forma de onda muestra cuatro periodos y el espectro, $n$ = 1…12 (la tarea; el
   spec decía tres periodos y $n$ = 1…10).
-- **Marcas:** el ataque en 0:00 y el sostenido en 0:01, dentro de las dos ventanas de análisis (la e2e comprueba adónde
-  lleva cada marca).
-- **Línea de fuente de las grabaciones** en primera persona (decisión R12), sin cursiva: la línea de fuente no admite
-  marcas.
+- **Marcas:** el ataque en 0:00, antes de que termine el ataque de cada grabación, y el sostenido en 0:01, dentro de la
+  ventana de análisis de cada una (la e2e comprueba adónde cae cada salto).
+- **Línea de fuente de las grabaciones** en primera persona (decisión R12), sin cursiva: una línea de fuente no admite
+  marcas de cursiva.
+- **Punteros «fuente N».** Las líneas de fuente y los análisis que no pueden llevar un enlace [n] (los de los audios)
+  nombran la fuente por su número: 1 (W3C), 3 (MIS), 4 y 6 (Wolfe), 5 (Wolfe, tubos) y 12 (Helmholtz). Una prueba
+  comprueba que cada número sigue apuntando a esa fuente.
+
+### Ronda de corrección 1 (20 de noviembre): lo que cambió
+
+- caso de uso, «El caso concreto»: «…del W3C es el sintetizador de cada navegador: un ˋOscillatorNodeˋ toca una ˋPeriodicWaveˋ hecha con las amplitudes de sus armónicos [1].…» → «…del W3C (Recomendación del 17 de junio de 2021) es el sintetizador de cada navegador: un ˋOscillatorNodeˋ toca una ˋPeriodicWaveˋ, una receta de armónicos [1].…»
+- Paso 4: «…en mi$\flat$4, fortísimo y sin vibrato [3], y mido sus recetas… la exponencial de ˋsetTargetAtTimeˋ [1].» → «…(mi$\flat$4, fortísimo, sin vibrato) [3] y mido sus recetas… la exponencial de ˋsetTargetAtTimeˋ (§1.6.2) [1].»
+- Paso 4, «En el fenómeno»: «Con el mismo tono cambian los armónicos y el arranque.…» → «Con el mismo tono cambian los armónicos y el arranque, no las fases, que casi no se oyen [12].…»
+- Paso 4, «En la ecuación»: «…[9], y una ˋPeriodicWaveˋ, periódica por definición, no la puede tocar.…» → «…[9]: una ˋPeriodicWaveˋ, periódica por definición, no puede tocarla.…»
+- pie de la figura 11.4: (dos frases) → se añade la frase de Helmholtz (abajo, en la entrada del pie)
+- recuadro «Visto en clase»: «…El Módulo 1 da $T = 2\pi/\omega$ y $f = 1/T$ en el MCU, con $\omega$ como frecuencia angular.…» → «…El Módulo 1 da $T = 2\pi/\omega$ y $f = 1/T$ del MCU, con $\omega$ como velocidad angular; aquí, la frecuencia angular.…» (el curso la llama «velocidad angular»)
+- recuadro Chrome Music Lab: «…es $f_n = n f_1$, con seis armónicos [10].…» → «…es $f_n = n f_1$ [10].…»
+- Paso 2 y otros recortes de prosa (para seguir en 650): «…abierto en los dos extremos…» · «…Las dos ecuaciones dicen…» · «…cambia la sonoridad entre recetas (§1.28.5)…» · «Un sintetizador escribe esa diferencia…» · «…la presión del aire en un punto oscila…» · «…con varios armónicos haría…» → «…abierto en ambos extremos…» · «…Las dos dicen…» · «…cambia la sonoridad (§1.28.5)…» · «Un sintetizador la escribe…» · «…la presión del aire oscila…» · «…con armónicos haría…»
+- análisis del sostenido del clarinete: «…según Wolfe (UNSW).…» → «…según Wolfe (fuente 6).…»
+- análisis conjunto, «Lo que el espectro no cuenta»: «…Wolfe advierte que los libros de introducción dan a entender que el espectro decide el timbre de un instrumento y que,…» → «…Wolfe (fuente 4) advierte que los libros de introducción a veces dan a entender que el espectro es la contribución dominante al timbre de un instrumento y que,…»
+- tabla 11.1, leyenda: «…el coeficiente $b_n$ de cada armónico…, son valores del producto…» → «…los coeficientes $b_n$ de cada armónico…, son valores del producto…»
+- tabla 11.3, «Intérprete y fecha» del clarinete: «Christine Bellomy, 3 de agosto de 1998; Buffet R13» → «Christine Bellomy, clarinete Buffet R13, 3 de agosto de 1998» (el mismo texto que la línea de crédito, de una sola fuente de datos)
 
 ### Página (`src/content/topics/sintesis-sonido.mdx`)
 
@@ -395,116 +418,152 @@ nuevo («antes» vacío). Los `${…}` de los componentes son números que salen
 - `src/content/topics/sintesis-sonido.mdx:6`, concepto: «Tono puro, modos normales de un tubo y superposición de armónicos (series de Fourier): por qué una flauta y un clarinete en la misma nota no suenan igual, y cómo un sintetizador escribe un timbre como una receta de amplitudes.»
 - `src/content/topics/sintesis-sonido.mdx:9`, caso de uso, producto: «Web Audio API del W3C (OscillatorNode y PeriodicWave) y su implementación en Chromium»
 - `src/content/topics/sintesis-sonido.mdx:10`, caso de uso, industria: «Navegadores web y síntesis de audio por software»
-- `src/content/topics/sintesis-sonido.mdx:86`, «Con lo visto en clase», tema: «Tema 4 · Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras · Ondas Armónicas y Sonoras»
-- `src/content/topics/sintesis-sonido.mdx:87`, «Con lo visto en clase», nota: «Cada partícula del medio hace un MAS, $y(x,t) = A\sin(kx - \omega t)$; en un punto fijo es la (11.1).»
-- `src/content/topics/sintesis-sonido.mdx:89`, «Con lo visto en clase», tema: «Tema 4 · Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras · Sistemas Acoplados»
-- `src/content/topics/sintesis-sonido.mdx:90`, «Con lo visto en clase», nota: «Los modos normales, que según el módulo explican el acoplamiento acústico en los instrumentos: en un tubo son los de las (11.2) y (11.3).»
-- `src/content/topics/sintesis-sonido.mdx:92`, «Con lo visto en clase», tema: «Tema 1.4 · Movimiento Circular Uniforme (MCU)»
-- `src/content/topics/sintesis-sonido.mdx:93`, «Con lo visto en clase», nota: «$T = 2\pi/\omega$ y $f = 1/T$ en Hz: el periodo y la frecuencia de la (11.1), que es la proyección de un MCU.»
-- `src/content/topics/sintesis-sonido.mdx:112`, introducción: «Una flauta y un clarinete en la misma nota no suenan igual. Un sintetizador escribe esa diferencia como una receta de armónicos.»
-- `src/content/topics/sintesis-sonido.mdx:114`, Paso 1, título: «Un tono puro»
-- `src/content/topics/sintesis-sonido.mdx:116`, Paso 1: «El sonido más simple es un seno: la presión del aire en un punto oscila con una sola frecuencia [8].»
-- `src/content/topics/sintesis-sonido.mdx:124-130`, Paso 1, leyendas de la (11.1): «presión acústica en un punto, respecto de la del ambiente» · «amplitud: fija la sonoridad» · «frecuencia: fija el tono, grave o agudo» · «periodo» · «tiempo»
-- `src/content/topics/sintesis-sonido.mdx:138`, Paso 1, «En el fenómeno»: «Subir $f$ sube la nota; subir $A$ la hace más fuerte. Con la misma $f$ y la misma $A$, dos tonos puros suenan idénticos.»
-- `src/content/topics/sintesis-sonido.mdx:144`, Paso 1, «En la ecuación»: «La (11.1) es la proyección de un MCU con $\omega = 2\pi f$. Con dos números no distingue instrumentos: le falta el timbre, lo que separa dos sonidos «which have the same pitch and the same loudness» [4].»
-- `src/content/topics/sintesis-sonido.mdx:153`, pie de la figura 11.1: «Un tono puro de 310,10 Hz, el $f_1$ medido del clarinete: cuatro periodos de $T$ = 3,22 ms y su contenido armónico, una sola barra en $n$ = 1. Los ejes son los de las figuras 11.3 y 11.4.»
-- `src/content/topics/sintesis-sonido.mdx:155`, fuente de la figura 11.1: «Gráfica que calculé con la (11.1); la frecuencia es la del clarinete de la figura 11.4»
-- `src/content/topics/sintesis-sonido.mdx:163`, Paso 2, título: «Los modos de un tubo»
-- `src/content/topics/sintesis-sonido.mdx:165`, Paso 2: «Un tubo solo deja sonar sus ondas estacionarias: abierto en los dos extremos, como la flauta, todas; cerrado en uno, como el clarinete con su caña, solo las impares [8] [5].»
-- `src/content/topics/sintesis-sonido.mdx:171-174`, Paso 2, leyendas de la (11.2): «frecuencia del modo $n$, el armónico $n$» · «frecuencia fundamental, la del modo 1» · «rapidez del sonido en el aire, unos 340 m/s» · «longitud efectiva del tubo»
-- `src/content/topics/sintesis-sonido.mdx:184`, Paso 2, «En el fenómeno»: «Con la misma longitud, el clarinete suena «one octave lower than the flute» [5]; para dar los mismos 310 Hz, su columna de aire mide la mitad.»
-- `src/content/topics/sintesis-sonido.mdx:190`, Paso 2, «En la ecuación»: «El aire no se mueve en el extremo cerrado, un nodo, y se mueve al máximo en el abierto, un vientre: solo caben $L = \lambda/4,\ 3\lambda/4,\ 5\lambda/4, \dots$, con $n$ impar. Las dos ecuaciones dicen qué frecuencias suenan, no cuánto.»
-- `src/content/topics/sintesis-sonido.mdx:199`, pie de la figura 11.2: «Los tres primeros modos de dos tubos ideales con $f_1$ = 310 Hz, a la misma escala: el abierto-abierto mide 0,55 m y admite $n$ = 1, 2 y 3; el cerrado-abierto mide 0,27 m y solo $n$ = 1, 3 y 5. Las curvas son la amplitud del desplazamiento del aire: vientres en los extremos abiertos, un nodo en el cerrado.»
-- `src/content/topics/sintesis-sonido.mdx:201`, fuente de la figura 11.2: «Diagrama que dibujé con las (11.2) y (11.3) y $v$ ≈ 340 m/s de Wolfe (UNSW), fuente 5; longitudes efectivas (cálculo propio), sin la corrección de extremo»
-- `src/content/topics/sintesis-sonido.mdx:209`, Paso 3, título: «La receta de armónicos»
-- `src/content/topics/sintesis-sonido.mdx:211`, Paso 3: «Toda vibración que se repite cada $T$ es una suma de armónicos [4]. La Web Audio API la escribe con senos y cosenos [1].»
-- `src/content/topics/sintesis-sonido.mdx:217-219`, Paso 3, leyendas de la (11.4): «amplitud del armónico $n$» · «fase del armónico $n$» · «número de armónicos de la receta»
-- `src/content/topics/sintesis-sonido.mdx:229`, Paso 3, leyenda de la (11.5): «coeficientes de coseno y de seno: los arreglos real e imag de una PeriodicWave»
-- `src/content/topics/sintesis-sonido.mdx:240`, Paso 3, leyenda de la (11.6): «correlación entre $y(t)$ y $-y(t + T/2)$ sobre periodos completos»
-- `src/content/topics/sintesis-sonido.mdx:244`, Paso 3, leyenda de la (11.6): «potencia de los armónicos impares y de los pares, la suma de sus $A_n^2$»
-- `src/content/topics/sintesis-sonido.mdx:253`, Paso 3, «En el fenómeno»: «Cada término se repite cada $T$: la suma conserva el tono y cambia la forma, el timbre. Con solo impares, la segunda mitad de cada periodo es la primera invertida.»
-- `src/content/topics/sintesis-sonido.mdx:259`, Paso 3, «En la ecuación»: «Desarrollando $\sin(\alpha + \varphi)$, la (11.4) da la (11.5). Medio periodo multiplica el armónico $n$ por $(-1)^n$: los impares cambian de signo y los pares no. Con los dos, $\rho$ pesa sus potencias (cálculo propio).»
-- `src/content/topics/sintesis-sonido.mdx:268`, pie de la figura 11.3: «Dos recetas de la Web Audio API con $f_1$ = 310,10 Hz y doce armónicos: la onda cuadrada, solo impares, y el diente de sierra, todos (tabla 11.1). En la cuadrada, $-y(t + T/2)$ cae sobre $y(t)$, como pide la (11.6); en el diente de sierra, no: $\rho$ = 0,52.»
-- `src/content/topics/sintesis-sonido.mdx:270`, fuente de la figura 11.3: «Gráfica que calculé con la (11.4) y las recetas de la §1.28.6 de la Web Audio API (W3C, 2021), fuente 1»
-- `src/content/topics/sintesis-sonido.mdx:280`, Paso 4, título: «Dos instrumentos reales»
-- `src/content/topics/sintesis-sonido.mdx:282`, Paso 4: «Comparo una flauta y un clarinete en si$\flat$ de la University of Iowa, en mi$\flat$4, fortísimo y sin vibrato [3], y mido sus recetas con un FFT propio. Una nota real empieza y termina: la (11.7) multiplica la receta por la exponencial de ˋsetTargetAtTimeˋ [1].»
-- `src/content/topics/sintesis-sonido.mdx:288-291`, Paso 4, leyendas de la (11.7): «envolvente: el nivel de la nota en cada instante» · «nivel al empezar la rampa y nivel al que tiende» · «instante en que empieza la rampa» · «constante de tiempo de la rampa»
-- `src/content/topics/sintesis-sonido.mdx:302`, Paso 4, leyenda de la (11.8): «coeficiente de inarmonicidad de una cuerda rígida, adimensional; 0 en una cuerda ideal»
-- `src/content/topics/sintesis-sonido.mdx:311-315`, Paso 4, leyendas de la (11.9): «frecuencia de muestreo del audio digital» · «frecuencia a la que se pliega un armónico por encima de $f_s/2$, con el entero $m$ que la deja entre 0 y $f_s/2$»
-- `src/content/topics/sintesis-sonido.mdx:325`, Paso 4, «En el fenómeno»: «Con el mismo tono cambian los armónicos y el arranque. Soplados, sus armónicos son múltiplos exactos de $f_1$; una cuerda pulsada o golpeada los estira [7].»
-- `src/content/topics/sintesis-sonido.mdx:331`, Paso 4, «En la ecuación»: «La (11.8) aparta los parciales de $n f_1$ [9], y una ˋPeriodicWaveˋ, periódica por definición, no la puede tocar. La (11.9) limita la receta: con 310 Hz y 44,1 kHz caben 71 armónicos (cálculo propio).»
-- `src/content/topics/sintesis-sonido.mdx:339`, pie de la figura 11.4 (el recurso): «Flauta y clarinete en si$\flat$ en la misma nota, mi$\flat$4, igualados en sonoridad: lo que cambia es el timbre. Bajo cada audio analizo dos instantes, el ataque y el sostenido, y muestro con los mismos ejes su envolvente, cuatro periodos de su forma de onda y sus doce armónicos; al final, qué diferencia produce qué.»
-- `src/content/topics/sintesis-sonido.mdx:341`, fuente de la figura 11.4 (decisión R12): «Grabaciones: University of Iowa Electronic Music Studios, Musical Instrument Samples (dir. Lawrence Fritts), fuente 3: flauta de Sonja Feig (2000) y clarinete en si bemol Buffet R13 de Christine Bellomy (1998), en cámara anecoica con un micrófono Neumann KM 84. Los recorté, los pasé a mono e igualé su sonoridad a −20 LUFS; el MIS permite usarlos «for any projects, without restrictions». Envolventes, formas de onda y espectros: cálculo propio sobre los archivos originales»
-- `src/content/topics/sintesis-sonido.mdx:360`, caso de uso, «El caso concreto»: «La Web Audio API del W3C es el sintetizador de cada navegador: un ˋOscillatorNodeˋ toca una ˋPeriodicWaveˋ hecha con las amplitudes de sus armónicos [1]. Chromium la implementa en ˋperiodic_wave_handler.ccˋ (tag 160.0.8168.1, commit ˋ22cf9aecˋ) [2].»
-- `src/content/topics/sintesis-sonido.mdx:366`, caso de uso, «La ecuación»: «La §1.28.4 escribe la (11.5); la §1.28.6, las recetas de la tabla 11.1. Chromium aplica la (11.9) en tablas por tercio de octava: ˋnumber_of_partials = culling_scale * max_number_of_partialsˋ (L320-L335) recorta «just in time to truncate partials before aliasing occurs» (L105-L109).»
-- `src/content/topics/sintesis-sonido.mdx:372`, caso de uso, «Por qué modelar la física»: «Una muestra grabada vale para una nota y una intensidad; transponerla con ˋplaybackRateˋ la acelera y corre su espectro (§1.9). Doce amplitudes en la (11.4) tocan ese timbre en cualquier nota y duración.»
-- `src/content/topics/sintesis-sonido.mdx:378`, caso de uso, «Qué se gana y qué cuesta»: «Gano cualquier timbre periódico con pocos números. Cuesta memoria, 576 KiB por receta en 36 tablas (cálculo propio), y filtrar sobre Nyquist, un trato entre CPU y fidelidad (§1.26); normalizar al pico cambia la sonoridad entre recetas (§1.28.5), y la (11.4) no tiene ataque, ruido ni inarmonicidad.»
-- `src/content/topics/sintesis-sonido.mdx:384`, recuadro, título: «Otro diseño: Chrome Music Lab»
-- `src/content/topics/sintesis-sonido.mdx:386`, recuadro: «Su experimento «Harmonics» usa un oscilador seno por armónico: ˋstartingFrequency * (this.ind+1)ˋ es $f_n = n f_1$, con seis armónicos [10]. Cada armónico cuesta un oscilador; la ˋPeriodicWaveˋ, una tabla para todos.»
-- `src/content/topics/sintesis-sonido.mdx:390`, recuadro, título: «Antes del software: el órgano Hammond»
-- `src/content/topics/sintesis-sonido.mdx:392`, recuadro: «Su patente de 1934 ya sumaba al fundamental «the first eight harmonics» [11], tomados de la escala temperada: su quinto armónico queda 13,69 cents alto (cálculo propio).»
-- `src/content/topics/sintesis-sonido.mdx:396`, recuadro de clase, título: «Módulo 5 · Tema 4, introductorio; Módulo 1 · Tema 1.4»
-- `src/content/topics/sintesis-sonido.mdx:398`, recuadro «Visto en clase»: «En el Módulo 5, cada partícula del medio hace un MAS: la (11.1) en un punto. Sus modos normales son, en un tubo, los de las (11.2) y (11.3). El Módulo 1 da $T = 2\pi/\omega$ y $f = 1/T$ en el MCU, con $\omega$ como frecuencia angular. Las (11.2) a (11.9) son extensiones.»
-- `src/content/topics/sintesis-sonido.mdx:404`, «Conexiones»: «Con el Tema 5: el actuador del DualSense vibra «like a small speaker» con $F_0\sin(\omega t)$, un tono puro; con varios armónicos haría la (11.4). Con el Tema 3: la (11.1) proyecta el MCU del hábitat.»
+- `src/content/topics/sintesis-sonido.mdx:11` y siguientes, lista de fuentes (lo que va en castellano):
+  - fuente 1 (`:12`): «Web Audio API» · «Paul Adenot y Hongchan Choi (editores), W3C» · «Recomendación del W3C, 17 de junio de 2021: §1.6.2, §1.9, §1.26 y §1.28.4 a §1.28.6»
+  - fuente 2 (`:19`): «Chromium 160.0.8168.1 (commit 22cf9aec), periodic_wave_handler.cc» · «The Chromium Authors» · «Repositorio de Chromium, licencia BSD; third_party/blink/renderer/modules/webaudio/periodic_wave_handler.cc L42-L54, L80-L87, L105-L109, L320-L335 y L408-L428»
+  - fuente 3 (`:26`): «Musical Instrument Samples» · «University of Iowa Electronic Music Studios, dir. Lawrence Fritts» · «University of Iowa; flauta de Sonja Feig (2000) y clarinete en si bemol de Christine Bellomy (1998), grabados en cámara anecoica»
+  - fuente 4 (`:32`): «What is a Sound Spectrum?» · «Joe Wolfe» · «Music Acoustics, UNSW Sydney»
+  - fuente 5 (`:38`): «Open vs Closed pipes (Flutes vs Clarinets)» · «Joe Wolfe» · «Music Acoustics, UNSW Sydney»
+  - fuente 6 (`:44`): «Clarinet acoustics: an introduction» · «Joe Wolfe» · «Music Acoustics, UNSW Sydney»
+  - fuente 7 (`:50`): «How harmonic are harmonics?» · «Joe Wolfe» · «Music Acoustics, UNSW Sydney»
+  - fuente 8 (`:56`): «University Physics, Volume 1: §15.3, §16.6 y §17.4» · «William Moebs, Samuel J. Ling y Jeff Sanny» · «OpenStax, Rice University»
+  - fuente 9 (`:63`): «Physical Audio Signal Processing: Dispersion Filter-Design» · «Julius O. Smith III» · «CCRMA, Stanford University»
+  - fuente 10 (`:69`): «Chrome Music Lab, «Harmonics & Strings» (commit e54bb41)» · «Google Creative Lab» · «Repositorio googlecreativelab/chrome-music-lab en GitHub, licencia Apache-2.0; harmonics & strings/js/Harmonic.js L66-L71 y L257, index.js L36-L37»
+  - fuente 11 (`:76`): «Electrical musical instrument, patente US 1 956 350» · «Laurens Hammond» · «Oficina de Patentes de los Estados Unidos, concedida el 24 de abril de 1934»
+  - fuente 12 (`:83`): «On the Sensations of Tone, parte I, capítulo VI» · «Hermann L. F. Helmholtz; traducción y notas de Alexander J. Ellis» · «2.ª edición inglesa, reimpresión de 1895, págs. 126 y 127; dominio público, en Internet Archive»
+- `src/content/topics/sintesis-sonido.mdx:93`, «Con lo visto en clase», tema: «Tema 4 · Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras · Ondas Armónicas y Sonoras»
+- `src/content/topics/sintesis-sonido.mdx:94`, «Con lo visto en clase», nota: «Cada partícula del medio hace un MAS, $y(x,t) = A\sin(kx - \omega t)$; en un punto fijo es la (11.1).»
+- `src/content/topics/sintesis-sonido.mdx:96`, «Con lo visto en clase», tema: «Tema 4 · Resonancia, Sistemas Acoplados y Ondas Armónicas/Sonoras · Sistemas Acoplados»
+- `src/content/topics/sintesis-sonido.mdx:97`, «Con lo visto en clase», nota: «Los modos normales, que según el módulo explican el acoplamiento acústico en los instrumentos: en un tubo son los de las (11.2) y (11.3).»
+- `src/content/topics/sintesis-sonido.mdx:99`, «Con lo visto en clase», tema: «Tema 1.4 · Movimiento Circular Uniforme (MCU)»
+- `src/content/topics/sintesis-sonido.mdx:100`, «Con lo visto en clase», nota: «$T = 2\pi/\omega$ y $f = 1/T$ en Hz: el periodo y la frecuencia de la (11.1), que es la proyección de un MCU.»
+- `src/content/topics/sintesis-sonido.mdx:119`, introducción: «Una flauta y un clarinete en la misma nota no suenan igual. Un sintetizador la escribe como una receta de armónicos.»
+- `src/content/topics/sintesis-sonido.mdx:121`, Paso 1, título: «Un tono puro»
+- `src/content/topics/sintesis-sonido.mdx:123`, Paso 1: «El sonido más simple es un seno: la presión del aire oscila con una sola frecuencia [8].»
+- `src/content/topics/sintesis-sonido.mdx:131`, Paso 1, leyenda de la (11.1): «presión acústica en un punto, respecto de la del ambiente»
+- `src/content/topics/sintesis-sonido.mdx:134`, Paso 1, leyenda de la (11.1): «amplitud: fija la sonoridad»
+- `src/content/topics/sintesis-sonido.mdx:135`, Paso 1, leyenda de la (11.1): «frecuencia: fija el tono, grave o agudo»
+- `src/content/topics/sintesis-sonido.mdx:136`, Paso 1, leyenda de la (11.1): «periodo»
+- `src/content/topics/sintesis-sonido.mdx:137`, Paso 1, leyenda de la (11.1): «tiempo»
+- `src/content/topics/sintesis-sonido.mdx:145`, Paso 1, «En el fenómeno»: «Subir $f$ sube la nota; subir $A$ la hace más fuerte. Con la misma $f$ y la misma $A$, dos tonos puros suenan idénticos.»
+- `src/content/topics/sintesis-sonido.mdx:151`, Paso 1, «En la ecuación»: «La (11.1) es la proyección de un MCU con $\omega = 2\pi f$. Con dos números no distingue instrumentos: le falta el timbre, lo que separa dos sonidos «which have the same pitch and the same loudness» [4].»
+- `src/content/topics/sintesis-sonido.mdx:160`, pie de la figura 11.1: «Un tono puro de 310,10 Hz, el $f_1$ medido del clarinete: cuatro periodos de $T$ = 3,22 ms y su contenido armónico, una sola barra en $n$ = 1. Los ejes son los de las figuras 11.3 y 11.4.»
+- `src/content/topics/sintesis-sonido.mdx:162`, fuente de la figura 11.1: «Gráfica que calculé con la (11.1); la frecuencia es la del clarinete de la figura 11.4»
+- `src/content/topics/sintesis-sonido.mdx:170`, Paso 2, título: «Los modos de un tubo»
+- `src/content/topics/sintesis-sonido.mdx:172`, Paso 2: «Un tubo solo deja sonar sus ondas estacionarias: abierto en ambos extremos, como la flauta, todas; cerrado en uno, como el clarinete con su caña, solo las impares [8] [5] [6].»
+- `src/content/topics/sintesis-sonido.mdx:178`, Paso 2, leyenda de la (11.2): «frecuencia del modo $n$, el armónico $n$»
+- `src/content/topics/sintesis-sonido.mdx:179`, Paso 2, leyenda de la (11.2): «frecuencia fundamental, la del modo 1»
+- `src/content/topics/sintesis-sonido.mdx:180`, Paso 2, leyenda de la (11.2): «rapidez del sonido en el aire, unos 340 m/s»
+- `src/content/topics/sintesis-sonido.mdx:181`, Paso 2, leyenda de la (11.2): «longitud efectiva del tubo»
+- `src/content/topics/sintesis-sonido.mdx:191`, Paso 2, «En el fenómeno»: «Con la misma longitud, el clarinete suena «one octave lower than the flute» [5]; para dar los mismos 310 Hz, su columna de aire mide la mitad.»
+- `src/content/topics/sintesis-sonido.mdx:197`, Paso 2, «En la ecuación»: «El aire no se mueve en el extremo cerrado, un nodo, y se mueve al máximo en el abierto, un vientre: solo caben $L = \lambda/4,\ 3\lambda/4,\ 5\lambda/4, \dots$, con $n$ impar. Las dos dicen qué frecuencias suenan, no cuánto.»
+- `src/content/topics/sintesis-sonido.mdx:206`, pie de la figura 11.2: «Los tres primeros modos de dos tubos ideales con $f_1$ = 310 Hz, a la misma escala: el abierto-abierto mide 0,55 m y admite $n$ = 1, 2 y 3; el cerrado-abierto mide 0,27 m y solo $n$ = 1, 3 y 5. Las curvas son la amplitud del desplazamiento del aire: vientres en los extremos abiertos, un nodo en el cerrado.»
+- `src/content/topics/sintesis-sonido.mdx:208`, fuente de la figura 11.2: «Diagrama que dibujé con las (11.2) y (11.3) y $v$ ≈ 340 m/s de Wolfe (UNSW), fuente 5; longitudes efectivas (cálculo propio), sin la corrección de extremo»
+- `src/content/topics/sintesis-sonido.mdx:216`, Paso 3, título: «La receta de armónicos»
+- `src/content/topics/sintesis-sonido.mdx:218`, Paso 3: «Toda vibración que se repite cada $T$ es una suma de armónicos [4]. La Web Audio API la escribe con senos y cosenos [1].»
+- `src/content/topics/sintesis-sonido.mdx:224`, Paso 3, leyenda de la (11.4): «amplitud del armónico $n$»
+- `src/content/topics/sintesis-sonido.mdx:225`, Paso 3, leyenda de la (11.4): «fase del armónico $n$»
+- `src/content/topics/sintesis-sonido.mdx:226`, Paso 3, leyenda de la (11.4): «número de armónicos de la receta»
+- `src/content/topics/sintesis-sonido.mdx:236`, Paso 3, leyenda de la (11.5): «coeficientes de coseno y de seno: los arreglos real e imag de una PeriodicWave»
+- `src/content/topics/sintesis-sonido.mdx:240`, Paso 3, leyenda de la (11.5): «tiempo medido en periodos, de 0 a 1 en cada ciclo: la §1.28.4 lo escribe $t$»
+- `src/content/topics/sintesis-sonido.mdx:251`, Paso 3, leyenda de la (11.6): «correlación entre $y(t)$ y $-y(t + T/2)$ sobre periodos completos»
+- `src/content/topics/sintesis-sonido.mdx:255`, Paso 3, leyenda de la (11.6): «potencia de los armónicos impares y de los pares, la suma de sus $A_n^2$»
+- `src/content/topics/sintesis-sonido.mdx:264`, Paso 3, «En el fenómeno»: «Cada término se repite cada $T$: la suma conserva el tono y cambia la forma, el timbre. Con solo impares, la segunda mitad de cada periodo es la primera invertida.»
+- `src/content/topics/sintesis-sonido.mdx:270`, Paso 3, «En la ecuación»: «Desarrollando $\sin(\alpha + \varphi)$, la (11.4) da la (11.5). Medio periodo multiplica el armónico $n$ por $(-1)^n$: los impares cambian de signo y los pares no. Con los dos, $\rho$ pesa sus potencias (cálculo propio).»
+- `src/content/topics/sintesis-sonido.mdx:279`, pie de la figura 11.3: «Dos recetas de la Web Audio API con $f_1$ = 310,10 Hz y doce armónicos: la onda cuadrada, solo impares, y el diente de sierra, todos (tabla 11.1). En la cuadrada, $-y(t + T/2)$ cae sobre $y(t)$, como pide la (11.6); en el diente de sierra, no: $\rho$ = 0,52.»
+- `src/content/topics/sintesis-sonido.mdx:281`, fuente de la figura 11.3: «Gráfica que calculé con la (11.4) y las recetas de la §1.28.6 de la Web Audio API (W3C, 2021), fuente 1»
+- `src/content/topics/sintesis-sonido.mdx:291`, Paso 4, título: «Dos instrumentos reales»
+- `src/content/topics/sintesis-sonido.mdx:293`, Paso 4: «Comparo una flauta y un clarinete en si$\flat$ de la University of Iowa (mi$\flat$4, fortísimo, sin vibrato) [3] y mido sus recetas con un FFT propio. Una nota real empieza y termina: la (11.7) multiplica la receta por la exponencial de ˋsetTargetAtTimeˋ (§1.6.2) [1].»
+- `src/content/topics/sintesis-sonido.mdx:299`, Paso 4, leyenda de la (11.7): «envolvente: el nivel de la nota en cada instante»
+- `src/content/topics/sintesis-sonido.mdx:300`, Paso 4, leyenda de la (11.7): «nivel al empezar la rampa y nivel al que tiende»
+- `src/content/topics/sintesis-sonido.mdx:301`, Paso 4, leyenda de la (11.7): «instante en que empieza la rampa»
+- `src/content/topics/sintesis-sonido.mdx:302`, Paso 4, leyenda de la (11.7): «constante de tiempo de la rampa»
+- `src/content/topics/sintesis-sonido.mdx:313`, Paso 4, leyenda de la (11.8): «coeficiente de inarmonicidad de una cuerda rígida, adimensional; 0 en una cuerda ideal»
+- `src/content/topics/sintesis-sonido.mdx:322`, Paso 4, leyenda de la (11.9): «frecuencia de muestreo del audio digital»
+- `src/content/topics/sintesis-sonido.mdx:326`, Paso 4, leyenda de la (11.9): «frecuencia a la que se pliega un armónico por encima de $f_s/2$, con el entero $m$ que la deja entre 0 y $f_s/2$»
+- `src/content/topics/sintesis-sonido.mdx:336`, Paso 4, «En el fenómeno»: «Con el mismo tono cambian los armónicos y el arranque, no las fases, que casi no se oyen [12]. Soplados, sus armónicos son múltiplos exactos de $f_1$; una cuerda pulsada o golpeada los estira [7].»
+- `src/content/topics/sintesis-sonido.mdx:342`, Paso 4, «En la ecuación»: «La (11.8) aparta los parciales de $n f_1$ [9]: una ˋPeriodicWaveˋ, periódica por definición, no puede tocarla. La (11.9) limita la receta: con 310 Hz y 44,1 kHz caben 71 armónicos (cálculo propio).»
+- `src/content/topics/sintesis-sonido.mdx:350`, pie de la figura 11.4 (el recurso): «Flauta y clarinete en si$\flat$ en la misma nota, mi$\flat$4, igualados en sonoridad: lo que cambia es el timbre. Bajo cada audio analizo dos instantes, el ataque y el sostenido, y muestro con los mismos ejes su envolvente, cuatro periodos de su forma de onda y sus doce armónicos; al final, qué diferencia produce qué. Muestro amplitudes y no fases porque el oído casi no distingue las fases: para Helmholtz, la cualidad de un sonido depende «solely on the number and relative strength of its partial simple tones, and in no respect on their differences of phase» («solo del número y la intensidad relativa de sus parciales, y en nada de sus diferencias de fase»), aunque su traductor, Ellis, anota que los experimentos de Koenig piden «a slight modification» («una ligera modificación»), fuente 12.»
+- `src/content/topics/sintesis-sonido.mdx:352`, fuente de la figura 11.4 (el recurso): «Grabaciones: University of Iowa Electronic Music Studios, Musical Instrument Samples (dir. Lawrence Fritts), fuente 3: flauta de Sonja Feig (2000) y clarinete en si bemol Buffet R13 de Christine Bellomy (1998), en cámara anecoica con un micrófono Neumann KM 84. Los recorté, los pasé a mono e igualé su sonoridad a −20 LUFS; el MIS permite usarlos «for any projects, without restrictions». Envolventes, formas de onda y espectros: cálculo propio sobre los archivos originales»
+- `src/content/topics/sintesis-sonido.mdx:371`, caso de uso, «El caso concreto»: «La Web Audio API del W3C (Recomendación del 17 de junio de 2021) es el sintetizador de cada navegador: un ˋOscillatorNodeˋ toca una ˋPeriodicWaveˋ, una receta de armónicos [1]. Chromium la implementa en ˋperiodic_wave_handler.ccˋ (tag 160.0.8168.1, commit ˋ22cf9aecˋ) [2].»
+- `src/content/topics/sintesis-sonido.mdx:377`, caso de uso, «La ecuación»: «La §1.28.4 escribe la (11.5); la §1.28.6, las recetas de la tabla 11.1. Chromium aplica la (11.9) en tablas por tercio de octava: ˋnumber_of_partials = culling_scale * max_number_of_partialsˋ (L320-L335) recorta «just in time to truncate partials before aliasing occurs» (L105-L109).»
+- `src/content/topics/sintesis-sonido.mdx:383`, caso de uso, «Por qué modelar la física»: «Una muestra grabada vale para una nota y una intensidad; transponerla con ˋplaybackRateˋ la acelera y corre su espectro (§1.9). Doce amplitudes en la (11.4) tocan ese timbre en cualquier nota y duración.»
+- `src/content/topics/sintesis-sonido.mdx:389`, caso de uso, «Qué se gana y qué cuesta»: «Gano cualquier timbre periódico con pocos números. Cuesta memoria, 576 KiB por receta en 36 tablas (cálculo propio), y filtrar sobre Nyquist, un trato entre CPU y fidelidad (§1.26); normalizar al pico cambia la sonoridad (§1.28.5), y la (11.4) no tiene ataque, ruido ni inarmonicidad.»
+- `src/content/topics/sintesis-sonido.mdx:395`, recuadro, título: «Otro diseño: Chrome Music Lab»
+- `src/content/topics/sintesis-sonido.mdx:397`, recuadro: «Su experimento «Harmonics» usa un oscilador seno por armónico: ˋstartingFrequency * (this.ind+1)ˋ es $f_n = n f_1$ [10]. Cada armónico cuesta un oscilador; la ˋPeriodicWaveˋ, una tabla para todos.»
+- `src/content/topics/sintesis-sonido.mdx:401`, recuadro, título: «Antes del software: el órgano Hammond»
+- `src/content/topics/sintesis-sonido.mdx:403`, recuadro: «Su patente de 1934 ya sumaba al fundamental «the first eight harmonics» [11], tomados de la escala temperada: su quinto armónico queda 13,69 cents alto (cálculo propio).»
+- `src/content/topics/sintesis-sonido.mdx:407`, recuadro «Visto en clase», título: «Módulo 5 · Tema 4, introductorio; Módulo 1 · Tema 1.4»
+- `src/content/topics/sintesis-sonido.mdx:409`, recuadro «Visto en clase»: «En el Módulo 5, cada partícula del medio hace un MAS: la (11.1) en un punto; sus modos normales son, en un tubo, los de las (11.2) y (11.3). El Módulo 1 da $T = 2\pi/\omega$ y $f = 1/T$ del MCU, con $\omega$ como velocidad angular; aquí, la frecuencia angular. Las (11.2) a (11.9) son extensiones.»
+- `src/content/topics/sintesis-sonido.mdx:415`, «Conexiones»: «Con el Tema 5: el actuador del DualSense vibra «like a small speaker» con $F_0\sin(\omega t)$, un tono puro; con armónicos haría la (11.4). Con el Tema 3: la (11.1) proyecta el MCU del hábitat.»
 
 ### Figura 11.4: las dos grabaciones (`src/components/topics/sintesis-sonido/`)
 
-- `src/lib/data/instrumentSamples.ts:59` (tarea 6), nombres de las muestras: «Flauta» y «Clarinete en si♭» (se ven como «Clarinete en si$\flat$»)
-- `SampleAnalysis.tsx:37`, título de cada grabación: «Flauta: $f_1$ = 310,34 Hz» y «Clarinete en si$\flat$: $f_1$ = 310,10 Hz»
-- `sampleTexts.ts:89`, nombre accesible de cada audio (se oye): «Flauta, mi bemol 4 fortísimo sin vibrato» y «Clarinete en si bemol, mi bemol 4 fortísimo sin vibrato»
-- `sampleTexts.ts:93-100`, línea de crédito bajo cada audio (tras «Audio: »): «Sonja Feig, abril de 2000; University of Iowa, Musical Instrument Samples, archivo Flute.nonvib.ff.Eb4.stereo.aif. Lo recorté desde 0,10 s y lo igualé a −20 LUFS.» · «Christine Bellomy, clarinete Buffet R13, 3 de agosto de 1998; University of Iowa, Musical Instrument Samples, archivo BbClarinet.ff.Eb4.stereo.aif. Lo recorté desde 0,38 s y lo igualé a −20 LUFS.»
-- `sampleTexts.ts:59-60`, flauta, marca 0:00 «El ataque»: «Desde aquí se oye cómo empieza la nota. En la envolvente, el nivel pasa del 10 al 90 % del sostenido en 0,12 s, de 0,05 a 0,17 s del audio: la flauta arranca casi de golpe. La receta (11.4) sola sonaría completa desde el primer instante; la (11.7) le da esta subida con la envolvente $E(t)$.»
-- `sampleTexts.ts:64-65`, flauta, marca 0:01 «El sostenido»: «A 1 s la nota ya es estable: estoy dentro de la ventana de análisis. En el espectro, los seis primeros armónicos quedan a ±5 dB del fundamental y el más fuerte es el 2.º, +3,7 dB: suenan pares e impares, como pide la (11.2) en un tubo abierto. Por eso la discontinua $-y(t + T/2)$ no sigue a la continua: su correlación con $y(t)$ es −0,084 y la (11.6) no se cumple. En el 7.º armónico el nivel cae de golpe, a −18,4 dB.»
-- `sampleTexts.ts:72-73`, clarinete, marca 0:00 «El ataque»: «El clarinete tarda 0,40 s en pasar del 10 al 90 % de su nivel, de 0,05 a 0,45 s del audio: más del triple que la flauta, y se oye cómo la nota crece. Es la envolvente $E(t)$ de la (11.7). La ventana de análisis empieza a los 0,22 s, todavía dentro de este ataque: en la envolvente, la ventana y el ataque se solapan.»
-- `sampleTexts.ts:77-78`, clarinete, marca 0:01 «El sostenido»: «En el espectro, los armónicos pares (2, 4, 6 y 8) quedan entre 21 y 37 dB por debajo del fundamental, y el 3.º es más fuerte que el propio fundamental: +3,3 dB. Es la (11.3) de un tubo cerrado en un extremo: solo los impares forman ondas estacionarias, y esas refuerzan los impares de la caña, según Wolfe (UNSW). Con los impares 25,7 dB por encima de los pares, la (11.6) se ve a simple vista: la discontinua $-y(t + T/2)$ cae sobre la continua, con correlación 0,992.»
-- `SampleContrast.tsx:18`, título del análisis conjunto: «Qué diferencia produce qué»
-- `sampleTexts.ts:113-114`, análisis conjunto: «**Lo que comparten: el tono.** Las dos notas repiten su forma cada $T$ = 3,22 ms: $f_1$ = 310,10 Hz en el clarinete y 310,34 Hz en la flauta, a 1,4 cents. El corchete de $T$ mide lo mismo en las dos formas de onda: por la (11.4), el tono lo pone $f_1$, no la forma.»
-- `sampleTexts.ts:117-118`, análisis conjunto: «**Lo que cambia: qué armónicos suenan.** Los impares pesan 25,7 dB más que los pares en el clarinete y −0,7 dB en la flauta: la (11.3) de un tubo cerrado frente a la (11.2) de uno abierto. Con el mismo tono y la misma sonoridad, esa receta es lo que distingue aquí sus timbres.»
-- `sampleTexts.ts:121-122`, análisis conjunto: «**Dónde se ve: la simetría de media onda.** Con esas potencias, la (11.6) predice correlaciones de 0,995 y −0,083 entre $y(t)$ y $-y(t + T/2)$; mido 0,992 y −0,084. Por eso la curva discontinua solo cae sobre la continua en el clarinete.»
-- `sampleTexts.ts:125-126`, análisis conjunto, con la salvedad de Wolfe: «**Lo que el espectro no cuenta.** El ataque, de 0,40 s frente a 0,12 s (11.7), y el ruido del soplido. Wolfe advierte que los libros de introducción dan a entender que el espectro decide el timbre de un instrumento y que, «with the exception of the closed pipes mentioned above, this is very misleading» («salvo en los tubos cerrados, eso es muy engañoso»): esta pareja funciona porque el clarinete es uno.»
-- `SampleAnalysis.tsx:53`, `:60`, `:66`, títulos de las gráficas: «Envolvente de la nota completa» · «Cuatro periodos del sostenido» · «Contenido armónico»
-- `sampleTexts.ts:149`, nombre accesible de la envolvente (se oye), flauta: «Envolvente RMS de la flauta, relativa a su sostenido: sube del 10 al 90 % en 0,12 s, de 0,05 a 0,17 s; la ventana de análisis va de 0,24 a 2,32 s y la caída, de 2,21 a 2,50 s.»; clarinete: «Envolvente RMS del clarinete en si bemol, relativa a su sostenido: sube del 10 al 90 % en 0,40 s, de 0,05 a 0,45 s; la ventana de análisis va de 0,22 a 1,86 s y la caída, de 1,91 a 2,02 s.»
-- `sampleTexts.ts:150`, nombre accesible de la forma de onda (se oye): «Cuatro periodos de la forma de onda de la flauta, cada uno de T = 3,22 ms. La misma curva medio periodo después e invertida no sigue a la original: correlación −0,084.» · «… del clarinete en si bemol, cada uno de T = 3,22 ms. La misma curva medio periodo después e invertida cae sobre la original: correlación 0,992.»
-- `sampleTexts.ts:151`, nombre accesible del espectro (se oye): «Espectro de la flauta, armónicos 1 a 12 en dB respecto del fundamental: los seis primeros armónicos dentro de ±5 dB del fundamental; el más fuerte es el 2.º, con +3,7 dB. Los impares pesan −0,7 dB sobre los pares.» · «Espectro del clarinete en si bemol, armónicos 1 a 12 en dB respecto del fundamental: los pares 2, 4, 6 y 8 entre 21 y 37 dB por debajo del fundamental; el más fuerte es el 3.º, con +3,3 dB. Los impares pesan +25,7 dB sobre los pares.»
+- `src/lib/data/instrumentSamples.ts:63`, nombres de las muestras (tarea 6; en pantalla, «♭» lo compone KaTeX: «si$\flat$»): «Flauta» · «Clarinete en si♭»
+- `src/lib/data/instrumentSamples.ts:77`, intérprete y fecha de cada grabación (una sola fuente para el crédito y la tabla 11.3): «Sonja Feig, abril de 2000» · «Christine Bellomy, clarinete Buffet R13, 3 de agosto de 1998»
+- `src/components/topics/sintesis-sonido/SampleAnalysis.tsx:37`, título de cada grabación: «Flauta: $f_1$ = 310,34 Hz» y «Clarinete en si$\flat$: $f_1$ = 310,10 Hz»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:88`, nombre accesible de cada audio (se oye): «Flauta, mi bemol 4 fortísimo sin vibrato» y «Clarinete en si bemol, mi bemol 4 fortísimo sin vibrato»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:95`, línea de crédito bajo cada audio (tras «Audio: »): «Sonja Feig, abril de 2000; University of Iowa, Musical Instrument Samples, archivo Flute.nonvib.ff.Eb4.stereo.aif. Lo recorté desde 0,10 s y lo igualé a −20 LUFS.» · «Christine Bellomy, clarinete Buffet R13, 3 de agosto de 1998; University of Iowa, Musical Instrument Samples, archivo BbClarinet.ff.Eb4.stereo.aif. Lo recorté desde 0,38 s y lo igualé a −20 LUFS.»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:59`, flauta, marca 0:00 «El ataque»: «Desde aquí se oye cómo empieza la nota. En la envolvente, el nivel pasa del 10 al 90 % del sostenido en 0,12 s, de 0,05 a 0,17 s del audio: la flauta arranca casi de golpe. La receta (11.4) sola sonaría completa desde el primer instante; la (11.7) le da esta subida con la envolvente $E(t)$.»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:64`, flauta, marca 0:01 «El sostenido»: «A 1 s la nota ya es estable: estoy dentro de la ventana de análisis. En el espectro, los seis primeros armónicos quedan a ±5 dB del fundamental y el más fuerte es el 2.º, +3,7 dB: suenan pares e impares, como pide la (11.2) en un tubo abierto. Por eso la discontinua $-y(t + T/2)$ no sigue a la continua: su correlación con $y(t)$ es −0,084 y la (11.6) no se cumple. En el 7.º armónico el nivel cae de golpe, a −18,4 dB.»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:72`, clarinete, marca 0:00 «El ataque»: «El clarinete tarda 0,40 s en pasar del 10 al 90 % de su nivel, de 0,05 a 0,45 s del audio: más del triple que la flauta, y se oye cómo la nota crece. Es la envolvente $E(t)$ de la (11.7). La ventana de análisis empieza a los 0,22 s, todavía dentro de este ataque: en la envolvente, la ventana y el ataque se solapan.»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:77`, clarinete, marca 0:01 «El sostenido»: «En el espectro, los armónicos pares (2, 4, 6 y 8) quedan entre 21 y 37 dB por debajo del fundamental, y el 3.º es más fuerte que el propio fundamental: +3,3 dB. Es la (11.3) de un tubo cerrado en un extremo: solo los impares forman ondas estacionarias, y esas refuerzan los impares de la caña, según Wolfe (fuente 6). Con los impares 25,7 dB por encima de los pares, la (11.6) se ve a simple vista: la discontinua $-y(t + T/2)$ cae sobre la continua, con correlación 0,992.»
+- `src/components/topics/sintesis-sonido/SampleContrast.tsx:18`, título del análisis conjunto: «Qué diferencia produce qué»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:106`, análisis conjunto: «**Lo que comparten: el tono.** Las dos notas repiten su forma cada $T$ = 3,22 ms: $f_1$ = 310,10 Hz en el clarinete y 310,34 Hz en la flauta, a 1,4 cents. El corchete de $T$ mide lo mismo en las dos formas de onda: por la (11.4), el tono lo pone $f_1$, no la forma.»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:110`, análisis conjunto: «**Lo que cambia: qué armónicos suenan.** Los impares pesan 25,7 dB más que los pares en el clarinete y −0,7 dB en la flauta: la (11.3) de un tubo cerrado frente a la (11.2) de uno abierto. Con el mismo tono y la misma sonoridad, esa receta es lo que distingue aquí sus timbres.»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:114`, análisis conjunto: «**Dónde se ve: la simetría de media onda.** Con esas potencias, la (11.6) predice correlaciones de 0,995 y −0,083 entre $y(t)$ y $-y(t + T/2)$; mido 0,992 y −0,084. Por eso la curva discontinua solo cae sobre la continua en el clarinete.»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:118`, análisis conjunto: «**Lo que el espectro no cuenta.** El ataque, de 0,40 s frente a 0,12 s (11.7), y el ruido del soplido. Wolfe (fuente 4) advierte que los libros de introducción a veces dan a entender que el espectro es la contribución dominante al timbre de un instrumento y que, «with the exception of the closed pipes mentioned above, this is very misleading» («salvo en los tubos cerrados, eso es muy engañoso»): esta pareja funciona porque el clarinete es uno.»
+- `src/components/topics/sintesis-sonido/SampleAnalysis.tsx:53`, títulos de las gráficas: «Envolvente de la nota completa» · «Cuatro periodos del sostenido» · «Contenido armónico»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:142`, nombre accesible de la envolvente (se oye): «Envolvente RMS de la flauta, relativa a su sostenido: sube del 10 al 90 % en 0,12 s, de 0,05 a 0,17 s; la ventana de análisis va de 0,24 a 2,32 s y la caída, de 2,21 a 2,50 s.» · «Envolvente RMS del clarinete en si bemol, relativa a su sostenido: sube del 10 al 90 % en 0,40 s, de 0,05 a 0,45 s; la ventana de análisis va de 0,22 a 1,86 s y la caída, de 1,91 a 2,02 s.»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:143`, nombre accesible de la forma de onda (se oye): «Cuatro periodos de la forma de onda de la flauta, cada uno de T = 3,22 ms. La misma curva medio periodo después e invertida no sigue a la original: correlación −0,084.» · «Cuatro periodos de la forma de onda del clarinete en si bemol, cada uno de T = 3,22 ms. La misma curva medio periodo después e invertida cae sobre la original: correlación 0,992.»
+- `src/components/topics/sintesis-sonido/sampleTexts.ts:144`, nombre accesible del espectro (se oye): «Espectro de la flauta, armónicos 1 a 12 en dB respecto del fundamental: los seis primeros armónicos dentro de ±5 dB del fundamental; el más fuerte es el 2.º, con +3,7 dB. Los impares pesan −0,7 dB sobre los pares.» · «Espectro del clarinete en si bemol, armónicos 1 a 12 en dB respecto del fundamental: los pares 2, 4, 6 y 8 entre 21 y 37 dB por debajo del fundamental; el más fuerte es el 3.º, con +3,3 dB. Los impares pesan +25,7 dB sobre los pares.»
 
 ### Gráficas compartidas (figuras 11.1, 11.3 y 11.4)
 
-- `soundPlots.ts:62-64`, ejes de la forma de onda: «Tiempo $t$ (ms)» · «Señal $y$ / pico (adimensional)»
-- `soundPlots.ts:74-76`, ejes de la envolvente: «Tiempo del audio $t$ (s)» · «Nivel RMS / sostenido (adimensional)»
-- `WaveformPlot.tsx:39`, rótulo del corchete: «$T$ = 3,22 ms»
-- `WaveformPlot.tsx:63`, `:68`, leyenda: «Señal $y(t)$» · «Medio periodo después, invertida: $-y(t + T/2)$»
-- `EnvelopePlot.tsx:63`, `:66`, `:79`, rótulos: «Ataque» · «Caída» · «Ventana de análisis»; `:101`, serie: «Envolvente RMS»
-- `SpectrumBars.tsx:241`, línea sobre las barras: «Impares sobre pares, $n \le 10$: +25,7 dB» (o «sin pares», `:51`, en la onda cuadrada)
-- `SpectrumBars.tsx:199`, `:203`, `:208`, leyenda: «Impares, $n$ = 1, 3, 5…» · «Pares, $n$ = 2, 4, 6…» · «Rango entre ventanas de 0,25 s»
-- `SpectrumBars.tsx:263-264`, ejes: «Armónico $n$ (adimensional)» · «$A_n/A_1$ (dB)»
-- `ToneFigure.tsx:85`, título de la gráfica del paso 1: «Tono puro de 310,10 Hz»; `:86`, nombre accesible: «Cuatro periodos de un seno de 310,10 Hz, cada uno de T = 3,22 ms.»; `:92`: «Espectro del tono puro: una sola barra, el fundamental n = 1; no hay más armónicos.»
-- `ToneFigure.tsx:33-34`, títulos del paso 3: «Onda cuadrada: solo impares, $A_n = 4/(n\pi)$» · «Diente de sierra: todos los armónicos, $|A_n| = 2/(n\pi)$»; `:65`, `:70`: «Cuatro periodos» · «Contenido armónico»
-- `ToneFigure.tsx:47-51`, nombres accesibles del paso 3: «Cuatro periodos de la onda cuadrada sumada con doce armónicos, T = 3,22 ms: la misma curva medio periodo después e invertida cae sobre la original.» · «Cuatro periodos del diente de sierra sumado con doce armónicos, T = 3,22 ms: la curva medio periodo después e invertida es otra, correlación 0,52.» · «Espectro de la onda cuadrada: solo los armónicos impares 1, 3, 5, 7, 9 y 11, que bajan como 1/n; los pares no existen.» · «Espectro del diente de sierra: los doce armónicos, que bajan como 1/n.»
+- `src/components/topics/sintesis-sonido/soundPlots.ts:64`, ejes de la forma de onda: «Tiempo $t$ (ms)» · «Señal $y$ / pico (adimensional)»
+- `src/components/topics/sintesis-sonido/soundPlots.ts:76`, ejes de la envolvente: «Tiempo del audio $t$ (s)» · «Nivel RMS / sostenido (adimensional)»
+- `src/components/topics/sintesis-sonido/WaveformPlot.tsx:39`, rótulo del corchete: «$T$ = 3,22 ms»
+- `src/components/topics/sintesis-sonido/WaveformPlot.tsx:64`, leyenda: «Señal $y(t)$» · «Medio periodo después, invertida: $-y(t + T/2)$»
+- `src/components/topics/sintesis-sonido/EnvelopePlot.tsx:63`, rótulos de la envolvente: «Ataque» · «Caída» · «Ventana de análisis»; serie: «Envolvente RMS»
+- `src/components/topics/sintesis-sonido/SpectrumBars.tsx:241`, línea sobre las barras (en la onda cuadrada, «sin pares» en lugar del valor): «Impares sobre pares, $n \le 10$: +25,7 dB»
+- `src/components/topics/sintesis-sonido/SpectrumBars.tsx:196`, nombre accesible de la leyenda del espectro (se oye): «Leyenda del espectro»
+- `src/components/topics/sintesis-sonido/SpectrumBars.tsx:199`, leyenda del espectro: «Impares, $n$ = 1, 3, 5…» · «Pares, $n$ = 2, 4, 6…» · «Rango entre ventanas de 0,25 s»
+- `src/components/topics/sintesis-sonido/SpectrumBars.tsx:263`, ejes del espectro: «Armónico $n$ (adimensional)» · «$A_n/A_1$ (dB)»
+- `src/components/topics/sintesis-sonido/ToneFigure.tsx:85`, título de la gráfica del paso 1: «Tono puro de 310,10 Hz»
+- `src/components/topics/sintesis-sonido/ToneFigure.tsx:86`, nombres accesibles del paso 1 (se oyen): «Cuatro periodos de un seno de 310,10 Hz, cada uno de T = 3,22 ms.» · «Espectro del tono puro: una sola barra, el fundamental n = 1; no hay más armónicos.»
+- `src/components/topics/sintesis-sonido/ToneFigure.tsx:33`, títulos del paso 3: «Onda cuadrada: solo impares, $A_n = 4/(n\pi)$» · «Diente de sierra: todos los armónicos, $|A_n| = 2/(n\pi)$» · «Cuatro periodos» · «Contenido armónico»
+- `src/components/topics/sintesis-sonido/ToneFigure.tsx:47`, nombres accesibles del paso 3 (se oyen): «Cuatro periodos de la onda cuadrada sumada con doce armónicos, T = 3,22 ms: la misma curva medio periodo después e invertida cae sobre la original.» · «Cuatro periodos del diente de sierra sumado con doce armónicos, T = 3,22 ms: la curva medio periodo después e invertida es otra, correlación 0,52.» · «Espectro de la onda cuadrada: solo los armónicos impares 1, 3, 5, 7, 9 y 11, que bajan como 1/n; los pares no existen.» · «Espectro del diente de sierra: los doce armónicos, que bajan como 1/n.»
 
 ### Figura 11.2: los modos de los dos tubos (`PipeModes.tsx`)
 
-- `PipeModes.tsx:37-38`, `:84`, títulos: «Abierto-abierto (flauta): $L$ = 0,55 m» · «Cerrado-abierto (clarinete): $L$ = 0,27 m»
-- `PipeModes.tsx:67`, rótulo de cada modo: «$n$ = 1 · 310 Hz» … «$n$ = 5 · 1 550 Hz»
-- `PipeModes.tsx:161`, `:163-164`, escala y leyenda: «10 cm» · «Modo impar» · «Modo par»
-- `PipeModes.tsx:183`, nombre accesible (se oye): «Tres primeros modos de dos tubos ideales con fundamental de 310 Hz, a la misma escala. Abierto en los dos extremos, de 0,55 m: n = 1, 2 y 3, a 310, 620 y 930 Hz, con vientres de desplazamiento en ambos extremos. Cerrado en un extremo, de 0,27 m: solo n = 1, 3 y 5, a 310, 930 y 1 550 Hz, con un nodo en el extremo cerrado y un vientre en el abierto.»
+- `src/components/topics/sintesis-sonido/PipeModes.tsx:37`, títulos (con la longitud que añade el componente): «Abierto-abierto (flauta): $L$ = 0,55 m» · «Cerrado-abierto (clarinete): $L$ = 0,27 m»
+- `src/components/topics/sintesis-sonido/PipeModes.tsx:80`, rótulo de cada modo: «$n$ = 1 · 310 Hz» … «$n$ = 5 · 1 550 Hz»
+- `src/components/topics/sintesis-sonido/PipeModes.tsx:176`, escala y leyenda: «10 cm» · «Modo impar» · «Modo par»
+- `src/components/topics/sintesis-sonido/PipeModes.tsx:54`, nombre accesible (se oye; sale de los datos de los tubos): «Tres primeros modos de dos tubos ideales con fundamental de 310 Hz, a la misma escala. Abierto en los dos extremos, de 0,55 m: n = 1, 2 y 3, a 310, 620 y 930 Hz, con vientres de desplazamiento en ambos extremos. Cerrado en un extremo, de 0,27 m: solo n = 1, 3 y 5, a 310, 930 y 1 550 Hz, con un nodo en el extremo cerrado y un vientre en el abierto.»
 
 ### Tablas 11.1 a 11.3 (`src/lib/tables/topics/sintesis-sonido.ts`)
 
-- `:38`, leyenda de la tabla 11.1: «Las cuatro ondas de un OscillatorNode como recetas de armónicos: el coeficiente $b_n$ de cada armónico en la (11.5), con todos los $a_n$ = 0, son valores del producto, la Web Audio API. La cuadrada y la triangular solo tienen impares; el diente de sierra tiene todos, con signo alterno.»
-- `:26-29`, `:40`, encabezados de la tabla 11.1: «Armónico $n$» · «Seno, $b_1 = 1$» · «Cuadrada, $4/(n\pi)$ en impares» · «Diente de sierra, $(-1)^{n+1}\,2/(n\pi)$» · «Triangular, $8\sin(n\pi/2)/(\pi n)^2$»
-- `:53`, fuente de la tabla 11.1: «W3C, Web Audio API, Recomendación del 17 de junio de 2021, §1.28.6; las mismas recetas en Chromium, periodic_wave_handler.cc L408-L428 (tag 160.0.8168.1)»
-- `:85`, leyenda de la tabla 11.2: «Receta medida de las dos grabaciones: el nivel de cada armónico respecto del fundamental, como promedio de Welch con ventanas de Hann de 0,25 s sobre la ventana de análisis, y el menor y el mayor de esas ventanas. Es una medida mía sobre los originales (cálculo propio), no un valor del producto ni un supuesto: la flauta fluctúa más que el clarinete.»
-- `:68`, `:75`, `:60`, `:87`, encabezados y celda de la tabla 11.2: «Armónico $n$» · «Flauta, $A_n/A_1$ (dB)» · «Flauta, rango (dB)» · «Clarinete en si$\flat$, $A_n/A_1$ (dB)» · «Clarinete en si$\flat$, rango (dB)»; rango de $n$ = 1: «referencia»; rango: «−18,5 a 5,6»
-- `:103`, fuente de la tabla 11.2: «Cálculo propio con un FFT en TypeScript (src/lib/audio/spectrum.ts, pnpm run data:harmonics) sobre Flute.nonvib.ff.Eb4.stereo.aif y BbClarinet.ff.Eb4.stereo.aif del MIS de la University of Iowa»
-- `:123`, leyenda de la tabla 11.3: «Las dos grabaciones del MIS de la University of Iowa y lo que medí en ellas, con el método de la investigación (cálculo propio). Los audios de la figura 11.4 son estos archivos recortados, en mono y a la misma sonoridad.»
-- `:125`, `:130-148`, filas de la tabla 11.3: «Dato» · «Archivo del MIS» · «Intérprete y fecha» («Sonja Feig, abril de 2000»; «Christine Bellomy, 3 de agosto de 1998; Buffet R13», `:109-110`) · «Formato del original» («AIFF de 24 bits a 44 100 Hz, dos canales idénticos») · «Fundamental $f_1$» · «Periodo $T = 1/f_1$» · «Impares sobre pares ($n \le 10$)» · «Correlación de $y(t)$ y $-y(t + T/2)$» · «Ataque, 10 → 90 %» · «Caída, 90 → 10 %» · «Audio publicado» («desde 0,10 s del original; 2,86 s, MP3 mono a −20 LUFS») · «Origen de los números» («Medida propia (cálculo propio)») · «Permiso de uso» (««may be downloaded and used for any projects, without restrictions», según la página del MIS»)
-- `:151`, fuente de la tabla 11.3: «University of Iowa Electronic Music Studios, Musical Instrument Samples (dir. Lawrence Fritts), fichas de la flauta y del clarinete en si bemol; medidas: cálculo propio»
-
-### Fuentes (`src/content/topics/sintesis-sonido.mdx:11-82`)
-
-Once fuentes, en este orden: [1] Web Audio API, Recomendación del W3C del 17 de junio de 2021; [2] Chromium
-160.0.8168.1, `periodic_wave_handler.cc`; [3] Musical Instrument Samples, University of Iowa; [4]–[7] Joe Wolfe, UNSW
-(«What is a Sound Spectrum?», «Open vs Closed pipes», «Clarinet acoustics», «How harmonic are harmonics?»); [8]
-OpenStax, University Physics 1, §15.3, §16.6 y §17.4; [9] Smith, Physical Audio Signal Processing; [10] Chrome Music
-Lab, «Harmonics & Strings»; [11] patente US 1 956 350 de Laurens Hammond. Las líneas de fuente de las figuras citan
-«fuente 1», «fuente 3» y «fuente 5» por ese orden.
+- `src/lib/tables/topics/sintesis-sonido.ts:37`, leyenda de la tabla 11.1: «Las cuatro ondas de un OscillatorNode como recetas de armónicos: los coeficientes $b_n$ de cada armónico en la (11.5), con todos los $a_n$ = 0, son valores del producto, la Web Audio API. La cuadrada y la triangular solo tienen impares; el diente de sierra tiene todos, con signo alterno.»
+- encabezados de la tabla 11.1: «Armónico $n$» · «Seno, $b_1 = 1$» · «Cuadrada, $4/(n\pi)$ en impares» · «Diente de sierra, $(-1)^{n+1}\,2/(n\pi)$» · «Triangular, $8\sin(n\pi/2)/(\pi n)^2$»
+- `src/lib/tables/topics/sintesis-sonido.ts:52`, fuente de la tabla 11.1: «W3C, Web Audio API, Recomendación del 17 de junio de 2021, §1.28.6; las mismas recetas en Chromium, periodic_wave_handler.cc L408-L428 (tag 160.0.8168.1)»
+- `src/lib/tables/topics/sintesis-sonido.ts:84`, leyenda de la tabla 11.2: «Receta medida de las dos grabaciones: el nivel de cada armónico respecto del fundamental, como promedio de Welch con ventanas de Hann de 0,25 s sobre la ventana de análisis, y el menor y el mayor de esas ventanas. Es una medida mía sobre los originales (cálculo propio), no un valor del producto ni un supuesto: la flauta fluctúa más que el clarinete.»
+- encabezados de la tabla 11.2: «Armónico $n$» · «Flauta, $A_n/A_1$ (dB)» · «Flauta, rango (dB)» · «Clarinete en si$\flat$, $A_n/A_1$ (dB)» · «Clarinete en si$\flat$, rango (dB)»
+- `src/lib/tables/topics/sintesis-sonido.ts:102`, fuente de la tabla 11.2: «Cálculo propio con un FFT en TypeScript (src/lib/audio/spectrum.ts, pnpm run data:harmonics) sobre Flute.nonvib.ff.Eb4.stereo.aif y BbClarinet.ff.Eb4.stereo.aif del MIS de la University of Iowa»
+- `src/lib/tables/topics/sintesis-sonido.ts:126`, leyenda de la tabla 11.3: «Las dos grabaciones del MIS de la University of Iowa y lo que medí en ellas, con el método de la investigación (cálculo propio). Los audios de la figura 11.4 son estos archivos recortados, en mono y a la misma sonoridad.»
+- encabezados de la tabla 11.3: «Dato» · «Flauta» · «Clarinete en si$\flat$»
+- `src/lib/tables/topics/sintesis-sonido.ts:151`, fuente de la tabla 11.3: «University of Iowa Electronic Music Studios, Musical Instrument Samples (dir. Lawrence Fritts), fichas de la flauta y del clarinete en si bemol; medidas: cálculo propio»
+- `src/lib/tables/topics/sintesis-sonido.ts:132` y siguientes, filas de la tabla 11.3 (dato · flauta · clarinete):
+  - «Archivo del MIS» · «Flute.nonvib.ff.Eb4.stereo.aif» · «BbClarinet.ff.Eb4.stereo.aif»
+  - «Intérprete y fecha» · «Sonja Feig, abril de 2000» · «Christine Bellomy, clarinete Buffet R13, 3 de agosto de 1998»
+  - «Formato del original» · «AIFF de 24 bits a 44 100 Hz, dos canales idénticos» · «AIFF de 24 bits a 44 100 Hz, dos canales idénticos»
+  - «Fundamental $f_1$» · «310,34 Hz» · «310,10 Hz»
+  - «Periodo $T = 1/f_1$» · «3,222 ms» · «3,225 ms»
+  - «Impares sobre pares ($n \le 10$)» · «−0,7 dB» · «25,7 dB»
+  - «Correlación de $y(t)$ y $-y(t + T/2)$» · «−0,084» · «0,992»
+  - «Ataque, 10 → 90 %» · «0,12 s» · «0,40 s»
+  - «Caída, 90 → 10 %» · «0,29 s» · «0,11 s»
+  - «Audio publicado» · «desde 0,10 s del original; 2,86 s, MP3 mono a −20 LUFS» · «desde 0,38 s del original; 2,52 s, MP3 mono a −20 LUFS»
+  - «Origen de los números» · «Medida propia (cálculo propio)» · «Medida propia (cálculo propio)»
+  - «Permiso de uso» · ««may be downloaded and used for any projects, without restrictions», según la página del MIS» · ««may be downloaded and used for any projects, without restrictions», según la página del MIS»
+- `src/lib/tables/topics/sintesis-sonido.ts:59`, tabla 11.2, rango del fundamental: «referencia»
+- `src/lib/tables/topics/sintesis-sonido.ts:110`, tabla 11.3, palabras del formato: «un canal» · «dos canales» · «idénticos»

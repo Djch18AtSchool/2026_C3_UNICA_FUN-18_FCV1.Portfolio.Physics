@@ -43,6 +43,7 @@ describe('sintesis-sonido tables', () => {
     expect(rows[0]).toEqual(['1', '1,000', '1,273', '0,637', '0,811']);
     expect(rows[1]).toEqual(['2', '0,000', '0,000', '−0,318', '0,000']);
     expect(rows[2]).toEqual(['3', '0,000', '0,424', '0,212', '−0,090']);
+    expect(TABLES[0].caption).toContain('los coeficientes $b_n$ de cada armónico');
     expect(TABLES[0].caption).toContain('valores del producto');
     expect(TABLES[0].source.text).toContain('§1.28.6');
     expect(TABLES[0].source.text).toContain('L408-L428');
