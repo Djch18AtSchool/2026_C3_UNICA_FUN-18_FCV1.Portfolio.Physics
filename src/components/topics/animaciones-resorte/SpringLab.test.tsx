@@ -157,8 +157,12 @@ describe('SpringLab', () => {
 
   test('«Interrumpir» waits at the start, then swaps the target mid-flight with v kept', () => {
     renderLab();
-    expect(interruptButton()).toBeDisabled();
+    // aria-disabled, not disabled: a keyboard still reaches it and hears why it waits.
+    expect(interruptButton()).toHaveAttribute('aria-disabled', 'true');
+    expect(interruptButton()).not.toBeDisabled();
     expect(screen.getByTestId('interrupt-hint')).toHaveTextContent(/^En el inicio no hay/);
+    fireEvent.click(interruptButton());
+    expect(value(LABELS.target)).toBe('1 000 px');
     seekTo(0.2);
     const vBefore = value(LABELS.v);
     const marksBefore = marks().length;
@@ -211,12 +215,19 @@ describe('SpringLab', () => {
     expect([...reached].some((name) => /^Masa m/.test(name))).toBe(true);
     expect(reached.has('Interrumpir')).toBe(true);
 
+    expect([...reached].some((name) => /Atajos: Espacio o K/.test(name))).toBe(true);
+    expect(interruptButton()).toHaveAttribute('aria-disabled', 'false');
+
+    // The shortcuts act where the reader is: on the canvas, focused by a click on it.
     const lab = screen.getByTestId('spring-lab');
-    fireEvent.keyDown(lab, { key: 'i' });
+    const canvas = screen.getByTestId('spring-canvas');
+    fireEvent.pointerDown(canvas);
+    expect(canvas).toHaveFocus();
+    fireEvent.keyDown(canvas, { key: 'i' });
     expect(value(LABELS.target)).toBe('100 px');
-    fireEvent.keyDown(lab, { key: ' ' });
+    fireEvent.keyDown(canvas, { key: ' ' });
     expect(lab).toHaveAttribute('data-playing', 'true');
-    fireEvent.keyDown(lab, { key: 'k' });
+    fireEvent.keyDown(canvas, { key: 'k' });
     expect(lab).toHaveAttribute('data-playing', 'false');
   });
 
@@ -225,13 +236,13 @@ describe('SpringLab', () => {
     seekTo(0.2);
 
     fireEvent.keyDown(screen.getByRole('textbox', { name: /^Rigidez k/ }), { key: 'i' });
-    fireEvent.keyDown(screen.getByTestId('spring-lab'), { key: '.' });
+    fireEvent.keyDown(screen.getByTestId('spring-canvas'), { key: '.' });
 
     expect(value(LABELS.target)).toBe('1 000 px');
     expect(Number((timeline() as HTMLInputElement).value)).toBeGreaterThan((0.2 / RUN_S) * STEPS);
 
     // «,» steps back; a key with Ctrl is the browser's; R rewinds to the start.
-    const lab = screen.getByTestId('spring-lab');
+    const lab = screen.getByTestId('spring-canvas');
     fireEvent.keyDown(lab, { key: ',' });
     expect((timeline() as HTMLInputElement).value).toBe(String(Math.round((0.2 / RUN_S) * STEPS)));
     fireEvent.keyDown(lab, { key: 'i', ctrlKey: true });

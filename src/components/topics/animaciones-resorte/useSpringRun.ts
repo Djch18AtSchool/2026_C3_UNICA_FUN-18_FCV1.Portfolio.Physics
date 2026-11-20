@@ -39,7 +39,7 @@ export interface SpringRunControls {
   canInterrupt: boolean;
   edit(patch: Partial<SpringParams>): void;
   choosePreset(preset: Preset<SpringParams>): void;
-  /** «Interrumpir»: the target swaps at the clock's live time. */
+  /** «Interrumpir»: the target swaps at the clock's live time (never at t = 0). */
   interrupt(): void;
   reset(): void;
 }
@@ -91,9 +91,11 @@ export function useSpringRun(): SpringRunControls {
   );
   const interrupt = useCallback(() => {
     const tStar = frame.get();
-    if (!isPlaying && tStar === 0) return;
+    // At t* = 0 the card has not moved: a press would only aim it at where it already is, also
+    // right after «Reproducir», before the first frame.
+    if (tStar === 0) return;
     setState((previous) => ({ ...previous, retargets: withRetarget(previous.retargets, tStar) }));
-  }, [frame, isPlaying]);
+  }, [frame]);
 
   return {
     params: state.params,

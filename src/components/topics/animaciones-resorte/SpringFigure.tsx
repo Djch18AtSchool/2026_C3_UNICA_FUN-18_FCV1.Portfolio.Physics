@@ -10,7 +10,9 @@ import SvgPlot, { type PlotAspect, type PlotSeries } from '../../lab/SvgPlot';
 import {
   AMORTIGUADO,
   BAND_EPSILON,
+  BAND_OPACITY,
   BEZIER_COLOR,
+  GUIDE_DASH,
   INTERRUPTION,
   LIBRE,
   REGIME_COLORS,
@@ -37,8 +39,6 @@ const LIBRE_DOMAIN = { min: -400, max: 2100 } as const;
 const REGIMES_DOMAIN = { min: 0, max: 1400 } as const;
 const POSITION_DOMAIN = { min: -100, max: 1100 } as const;
 const VELOCITY_DOMAIN = { min: -12000, max: 12000 } as const;
-const BAND_OPACITY = 0.18;
-const GUIDE_DASH = '4 4';
 const LABEL_RISE = 8;
 const LABEL_INSET = 6;
 

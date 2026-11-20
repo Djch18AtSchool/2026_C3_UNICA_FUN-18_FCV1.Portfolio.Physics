@@ -1,23 +1,19 @@
 import { useMemo, type JSX } from 'react';
 import { formatNumber } from '../../../lib/format';
-import { mathTextToString } from '../../../lib/mathNotation';
+import { inlineMathToSpeech } from '../../../lib/inlineMath';
 import { dampingRegime } from '../../../lib/physics/dampedSpring';
 import { TICK_COLOR } from '../../charts/chartTheme';
 import type { FrameStore } from '../../lab/frameStore';
 import { PlotPoints } from '../../lab/PlotPoints';
 import type { Scale } from '../../lab/plotScales';
 import SvgPlot, { type PlotSeries } from '../../lab/SvgPlot';
-import { COMPARISON_LANE, REGIME_WORDS, SPRING_LANE } from './springLabText';
-import { BAND_EPSILON, BEZIER_COLOR, REGIME_COLORS } from './springPlots';
+import { COMPARISON_LANE, formatSeconds, REGIME_WORDS, SPRING_LANE } from './springLabText';
+import { BAND_EPSILON, BAND_OPACITY, BEZIER_COLOR, GUIDE_DASH, REGIME_COLORS } from './springPlots';
 import { MARKS, runCurves, runMarkers, springAt, TRAVEL_PX, type SpringRun } from './springScene';
 
 type Scales = { x: Scale; y: Scale };
 
-const BAND_OPACITY = 0.18;
-const GUIDE_DASH = '4 4';
-const TIME_PRECISION = 2;
-
-const seconds = (value: number) => formatNumber(value, { precision: TIME_PRECISION, unit: 's' });
+const seconds = formatSeconds;
 
 /** Where each leg of the spring ends: the next press, or the end of the run. */
 const legEnds = (run: SpringRun) =>
@@ -114,8 +110,8 @@ function describePlot(run: SpringRun, showComparison: boolean): string {
     ? ` La curva de duración fija va de ${px(MARKS.from)} a ${px(MARKS.to)} en ${seconds(run.bezier[0].duration)}.`
     : '';
   const pressText = presses > 0 ? ` Interrupciones: ${presses}, cada una cambia el destino.` : '';
-  return mathTextToString(
-    `Posición x frente al tiempo durante ${seconds(run.duration)}. El resorte, ${regime}, sale de ${px(MARKS.from)} hacia ${px(MARKS.to)}.${curve}${pressText}`,
+  return inlineMathToSpeech(
+    `Posición $x$ frente al tiempo durante ${seconds(run.duration)}. El resorte, ${regime}, sale de ${px(MARKS.from)} hacia ${px(MARKS.to)}.${curve}${pressText}`,
   );
 }
 

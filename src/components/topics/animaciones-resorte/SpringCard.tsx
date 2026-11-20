@@ -21,13 +21,15 @@ import type { FrameStore } from '../../lab/frameStore';
 import MathText from '../../lab/MathText';
 import { useFrameDerived } from '../../lab/useFrameTime';
 import {
+  CANVAS_NAME,
   comparisonLabel,
   COMPARISON_LANE,
   REGIME_WORDS,
   regimeLabel,
+  SPRING_KEYS,
   SPRING_LANE,
 } from './springLabText';
-import { BAND_EPSILON, BEZIER_COLOR, REGIME_COLORS } from './springPlots';
+import { BAND_EPSILON, BAND_OPACITY, BEZIER_COLOR, GUIDE_DASH, REGIME_COLORS } from './springPlots';
 import { bezierAt, cardsAt, MARKS, springAt, TRAVEL_PX, type SpringRun } from './springScene';
 
 /** viewBox width before the canvas is measured (SSR, jsdom); the height never follows it. */
@@ -43,14 +45,18 @@ const SWATCH = 10;
 const SWATCH_GAP = 6;
 /** Room around the marks, as a share of the travel, beyond the plain step's own overshoot. */
 const PAD_SHARE = 0.25;
-const GUIDE_DASH = '4 4';
 const GHOST_DASH = '4 3';
 const GHOST_OPACITY = 0.15;
-const BAND_OPACITY = 0.18;
 const CHEVRON = 5;
 const PX_DECIMALS = 2;
 /** Float slack before a card counts as past the drawn track. */
 const CLAMP_SLACK = 1e-6;
+/**
+ * The canvas is a focus target, so the lab's keys (SpringLab) work where the reader is: Tab reaches
+ * it and a click on it focuses it; the accent ring shows only for the keyboard's focus.
+ */
+const FOCUS_TARGET =
+  'rounded-base outline-accent focus-visible:outline-2 focus-visible:outline-offset-2';
 /** The card's two lines of «text», on its own surface. */
 const CARD_LINES = 'M-14 -4 H14 M-14 4 H6';
 
@@ -357,7 +363,16 @@ export default function SpringCard({
   const geo = track(run, width, showComparison ? 2 : 1);
   const regime = dampingRegime(run.params);
   return (
-    <div ref={wrapperRef} className={`w-full ${CANVAS_INSET}`}>
+    <div
+      ref={wrapperRef}
+      data-testid="spring-canvas"
+      role="group"
+      tabIndex={0}
+      aria-label={CANVAS_NAME}
+      aria-keyshortcuts={SPRING_KEYS}
+      onPointerDown={(event) => event.currentTarget.focus({ preventScroll: true })}
+      className={`w-full ${CANVAS_INSET} ${FOCUS_TARGET}`}
+    >
       <svg
         data-testid="spring-scene"
         viewBox={`0 0 ${width} ${geo.height}`}

@@ -62,7 +62,7 @@ test.describe('Tema 10, laboratorio del resorte', () => {
     page,
   }) => {
     const lab = await openLab(page);
-    await expect(interrupt(lab)).toBeDisabled();
+    await expect(interrupt(lab)).toHaveAttribute('aria-disabled', 'true');
     await seekTimeline(timeline(lab), MID_FLIGHT);
     const before = await readout(page, 'Velocidad del resorte $v$');
 
@@ -79,7 +79,7 @@ test.describe('Tema 10, laboratorio del resorte', () => {
   }) => {
     const lab = await openLab(page);
     await lab.getByRole('button', { name: 'Reproducir' }).click();
-    await expect(interrupt(lab)).toBeEnabled();
+    await expect(interrupt(lab)).toHaveAttribute('aria-disabled', 'false');
 
     await interrupt(lab).click();
     await interrupt(lab).click();
@@ -88,6 +88,22 @@ test.describe('Tema 10, laboratorio del resorte', () => {
     await expect.poll(() => readout(page, 'Destino $x_\\text{obj}$')).toBe('1 000 px');
     await expect(lab).toHaveAttribute('data-playing', 'false', { timeout: 10_000 });
     expect(await readout(page, 'Posición del resorte $x$')).toMatch(/^(999,\d|1 000,\d) px$/);
+  });
+
+  test('los atajos actúan sobre el lienzo: un clic en él, I interrumpe y Espacio reproduce', async ({
+    page,
+  }) => {
+    const lab = await openLab(page);
+    await seekTimeline(timeline(lab), MID_FLIGHT);
+    const canvas = lab.getByTestId('spring-canvas');
+
+    await canvas.click();
+    await expect(canvas).toBeFocused();
+    await page.keyboard.press('i');
+
+    await expect.poll(() => readout(page, 'Destino $x_\\text{obj}$')).toBe('100 px');
+    await page.keyboard.press('Space');
+    await expect(lab).toHaveAttribute('data-playing', 'true');
   });
 
   test('con el teclado: Tab llega a «Interrumpir» desde los parámetros y Enter lo pulsa', async ({

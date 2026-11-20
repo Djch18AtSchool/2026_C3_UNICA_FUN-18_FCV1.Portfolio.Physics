@@ -32,6 +32,9 @@ export const REGIME_COLORS: Readonly<Record<DampingRegime, string>> = {
 };
 /** The fixed-duration curve that Paso 4 sets against the spring. */
 export const BEZIER_COLOR = CHART_COLORS[1];
+/** The rest band's fill and the dash of every guide (a target, a mark, an instant), in every drawing. */
+export const BAND_OPACITY = 0.18;
+export const GUIDE_DASH = '4 4';
 
 /** The keyframes of Motion's three tests, [100, 1000]: every figure travels them. */
 const [{ from: TRAVEL_FROM, to: TRAVEL_TO }] = MOTION_SPRING_TESTS;

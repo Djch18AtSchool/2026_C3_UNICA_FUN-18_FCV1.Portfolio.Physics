@@ -19,15 +19,25 @@ import SpringPlot from './SpringPlot';
 import { cardsAt, runMarkers, type SpringRun } from './springScene';
 import { useSpringRun, type SpringRunControls } from './useSpringRun';
 
-/** The playback speeds: 0,1× and 0,25× slow a stiff spring's overshoot down to watch it. */
-export const SPRING_SPEEDS: readonly number[] = [0.1, 0.25, 0.5, 1, 2];
+/** The two slow speeds that «Cómo se usa» names: they slow a stiff spring down to watch it. */
+export const SPRING_SLOWEST_SPEED = 0.1;
+export const SPRING_SLOW_SPEED = 0.25;
+/** The playback speeds of the transport. */
+export const SPRING_SPEEDS: readonly number[] = [
+  SPRING_SLOWEST_SPEED,
+  SPRING_SLOW_SPEED,
+  0.5,
+  1,
+  2,
+];
 /** «,» and «.» move the clock by one frame at 60 Hz. */
 const FRAME_STEP_S = 1 / 60;
 const PERCENT = 100;
 /** Keys that keep their native meaning: fields, buttons and anything inside the drawer. */
 const NATIVE_KEYS_SELECTOR = 'input, select, textarea, button, a, dialog';
+/** aria-disabled, not disabled: a waiting button keeps its place in the Tab order and its hint. */
 const ACTION_BUTTON =
-  'min-h-10 self-start rounded-base border border-border bg-bg px-3 text-sm font-medium text-fg hover:border-accent disabled:cursor-not-allowed disabled:opacity-50';
+  'min-h-10 self-start rounded-base border border-border bg-bg px-3 text-sm font-medium text-fg hover:border-accent aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:hover:border-border';
 const HINT = `m-0 text-sm text-fg-muted ${CANVAS_INSET}`;
 
 export interface SpringLabProps {
@@ -107,8 +117,8 @@ function InterruptAction({ lab }: { lab: SpringRunControls }): JSX.Element {
     <div className="flex flex-col gap-2">
       <button
         type="button"
-        onClick={lab.interrupt}
-        disabled={!lab.canInterrupt}
+        onClick={lab.canInterrupt ? lab.interrupt : undefined}
+        aria-disabled={!lab.canInterrupt}
         aria-describedby={hintId}
         className={ACTION_BUTTON}
       >

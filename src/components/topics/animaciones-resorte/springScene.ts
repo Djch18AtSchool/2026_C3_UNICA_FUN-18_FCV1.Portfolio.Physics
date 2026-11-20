@@ -35,8 +35,12 @@ export const MAX_LEG_S = 6;
  * v14.14.0, generators/spring.ts L32-L35): within both, a press finds the spring at rest (10.11).
  */
 export const MOTION_REST = { delta: 0.5, speed: 2 } as const;
-/** Samples of each drawn curve, before the legs' own instants are added. */
-const CURVE_SAMPLES = 600;
+/** Samples of each drawn curve, before the legs' own instants are added: at least this many, */
+const MIN_CURVE_SAMPLES = 600;
+/** and at least this many per period of ω′, so a stiff spring's oscillation never aliases, */
+const SAMPLES_PER_PERIOD = 16;
+/** but never more than this (a run grown by many presses). */
+const MAX_CURVE_SAMPLES = 4000;
 
 const EASING = cubicBezier(...EASE_IN_OUT);
 
@@ -96,12 +100,20 @@ export function perceptualDuration(params: SpringParams): number {
 }
 
 /**
+ * A leg's 2 % settling time, from its start (s): the band is a share of the travel between the
+ * marks, also after a press (ruling R6). Infinity without damping, 0 when it never leaves the band.
+ */
+export function legSettle(params: SpringParams, { u0, v0 }: Pick<SpringLeg, 'u0' | 'v0'>): number {
+  return settlingTime(params, u0, v0, BAND_EPSILON, TRAVEL_PX);
+}
+
+/**
  * How long the curve lasts on a leg: the spring's 2 % settling time for that leg, relative to the
  * travel, so both cards start and end together on a plain step. When the spring never settles
  * (b = 0) or never leaves the band (t_s = 0), the curve lasts d = 2π/ω₀ instead: it always moves.
  */
 export function comparisonDuration(params: SpringParams, u0: number, v0: number): number {
-  const settle = settlingTime(params, u0, v0, BAND_EPSILON, TRAVEL_PX);
+  const settle = legSettle(params, { u0, v0 });
   return Number.isFinite(settle) && settle > 0 ? settle : perceptualDuration(params);
 }
 
@@ -229,7 +241,7 @@ export function lastJump(run: SpringRun): VelocityJump | undefined {
 function legMarkers(params: SpringParams, leg: SpringLeg, end: number): TransportMarker[] {
   const peak = leg.start + peakTime(params);
   const hasPeak = leg.v0 === 0 && dampingRatio(params) < 1 && peak < end;
-  const settle = leg.start + settlingTime(params, leg.u0, leg.v0, BAND_EPSILON, TRAVEL_PX);
+  const settle = leg.start + legSettle(params, leg);
   const hasSettle = Number.isFinite(settle) && settle > leg.start && settle < end;
   return [
     ...(leg.start > 0 ? [{ t: leg.start, label: 'Interrupción' }] : []),
@@ -254,8 +266,23 @@ function cornerTimes(run: SpringRun): number[] {
   return run.bezier.flatMap((leg) => [leg.start, leg.start + leg.duration]);
 }
 
+/**
+ * How many even samples a run's curves take: MIN_CURVE_SAMPLES, or SAMPLES_PER_PERIOD per period
+ * of ω′ = ω₀√(1 − ζ²) when the spring oscillates (ζ < 1), within MAX_CURVE_SAMPLES.
+ */
+export function curveSamples(run: SpringRun): number {
+  const zeta = dampingRatio(run.params);
+  if (!(zeta < 1)) return MIN_CURVE_SAMPLES;
+  const omega = naturalAngularFrequency(run.params) * Math.sqrt(1 - zeta * zeta);
+  const needed = Math.ceil((SAMPLES_PER_PERIOD * run.duration * omega) / (2 * Math.PI));
+  return Math.min(MAX_CURVE_SAMPLES, Math.max(MIN_CURVE_SAMPLES, needed));
+}
+
 /** x(t) of both cards over the run: an even grid plus every corner, in order and once each. */
-export function runCurves(run: SpringRun, samples = CURVE_SAMPLES): { spring: XY[]; bezier: XY[] } {
+export function runCurves(
+  run: SpringRun,
+  samples = curveSamples(run),
+): { spring: XY[]; bezier: XY[] } {
   const grid = Array.from({ length: samples + 1 }, (_, i) => (run.duration * i) / samples);
   const corners = cornerTimes(run).filter((t) => t <= run.duration);
   const times = [...new Set([...grid, ...corners])].sort((a, b) => a - b);

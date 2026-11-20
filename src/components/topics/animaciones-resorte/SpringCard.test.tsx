@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import { createFrameStore } from '../../lab/frameStore';
 import { plexViolations } from '../../../test-glyphs';
@@ -126,6 +126,21 @@ describe('SpringCard, the lab’s canvas', () => {
 
     expect(xOf('spring')).toBeCloseTo(2 * MARKS.to - MARKS.from, 6);
     expect(card('spring')).not.toHaveAttribute('data-clamped');
+  });
+
+  test('the canvas takes the focus, from Tab or a click, says its shortcuts and shows its ring', () => {
+    renderScene(buildRun(MOTION_DEFAULT, []), 0);
+    const canvas = screen.getByTestId('spring-canvas');
+
+    expect(canvas).toHaveAttribute('tabindex', '0');
+    expect(canvas).toHaveAttribute('role', 'group');
+    expect(canvas).toHaveAccessibleName(/Atajos: Espacio o K reproduce y pausa; I interrumpe/);
+    expect(canvas).toHaveAttribute('aria-keyshortcuts', 'Space K I R , .');
+    expect(canvas.className).toMatch(/focus-visible:outline-2/);
+
+    fireEvent.pointerDown(canvas.querySelector('svg') as Element);
+
+    expect(canvas).toHaveFocus();
   });
 
   test('describes both cards at the settled time for screen readers', () => {

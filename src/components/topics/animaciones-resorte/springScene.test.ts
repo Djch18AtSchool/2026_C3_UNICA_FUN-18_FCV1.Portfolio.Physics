@@ -315,6 +315,21 @@ describe('the events of the run', () => {
 });
 
 describe('the curves of x(t)', () => {
+  test('sample at least 16 points per period of ω′, so the stiffest spring does not alias', () => {
+    // k = 1 000 N/m and m = 0,1 kg: ω₀ = 100 rad/s, 95 periods in the 6 s of an undamped run.
+    const stiff = { k: 1000, b: 0, m: 0.1 };
+    const run = buildRun(stiff, []);
+    const period = (2 * Math.PI) / naturalAngularFrequency(stiff);
+
+    const times = runCurves(run).spring.map((point) => point.x);
+
+    const widest = Math.max(...times.slice(1).map((t, i) => t - times[i]));
+    expect(widest).toBeLessThanOrEqual(period / 16);
+    // A slow spring keeps the plain grid; no run asks for more than the cap.
+    expect(runCurves(buildRun(MOTION_DEFAULT, [])).spring.length).toBeLessThanOrEqual(610);
+    expect(runCurves(buildRun(stiff, [5.9, 11.8])).spring.length).toBeLessThanOrEqual(4010);
+  });
+
   test('sample both cards over the run, with every press and every curve end on the grid', () => {
     // Arrange
     const run = buildRun(MOTION_DEFAULT, [0.2]);

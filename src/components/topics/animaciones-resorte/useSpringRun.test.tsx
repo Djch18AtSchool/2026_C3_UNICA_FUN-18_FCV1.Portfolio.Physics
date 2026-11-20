@@ -97,6 +97,17 @@ describe('useSpringRun', () => {
     expect(result.current.run.retargets).toEqual([]);
   });
 
+  test('a press right after «Reproducir», before the first frame, does nothing either', () => {
+    const { result } = renderHook(() => useSpringRun());
+    act(() => result.current.clock.play());
+
+    act(() => result.current.interrupt());
+
+    expect(result.current.clock.state.playing).toBe(true);
+    expect(result.current.clock.frame.get()).toBe(0);
+    expect(result.current.run.retargets).toEqual([]);
+  });
+
   test('editing k, b or m leaves the preset and keeps the presses and the time', () => {
     const { result } = renderHook(() => useSpringRun());
     act(() => result.current.clock.seek(0.2));
