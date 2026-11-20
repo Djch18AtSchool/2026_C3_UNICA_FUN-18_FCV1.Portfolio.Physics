@@ -5,6 +5,7 @@
  * defaultMass (spring.ts L24) and Apple's.
  */
 import { fromPerceptual, type SpringParams } from '../physics/dampedSpring';
+import type { ValueOrigin } from './origin';
 import { APPLE_FORWARD_EXAMPLE } from './springReferences';
 
 const MOTION = 'Motion v14.14.0, packages/motion-dom/src/animation';
@@ -15,7 +16,7 @@ export interface SpringPreset {
   label: string;
   params: SpringParams;
   /** The product's own value, or an illustrative assumption of the model. */
-  origin: 'producto' | 'ilustrativo';
+  origin: Exclude<ValueOrigin, 'calculo'>;
   source: string;
 }
 

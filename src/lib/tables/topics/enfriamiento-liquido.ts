@@ -15,9 +15,9 @@ import {
   RD109,
   UQD04,
   WATER_40C_NIST,
-  type ValueOrigin,
 } from '../../data/liquidCooling';
 import { lossBreakdown, type BreakdownId } from '../../data/liquidCoolingBreakdown';
+import type { ValueOrigin } from '../../data/origin';
 import { PRESETS, rackPath, serverFlow } from '../../data/liquidCoolingCircuit';
 import {
   CONNECTOR_PARAMETERS,

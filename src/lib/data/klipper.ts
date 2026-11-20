@@ -4,7 +4,8 @@
  * (docs/superpowers/research/2026-11-17-resonancia-estructural.md §3.4, CONFIRMADO, accessed
  * 2026-11-17).
  */
-import type { SourcedValue, ValueOrigin } from './bridges';
+import type { SourcedValue } from './bridges';
+import type { ValueOrigin } from './origin';
 
 const KLIPPER_TAG = 'Klipper v0.13.0 (commit 61c0c8d)';
 const SWEEP = `${KLIPPER_TAG}, klippy/extras/resonance_tester.py L49-L78`;

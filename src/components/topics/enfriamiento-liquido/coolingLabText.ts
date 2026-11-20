@@ -16,8 +16,8 @@ import {
   SERVER_HOSES,
   UQD04,
   type Provenance,
-  type ValueOrigin,
 } from '../../../lib/data/liquidCooling';
+import type { ValueOrigin } from '../../../lib/data/origin';
 import { PRESETS } from '../../../lib/data/liquidCoolingCircuit';
 import { formatNumber } from '../../../lib/format';
 import {

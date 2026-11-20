@@ -7,7 +7,8 @@
  * with ζ_s = 0,005 (pág. 123).
  */
 import { requireNonNegative } from '../physics/validate';
-import { TACOMA, type ValueOrigin } from './bridges';
+import { TACOMA } from './bridges';
+import type { ValueOrigin } from './origin';
 
 export interface FlutterRow {
   /** Mechanical damping ratio ζ_α. */

@@ -7,6 +7,7 @@ import {
   type ReturnLayout,
 } from '../physics/hydraulics';
 import { propyleneGlycolWater } from '../physics/propyleneGlycol';
+import type { ValueOrigin } from './origin';
 
 /*
  * Tema 13 sourced catalogue: the values of the liquid-cooling circuit of a GB200 NVL72-class rack
@@ -17,13 +18,6 @@ import { propyleneGlycolWater } from '../physics/propyleneGlycol';
  * 2026-11-17-enfriamiento-liquido.md (§5 values, §7 reference calculation), accessed 2026-11-17.
  * SI units unless a name says otherwise.
  */
-
-/**
- * Model vs product: `producto` is a value published for the real product, specification or
- * circuit; `ilustrativo` is a model assumption (a length I chose, a handbook or software default);
- * `calculo` is my own calculation from sourced values, reproduced by tested code.
- */
-export type ValueOrigin = 'producto' | 'ilustrativo' | 'calculo';
 
 export interface Provenance {
   origin: ValueOrigin;

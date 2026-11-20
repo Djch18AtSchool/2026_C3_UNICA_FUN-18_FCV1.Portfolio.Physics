@@ -19,8 +19,8 @@ import {
   TACOMA_TORSION,
   type SourcedRange,
   type SourcedValue,
-  type ValueOrigin,
 } from '../../data/bridges';
+import type { ValueOrigin } from '../../data/origin';
 import { FLUTTER_TABLE, FLUTTER_WINDS_MPH, tacomaNetDamping } from '../../data/tacomaFlutter';
 import { formatNumber } from '../../format';
 import {

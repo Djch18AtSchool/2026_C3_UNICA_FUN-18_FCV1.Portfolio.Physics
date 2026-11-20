@@ -5,6 +5,7 @@
  * phases: a negative coefficient of the specification is the same amplitude with phase π.
  */
 import { INSTRUMENT_SAMPLES, type InstrumentId } from '../../../lib/data/instrumentSamples';
+import type { ValueOrigin } from '../../../lib/data/origin';
 import { formatNumber } from '../../../lib/format';
 import { classicAmplitudes, type ClassicWave } from '../../../lib/physics/harmonics';
 import type { Preset } from '../../../lib/presets';
@@ -21,7 +22,7 @@ export interface SynthRecipe {
 }
 
 /** A product's value (the specification's recipes) or our own measurement (the recordings). */
-export type RecipeOrigin = 'producto' | 'calculo';
+export type RecipeOrigin = Exclude<ValueOrigin, 'ilustrativo'>;
 
 export interface SynthPreset extends Preset<SynthRecipe> {
   origin: RecipeOrigin;

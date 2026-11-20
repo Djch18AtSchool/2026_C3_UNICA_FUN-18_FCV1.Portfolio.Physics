@@ -1,6 +1,7 @@
 import { z } from 'astro/zod';
 import { vortexFrequency } from '../physics/resonance';
 import rawTorsion from '../../data/tacoma-torsion.json';
+import type { ValueOrigin } from './origin';
 
 /*
  * Tema 12 data: the Tacoma Narrows Bridge (1940), the Millennium Bridge (2000), Sétra's resonance
@@ -9,12 +10,6 @@ import rawTorsion from '../../data/tacoma-torsion.json';
  * marked CONFIRMADO there and accessed 2026-11-17; plus my frame-by-frame measurement of the 1940
  * film (`pnpm run data:tacoma`, src/data/tacoma-torsion.json). Names carry the unit of the value.
  */
-
-/**
- * Model vs product: `producto` is the real structure's or the document's own value, `ilustrativo`
- * a model assumption, `calculo` my own calculation from sourced values, reproduced by tested code.
- */
-export type ValueOrigin = 'producto' | 'ilustrativo' | 'calculo';
 
 export interface SourcedValue {
   value: number;
