@@ -194,6 +194,21 @@ describe('CoolingLab', () => {
     expect(screen.getByTestId('cooling-pump-note')).toHaveTextContent(/^Para mover 2\d,\d L\/s/);
   });
 
+  test('a duty point above the pump chart’s axis is drawn on its top edge, with its value', () => {
+    renderLab();
+    const pump = () => screen.getByTestId('cooling-pump-plot');
+    expect(pump().querySelector('[data-point="pedido-fuera"]')).toBeNull();
+
+    commit(/^Servidores en el rack/, '1');
+    choose('Manguera de cada servidor', /^1\/4″/);
+    commit(/^Caudal de la bomba por rack/, '225');
+
+    const edge = pump().querySelector('[data-point="pedido-fuera"]');
+    expect(edge).not.toBeNull();
+    expect(edge?.textContent).toMatch(/^pedido: .+\skPa, fuera de escala$/);
+    expect(pump().querySelector('[data-point="pedido"]')).toBeNull();
+  });
+
   test('three support plots: the split, the pump and the profile of the lab’s own rack', () => {
     renderLab();
     const charts = screen.getByTestId('cooling-lab').querySelector('[data-lab-charts]')!;
