@@ -224,6 +224,18 @@ describe('extreme inputs keep every reading finite (Review Focus 3)', () => {
     expect(coolingScene(INITIAL_COOLING_STATE, stuck)).toBeNull();
   });
 
+  test('a RangeError from the circuit gives no scene; any other error is a bug and surfaces', () => {
+    const range = () => {
+      throw new RangeError('no circuit');
+    };
+    const bug = () => {
+      throw new TypeError('bug');
+    };
+
+    expect(coolingScene(INITIAL_COOLING_STATE, range)).toBeNull();
+    expect(() => coolingScene(INITIAL_COOLING_STATE, bug)).toThrow(TypeError);
+  });
+
   test('a split with a number that is not finite gives no scene', () => {
     const broken = () => ({
       flows: [Number.NaN, ...Array(23).fill(1e-4)],

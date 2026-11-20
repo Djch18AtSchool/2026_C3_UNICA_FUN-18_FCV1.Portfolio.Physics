@@ -234,6 +234,15 @@ describe('CoolingLab', () => {
     expect(leftOut.textContent).toContain(LEFT_OUT);
   });
 
+  test('without the MDX’s notes, «Cómo se usa» is the cursor’s line alone and nothing is left out', () => {
+    const { container } = render(<CoolingLab />);
+    const usage = container.querySelector('details[data-lab-note="usage"]')!;
+
+    expect(usage.querySelectorAll('p')).toHaveLength(1);
+    expect(usage.textContent).toContain(CURSOR_HINT);
+    expect(container.querySelector('details[data-lab-note="left-out"] p')).toBeNull();
+  });
+
   test('every glyph is Plex or KaTeX, at the reference and in reverse return', () => {
     const { container } = renderLab();
     expect(plexViolations(container)).toEqual([]);

@@ -183,6 +183,27 @@ describe('what the lab says', () => {
     );
   });
 
+  test('beyond the measured 650 GPM, the pump note says the curves end there', () => {
+    const beyond = {
+      ...REFERENCE,
+      pump: { ...REFERENCE.pump, duty: { Q: 0.05, dp: 4e5 }, curve: null, operating: null },
+    };
+
+    expect(plain(pumpNote(beyond))).toMatch(
+      /Ese caudal pasa de los 650 GPM de las curvas publicadas de Deschutes\.$/,
+    );
+  });
+
+  test('one server is «servidor», in the origins and in the drawing’s name', () => {
+    const one = { ...INITIAL_COOLING_STATE, servers: 1 };
+    const scene = sceneOf(one);
+
+    expect(valueOrigins(one, scene).find((row) => row.id === 'servidores')?.text).toBe(
+      '1 servidor en el rack',
+    );
+    expect(rackSummary(scene)).toMatch(/^Rack de 1 servidor con retorno directo/);
+  });
+
   test('the rack in words, for the drawing’s accessible name', () => {
     expect(plain(rackSummary(REFERENCE))).toBe(
       'Rack de 24 servidores con retorno directo: el líquido entra abajo por el manifold de impulsión y sale abajo por el de retorno. Cada barra es el caudal de un servidor, y la línea discontinua, su mínimo de 6,38 L/min. El servidor 24, el más lejano, recibe 7,18 L/min.',
