@@ -122,6 +122,16 @@ describe('enfriamiento-liquido tables', () => {
     ).toBe('1,1–1,6');
   });
 
+  // The page's Δp ∝ Q^1,9 (paso 4 and the lab's caption) points here for its source.
+  test('conectores: the loop exponent 1,9 is my fit of OCP OAI’s fig. 4, with its readings', () => {
+    const exponent = rowNamed('enfriamiento-liquido-conectores', 'Lazo completo: exponente de su ley');
+
+    expect(exponent?.slice(1, 5)).toEqual(['$n$', '1,9', '—', 'Cálculo propio']);
+    expect(exponent?.[5]).toBe(RD109.systemExponent.source);
+    expect(exponent?.[5]).toMatch(/fig\. 4 de OCP, OAI.*2,6 a 12,9 psi entre 6 y 14 L\/min/);
+    expect(tableById('enfriamiento-liquido-conectores').caption).toMatch(/exponente del lazo/);
+  });
+
   test('desglose: mine against GF’s fig. 2, totals 1,799 and 1,98 bar, 9,2 % apart', () => {
     const [header, , ...rows] = markdownRows(
       tableMarkdown(tableById('enfriamiento-liquido-desglose')),

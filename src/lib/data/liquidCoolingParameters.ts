@@ -58,7 +58,8 @@ export type CoolingParameterId =
   | 'placa-caida'
   | 'placa-exponente'
   | 'placa-caudal-diseno'
-  | 'placa-longitud';
+  | 'placa-longitud'
+  | 'lazo-exponente';
 
 export interface ParameterSpec {
   id: CoolingParameterId;
@@ -347,5 +348,14 @@ export const CONNECTOR_PARAMETERS: readonly ParameterSpec[] = [
     precision: 2,
     unidad: 'm',
     from: RD109.plateLength,
+  },
+  {
+    // The page's Δp ∝ Q^1,9 (paso 4, the lab's caption) cites this row.
+    id: 'lazo-exponente',
+    parametro: 'Lazo completo: exponente de su ley',
+    simbolo: '$n$',
+    value: RD109.systemExponent.value,
+    precision: 1,
+    from: RD109.systemExponent,
   },
 ];

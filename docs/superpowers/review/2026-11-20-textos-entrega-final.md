@@ -1932,3 +1932,23 @@ el número que imprime la página, como en los temas.
 1. `src/pages/index.astro:127` (el nombre lo pone `src/lib/scrollRegion.ts:28-38`), nombre accesible de cada ecuación de
    «Qué aprendí» cuando se desplaza: «Ecuación desplazable» (tres veces) → «Ecuación (1) desplazable», «Ecuación (2)
    desplazable», «Ecuación (3) desplazable»; el mapa, si se desplaza, «Figura desplazable» → «Figura 1 desplazable».
+
+### 2. Tema 13: de dónde sale el exponente 1,9
+
+La página usaba $\Delta p \propto Q^{1{,}9}$ sin decir de dónde salía. Es mi ajuste a la fig. 4 de OCP OAI
+(`RD109.systemExponent`, `src/lib/data/liquidCooling.ts:251-255`); ahora la tabla 13.3 lo imprime con su fuente y la
+prosa la cita. Prosa del tema: 647 → 649.
+
+2. `src/content/topics/enfriamiento-liquido.mdx:336`, paso 4, «Por qué», ranura `ecuacion`: «…y con
+   $\Delta p \propto Q^{1{,}9}$ la potencia $P = \Delta p\,Q$ crece como $Q^{2{,}9}$.» → «…y con
+   $\Delta p \propto Q^{1{,}9}$ (tabla 13.3) la potencia $P = \Delta p\,Q$ crece como $Q^{2{,}9}$.»
+3. `src/lib/data/liquidCoolingParameters.ts:354-360`, tabla 13.3, fila nueva: — → Parámetro «Lazo completo: exponente
+   de su ley», Símbolo «$n$», Valor «1,9», Unidad «—», Origen «Cálculo propio», Fuente «Cálculo propio: lazo 8x1 de la
+   fig. 4 de OCP, OAI System Liquid Cooling Guidelines (2023) (lectura aproximada), de 2,6 a 12,9 psi entre 6 y
+   14 L/min, $n = \ln(12{,}9/2{,}6)/\ln(14/6) \approx 1{,}9$» (el texto ya existía en el módulo; no se imprimía).
+4. `src/lib/tables/topics/enfriamiento-liquido.ts:116`, pie de la tabla 13.3: «El conector UQD04 de cada bandeja y la
+   placa fría (origen, como en la tabla 13.1).» → «El conector UQD04 de cada bandeja, la placa fría y el exponente del
+   lazo completo (origen, como en la tabla 13.1).» (el resto igual).
+5. `src/lib/tables/topics/enfriamiento-liquido.ts:119`, línea de fuente de la tabla 13.3: «…exponente $n$ por omisión
+   de la Modelica Buildings Library v14.0.0; cada fila con su fuente» → «…exponente $n$ por omisión de la Modelica
+   Buildings Library v14.0.0; exponente del lazo: OCP OAI (2023), fig. 4; cada fila con su fuente».

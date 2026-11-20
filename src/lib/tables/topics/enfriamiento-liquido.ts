@@ -113,10 +113,10 @@ const GEOMETRY: DataTableSpec = parameterTable(
 
 const CONNECTORS: DataTableSpec = parameterTable(
   'enfriamiento-liquido-conectores',
-  `El conector UQD04 de cada bandeja y la placa fría (origen, como en la tabla 13.1). El $C_v$ se define con el caudal en gal/min y la caída en psi. Con ${REFERENCE.servers} servidores por rack, cada UQD04 lleva ${lpm(Q_SERVER)}, más que sus ${lpm(UQD04.nominalFlow.value)} nominales. NVIDIA no publica el caudal por bandeja, y la caída de la placa es el valor de diseño que GF da para todas las placas y su tubería interna, no la curva medida de un modelo con nombre.`,
+  `El conector UQD04 de cada bandeja, la placa fría y el exponente del lazo completo (origen, como en la tabla 13.1). El $C_v$ se define con el caudal en gal/min y la caída en psi. Con ${REFERENCE.servers} servidores por rack, cada UQD04 lleva ${lpm(Q_SERVER)}, más que sus ${lpm(UQD04.nominalFlow.value)} nominales. NVIDIA no publica el caudal por bandeja, y la caída de la placa es el valor de diseño que GF da para todas las placas y su tubería interna, no la curva medida de un modelo con nombre.`,
   CONNECTOR_PARAMETERS,
   {
-    text: 'OCP, Universal Quick Disconnect Design Specification v2.0.0 (2026), tablas 1, 2 y 6; Amphenol, catálogo UQD/UQDB (2025); GF Piping Systems (2026), tabla 1; exponente $n$ por omisión de la Modelica Buildings Library v14.0.0; cada fila con su fuente',
+    text: 'OCP, Universal Quick Disconnect Design Specification v2.0.0 (2026), tablas 1, 2 y 6; Amphenol, catálogo UQD/UQDB (2025); GF Piping Systems (2026), tabla 1; exponente $n$ por omisión de la Modelica Buildings Library v14.0.0; exponente del lazo: OCP OAI (2023), fig. 4; cada fila con su fuente',
     url: 'https://www.opencompute.org/wp-content/uploads/2026/10/OCP-Design-Spec_UQD_v2.0.0.pdf',
   },
 );
