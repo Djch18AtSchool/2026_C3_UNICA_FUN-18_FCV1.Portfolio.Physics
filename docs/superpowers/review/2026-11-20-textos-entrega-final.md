@@ -343,3 +343,15 @@ En el laboratorio (`SpringLab.tsx`, `springLabText.ts`, `SpringNotes.tsx`, `Spri
   0,3 da los 157,9 N/m y 17,6 N·s/m que imprime Apple: $\zeta$ = 0,70.»
 - `springLabPresets.ts:84`, nota de «Sobreamortiguado»: — → «El doble del amortiguamiento crítico, $\zeta$ = 2: llega
   sin pasarse, pero tarda 1,49 s en asentarse al 2 %.»
+
+Dos textos de la tarea 4 que cambié para que pase la guardia de glifos, que corre en esta página desde que tiene
+laboratorio:
+
+- `src/components/topics/animaciones-resorte/SpringFigure.tsx:174`, leyenda de la figura 10.2: «Envolvente
+  $x_\text{obj} \pm A_0 e^{-\zeta\omega_0 t}$» → «Envolvente $x_\text{obj} \pm A_0 e^{-(b/2m)\,t}$». Es la misma
+  envolvente, en la forma del Módulo 5 que ya cita el recuadro de clase ($\zeta\omega_0 = b/2m$). Con el subíndice
+  dentro del exponente, el nombre hablado del botón de la leyenda decía «omega _0» con el guion bajo crudo. El pie de
+  la figura conserva $e^{-\zeta\omega_0 t}$.
+- `src/content/topics/animaciones-resorte.mdx:212`, Paso 2, «En la ecuación»: «… $\cos(\omega' t + \phi)$» →
+  «… $\cos(\omega' t + \varphi)$». La ϕ de `\phi` no está en IBM Plex y se dibujaba con DejaVu Sans; la φ de
+  `\varphi` sí está (el Tema 4 la usa), y es la del libro para la fase.

@@ -87,6 +87,17 @@ describe('SpringFigure', () => {
     },
   );
 
+  test('every legend entry is named in words: no raw «_» or «^» reaches the screen reader', () => {
+    for (const variant of VARIANTS) {
+      const { container, unmount } = render(<SpringFigure variant={variant} />);
+      const names = [...container.querySelectorAll('button[aria-label]')].map(
+        (button) => button.getAttribute('aria-label') ?? '',
+      );
+      for (const name of names) expect(name, variant).not.toMatch(/[_^]/);
+      unmount();
+    }
+  });
+
   test('libre: the undamped cosine in the undamped color, with the target band and T₀', () => {
     const { container } = render(<SpringFigure variant="libre" />);
 

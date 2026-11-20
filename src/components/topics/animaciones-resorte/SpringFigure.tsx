@@ -171,7 +171,7 @@ function AmortiguadoPlot(): JSX.Element {
           },
           {
             id: 'envolvente',
-            label: String.raw`Envolvente $x_\text{obj} \pm A_0 e^{-\zeta\omega_0 t}$`,
+            label: String.raw`Envolvente $x_\text{obj} \pm A_0 e^{-(b/2m)\,t}$`,
             points: ENVELOPE,
             color,
             dashed: true,
