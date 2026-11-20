@@ -35,10 +35,10 @@ const texNumber = (value: number, decimals: number) => comma(value, decimals).re
 const trimmed = (value: number) => comma(value, Number.isInteger(value) ? 0 : PARAM_DECIMALS);
 
 /**
- * A preset's name as the table prints it: its plain label (made for a native <option>) with the
- * magnitudes it names set as formulas, as every symbol on the page.
+ * A preset's name as the table and the lab's preset note print it: its plain label (made for a
+ * native <option>) with the magnitudes it names set as formulas, as every symbol on the page.
  */
-const TABLE_NAMES: Readonly<Record<string, string>> = {
+export const PRESET_NAMES: Readonly<Record<string, string>> = {
   'motion-xy': 'Motion, posición $x$ e $y$',
 };
 
@@ -51,7 +51,7 @@ function presetRow({ id, label, params, origin, source }: SpringPreset): Record<
   const zeta = dampingRatio(params);
   const overshoot = overshootRatio(zeta);
   return {
-    preajuste: TABLE_NAMES[id] ?? label,
+    preajuste: PRESET_NAMES[id] ?? label,
     k: trimmed(params.k),
     b: trimmed(params.b),
     m: trimmed(params.m),
