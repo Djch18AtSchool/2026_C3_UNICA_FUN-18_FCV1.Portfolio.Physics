@@ -96,6 +96,42 @@ describe('SpringCard, the lab’s canvas', () => {
     expect(markText(MARKS.to)).toBe('1 000 px');
   });
 
+  // The 100 px guide crossed «Curva de duración fija» (360 px) and «T = 0,81 s» (1 280 px).
+  test('the marks’ guides and the band run down each lane’s card and rail, leaving the lane titles clear', () => {
+    // After the press the target is 100 px, under the titles: the band must leave them clear too.
+    renderScene(buildRun(MOTION_DEFAULT, [0.2]), 0.3);
+    const title = screen.getByText('Curva de duración fija');
+    const chip = screen.getByTestId('comparison-duration').querySelector('rect') as SVGRectElement;
+    const header = {
+      top: Number(title.getAttribute('y')) - 13,
+      bottom: Number(chip.getAttribute('y')) + Number(chip.getAttribute('height')) + 4,
+    };
+    const cardCentre = (lane: 'spring' | 'bezier') =>
+      Number(/translate\([\d.]+ ([\d.]+)\)/.exec(card(lane).getAttribute('transform') ?? '')?.[1]);
+
+    for (const mark of [MARKS.from, MARKS.to]) {
+      const guides = [
+        ...document.querySelectorAll(`[data-mark="${mark}"] line[stroke-dasharray]`),
+      ].map((line) => [Number(line.getAttribute('y1')), Number(line.getAttribute('y2'))]);
+
+      for (const [y1, y2] of guides) {
+        expect(y2 <= header.top || y1 >= header.bottom, `${mark}: ${y1}–${y2}`).toBe(true);
+      }
+      for (const lane of ['spring', 'bezier'] as const) {
+        const y = cardCentre(lane);
+        expect(guides.some(([y1, y2]) => y1 < y && y < y2), `${mark} en ${lane}`).toBe(true);
+      }
+    }
+    const bands = [...document.querySelectorAll('[data-band="reposo"]')].map((rect) => [
+      Number(rect.getAttribute('y')),
+      Number(rect.getAttribute('y')) + Number(rect.getAttribute('height')),
+    ]);
+    expect(bands.length).toBeGreaterThan(0);
+    for (const [y1, y2] of bands) {
+      expect(y2 <= header.top || y1 >= header.bottom, `banda: ${y1}–${y2}`).toBe(true);
+    }
+  });
+
   test('the drawer’s settings hide the curve’s lane (a shorter canvas) and the band', () => {
     renderScene(buildRun(MOTION_DEFAULT, []), 0);
     const tall = sceneHeight();

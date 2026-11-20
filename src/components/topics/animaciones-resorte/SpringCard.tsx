@@ -82,7 +82,7 @@ interface Track {
 }
 
 const laneTop = (index: number) => index * (LANE.height + LANE.gap);
-/** The top of the cards (and of the guides and the band): just above the first lane's card. */
+/** The top of a lane's guides and band: just above its card. */
 const MARKS_TOP = LANE.card - CARD.height / 2 - CHEVRON;
 
 /**
@@ -174,21 +174,40 @@ function Ghost({ geo, target, color, index }: Omit<CardProps, 'lane' | 'x'> & { 
   );
 }
 
-/** The band of ±2 % of the travel around the current target, across every lane. */
+/**
+ * A mark's guide, one dashed segment per lane: from just above the lane's card to its rail (the
+ * last lane's down to the ruler), so it never crosses a lane's title or chip.
+ */
+function guideSpans(geo: Track): [number, number][] {
+  return Array.from({ length: geo.lanes }, (_, index) => {
+    const isLast = index === geo.lanes - 1;
+    return [laneTop(index) + MARKS_TOP, isLast ? geo.rulerTop : laneTop(index) + LANE.rail];
+  });
+}
+
+/**
+ * The band of ±2 % of the travel around the current target, down every lane as the guides run
+ * (a target of 100 px sits under the lane titles).
+ */
 function Band({ geo, target }: { geo: Track; target: number }): JSX.Element {
   const half = BAND_EPSILON * TRAVEL_PX;
   const [x1, x2] = [geo.toPx(target - half), geo.toPx(target + half)];
   return (
-    <rect
-      data-band="reposo"
-      data-target={target}
-      x={x1}
-      y={MARKS_TOP}
-      width={x2 - x1}
-      height={geo.rulerTop - MARKS_TOP}
-      fill={TICK_COLOR}
-      fillOpacity={BAND_OPACITY}
-    />
+    <g>
+      {guideSpans(geo).map(([top, bottom]) => (
+        <rect
+          key={top}
+          data-band="reposo"
+          data-target={target}
+          x={x1}
+          y={top}
+          width={x2 - x1}
+          height={bottom - top}
+          fill={TICK_COLOR}
+          fillOpacity={BAND_OPACITY}
+        />
+      ))}
+    </g>
   );
 }
 
@@ -288,7 +307,7 @@ function LaneHeader({ index, width, title, chip, color, testId, regime }: LaneHe
   );
 }
 
-/** The marks on the ruler under the lanes, with their positions, and their guides up the lanes. */
+/** The marks on the ruler under the lanes, with their positions, and their guides down the lanes. */
 function Marks({ geo }: { geo: Track }): JSX.Element {
   return (
     <g>
@@ -303,14 +322,17 @@ function Marks({ geo }: { geo: Track }): JSX.Element {
         const x = geo.toPx(mark);
         return (
           <g key={mark} data-mark={mark}>
-            <line
-              x1={x}
-              x2={x}
-              y1={MARKS_TOP}
-              y2={geo.rulerTop}
-              stroke={TICK_COLOR}
-              strokeDasharray={GUIDE_DASH}
-            />
+            {guideSpans(geo).map(([top, bottom]) => (
+              <line
+                key={top}
+                x1={x}
+                x2={x}
+                y1={top}
+                y2={bottom}
+                stroke={TICK_COLOR}
+                strokeDasharray={GUIDE_DASH}
+              />
+            ))}
             <line
               x1={x}
               x2={x}
